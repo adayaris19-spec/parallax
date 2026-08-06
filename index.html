@@ -171,9 +171,39 @@ details.grp[open]>summary::before{content:'▾ '}
 details.grp>summary .lv{font-family:var(--m);font-size:6.8px;color:var(--ev)}
 details.grp>.gb{padding-top:6px}
 /* ---- the document IS the workspace: dense text with figures embedded inside it ---- */
-#doc{position:fixed;top:56px;left:0;right:296px;bottom:0;overflow-y:auto;z-index:5;pointer-events:none;
-  padding:18px 26px 120px 26px;scrollbar-width:thin}
-#doc .din{max-width:960px;margin:0 auto}
+#doc{position:fixed;top:56px;left:0;right:296px;bottom:0;overflow:hidden;z-index:5;pointer-events:none}
+/* station rail — the mode's mechanism map */
+#srail{position:absolute;left:26px;top:34px;bottom:150px;width:200px;pointer-events:auto}
+#srail .rt{font-size:7.4px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:14px}
+#srail .rline{position:absolute;left:5px;top:34px;bottom:8px;width:1px;background:rgba(13,40,70,.25)}
+#srail .rmark{position:absolute;left:2.5px;width:6px;height:22px;border-radius:3px;background:var(--ev);
+  box-shadow:0 0 10px rgba(0,144,196,.7);transition:top .5s cubic-bezier(.2,.8,.2,1)}
+.srn{position:relative;display:block;background:none;border:0;text-align:left;padding:7px 0 7px 22px;cursor:pointer;width:100%}
+.srn .sn1{font-size:10.3px;font-weight:700;color:var(--ink2);letter-spacing:.02em}
+.srn .sn2{font-size:8px;color:var(--dim);font-family:var(--m);letter-spacing:.04em;margin-top:1px}
+.srn:hover .sn1{color:var(--ink)}
+.srn.on .sn1{color:#0a1c30}
+.srn:before{content:'';position:absolute;left:2px;top:14px;width:7px;height:7px;border-radius:50%;
+  border:1.4px solid rgba(13,40,70,.45);background:rgba(214,233,247,.9)}
+.srn.on:before{border-color:var(--ev);background:var(--ev);box-shadow:0 0 8px rgba(0,144,196,.8)}
+/* active station: text pane left, visual pane right — both alive */
+#stext{position:absolute;left:262px;top:34px;bottom:120px;width:min(480px,34vw);overflow-y:auto;overflow-x:hidden;
+  pointer-events:auto;scrollbar-width:none;padding-right:10px;mask-image:linear-gradient(180deg,transparent 0,#000 18px,#000 calc(100% - 26px),transparent 100%)}
+#stext::-webkit-scrollbar{display:none}
+#svis{position:absolute;left:calc(262px + min(480px,34vw) + 26px);right:8px;top:30px;bottom:96px;
+  pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#svis .vin{width:100%;max-width:760px;position:relative}
+#svis #liveFig{height:min(62vh,560px)}
+#svis .fcap{margin-top:8px;font-size:10.3px;line-height:1.6;color:var(--dim)}
+#svis .fcap b{color:var(--ink2)}
+.stIn{animation:stIn .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes stIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.vIn{animation:vIn .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes vIn{from{opacity:0;transform:scale(.95) translateY(12px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.lvflash{animation:lvf 1s}
+@keyframes lvf{0%{filter:drop-shadow(0 0 14px rgba(0,144,196,.55))}100%{filter:none}}
+#stHint{position:absolute;left:262px;bottom:96px;pointer-events:none;font-family:var(--m);font-size:7.6px;
+  letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
 .sec{pointer-events:auto;background:none;border:0;padding:6px 2px 18px;margin-bottom:10px}
 .sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(13,40,70,.25);padding-bottom:6px}
 .sec>.sh3 .st3{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase}
@@ -2058,7 +2088,8 @@ function renderDock(){
    '<div class="n">'+m[1]+(m[0]==='watch'?'<span class="badge">4</span>':'')+'</div><div class="d">'+m[2]+'</div></button>').join('');
 }
 function buildCtl(){
-  const c=$('#figCtl')||$('#ctl');
+  const c=$('#figCtl');
+  if(!c){$('#ctl').innerHTML='';return;}
   if(S.mode==='model'){
     c.innerHTML='<div class="cslider"><label>Heating prior</label>'+
      '<input id="heatSl" type="range" min="0" max="100" value="'+Math.round(S.asm.heating*100)+'">'+
@@ -2646,9 +2677,9 @@ const _act=act;
 act=function(a){
   const p=a.split(':');
   if(p[0]==='sub'){
-    const SECMAP={lit:'lit',graph:'graph',uncert:'uncert',sens:'sens',pareto:'pareto',hidden:'hidden',referee:'referee',default:'finding'};
-    if(S.mode!==p[1])nav(p[1]);
-    setTimeout(()=>{const el=document.getElementById('sec-'+(SECMAP[p[2]]||'finding'));if(el)el.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});},60);
+    const map={lit:'lit',graph:'graph',uncert:'uncert',sens:'sens',pareto:'pareto',hidden:'hidden',referee:'referee',default:null};
+    const tgt=map[p[2]];
+    if(tgt)jumpStation(p[1],tgt);else if(S.mode!==p[1])nav(p[1]);
     return;
   }
   if(p[0]==='evc'){const ev=EVENTS[+p[1]];if(ev)inspectEvent(ev);return;}
@@ -2981,11 +3012,13 @@ const LIVEBIND={
 function refreshDoc(){
   document.querySelectorAll('[data-lv]').forEach(el=>{
     const k=el.dataset.lv,b=LIVEBIND[k];if(!b)return;
+    const old=el.innerHTML;
     if(k==='kf'){
       const open=new Set(Array.from(el.querySelectorAll('.kfd.open')).map(d=>d.dataset.kfd));
       el.innerHTML=b();
       el.querySelectorAll('.kfd').forEach(d=>{if(open.has(d.dataset.kfd))d.classList.add('open');});
     }else el.innerHTML=b();
+    if(el.innerHTML!==old&&!RM){el.classList.remove('lvflash');void el.offsetWidth;el.classList.add('lvflash');}
   });
 }
 document.addEventListener('click',e=>{
@@ -3007,100 +3040,160 @@ function dsec(id,label,inner,fig){
 function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
-const DOCS={
- watch:()=>
-  dsec('finding','Executive briefing — autonomous cycle complete · S-000 02:14 UTC',
-   '<h2>The revised ALMA polarisation trajectory is no longer contained by the selected GRMHD model family.</h2>'+
-   '<p>The failure is controlled by an <b>inherited electron-heating prescription</b> (83 % of boundary variance on the failing axis), not by the revised measurement uncertainty: doubling the calibration term still leaves a 22° residual at 3.1σ. Recommended action: <b>re-run three MAD ensemble members with the laboratory-informed heating range</b> before requesting telescope time — 64 % of the surviving explanation space is eliminated at zero observing cost.</p>'+
-   '<div data-lv="kf">'+kfHTML()+'</div>')+
-  dsec('live','Live monitor — knowledge entering the model',
-   figLive('<b>Live instrument.</b> Records stream from 15 source classes toward the active model; irrelevant ones fade mid-flight, the four material changes dock as Δ nodes. Drag one into the core to propagate it; click for its detection chain; hover anything for what it answers.')+
-   '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>',true)+
-  dsec('changes','Material changes — detection → consequence',
-   '<table class="dtable"><tr><th></th><th>Change</th><th>Result</th><th></th></tr>'+
-   EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.cls+'</span></td><td>'+ev.res+'</td><td><button class="abtn sm" data-act="evc:'+i+'">Chain</button></td></tr>').join('')+'</table>'+
-   '<p>Every change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node consequence propagation → ranked action. Click any row to open it.</p>')+
-  dsec('lit','Autonomous literature comparison',
-   '<p>Nine sources were reduced to three shared parameters and compared pairwise in σ units. <b>Your S-097 static-screen adoption sits on the contested column:</b> D21 disputes the B18/W20 stability cluster at <b>4.0σ</b>, and the dispute was inherited silently. The m_L tension (S15, 2.5σ) is method-level — single-dish beam depolarization — not physical.</p>'+
-   '<div class="fig"><button class="figpop" data-figpop="lit">⠿ float figure</button><div data-lv="lit">'+svgLit()+'</div><div class="fcap"><b>Figure.</b> Sources placed at their claimed values; red dashed links are contradictions with their tension in σ; navy dashed lines are the values your model adopts; grey σ ranges are 1σ.</div></div>'),
- model:()=>
-  dsec('finding','Physical model — state of containment',
-   '<h2>One boundary of the physical model is broken, and the break is assumption-shaped.</h2>'+
-   '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
-   '<p>The permitted sector is the union of 1,120 retained library trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the heating prescription adopted at S-277 as convention — the amber clamp in the dependency graph below. Stretch the prior with the slider inside the figure and watch containment, the ranking, the claim, and every number in this document recompute.</p>',false)+
-  dsec('live','Live instrument — ray-traced physical system',
-   figLive('<b>Live instrument.</b> GRMHD render with the containment gauge embedded on the object: the breathing band is the permitted sector, ticks are the nine measured epochs, violet marks exit the boundary. Drag to rotate · scroll to zoom · SHIFT = laboratory counterfactual · ALT = uncertainty layers. The heating slider is a scientific control: it recomputes the model, not the picture.',true),true)+
-  dsec('evpa','Evidence against prediction',
-   '<p>The primary scientific figure. Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior. The exit epoch and the ±42° preview update live with the slider above.</p>'+
-   '<div class="fig"><button class="figpop" data-figpop="evpa">⠿ float figure</button><div data-lv="evpa">'+svgEVPA()+'</div><div class="fcap"><b>Figure.</b> Hold ALT anywhere to inflate the error bars to the calibration-doubled counterfactual — the trajectory still exits (3.1σ): the breach is a boundary property.</div></div>')+
-  dsec('graph','Causal structure — what feeds what',
-   '<p>Every structure in the model carries provenance edges. The two amber nodes are the only unmeasured structures; the heating prescription alone carries <b>83 % of failing-axis variance and 4 downstream claims</b>. Click any node for its full upstream/downstream trace.</p>'+
-   '<div class="fig"><button class="figpop" data-figpop="dep">⠿ float figure</button><div data-lv="dep">'+svgDep()+'</div><div class="fcap"><b>Figure.</b> Evidence → calculation → assumption → consequence. The demoted conclusion and the expired S-144 rejection are live states, not annotations.</div></div>')+
-  dsec('uncert','Uncertainty propagation',
-   '<p>The chain from instrument systematic to claim survival. Each stage inherits and amplifies the last; the funnel is the uncertainty budget of the entire argument.</p>'+
-   '<div class="fig"><button class="figpop" data-figpop="funnel">⠿ float figure</button><div data-lv="funnel">'+svgFunnel()+'</div><div class="fcap"><b>Figure.</b> Stage 4 is the decision point: at ×1 the exit is significant; at ×2 (hold ALT) it survives at 3.1σ — calibration cannot absorb the breach.</div></div>')+
-  dsec('sens','Parameter sensitivity',
-   '<p>Where measurement leverage actually lives. The heating prior dominates; spin and inclination are pinned by ring morphology; the screen flips the ranking but not the residual.</p>'+
-   '<div class="fig"><button class="figpop" data-figpop="sens">⠿ float figure</button><div data-lv="sens">'+svgSens()+'</div><div class="fcap"><b>Figure.</b> Amber bars are assumptions — exactly where the laboratory mapping applies.</div></div>'),
- analyze:()=>
-  dsec('hyps','Competing explanations — full dossiers',
-   '<h2>Three configurations survive; their order is a function of your assumption set.</h2>'+
-   '<p>Coverage is transparent bookkeeping — fraction of admitted structures contained, weighted by 1/σ², penalised ×0.8 per required unmeasured assumption — never a posterior. Release the screen or exclude a dataset and this section rewrites itself.</p>'+
-   '<div data-lv="hyps">'+hypsHTML()+'</div>')+
-  dsec('live','Live instrument — evidence landscape',
-   figLive('<b>Live instrument.</b> Support pulls a hypothesis toward its evidence; contradiction pushes it away; excluding a dataset physically reshapes the space while coverage rings ease to recomputed values. Drop one hypothesis onto another for the collision comparison; SHIFT previews the screen counterfactual.'),true)+
-  dsec('matrix','Evidence × hypothesis structure',
-   '<div data-lv="matrix">'+matrixHTML()+'</div>'+
-   '<p>The ALMA trajectory is essential (the claim loses its subject without it); the magnetar sightline is load-bearing (its removal restores screen parity); the laboratory mapping is conditional; the flare catalogue is a pending discriminator, not a support.</p>')+
-  dsec('pareto','Experiment optimization',
-   '<p data-lv="exps2">Which observation removes the most surviving explanation volume, at what cost:</p>'+
-   '<div data-lv="exps">'+expsHTML()+'</div>'+
-   '<div class="acts" style="margin:4px 0">'+
-   '<button class="abtn sm" data-act="budget:any">Unconstrained</button><button class="abtn sm" data-act="budget:zero">Zero telescope</button><button class="abtn sm" data-act="budget:fast">≤ 30 days</button></div>'+
-   '<div class="fig"><button class="figpop" data-figpop="pareto">⠿ float figure</button><div data-lv="pareto">'+svgPareto()+'</div><div class="fcap"><b>Figure.</b> Bubble area = telescope hours; the dashed line is the efficient frontier; the cyan pick is optimal under the selected budget.</div></div>')+
-  dsec('hidden','Cross-domain discovery audit',
-   '<p>117 adjacent-domain families scanned, 32 candidate mappings tested in a common dimensionless representation, <b>one admitted</b>: laboratory reconnection → R(βi), residual 0.11, prior-widening only. Kept with reasons: solar-wind cascade (near-miss, 0.38 — no surviving observable); MRI fluid analogue (rejected — no regime overlap); materials percolation (rejected, 0.61). A connection may widen a prior; it may never transfer a value.</p>'),
- memory:()=>
-  dsec('finding','Scientific memory — time-resolved research states',
-   '<h2>Every belief is stored with its evidence context and an expiry condition — and one condition has expired.</h2>'+
-   '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
-   '<p>The S-144 heating rejection was contingent on the absence of a direct measurement; the S-044 laboratory result is that measurement. Nothing re-reads old notes: expiry predicates are machine-checked every autonomous cycle.</p>'+
-   '<div class="acts"><button class="abtn sm" data-act="mem:replay">Replay the evolution — narrated</button><button class="abtn sm" data-act="act:react">Reactivate eligible branch</button><button class="abtn sm" data-act="act:compare144">Compare S-144 ↔ now</button></div>')+
-  dsec('live','Live instrument — the research timeline',
-   figLive('<b>Live instrument.</b> Drag NOW through research time: beliefs appear, the untested screen assumption visibly erodes, the dormant branch arc forms and its condition expires at S-044. Evidence-arrival pulses fire as you cross states.'),true)+
-  dsec('states','The record',
-   '<div>'+memHTML()+'</div>')+
-  dsec('compare','S-144 vs S-000 — what changed is evidence',
-   '<table class="dtable"><tr><th>Dimension</th><th>S-144</th><th>S-000</th></tr>'+
-   [['Polarisation','6 epochs · no drift','9 epochs · 41°±6° monotonic'],
-    ['Heating constraint','none — unfalsifiable','lab R = 7.9±1.6 (unreplicated)'],
-    ['Control sightline','single check','flat to 3 % · replicated ×2'],
-    ['Branch status','rejected','eligible — condition expired'],
-    ['Containment','9/9 inside ±14°','3/9 — exits at epoch 4']].map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'),
- claim:()=>
-  dsec('finding','Working claim v3 — conditional, live',
-   '<h2 data-lv="claimtxt">'+LIVEBIND.claimtxt()+'</h2>'+
-   '<p>The claim is assembled from verified components, never generated. Its two unmeasured premises are stated inside the text; its falsifiers are concrete: a correlated magnetar RM excursion returns the screen; flare-locked EVPA returns eruptions. One 21-day campaign resolves all three configurations. Lineage: v1 S-041 (post-laboratory) · v2 S-020 (post-magnetar) · v3 live.</p>')+
-  dsec('live','Live instrument — the claim as structure',
-   figLive('<b>Live instrument.</b> Drag components into the core to attach; drag out to detach — support physically carries the structure, unreplicated support flickers, and detaching the observation collapses the claim (and rewrites the sentence above).'),true)+
-  dsec('comps','Components and weights',
-   '<div data-lv="comps">'+compsHTML()+'</div>')+
-  dsec('referee','Referee simulation — ranked objections',
-   '<p>Six objections generated from the live model state, ranked by severity. Two are structural exposures requiring a declared premise or a scheduled test; the rest carry prepared responses.</p>'+
-   '<div class="acts"><button class="abtn sm" data-act="ref:run">Run the simulation</button></div>'+
-   '<div data-lv="referee">'+refereeHTML()+'</div>'),
- reason:()=>
-  dsec('finding','Reasoning chamber — think out loud',
-   '<h2>Speak, and the system verifies: every sentence is parsed, classified and checked against the model.</h2>'+
-   '<p>Use the bar at the bottom-left from any mode — analysis begins while you type. Detected structures: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to your own rejected reasoning, reviewer risk, suggested rewording, and the missing test that would settle the sentence.</p>'+
-   '<p data-lv="reason">'+LIVEBIND.reason()+'</p>')+
-  dsec('live','Live instrument — the argument as it builds',
-   figLive('<b>Live instrument.</b> Statements stack with their verification tags; threads arc to the model, memory, and evidence anchors. The argument-map control splits supported structure from what a referee will attack.'),true)
-};
+/* ---------------- stations: the mode is a mechanism, not an article ---------------- */
+const VISTITLE={evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+  funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
+function stationsFor(mode){
+  if(mode==='watch')return [
+   {id:'brief',label:'Executive briefing',sub:'main finding · next action',vis:'live',
+    cap:'<b>Live monitor.</b> Records stream from 15 source classes into the model; the four material changes dock as Δ nodes. Drag one into the core to propagate it; click it for the detection chain.',
+    html:'<h2>The revised ALMA polarisation trajectory is no longer contained by the selected GRMHD model family.</h2>'+
+     '<p>The failure is controlled by an <b>inherited electron-heating prescription</b> (83 % of boundary variance), not by measurement uncertainty: calibration doubled still leaves 3.1σ. Recommended action: <b>re-run three MAD ensemble members with the laboratory-informed heating range</b> — 64 % of the surviving explanation space eliminated at zero observing cost.</p>'+
+     '<div data-lv="kf">'+kfHTML()+'</div>'},
+   {id:'changes',label:'Material changes',sub:'detection → consequence',vis:'live',
+    cap:'<b>Live monitor.</b> The same stream — the queue below is what survived the materiality tests this cycle.',
+    html:'<h2>Four changes altered an assumption, boundary, hypothesis, conclusion or experiment.</h2>'+
+     '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>'+
+     '<table class="dtable"><tr><th></th><th>Change</th><th></th></tr>'+
+     EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.res+'</span></td><td><button class="abtn sm" data-act="evc:'+i+'">chain</button></td></tr>').join('')+'</table>'+
+     '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'},
+   {id:'lit',label:'Literature agreement',sub:'9 sources · 3 contradictions',vis:'lit',
+    html:'<h2>Your static-screen assumption rests on contested literature.</h2>'+
+     '<p>Nine sources reduced to three shared parameters, compared pairwise in σ. <b>D21 disputes the B18/W20 stability cluster at 4.0σ</b> — and your S-097 adoption inherited that dispute silently. The m_L tension (S15, 2.5σ) is method-level: single-dish beam depolarization.</p>'+
+     '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 %.</p>'+
+     '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
+  if(mode==='model')return [
+   {id:'system',label:'Physical system',sub:'render · containment gauge',vis:'live',
+    cap:'<b>Live instrument.</b> The containment gauge is embedded on the object: the breathing band is the permitted sector, ticks are the nine epochs, violet exits the boundary. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.',
+    html:'<h2>One boundary of the physical model is broken — and the break is assumption-shaped.</h2>'+
+     '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
+     '<p>The permitted sector is the union of 1,120 retained trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the S-277 heating convention. Stretch the prior in the figure — containment, ranking, claim and every number here recompute.</p>'},
+   {id:'evpa',label:'Evidence vs prediction',sub:'the primary figure',vis:'evpa',
+    html:'<h2>Nine measured epochs against the permitted sector.</h2>'+
+     '<p>Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior — its width, the exit epoch and the ±42° preview update live with the slider on the system station.</p>'+
+     '<p>Hold <b>ALT</b> to inflate the errors to the calibration-doubled counterfactual: the trajectory still exits at 3.1σ. The breach is a property of the boundary, not the measurement.</p>'},
+   {id:'graph',label:'Causal structure',sub:'what feeds what',vis:'dep',
+    html:'<h2>Two unmeasured structures hold the entire failure.</h2>'+
+     '<p>Every structure carries provenance edges. The heating prescription alone owns <b>83 % of failing-axis variance and 4 downstream claims</b>; the screen assumption carries 3 dependents and a live literature dispute. Click any node in the figure for its upstream/downstream trace.</p>'},
+   {id:'uncert',label:'Uncertainty chain',sub:'systematic → survival',vis:'funnel',
+    html:'<h2>The funnel is the uncertainty budget of the whole argument.</h2>'+
+     '<p>Instrument systematic → per-epoch σ → epoch-9 residual → exit significance → claim survival. Each stage inherits and amplifies the last. Stage 4 is the decision point; hold <b>ALT</b> to stress the chain ×2.</p>'},
+   {id:'sens',label:'Sensitivity',sub:'where leverage lives',vis:'sens',
+    html:'<h2>What actually controls your conclusion.</h2>'+
+     '<p>The heating prior dominates the failing axis; spin and inclination are pinned by ring morphology; the screen flips the ranking, not the residual. Amber bars are assumptions — which is exactly where the laboratory mapping applies.</p>'}];
+  if(mode==='analyze')return [
+   {id:'hyps',label:'Competing explanations',sub:'live dossiers',vis:'live',
+    cap:'<b>Live instrument.</b> Evidence pulls, contradiction pushes; excluding a dataset reshapes the space. Drop one hypothesis onto another to collide them; SHIFT previews the screen counterfactual.',
+    html:'<h2>Three configurations survive; their order is a function of your assumptions.</h2>'+
+     '<div data-lv="hyps">'+hypsHTML()+'</div>'},
+   {id:'matrix',label:'Evidence structure',sub:'roles · reliability',vis:'live',
+    cap:'<b>Live instrument.</b> The same landscape — the table on the left is its exact structural content.',
+    html:'<h2>Every dataset has a structural role, and one of them is essential.</h2>'+
+     '<div data-lv="matrix">'+matrixHTML()+'</div>'+
+     '<p>ALMA is essential (the claim loses its subject); the magnetar is load-bearing (removal restores screen parity); the laboratory mapping is conditional; the flares are a pending discriminator.</p>'},
+   {id:'pareto',label:'Experiment optimization',sub:'cost–yield frontier',vis:'pareto',
+    html:'<h2>Which observation removes the most explanation volume, at what cost.</h2>'+
+     '<div data-lv="exps">'+expsHTML()+'</div>'+
+     '<div class="acts"><button class="abtn sm" data-act="budget:any">Unconstrained</button><button class="abtn sm" data-act="budget:zero">Zero telescope</button><button class="abtn sm" data-act="budget:fast">≤ 30 days</button></div>'},
+   {id:'hidden',label:'Hidden connections',sub:'cross-domain audit',vis:'live',
+    cap:'<b>Live instrument.</b> The admitted mapping is why the heating prior can widen at all.',
+    html:'<h2>117 adjacent-domain families scanned · 32 mappings tested · one admitted.</h2>'+
+     '<p><b>Admitted:</b> laboratory reconnection → R(βi), residual 0.11, prior-widening only. <b>Near-miss:</b> solar-wind cascade (0.38 — no surviving observable). <b>Rejected:</b> MRI fluid analogue (no regime overlap); materials percolation (0.61). Rejections are kept, with reasons.</p>'+
+     '<p>A connection may widen a prior; it may never transfer a value.</p>'}];
+  if(mode==='memory')return [
+   {id:'history',label:'Scientific memory',sub:'time-resolved states',vis:'live',
+    cap:'<b>Live instrument.</b> Drag NOW through research time: beliefs age, the untested screen assumption erodes, the dormant branch arc forms and its condition expires at S-044.',
+    html:'<h2>Every belief is stored with its evidence context — and one expiry condition has fired.</h2>'+
+     '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
+     '<div class="acts"><button class="abtn" data-act="mem:replay">Replay the evolution</button><button class="abtn" data-act="act:react">Reactivate eligible branch</button></div>'+
+     '<div>'+memHTML()+'</div>'},
+   {id:'compare',label:'S-144 vs now',sub:'what changed is evidence',vis:'live',
+    cap:'<b>Live instrument.</b> The rejection day and today, on the same timeline.',
+    html:'<h2>The S-144 rejection was correct then, and is obsolete now.</h2>'+
+     '<table class="dtable"><tr><th>Dimension</th><th>S-144</th><th>S-000</th></tr>'+
+     [['Polarisation','6 epochs · no drift','9 epochs · 41°±6° monotonic'],
+      ['Heating constraint','none — unfalsifiable','lab R = 7.9±1.6 (unreplicated)'],
+      ['Control sightline','single check','flat to 3 % · replicated ×2'],
+      ['Branch status','rejected','eligible — condition expired'],
+      ['Containment','9/9 inside ±14°','3/9 — exits at epoch 4']].map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
+     '<div class="acts"><button class="abtn" data-act="act:compare144">Full comparison card</button></div>'}];
+  if(mode==='claim')return [
+   {id:'claim',label:'Working claim',sub:'v3 · conditional · live',vis:'live',
+    cap:'<b>Live instrument.</b> Drag components into the core to attach, out to detach — support physically carries the structure; detaching the observation collapses the claim and rewrites the sentence on the left.',
+    html:'<h2 data-lv="claimtxt">'+LIVEBIND.claimtxt()+'</h2>'+
+     '<p>Assembled from verified components, never generated. Premises are stated inside the text; falsifiers are concrete: a correlated magnetar excursion returns the screen; flare-locked EVPA returns eruptions. One 21-day campaign resolves all three configurations.</p>'+
+     '<div data-lv="comps">'+compsHTML()+'</div>'},
+   {id:'referee',label:'Referee simulation',sub:'6 objections · ranked',vis:'live',
+    cap:'<b>Live instrument.</b> The structure under attack — exposures require a declared premise or a scheduled test.',
+    html:'<h2>Six objections generated from the live model state.</h2>'+
+     '<div class="acts"><button class="abtn" data-act="ref:run">Run the simulation</button></div>'+
+     '<div data-lv="referee">'+refereeHTML()+'</div>'}];
+  return [
+   {id:'chamber',label:'Reasoning chamber',sub:'think out loud',vis:'live',
+    cap:'<b>Live instrument.</b> Statements stack with verification tags; threads arc to the model, memory and evidence anchors.',
+    html:'<h2>Speak, and the system verifies — while you type.</h2>'+
+     '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to your rejected reasoning, reviewer risk, rewording, and the missing test that settles the sentence.</p>'+
+     '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'}];
+}
+S.st={watch:0,model:0,analyze:0,memory:0,claim:0,reason:0};
 function renderDoc(){
-  $('#doc').innerHTML='<div class="din">'+DOCS[S.mode]()+'</div>';
+  const sts=stationsFor(S.mode),i=clamp(S.st[S.mode]||0,0,sts.length-1);
+  S.st[S.mode]=i;
+  const st=sts[i];
+  const rail='<div id="srail"><div class="rt">'+S.mode.toUpperCase()+' — MECHANISM</div><div class="rline"></div>'+
+   '<div class="rmark" style="top:'+(34+i*46)+'px"></div>'+
+   sts.map((s2,k)=>'<button class="srn'+(k===i?' on':'')+'" data-st="'+k+'"><span class="sn1">'+(k+1)+' · '+s2.label+'</span><br><span class="sn2">'+s2.sub+'</span></button>').join('')+'</div>';
+  const vis=st.vis==='live'
+   ?'<div class="vin vIn"><div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div></div>'
+   :'<div class="vin vIn"><button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div></div>';
+  $('#doc').innerHTML=rail+
+   '<div id="stext" class="stIn"><div class="sec">'+st.html+'</div></div>'+
+   '<div id="svis">'+vis+'</div>'+
+   '<div id="stHint">SCROLL / ARROWS = NEXT STATION · '+(i+1)+' / '+sts.length+'</div>';
   buildCtl();
 }
+function goStation(d,abs){
+  const sts=stationsFor(S.mode);
+  const cur=S.st[S.mode]||0;
+  const nx=clamp(abs!==undefined?abs:cur+d,0,sts.length-1);
+  if(nx===cur)return;
+  S.st[S.mode]=nx;
+  renderDoc();
+  postEvent('station — '+stationsFor(S.mode)[nx].label,'');
+}
+function jumpStation(mode,id){
+  const sts=stationsFor(mode);
+  const ix=sts.findIndex(s2=>s2.id===id);
+  if(S.mode!==mode){S.st[mode]=Math.max(0,ix);nav(mode);}
+  else goStation(0,Math.max(0,ix));
+}
+document.addEventListener('click',e=>{
+  const sn=e.target.closest('[data-st]');
+  if(sn)goStation(0,+sn.dataset.st);
+});
+let wheelT=0;
+document.addEventListener('wheel',e=>{
+  if(S.phase!=='live')return;
+  if(e.target.closest('#figInput')||e.target.closest('.pcard')||e.target.closest('#activity'))return;
+  const tx=e.target.closest('#stext');
+  if(tx){
+    const atEnd=tx.scrollTop+tx.clientHeight>=tx.scrollHeight-4;
+    const atTop=tx.scrollTop<=2;
+    if((e.deltaY>0&&!atEnd)||(e.deltaY<0&&!atTop))return;
+  }
+  const now=performance.now();
+  if(now-wheelT<650)return;
+  if(Math.abs(e.deltaY)<12)return;
+  wheelT=now;
+  goStation(e.deltaY>0?1:-1);
+},{passive:true});
+addEventListener('keydown',e=>{
+  if(S.phase!=='live')return;
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowDown'||e.key==='PageDown'){goStation(1);e.preventDefault();}
+  if(e.key==='ArrowUp'||e.key==='PageUp'){goStation(-1);e.preventDefault();}
+});
+
 
 /* ------- boot ------- */
 const CSEQ=[
