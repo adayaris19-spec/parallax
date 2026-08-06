@@ -35,9 +35,11 @@ body{
   background-image:radial-gradient(rgba(20,50,90,.06) .5px,transparent .6px);background-size:3px 3px;z-index:3}
 button{font-family:var(--f)}
 canvas{display:block}
-#gl{position:fixed;inset:0;width:100%;height:100%;z-index:1;opacity:0;transition:opacity .9s;background:#03070e;pointer-events:none}
+#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:#03070e;pointer-events:none;border-radius:10px}
 #gl.on{opacity:1}
-#stage{position:fixed;inset:0;width:100%;height:100%;z-index:4;touch-action:none}
+#stage{position:fixed;inset:0;width:100%;height:100%;z-index:7;touch-action:none;pointer-events:none}
+#figInput{position:fixed;z-index:8;touch-action:none;cursor:default}
+#gl{z-index:6}
 .vig{position:fixed;inset:0;pointer-events:none;z-index:2;
   background:radial-gradient(120% 100% at 50% 45%, rgba(10,30,60,0) 55%, rgba(10,30,60,.16) 100%)}
 
@@ -171,8 +173,45 @@ details.grp>summary::before{content:'▸ ';color:var(--ev)}
 details.grp[open]>summary::before{content:'▾ '}
 details.grp>summary .lv{font-family:var(--m);font-size:6.8px;color:var(--ev)}
 details.grp>.gb{padding-top:6px}
-/* ---- workspace intelligence: no sidebar — findings, activity, telemetry, floating cards ---- */
-#findings{position:absolute;top:66px;left:18px;width:308px;max-height:calc(100vh - 320px);overflow-y:auto;
+/* ---- the document IS the workspace: dense text with figures embedded inside it ---- */
+#doc{position:fixed;top:56px;left:0;right:296px;bottom:0;overflow-y:auto;z-index:5;pointer-events:none;
+  padding:18px 26px 120px 26px;scrollbar-width:thin}
+#doc .din{max-width:960px;margin:0 auto}
+.sec{pointer-events:auto;background:rgba(252,254,255,.94);border:1px solid var(--line2);border-radius:11px;padding:16px 20px;margin-bottom:12px;
+  box-shadow:0 2px 3px rgba(10,30,60,.04),0 12px 30px -24px rgba(10,30,60,.3)}
+.sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sec>.sh3 .st3{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase}
+.sec>.sh3 .sl3{font-family:var(--m);font-size:7px;color:var(--ev);letter-spacing:.1em}
+.sec h2{margin:0 0 6px;font-weight:400;font-size:17px;line-height:1.45;color:#0a1c30}
+.sec p{margin:6px 0;font-size:12.3px;line-height:1.75;color:var(--ink2)}
+.sec p b{color:var(--ink);font-weight:650}
+.sec .fig{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.75);padding:10px;margin:10px 0}
+.sec .fig svg{display:block;width:100%;height:auto}
+.sec .fig .fcap{margin-top:7px;font-size:10.3px;line-height:1.6;color:var(--dim);padding:0 3px}
+.sec .fig .fcap b{color:var(--ink2)}
+#liveFig{height:440px;border-radius:8px;background:transparent;position:relative;pointer-events:none}
+.sec.figsec{background:transparent;border-color:rgba(13,40,70,.22);box-shadow:none}
+.sec.figsec .fig{background:transparent}
+#liveFig.dark{background:transparent}
+#figCtl{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:center}
+.dtable{width:100%;border-collapse:collapse;font-size:11.3px;margin:8px 0}
+.dtable th{text-align:left;font-size:7.6px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  font-weight:800;padding:5px 8px 5px 0;border-bottom:1px solid var(--line2)}
+.dtable td{padding:6px 8px 6px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55;color:var(--ink2)}
+.dtable td b{color:var(--ink)}
+.dtable tr.click{cursor:pointer}
+.dtable tr.click:hover td{background:rgba(255,255,255,.7)}
+.inbar{display:inline-block;width:76px;height:5px;border-radius:3px;background:rgba(13,40,70,.1);vertical-align:1px;overflow:hidden;margin:0 5px}
+.inbar i{display:block;height:100%;border-radius:3px}
+.kfd{border-left:3px solid;padding:7px 12px;margin:7px 0;background:rgba(255,255,255,.66);border-radius:0 8px 8px 0;cursor:pointer}
+.kfd .kt2{font-size:12.4px;line-height:1.55;color:var(--ink);font-weight:650}
+.kfd .kb2{display:none;margin-top:5px}
+.kfd.open .kb2{display:block}
+.kfd .fr{display:flex;gap:8px;font-size:11px;line-height:1.6;color:var(--ink2);padding:2px 0}
+.kfd .fr .fk{flex:none;width:74px;font-size:7px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
+.kfd .prov{font-family:var(--m);font-size:7.6px;color:var(--dim);margin-top:4px}
+/* ---- corner HUD (unchanged philosophy: small, textual, purposeful) ---- */
+#findings{display:none;position:absolute;top:66px;left:18px;width:308px;max-height:calc(100vh - 320px);overflow-y:auto;
   pointer-events:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;z-index:11}
 #findings::-webkit-scrollbar{display:none}
 .fnd{background:rgba(250,253,255,.97);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;cursor:pointer;
@@ -185,7 +224,7 @@ details.grp>.gb{padding-top:6px}
 .fnd .fr{display:flex;gap:6px;font-size:9.8px;line-height:1.55;color:var(--ink2);padding:2px 0}
 .fnd .fr .fk{flex:none;width:64px;font-size:6.8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
 .fnd .prov{font-family:var(--m);font-size:7.4px;color:var(--dim);margin-top:4px}
-#activity{position:absolute;top:66px;right:16px;width:264px;pointer-events:auto;z-index:11}
+#activity{position:absolute;top:66px;right:16px;width:266px;pointer-events:auto;z-index:11}
 #activity .ah{display:flex;justify-content:space-between;align-items:center;font-size:7.2px;letter-spacing:.24em;
   font-weight:800;color:var(--dim);text-transform:uppercase;padding:0 2px 5px}
 #activity .aw{display:flex;gap:5px;align-items:center;font-family:var(--m);font-size:6.8px;color:var(--ev)}
@@ -240,7 +279,7 @@ details.grp>.gb{padding-top:6px}
 #tip .th{font-weight:800;font-size:7.6px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:3px;color:#7fd4ff}
 #tip .tq{color:#9fc0d8;font-family:var(--m);font-size:7.4px;margin-top:4px;letter-spacing:.04em}
 /* hint line above ctl */
-#hint{position:absolute;left:calc(50% - 80px);top:62px;transform:translateX(-50%);pointer-events:none;
+#hint{display:none;position:absolute;left:calc(50% - 80px);top:62px;transform:translateX(-50%);pointer-events:none;
   font-family:var(--m);font-size:8.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase;
   background:rgba(250,253,255,.6);padding:5px 12px;border-radius:6px;opacity:0;transition:opacity .5s;white-space:nowrap}
 #hint.on{opacity:1}
@@ -303,6 +342,7 @@ details.grp>.gb{padding-top:6px}
 
 @media(max-width:900px){
   #findings,#activity,#telemetry,#chipsDock{display:none}
+  #doc{right:0;padding:12px 12px 140px}
   #speak{width:min(430px,88vw);bottom:112px}
   #brief{left:22px}
   #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto;left:50%}
@@ -332,6 +372,7 @@ details.grp>.gb{padding-top:6px}
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
+  <div id="doc" ></div>
   <div id="activity"><div class="ah">SYSTEM ACTIVITY<span class="aw"><i></i>WORKING</span></div><div id="actList"></div></div>
   <div id="chipsDock"></div>
   <div id="telemetry"></div>
@@ -683,7 +724,8 @@ function glFrame(t){
   if(!GL.on||!GL.ok)return;
   const gl=GL.gl,cv=gl.canvas;
   const dpr=Math.min(devicePixelRatio||1,innerWidth<900?1:1.35);
-  const bw=Math.max(2,Math.floor(innerWidth*dpr*0.72)),bh=Math.max(2,Math.floor(innerHeight*dpr*0.72));
+  const cw=cv.clientWidth||innerWidth,chh=cv.clientHeight||innerHeight;
+  const bw=Math.max(2,Math.floor(cw*dpr*0.8)),bh=Math.max(2,Math.floor(chh*dpr*0.8));
   if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh;gl.viewport(0,0,bw,bh);}
   GL.heat+=(GL.heatT-GL.heat)*0.05;GL.field+=(GL.fieldT-GL.field)*0.06;
   GL.screen+=(GL.screenT-GL.screen)*0.05;GL.scrVar+=(GL.scrVarT-GL.scrVar)*0.05;
@@ -693,7 +735,7 @@ function glFrame(t){
   gl.uniform1f(GL.u.uHeat,GL.heat);gl.uniform1f(GL.u.uField,GL.field);
   gl.uniform1f(GL.u.uScreen,GL.screen);gl.uniform1f(GL.u.uScrVar,GL.scrVar);
   gl.uniform1f(GL.u.uYaw,GL.yaw);gl.uniform1f(GL.u.uZoom,GL.zoom);
-  gl.uniform1f(GL.u.uOff,innerWidth>900?(80*bw/innerWidth)*2/bh:0);
+  gl.uniform1f(GL.u.uOff,0.0);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 function glSet(on){
@@ -712,11 +754,31 @@ function glSet(on){
    they never replace it.
    ========================================================================== */
 const stage=$('#stage'),ctx=stage.getContext('2d');
-let SW=0,SH=0,DPR=1;
-function sresize(){DPR=Math.min(devicePixelRatio||1,2);SW=innerWidth;SH=innerHeight;
-  stage.width=SW*DPR;stage.height=SH*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+let SW=1200,SH=740,DPR=1,RW=0,RH=0;
+const FIG={ok:false,s:1,ox:0,oy:0,x:0,y:0,w:0,h:0};
+function sresize(){DPR=Math.min(devicePixelRatio||1,2);RW=innerWidth;RH=innerHeight;
+  stage.width=RW*DPR;stage.height=RH*DPR;SW=1200;SH=740;}
 addEventListener('resize',sresize);sresize();
-function stageW(){return innerWidth>900?SW-160:SW;}
+function stageW(){return SW;}
+const figIn=document.createElement('div');figIn.id='figInput';document.body.appendChild(figIn);
+const vx=e=>(e.clientX-FIG.ox)/FIG.s, vy=e=>(e.clientY-FIG.oy)/FIG.s;
+function trackFig(){
+  const el=document.getElementById('liveFig');
+  if(!el){FIG.ok=false;figIn.style.display='none';if(GL.on)$('#gl').style.display='none';return;}
+  const r=el.getBoundingClientRect();
+  FIG.x=r.left;FIG.y=r.top;FIG.w=r.width;FIG.h=r.height;
+  FIG.s=Math.min(r.width/SW,r.height/SH);
+  FIG.ox=r.left+(r.width-SW*FIG.s)/2;FIG.oy=r.top+(r.height-SH*FIG.s)/2;
+  FIG.ok=r.bottom>60&&r.top<RH;
+  figIn.style.display=FIG.ok?'block':'none';
+  figIn.style.left=r.left+'px';figIn.style.top=Math.max(56,r.top)+'px';
+  figIn.style.width=r.width+'px';figIn.style.height=Math.max(0,Math.min(r.bottom,RH)-Math.max(56,r.top))+'px';
+  const g=$('#gl');
+  if(GL.on){g.style.display='block';g.style.left=r.left+'px';g.style.top=r.top+'px';
+    g.style.width=r.width+'px';g.style.height=r.height+'px';
+    g.style.clipPath='inset('+Math.max(0,56-r.top)+'px 0 '+Math.max(0,r.bottom-RH)+'px 0)';}
+  else g.style.display='none';
+}
 const World={objs:[],t:0};
 function findObj(id){return World.objs.find(o=>o.id===id&&!o.dead);}
 function spawn(o){
@@ -752,10 +814,10 @@ const FOCUS={title:null,html:null};
 function inspect(html){
   if(!html){FOCUS.title=null;FOCUS.html=null;SEL=null;if(typeof closeCard==='function')closeCard('focus');return;}
   FOCUS.html=html;
-  const px=(PTR.x>4||PTR.y>4)?PTR.x+20:340, py=(PTR.x>4||PTR.y>4)?PTR.y-40:SH-430;
+  const px=(PTR.cx>4||PTR.cy>4)?PTR.cx+20:340, py=(PTR.cx>4||PTR.cy>4)?PTR.cy-40:innerHeight-430;
   popCard('focus',FOCUS.title||'INSPECTOR',html,px,py);
   const c=CARDS['focus'];
-  if(c){c.el.style.left=clamp(px,12,SW-350)+'px';c.el.style.top=clamp(py,64,SH-300)+'px';}
+  if(c){c.el.style.left=clamp(px,12,innerWidth-350)+'px';c.el.style.top=clamp(py,64,innerHeight-300)+'px';}
 }
 function inspTitle(t){FOCUS.title=t;if(FOCUS.html)popCard('focus',t,FOCUS.html);}
 function ibar(v,col){return '<div class="ibar"><div class="b"><i style="width:'+(v*100).toFixed(0)+'%;background:'+col+'"></i></div><span class="v">'+(v*100).toFixed(0)+'%</span></div>';}
@@ -859,7 +921,7 @@ function dragify(el){
     if(e.target.closest('[data-cclose]'))return;
     const sx=e.clientX-el.offsetLeft,sy=e.clientY-el.offsetTop;
     el.style.zIndex=++cardZ;
-    const mv=ev=>{el.style.left=clamp(ev.clientX-sx,8,SW-200)+'px';el.style.top=clamp(ev.clientY-sy,60,SH-120)+'px';};
+    const mv=ev=>{el.style.left=clamp(ev.clientX-sx,8,innerWidth-200)+'px';el.style.top=clamp(ev.clientY-sy,60,innerHeight-120)+'px';};
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);};
     addEventListener('pointermove',mv);addEventListener('pointerup',up);
   });
@@ -869,8 +931,8 @@ function popCard(id,title,html,x,y,render){
   if(!c){
     const el=document.createElement('div');el.className='pcard';
     $('#cards').appendChild(el);
-    el.style.left=clamp((x===undefined?SW/2-165:x),12,SW-350)+'px';
-    el.style.top=clamp((y===undefined?130:y),64,SH-280)+'px';
+    el.style.left=clamp((x===undefined?innerWidth/2-165:x),12,innerWidth-350)+'px';
+    el.style.top=clamp((y===undefined?130:y),64,innerHeight-280)+'px';
     CARDS[id]={el,render:null};c=CARDS[id];
   }
   if(render!==undefined)c.render=render;
@@ -972,7 +1034,8 @@ function renderChipsDock(){
 }
 function renderIntel(){
   if(S.phase!=='live')return;
-  renderFindings();renderTelemetry();renderChipsDock();refreshCards();
+  renderTelemetry();renderChipsDock();refreshCards();
+  if(typeof refreshDoc==='function')refreshDoc();
 }
 /* ---------------- system activity — PARALLAX is always working ---------------- */
 const ACTQ=[];
@@ -1028,20 +1091,22 @@ function hitTest(x,y){
   }
   return null;
 }
-stage.addEventListener('pointerdown',e=>{
+figIn.addEventListener('pointerdown',e=>{
   if(S.phase!=='live')return;
-  PTR.down=true;PTR.moved=0;PTR.sx=e.clientX;PTR.sy=e.clientY;PTR.x=e.clientX;PTR.y=e.clientY;
-  const o=hitTest(e.clientX,e.clientY);
+  PTR.down=true;PTR.moved=0;PTR.cx=e.clientX;PTR.cy=e.clientY;
+  PTR.sx=vx(e);PTR.sy=vy(e);PTR.x=vx(e);PTR.y=vy(e);
+  const o=hitTest(PTR.x,PTR.y);
   PTR.obj=o;PTR.yawing=false;
-  if(o&&o.drag){o.dragging=true;o.dx=o.x-e.clientX;o.dy=o.y-e.clientY;stage.setPointerCapture(e.pointerId);}
-  else if(!o&&S.mode==='model'){PTR.yawing=true;stage.setPointerCapture(e.pointerId);}
+  if(o&&o.drag){o.dragging=true;o.dx=o.x-PTR.x;o.dy=o.y-PTR.y;figIn.setPointerCapture(e.pointerId);}
+  else if(!o&&S.mode==='model'){PTR.yawing=true;figIn.setPointerCapture(e.pointerId);}
 });
-stage.addEventListener('pointermove',e=>{
-  const dx=e.clientX-PTR.x,dy=e.clientY-PTR.y;
-  PTR.x=e.clientX;PTR.y=e.clientY;
+figIn.addEventListener('pointermove',e=>{
+  const mx=vx(e),my=vy(e);
+  const dx=mx-PTR.x,dy=my-PTR.y;
+  PTR.x=mx;PTR.y=my;PTR.cx=e.clientX;PTR.cy=e.clientY;
   if(!PTR.down){
-    const ho=hitTest(e.clientX,e.clientY);
-    stage.style.cursor=ho?'grab':(S.mode==='model'?'move':'default');
+    const ho=hitTest(mx,my);
+    figIn.style.cursor=ho?'grab':(S.mode==='model'?'move':'default');
     const tp=ho&&tipFor(ho);
     if(tp){tipEl.innerHTML='<div class="th">'+tp.h+'</div>'+tp.b+(tp.q?'<div class="tq">'+tp.q+'</div>':'');
       tipEl.style.left=Math.min(e.clientX+16,innerWidth-270)+'px';
@@ -1052,14 +1117,14 @@ stage.addEventListener('pointermove',e=>{
   tipEl.style.opacity=0;
   PTR.moved+=Math.abs(dx)+Math.abs(dy);
   if(PTR.obj&&PTR.obj.dragging){
-    PTR.obj.x=e.clientX+PTR.obj.dx;PTR.obj.y=e.clientY+PTR.obj.dy;
+    PTR.obj.x=PTR.x+PTR.obj.dx;PTR.obj.y=PTR.y+PTR.obj.dy;
     PTR.obj.tx=PTR.obj.x;PTR.obj.ty=PTR.obj.y;
     if(MODES_IMPL[S.mode].dragMove)MODES_IMPL[S.mode].dragMove(PTR.obj);
   }else if(PTR.yawing){
     GL.yawT+=dx*0.004;
   }
 });
-stage.addEventListener('pointerup',e=>{
+figIn.addEventListener('pointerup',e=>{
   if(!PTR.down)return;PTR.down=false;
   const o=PTR.obj;PTR.obj=null;
   if(o){
@@ -1069,7 +1134,7 @@ stage.addEventListener('pointerup',e=>{
   }else if(PTR.moved<6&&!PTR.yawing){inspect(null);}
   PTR.yawing=false;
 });
-stage.addEventListener('wheel',e=>{
+figIn.addEventListener('wheel',e=>{
   if(S.mode==='model'){GL.zoomT=clamp(GL.zoomT+e.deltaY*0.0012,0.72,1.9);e.preventDefault();}
 },{passive:false});
 /* contextual layers: hover=what · click=inspect · dblclick=method · rightclick=provenance · shift=counterfactual · alt=uncertainty */
@@ -1090,9 +1155,9 @@ function tipFor(o){
   }
   return null;
 }
-stage.addEventListener('contextmenu',e=>{
+figIn.addEventListener('contextmenu',e=>{
   e.preventDefault();
-  const o=hitTest(e.clientX,e.clientY);if(!o)return;
+  const o=hitTest(vx(e),vy(e));if(!o)return;
   const P={matnode:()=>['Provenance · '+o.ev.t,'<div class="dt">'+o.ev.cls+'\n'+(o.ev.id==='alma'?'ALMA archive · band-6 v4.2 · 3,214 records\n2 pipelines: CASA 6.5 + AIPS\nS-277 model-selection note linked':o.ev.id==='magnetar'?'VLA programmes ×2 · 812 records\nsystematics floor 1.1 %':o.ev.id==='lab'?'1 reconnection experiment · UNREPLICATED\n117 adjacent families scanned':'Chandra public archive · 14 catalogues\n7,963 records · autonomous join')+'</div>'],
     chipEv:()=>['Provenance · '+o.d.n,'<div class="dt">'+o.d.src+'\n'+o.d.vol+'\n'+o.d.pipe+'</div>'],
     hyp:()=>['Related record trail · '+o.h.n,'<div class="dt">discriminator: '+o.h.disc+'\nreplication: '+o.h.rep+'\npredicts: '+o.h.pr+'</div>'],
@@ -1100,8 +1165,8 @@ stage.addEventListener('contextmenu',e=>{
     memnode:()=>['Provenance · S-'+o.day,'<div class="dt">'+o.m.ev!==undefined?o.m.a:''+'</div><div class="rows">'+irow('Evidence then',o.m.a)+'</div>']};
   const f=P[o.kind];if(f){const r=f();inspect(r[1]);inspTitle(r[0]);}
 });
-stage.addEventListener('dblclick',e=>{
-  const o=hitTest(e.clientX,e.clientY);if(!o)return;
+figIn.addEventListener('dblclick',e=>{
+  const o=hitTest(vx(e),vy(e));if(!o)return;
   const M={hyp:'Coverage = fraction of admitted structures contained, weighted 1/σ², penalized ×0.8 per required unmeasured assumption. Recomputed on every interaction — never cached.',
     chipEv:'Admission: normalization (frame · units · covariance) → materiality tests → provenance edge. Removal is a live graph recomputation, not a filter.',
     matnode:'Detection chain: admit → normalize → compare vs 1,120 trajectories → conflict test → assumption sensitivity → 31-node consequence propagation → action ranking.',
@@ -1119,8 +1184,13 @@ let last=performance.now();
 function loop(now){
   const dt=Math.min(0.05,(now-last)/1000);last=now;World.t+=dt;
   const t=(now-GL.t0)/1000;
+  trackFig();
   glFrame(t);
-  ctx.clearRect(0,0,SW,SH);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,RW,RH);
+  ctx.save();
+  ctx.translate(FIG.ox,FIG.oy);ctx.scale(FIG.s,FIG.s);
+  ctx.beginPath();ctx.rect((FIG.x-FIG.ox)/FIG.s,(FIG.y-FIG.oy)/FIG.s,FIG.w/FIG.s,FIG.h/FIG.s);ctx.clip();
   /* ease objects */
   for(let i=World.objs.length-1;i>=0;i--){
     const o=World.objs[i];
@@ -1128,14 +1198,14 @@ function loop(now){
     o.a+=(o.ta-o.a)*0.08;if(o.dead)o.a*=Math.exp(-7*dt);o.s+=(o.tsc-o.s)*0.1;
     if(o.dead&&o.a<0.02)World.objs.splice(i,1);
   }
-  if(S.phase==='live'&&MODES_IMPL[S.mode]&&MODES_IMPL[S.mode].draw)MODES_IMPL[S.mode].draw(dt);
-  /* draw objects */
-  for(const o of World.objs){
+  if(FIG.ok&&S.phase==='live'&&MODES_IMPL[S.mode]&&MODES_IMPL[S.mode].draw)MODES_IMPL[S.mode].draw(dt);
+  if(FIG.ok)for(const o of World.objs){
     if(o.a<0.02)continue;
     ctx.save();ctx.globalAlpha=o.a;
     DRAW[o.kind]&&DRAW[o.kind](o);
     ctx.restore();
   }
+  ctx.restore();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -1317,8 +1387,7 @@ MODES_IMPL.watch={
      spawn({kind:'mlabel',id:'src'+i,mode:'watch',text:s.toUpperCase(),size:7.5,col:'rgba(36,66,92,.55)',
        tx:cx+Math.cos(a)*rx,ty:cy+Math.sin(a)*ry,emit:true,ea:a,rx,ry});
    });
-   hint('KNOWLEDGE FLOWS INTO THE MODEL · MATERIAL CHANGES DOCK · DRAG ONE INTO THE CORE TO PROPAGATE IT');
-   if(!S.briefSeen)showBrief();
+   hint('');
  },
  draw(dt){
    const core=findObj('core');if(!core)return;
@@ -1900,7 +1969,7 @@ MODES_IMPL.reason={
  },
  addStmt(i,instant){
    const sp=SPEECH[i];
-   const lines=wrapText(sp.s,SW<900?34:52);
+   const lines=wrapText(sp.s,52);
    ctx.font='800 7.6px Inter';
    const tags=sp.d.map(d=>{const label=d[1].split('—')[0].split(':')[0].trim().toUpperCase();
      return [d[0],d[1],label,ctx.measureText(label).width+16];});
@@ -1992,7 +2061,7 @@ function renderDock(){
    '<div class="n">'+m[1]+(m[0]==='watch'?'<span class="badge">4</span>':'')+'</div><div class="d">'+m[2]+'</div></button>').join('');
 }
 function buildCtl(){
-  const c=$('#ctl');
+  const c=$('#figCtl')||$('#ctl');
   if(S.mode==='model'){
     c.innerHTML='<div class="cslider"><label>Heating prior</label>'+
      '<input id="heatSl" type="range" min="0" max="100" value="'+Math.round(S.asm.heating*100)+'">'+
@@ -2036,7 +2105,8 @@ function nav(mode){
   glSet(mode==='model');
   $('#brief').classList.remove('on');
   MODES_IMPL[mode].build();
-  renderDock();buildCtl();vitals();
+  renderDoc();
+  renderDock();vitals();
 }
 /* ------- actions ------- */
 function act(a){
@@ -2569,42 +2639,35 @@ const SUBDEFS={
   B.drop=function(o){const eng=ENG[m+':'+S.sub[m]];if(eng)eng.drop(o);else base.drop(o);};
   if(base.dragMove)B.dragMove=function(o){const eng=ENG[m+':'+S.sub[m]];if(!eng)base.dragMove(o);};
 });
-stage.addEventListener('pointerup',e=>{
-  if(PTR.moved<6&&S.mode==='model'&&S.sub.model==='graph'&&!hitTest(e.clientX,e.clientY))S.traceId=null;
+figIn.addEventListener('pointerup',e=>{
+  if(PTR.moved<6&&S.mode==='model'&&S.sub.model==='graph'&&!hitTest(vx(e),vy(e)))S.traceId=null;
 });
 /* sub-instrument chips + per-engine controls */
-const _buildCtl=buildCtl;
-buildCtl=function(){
-  const engActive=ENG[S.mode+':'+S.sub[S.mode]];
-  if(engActive)$('#ctl').innerHTML='';
-  else _buildCtl();
-  const c=$('#ctl');
-  if(S.mode==='memory')c.insertAdjacentHTML('beforeend','<button class="cchip" data-act="mem:replay">Replay evolution</button>');
-  if(engActive&&S.mode==='claim'&&S.sub.claim==='referee')c.insertAdjacentHTML('beforeend','<button class="cchip acc" data-act="ref:run">Run referee simulation</button>');
-  if(engActive&&S.mode==='analyze'&&S.sub.analyze==='pareto'){
-    [['any','Unconstrained'],['zero','Zero telescope'],['fast','≤ 30 days']].forEach(b=>
-      c.insertAdjacentHTML('beforeend','<button class="cchip'+(S.budget===b[0]?' on':'')+'" data-act="budget:'+b[0]+'">'+b[1]+'</button>'));
-  }
-  const subs=SUBDEFS[S.mode];
-  if(subs&&subs.length>1){
-    const dark=S.mode==='model'&&S.sub.model==='default';
-    const row=subs.map(sd=>'<button class="cchip'+(dark?' dark':'')+((S.sub[S.mode]||'default')===sd[0]?' on':'')+'" data-act="sub:'+S.mode+':'+sd[0]+'">'+sd[1]+'</button>').join('');
-    c.insertAdjacentHTML('afterbegin','<div style="flex-basis:100%;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+row+'</div>');
-  }
-};
+/* controls live inside the document's figure frame now */
 /* extended actions */
 const _act=act;
 act=function(a){
   const p=a.split(':');
   if(p[0]==='sub'){
-    S.sub[p[1]]=p[2];
+    const SECMAP={lit:'lit',graph:'graph',uncert:'uncert',sens:'sens',pareto:'pareto',hidden:'hidden',referee:'referee',default:'finding'};
     if(S.mode!==p[1])nav(p[1]);
-    else{clearMode();inspect(null);S.traceId=null;$('#brief').classList.remove('on');MODES_IMPL[p[1]].build();buildCtl();renderIntel();}
+    setTimeout(()=>{const el=document.getElementById('sec-'+(SECMAP[p[2]]||'finding'));if(el)el.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});},60);
     return;
   }
+  if(p[0]==='evc'){const ev=EVENTS[+p[1]];if(ev)inspectEvent(ev);return;}
+  if(p[0]==='gn2'){
+    const tr=traceSets(p[1]);
+    inspect('<div class="chips">'+chip(GNODES.find(g=>g[0]===p[1])[1])+'</div>'+
+     '<div class="rows">'+irow('Node','<b>'+gnLabel(p[1])+'</b>')+
+     irow('Fed by',[...tr.up].map(gnLabel).join(' · ')||'nothing — primary evidence')+
+     irow('Feeds',[...tr.down].map(gnLabel).join(' · ')||'terminal')+
+     (p[1]==='heat'?irow('Load','83 % of failing-axis variance · 4 downstream claims · zero direct measurement until S-044'):'')+
+     (p[1]==='screen'?irow('Load','3 dependents · literature-contested (D21) · bounded at 0.1 pc only'):'')+'</div>');
+    inspTitle('Causal trace');return;
+  }
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
-  if(p[0]==='ref'&&p[1]==='run'){if(S.mode==='claim'&&S.sub.claim==='referee')ENG['claim:referee'].run();return;}
-  if(p[0]==='budget'){S.budget=p[1];if(S.mode==='analyze'&&S.sub.analyze==='pareto')ENG['analyze:pareto'].rebuild();buildCtl();return;}
+  if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
+  if(p[0]==='budget'){S.budget=p[1];renderIntel();return;}
   _act(a);
 };
 /* memory replay — the time machine runs itself and narrates */
@@ -2676,7 +2739,7 @@ speakIn.addEventListener('keydown',e=>{
   inspTitle('Live reasoning verification');
   if(S.mode==='reason'){
     const sp={s:text,d:v.map(x2=>[x2.p==='bad'?'hyp':x2.p,x2.l+' — '+x2.d])};
-    const lines=wrapText(sp.s,SW<900?34:52);
+    const lines=wrapText(sp.s,52);
     ctx.font='800 7.6px Inter';
     const tags=sp.d.map(d=>[d[0],d[1],d[1].split('—')[0].trim().toUpperCase().slice(0,26),ctx.measureText(d[1].split('—')[0].trim().toUpperCase().slice(0,26)).width+16]);
     const h2=Math.max(lines.length*15+16,tags.length*17+8);
@@ -2714,6 +2777,325 @@ CMDS.push(
  ['Parallax, what hidden connections did you test and reject?','analyze',()=>act('sub:analyze:hidden')],
  ['Parallax, simulate the referee.','claim',()=>{act('sub:claim:referee');setTimeout(()=>act('ref:run'),500);}],
  ['Parallax, replay how my thinking evolved.','memory',()=>{nav('memory');setTimeout(()=>startReplay(),400);}]);
+
+
+/* ============================================================================
+   Part 9: the document IS the workspace.
+   Text carries the intelligence; every figure is embedded inside the text
+   it explains. The live scene renders inside one contained figure per mode.
+   ========================================================================== */
+function svgO(w,h){return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,system-ui">';}
+function sT(x,y,t,a,s2,c,w){return '<text x="'+x+'" y="'+y+'" text-anchor="'+(a||'start')+'" font-size="'+(s2||9)+'" fill="'+(c||C.ink2)+'" font-weight="'+(w||500)+'">'+t+'</text>';}
+function sL(x1,y1,x2,y2,c,w,d){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+c+'" stroke-width="'+(w||1)+'"'+(d?' stroke-dasharray="'+d+'"':'')+'/>';}
+function svgEVPA(){
+  const W2=660,H2=252,mL=46,mT=20,mB=34,pW=W2-mL-14,pH=H2-mT-mB;
+  const Wd=sectorW();
+  const X=i=>mL+i/8*pW, Y=v=>mT+pH-(v+16)/64*pH;
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  for(let g=-10;g<=50;g+=10)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(13,40,70,.07)');
+  s2+='<rect x="'+mL+'" y="'+Y(Wd)+'" width="'+pW+'" height="'+(Y(-Wd)-Y(Wd))+'" fill="rgba(42,74,108,.10)"/>';
+  s2+=sL(mL,Y(Wd),mL+pW,Y(Wd),C.calc,1.1)+sL(mL,Y(-Wd),mL+pW,Y(-Wd),C.calc,1.1);
+  s2+=sT(mL+5,Y(Wd)-5,'permitted ±'+Wd+'° — 1,120 trajectories','start',8.6,C.calc,600);
+  if(Wd<41){s2+=sL(mL,Y(42),mL+pW,Y(42),C.hyp,1.2,'6 4')+sT(mL+pW-4,Y(42)-5,'lab-informed ±42° (preview)','end',8.6,C.hyp,600);}
+  const exI=EP_VAL.findIndex(v=>v>Wd);
+  if(exI>0){s2+=sL(X(exI),mT,X(exI),mT+pH,C.hyp,1,'3 4')+sT(X(exI)+4,mT+10,'exit · epoch '+(exI+1),'start',8.6,C.hyp,700);}
+  let path='';
+  EP_VAL.forEach((v,i)=>{const px=X(i),py=Y(v),e=EP_ERR[i]*(S.mod.alt?1.6:1);
+    path+=(i?'L':'M')+px+' '+py+' ';
+    s2+=sL(px,Y(v-e),px,Y(v+e),C.ev,1.2)+sL(px-3,Y(v-e),px+3,Y(v-e),C.ev,1.2)+sL(px-3,Y(v+e),px+3,Y(v+e),C.ev,1.2);
+    s2+='<circle cx="'+px+'" cy="'+py+'" r="3" fill="#fff" stroke="'+C.ev+'" stroke-width="1.8"/>';});
+  s2+='<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="1" opacity=".5"/>';
+  s2+=sL(mL,mT+pH,mL+pW,mT+pH,C.ink2,1.2)+sL(mL,mT,mL,mT+pH,C.ink2,1.2);
+  [0,2,4,6,8].forEach(i=>s2+=sT(X(i),mT+pH+13,'ep '+(i+1),'middle',8,C.dim));
+  [-10,0,20,40].forEach(g=>s2+=sT(mL-6,Y(g)+3,g+'°','end',8,C.dim));
+  s2+=sT(mL,12,'EVPA drift vs prediction interval · 230 GHz · containment '+containN()+'/9','start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+function svgLit(){
+  const lit=litAgreement(),W2=660,H2=240,y0=200,y1=42;
+  const cols={rm:70,ml:290,rh:510};
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  const pos={};
+  Object.keys(PARAMDEF).forEach(pm=>{
+    const pd=PARAMDEF[pm],x=cols[pm];
+    s2+=sL(x-16,y0,x-16,y1,'rgba(13,40,70,.3)');
+    const ya=y0-(pd.adopt-pd.min)/(pd.max-pd.min)*(y0-y1);
+    s2+=sL(x-16,ya,x+140,ya,C.calc,1,'4 3')+sT(x+2,ya-5,pd.adoptL,'start',7.4,C.calc,600);
+    PAPERS.filter(p=>p.param===pm).forEach((p,i)=>{
+      const y=y0-(p.v-pd.min)/(pd.max-pd.min)*(y0-y1);
+      const px=x+18+i*44;
+      const err=(p.sig)/(pd.max-pd.min)*(y0-y1);
+      const conf=lit.conflicts.some(c2=>c2.a===p.id||c2.b===p.id);
+      const col=conf?C.bad:C.ev;
+      pos[p.id]=[px,y];
+      s2+=sL(px,y-err,px,y+err,col,1.2)+'<circle cx="'+px+'" cy="'+y+'" r="3" fill="#fff" stroke="'+col+'" stroke-width="1.6"/>'+
+        sT(px+6,y-3,p.id,'start',7.8,col,700)+sT(px+6,y+7,p.v+'±'+p.sig,'start',6.6,C.dim);
+    });
+    s2+=sT(x+60,y0+16,pd.n,'middle',7.8,C.ink2,700);
+  });
+  lit.conflicts.forEach(cf=>{
+    const a=pos[cf.a],b=pos[cf.b];if(!a||!b)return;
+    s2+=sL(a[0],a[1],b[0],b[1],C.bad,1.1,'4 3')+sT((a[0]+b[0])/2+6,(a[1]+b[1])/2,cf.t.toFixed(1)+'σ','start',7.6,C.bad,700);
+  });
+  s2+=sT(46,14,'Source agreement · '+PAPERS.length+' papers · '+lit.pairs+' comparisons · '+lit.conflicts.length+' contradictions','start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+function svgDep(){
+  const W2=660,H2=330;
+  const colX=[86,258,430,588];
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  const pos={},byCol={};
+  GNODES.forEach(g=>{byCol[g[2]]=(byCol[g[2]]||0)+1;});
+  const cnt={};
+  const short={ring:'EHT ring',alma:'ALMA trajectory',mag:'magnetar',lab:'lab R(βi)',xray:'archival flares',
+    cov:'covariance',ens:'retained volume',sector:'sector ±'+sectorW()+'°',heat:'heating (unmeasured)',screen:'screen ('+S.asm.screen+')',
+    stat:'“stationary” ✕',emis:'emission radius',s144:'S-144 '+(S.memoryLive?'reactive':'expired'),claim:'claim v3'};
+  GNODES.forEach(g=>{
+    cnt[g[2]]=cnt[g[2]]||0;
+    const n=byCol[g[2]],y=170+(cnt[g[2]]-(n-1)/2)*52;cnt[g[2]]++;
+    pos[g[0]]=[colX[g[2]],y,g[1]];
+  });
+  GEDGES.forEach(e=>{
+    const a=pos[e[0]],b=pos[e[1]];
+    s2+='<path d="M'+(a[0]+62)+' '+a[1]+' C '+(a[0]+110)+' '+a[1]+', '+(b[0]-110)+' '+b[1]+', '+(b[0]-62)+' '+b[1]+'" fill="none" stroke="rgba(42,74,108,.3)" stroke-width="1"/>';
+  });
+  GNODES.forEach(g=>{
+    const p=pos[g[0]],hot=g[0]==='heat'||g[0]==='screen';
+    s2+='<g data-act="gn2:'+g[0]+'" style="cursor:pointer">'+
+      '<rect x="'+(p[0]-62)+'" y="'+(p[1]-13)+'" width="124" height="26" rx="6" fill="rgba(255,255,255,.96)" stroke="'+C[g[1]]+'" stroke-width="'+(hot?1.8:1.1)+'"/>'+
+      '<rect x="'+(p[0]-62)+'" y="'+(p[1]-13)+'" width="3" height="26" fill="'+C[g[1]]+'"/>'+
+      sT(p[0]+2,p[1]+3,short[g[0]],'middle',7.8,g[0]==='stat'?C.bad:C.ink,650)+'</g>';
+  });
+  ['EVIDENCE','CALCULATION','ASSUMPTION','CONSEQUENCE'].forEach((t2,i)=>s2+=sT(colX[i],26,t2,'middle',7.6,[C.ev,C.calc,C.asm,C.clm][i],800));
+  s2+=sT(46,14,'','start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+function svgFunnel(){
+  const st=uncStages(),W2=660,H2=200,x0=60,x1=610,yc=96;
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  const xs=st.map((_,i)=>x0+(x1-x0)*i/(st.length-1));
+  let up='',dn='';
+  xs.forEach((x,i)=>{const w=st[i].w*62;up+=(i?'L':'M')+x+' '+(yc-w)+' ';});
+  for(let i=xs.length-1;i>=0;i--)dn+='L'+xs[i]+' '+(yc+st[i].w*62)+' ';
+  s2+='<path d="'+up+dn+'Z" fill="rgba(42,74,108,.1)" stroke="rgba(42,74,108,.5)" stroke-width="1"/>';
+  st.forEach((sg,i)=>{const x=xs[i],w=st[i].w*62;
+    s2+=sL(x,yc-w-6,x,yc+w+6,C.calc,1.1)+
+      sT(x,yc-w-16,(i+1)+' · '+sg.n,'middle',7.6,C.ink2,800)+
+      sT(x,yc+w+20,sg.v,'middle',8.4,C.ink,700);});
+  s2+=sT(46,14,'Uncertainty propagation — hold ALT anywhere to double the systematic','start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+function svgSens(){
+  const rows=sensRows(),W2=660,H2=192,x0=200,w=340;
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  rows.forEach((r2,i)=>{const y=40+i*30;
+    s2+=sT(x0-8,y+7,r2[0],'end',9,C.ink,650)+
+     '<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="8" rx="3" fill="rgba(13,40,70,.09)"/>'+
+     '<rect x="'+x0+'" y="'+y+'" width="'+(w*r2[2])+'" height="8" rx="3" fill="'+C[r2[1]]+'"/>'+
+     sT(x0+w+8,y+8,(r2[2]*100).toFixed(0)+'%','start',8.4,C[r2[1]],700);});
+  s2+=sT(46,14,'Parameter sensitivity — variance share on the failing axis','start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+function svgPareto(){
+  const pts=paretoPts(),W2=660,H2=250,x0=60,x1=600,y0=200,y1=48;
+  const best=(function(){let c=pts.filter(p=>S.budget==='zero'?p.tel===0:S.budget==='fast'?p.days<=30:true);if(!c.length)c=pts;return c.slice().sort((a,b)=>b.p-a.p)[0];})();
+  const X=d=>x0+(x1-x0)*d/90, Y=p=>y0-(p-0.3)/0.6*(y0-y1);
+  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  s2+=sL(x0-14,y0+14,x1+10,y0+14,'rgba(13,40,70,.35)',1.1)+sL(x0-14,y0+14,x0-14,y1-10,'rgba(13,40,70,.35)',1.1);
+  [0,30,60,90].forEach(d=>s2+=sT(X(d),y0+28,d+' d','middle',7.8,C.dim));
+  [40,60,80].forEach(p=>s2+=sT(x0-20,Y(p/100)+3,p+'%','end',7.8,C.dim));
+  const srt=pts.slice().sort((a,b)=>a.days-b.days);let front=[],bp=0;
+  srt.forEach(p=>{if(p.p>bp){front.push(p);bp=p.p;}});
+  let fl='';front.forEach((p,i)=>{fl+=(i?'L':'M')+X(p.days)+' '+Y(p.p)+' ';});
+  s2+='<path d="'+fl+'" fill="none" stroke="'+C.ev+'" stroke-width="1.2" stroke-dasharray="2 4"/>';
+  pts.forEach(p=>{
+    const isB=p.id===best.id;
+    s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(6+p.tel*0.55)+'" fill="'+(isB?'rgba(0,144,196,.18)':'rgba(42,74,108,.1)')+'" stroke="'+(isB?C.ev:C.calc)+'" stroke-width="'+(isB?2:1.1)+'"/>'+
+      sT(X(p.days),Y(p.p)-(10+p.tel*0.55),p.n,'middle',7.8,isB?C.ev:C.ink2,700)+
+      sT(X(p.days),Y(p.p)+(16+p.tel*0.55),(p.p*100).toFixed(0)+'% · '+p.tel+' h tel','middle',6.8,C.dim);
+  });
+  s2+=sT(46,14,'Cost–yield frontier — budget: '+(S.budget==='zero'?'zero telescope':S.budget==='fast'?'≤30 days':'unconstrained')+' → best: '+best.n,'start',9.6,'#0a1c30',700);
+  return s2+'</svg>';
+}
+/* ---------------- live text bindings ---------------- */
+function kfHTML(){
+  return keyFindings().map((f,i)=>
+   '<div class="kfd'+(i===0?' open':'')+'" data-kfd="k'+i+'" style="border-color:'+(f.sv>0.7?C.bad:f.sv>0.5?C.asm:C.ok)+'">'+
+   '<div class="kt2">'+f.t+'</div><div class="kb2">'+
+   '<div class="fr"><span class="fk">Why</span><span>'+f.why+'</span></div>'+
+   '<div class="fr"><span class="fk">Evidence</span><span>'+f.ev+'</span></div>'+
+   '<div class="fr"><span class="fk">Confidence</span><span>'+f.conf+'</span></div>'+
+   '<div class="fr"><span class="fk">Next</span><span><b>'+f.next+'</b></span></div>'+
+   '<div class="prov">'+f.p+'</div>'+
+   '<div class="acts" style="margin-top:5px"><button class="abtn sm" data-act="'+f.act+'">Open</button></div></div></div>').join('');
+}
+function hypsHTML(){
+  return ranked().map((h,i)=>
+   '<div style="border-top:1px solid var(--line);padding:9px 0">'+
+   '<p style="margin:0"><b>'+(i+1)+' · '+h.full+'</b> — coverage <b>'+(h.s*100).toFixed(0)+'%</b>'+
+   '<span class="inbar"><i style="width:'+(h.s*100)+'%;background:'+C.hyp+'"></i></span>'+
+   (i===0?chip('hyp','leading'):'')+'</p>'+
+   '<p style="margin:4px 0">'+h.d+'</p>'+
+   '<p style="margin:4px 0;font-size:11.3px"><b>Explains:</b> '+h.ex.join('; ')+'. <b>Conflicts:</b> '+h.fx.join('; ')+'. <b>Requires:</b> '+h.rq.join('; ')+'.</p>'+
+   '<p style="margin:4px 0;font-size:11.3px"><b>Predicts:</b> '+h.pr+' <b>Destroyed by:</b> '+h.ct+' <b>Discriminator:</b> '+h.disc+' <b>Replication:</b> '+h.rep+'.</p></div>').join('');
+}
+function expsHTML(){
+  return '<table class="dtable"><tr><th>#</th><th>Experiment</th><th>Eliminates</th><th>Cost · time</th><th>Class</th></tr>'+
+   experiments().map((x,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+x.n+'</b></td>'+
+   '<td>'+(x.p*100).toFixed(0)+'%<span class="inbar"><i style="width:'+(x.p*100)+'%;background:'+C.clm+'"></i></span></td>'+
+   '<td>'+x.c+'</td><td>'+x.tag+'</td></tr>').join('')+'</table>';
+}
+function matrixHTML(){
+  return '<table class="dtable"><tr><th>Dataset</th><th>heating</th><th>eruptions</th><th>screen</th><th>replication</th><th>status</th></tr>'+
+   DATASETS.map(d=>{const off=S.removed[d.id]||(S.droplab&&d.id==='lab');
+    return '<tr><td><b>'+d.n+'</b></td>'+['heating','erupt','screen'].map(h=>{const r=EVMAT[h][d.id];
+      return '<td style="color:'+(r>0?C.ev:r<0?C.asm:C.dim)+';font-weight:700">'+(off?'·':r>0?'supports':r<0?'conflicts':'—')+'</td>';}).join('')+
+    '<td>'+REPCONF[d.id]+'%</td><td>'+(off?'<b style="color:'+C.bad+'">excluded</b>':'admitted')+'</td></tr>';}).join('')+'</table>';
+}
+function refereeHTML(){
+  const O=refereeSim();
+  return O.map((o,i)=>'<div style="border-top:1px solid var(--line);padding:8px 0'+(S.refRun||S.audited?'':';opacity:.45')+'">'+
+   '<p style="margin:0"><b>'+(i+1)+' · '+o.t+'</b> '+chip(o.st.startsWith('exposed')?'bad':o.st==='mitigated'?'calc':'ok',o.st)+
+   '<span class="inbar"><i style="width:'+(o.sev*100)+'%;background:'+(o.st.startsWith('exposed')?C.bad:C.calc)+'"></i></span>severity '+(o.sev*100).toFixed(0)+'</p>'+
+   '<p style="margin:3px 0;font-size:11.4px"><b>Response:</b> '+o.r+'</p></div>').join('');
+}
+function compsHTML(){
+  return '<table class="dtable"><tr><th>#</th><th>Component</th><th>Weight</th><th>Status</th></tr>'+
+   COMPS.map((c2,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+c2.k+'</b> — '+c2.v+'</td><td>'+CWEIGHT[i].toFixed(1)+'</td>'+
+   '<td>'+(S.attached.has(i)?'<b style="color:'+C.ok+'">attached</b>':'detached')+'</td></tr>').join('')+'</table>';
+}
+function memHTML(){
+  return MEM.map(m=>'<div style="border-top:1px solid var(--line);padding:7px 0">'+
+   '<p style="margin:0"><b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>'+(m.c?' '+chip(m.c==='rejection'?'asm':m.c==='release'?'ev':'hyp',m.c):'')+'</p>'+
+   '<p style="margin:3px 0;font-size:11.3px"><b>Why:</b> '+m.a+' <b>Context:</b> '+m.w+'</p></div>').join('');
+}
+const LIVEBIND={
+ kf:kfHTML, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
+ hyps:hypsHTML, exps:expsHTML, matrix:matrixHTML, referee:refereeHTML, comps:compsHTML,
+ claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
+   (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
+ modelstats:()=>{const W=sectorW(),cn=containN();
+   return 'Under the current prior the permitted sector is <b>±'+W+'°</b> and containment is <b>'+cn+' / 9 epochs</b>'+
+   (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
+ memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
+   return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
+ watchstats:()=>S.counters.fam+' source families · <b>'+S.counters.rec.toLocaleString('en-US')+'</b> records evaluated · 4 material · '+(18207+(S.counters.rec-18420))+' set aside · screen '+S.asm.screen+(S.xmatchRun?' · cross-match executed (r = 0.04)':''),
+ reason:()=>'Statements analysed: <b>'+S.spoken+' / '+SPEECH.length+'</b>'+(S.thoughtN?' + '+S.thoughtN+' spoken via the bar':'')+' · defects on record: assumption without support, false dichotomy, omitted evidence · 1 reconnection to S-144.'};
+function refreshDoc(){
+  document.querySelectorAll('[data-lv]').forEach(el=>{
+    const k=el.dataset.lv,b=LIVEBIND[k];if(!b)return;
+    if(k==='kf'){
+      const open=new Set(Array.from(el.querySelectorAll('.kfd.open')).map(d=>d.dataset.kfd));
+      el.innerHTML=b();
+      el.querySelectorAll('.kfd').forEach(d=>{if(open.has(d.dataset.kfd))d.classList.add('open');});
+    }else el.innerHTML=b();
+  });
+}
+document.addEventListener('click',e=>{
+  const kd=e.target.closest('.kfd');
+  if(kd&&!e.target.closest('[data-act]'))kd.classList.toggle('open');
+});
+/* ---------------- mode documents ---------------- */
+function dsec(id,label,inner,fig){
+  return '<div class="sec'+(fig?' figsec':'')+'" id="sec-'+id+'"><div class="sh3"><span class="st3">'+label+'</span><span class="sl3">● LIVE</span></div>'+inner+'</div>';
+}
+function figLive(caption,dark){
+  return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
+}
+const DOCS={
+ watch:()=>
+  dsec('finding','Executive briefing — autonomous cycle complete · S-000 02:14 UTC',
+   '<h2>The revised ALMA polarisation trajectory is no longer contained by the selected GRMHD model family.</h2>'+
+   '<p>The failure is controlled by an <b>inherited electron-heating prescription</b> (83 % of boundary variance on the failing axis), not by the revised measurement uncertainty: doubling the calibration term still leaves a 22° residual at 3.1σ. Recommended action: <b>re-run three MAD ensemble members with the laboratory-informed heating range</b> before requesting telescope time — 64 % of the surviving explanation space is eliminated at zero observing cost.</p>'+
+   '<div data-lv="kf">'+kfHTML()+'</div>')+
+  dsec('live','Live monitor — knowledge entering the model',
+   figLive('<b>Live instrument.</b> Records stream from 15 source classes toward the active model; irrelevant ones fade mid-flight, the four material changes dock as Δ nodes. Drag one into the core to propagate it; click for its detection chain; hover anything for what it answers.')+
+   '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>',true)+
+  dsec('changes','Material changes — detection → consequence',
+   '<table class="dtable"><tr><th></th><th>Change</th><th>Result</th><th></th></tr>'+
+   EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.cls+'</span></td><td>'+ev.res+'</td><td><button class="abtn sm" data-act="evc:'+i+'">Chain</button></td></tr>').join('')+'</table>'+
+   '<p>Every change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node consequence propagation → ranked action. Click any row to open it.</p>')+
+  dsec('lit','Autonomous literature comparison',
+   '<p>Nine sources were reduced to three shared parameters and compared pairwise in σ units. <b>Your S-097 static-screen adoption sits on the contested column:</b> D21 disputes the B18/W20 stability cluster at <b>4.0σ</b>, and the dispute was inherited silently. The m_L tension (S15, 2.5σ) is method-level — single-dish beam depolarization — not physical.</p>'+
+   '<div class="fig"><div data-lv="lit">'+svgLit()+'</div><div class="fcap"><b>Figure.</b> Sources placed at their claimed values; red dashed links are contradictions with their tension in σ; navy dashed lines are the values your model adopts; grey σ ranges are 1σ.</div></div>'),
+ model:()=>
+  dsec('finding','Physical model — state of containment',
+   '<h2>One boundary of the physical model is broken, and the break is assumption-shaped.</h2>'+
+   '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
+   '<p>The permitted sector is the union of 1,120 retained library trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the heating prescription adopted at S-277 as convention — the amber clamp in the dependency graph below. Stretch the prior with the slider inside the figure and watch containment, the ranking, the claim, and every number in this document recompute.</p>',false)+
+  dsec('live','Live instrument — ray-traced physical system',
+   figLive('<b>Live instrument.</b> GRMHD render with the containment gauge embedded on the object: the breathing band is the permitted sector, ticks are the nine measured epochs, violet marks exit the boundary. Drag to rotate · scroll to zoom · SHIFT = laboratory counterfactual · ALT = uncertainty layers. The heating slider is a scientific control: it recomputes the model, not the picture.',true),true)+
+  dsec('evpa','Evidence against prediction',
+   '<p>The primary scientific figure. Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior. The exit epoch and the ±42° preview update live with the slider above.</p>'+
+   '<div class="fig"><div data-lv="evpa">'+svgEVPA()+'</div><div class="fcap"><b>Figure.</b> Hold ALT anywhere to inflate the error bars to the calibration-doubled counterfactual — the trajectory still exits (3.1σ): the breach is a boundary property.</div></div>')+
+  dsec('graph','Causal structure — what feeds what',
+   '<p>Every structure in the model carries provenance edges. The two amber nodes are the only unmeasured structures; the heating prescription alone carries <b>83 % of failing-axis variance and 4 downstream claims</b>. Click any node for its full upstream/downstream trace.</p>'+
+   '<div class="fig"><div data-lv="dep">'+svgDep()+'</div><div class="fcap"><b>Figure.</b> Evidence → calculation → assumption → consequence. The demoted conclusion and the expired S-144 rejection are live states, not annotations.</div></div>')+
+  dsec('uncert','Uncertainty propagation',
+   '<p>The chain from instrument systematic to claim survival. Each stage inherits and amplifies the last; the funnel is the uncertainty budget of the entire argument.</p>'+
+   '<div class="fig"><div data-lv="funnel">'+svgFunnel()+'</div><div class="fcap"><b>Figure.</b> Stage 4 is the decision point: at ×1 the exit is significant; at ×2 (hold ALT) it survives at 3.1σ — calibration cannot absorb the breach.</div></div>')+
+  dsec('sens','Parameter sensitivity',
+   '<p>Where measurement leverage actually lives. The heating prior dominates; spin and inclination are pinned by ring morphology; the screen flips the ranking but not the residual.</p>'+
+   '<div class="fig"><div data-lv="sens">'+svgSens()+'</div><div class="fcap"><b>Figure.</b> Amber bars are assumptions — exactly where the laboratory mapping applies.</div></div>'),
+ analyze:()=>
+  dsec('hyps','Competing explanations — full dossiers',
+   '<h2>Three configurations survive; their order is a function of your assumption set.</h2>'+
+   '<p>Coverage is transparent bookkeeping — fraction of admitted structures contained, weighted by 1/σ², penalised ×0.8 per required unmeasured assumption — never a posterior. Release the screen or exclude a dataset and this section rewrites itself.</p>'+
+   '<div data-lv="hyps">'+hypsHTML()+'</div>')+
+  dsec('live','Live instrument — evidence landscape',
+   figLive('<b>Live instrument.</b> Support pulls a hypothesis toward its evidence; contradiction pushes it away; excluding a dataset physically reshapes the space while coverage rings ease to recomputed values. Drop one hypothesis onto another for the collision comparison; SHIFT previews the screen counterfactual.'),true)+
+  dsec('matrix','Evidence × hypothesis structure',
+   '<div data-lv="matrix">'+matrixHTML()+'</div>'+
+   '<p>The ALMA trajectory is essential (the claim loses its subject without it); the magnetar sightline is load-bearing (its removal restores screen parity); the laboratory mapping is conditional; the flare catalogue is a pending discriminator, not a support.</p>')+
+  dsec('pareto','Experiment optimization',
+   '<p data-lv="exps2">Which observation removes the most surviving explanation volume, at what cost:</p>'+
+   '<div data-lv="exps">'+expsHTML()+'</div>'+
+   '<div class="acts" style="margin:4px 0">'+
+   '<button class="abtn sm" data-act="budget:any">Unconstrained</button><button class="abtn sm" data-act="budget:zero">Zero telescope</button><button class="abtn sm" data-act="budget:fast">≤ 30 days</button></div>'+
+   '<div class="fig"><div data-lv="pareto">'+svgPareto()+'</div><div class="fcap"><b>Figure.</b> Bubble area = telescope hours; the dashed line is the efficient frontier; the cyan pick is optimal under the selected budget.</div></div>')+
+  dsec('hidden','Cross-domain discovery audit',
+   '<p>117 adjacent-domain families scanned, 32 candidate mappings tested in a common dimensionless representation, <b>one admitted</b>: laboratory reconnection → R(βi), residual 0.11, prior-widening only. Kept with reasons: solar-wind cascade (near-miss, 0.38 — no surviving observable); MRI fluid analogue (rejected — no regime overlap); materials percolation (rejected, 0.61). A connection may widen a prior; it may never transfer a value.</p>'),
+ memory:()=>
+  dsec('finding','Scientific memory — time-resolved research states',
+   '<h2>Every belief is stored with its evidence context and an expiry condition — and one condition has expired.</h2>'+
+   '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
+   '<p>The S-144 heating rejection was contingent on the absence of a direct measurement; the S-044 laboratory result is that measurement. Nothing re-reads old notes: expiry predicates are machine-checked every autonomous cycle.</p>'+
+   '<div class="acts"><button class="abtn sm" data-act="mem:replay">Replay the evolution — narrated</button><button class="abtn sm" data-act="act:react">Reactivate eligible branch</button><button class="abtn sm" data-act="act:compare144">Compare S-144 ↔ now</button></div>')+
+  dsec('live','Live instrument — the research timeline',
+   figLive('<b>Live instrument.</b> Drag NOW through research time: beliefs appear, the untested screen assumption visibly erodes, the dormant branch arc forms and its condition expires at S-044. Evidence-arrival pulses fire as you cross states.'),true)+
+  dsec('states','The record',
+   '<div>'+memHTML()+'</div>')+
+  dsec('compare','S-144 vs S-000 — what changed is evidence',
+   '<table class="dtable"><tr><th>Dimension</th><th>S-144</th><th>S-000</th></tr>'+
+   [['Polarisation','6 epochs · no drift','9 epochs · 41°±6° monotonic'],
+    ['Heating constraint','none — unfalsifiable','lab R = 7.9±1.6 (unreplicated)'],
+    ['Control sightline','single check','flat to 3 % · replicated ×2'],
+    ['Branch status','rejected','eligible — condition expired'],
+    ['Containment','9/9 inside ±14°','3/9 — exits at epoch 4']].map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'),
+ claim:()=>
+  dsec('finding','Working claim v3 — conditional, live',
+   '<h2 data-lv="claimtxt">'+LIVEBIND.claimtxt()+'</h2>'+
+   '<p>The claim is assembled from verified components, never generated. Its two unmeasured premises are stated inside the text; its falsifiers are concrete: a correlated magnetar RM excursion returns the screen; flare-locked EVPA returns eruptions. One 21-day campaign resolves all three configurations. Lineage: v1 S-041 (post-laboratory) · v2 S-020 (post-magnetar) · v3 live.</p>')+
+  dsec('live','Live instrument — the claim as structure',
+   figLive('<b>Live instrument.</b> Drag components into the core to attach; drag out to detach — support physically carries the structure, unreplicated support flickers, and detaching the observation collapses the claim (and rewrites the sentence above).'),true)+
+  dsec('comps','Components and weights',
+   '<div data-lv="comps">'+compsHTML()+'</div>')+
+  dsec('referee','Referee simulation — ranked objections',
+   '<p>Six objections generated from the live model state, ranked by severity. Two are structural exposures requiring a declared premise or a scheduled test; the rest carry prepared responses.</p>'+
+   '<div class="acts"><button class="abtn sm" data-act="ref:run">Run the simulation</button></div>'+
+   '<div data-lv="referee">'+refereeHTML()+'</div>'),
+ reason:()=>
+  dsec('finding','Reasoning chamber — think out loud',
+   '<h2>Speak, and the system verifies: every sentence is parsed, classified and checked against the model.</h2>'+
+   '<p>Use the bar at the bottom-left from any mode — analysis begins while you type. Detected structures: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to your own rejected reasoning, reviewer risk, suggested rewording, and the missing test that would settle the sentence.</p>'+
+   '<p data-lv="reason">'+LIVEBIND.reason()+'</p>')+
+  dsec('live','Live instrument — the argument as it builds',
+   figLive('<b>Live instrument.</b> Statements stack with their verification tags; threads arc to the model, memory, and evidence anchors. The argument-map control splits supported structure from what a referee will attack.'),true)
+};
+function renderDoc(){
+  $('#doc').innerHTML='<div class="din">'+DOCS[S.mode]()+'</div>';
+  buildCtl();
+}
 
 /* ------- boot ------- */
 const CSEQ=[
