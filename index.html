@@ -49,7 +49,7 @@ canvas{display:block}
 #brand .sim{display:inline-block;margin-left:10px;font-family:var(--m);font-size:7px;letter-spacing:.16em;
   color:var(--asm);border:1px dashed rgba(168,94,8,.55);padding:2px 6px;border-radius:3px;vertical-align:2px}
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-#dock{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:2px;pointer-events:auto;
+#dock{position:absolute;top:12px;left:calc((100% - 332px)/2);transform:translateX(-50%);display:flex;gap:2px;pointer-events:auto;
   background:rgba(250,253,255,.72);border:1px solid var(--line2);border-radius:10px;padding:4px;
   backdrop-filter:blur(12px);box-shadow:0 8px 30px -14px rgba(10,30,60,.4)}
 .dk{background:none;border:0;border-radius:7px;padding:8px 14px;cursor:pointer;text-align:center}
@@ -60,7 +60,7 @@ canvas{display:block}
 .dk.on .n{color:#eaf4fb}.dk.on .d{color:#8fb4cf}
 .dk .badge{display:inline-block;font-family:var(--m);font-size:7px;color:#fff;background:var(--ev);
   border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:2px}
-#cmdHint{position:absolute;top:18px;right:22px;pointer-events:auto;background:rgba(250,253,255,.72);
+#cmdHint{position:absolute;top:12px;right:12px;pointer-events:auto;background:rgba(250,253,255,.72);
   border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;
   font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 #cmdHint b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:6px}
@@ -82,7 +82,7 @@ canvas{display:block}
 #vitals .note{font-family:var(--m);font-size:7.5px;color:var(--dim);letter-spacing:.06em}
 
 /* per-mode instrument controls (bottom center) */
-#ctl{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
+#ctl{position:absolute;left:calc((100% - 332px)/2);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
   pointer-events:auto;flex-wrap:wrap;justify-content:center;max-width:74vw}
 .cchip{background:rgba(250,253,255,.78);border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;
   font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--ink2);backdrop-filter:blur(8px)}
@@ -106,7 +106,7 @@ canvas{display:block}
 #insp .ih{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 #insp .ih .t{font-size:13px;font-weight:700;color:#0a1c30;line-height:1.4}
 #insp .ih .x{background:none;border:0;cursor:pointer;color:var(--dim);font-size:14px;padding:2px 4px}
-#insp .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+#insp .chips,#intel .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .chip{display:inline-flex;align-items:center;font-family:var(--m);font-size:7.5px;letter-spacing:.14em;
   text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:3px;white-space:nowrap}
 .chip.ev{color:var(--ev);border-color:rgba(0,144,196,.5);background:rgba(0,144,196,.06)}
@@ -116,7 +116,7 @@ canvas{display:block}
 .chip.clm{color:var(--clm);border-color:rgba(22,32,47,.55);background:rgba(255,255,255,.65)}
 .chip.ok{color:var(--ok);border-color:rgba(27,125,79,.5);background:rgba(27,125,79,.06)}
 .chip.bad{color:var(--bad);border-color:rgba(176,54,54,.5);background:rgba(176,54,54,.06)}
-#insp .rows{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+#insp .rows,#intel .rows{margin-top:10px;display:flex;flex-direction:column;gap:6px}
 .irow{display:flex;gap:8px;font-size:10.8px;line-height:1.5;color:var(--ink2)}
 .irow .ik{flex:none;width:88px;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
 .irow b{color:var(--ink);font-weight:650}
@@ -124,24 +124,47 @@ canvas{display:block}
 .ibar .b{flex:1;height:4px;border-radius:2px;background:rgba(13,40,70,.12);overflow:hidden}
 .ibar .b i{display:block;height:100%;border-radius:2px}
 .ibar .v{font-family:var(--m);font-size:8px;color:var(--ink2)}
-#insp details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
-#insp summary{cursor:pointer;font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);list-style:none}
-#insp summary::before{content:'▸ ';color:var(--ev)}
-#insp details[open] summary::before{content:'▾ '}
-#insp details .db{margin-top:7px;font-size:10.6px;line-height:1.65;color:var(--ink2)}
+#insp details,#intel details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+#insp summary,#intel summary{cursor:pointer;font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);list-style:none}
+#insp summary::before,#intel summary::before{content:'▸ ';color:var(--ev)}
+#insp details[open] summary::before,#intel details[open] summary::before{content:'▾ '}
+#insp details .db,#intel details .db{margin-top:7px;font-size:10.6px;line-height:1.65;color:var(--ink2)}
 .mini{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 .mini .m{display:flex;gap:7px;align-items:baseline;font-size:10.2px;line-height:1.45;color:var(--ink2)}
 .mini .m .n{flex:none;font-family:var(--m);font-size:7.5px;color:#fff;border-radius:50%;width:14px;height:14px;
   display:inline-flex;align-items:center;justify-content:center}
-#insp .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+#insp .acts,#intel .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .abtn{background:var(--surf);border:1px solid var(--line2);border-radius:6px;padding:6px 10px;cursor:pointer;
   font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 .abtn:hover{background:#fff;border-color:rgba(13,40,70,.45)}
 .abtn.pri{background:#13293f;border-color:#13293f;color:#eaf4fb}
 .abtn.warn{color:var(--bad);border-color:rgba(176,54,54,.45)}
 
+/* live intelligence panel — always on, recomputes with every manipulation */
+#intel{position:absolute;top:56px;right:0;bottom:0;width:332px;pointer-events:auto;overflow-y:auto;
+  background:rgba(248,252,255,.88);border-left:1px solid var(--line2);backdrop-filter:blur(16px);
+  padding:10px 14px 24px;scrollbar-width:thin;box-shadow:-12px 0 40px -30px rgba(10,30,60,.5)}
+.isec{border-bottom:1px solid var(--line);padding:8px 0}
+.isec>.sh{display:flex;justify-content:space-between;align-items:center;font-size:7.4px;letter-spacing:.24em;
+  font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
+.isec>.sh .lv{font-family:var(--m);font-size:6.8px;color:var(--ev);letter-spacing:.1em}
+.ir{display:flex;gap:7px;font-size:10.3px;line-height:1.5;color:var(--ink2);padding:2.5px 3px;border-radius:4px}
+.ir .k{flex:none;width:78px;font-size:7.1px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
+.ir b{color:var(--ink);font-weight:650}
+.ir .togl{cursor:pointer;border-bottom:1px dotted rgba(13,40,70,.45)}
+.ir .togl:hover{background:rgba(0,144,196,.08)}
+.flash{animation:fl 1.5s}
+@keyframes fl{0%{background:rgba(0,144,196,.26)}100%{background:transparent}}
+.dt{font-family:var(--m);font-size:8.4px;line-height:1.85;color:var(--calc);white-space:pre;overflow-x:auto}
+.dt i{font-style:normal;color:var(--hyp)}
+.dt em{font-style:normal;color:var(--ev)}
+#tip{position:fixed;z-index:50;pointer-events:none;background:rgba(12,26,42,.95);color:#dfeefb;border-radius:6px;
+  padding:7px 10px;font-size:9.8px;line-height:1.55;max-width:250px;opacity:0;transition:opacity .12s;
+  border:1px solid rgba(159,192,216,.3)}
+#tip .th{font-weight:800;font-size:7.6px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:3px;color:#7fd4ff}
+#tip .tq{color:#9fc0d8;font-family:var(--m);font-size:7.4px;margin-top:4px;letter-spacing:.04em}
 /* hint line above ctl */
-#hint{position:absolute;left:50%;top:64px;transform:translateX(-50%);pointer-events:none;
+#hint{position:absolute;left:calc((100% - 332px)/2);top:64px;transform:translateX(-50%);pointer-events:none;
   font-family:var(--m);font-size:8.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase;
   background:rgba(250,253,255,.6);padding:5px 12px;border-radius:6px;opacity:0;transition:opacity .5s;white-space:nowrap}
 #hint.on{opacity:1}
@@ -203,7 +226,9 @@ canvas{display:block}
 #cons .pb i{display:block;height:100%;background:var(--ev);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
 
 @media(max-width:900px){
-  #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto}
+  #intel{display:none}
+  #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto;left:50%}
+  #ctl{left:50%}#hint{left:50%}
   .dk{padding:7px 9px}.dk .d{display:none}
   #ctl{bottom:74px;max-width:94vw}
   #hint{bottom:120px}
@@ -226,11 +251,11 @@ canvas{display:block}
   <div id="brand"><span class="p">PARALLAX</span><span class="sim">SIMULATED SCENARIO</span></div>
   <div id="dock"></div>
   <button id="cmdHint">Command<b>/</b></button>
-  <div id="vitals"></div>
   <div id="ctl"></div>
   <div id="hint"></div>
-  <div id="insp"></div>
+  <div id="intel"></div>
   <div id="brief"></div>
+  <div id="tip"></div>
 </div>
 
 <div id="ap">
@@ -273,7 +298,7 @@ const S={
   removed:{}, droplab:false, xmatchRun:false,
   memoryLive:false, scrubDay:0,                /* memory scrub position (S-day, 300→0) */
   attached:new Set(), audited:false,
-  spoken:0, yaw:0, zoom:1, briefSeen:false,
+  spoken:0, yaw:0, zoom:1, briefSeen:false, mod:{shift:false,alt:false}, claimCollapsed:false, reasonMap:false,
   counters:{rec:18420, fam:217, mat:4}
 };
 const HYPS=[
@@ -316,8 +341,16 @@ function consistency(){
   HYPS[2].s=clamp((0.22+0.36*f-0.02*h+(gone('mag')?0.17:0))*(gone('alma')?0.5:1),0.05,0.95);
 }
 consistency();
+function covIf(screenVariable){
+  const f=screenVariable?1:0,h=S.asm.heating;
+  const dl=(S.droplab||S.removed.lab)?0.28:0,xm=S.xmatchRun?0.24:0;
+  const g=id=>S.removed[id]?1:0;
+  return [clamp((0.61-0.20*f+0.14*h-dl)*(g('alma')?0.3:1)*(g('mag')?0.85:1),0.05,0.95),
+          clamp((0.44-0.08*f-0.04*h-xm)*(g('alma')?0.4:1),0.05,0.95),
+          clamp((0.22+0.36*f-0.02*h+(g('mag')?0.17:0))*(g('alma')?0.5:1),0.05,0.95)];
+}
 const ranked=()=>[...HYPS].sort((a,b)=>b.s-a.s);
-const sectorW=()=>Math.round(lerp(14,38,S.asm.heating));
+const sectorW=()=>Math.round(lerp(14,42,S.asm.heating));
 const containN=()=>{const w=sectorW();return EP_VAL.filter(v=>v<=w).length;};
 const EP_VAL=Array.from({length:9},(_,i)=>41*i/8+Math.sin(i*2.3)*1.6);
 
@@ -381,17 +414,29 @@ const MEM=[
 ];
 const SPEECH=[
  {s:'The drift looks intrinsic to me — the screen has been stable since the early campaign.',
-  d:[['asm','Assumption: screen stability extrapolated from S-097 — untested at current epochs']]},
+  d:[['asm','Assumption: screen stability extrapolated from S-097 — untested at current epochs']],
+  r:'Referee: “stability was established at S-097 — show that it holds across the current epochs.”',
+  w:'Weaken to: “assuming the screen remained stable, the drift is intrinsic.”',
+  m:'Missing test: a 7-day magnetar RM cadence bounds this directly (84 d, VLA).'},
  {s:'If the flow is magnetically arrested, flux eruptions should reorganise the field.',
-  d:[['calc','Causal link verified: MAD → reorganisation, supported by retained volume']]},
+  d:[['calc','Causal link verified: MAD → reorganisation, supported by the retained simulation volume']],
+  m:'Implication: eruption-driven drift must correlate with X-ray flare timing — a checkable signature.'},
  {s:'But the ALMA epochs drift monotonically, and eruptions should not do that.',
-  d:[['ev','Evidence verified: 9-epoch trajectory is monotonic'],['hyp','Valid contradiction vs eruption configuration']]},
+  d:[['ev','Evidence verified: 9-epoch trajectory is monotonic'],['hyp','Valid contradiction vs eruption configuration']],
+  r:'Referee: quantify — monotonicity excludes eruptions at what confidence?',
+  m:'Hidden implication: frequency-scaled drift (230→345 GHz) separates intrinsic from propagative origins.'},
  {s:'So either the screen varies, or the heating prescription is wrong. It cannot be both.',
-  d:[['hyp','FALSE DICHOTOMY — both may contribute; the model carries weighted configurations']]},
+  d:[['hyp','FALSE DICHOTOMY — both may contribute; the model carries weighted configurations']],
+  r:'Referee will flag the exclusivity as unsupported — nothing in the model forces it.',
+  w:'Replace with: “at least one of screen variability and heating error must contribute.”'},
  {s:'I do not think the X-ray record helps here.',
-  d:[['ev','OMITTED EVIDENCE — 34 archival flares inside your epochs · decisive at zero cost']]},
+  d:[['ev','OMITTED EVIDENCE — 34 archival flares inside your epochs · decisive at zero cost']],
+  r:'Overconfidence: certainty stated without running the free test.',
+  m:'The archival cross-match decides the eruption question immediately, at zero observing cost.'},
  {s:'If heating extends higher near beta of one, the drift could be the emission region migrating.',
-  d:[['hyp','Candidate hypothesis — matches reasoning of day S-144'],['asm','Reconnects to dormant branch — its rejection condition has EXPIRED']]}
+  d:[['hyp','Candidate hypothesis — matches the reasoning of day S-144'],['asm','Reconnects to the dormant branch — its rejection condition has EXPIRED']],
+  w:'Add the condition: “if the laboratory mapping transfers to the collisionless regime.”',
+  m:'Connects to S-144; the missing measurement arrived at S-044. The branch is eligible.'}
 ];
 const COMPS=[
  {k:'Observation',p:'ev',v:'EVPA drifts 41° ± 6° over nine epochs'},
@@ -404,6 +449,7 @@ const COMPS=[
  {k:'Inference',p:'hyp',v:'intrinsic mechanism with broadened prior best contains evidence'},
  {k:'Falsification',p:'clm',v:'magnetar excursion or flare-locked EVPA destroys it'}
 ];
+const CWEIGHT=[1,.6,.7,.5,.9,.5,.4,.8,.7];
 const ATTACKS=[
  ['Dataset removal','survives 3/4 · collapses only without ALMA',0.66,'ok'],
  ['Screen release','coverage 5/5 → 3/5 · becomes conditional',0.45,'asm'],
@@ -434,7 +480,7 @@ const GL={on:false,ok:false,gl:null,u:{},t0:performance.now(),
 const VSH='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 const FSH=[
 'precision highp float;',
-'uniform vec2 R;uniform float T;uniform float uHeat;uniform float uField;uniform float uScreen;uniform float uScrVar;uniform float uYaw;uniform float uZoom;',
+'uniform vec2 R;uniform float T;uniform float uHeat;uniform float uField;uniform float uScreen;uniform float uScrVar;uniform float uYaw;uniform float uZoom;uniform float uOff;',
 'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
 'float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
 ' return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}',
@@ -453,6 +499,7 @@ const FSH=[
 ' return col;}',
 'void main(){',
 ' vec2 uv=(gl_FragCoord.xy*2.-R)/R.y;',
+' uv.x+=uOff;',
 ' float inc=.42;',
 ' float cy=cos(uYaw),sy=sin(uYaw);',
 ' vec3 ro0=vec3(0.,sin(inc),-cos(inc))*13.5;',
@@ -538,7 +585,7 @@ function glInit(){
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  ['R','T','uHeat','uField','uScreen','uScrVar','uYaw','uZoom'].forEach(n=>GL.u[n]=gl.getUniformLocation(pr,n));
+  ['R','T','uHeat','uField','uScreen','uScrVar','uYaw','uZoom','uOff'].forEach(n=>GL.u[n]=gl.getUniformLocation(pr,n));
   GL.ok=true;return true;
 }
 function glFrame(t){
@@ -555,6 +602,7 @@ function glFrame(t){
   gl.uniform1f(GL.u.uHeat,GL.heat);gl.uniform1f(GL.u.uField,GL.field);
   gl.uniform1f(GL.u.uScreen,GL.screen);gl.uniform1f(GL.u.uScrVar,GL.scrVar);
   gl.uniform1f(GL.u.uYaw,GL.yaw);gl.uniform1f(GL.u.uZoom,GL.zoom);
+  gl.uniform1f(GL.u.uOff,innerWidth>900?(166*bw/innerWidth)*2/bh:0);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 function glSet(on){
@@ -577,6 +625,7 @@ let SW=0,SH=0,DPR=1;
 function sresize(){DPR=Math.min(devicePixelRatio||1,2);SW=innerWidth;SH=innerHeight;
   stage.width=SW*DPR;stage.height=SH*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',sresize);sresize();
+function stageW(){return innerWidth>900?SW-332:SW;}
 const World={objs:[],t:0};
 function findObj(id){return World.objs.find(o=>o.id===id&&!o.dead);}
 function spawn(o){
@@ -601,32 +650,98 @@ function mono(t,x,y,size,col,align){
 function hex2(c,a){const n=parseInt(c.slice(1),16);return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
 function link(x1,y1,x2,y2,col,a,w,dash){
   ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=col;ctx.lineWidth=w||1.2;
-  if(dash)ctx.setLineDash(dash);
+  if(dash){ctx.setLineDash(dash);ctx.lineDashOffset=-World.t*18;}
   ctx.beginPath();ctx.moveTo(x1,y1);
   const mx=(x1+x2)/2,my=(y1+y2)/2-Math.hypot(x2-x1,y2-y1)*0.08;
   ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();ctx.restore();
 }
 /* ------- inspector (progressive disclosure) ------- */
 let SEL=null;
-function inspect(html){const el=$('#insp');if(!html){el.classList.remove('on');SEL=null;return;}
-  el.innerHTML='<div class="ih"><div class="t" id="inspT"></div><button class="x" data-act="insp:close">✕</button></div>'+html;
-  el.classList.add('on');}
-function inspTitle(t){const e=$('#inspT');if(e)e.textContent=t;}
+const FOCUS={title:null,html:null};
+function inspect(html){if(!html){FOCUS.title=null;FOCUS.html=null;SEL=null;}else FOCUS.html=html;renderIntel();}
+function inspTitle(t){FOCUS.title=t;renderIntel();}
 function ibar(v,col){return '<div class="ibar"><div class="b"><i style="width:'+(v*100).toFixed(0)+'%;background:'+col+'"></i></div><span class="v">'+(v*100).toFixed(0)+'%</span></div>';}
 function irow(k,v){return '<div class="irow"><span class="ik">'+k+'</span><span>'+v+'</span></div>';}
 function minirows(arr){return '<div class="mini">'+arr.map((r,i)=>'<div class="m"><span class="n" style="background:'+C[r[1]]+'">'+(i+1)+'</span><span><b style="color:'+C[r[1]]+'">'+r[0]+'</b> — '+r[2]+'</span></div>').join('')+'</div>';}
 function hint(t,dark){const h=$('#hint');if(!t){h.classList.remove('on');return;}
   h.textContent=t;h.classList.toggle('dark',!!dark);h.classList.add('on');}
 /* ------- vitals: the model is always alive ------- */
-function vitals(){
-  const r=ranked(),w=sectorW(),cn=containN();
-  const lead=r[0];
-  $('#vitals').innerHTML='<div class="vh"><span class="t">Live model vitals</span><span class="live"><i></i>WATCHING</span></div>'+
-   '<div class="vrow"><span class="k">Containment</span><div class="b"><i style="width:'+(cn/9*100)+'%;background:'+(cn===9?C.ok:C.hyp)+'"></i></div><span class="v">'+cn+' / 9 · ±'+w+'°</span></div>'+
-   '<div class="vrow"><span class="k">Leading</span><div class="b"><i style="width:'+(lead.s*100)+'%;background:'+C.hyp+'"></i></div><span class="v">'+(lead.s*100).toFixed(0)+'% '+lead.id+'</span></div>'+
-   '<div class="vrow"><span class="k">Claim</span><div class="b"><i style="width:'+(S.attached.size/9*100)+'%;background:'+C.clm+'"></i></div><span class="v">'+S.attached.size+' / 9 '+(S.audited?'· audited':'')+'</span></div>'+
-   '<div class="note">'+S.counters.fam+' families · '+S.counters.rec.toLocaleString('en-US')+' records · screen '+S.asm.screen+(S.xmatchRun?' · xmatch ✓':'')+'</div>';
+const EP_ERR=Array.from({length:9},(_,i)=>4.4+i*0.28);
+let SNAP={};
+function iflash(key,val){const sv=String(val);const ch=SNAP[key]!==undefined&&SNAP[key]!==sv;SNAP[key]=sv;return ch?' flash':'';}
+function ir2(key,k,v){return '<div class="ir'+iflash(key,v)+'"><span class="k">'+k+'</span><span>'+v+'</span></div>';}
+function sec2(title,body,live){return '<div class="isec"><div class="sh"><span>'+title+'</span>'+(live?'<span class="lv">● LIVE</span>':'')+'</div>'+body+'</div>';}
+function counterLine(){return S.counters.fam+' FAMILIES · '+S.counters.rec.toLocaleString('en-US')+' RECORDS · 4 MATERIAL · SCREEN '+S.asm.screen.toUpperCase()+(S.xmatchRun?' · XMATCH DONE':'')+(S.mod.shift?' · [SHIFT] COUNTERFACTUAL':'')+(S.mod.alt?' · [ALT] UNCERTAINTY':'');}
+const METHODS={
+ watch:['materiality: 10 structural tests per record','normalization: barycentric · SI + astro units','provenance edge attached at admission','irrelevant records fade — never interrupt'],
+ model:['render: geodesic integrator · 150 steps','beaming ∝ δ³ · Keplerian Ω ∝ r^-3/2','sector: envelope of 1,120 trajectories','gauge = containment test, live'],
+ analyze:['coverage = Σ contained/σ² · ×0.8 per assumption','forces: evidence pulls · conflict pushes','ranking: 2,400-draw MC elimination','[shift] preview: screen released'],
+ memory:['412 states · immutable · diff computed live','conditions: machine-checked predicates','expiry test runs every autonomous cycle','reactivation adds an edge, rewrites nothing'],
+ claim:['assembly: verify-then-admit','support = Σ component weights','audit = 8 graph recomputations','collapse when the subject (obs) detaches'],
+ reason:['parse → classify → verify vs model','defects: only if the model holds the counter','reviewer model: trained on referee patterns','argument map: typed columns + dependencies']};
+function dataBlock(){
+  const W=sectorW();
+  if(S.mode==='model'){
+    let t='EP  DAY    EVPA     σ     RESID  STATE\n';
+    for(let i=0;i<9;i++){const v=EP_VAL[i],res=Math.max(0,v-W);
+      t+=String(i+1).padEnd(4)+('S-'+String(88-i*11).padStart(3,'0')).padEnd(7)+(v.toFixed(1)+'°').padEnd(9)+('±'+(EP_ERR[i]*(S.mod.alt?1.6:1)).toFixed(1)).padEnd(6)+(res>0?(res.toFixed(0)+'°').padEnd(7):'—'.padEnd(7))+(v<=W?'<em>in</em>':'<i>out</i>')+'\n';}
+    return '<div class="dt">'+t+'</div>';
+  }
+  if(S.mode==='watch')return '<div class="dt">'+EVENTS.map(e=>'Δ'+e.sev+' '+e.id.padEnd(9)+e.res).join('\n')+'</div>';
+  if(S.mode==='analyze'){
+    let t='            heating erupt  screen\n';
+    DATASETS.forEach(d=>{const off=S.removed[d.id]||(S.droplab&&d.id==='lab');
+      t+=(off?'<i>'+d.id.padEnd(12)+'</i>':d.id.padEnd(12));
+      ['heating','erupt','screen'].forEach(h=>{const r=EVMAT[h][d.id];t+=(off?'·':r>0?'<em>+</em>':r<0?'<i>−</i>':'·').padEnd(7);});t+='\n';});
+    return '<div class="dt">'+t+'</div>';
+  }
+  if(S.mode==='memory'){const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
+    return '<div class="dt">NOW  S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'\nSTATE S-'+String(m.d).padStart(3,'0')+': '+m.b+'\nWHY   '+m.a+'\nCTX   '+m.w+'</div>';}
+  if(S.mode==='claim')return '<div class="dt">'+COMPS.map((c,i)=>String(i+1)+' '+(S.attached.has(i)?'<em>◉</em>':'○')+' w='+CWEIGHT[i].toFixed(1)+' '+c.k).join('\n')+'</div>';
+  return '<div class="dt">statements '+S.spoken+'/'+SPEECH.length+' · defects 3 · supported 6\nreconnection: S-144 branch (condition expired)</div>';
 }
+function renderIntel(){
+  if(S.phase!=='live')return;
+  const r=ranked(),lead=r[0],W=sectorW(),cn=containN();
+  let h='';
+  if(FOCUS.html)h+='<div class="isec"><div class="sh"><span>FOCUS'+(FOCUS.title?' · '+esc2(FOCUS.title):'')+'</span><span style="cursor:pointer" data-act="insp:close">✕</span></div>'+FOCUS.html+'</div>';
+  h+=sec2('Live result',
+    ir2('res.cont','Containment','<b>'+cn+' / 9 epochs</b> inside ±'+W+'°'+(cn===9?' — restored (pending ensemble re-run)':' — exits at epoch '+(EP_VAL.findIndex(v=>v>W)+1)+(W<15?' · 4.5σ':' · residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'°')))+
+    ir2('res.lead','Leading','<b>'+lead.n+'</b>'+ibar(lead.s,C.hyp))+
+    ir2('res.next','Then',r[1].id+' '+(r[1].s*100).toFixed(0)+'% · '+r[2].id+' '+(r[2].s*100).toFixed(0)+'%')+
+    ir2('res.cause','Cause','83 % of the failing boundary is the <b>heating assumption</b>; calibration ×2 still leaves 3.1σ'),true);
+  h+=sec2('Evidence — roles now',DATASETS.map(d=>{
+    const off=S.removed[d.id]||(S.droplab&&d.id==='lab');
+    const rel=EVMAT[lead.id][d.id];
+    return ir2('ev.'+d.id,d.id,(off?'<s>':'<b>')+d.n+(off?'</s>':'</b>')+'<br>'+
+      (off?chip('bad','excluded'):chip(d.p))+' '+(d.rep?chip('ok','×2'):chip('asm','unrep'))+(off?'':' '+(rel>0?chip('ev','supports leading'):rel<0?chip('asm','conflicts leading'):chip('calc','silent'))));
+  }).join(''),true);
+  const contra=[];
+  if(S.removed.alma)contra.push(['fatal','No subject — the trajectory itself is excluded from the model.']);
+  contra.push(S.xmatchRun?['resolved','Flare–EVPA null obtained (r = 0.04 ± 0.09): eruption signature absent.']
+                         :['open','Monotonic drift vs stochastic eruption signature — decidable free via archival cross-match.']);
+  contra.push(S.asm.screen==='static'?['standing','Flat magnetar sightline vs any common screen: drift needs 12× the RM bound.']
+                                     :['granted','Variable screen granted sub-0.1 pc structure — magnetar bound no longer decisive.']);
+  if(S.droplab||S.removed.lab)contra.push(['standing','Heating extension has no physical basis — laboratory mapping absent.']);
+  h+=sec2('Contradictions',contra.map((c,i)=>ir2('ct.'+i,c[0],c[1])).join(''),true);
+  h+=sec2('Assumptions — click to change',
+    ir2('as.scr','Screen','<span class="togl" data-act="asm:screen"><b>'+S.asm.screen+'</b> — click to '+(S.asm.screen==='static'?'release':'restore')+'</span> · 3 dependents · bounded at 0.1 pc only')+
+    ir2('as.heat','Heating','<b>±'+W+'° sector</b> · '+(S.asm.heating<0.15?'inherited R_high = 40 (S-277, unmeasured)':S.asm.heating>0.85?'laboratory-informed R ≲ 8 (S-044)':'prior partially widened')+' · 83 % variance · 4 dependents'),true);
+  const E=experiments();
+  h+=sec2('Experiments — reorder live',E.map((x,i)=>
+    ir2('ex.'+x.id,'#'+(i+1),'<b>'+x.n+'</b>'+ibar(x.p,C.clm)+'<span style="font-size:8.6px;color:var(--dim)">'+x.c+' · '+x.tag+'</span>')).join(''),true);
+  h+=sec2('Working claim — rewrites live',
+    ir2('cl.txt','Text','<b>'+claimSentence()+'</b>')+
+    ir2('cl.int','Integrity',S.attached.size+' / 9'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED — no subject</b>':'')+(S.audited?' · audited: survives, 2 critical dependencies':' · unaudited'))+
+    ir2('cl.pr','Predictions','230→345 GHz scaling <i>untested</i> · flare null '+(S.xmatchRun?'<b>obtained</b>':'<i>untested</i>')),true);
+  h+=sec2('Data — '+S.mode,dataBlock());
+  h+=sec2('Method',
+    '<div class="dt">'+METHODS[S.mode].join('\n')+'</div>'+
+    '<div class="dt" style="margin-top:5px;color:var(--dim)" id="liveCounters">'+counterLine()+'</div>');
+  $('#intel').innerHTML=h;
+}
+const esc2=t=>String(t).replace(/</g,'&lt;');
+function vitals(){renderIntel();}
 /* ------- pointer input ------- */
 const PTR={x:0,y:0,down:false,obj:null,moved:0,sx:0,sy:0,yawing:false};
 function hitTest(x,y){
@@ -649,7 +764,17 @@ stage.addEventListener('pointerdown',e=>{
 stage.addEventListener('pointermove',e=>{
   const dx=e.clientX-PTR.x,dy=e.clientY-PTR.y;
   PTR.x=e.clientX;PTR.y=e.clientY;
-  if(!PTR.down){stage.style.cursor=hitTest(e.clientX,e.clientY)?'grab':(S.mode==='model'?'move':'default');return;}
+  if(!PTR.down){
+    const ho=hitTest(e.clientX,e.clientY);
+    stage.style.cursor=ho?'grab':(S.mode==='model'?'move':'default');
+    const tp=ho&&tipFor(ho);
+    if(tp){tipEl.innerHTML='<div class="th">'+tp.h+'</div>'+tp.b+(tp.q?'<div class="tq">'+tp.q+'</div>':'');
+      tipEl.style.left=Math.min(e.clientX+16,innerWidth-270)+'px';
+      tipEl.style.top=Math.min(e.clientY+14,innerHeight-110)+'px';
+      tipEl.style.opacity=1;}
+    else tipEl.style.opacity=0;
+    return;}
+  tipEl.style.opacity=0;
   PTR.moved+=Math.abs(dx)+Math.abs(dy);
   if(PTR.obj&&PTR.obj.dragging){
     PTR.obj.x=e.clientX+PTR.obj.dx;PTR.obj.y=e.clientY+PTR.obj.dy;
@@ -672,6 +797,48 @@ stage.addEventListener('pointerup',e=>{
 stage.addEventListener('wheel',e=>{
   if(S.mode==='model'){GL.zoomT=clamp(GL.zoomT+e.deltaY*0.0012,0.72,1.9);e.preventDefault();}
 },{passive:false});
+/* contextual layers: hover=what · click=inspect · dblclick=method · rightclick=provenance · shift=counterfactual · alt=uncertainty */
+const tipEl=$('#tip');
+function tipFor(o){
+  switch(o.kind){
+   case 'matnode':return {h:o.ev.cls,b:o.ev.t,q:'CLICK chain · DRAG into core to propagate · 2×CLICK method · R-CLICK sources'};
+   case 'core':return {h:'Active model',b:containN()+'/9 contained · leading '+ranked()[0].id+' '+(ranked()[0].s*100).toFixed(0)+'%',q:'CLICK full state of knowledge'};
+   case 'hyp':return {h:o.h.full,b:(o.h.s*100).toFixed(0)+'% coverage · requires '+o.h.rq.length+' assumptions · '+o.h.rep,q:'DRAG onto rival to collide · CLICK detail · SHIFT counterfactual'};
+   case 'chipEv':return {h:o.d.n,b:o.d.role,q:'DRAG to EXCLUDE — everything recomputes · R-CLICK provenance'};
+   case 'memnode':return {h:'State S-'+String(o.day).padStart(3,'0'),b:o.m.b,q:'CLICK evidence context · beliefs age, conditions expire'};
+   case 'scrub':return {h:'Research time',b:'NOW: S-'+String(Math.round(S.scrubDay)).padStart(3,'0'),q:'DRAG to scrub — states, branch and claim lineage respond'};
+   case 'comp':return {h:(o.idx+1)+' · '+o.c.k,b:o.c.v+' · weight '+CWEIGHT[o.idx].toFixed(1),q:'DRAG into core to attach · out to detach — claim recomputes'};
+   case 'ccore':return {h:'Working claim',b:S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · COLLAPSED':''),q:'CLICK text + validity · structure sags as support is removed'};
+   case 'stmt':return {h:'Statement '+(o.i+1),b:o.tags.map(t=>t[2]).join(' · '),q:'CLICK verification + reviewer risk + rewording'};
+   case 'anchor':return {h:o.text,b:'live connection target for detected structures',q:'CLICK to open'};
+   case 'mlabel':return o.emit?{h:'Source class',b:o.text.toLowerCase()+' — streaming into the perimeter',q:'irrelevant records fade before reaching the core'}:null;
+  }
+  return null;
+}
+stage.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const o=hitTest(e.clientX,e.clientY);if(!o)return;
+  const P={matnode:()=>['Provenance · '+o.ev.t,'<div class="dt">'+o.ev.cls+'\n'+(o.ev.id==='alma'?'ALMA archive · band-6 v4.2 · 3,214 records\n2 pipelines: CASA 6.5 + AIPS\nS-277 model-selection note linked':o.ev.id==='magnetar'?'VLA programmes ×2 · 812 records\nsystematics floor 1.1 %':o.ev.id==='lab'?'1 reconnection experiment · UNREPLICATED\n117 adjacent families scanned':'Chandra public archive · 14 catalogues\n7,963 records · autonomous join')+'</div>'],
+    chipEv:()=>['Provenance · '+o.d.n,'<div class="dt">'+o.d.src+'\n'+o.d.vol+'\n'+o.d.pipe+'</div>'],
+    hyp:()=>['Related record trail · '+o.h.n,'<div class="dt">discriminator: '+o.h.disc+'\nreplication: '+o.h.rep+'\npredicts: '+o.h.pr+'</div>'],
+    comp:()=>['Provenance · '+o.c.k,'<div class="dt">verified against model v3 this session\nclass: '+o.c.p+' · weight '+CWEIGHT[o.idx].toFixed(1)+'</div>'],
+    memnode:()=>['Provenance · S-'+o.day,'<div class="dt">'+o.m.ev!==undefined?o.m.a:''+'</div><div class="rows">'+irow('Evidence then',o.m.a)+'</div>']};
+  const f=P[o.kind];if(f){const r=f();inspect(r[1]);inspTitle(r[0]);}
+});
+stage.addEventListener('dblclick',e=>{
+  const o=hitTest(e.clientX,e.clientY);if(!o)return;
+  const M={hyp:'Coverage = fraction of admitted structures contained, weighted 1/σ², penalized ×0.8 per required unmeasured assumption. Recomputed on every interaction — never cached.',
+    chipEv:'Admission: normalization (frame · units · covariance) → materiality tests → provenance edge. Removal is a live graph recomputation, not a filter.',
+    matnode:'Detection chain: admit → normalize → compare vs 1,120 trajectories → conflict test → assumption sensitivity → 31-node consequence propagation → action ranking.',
+    comp:'Assembly is verify-then-admit: a component enters the claim only after re-verification against the current model state.',
+    ccore:'Support = Σ attached weights. The subject (component 1) is structural: without it the claim has nothing to be about and collapses.',
+    memnode:'States are immutable. Rejection conditions are machine-checkable predicates evaluated every autonomous cycle.',
+    stmt:'Each sentence: parse → classify (evidence/calc/assumption/inference) → verify against admitted structures → reviewer-risk model.'};
+  if(M[o.kind]){inspect('<div class="rows">'+irow('Method',M[o.kind])+'</div>');inspTitle('Methodology');}
+});
+addEventListener('keydown',e=>{if(e.key==='Shift')S.mod.shift=true;if(e.key==='Alt'){S.mod.alt=true;e.preventDefault();}});
+addEventListener('keyup',e=>{if(e.key==='Shift')S.mod.shift=false;if(e.key==='Alt')S.mod.alt=false;});
+addEventListener('blur',()=>{S.mod.shift=false;S.mod.alt=false;});
 /* ------- master loop ------- */
 let last=performance.now();
 function loop(now){
@@ -738,17 +905,18 @@ const DRAW={
  },
  hyp(o){
    const h=o.h,r=o.r;
+   o.sd=o.sd===undefined?h.s:o.sd+(h.s-o.sd)*0.06;
    ctx.fillStyle='rgba(252,254,255,.92)';
    ctx.strokeStyle=hex2(C.hyp,.8);ctx.lineWidth=o===SEL?2.2:1.3;
    ctx.beginPath();ctx.arc(o.x,o.y,r,0,TAU);ctx.fill();ctx.stroke();
    /* coverage ring */
    ctx.strokeStyle=C.hyp;ctx.lineWidth=4;
-   ctx.beginPath();ctx.arc(o.x,o.y,r+7,-Math.PI/2,-Math.PI/2+h.s*TAU);ctx.stroke();
+   ctx.beginPath();ctx.arc(o.x,o.y,r+7,-Math.PI/2,-Math.PI/2+o.sd*TAU);ctx.stroke();
    ctx.strokeStyle=hex2(C.hyp,.15);
-   ctx.beginPath();ctx.arc(o.x,o.y,r+7,-Math.PI/2+h.s*TAU,-Math.PI/2+TAU);ctx.stroke();
+   ctx.beginPath();ctx.arc(o.x,o.y,r+7,-Math.PI/2+o.sd*TAU,-Math.PI/2+TAU);ctx.stroke();
    const lines=wrapText(h.n,16);
    lines.forEach((l,i)=>txt(l,o.x,o.y-8+(i-(lines.length-1)/2)*13,10.5,C.ink,'center',750));
-   mono((h.s*100).toFixed(0)+'% coverage',o.x,o.y+r-18,8,C.hyp);
+   mono((o.sd*100).toFixed(0)+'% coverage · '+h.ex.length+' exp / '+h.fx.length+' cf / '+h.rq.length+' asm',o.x,o.y+r-18,7.4,C.hyp);
    if(o.lead)txt('LEADING',o.x,o.y-r-14,8,C.hyp,'center',800);
  },
  orb(o){
@@ -802,27 +970,31 @@ const DRAW={
    if(o.flick>0){o.flick-=0.02;ctx.strokeStyle=hex2(C.bad,o.flick);ctx.lineWidth=2;rr(o.x-w/2-3,o.y-h/2-3,w+6,h+6,9);ctx.stroke();}
  },
  ccore(o){
-   const n=S.attached.size;
-   const r=o.r*(0.75+0.25*(n/9));
-   ctx.save();ctx.translate(o.x,o.y);ctx.rotate(World.t*0.1);
-   ctx.strokeStyle=hex2(C.clm,.8);ctx.lineWidth=1.5;
+   const n=S.attached.size,sup=supportScore(),inst=(1-sup)*(S.claimCollapsed?2.2:1);
+   const r=o.r*(0.72+0.28*sup);
+   const sag=S.claimCollapsed?66:Math.round((1-sup)*16);
+   const oy=o.y+sag;
+   ctx.save();ctx.translate(o.x,oy);ctx.rotate(World.t*0.1+(S.claimCollapsed?0.35:0));
+   ctx.strokeStyle=S.claimCollapsed?'rgba(176,54,54,.8)':(sup<0.55?'rgba(168,94,8,.85)':'rgba(22,32,47,.8)');ctx.lineWidth=1.5;
    ctx.beginPath();
-   for(let i=0;i<6;i++){const a=i/6*TAU;const px=Math.cos(a)*r,py=Math.sin(a)*r*0.85;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+   for(let i=0;i<6;i++){const a=i/6*TAU;
+     const j=RM?0:Math.sin(World.t*7+i*2.1)*inst*3.4;
+     const px=Math.cos(a)*(r+j),py=Math.sin(a)*(r+j)*(S.claimCollapsed?0.55:0.85);
+     i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
    ctx.closePath();ctx.stroke();
    for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){
      const a1=i/6*TAU,a2=j/6*TAU;
-     ctx.strokeStyle=hex2(C.clm,.14+.1*(n/9));ctx.lineWidth=.8;
+     ctx.strokeStyle='rgba(22,32,47,'+(0.1+0.16*sup)+')';ctx.lineWidth=.8;
      ctx.beginPath();ctx.moveTo(Math.cos(a1)*r,Math.sin(a1)*r*0.85);ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r*0.85);ctx.stroke();
    }
    ctx.restore();
-   /* integrity ring */
-   ctx.strokeStyle=C.clm;ctx.lineWidth=3;
-   ctx.beginPath();ctx.arc(o.x,o.y,r+14,-Math.PI/2,-Math.PI/2+n/9*TAU);ctx.stroke();
-   ctx.strokeStyle=hex2(C.clm,.12);
-   ctx.beginPath();ctx.arc(o.x,o.y,r+14,0,TAU);ctx.stroke();
-   txt(n===0?'EMPTY CLAIM':n<9?'CLAIM · '+n+' / 9 COMPONENTS':'WORKING CLAIM v3',o.x,o.y-6,10,C.clm,'center',800);
-   mono(n===9?(S.audited?'audited · survives conditionally':'assembled · unaudited'):'drag verified components into the core',o.x,o.y+11,7.5,C.dim);
-   if(o.shake>0){o.shake-=0.015;const s=o.shake*6;o.x+=Math.sin(World.t*40)*s;}
+   ctx.strokeStyle=S.claimCollapsed?C.bad:C.clm;ctx.lineWidth=3;
+   ctx.beginPath();ctx.arc(o.x,oy,r+14,-Math.PI/2,-Math.PI/2+sup*TAU);ctx.stroke();
+   ctx.strokeStyle='rgba(22,32,47,.12)';
+   ctx.beginPath();ctx.arc(o.x,oy,r+14,0,TAU);ctx.stroke();
+   txt(S.claimCollapsed?'CLAIM COLLAPSED':n===0?'EMPTY CLAIM':n<9?'CLAIM · '+n+' / 9 · SUPPORT '+(sup*100).toFixed(0)+'%':'WORKING CLAIM v3 · SUPPORT '+(sup*100).toFixed(0)+'%',o.x,oy-6,10,S.claimCollapsed?C.bad:C.clm,'center',800);
+   mono(S.claimCollapsed?'reattach the observation to rebuild':n===9?(S.audited?'audited · survives conditionally':'assembled · unaudited'):'evidence physically carries the structure — weights shown in DATA',o.x,oy+11,7.2,C.dim);
+   if(o.shake>0){o.shake-=0.015;const s2=o.shake*6;o.x+=Math.sin(World.t*40)*s2;}
  },
  anchor(o){
    ctx.fillStyle='rgba(252,254,255,.9)';ctx.strokeStyle=C[o.col];ctx.lineWidth=1.4;
@@ -857,7 +1029,7 @@ const STREAM=[];
 const MODES_IMPL={};
 MODES_IMPL.watch={
  build(){
-   const cx=SW/2,cy=SH/2-14;
+   const cx=stageW()/2,cy=SH/2-14;
    spawn({kind:'core',id:'core',mode:'watch',tx:cx,ty:cy,r:64,drag:false});
    EVENTS.forEach((ev,i)=>{
      const a=-Math.PI/2+i*(TAU/4)+0.4;
@@ -866,7 +1038,7 @@ MODES_IMPL.watch={
    });
    SRCCLS.forEach((s,i)=>{
      const a=i/SRCCLS.length*TAU-Math.PI/2;
-     const rx=Math.min(SW,1500)*0.44,ry=SH*0.42;
+     const rx=Math.min(stageW(),1500)*0.44,ry=SH*0.42;
      spawn({kind:'mlabel',id:'src'+i,mode:'watch',text:s.toUpperCase(),size:7.5,col:'rgba(36,66,92,.55)',
        tx:cx+Math.cos(a)*rx,ty:cy+Math.sin(a)*ry,emit:true,ea:a,rx,ry});
    });
@@ -893,7 +1065,7 @@ MODES_IMPL.watch={
    }
    /* links material→core */
    World.objs.forEach(o=>{if(o.kind==='matnode'&&!o.dead)link(o.x,o.y,core.x,core.y,C.ev,0.28*o.a,1,[2,5]);});
-   mono(S.counters.rec.toLocaleString('en-US')+' RECORDS EVALUATED · '+S.counters.mat+' MATERIAL · REST FADES OUT',SW/2,118,8.5,C.dim);
+   mono(S.counters.rec.toLocaleString('en-US')+' RECORDS EVALUATED · '+S.counters.mat+' MATERIAL · REST FADES OUT',stageW()/2,118,8.5,C.dim);
  },
  click(o){
    if(o.kind==='matnode'){SEL=o;inspectEvent(o.ev);}
@@ -948,18 +1120,18 @@ function showBrief(){
 /* ============================ MODEL ============================ */
 const EPOCH_EVPA=Array.from({length:9},(_,i)=>-20.5+41*i/8+Math.sin(i*2.3)*1.6);
 MODES_IMPL.model={
- layers:{pol:true,geo:true,region:true},
+ layers:{pol:true,geo:true,region:true,gauge:true,sane:false},
  build(){
-   hint('DRAG TO ROTATE · SCROLL TO ZOOM · STRETCH THE HEATING PRIOR AND WATCH CONTAINMENT CHANGE',true);
+   hint('DRAG ROTATE · SCROLL ZOOM · SHIFT = LAB COUNTERFACTUAL · ALT = UNCERTAINTY · EVERY LAYER IS A MEASUREMENT OR A PREDICTION',true);
  },
  draw(){
-   if(!GL.on)txt('WebGL unavailable — physical render disabled',SW/2,SH/2,12,C.dim);
-   const cx=SW/2,cy=SH/2,scale=SH/2/(13.5/(2.15*GL.zoom));
-   const L=this.layers;
+   if(!GL.on)txt('WebGL unavailable — physical render disabled',stageW()/2,SH/2,12,C.dim);
+   const cx=stageW()/2,cy=SH/2,scale=SH/2/(13.5/(2.15*GL.zoom));
+   const L=this.layers,t=World.t,W=sectorW();
    if(L.pol&&GL.on){
      const ep=Math.floor((RM?3:World.t/1.6)%9);
      const evpa=EPOCH_EVPA[ep]*Math.PI/180;
-     const rr2=scale*3.55;
+     const rr2=scale*3.4;
      for(let i=0;i<26;i++){
        const a=i/26*TAU;
        const px=cx+Math.cos(a)*rr2,py=cy+Math.sin(a)*rr2*0.62;
@@ -967,7 +1139,7 @@ MODES_IMPL.model={
        ctx.strokeStyle='rgba(64,205,255,.8)';ctx.lineWidth=1.4;
        ctx.beginPath();ctx.moveTo(px-Math.cos(ta)*7,py-Math.sin(ta)*7);ctx.lineTo(px+Math.cos(ta)*7,py+Math.sin(ta)*7);ctx.stroke();
      }
-     mono('POLARISATION · EPOCH '+(ep+1)+'/9 · EVPA '+(EPOCH_EVPA[ep]+20.5).toFixed(1)+'°',cx+rr2*0.6,cy-rr2*0.68,8.5,'rgba(64,205,255,.9)','left');
+     mono('POLARISATION · EPOCH '+(ep+1)+'/9 · EVPA '+(EPOCH_EVPA[ep]+20.5).toFixed(1)+'° · m_L 4.2 %',cx+rr2*0.55,cy+rr2*0.72,8.5,'rgba(64,205,255,.9)','left');
    }
    if(L.region&&GL.on){
      const peak=lerp(2.05,3.15,GL.heat);
@@ -975,19 +1147,81 @@ MODES_IMPL.model={
      ctx.strokeStyle='rgba(150,120,255,.7)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
      mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+10,cy,8.5,'rgba(170,140,255,.9)','left');
+     if(S.mod.shift&&S.asm.heating<0.5){
+       const p2=3.15,rx2=scale*p2,ry2=rx2*0.41;
+       ctx.strokeStyle='rgba(190,160,255,.55)';ctx.setLineDash([2,5]);
+       ctx.beginPath();ctx.ellipse(cx,cy,rx2,ry2,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
+       mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2-10,cy+14,8,'rgba(190,160,255,.85)','right');
+     }
    }
    if(L.geo&&GL.on){
-     const ox=SW*0.85,oy=SH*0.8;
+     const ox=stageW()*0.84,oy=SH*0.8;
      ctx.strokeStyle='rgba(200,225,244,.5)';ctx.setLineDash([2,6]);ctx.lineWidth=1;
      ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(cx+scale*1.4,cy+scale*0.4);ctx.stroke();ctx.setLineDash([]);
      ctx.strokeStyle='rgba(220,238,250,.85)';ctx.lineWidth=1.2;
      ctx.beginPath();ctx.arc(ox,oy,6,0,TAU);ctx.stroke();
      ctx.beginPath();ctx.moveTo(ox-11,oy);ctx.lineTo(ox+11,oy);ctx.moveTo(ox,oy-11);ctx.lineTo(ox,oy+11);ctx.stroke();
-     mono('OBSERVER · ALMA/VLA · i ≈ 24°',ox-14,oy+22,8,'rgba(200,225,244,.8)','right');
+     mono('OBSERVER · ALMA/VLA · i ≈ 24° · SCREEN '+S.asm.screen.toUpperCase()+' ON SIGHTLINE',ox-14,oy+22,8,'rgba(200,225,244,.8)','right');
+   }
+   if(L.sane&&GL.on){
+     ctx.save();ctx.setLineDash([3,5]);
+     for(let k=0;k<6;k++){
+       ctx.beginPath();
+       for(let i=0;i<=40;i++){const q=i/40;const a=q*TAU*1.4+k*1.9+t*0.14;
+         const rr=scale*(1.7+0.9*Math.sin(q*9+k*2.4));
+         const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr*0.5-(q-0.5)*scale*1.6;
+         i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+       ctx.strokeStyle='rgba(150,120,255,.28)';ctx.lineWidth=1;ctx.stroke();}
+     ctx.restore();
+     mono('SANE FIELD GHOST · IDENTICAL CONSTRAINTS · m_L OVERPRODUCED ×2.3 → FAMILY EXCLUDED',cx,cy+scale*2.75,8.5,'rgba(170,140,255,.95)');
+   }
+   if(L.gauge&&GL.on){
+     const rg=scale*4.35;
+     const d2a=d=>(-158+((d+15)/70)*136)*Math.PI/180;
+     const breathe=RM?0:Math.sin(t*1.2)*0.5;
+     ctx.strokeStyle='rgba(160,200,230,.3)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-15),d2a(55));ctx.stroke();
+     ctx.strokeStyle='rgba(90,150,210,.28)';ctx.lineWidth=15;
+     ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-W-breathe),d2a(W+breathe));ctx.stroke();
+     [-W,W].forEach(dd=>{const a=d2a(dd);
+       ctx.strokeStyle='rgba(150,200,240,.9)';ctx.lineWidth=1.4;
+       ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-11),cy+Math.sin(a)*(rg-11));ctx.lineTo(cx+Math.cos(a)*(rg+11),cy+Math.sin(a)*(rg+11));ctx.stroke();});
+     mono('GRMHD PERMITTED ±'+W+'° · 1,120 TRAJECTORIES',cx+Math.cos(d2a(-14))*(rg+4),cy+Math.sin(d2a(-14))*(rg+4)-14,8.2,'rgba(150,200,240,.95)','left');
+     if(S.mod.alt){
+       ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(150,200,240,.55)';ctx.lineWidth=1;
+       ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-19),d2a(19));ctx.stroke();ctx.setLineDash([]);
+       mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-30,8,'rgba(150,200,240,.9)');
+     }
+     if(S.mod.shift&&W<41){
+       ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(170,140,255,.8)';ctx.lineWidth=1.2;
+       ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-42),d2a(42));ctx.stroke();ctx.setLineDash([]);
+       mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-30,8,'rgba(190,160,255,.95)');
+     }
+     let exited=false;
+     for(let i=0;i<9;i++){
+       const v=EP_VAL[i],a=d2a(v),inb=v<=W;
+       ctx.strokeStyle=inb?'rgba(80,210,255,.95)':'rgba(190,150,255,.98)';ctx.lineWidth=2;
+       ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-8),cy+Math.sin(a)*(rg-8));ctx.lineTo(cx+Math.cos(a)*(rg+8),cy+Math.sin(a)*(rg+8));ctx.stroke();
+       if(S.mod.alt){
+         ctx.strokeStyle='rgba(80,210,255,.35)';ctx.lineWidth=3;
+         ctx.beginPath();ctx.arc(cx,cy,rg,d2a(v-EP_ERR[i]),d2a(v+EP_ERR[i]));ctx.stroke();
+       }
+       if(!exited&&v>W){exited=true;
+         mono('EXIT · EPOCH '+(i+1)+' · 4.5σ BY EPOCH 9',cx+Math.cos(a)*(rg+30),cy+Math.sin(a)*(rg+30),8,'rgba(190,150,255,.95)');}
+     }
+     mono('MEASURED DRIFT 41°±6°',cx+Math.cos(d2a(55))*(rg+6)+8,cy+Math.sin(d2a(55))*(rg+6),8.2,'rgba(80,210,255,.95)','left');
+     const bx=cx-rg+6,by=cy+scale*1.6;
+     for(let k=0;k<3;k++){
+       const ok=S.asm.heating>0.5;
+       ctx.strokeStyle=ok?'rgba(94,224,168,.9)':'rgba(190,150,255,.8)';ctx.lineWidth=1.2;
+       ctx.strokeRect(bx-34,by+k*15,11,9);
+       if(ok){ctx.fillStyle='rgba(94,224,168,.35)';ctx.fillRect(bx-34,by+k*15,11,9);}
+     }
+     mono('ENSEMBLE '+(S.asm.heating>0.5?'3/3':'0/3'),bx-28,by+56,7.5,S.asm.heating>0.5?'rgba(94,224,168,.9)':'rgba(190,150,255,.85)','left');
    }
    if(GL.on){
-     const cn=containN(),w=sectorW();
-     mono('SECTOR ±'+w+'° · CONTAINMENT '+cn+'/9 '+(cn===9?'— RESTORED':'— FAILS AFTER EPOCH 4'),cx,SH-150,9.5,cn===9?'#5ee0a8':'#c9a5ff');
+     const cn=containN();
+     mono('SECTOR ±'+W+'° · CONTAINMENT '+cn+'/9 '+(cn===9?'— RESTORED':'— EXITS AT EPOCH '+(EP_VAL.findIndex(v=>v>W)+1))+' · HEATING '+(S.asm.heating>0.85?'LAB-INFORMED':S.asm.heating<0.15?'INHERITED (UNMEASURED)':'PARTIAL'),cx,SH-150,9.5,cn===9?'#5ee0a8':'#c9a5ff');
    }
  },
  click(){}, drop(){}
@@ -995,7 +1229,7 @@ MODES_IMPL.model={
 /* ============================ ANALYZE ============================ */
 MODES_IMPL.analyze={
  build(){
-   const cx=SW/2,cy=SH/2-30;
+   const cx=stageW()/2,cy=SH/2-30;
    HYPS.forEach((h,i)=>{
      const a=-Math.PI/2+i*(TAU/3);
      spawn({kind:'hyp',id:'hyp_'+h.id,mode:'analyze',h,drag:true,
@@ -1003,37 +1237,88 @@ MODES_IMPL.analyze={
    });
    const narrow=SW<860, chipW=Math.min(168,SW*0.42);
    DATASETS.forEach((d,i)=>{
-     const hx=narrow?SW/2+(i%2-0.5)*(chipW+12):SW/2+(i-1.5)*180;
+     const hx=narrow?stageW()/2+(i%2-0.5)*(chipW+12):stageW()/2+(i-1.5)*180;
      const hy=narrow?SH-166+Math.floor(i/2)*46:SH-118;
      spawn({kind:'chipEv',id:'ev_'+d.id,mode:'analyze',p:d.p,d,drag:true,
        text:d.n,sub:d.rep?'replicated':'unreplicated',
        tx:hx,ty:hy,hitW:chipW,hitH:38,r:0,homeX:hx,homeY:hy});
    });
-   spawn({kind:'zone',id:'zone',mode:'analyze',tx:SW-Math.min(140,SW*0.26),ty:narrow?SH-300:SH-190,hitW:Math.min(200,SW*0.46),hitH:86,r:0});
+   spawn({kind:'zone',id:'zone',mode:'analyze',tx:stageW()-Math.min(150,SW*0.26),ty:narrow?SH-300:SH-190,hitW:Math.min(200,SW*0.46),hitH:86,r:0});
    hint('DRAG EVIDENCE INTO “EXCLUDE” · DROP ONE HYPOTHESIS ONTO ANOTHER TO COMPARE · CLICK TO EXPAND');
    this.resize();
  },
  resize(){
-   const hsc=clamp(Math.min(SW,SH)/900,0.62,1);World.objs.forEach(o=>{if(o.kind==='hyp')o.r=(34+o.h.s*52)*hsc;});
+   const hsc=clamp(Math.min(SW,SH)/900,0.62,1);
    const lead=ranked()[0];
-   World.objs.forEach(o=>{if(o.kind==='hyp')o.lead=o.h.id===lead.id;});
+   const cx=stageW()/2,cy=SH/2-30;
+   World.objs.forEach(o=>{
+     if(o.kind!=='hyp'||o.dead)return;
+     o.r=(34+o.h.s*52)*hsc;o.lead=o.h.id===lead.id;
+     const i=HYPS.indexOf(o.h),a=-Math.PI/2+i*(TAU/3);
+     let hx=cx+Math.cos(a)*Math.min(SW*0.22,250),hy=cy+Math.sin(a)*Math.min(SH*0.18,150);
+     /* evidence landscape: present support pulls the body, conflict pushes it */
+     World.objs.forEach(c=>{
+       if(c.kind!=='chipEv'||c.dead)return;
+       const off=S.removed[c.d.id]||(S.droplab&&c.d.id==='lab');if(off)return;
+       const rel=EVMAT[o.h.id][c.d.id];if(!rel)return;
+       hx+=(c.homeX-hx)*0.055*rel;hy+=(c.homeY-hy)*0.05*rel;
+     });
+     o.home={x:hx,y:hy};
+     if(!o.dragging){o.tx=hx;o.ty=hy;}
+   });
  },
  draw(){
-   const zone=findObj('zone');
-   /* evidence↔hypothesis structural links */
+   const zone=findObj('zone'),t=World.t;
    World.objs.forEach(c=>{
      if(c.kind!=='chipEv'||c.dead)return;
-     c.off=!!S.removed[c.d.id];
+     c.off=!!(S.removed[c.d.id]||(S.droplab&&c.d.id==='lab'));
      World.objs.forEach(h=>{
        if(h.kind!=='hyp'||h.dead)return;
        const rel=EVMAT[h.h.id][c.d.id];
        if(!rel||c.off)return;
-       link(c.x,c.y-c.hitH/2,h.x,h.y+h.r*0.6,rel>0?C.ev:C.asm,(rel>0?0.4:0.5)*Math.min(c.a,h.a),rel>0?1.2:1.4,rel>0?null:[3,4]);
+       const x1=c.x,y1=c.y-c.hitH/2,x2=h.x,y2=h.y+h.r*0.6;
+       link(x1,y1,x2,y2,rel>0?C.ev:C.asm,(rel>0?0.4:0.55)*Math.min(c.a,h.a),rel>0?1.2:1.4,rel>0?null:[3,4]);
+       if(rel>0&&!RM){ /* evidence flows along its support links */
+         const q=(t*0.22+(x1*7+y2)%1)%1;
+         const mx=(x1+x2)/2,my=(y1+y2)/2-Math.hypot(x2-x1,y2-y1)*0.08;
+         const px=(1-q)*(1-q)*x1+2*(1-q)*q*mx+q*q*x2, py=(1-q)*(1-q)*y1+2*(1-q)*q*my+q*q*y2;
+         ctx.fillStyle='rgba(0,160,215,.8)';ctx.beginPath();ctx.arc(px,py,2.1,0,TAU);ctx.fill();
+       }
+       if((SEL===h||SEL===c)&&Math.min(c.a,h.a)>0.8){
+         const mx=(x1+x2)/2,my=(y1+y2)/2-Math.hypot(x2-x1,y2-y1)*0.08;
+         mono(rel>0?'supports':'conflicts',mx,my-6,7.2,rel>0?C.ev:C.asm);
+       }
      });
    });
+   /* counterfactual ghost rings: what the landscape becomes if the screen flips */
+   if(S.mod.shift){
+     const alt=covIf(S.asm.screen!=='variable');
+     World.objs.forEach(h=>{
+       if(h.kind!=='hyp'||h.dead)return;
+       const gi=HYPS.indexOf(h.h),gv=alt[gi];
+       ctx.strokeStyle='rgba(109,52,196,.6)';ctx.lineWidth=2;ctx.setLineDash([3,5]);
+       ctx.beginPath();ctx.arc(h.x,h.y,h.r+14,-Math.PI/2,-Math.PI/2+gv*TAU);ctx.stroke();ctx.setLineDash([]);
+       mono((gv*100).toFixed(0)+'%',h.x+h.r+20,h.y-h.r*0.6,7.5,C.hyp,'left');
+     });
+     mono('COUNTERFACTUAL RINGS · IF SCREEN '+(S.asm.screen==='variable'?'RESTORED':'RELEASED'),stageW()/2,150,7.5,C.hyp);
+   }
+   /* live experiment mini-ranking: which observation kills the most volume, right now */
+   if(innerWidth>900){
+     const E=experiments();this.expE=this.expE||{};
+     let ey=SH-176;
+     mono('NEXT EXPERIMENT — VOLUME ELIMINATED',126,ey-16,7.4,C.dim,'left');
+     E.forEach(x=>{
+       const cur=this.expE[x.id]===undefined?x.p:this.expE[x.id]+=(x.p-this.expE[x.id])*0.08;
+       this.expE[x.id]=cur;
+       ctx.fillStyle='rgba(13,40,70,.10)';ctx.fillRect(126,ey,120,4);
+       ctx.fillStyle=C.clm;ctx.fillRect(126,ey,120*cur,4);
+       mono((cur*100).toFixed(0)+'%',252,ey+2,7.4,C.clm,'left');
+       mono(x.n.slice(0,30),126,ey+11,7,C.dim,'left');
+       ey+=26;});
+   }
    if(zone)zone.hot=PTR.down&&PTR.obj&&PTR.obj.kind==='chipEv'&&Math.abs(PTR.x-zone.x)<zone.hitW/2+30&&Math.abs(PTR.y-zone.y)<zone.hitH/2+30;
-   txt('COMPETING EXPLANATIONS — sized by live evidence coverage',SW/2,118,9.5,C.dim,'center',800);
-   mono('solid cyan = supports · dashed amber = conflicts',SW/2,134,7.5,C.dim);
+   txt('EVIDENCE LANDSCAPE — support pulls · contradiction pushes · coverage rings ease toward the recomputed value',stageW()/2,118,9.5,C.dim,'center',800);
+   mono('solid cyan = supports (flowing) · dashed amber = conflicts · SHIFT = screen counterfactual · ALT = uncertainty',stageW()/2,134,7.5,C.dim);
  },
  dragMove(o){
    if(o.kind==='hyp'){
@@ -1061,8 +1346,7 @@ MODES_IMPL.analyze={
    if(o.kind==='hyp'){
      const other=World.objs.find(h2=>h2.kind==='hyp'&&h2!==o&&Math.hypot(h2.x-o.x,h2.y-o.y)<h2.r+o.r);
      if(other)inspectCompare(o.h,other.h);
-     const i=HYPS.indexOf(o.h),a=-Math.PI/2+i*(TAU/3);
-     o.tx=SW/2+Math.cos(a)*Math.min(SW*0.22,250);o.ty=SH/2-30+Math.sin(a)*Math.min(SH*0.18,150);
+     this.resize();
      World.objs.forEach(h=>h.tsc=1);
    }
  }
@@ -1120,18 +1404,36 @@ function inspectExps(){
 MODES_IMPL.memory={
  x0:0,x1:0,yT:0,
  build(){
-   this.x0=SW*0.12;this.x1=SW*0.88;this.yT=SH/2+30;
+   this.x0=stageW()*0.12;this.x1=stageW()*0.88;this.yT=SH/2+30;
    const X=d=>lerp(this.x1,this.x0,d/300);
    MEM.forEach((m,i)=>{
      spawn({kind:'memnode',id:'mem'+i,mode:'memory',m,day:m.d,r:20,up:i%2===1,
-       tx:X(m.d),ty:this.yT,x:SW/2,y:this.yT,drag:false});
+       tx:X(m.d),ty:this.yT,x:stageW()/2,y:this.yT,drag:false});
    });
    spawn({kind:'scrub',id:'scrub',mode:'memory',tx:X(S.scrubDay),ty:this.yT-46,r:13,drag:true});
    hint('SCRUB TIME · WATCH BELIEFS APPEAR, REJECTIONS ATTACH CONDITIONS, AND CONDITIONS EXPIRE');
  },
+ pulses:[],lastScrub:0,
  draw(){
    const yT=this.yT,x0=this.x0,x1=this.x1;
    const X=d=>lerp(x1,x0,d/300);
+   /* evidence-arrival pulses when NOW crosses a state */
+   MEM.forEach(m=>{
+     const a=Math.min(this.lastScrub,S.scrubDay),b=Math.max(this.lastScrub,S.scrubDay);
+     if(m.d>=a&&m.d<=b&&this.lastScrub!==S.scrubDay)this.pulses.push({x:X(m.d),y:yT,age:0});
+   });
+   this.lastScrub=S.scrubDay;
+   for(let i=this.pulses.length-1;i>=0;i--){
+     const p=this.pulses[i];p.age+=1/60;
+     if(p.age>1){this.pulses.splice(i,1);continue;}
+     ctx.strokeStyle='rgba(0,144,196,'+(0.7*(1-p.age))+')';ctx.lineWidth=1.4;
+     ctx.beginPath();ctx.arc(p.x,p.y,8+p.age*30,0,TAU);ctx.stroke();
+   }
+   /* belief decay: the untested screen assumption erodes as time passes it */
+   {const nx=X(97),decay=clamp((97-S.scrubDay)/97,0,1);
+    if(decay>0.05){ctx.setLineDash([4,2+6*decay]);ctx.strokeStyle='rgba(168,94,8,'+(0.35+0.3*decay)+')';ctx.lineWidth=1;
+     ctx.beginPath();ctx.arc(nx,yT,27,0,TAU);ctx.stroke();ctx.setLineDash([]);
+     if(decay>0.6)mono('never re-tested — eroding',nx,yT-40,7,C.asm);}}
    ctx.strokeStyle=hex2(C.clm,.5);ctx.lineWidth=1.2;
    ctx.beginPath();ctx.moveTo(x0-30,yT);ctx.lineTo(x1+30,yT);ctx.stroke();
    mono('S-300',x0-30,yT+18,8,C.dim);mono('S-000 · TODAY',x1+30,yT+18,8,C.dim,'right');
@@ -1157,12 +1459,14 @@ MODES_IMPL.memory={
      mono(v[1],X(v[0]),yT+56,8,hex2(C.clm,on?0.8:0.3));
    });
    mono('claim lineage',X(20),yT+72,7.5,C.dim);
-   txt('SCIENTIFIC MEMORY — 412 reasoning states · beliefs carry their evidence context and expiry conditions',SW/2,118,9.5,C.dim,'center',800);
+   txt('SCIENTIFIC MEMORY — 412 reasoning states · beliefs carry their evidence context and expiry conditions',stageW()/2,118,9.5,C.dim,'center',800);
  },
  click(o){
    if(o.kind==='memnode'){SEL=o;inspectMem(o.m);}
  },
- drop(o){ if(o.kind==='scrub'){o.ty=this.yT-46;o.tx=clamp(o.x,this.x0,this.x1);} },
+ drop(o){ if(o.kind==='scrub'){o.ty=this.yT-46;o.tx=clamp(o.x,this.x0,this.x1);
+   const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
+   inspectMem(m);} },
  dragMove(o){ if(o.kind==='scrub'){o.y=this.yT-46;o.x=clamp(o.x,this.x0,this.x1);o.tx=o.x;o.ty=o.y;} }
 };
 function inspectMem(m){
@@ -1188,7 +1492,7 @@ function inspectCompare144(){
 /* ============================ CLAIM ============================ */
 MODES_IMPL.claim={
  build(){
-   const cx=SW/2,cy=SH/2-24;
+   const cx=stageW()/2,cy=SH/2-24;
    spawn({kind:'ccore',id:'ccore',mode:'claim',tx:cx,ty:cy,r:74,drag:false,shake:0});
    COMPS.forEach((c,i)=>{
      const att=S.attached.has(i);
@@ -1199,17 +1503,20 @@ MODES_IMPL.claim={
    hint('DRAG VERIFIED COMPONENTS INTO THE CORE · DETACH ANY PIECE — EVERYTHING DOWNSTREAM RECOMPUTES');
  },
  slot(i,att){
-   const cx=SW/2,cy=SH/2-24;
-   if(att){const a=-Math.PI/2+i/9*TAU;return {x:cx+Math.cos(a)*Math.min(220,SW*0.30),y:cy+Math.sin(a)*Math.min(156,SH*0.24)};}
-   const cols=SW<900?2:5, spacing=Math.min(185,SW/(cols+0.35));
+   const cx=stageW()/2,cy=SH/2-24;
+   if(att){const a=-Math.PI/2+i/9*TAU;return {x:cx+Math.cos(a)*Math.min(252,SW*0.33),y:cy+Math.sin(a)*Math.min(172,SH*0.27)};}
+   const cols=SW<900?2:5, spacing=Math.min(185,stageW()/(cols+0.35));
    const row=Math.floor(i/cols),col=i%cols,inRow=Math.min(cols,9-row*cols);
-   return {x:SW/2+(col-(inRow-1)/2)*spacing,y:SH-(SW<900?238:136)+row*40};
+   return {x:stageW()/2+(col-(inRow-1)/2)*spacing,y:SH-(SW<900?238:136)+row*40};
  },
  draw(){
    const core=findObj('ccore');if(!core)return;
    World.objs.forEach(o=>{
      if(o.kind!=='comp'||o.dead)return;
-     if(S.attached.has(o.idx))link(o.x,o.y,core.x,core.y,C[o.c.p],0.5*o.a,1.3);
+     if(S.attached.has(o.idx)){
+       const fl=(o.idx===5&&!RM)?0.65+0.35*Math.sin(World.t*5.2):1; /* unreplicated support flickers */
+       link(o.x,o.y,core.x,core.y+(S.claimCollapsed?66:0),S.claimCollapsed?C.bad:C[o.c.p],0.55*o.a*fl,0.8+CWEIGHT[o.idx]*1.6,S.claimCollapsed?[3,4]:null);
+     }
    });
    /* audit strikes */
    if(this.auditI>=0&&this.auditI<ATTACKS.length){
@@ -1227,9 +1534,9 @@ MODES_IMPL.claim={
    }
    const n=S.attached.size;
    if(n===9){
-     txt('Every phrase of the claim traces to one of these components — click any piece.',SW/2,118,9.5,C.dim,'center',700);
+     txt('Every phrase of the claim traces to one of these components — click any piece.',stageW()/2,118,9.5,C.dim,'center',700);
    } else {
-     txt('THE CLAIM IS ASSEMBLED, NEVER GENERATED — components attach only after verification',SW/2,118,9.5,C.dim,'center',800);
+     txt('THE CLAIM IS ASSEMBLED, NEVER GENERATED — components attach only after verification',stageW()/2,118,9.5,C.dim,'center',800);
    }
  },
  auditI:-1,auditT:0,
@@ -1243,10 +1550,13 @@ MODES_IMPL.claim={
    const d=Math.hypot(o.x-core.x,o.y-core.y);
    if(!S.attached.has(o.idx)&&d<150){
      S.attached.add(o.idx);
+     if(o.idx===0)S.claimCollapsed=false;
      const p=this.slot(o.idx,true);o.tx=p.x;o.ty=p.y;
      if(S.attached.size===9)inspectClaim();
    }else if(S.attached.has(o.idx)&&d>230){
      S.attached.delete(o.idx);S.audited=false;
+     if(o.idx===0&&S.attached.size>0)S.claimCollapsed=true;
+     if(S.attached.size===0)S.claimCollapsed=false;
      core.shake=0.4;
      if(o.idx===0){World.objs.forEach(c=>{if(c.kind==='comp'&&S.attached.has(c.idx))c.flick=0.9;});}
      const p=this.slot(o.idx,false);o.tx=p.x;o.ty=p.y;
@@ -1257,7 +1567,9 @@ MODES_IMPL.claim={
    vitals();
  }
 };
+function supportScore(){let t=0,m=0;COMPS.forEach((c,i)=>{m+=CWEIGHT[i];if(S.attached.has(i))t+=CWEIGHT[i];});return m?t/m:0;}
 function claimSentence(){
+  if(S.claimCollapsed)return 'COLLAPSED — the observation was detached; the claim has no subject to be about.';
   if(S.asm.screen==='variable')
    return 'If the screen varies on ≤30-day scales, a variable RM screen accounts for the drift at least as well as intrinsic mechanisms — the record cannot presently isolate accretion physics.';
   return 'If the screen is stable and heating extends to R ≳ 8 near βi ≈ 1, variable electron heating in a MAD flow explains the nine-epoch drift more consistently than eruptions or a variable screen.';
@@ -1305,9 +1617,9 @@ function inspectAudit(){
 /* ============================ REASON ============================ */
 MODES_IMPL.reason={
  build(){
-   spawn({kind:'anchor',id:'an_model',mode:'reason',col:'calc',icon:'◉',text:'MODEL',tx:SW*0.82,ty:SH*0.3,r:17});
-   spawn({kind:'anchor',id:'an_mem',mode:'reason',col:'asm',icon:'◔',text:'MEMORY',tx:SW*0.86,ty:SH*0.52,r:17});
-   spawn({kind:'anchor',id:'an_ev',mode:'reason',col:'ev',icon:'◍',text:'EVIDENCE',tx:SW*0.82,ty:SH*0.74,r:17});
+   spawn({kind:'anchor',id:'an_model',mode:'reason',col:'calc',icon:'◉',text:'MODEL',tx:stageW()*0.82,ty:SH*0.3,r:17});
+   spawn({kind:'anchor',id:'an_mem',mode:'reason',col:'asm',icon:'◔',text:'MEMORY',tx:stageW()*0.86,ty:SH*0.52,r:17});
+   spawn({kind:'anchor',id:'an_ev',mode:'reason',col:'ev',icon:'◍',text:'EVIDENCE',tx:stageW()*0.82,ty:SH*0.74,r:17});
    for(let i=0;i<S.spoken;i++)this.addStmt(i,true);
    hint('THINK OUT LOUD — EVERY SENTENCE IS VERIFIED AGAINST THE LIVE MODEL AS YOU SPEAK');
  },
@@ -1317,17 +1629,29 @@ MODES_IMPL.reason={
    ctx.font='800 7.6px Inter';
    const tags=sp.d.map(d=>{const label=d[1].split('—')[0].split(':')[0].trim().toUpperCase();
      return [d[0],d[1],label,ctx.measureText(label).width+16];});
+   if(sp.r)tags.push(['bad',sp.r,'REVIEWER RISK',ctx.measureText('REVIEWER RISK').width+16]);
    const h=Math.max(lines.length*15+16,tags.length*17+8);
    const wS=Math.min(440,SW*0.5);
    const o=spawn({kind:'stmt',id:'st'+i,mode:'reason',lines,tags,sp,i,drag:false,
-     tx:Math.max(wS/2+16,SW*0.38-(440-wS)*0.3),ty:0,x:SW*0.38,y:SH*0.7,hitW:wS,hitH:h,r:0});
+     tx:Math.max(wS/2+16,stageW()*0.38-(440-wS)*0.3),ty:0,x:stageW()*0.38,y:SH*0.7,hitW:wS,hitH:h,r:0});
    if(instant){o.a=1;o.ta=1;}
    this.restack();
  },
  restack(){
    const sts=World.objs.filter(o=>o.kind==='stmt'&&!o.dead).sort((a,b)=>a.i-b.i);
+   if(S.reasonMap){
+     const DEF=[0,3,4];
+     const colA=stageW()*0.24,colB=stageW()*0.64;
+     let yA=SH*0.30,yB=SH*0.30;
+     sts.forEach(o=>{
+       if(DEF.includes(o.i)){o.tx=colB;o.ty=yB;yB+=o.hitH+22;}
+       else{o.tx=colA;o.ty=yA;yA+=o.hitH+22;}
+     });
+     return;
+   }
    let y=SH*0.62;
-   for(let k=sts.length-1;k>=0;k--){const o=sts[k];o.ty=y-o.hitH/2;y-=o.hitH+18;}
+   for(let k=sts.length-1;k>=0;k--){const o=sts[k];o.ty=y-o.hitH/2;y-=o.hitH+18;
+     o.tx=Math.max(o.hitW/2+16,stageW()*0.38-(440-o.hitW)*0.3);}
  },
  draw(){
    /* arcs from tags to anchors */
@@ -1340,9 +1664,20 @@ MODES_IMPL.reason={
        if(an)link(sx,sy,an.x-an.r,an.y,C[tg[0]],0.3*Math.min(o.a,an.a),1,[2,4]);
      });
    });
-   txt('REASONING CHAMBER — the system listens, verifies, and connects; it does not merely transcribe',SW/2,118,9.5,C.dim,'center',800);
+   if(S.reasonMap){
+     txt('SUPPORTED STRUCTURE',stageW()*0.24,SH*0.30-46,9,C.ok,'center',800);
+     txt('DEFECTS — WHAT A REVIEWER ATTACKS',stageW()*0.64,SH*0.30-46,9,C.bad,'center',800);
+     const AL=[[0,5,'assumption feeds the candidate'],[2,3,'this evidence breaks the dichotomy'],[4,1,'the omitted test decides this link']];
+     AL.forEach(l=>{
+       const a=findObj('st'+l[0]),b=findObj('st'+l[1]);
+       if(!a||!b)return;
+       link(a.x+a.hitW/2,a.y,b.x-b.hitW/2,b.y,C.calc,0.5,1.1,[4,4]);
+       mono(l[2],(a.x+b.x)/2,(a.y+b.y)/2-10,7,C.calc);
+     });
+   }
+   txt('REASONING CHAMBER — the system listens, verifies, connects, and predicts the referee',stageW()/2,118,9.5,C.dim,'center',800);
    if(S.spoken>=SPEECH.length){
-     mono('SESSION COMPLETE · 6 SUPPORTED STRUCTURES · 3 DEFECTS · 1 RECONNECTION TO S-144',SW/2,136,8,C.hyp);
+     mono('SESSION COMPLETE · 6 SUPPORTED STRUCTURES · 3 DEFECTS · 1 RECONNECTION TO S-144',stageW()/2,136,8,C.hyp);
    }
  },
  click(o){
@@ -1358,7 +1693,10 @@ MODES_IMPL.reason={
 function inspectStmt(o){
   inspect('<div class="chips">'+o.tags.map(t=>chip(t[0],t[2])).join('')+'</div>'+
    '<div class="rows">'+irow('Statement','“'+o.sp.s+'”')+
-   o.sp.d.map(d=>irow(d[0]==='asm'?'Assumption':d[0]==='ev'?'Evidence':d[0]==='calc'?'Causal link':'Inference',d[1])).join('')+'</div>'+
+   o.sp.d.map(d=>irow(d[0]==='asm'?'Assumption':d[0]==='ev'?'Evidence':d[0]==='calc'?'Causal link':'Inference',d[1])).join('')+
+   (o.sp.r?irow('Reviewer risk','<b style="color:'+C.bad+'">'+o.sp.r+'</b>'):'')+
+   (o.sp.w?irow('Better wording',o.sp.w):'')+
+   (o.sp.m?irow('Implication / test',o.sp.m):'')+'</div>'+
    (o.i===3?'<details open><summary>Why this is a defect</summary><div class="db">Screen variation and heating error are not exclusive — the model carries both as weighted configurations. Treating them as exclusive discards survivable volume.</div></details>':'')+
    (o.i===5?'<div class="acts"><button class="abtn pri" data-act="go:memory">Open the S-144 branch</button><button class="abtn" data-act="go:claim">Assemble cautious claim</button></div>':''));
   inspTitle('Statement '+(o.i+1)+' — live verification');
@@ -1387,7 +1725,9 @@ function buildCtl(){
      '<button class="cchip dark'+(S.asm.screen==='variable'?' on':'')+'" data-act="asm:screen">Screen: '+S.asm.screen+'</button>'+
      '<button class="cchip dark'+(MODES_IMPL.model.layers.pol?' on':'')+'" data-act="layer:pol">Polarisation</button>'+
      '<button class="cchip dark'+(MODES_IMPL.model.layers.geo?' on':'')+'" data-act="layer:geo">Geometry</button>'+
-     '<button class="cchip dark'+(MODES_IMPL.model.layers.region?' on':'')+'" data-act="layer:region">Emission region</button>';
+     '<button class="cchip dark'+(MODES_IMPL.model.layers.region?' on':'')+'" data-act="layer:region">Emission region</button>'+
+     '<button class="cchip dark'+(MODES_IMPL.model.layers.gauge?' on':'')+'" data-act="layer:gauge">Containment gauge</button>'+
+     '<button class="cchip dark'+(MODES_IMPL.model.layers.sane?' on':'')+'" data-act="layer:sane">SANE ghost</button>';
     const sl=$('#heatSl');
     sl.addEventListener('input',()=>{
       S.asm.heating=sl.value/100;GL.heatT=S.asm.heating;consistency();vitals();
@@ -1406,6 +1746,7 @@ function buildCtl(){
      '<button class="cchip acc" data-act="clm:audit">Adversarial audit</button>';
   }else if(S.mode==='reason'){
     c.innerHTML='<button class="cchip acc" data-act="rsn:next">'+(S.spoken===0?'Begin speaking':S.spoken<SPEECH.length?'Next statement ('+S.spoken+'/'+SPEECH.length+')':'Session complete')+'</button>'+
+     (S.spoken>=4?'<button class="cchip'+(S.reasonMap?' on':'')+'" data-act="rsn:map">Argument map</button>':'')+
      (S.spoken>=SPEECH.length?'<button class="cchip" data-act="go:claim">Assemble cautious claim</button>':'');
   }else{
     c.innerHTML='<button class="cchip" data-act="brief:show">Briefing</button>'+
@@ -1414,6 +1755,7 @@ function buildCtl(){
 }
 function nav(mode){
   if(S.phase!=='live')return;
+  tipEl.style.opacity=0;
   S.mode=mode;
   clearMode();inspect(null);
   glSet(mode==='model');
@@ -1484,7 +1826,8 @@ function act(a){
        else{MODES_IMPL.claim.auditI=0;MODES_IMPL.claim.auditT=0.55;}}
      break;
    case 'rsn':
-     if(S.spoken<SPEECH.length){MODES_IMPL.reason.addStmt(S.spoken,false);S.spoken++;buildCtl();}
+     if(p[1]==='map'){S.reasonMap=!S.reasonMap;MODES_IMPL.reason.restack();buildCtl();break;}
+     if(S.spoken<SPEECH.length){MODES_IMPL.reason.addStmt(S.spoken,false);S.spoken++;buildCtl();renderIntel();}
      break;
    case 'go':nav(p[1]);break;
   }
@@ -1537,7 +1880,7 @@ addEventListener('keydown',e=>{
   if(n>=1&&n<=6)nav(MODEDEFS[n-1][0]);
 });
 addEventListener('resize',()=>{if(S.phase==='live')nav(S.mode);});
-setInterval(()=>{if(S.phase==='live')vitals();},900);
+setInterval(()=>{if(S.phase!=='live')return;const el=document.getElementById('liveCounters');if(el)el.innerHTML=counterLine();},900);
 /* ------- boot ------- */
 const CSEQ=[
  ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.15],
