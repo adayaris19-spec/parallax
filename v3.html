@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PARALLAX — Scientific Intelligence Platform</title>
+<style>
+/* ============================================================
+   PARALLAX — scientific intelligence platform (simulated scenario)
+   Zones: A workspace (center) · B intelligence panel (right) · C capability navigation (left)
+   Provenance classes: cyan=measured · navy=calculated · amber=assumed · violet=proposed · graphite=claim
+   ============================================================ */
+:root{
+  --ev:#0090c4; --evd:0,144,196;
+  --calc:#2a4a6c; --calcd:42,74,108;
+  --asm:#a85e08; --asmd:168,94,8;
+  --hyp:#6d34c4; --hypd:109,52,196;
+  --clm:#16202f; --clmd:22,32,47;
+  --ink:#0d2236; --ink2:#24425c; --dim:#4d6a84;
+  --line:rgba(13,40,70,.16); --line2:rgba(13,40,70,.26);
+  --surf:rgba(252,254,255,.82); --surf2:rgba(255,255,255,.92);
+  --ok:#1b7d4f; --bad:#b03636;
+  --f:'Inter','SF Pro Display','Helvetica Neue',system-ui,sans-serif;
+  --m:ui-monospace,'SF Mono','JetBrains Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  font-family:var(--f);color:var(--ink);overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 66% 30%, rgba(240,249,255,.85) 0%, rgba(214,233,247,.5) 34%, rgba(214,233,247,0) 68%),
+    radial-gradient(90% 80% at 12% 92%, rgba(168,198,228,.8) 0%, rgba(168,198,228,0) 60%),
+    radial-gradient(80% 70% at 90% 6%, rgba(198,232,244,.8) 0%, rgba(198,232,244,0) 55%),
+    linear-gradient(180deg,#8fb6d6 0%,#a9c9e2 44%,#c3dcef 100%);
+  -webkit-font-smoothing:antialiased;
+}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.25;mix-blend-mode:multiply;
+  background-image:radial-gradient(rgba(20,50,90,.06) .5px,transparent .6px);background-size:3px 3px;z-index:1}
+button{font-family:var(--f)}
+::selection{background:rgba(0,144,196,.25)}
+
+/* ---------- shared atoms ---------- */
+.eyebrow{font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.mono{font-family:var(--m)}
+.chip{display:inline-flex;align-items:center;font-family:var(--m);font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:3px;line-height:1.5;white-space:nowrap}
+.chip.ev{color:var(--ev);border-color:rgba(var(--evd),.5);background:rgba(var(--evd),.06)}
+.chip.calc{color:var(--calc);border-color:rgba(var(--calcd),.5);background:rgba(var(--calcd),.06)}
+.chip.asm{color:var(--asm);border-color:rgba(var(--asmd),.5);background:rgba(var(--asmd),.07)}
+.chip.hyp{color:var(--hyp);border-color:rgba(var(--hypd),.5);background:rgba(var(--hypd),.06)}
+.chip.clm{color:var(--clm);border-color:rgba(var(--clmd),.55);background:rgba(255,255,255,.65)}
+.chip.ok{color:var(--ok);border-color:rgba(27,125,79,.5);background:rgba(27,125,79,.06)}
+.chip.bad{color:var(--bad);border-color:rgba(176,54,54,.5);background:rgba(176,54,54,.06)}
+.btn{background:var(--surf);border:1px solid var(--line2);border-radius:6px;color:var(--ink);
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:9px 14px;cursor:pointer;
+  transition:background .25s,border-color .25s,transform .15s}
+.btn:hover{background:var(--surf2);border-color:rgba(13,40,70,.4)}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:#13293f;border-color:#13293f;color:#eaf4fb}
+.btn.pri:hover{background:#1b3a5a}
+.btn.sm{padding:6px 10px;font-size:9px}
+.btn:focus-visible,.nav-item:focus-visible,.tab:focus-visible{outline:2px solid rgba(var(--evd),.7);outline-offset:2px}
+.tt{font-size:12.5px;line-height:1.75;color:var(--ink2)}
+.sep{height:1px;background:var(--line);margin:14px 0}
+.tr-ev{color:var(--ev);font-weight:600}.tr-calc{color:var(--calc);font-weight:600}
+.tr-asm{color:var(--asm);font-weight:600}.tr-hyp{color:var(--hyp);font-weight:600}
+.tr-clm{color:var(--clm);font-weight:650}
+.trace{border-bottom:1px dotted rgba(13,40,70,.45);cursor:pointer}
+.trace:hover{background:rgba(0,144,196,.08)}
+
+/* ---------- app grid ---------- */
+#app{position:fixed;inset:0;display:grid;z-index:2;opacity:0;pointer-events:none;transition:opacity 1s;
+  grid-template-areas:"top top top" "rail work panel";
+  grid-template-rows:56px 1fr;grid-template-columns:242px minmax(0,1fr) 384px}
+#app.on{opacity:1;pointer-events:auto}
+#app.pcol{grid-template-columns:242px minmax(0,1fr) 44px}
+
+/* header */
+#top{grid-area:top;display:flex;align-items:center;gap:18px;padding:0 18px;
+  border-bottom:1px solid var(--line);background:rgba(248,252,255,.6);backdrop-filter:blur(10px)}
+#brand{display:flex;align-items:baseline;gap:12px;min-width:230px}
+#brand .p{font-size:14px;letter-spacing:.44em;font-weight:600;color:#0a1c30}
+#brand .sim{font-family:var(--m);font-size:7.5px;letter-spacing:.18em;color:var(--asm);
+  border:1px dashed rgba(var(--asmd),.55);padding:3px 7px;border-radius:3px}
+#tabs{display:flex;gap:4px;flex:1;justify-content:center}
+.tab{background:none;border:0;border-radius:6px;padding:9px 15px;cursor:pointer;color:var(--ink2);
+  font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;position:relative}
+.tab small{display:block;font-size:7.5px;letter-spacing:.1em;color:var(--dim);font-weight:600;margin-top:2px;text-transform:none}
+.tab:hover{background:rgba(255,255,255,.55)}
+.tab.on{background:#13293f;color:#eaf4fb}
+.tab.on small{color:#9fc0d8}
+.tab .n{font-family:var(--m);font-size:7.5px;color:var(--ev);position:absolute;top:5px;right:6px}
+#topright{display:flex;align-items:center;gap:10px;min-width:270px;justify-content:flex-end}
+#watchPill{background:var(--surf);border:1px solid var(--line2);border-radius:6px;padding:6px 11px;cursor:pointer;text-align:left}
+#watchPill .l{font-size:8px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ev);display:flex;align-items:center;gap:6px}
+#watchPill .l i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(var(--evd),.9);animation:bl 3s infinite}
+@keyframes bl{0%,100%{opacity:.35}50%{opacity:1}}
+#watchPill .v{font-family:var(--m);font-size:8.5px;color:var(--ink2);margin-top:2px}
+#cmdBtn{background:var(--surf);border:1px solid var(--line2);border-radius:6px;padding:9px 13px;cursor:pointer;
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#cmdBtn b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:7px}
+
+/* Zone C — capability navigation */
+#rail{grid-area:rail;border-right:1px solid var(--line);background:rgba(246,251,255,.5);
+  display:flex;flex-direction:column;overflow:hidden}
+#railCap{padding:16px 16px 8px}
+#railCap .a{font-size:9px;letter-spacing:.3em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#railCap .b{margin-top:4px;font-size:10px;line-height:1.6;color:var(--dim)}
+#railList{flex:1;overflow-y:auto;padding:6px 10px 10px;scrollbar-width:thin}
+.nav-item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:7px;
+  padding:9px 10px;margin:2px 0;cursor:pointer}
+.nav-item .n{font-size:10.5px;letter-spacing:.06em;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.nav-item .n .dot{width:4px;height:4px;border-radius:50%;background:rgba(13,40,70,.35);flex:none}
+.nav-item .d{margin-top:3px;font-size:9.8px;line-height:1.5;color:var(--dim)}
+.nav-item:hover{background:rgba(255,255,255,.6)}
+.nav-item.on{background:rgba(19,41,63,.94)}
+.nav-item.on .n{color:#eaf4fb}.nav-item.on .n .dot{background:var(--ev);box-shadow:0 0 6px rgba(var(--evd),.9)}
+.nav-item.on .d{color:#9fc0d8}
+#idxBtn{margin:10px;padding:10px;border:1px dashed var(--line2);border-radius:7px;background:none;cursor:pointer;
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+#idxBtn:hover{background:rgba(255,255,255,.6)}
+
+/* Zone A — workspace */
+#work{grid-area:work;position:relative;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+#glwrap{position:absolute;inset:0;display:none;background:#03070e}
+#glwrap.on{display:block}
+#glcv{position:absolute;inset:0;width:100%;height:100%}
+#glov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#glhud{position:absolute;left:0;right:0;bottom:0;pointer-events:none;padding:14px 20px;
+  background:linear-gradient(180deg,rgba(3,7,14,0),rgba(3,7,14,.75));
+  font-family:var(--m);font-size:9px;letter-spacing:.12em;color:#9fc0d8;line-height:1.9}
+#glhud b{color:#dff0fa;font-weight:600}
+#wsScroll{position:relative;z-index:3;flex:1;overflow-y:auto;padding:18px 22px 30px;scrollbar-width:thin}
+#wsScroll.glmode{pointer-events:none}
+#wsScroll.glmode > *{pointer-events:auto}
+#wsHead{margin-bottom:14px}
+#wsHead .crumb{font-family:var(--m);font-size:8.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+#wsHead h1{margin:8px 0 0;font-weight:350;font-size:clamp(17px,1.9vw,23px);line-height:1.4;color:#0a1c30;max-width:900px}
+#wsHead .stat{margin-top:7px;font-size:11px;color:var(--ink2)}
+#wsScroll.glmode #wsHead .crumb,#wsScroll.glmode #wsHead .stat{color:#9fc0d8}
+#wsScroll.glmode #wsHead h1{color:#f0f7fc;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:14px;
+  box-shadow:0 1px 2px rgba(10,30,60,.05),0 8px 24px -18px rgba(10,30,60,.25)}
+.card.hero{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(250,253,255,.78))}
+.card h3{margin:0 0 8px;font-size:10px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+.card h2{margin:6px 0 10px;font-weight:380;font-size:17.5px;line-height:1.5;color:#0a1c30}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:1500px){.grid3{grid-template-columns:1fr 1fr}}
+.fade{animation:fi .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stats{display:flex;flex-wrap:wrap;gap:10px 26px}
+.stats .s .v{font-family:var(--m);font-size:17px;color:#0a1c30}
+.stats .s .k{margin-top:2px;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:700}
+ul.ml{margin:6px 0 0;padding:0;list-style:none}
+ul.ml li{position:relative;padding:5px 0 5px 16px;font-size:12.3px;line-height:1.6;color:var(--ink2)}
+ul.ml li:before{content:'';position:absolute;left:0;top:13px;width:7px;height:1.5px;background:rgba(13,40,70,.4)}
+.tbl{width:100%;border-collapse:collapse;font-size:11.8px}
+.tbl th{text-align:left;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  font-weight:800;padding:7px 10px 7px 0;border-bottom:1px solid var(--line2)}
+.tbl td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55;color:var(--ink2)}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:rgba(255,255,255,.55)}
+.tbl td b{color:var(--ink);font-weight:650}
+.bar{height:4px;border-radius:2px;background:rgba(13,40,70,.1);overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;border-radius:2px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.verbrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.callout{border-left:3px solid var(--clm);background:rgba(255,255,255,.6);padding:12px 14px;border-radius:0 7px 7px 0;margin-top:10px}
+.callout .cap{font-family:var(--m);font-size:8px;letter-spacing:.26em;color:var(--dim);margin-bottom:5px}
+.callout .tx{font-size:13px;line-height:1.7;color:var(--ink);font-weight:480}
+.figure{background:var(--surf2);border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:14px}
+.figure svg{display:block;width:100%;height:auto}
+.figure .fcap{margin-top:8px;font-size:10.5px;line-height:1.6;color:var(--dim);padding:0 4px}
+.figure .fcap b{color:var(--ink2)}
+.toggler{display:inline-flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.toggler button{background:none;border:0;padding:7px 13px;cursor:pointer;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:700;color:var(--ink2)}
+.toggler button.on{background:#13293f;color:#eaf4fb}
+.layerchips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.lchip{background:rgba(10,20,34,.55);border:1px solid rgba(159,192,216,.35);color:#c9dfee;border-radius:5px;
+  padding:6px 11px;cursor:pointer;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+  backdrop-filter:blur(6px)}
+.lchip.on{background:rgba(0,144,196,.28);border-color:rgba(0,190,255,.7);color:#eaf9ff}
+.glmode .chip{background:rgba(8,18,30,.78)}
+.sevdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+/* Zone B — intelligence panel */
+#panel{grid-area:panel;border-left:1px solid var(--line);background:rgba(247,251,255,.72);
+  backdrop-filter:blur(14px);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#panelHead{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+#panelHead .t{font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+#panelTgl{background:none;border:1px solid var(--line2);border-radius:5px;width:26px;height:26px;cursor:pointer;color:var(--ink2);font-size:12px;line-height:1}
+#panelBody{flex:1;overflow-y:auto;padding:6px 16px 26px;scrollbar-width:thin}
+#app.pcol #panelBody,#app.pcol #panelHead .t{display:none}
+.ps{border-bottom:1px solid var(--line);padding:11px 0}
+.ps > .ph{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.ps > .ph .h{font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+.ps > .ph .car{font-size:10px;color:var(--dim);transition:transform .3s}
+.ps.open > .ph .car{transform:rotate(90deg)}
+.ps > .pb{display:none;padding-top:8px;font-size:11.8px;line-height:1.7;color:var(--ink2)}
+.ps.open > .pb{display:block}
+.pb .mini{font-family:var(--m);font-size:9.5px;line-height:1.9;color:var(--calc)}
+.pb .mini div:before{content:'▸ ';color:var(--ev)}
+.pb b{color:var(--ink);font-weight:650}
+
+/* ---------- overlays ---------- */
+.ovl{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(180,208,230,.5);backdrop-filter:blur(14px) saturate(1.1)}
+.ovl.on{display:flex}
+#apBox{margin-top:12vh;width:min(760px,90vw)}
+#apBox .lbl{font-size:9px;letter-spacing:.36em;text-transform:uppercase;color:var(--ink2);font-weight:800}
+#apIn{width:100%;margin-top:14px;background:transparent;border:0;outline:0;color:#0a1c30;
+  font-family:var(--f);font-weight:300;font-size:clamp(17px,2.4vw,23px);padding:0 0 13px}
+#apIn::placeholder{color:#5d7a94}
+#apRule{height:1px;background:linear-gradient(90deg,rgba(var(--evd),.9),rgba(13,40,70,.1))}
+#apSug{margin-top:16px;max-height:48vh;overflow-y:auto;scrollbar-width:none;border-radius:8px}
+.sug{display:flex;gap:12px;width:100%;text-align:left;background:rgba(252,254,255,.6);border:0;border-bottom:1px solid var(--line);
+  padding:11px 14px;cursor:pointer;font-size:12.5px;color:var(--ink);align-items:baseline}
+.sug:hover,.sug.sel{background:rgba(255,255,255,.92)}
+.sug .pfx{font-family:var(--m);font-size:9px;color:var(--ev);flex:none}
+.sug .where{margin-left:auto;font-family:var(--m);font-size:8px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;flex:none}
+#apEsc{margin-top:14px;font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);font-weight:700}
+#idxBox{margin-top:8vh;width:min(1000px,92vw);background:var(--surf2);border:1px solid var(--line2);border-radius:12px;
+  padding:26px 28px;max-height:80vh;overflow-y:auto}
+#idxBox h2{margin:0;font-weight:350;font-size:20px;color:#0a1c30}
+#idxBox .sub{margin-top:6px;font-size:12px;color:var(--dim)}
+.idxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:18px}
+.idxcell{background:rgba(248,252,255,.8);border:1px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer;text-align:left}
+.idxcell:hover{border-color:rgba(13,40,70,.4);background:#fff}
+.idxcell .m{font-family:var(--m);font-size:7.5px;letter-spacing:.2em;color:var(--ev);text-transform:uppercase}
+.idxcell .n{margin-top:4px;font-size:12.5px;font-weight:700;color:var(--ink)}
+.idxcell .d{margin-top:3px;font-size:10.5px;line-height:1.5;color:var(--dim)}
+
+/* ---------- onboarding / construction / demo ---------- */
+#onb{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 1.2s cubic-bezier(.2,.7,.2,1),filter 1.2s}
+#onb h1{font-size:clamp(34px,7vw,74px);font-weight:200;letter-spacing:.42em;margin:0 0 0 .42em;color:#0a1c30;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+#onb .sub{margin-top:18px;font-size:13.5px;color:#2c4a63;text-align:center;padding:0 20px;max-width:620px;line-height:1.8}
+#field{margin-top:52px;width:min(760px,86vw)}
+#field .q{font-size:9.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--dim);margin-bottom:14px;font-weight:800}
+#field textarea{width:100%;height:72px;resize:none;background:transparent;border:0;outline:0;color:#0d2236;
+  font-family:var(--f);font-weight:300;font-size:clamp(15px,2vw,20px);line-height:1.6;padding:0 0 13px}
+#field textarea::placeholder{color:#6d89a2}
+#field .rule{height:1px;background:linear-gradient(90deg,rgba(13,40,70,.6),rgba(13,40,70,.08))}
+#go{margin-top:36px;background:#13293f;border:0;border-radius:7px;cursor:pointer;color:#eaf4fb;
+  font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;padding:15px 30px;font-weight:800}
+#go:hover{background:#1b3a5a}
+#cons{position:fixed;inset:0;z-index:75;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+#cons.on{display:flex}
+#cons .line{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:#12304e;font-weight:800;
+  opacity:0;transform:translateY(6px);transition:opacity .55s,transform .55s;text-align:center;padding:0 16px}
+#cons .line.on{opacity:1;transform:none}
+#cons .tick{margin-top:14px;font-family:var(--m);font-size:8.5px;letter-spacing:.22em;color:var(--dim);opacity:0;transition:opacity .55s}
+#cons .tick.on{opacity:1}
+#cons .pb{margin-top:34px;width:min(420px,70vw);height:2px;background:rgba(13,40,70,.14);border-radius:1px;overflow:hidden}
+#cons .pb i{display:block;height:100%;background:var(--ev);width:0;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+#demo{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:55;display:none;flex-direction:column;align-items:center;
+  text-align:center;pointer-events:none;width:min(860px,92vw)}
+#demo.on{display:flex}
+#demo .box{pointer-events:auto;background:rgba(14,28,44,.93);border:1px solid rgba(159,192,216,.3);border-radius:10px;
+  padding:14px 22px;backdrop-filter:blur(10px);box-shadow:0 14px 40px -12px rgba(5,15,30,.5);width:100%}
+#demo .dc{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#eaf4fb;font-weight:800;
+  opacity:0;transform:translateY(-4px);transition:opacity .5s,transform .5s}
+#demo .ds{margin-top:7px;font-family:var(--m);font-size:9px;letter-spacing:.1em;color:#9fc0d8;opacity:0;transition:opacity .5s;line-height:1.7}
+#demo.vis .dc,#demo.vis .ds{opacity:1;transform:none}
+#demo .dr{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+#demo .dn{font-family:var(--m);font-size:8px;letter-spacing:.22em;color:#6d89a2}
+#dskip{background:none;border:1px solid rgba(159,192,216,.4);border-radius:5px;color:#c9dfee;padding:5px 11px;cursor:pointer;
+  font-size:8px;letter-spacing:.22em;text-transform:uppercase;font-weight:700}
+
+/* ---------- responsive ---------- */
+@media(max-width:1240px){
+  #app{grid-template-columns:212px minmax(0,1fr) 340px}
+  #brand{min-width:0}.tab small{display:none}#topright{min-width:0}
+}
+@media(max-width:980px){
+  #app{grid-template-areas:"top top" "rail rail" "work work";grid-template-rows:56px auto 1fr;grid-template-columns:1fr}
+  #rail{flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid var(--line)}
+  #railCap{display:none}
+  #railList{display:flex;padding:6px 8px;overflow-x:auto;overflow-y:hidden}
+  .nav-item{flex:none;width:auto}.nav-item .d{display:none}
+  #idxBtn{flex:none;margin:6px 8px}
+  #panel{position:fixed;top:56px;right:0;bottom:0;width:min(380px,92vw);z-index:40;transform:translateX(102%);transition:transform .5s cubic-bezier(.2,.8,.2,1);border-left:1px solid var(--line2)}
+  #app.pshow #panel{transform:none}
+  #watchPill .v{display:none}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.05s!important}
+}
+</style>
+</head>
+<body>
+<div id="grain"></div>
+
+<!-- onboarding -->
+<div id="onb">
+  <h1>PARALLAX</h1>
+  <div class="sub">A scientific intelligence platform for physicists and astronomers.
+  It monitors the scientific record, reconstructs your active research model, traces every change into
+  assumptions and conclusions, and constructs claims it can defend.</div>
+  <div id="field">
+    <div class="q">What are you working on?</div>
+    <textarea id="ta" spellcheck="false" placeholder="I study black-hole accretion, magnetic-field behaviour and polarisation variability around Sagittarius A*."></textarea>
+    <div class="rule"></div>
+  </div>
+  <button id="go">Construct research model</button>
+</div>
+
+<!-- construction -->
+<div id="cons"><div class="line" id="cline"></div><div class="tick" id="ctick"></div><div class="pb"><i id="cbar"></i></div></div>
+
+<!-- demonstration captions -->
+<div id="demo"><div class="box">
+  <div class="dc" id="dc"></div><div class="ds" id="ds"></div>
+  <div class="dr"><div class="dn" id="dn"></div><button id="dskip">Skip demonstration →</button></div>
+</div></div>
+
+<!-- app -->
+<div id="app">
+  <header id="top">
+    <div id="brand"><span class="p">PARALLAX</span><span class="sim">SIMULATED RESEARCH SCENARIO</span></div>
+    <nav id="tabs"></nav>
+    <div id="topright">
+      <button id="watchPill" title="Autonomous watch — open Watch mode">
+        <div class="l"><i></i>AUTONOMOUS WATCH</div>
+        <div class="v">217 families · 18,420 records · 4 material changes</div>
+      </button>
+      <button id="cmdBtn">Command<b>/</b></button>
+    </div>
+  </header>
+
+  <aside id="rail">
+    <div id="railCap"><div class="a" id="railTitle"></div><div class="b" id="railDesc"></div></div>
+    <div id="railList"></div>
+    <button id="idxBtn">⌘ System navigator — all capabilities</button>
+  </aside>
+
+  <main id="work">
+    <div id="glwrap">
+      <canvas id="glcv"></canvas>
+      <svg id="glov"></svg>
+      <div id="glhud"></div>
+    </div>
+    <div id="wsScroll">
+      <div id="wsHead"></div>
+      <div id="wsBody"></div>
+    </div>
+  </main>
+
+  <aside id="panel">
+    <div id="panelHead"><span class="t">INTELLIGENCE</span><button id="panelTgl" title="Collapse panel">⟩</button></div>
+    <div id="panelBody"></div>
+  </aside>
+</div>
+
+<!-- command aperture -->
+<div class="ovl" id="ap">
+  <div id="apBox">
+    <div class="lbl">Address the system</div>
+    <input id="apIn" placeholder="Parallax, …" autocomplete="off" spellcheck="false">
+    <div id="apRule"></div>
+    <div id="apSug"></div>
+    <div id="apEsc">Enter to execute · Esc to close · every command transforms the workspace</div>
+  </div>
+</div>
+
+<!-- capability index -->
+<div class="ovl" id="idx">
+  <div id="idxBox">
+    <h2>System navigator</h2>
+    <div class="sub">Every PARALLAX capability. Select one — the workspace, the intelligence panel and the available tools change together.</div>
+    <div class="idxgrid" id="idxGrid"></div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ============================================================================
+   PARALLAX — application core
+   Part A: utilities · state · scientific data model
+   ========================================================================== */
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const PV={ev:'measured',calc:'calculated',asm:'assumed',hyp:'proposed',clm:'claim'};
+const chip=(p,l)=>'<span class="chip '+p+'">'+(l||PV[p])+'</span>';
+const CC={ev:'#0090c4',calc:'#2a4a6c',asm:'#a85e08',hyp:'#6d34c4',clm:'#16202f',ok:'#1b7d4f',bad:'#b03636',dim:'#4d6a84',grid:'rgba(13,40,70,.09)',ax:'#24425c'};
+
+/* ------------------------------------------------------------------ state */
+const S={
+  phase:'onb', mode:'watch', tool:'brief', eventIdx:0,
+  asm:{screen:'static', heating:'narrow'},
+  cf:{calib2:false, droplab:false, repOnly:false, removed:{}},
+  xmatchRun:false, memIdx:1, memoryLive:false,
+  reason:{spoken:0, recon:false},
+  claim:{step:0, audited:false},
+  layers:{emission:true, field:true, pol:true, geo:true, screen:true, region:false},
+  demo:false
+};
+/* hypothesis consistency: evidence coverage under current assumption set */
+const HYPS=[
+ {id:'heating',n:'Underestimated electron-heating range',s:0,
+  d:'The heating partition extends to R ≳ 8 near βi ≈ 1; the emission region migrates outward across epochs, producing the secular EVPA drift intrinsically.',
+  ex:['monotonic 9-epoch EVPA drift','stable fractional polarisation (4.2 %)','flat magnetar control sightline'],
+  fx:['none of the admitted evidence, if the laboratory mapping holds'],
+  rq:['static foreground screen','validity of the lab ↔ simulation dimensionless mapping'],
+  pr:'EVPA drift scales between 230 and 345 GHz in a fixed frequency ratio; magnetar RM stays flat.',
+  ct:'A magnetar-sightline RM excursion coincident with the drift, or failure of the frequency scaling.',
+  sn:'Coverage falls from 5/5 to 3/5 active structures if the static-screen assumption is released; collapses to a prior statement if the laboratory mapping is rejected.',
+  disc:'Simultaneous 230/345 GHz EVPA sequence with contemporaneous magnetar RM.',
+  rep:'not independently replicated — rests on a single laboratory mapping'},
+ {id:'erupt',n:'Intrinsic magnetic-flux eruptions',s:0,
+  d:'MAD flux eruptions reorganise the field geometry on a few hundred gravitational times, driving stochastic polarisation excursions.',
+  ex:['epoch-scale variability amplitude','MAD-state flux measurements'],
+  fx:['the monotonic character of the drift — eruptions predict stochastic, sign-changing excursions'],
+  rq:['eruption duty cycle within the retained MAD volume'],
+  pr:'EVPA excursions locked to X-ray flare timing within ±0.5 day.',
+  ct:'Zero flare–EVPA correlation in the archival cross-match.',
+  sn:'Nearly insensitive to the foreground assumption; killed outright by a null archival cross-match.',
+  disc:'Archival Chandra flare catalogue cross-matched to the polarisation epochs — zero observing cost.',
+  rep:'simulation-supported across 2 independent GRMHD codes'},
+ {id:'screen',n:'Temporally variable foreground screen',s:0,
+  d:'A Faraday rotation-measure screen along the sightline, varying on ≤ 30-day scales, produces the drift with no accretion physics required.',
+  ex:['the drift itself, with no accretion physics required'],
+  fx:['flat magnetar sightline 0.1 pc away','stable fractional polarisation'],
+  rq:['screen structure below 0.1 pc','release of the static-screen assumption'],
+  pr:'Equivalent RM drift on any sufficiently close second sightline.',
+  ct:'A second flat sightline inside 0.05 pc projected separation.',
+  sn:'Coverage rises from 1/5 to 3/5 if the static-screen assumption is released — the ranking inverts.',
+  disc:'Dense 7-day magnetar rotation-measure cadence bounding sub-0.1 pc screen structure.',
+  rep:'constrained by one control sightline (2 observing programmes)'}
+];
+function consistency(){
+  const f=S.asm.screen==='variable'?1:0, h=S.asm.heating==='extended'?1:0;
+  const dl=S.cf.droplab?0.28:0, xm=S.xmatchRun?0.12:0;
+  HYPS[0].s=clamp(0.61-0.20*f+0.14*h-dl,0.05,0.95);
+  HYPS[1].s=clamp(0.44-0.08*f-0.04*h-xm*2,0.05,0.95);
+  HYPS[2].s=clamp(0.22+0.36*f-0.02*h,0.05,0.95);
+}
+consistency();
+const ranked=()=>[...HYPS].sort((a,b)=>b.s-a.s);
+
+/* experiments: full costed ranking */
+function experiments(){
+  const f=S.asm.screen==='variable';
+  const E=[
+   {id:'multi',n:'Simultaneous 230 / 345 GHz EVPA sequence with contemporaneous magnetar RM',
+    p:f?0.55:0.81,bits:f?1.1:2.4,time:'21 d elapsed · 6 epochs',cost:'ALMA 14 h + VLA 9 h',tel:'ALMA + VLA',sim:'—',arch:'no',
+    dep:'independent of the heating assumption',cat:['highest yield','most decisive falsifier','best new observation'],
+    fx:{heating:'confirmed or destroyed by frequency scaling',erupt:'partially constrained',screen:'destroyed by a correlated excursion'},
+    branches:['Frequency-scaled drift + flat magnetar → heating configuration confirmed','Correlated magnetar excursion → screen returns; leading claim destroyed','Neither → both intrinsic configurations survive; screen excluded at 0.05 pc']},
+   {id:'cadence',n:'Dense magnetar-sightline rotation-measure cadence (7-day)',
+    p:f?0.86:0.62,bits:f?2.6:1.3,time:'84 d elapsed · 12 epochs',cost:'VLA 18 h',tel:'VLA',sim:'—',arch:'no',
+    dep:'none — bounds the screen directly',cat:f?['highest yield']:['fastest test'],
+    fx:{heating:'indirect support if flat',erupt:'silent',screen:'bounds sub-0.1 pc structure directly'},
+    branches:['Flat at 7-day cadence → screen excluded below 0.05 pc','Structured RM drift → screen configuration promoted to leading']},
+   {id:'rerun',n:'Re-run 3 GRMHD ensemble members with the laboratory-informed heating range',
+    p:f?0.50:0.64,bits:f?0.9:1.6,time:'11 d wall-clock',cost:'2.1 M core-hours · no telescope time',tel:'—',sim:'3 members · 2 codes',arch:'no',
+    dep:'depends on the laboratory mapping',cat:['best simulation','lowest-cost test'],
+    fx:{heating:'tests containment restoration directly',erupt:'unchanged',screen:'unchanged'},
+    branches:['Containment restored 3/3 → heating configuration survives quantitatively','Containment not restored → heating extension rejected; screen and eruption re-weighted']},
+   {id:'xmatch',n:'Archival X-ray flare catalogue cross-matched to polarisation epochs',
+    p:f?0.51:0.47,bits:1.0,time:'immediate — archival',cost:'zero observing cost',tel:'—',sim:'—',arch:'yes — Chandra public archive',
+    dep:'none',cat:['best archival test','lowest-cost test','fastest test'],
+    fx:{heating:'predicted null verified or violated',erupt:'decisive — flare-locked EVPA required',screen:'silent'},
+    branches:['Zero flare–EVPA correlation → eruption configuration excluded','Flare-locked excursions → eruptions promoted; leading claim destroyed']}
+  ];
+  return E.sort((a,b)=>b.p-a.p);
+}
+
+/* model families under identical constraints */
+const FAMS=[
+ {id:'mad40',n:'MAD · R_high = 40 (inherited)',p:'calc',bar:0.06,verdict:'excluded',
+  traj:'0 / 3 sub-regions contain the revised trajectory',ml:'m_L consistent',ring:'ring asymmetry consistent',
+  note:'The previously selected family. Fails containment after epoch 4 under the revised polarimetry.'},
+ {id:'madlab',n:'MAD · laboratory-informed heating',p:'hyp',bar:0.72,verdict:'viable',
+  traj:'1 / 3 → 3 / 3 after ensemble re-run',ml:'m_L consistent',ring:'ring asymmetry consistent',
+  note:'Heating prior widened to R ≲ 8 near βi ≈ 1 using the dimensionless laboratory mapping. Pending re-run.'},
+ {id:'sane',n:'SANE · any heating',p:'calc',bar:0.10,verdict:'excluded',
+  traj:'2 / 3 contain the trajectory',ml:'m_L overproduced ×2.3',ring:'ring asymmetry consistent',
+  note:'Disordered field topology overproduces fractional polarisation regardless of heating.'},
+ {id:'madhi',n:'MAD · high inclination i > 45°',p:'calc',bar:0.08,verdict:'excluded',
+  traj:'1 / 3 contain the trajectory',ml:'m_L consistent',ring:'photon-ring asymmetry violated',
+  note:'Inclination bound from ring asymmetry excludes the family independently of heating.'},
+ {id:'hybrid',n:'MAD + variable-screen hybrid',p:'hyp',bar:0.34,verdict:'conditional',
+  traj:'3 / 3 with screen absorbing the residual',ml:'m_L consistent',ring:'ring asymmetry consistent',
+  note:'Viable only if the static-screen assumption is released; inherits sub-0.1 pc screen structure requirement.'}
+];
+
+/* datasets */
+const DATASETS=[
+ {id:'alma',n:'ALMA band-6 polarimetry · 9 epochs',p:'ev',rep:'replicated ×2 (independent reduction pipelines)',repOK:true,
+  vol:'42 source families · 3,214 records',pipe:'leakage v4.2 · CASA 6.5 + independent AIPS path',
+  cov:'per-epoch covariance propagated; cross-epoch correlation 0.11',
+  role:'essential — the claim loses its subject without it',
+  influence:0.95,src:'ALMA archive · band-6 reprocessing 02:14 UTC'},
+ {id:'mag',n:'VLA magnetar sightline (PSR J1745−2900) · 5 epochs',p:'ev',rep:'replicated ×2 (observing programmes)',repOK:true,
+  vol:'6 source families · 812 records',pipe:'RM synthesis · systematics floor 1.1 %',
+  cov:'epochs aligned to the ALMA grid in barycentric time',
+  role:'load-bearing — removal restores screen parity',
+  influence:0.62,src:'VLA monitoring 19:40 UTC'},
+ {id:'lab',n:'Laboratory reconnection heating partition',p:'hyp',rep:'unreplicated — one experiment, one group',repOK:false,
+  vol:'117 adjacent-domain families scanned · 6,431 records',pipe:'dimensional conversion to R(βi) · structural residual 0.11',
+  cov:'regime overlap βi ∈ [0.7, 1.1]',
+  role:'conditional — removal re-closes the heating branch',
+  influence:0.44,src:'adjacent-domain scan · scenario day S-044'},
+ {id:'xray',n:'Archival Chandra X-ray flare catalogue',p:'ev',rep:'single catalogue, single pipeline',repOK:false,
+  vol:'14 catalogues · 7,963 records · 34 flares in-window',pipe:'barycentric alignment · covariance-aware matching',
+  cov:'6 overlap windows at 2σ',
+  role:'redundant pre-test — a pending discriminator, not a support',
+  influence:0.18,src:'autonomous archival scan'}
+];
+
+/* watch: material change queue */
+const EVENTS=[
+ {id:'alma',t:'Revised ALMA polarimetry no longer fits the selected GRMHD model family.',
+  src:'ALMA archive · band-6 reprocessing v4.2',time:'02:14 UTC · S-000',vol:'9 epochs · 3,214 records',sev:3,
+  op:'re-reduction under revised leakage calibration · covariance propagation · containment test',
+  res:'containment failure — trajectory exits the permitted ±14° sector at epoch 4 · 4.5σ',
+  aff:['permitted-sector boundary','heating assumption','stationary-geometry conclusion','experiment ranking','working claim'],
+  act:'trace the controlling assumption; re-run laboratory-informed ensemble members',
+  chain:[
+   {k:'New information',p:'ev',v:'Band-6 polarimetry reprocessed under leakage calibration v4.2 — 9 epochs re-issued with new covariance.'},
+   {k:'Normalization',p:'calc',v:'Frames converted sky → intrinsic (Faraday-corrected); units normalized to deg · % · rad m⁻²; per-epoch covariance rebuilt.'},
+   {k:'Comparison',p:'calc',v:'Nine-point trajectory tested against 1,120 retained library trajectories forming the permitted ±14° sector.'},
+   {k:'Conflict',p:'hyp',v:'Trajectory exits the sector at epoch 4 and never re-enters. 3 / 3 retained sub-regions fail. Residual at epoch 9: 27° at 4.5σ.'},
+   {k:'Affected assumption',p:'asm',v:'The electron-heating prescription (R_high = 40, adopted S-277 by convention) controls 83 % of boundary variance on the failing axis.'},
+   {k:'Downstream consequences',p:'calc',v:'31 nodes recomputed: 1 conclusion demoted · 1 rejected branch reopened · 3 experiments reprioritized · working claim flagged for revision.'},
+   {k:'Recommended action',p:'clm',v:'Re-run 3 MAD ensemble members with the laboratory-informed heating range — eliminates 64 % of surviving explanation volume at zero telescope cost.'}]},
+ {id:'magnetar',t:'The Galactic-Centre magnetar sightline shows no equivalent rotation-measure drift.',
+  src:'VLA monitoring programme',time:'19:40 UTC · S-001',vol:'5 epochs · 812 records',sev:2,
+  op:'temporal alignment to the ALMA epoch grid · cross-instrument consistency test',
+  res:'RM flat to 3 % over the drift interval — a common foreground screen is disfavoured',
+  aff:['variable-screen configuration','screen assumption evidence base'],
+  act:'retain as the strongest single constraint against the screen; note the 0.1 pc scope limit',
+  chain:[
+   {k:'New information',p:'ev',v:'Five magnetar RM epochs spanning the same interval as the ALMA drift, 0.1 pc projected separation.'},
+   {k:'Normalization',p:'calc',v:'Epochs aligned to the ALMA grid in barycentric time; systematics floor 1.1 %.'},
+   {k:'Comparison',p:'calc',v:'RM stability tested against the RM change a common screen would require to produce the 41° drift.'},
+   {k:'Conflict',p:'hyp',v:'A common foreground screen cannot easily produce the drift: the required RM excursion is 12× the observed bound.'},
+   {k:'Affected assumption',p:'asm',v:'Weakens the case for releasing the static-screen assumption — but bounds only one sightline; sub-0.1 pc structure remains open.'},
+   {k:'Downstream consequences',p:'calc',v:'Variable-screen configuration demoted; its coverage falls to 1 / 5 active structures under the static assumption.'},
+   {k:'Recommended action',p:'clm',v:'A 7-day magnetar cadence would bound sub-0.1 pc screen structure directly if the screen question becomes decisive.'}]},
+ {id:'lab',t:'A laboratory plasma measurement now constrains the heating partition at βi ≈ 1.',
+  src:'adjacent-domain reconnection experiment',time:'scenario day S-044',vol:'117 families scanned · 6,431 records',sev:2,
+  op:'dimensional analysis lab energisation → R(βi) · parameter-space overlap test',
+  res:'R = 7.9 ± 1.6 at βi = 0.9 ± 0.2 — overlaps the truncated simulation prescription',
+  aff:['heating prior','S-144 rejection condition','ensemble re-run priority'],
+  act:'admit as prior-widening evidence only; attach 3 limitation markers permanently',
+  chain:[
+   {k:'New information',p:'ev',v:'A reconnection experiment measures the electron/ion energisation partition directly: R = 7.9 ± 1.6 at βi = 0.9 ± 0.2.'},
+   {k:'Normalization',p:'calc',v:'Laboratory energisation converted to the dimensionless partition R(βi) — the only representation comparable to the GRMHD sub-grid term.'},
+   {k:'Comparison',p:'calc',v:'Both curves rise steeply for βi ≲ 1 and flatten above. Structural residual 0.11 (normalized). Regime overlap βi ∈ [0.7, 1.1].'},
+   {k:'Support',p:'hyp',v:'The simulation prescription was truncated by convention, not measurement. The laboratory point sits on its natural continuation.'},
+   {k:'Affected assumption',p:'asm',v:'The heating prescription gains its first direct constraint. Limits attached: scale separation ~10¹¹ · collisional electrons · no radiative cooling.'},
+   {k:'Downstream consequences',p:'calc',v:'The S-144 rejection condition (“no measurement constrains the heating ratio”) expires. The dormant heating branch becomes eligible.'},
+   {k:'Recommended action',p:'clm',v:'Use only to widen the heating prior — never to transfer the value. Re-run ensemble members inside the widened prior.'}]},
+ {id:'xray',t:'Six polarisation epochs overlap an archival X-ray flare catalogue never cross-referenced.',
+  src:'autonomous archival scan · Chandra public archive',time:'detected autonomously · S-000',vol:'14 catalogues · 7,963 records',sev:1,
+  op:'barycentric epoch alignment · covariance-aware temporal cross-match',
+  res:'34 flares inside 6 epochs · 6 overlap windows at 2σ · none present in the active model',
+  aff:['experiment ranking','eruption configuration testability'],
+  act:'execute the cross-match — decisive against the eruption configuration at zero observing cost',
+  chain:[
+   {k:'New information',p:'ev',v:'34 archival X-ray flares fall inside six of the nine polarisation epochs. The catalogues had never been joined.'},
+   {k:'Normalization',p:'calc',v:'Both epoch grids converted to a common barycentric frame; uncertainty windows propagated.'},
+   {k:'Comparison',p:'calc',v:'Covariance-aware matching: six windows survive at 2σ. Window 4 (epoch 6) contains nine flares.'},
+   {k:'Support',p:'hyp',v:'If the drift is eruption-driven, flare timing must correlate with EVPA excursions. The test is decisive against one configuration.'},
+   {k:'Affected assumption',p:'asm',v:'None directly — this is unused evidence becoming a discriminator.'},
+   {k:'Downstream consequences',p:'calc',v:'The archival cross-match rises in the experiment ranking: decisive, immediate, zero observing cost.'},
+   {k:'Recommended action',p:'clm',v:'Execute on command. A null result removes the eruption configuration; a correlation destroys the leading claim.'}]}
+];
+
+/* source perimeter */
+const SOURCES=[
+ ['Observatory data releases',31,4210,2,'release cadence tracked; 2 touched active structures'],
+ ['Instrument archives',24,3120,1,'ALMA band-6 reprocessing was material'],
+ ['Refereed papers',38,2140,0,'11 relevant, none altered an active structure'],
+ ['Preprints',41,3830,0,'flagged 3 for weekly digest; none material'],
+ ['Simulation libraries',12,1120,1,'1,120 trajectories re-evaluated against new covariance'],
+ ['Code repositories',9,640,0,'2 pipeline releases; no numerical differences above floor'],
+ ['Calibration records',7,214,1,'band-6 leakage v4.2 — trigger of the containment failure'],
+ ['Laboratory measurements',14,980,1,'reconnection heating partition — cross-domain admission'],
+ ['Astronomical catalogues',17,1460,1,'Chandra flare overlap detected autonomously'],
+ ['Researcher notes',6,310,0,'S-277 model-selection note linked into provenance'],
+ ['Researcher datasets',4,220,0,'no local dataset changed'],
+ ['Previous model versions',3,96,0,'v1–v3 retained for claim version history'],
+ ['Rejected hypotheses',5,54,1,'S-144 heating rejection — condition expired'],
+ ['Past reasoning states',4,412,0,'412 reasoning states indexed'],
+ ['Proposed experiments',2,24,1,'ranking recomputed — order changed']
+];
+
+/* memory states */
+const MEM=[
+ {d:'S-277',b:'Model family fixed: standard MAD library, R_high = 40.',
+  a:'Assumption admitted: heating prescription treated as simulation convention, not measurement.',
+  w:'Nothing constrained the partition at βi ≈ 1 in either direction. Four downstream claims inherit the choice.',c:null,
+  ev:'EHT ring morphology · early polarimetry · MAD-state flux measurements'},
+ {d:'S-144',b:'Electron-heating explanation rejected.',
+  a:'Rejected because no measurement constrained the heating ratio at βi ≈ 1 — an unfalsifiable free parameter at the time.',
+  w:'Missing evidence: a direct heating-partition measurement. Reconsideration condition attached: reopen if one appears.',c:'rejection',
+  ev:'6 polarisation epochs then available · no laboratory constraint'},
+ {d:'S-097',b:'Static foreground screen adopted as working assumption.',
+  a:'Supported by rotation-measure stability observed in the early campaign.',
+  w:'Never re-tested against the current epochs. 3 downstream conclusions inherit it.',c:null,
+  ev:'early-campaign RM series · single-epoch magnetar check'},
+ {d:'S-044',b:'Laboratory reconnection experiment reports R = 7.9 ± 1.6 at βi ≈ 0.9.',
+  a:'Adjacent domain; entered through dimensional normalization with 3 limitation markers attached.',
+  w:'This is exactly the measurement whose absence caused the S-144 rejection.',c:'release',
+  ev:'one experiment · one group · unreplicated'},
+ {d:'S-000',b:'The original reason for rejecting electron heating no longer applies.',
+  a:'The rejection condition attached at S-144 has expired: a direct constraint now exists.',
+  w:'The dormant branch is eligible for reactivation inside the current model. Reactivation restores it as a live configuration, not as a conclusion.',c:'reactivate',
+  ev:'revised 9-epoch trajectory · laboratory partition · flat magnetar sightline'}
+];
+const REJECTED=[
+ {d:'S-201',n:'Jet-dominated mm emission',why:'photon-ring asymmetry and core shift jointly exclude a jet-photosphere origin at 230 GHz',
+  cond:'reopen if core-shift remeasurement moves by > 2σ',status:'condition not met — remains rejected'},
+ {d:'S-144',n:'Underestimated electron heating',why:'no measurement constrained the heating ratio at βi ≈ 1',
+  cond:'reopen if a direct heating-partition measurement appears',status:'CONDITION EXPIRED at S-044 — branch eligible'}
+];
+
+/* reasoning session */
+const SPEECH=[
+ {s:'The polarisation angle drift looks intrinsic to me — the screen has been stable since the early campaign.',
+  d:[{p:'asm',x:'Assumption detected — screen stability extrapolated from S-097; nothing admitted supports the extrapolation to current epochs.'}]},
+ {s:'If the flow is magnetically arrested, flux eruptions should reorganise the field on a few hundred gravitational times.',
+  d:[{p:'calc',x:'Causal link verified — MAD → field reorganisation is supported by the retained simulation volume.'}]},
+ {s:'But the ALMA epochs drift monotonically, and eruptions should not do that.',
+  d:[{p:'ev',x:'Evidence reference verified — the 9-epoch trajectory is monotonic.'},{p:'hyp',x:'Valid contradiction — eruption configurations predict stochastic excursions.'}]},
+ {s:'So either the screen varies, or the heating prescription is wrong. It cannot be both.',
+  d:[{p:'hyp',x:'Unsupported leap — a false dichotomy. Both may contribute; the model does not force exclusivity.'}]},
+ {s:'I do not think the X-ray record helps here.',
+  d:[{p:'ev',x:'Omitted evidence — 34 archival flares fall inside your epochs and would test the eruption configuration at zero cost.'}]},
+ {s:'If heating extends higher near beta of one, the drift could just be the emission region migrating.',
+  d:[{p:'hyp',x:'Candidate hypothesis — matches the reasoning you rejected on day S-144.'},{p:'asm',x:'Reconnects to the dormant branch; its rejection condition has now expired.'}]}
+];
+const DEFECTS=[
+ {k:'Assumption without support',p:'asm',v:'Screen stability extrapolated from the early campaign (statement 1). Nothing admitted supports the extrapolation.',fix:'Release or re-test the static-screen assumption.'},
+ {k:'False dichotomy',p:'hyp',v:'Screen and heating treated as mutually exclusive (statement 4). Both may contribute.',fix:'Carry both as weighted configurations.'},
+ {k:'Omitted evidence',p:'ev',v:'34 archival flares dismissed without a test (statement 5).',fix:'Execute the archival cross-match — zero observing cost.'}
+];
+
+/* claim components + versions */
+const COMPS=[
+ {k:'Observation',p:'ev',v:'ALMA EVPA trajectory drifts 41° ± 6° over nine epochs.',tr:'alma'},
+ {k:'Model comparison',p:'calc',v:'The retained MAD family permits ±14° under the current heating prescription.',tr:'model'},
+ {k:'Incompatibility',p:'hyp',v:'The observation exits all three retained sub-regions after epoch four (4.5σ).',tr:'breach'},
+ {k:'Dependency',p:'asm',v:'83 % of variance along the failing axis comes from the inherited heating prescription.',tr:'dep'},
+ {k:'Independent constraint',p:'ev',v:'The magnetar sightline stays flat to 3 %, weakening a common foreground screen.',tr:'mag'},
+ {k:'New connection',p:'hyp',v:'Laboratory reconnection permits a broader dimensionless heating partition.',tr:'lab'},
+ {k:'Limitation',p:'asm',v:'Scale separation, collisionality and absent cooling prevent direct value transfer.',tr:'lim'},
+ {k:'Inference',p:'hyp',v:'An intrinsic accretion-flow mechanism with a broadened heating prior best contains the evidence.',tr:'inf'},
+ {k:'Falsification',p:'clm',v:'A correlated magnetar RM excursion or flare-locked EVPA behaviour would destroy it.',tr:'fal'}
+];
+const CLAIMV=[
+ {v:'v1 · S-041',c:'containment 4 / 9 epochs',n:'first constructed after the laboratory connection entered',diff:'initial assembly; screen and heating carried at parity'},
+ {v:'v2 · S-020',c:'containment 7 / 9 · screen demoted',n:'magnetar-sightline control admitted',diff:'+ independent constraint component; screen configuration demoted'},
+ {v:'v3 · S-000',c:'recomputed live',n:'current — recomputed from the active assumption set',diff:'containment failure integrated; falsification route updated'}
+];
+const TRACES={
+ alma:{t:'ALMA EVPA trajectory',p:'ev',b:'Source: band-6 polarimetry, 42 families searched, 3,214 records. Operation: re-reduction under leakage v4.2, frame and unit normalization, per-epoch covariance. Uncertainty: ±6° accumulated. Replication: 2 independent pipelines. This is the structure being explained — measured evidence, not a fitted quantity.'},
+ model:{t:'Permitted ±14° sector',p:'calc',b:'Source: 1,120 retained library trajectories. Operation: union envelope across the retained parameter volume, widened by the resolution and sub-grid uncertainty surface. Connected assumption: heating prescription — 83 % of variance on the failing axis.'},
+ breach:{t:'Containment failure at epoch 4',p:'hyp',b:'Operation: 3 containment tests, 3 failures. Residual at epoch 9: 27° at 4.5σ. The calibration counterfactual confirms measurement error cannot absorb it — this is a property of the model boundary.'},
+ dep:{t:'Inherited heating prescription',p:'asm',b:'Adopted S-277 by simulation convention. Zero direct measurement beneath it until S-044. Downstream: 4 claims. This is the structure the audit flags as the claim’s critical dependence.'},
+ mag:{t:'Magnetar control sightline',p:'ev',b:'Source: VLA monitoring, 2 observing programmes — independently replicated. Operation: temporal alignment to the ALMA grid; consistency test. Limitation: bounds one sightline at 0.1 pc; sub-0.1 pc structure open.'},
+ lab:{t:'Laboratory heating partition',p:'hyp',b:'Source: one reconnection experiment — unreplicated. Operation: dimensional conversion to R(βi); structural residual 0.11. Permitted use: widen the prior, never transfer the value.'},
+ lim:{t:'Limits of the laboratory mapping',p:'asm',b:'Scale separation ~10¹¹ · collisional electrons · no synchrotron cooling. Attached permanently; inherited by every claim that uses the connection.'},
+ inf:{t:'Candidate inference',p:'hyp',b:'Constructed by Parallax from components 1–7. Evidence coverage 5/5 active structures under the current assumption set; falls to 3/5 without the static screen. A proposal — violet — until tested.'},
+ fal:{t:'Falsification routes',p:'clm',b:'Either a correlated magnetar RM excursion (screen returns) or flare-locked EVPA behaviour (eruptions return). Both are cheap to test; the decisive route is the 230/345 GHz campaign.'}
+};
+
+/* audit attacks */
+const ATTACKS=[
+ {n:'Remove each dataset in turn',out:'Survives 3 of 4 removals. Collapses without the ALMA trajectory (essential). Demoted without the magnetar sightline (screen parity returns). Narrows without the laboratory mapping.',lvl:0.66,verdict:'survives'},
+ {n:'Release the static-screen assumption',out:'Claim becomes conditional: coverage falls 5/5 → 3/5; a sub-0.1 pc variable screen reaches parity with the intrinsic mechanism.',lvl:0.45,verdict:'weakens'},
+ {n:'Double the calibration uncertainty',out:'Permitted sector widens ±14° → ±19°; trajectory still exits at epoch 5 with 22° residual at 3.1σ. Attack fails.',lvl:0.9,verdict:'survives'},
+ {n:'Remove the cross-domain mapping',out:'Heating extension loses its physical basis; the claim narrows to “the failure is real and assumption-controlled”.',lvl:0.52,verdict:'weakens'},
+ {n:'Advance the strongest competitor',out:'Sub-0.1 pc variable screen covers 3/5 structures if its required assumption is granted — it survives as the standing alternative, not the leader.',lvl:0.7,verdict:'survives'},
+ {n:'Replication filter',out:'Unreplicated structures recede: the heating extension becomes a proposal awaiting replication; the containment failure stands on replicated evidence alone.',lvl:0.6,verdict:'weakens'},
+ {n:'Trace fragile support paths',out:'One unmeasured link in the five-link support chain: the heating assumption. All other links are measured or calculated.',lvl:0.75,verdict:'survives'},
+ {n:'Hidden-systematics sweep',out:'Band-6 leakage tested (fails to absorb the breach); pointing, gain and bandpass terms bounded below 0.3σ effect.',lvl:0.85,verdict:'survives'}
+];
+
+/* ============================================================================
+   Part B: WebGL physical-system renderer
+   Ray-traced Schwarzschild-approximate geodesics · volumetric accretion disk ·
+   Doppler beaming · lensed photon ring · foreground Faraday screen layer.
+   ========================================================================== */
+const GL={on:false, ok:false, gl:null, prog:null, u:{}, t0:performance.now(),
+  heat:0, heatT:0, field:1, fieldT:1, screen:0.5, screenT:0.5, scrVar:0, scrVarT:0, raf:0, epoch:0, lastEp:0};
+const VSH='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FSH=[
+'precision highp float;',
+'uniform vec2 R;uniform float T;uniform float uHeat;uniform float uField;uniform float uScreen;uniform float uScrVar;',
+'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+'float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+' return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}',
+'float fbm(vec2 p){float a=0.,w=.5;for(int i=0;i<5;i++){a+=w*noise(p);p*=2.03;w*=.55;}return a;}',
+'vec3 stars(vec3 rd){',
+' vec3 col=vec3(0.);',
+' vec2 uv=vec2(atan(rd.z,rd.x)*3.0,asin(clamp(rd.y,-1.,1.))*3.0);',
+' for(int i=0;i<2;i++){',
+'  float sc=60.+float(i)*110.;vec2 g=uv*sc;vec2 id=floor(g);float h=hash(id+float(i)*17.3);',
+'  vec2 c=fract(g)-.5;vec2 off=(vec2(hash(id+3.1),hash(id+7.7))-.5)*.6;',
+'  float d=length(c-off);float m=smoothstep(.09,.0,d)*step(.9935,h);',
+'  col+=m*(.5+.5*hash(id+1.3))*mix(vec3(.75,.85,1.),vec3(1.,.95,.85),hash(id+9.2));',
+' }',
+' float band=pow(max(0.,1.-abs(rd.y+.18)*2.4),2.);',
+' col+=vec3(.045,.07,.11)*band*(.4+.6*fbm(uv*4.));',
+' return col;}',
+'void main(){',
+' vec2 uv=(gl_FragCoord.xy*2.-R)/R.y;',
+' float inc=.42;',
+' vec3 ro=vec3(0.,sin(inc),-cos(inc))*13.5;',
+' vec3 ww=normalize(-ro);vec3 uu=normalize(cross(vec3(0.,1.,0.),ww));vec3 vv=cross(ww,uu);',
+' vec3 rd=normalize(uv.x*uu+uv.y*vv+2.15*ww);',
+' vec3 p=ro;vec3 v=rd;vec3 pPrev=p;float prevY=p.y;',
+' vec3 cvec=cross(p,v);float h2=dot(cvec,cvec);',
+' vec3 col=vec3(0.);float trans=1.;bool captured=false;',
+' float peak=mix(2.05,3.15,uHeat);',
+' for(int i=0;i<150;i++){',
+'  float r2=dot(p,p);',
+'  float dt=clamp(.095*sqrt(r2),.045,.42);',
+'  vec3 a=-1.5*h2*p/pow(r2,2.5);',
+'  pPrev=p;prevY=p.y;',
+'  v+=a*dt;p+=v*dt;',
+'  if(dot(p,p)<1.0){captured=true;break;}',
+'  if(p.y*prevY<0.){',
+'   float f=prevY/(prevY-p.y);',
+'   vec3 cp=mix(pPrev,p,f);',
+'   float r=length(cp.xz);',
+'   if(r>1.42&&r<8.2){',
+'    float ang=atan(cp.z,cp.x);',
+'    float om=1.9*pow(r,-1.5);',
+'    float phase=ang+T*om*.8;',
+'    float n=fbm(vec2(r*2.8-T*.11,phase*2.4));',
+'    float stripe=.5+.5*sin(phase*11.+r*3.2);',
+'    n=mix(n,n*(.55+.75*stripe),uField*.5);',
+'    float temp=pow(1.42/r,.72);',
+'    float band=exp(-pow((r-peak)/1.35,2.));',
+'    vec3 tang=normalize(vec3(-cp.z,0.,cp.x));',
+'    float beta=.52*sqrt(1.42/r);',
+'    vec3 nOb=-normalize(v);',
+'    float g=1./sqrt(max(1e-3,1.-beta*beta));',
+'    float dop=1./(g*(1.-beta*dot(tang,nOb)));',
+'    float boost=pow(dop,3.);',
+'    float e=(.20+1.45*n)*band*boost*(0.42+temp)*.78;',
+'    vec3 tint=mix(vec3(.26,.56,.92),vec3(1.,.96,.88),clamp(temp*1.55-.42,0.,1.));',
+'    tint=mix(tint,tint*vec3(1.12,.86,.70),clamp(1.-dop,0.,1.)*.7);',
+'    tint=mix(tint,tint*vec3(.85,.95,1.12),clamp(dop-1.,0.,1.)*.45);',
+'    float alpha=clamp(e*.8,0.,.96);',
+'    col+=trans*tint*e*1.05;',
+'    trans*=(1.-alpha*.8);',
+'    if(trans<.02)break;',
+'   }',
+'  }',
+'  if(dot(p,p)>240.)break;',
+' }',
+' if(!captured&&trans>0.01){',
+'  vec3 bd=normalize(v);',
+'  vec3 bg=vec3(.010,.026,.052)+stars(bd)*.9;',
+'  col+=trans*bg;',
+' }',
+' if(uField>0.01){',
+'  float ax=length(uv-vec2(0.,.1));',
+'  float funnel=exp(-pow(abs(uv.x)*3.4,2.))*smoothstep(.15,.9,abs(uv.y-.06))*exp(-abs(uv.y)*1.1);',
+'  col+=uField*vec3(.10,.22,.34)*funnel*.5;',
+' }',
+' if(uScreen>0.01){',
+'  vec2 sp=uv*vec2(1.4,2.6)+vec2(T*.008*(1.+9.*uScrVar),T*.004*uScrVar);',
+'  float hz=fbm(sp+fbm(sp*1.7)*.6);',
+'  float veil=(.05+.30*hz)*uScreen;',
+'  col=col*(1.-veil*.55)+vec3(.32,.21,.08)*veil*.8;',
+' }',
+' col=1.-exp(-col*1.18);',
+' col=pow(col,vec3(.92));',
+' float vig=1.-.34*dot(uv*.62,uv*.62);',
+' col*=vig;',
+' gl_FragColor=vec4(col,1.);}'
+].join('\n');
+function glInit(){
+  if(GL.gl!==null)return GL.ok;
+  const cv=$('#glcv');
+  let gl=null;
+  try{gl=cv.getContext('webgl',{antialias:false,alpha:false,preserveDrawingBuffer:false});}catch(e){gl=null;}
+  GL.gl=gl||false;
+  if(!gl){GL.ok=false;return false;}
+  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null;}return s;}
+  const vs=sh(gl.VERTEX_SHADER,VSH),fs=sh(gl.FRAGMENT_SHADER,FSH);
+  if(!vs||!fs){GL.ok=false;return false;}
+  const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){GL.ok=false;return false;}
+  gl.useProgram(pr);GL.prog=pr;
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  ['R','T','uHeat','uField','uScreen','uScrVar'].forEach(n=>GL.u[n]=gl.getUniformLocation(pr,n));
+  GL.ok=true;return true;
+}
+function glResize(){
+  if(!GL.ok)return;
+  const cv=$('#glcv'),w=$('#glwrap');
+  const dpr=Math.min(devicePixelRatio||1, innerWidth<980?1:1.35);
+  const bw=Math.max(2,Math.floor(w.clientWidth*dpr*0.72)), bh=Math.max(2,Math.floor(w.clientHeight*dpr*0.72));
+  if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh;GL.gl.viewport(0,0,bw,bh);}
+}
+function glFrame(){
+  if(!GL.on||!GL.ok)return;
+  glResize();
+  const gl=GL.gl,t=(performance.now()-GL.t0)/1000;
+  GL.heat+=(GL.heatT-GL.heat)*0.04; GL.field+=(GL.fieldT-GL.field)*0.06;
+  GL.screen+=(GL.screenT-GL.screen)*0.05; GL.scrVar+=(GL.scrVarT-GL.scrVar)*0.05;
+  gl.uniform2f(GL.u.R,gl.canvas.width,gl.canvas.height);
+  gl.uniform1f(GL.u.T,RM?12.0:t);
+  gl.uniform1f(GL.u.uHeat,GL.heat);
+  gl.uniform1f(GL.u.uField,GL.field);
+  gl.uniform1f(GL.u.uScreen,GL.screen);
+  gl.uniform1f(GL.u.uScrVar,GL.scrVar);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  glOverlay(t);
+  if(!RM)GL.raf=requestAnimationFrame(glFrame);
+}
+function glSet(on){
+  const was=GL.on;GL.on=on;
+  $('#glwrap').classList.toggle('on',on);
+  $('#wsScroll').classList.toggle('glmode',on);
+  if(on){
+    if(!glInit()){ $('#glwrap').classList.remove('on');$('#wsScroll').classList.remove('glmode');GL.on=false;
+      const b=$('#wsBody');if(b&&b.insertAdjacentHTML)b.insertAdjacentHTML('afterbegin','<div class="card">WebGL unavailable in this browser — the physical system is described in the intelligence panel.</div>');return; }
+    GL.heatT=S.asm.heating==='extended'?1:0;
+    GL.fieldT=S.layers.field?1:0;
+    GL.screenT=S.layers.screen?(S.asm.screen==='variable'?0.85:0.5):0;
+    GL.scrVarT=S.asm.screen==='variable'?1:0;
+    if(!was){cancelAnimationFrame(GL.raf);glFrame();if(RM)setTimeout(glFrame,60);}
+  }else{cancelAnimationFrame(GL.raf);}
+}
+/* SVG overlay: observation geometry, polarisation vectors, emission-region marker */
+const EPOCH_EVPA=Array.from({length:9},(_,i)=>-20.5+41*i/8+Math.sin(i*2.3)*1.6);
+function glOverlay(t){
+  const ov=$('#glov'),w=ov.clientWidth,h=ov.clientHeight;
+  if(w<10)return;
+  const cx=w/2, cy=h/2*0.98;
+  const scale=h/2/ (13.5/2.15); /* screen px per scene unit (approx focal projection) */
+  let out='';
+  const L=S.layers;
+  if(L.geo){
+    const ox=w*0.86, oy=h*0.82;
+    out+='<line x1="'+ox+'" y1="'+oy+'" x2="'+(cx+scale*1.5)+'" y2="'+(cy+scale*0.4)+'" stroke="rgba(200,225,244,.5)" stroke-width="1" stroke-dasharray="2 6"/>';
+    out+='<circle cx="'+ox+'" cy="'+oy+'" r="6" fill="none" stroke="rgba(220,238,250,.85)" stroke-width="1.2"/>';
+    out+='<line x1="'+(ox-11)+'" y1="'+oy+'" x2="'+(ox+11)+'" y2="'+oy+'" stroke="rgba(220,238,250,.85)" stroke-width="1.2"/>';
+    out+='<line x1="'+ox+'" y1="'+(oy-11)+'" x2="'+ox+'" y2="'+(oy+11)+'" stroke="rgba(220,238,250,.85)" stroke-width="1.2"/>';
+    out+='<text x="'+(ox-14)+'" y="'+(oy+24)+'" text-anchor="end" fill="rgba(200,225,244,.8)" font-family="ui-monospace,monospace" font-size="8.5" letter-spacing="2">OBSERVER · ALMA / VLA · i ≈ 24°</text>';
+    const sx=lerp(ox,cx,0.5),sy=lerp(oy,cy,0.5);
+    out+='<text x="'+sx+'" y="'+(sy+30)+'" text-anchor="middle" fill="rgba(226,168,88,.85)" font-family="ui-monospace,monospace" font-size="8.5" letter-spacing="2">FARADAY SCREEN · '+(S.asm.screen==='variable'?'VARIABLE (RELEASED)':'ASSUMED STATIC')+'</text>';
+  }
+  if(L.pol){
+    const ep=Math.floor((RM?3:(t/1.6))%9);GL.epoch=ep;
+    const evpa=EPOCH_EVPA[ep]*Math.PI/180;
+    const rr=scale*3.55;
+    for(let i=0;i<26;i++){
+      const a=i/26*Math.PI*2;
+      const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr*0.62;
+      const ta=a+Math.PI/2+evpa;
+      const dx=Math.cos(ta)*7, dy=Math.sin(ta)*7;
+      out+='<line x1="'+(px-dx)+'" y1="'+(py-dy)+'" x2="'+(px+dx)+'" y2="'+(py+dy)+'" stroke="rgba(64,205,255,.8)" stroke-width="1.4"/>';
+    }
+    out+='<text x="'+(cx+rr*0.75)+'" y="'+(cy-rr*0.62-12)+'" fill="rgba(64,205,255,.9)" font-family="ui-monospace,monospace" font-size="8.5" letter-spacing="2">POLARISATION · EPOCH '+(ep+1)+' / 9 · EVPA '+(EPOCH_EVPA[ep]+20.5).toFixed(1)+'°</text>';
+  }
+  if(L.region){
+    const peak=lerp(2.05,3.15,GL.heat);
+    const rx=scale*peak, ry=scale*peak*0.41;
+    out+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="rgba(150,120,255,.75)" stroke-width="1.2" stroke-dasharray="5 5"/>';
+    out+='<text x="'+(cx+rx+8)+'" y="'+cy+'" fill="rgba(170,140,255,.9)" font-family="ui-monospace,monospace" font-size="8.5" letter-spacing="2">EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g '+(GL.heat>0.5?'· MIGRATED OUTWARD':'')+'</text>';
+  }
+  ov.setAttribute('viewBox','0 0 '+w+' '+h);
+  ov.innerHTML=out;
+  $('#glhud').innerHTML='<b>GRMHD RENDER · MAD LIBRARY</b> · a/M = 0.94 · i = 24° · heating '+
+    (S.asm.heating==='extended'?'<b>laboratory-informed (R ≲ 8 @ βi ≈ 1)</b>':'R_high = 40 (inherited convention)')+
+    ' · screen '+(S.asm.screen==='variable'?'variable':'static')+' · Doppler-beamed emissivity · lensed photon ring · epochs cycling — '+
+    'containment '+(S.asm.heating==='extended'?'<b>9 / 9 restored after re-run</b>':'3 / 9 · fails after epoch 4');
+}
+
+/* ============================================================================
+   Part C: publication-quality SVG figures + shared UI builders
+   ========================================================================== */
+function svgOpen(w,h){return '<svg viewBox="0 0 '+w+' '+h+'" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,system-ui,sans-serif">';}
+function axLabel(x,y,txt,anchor,rot,size,col){
+  return '<text x="'+x+'" y="'+y+'" text-anchor="'+(anchor||'middle')+'" font-size="'+(size||10)+'" fill="'+(col||CC.ax)+'"'+
+    (rot?' transform="rotate('+rot+' '+x+' '+y+')"':'')+'>'+txt+'</text>';
+}
+function ticksX(x0,x1,y,vals,fmt,X){
+  let s='';vals.forEach(v=>{const px=X(v);
+    s+='<line x1="'+px+'" y1="'+y+'" x2="'+px+'" y2="'+(y+4)+'" stroke="'+CC.ax+'" stroke-width="1"/>';
+    s+=axLabel(px,y+15,fmt(v),'middle',0,9,CC.dim);});
+  return s;
+}
+function ticksY(x,vals,fmt,Y){
+  let s='';vals.forEach(v=>{const py=Y(v);
+    s+='<line x1="'+(x-4)+'" y1="'+py+'" x2="'+x+'" y2="'+py+'" stroke="'+CC.ax+'" stroke-width="1"/>';
+    s+=axLabel(x-7,py+3,fmt(v),'end',0,9,CC.dim);});
+  return s;
+}
+/* --- Figure 1: EVPA vs epoch — data, prediction interval, residuals --- */
+const EP_DAYS=Array.from({length:9},(_,i)=>-88+i*11);
+const EP_VAL=Array.from({length:9},(_,i)=>41*i/8+Math.sin(i*2.3)*1.6);
+const EP_ERR=Array.from({length:9},(_,i)=>4.4+i*0.28);
+function figEVPA(opts){
+  opts=opts||{};
+  const W2=680,H2=opts.resid?318:266, mL=52,mR=16,mT=26,mB=opts.resid?96:40;
+  const pW=W2-mL-mR, pH=H2-mT-mB-(opts.resid?0:0);
+  const mainH=opts.resid?pH-58:pH;
+  const xmin=-92,xmax=4, band=opts.band!==undefined?opts.band:14;
+  const ymin=-30,ymax=52;
+  const X=v=>mL+(v-xmin)/(xmax-xmin)*pW;
+  const Y=v=>mT+(ymax-v)/(ymax-ymin)*mainH;
+  let s=svgOpen(W2,H2);
+  s+='<rect x="0" y="0" width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  /* grid */
+  for(let g=-20;g<=50;g+=10)s+='<line x1="'+mL+'" y1="'+Y(g)+'" x2="'+(mL+pW)+'" y2="'+Y(g)+'" stroke="'+CC.grid+'" stroke-width="1"/>';
+  /* prediction interval */
+  if(band>0){
+    s+='<rect x="'+mL+'" y="'+Y(band)+'" width="'+pW+'" height="'+(Y(-band)-Y(band))+'" fill="rgba(42,74,108,.10)"/>';
+    s+='<line x1="'+mL+'" y1="'+Y(band)+'" x2="'+(mL+pW)+'" y2="'+Y(band)+'" stroke="'+CC.calc+'" stroke-width="1.1"/>';
+    s+='<line x1="'+mL+'" y1="'+Y(-band)+'" x2="'+(mL+pW)+'" y2="'+Y(-band)+'" stroke="'+CC.calc+'" stroke-width="1.1"/>';
+    s+=axLabel(mL+6,Y(band)-5,'GRMHD permitted ±'+band+'° (1,120 library trajectories'+(opts.bandNote?' · '+opts.bandNote:'')+')','start',0,9.5,CC.calc);
+  }
+  if(opts.band2){
+    s+='<line x1="'+mL+'" y1="'+Y(opts.band2)+'" x2="'+(mL+pW)+'" y2="'+Y(opts.band2)+'" stroke="'+CC.calc+'" stroke-width="1" stroke-dasharray="4 4"/>';
+    if(-opts.band2>=ymin)s+='<line x1="'+mL+'" y1="'+Y(-opts.band2)+'" x2="'+(mL+pW)+'" y2="'+Y(-opts.band2)+'" stroke="'+CC.calc+'" stroke-width="1" stroke-dasharray="4 4"/>';
+    s+=axLabel(mL+pW-6,Y(opts.band2)-5,opts.band2Note||('±'+opts.band2+'°'),'end',0,9.5,CC.calc);
+  }
+  if(opts.ghost){
+    s+='<line x1="'+mL+'" y1="'+Y(opts.ghost)+'" x2="'+(mL+pW)+'" y2="'+Y(opts.ghost)+'" stroke="'+CC.hyp+'" stroke-width="1.2" stroke-dasharray="6 5"/>';
+    if(-opts.ghost>=ymin)s+='<line x1="'+mL+'" y1="'+Y(-opts.ghost)+'" x2="'+(mL+pW)+'" y2="'+Y(-opts.ghost)+'" stroke="'+CC.hyp+'" stroke-width="1.2" stroke-dasharray="6 5"/>';
+    s+=axLabel(mL+pW-6,Y(opts.ghost)+13,'±'+opts.ghost+'° laboratory-informed preview','end',0,9.5,CC.hyp);
+  }
+  /* exit marker */
+  const exitIdx=EP_VAL.findIndex(v=>v>band);
+  if(band>0&&exitIdx>0&&!opts.noExit){
+    const ex=X(EP_DAYS[exitIdx]);
+    s+='<line x1="'+ex+'" y1="'+mT+'" x2="'+ex+'" y2="'+(mT+mainH)+'" stroke="'+CC.hyp+'" stroke-width="1" stroke-dasharray="3 4"/>';
+    s+=axLabel(ex+5,mT+12,'exit · epoch '+(exitIdx+1)+(band===14?' · 4.5σ at epoch 9':' · 3.1σ at epoch 9'),'start',0,9.5,CC.hyp);
+  }
+  /* second frequency prediction */
+  if(opts.freq2){
+    let pth='';EP_DAYS.forEach((d,i)=>{const v=EP_VAL[i]*0.62;pth+=(i?'L':'M')+X(d)+' '+Y(v)+' ';});
+    s+='<path d="'+pth+'" fill="none" stroke="'+CC.hyp+'" stroke-width="1.3" stroke-dasharray="2 4"/>';
+    s+=axLabel(X(-8),Y(EP_VAL[8]*0.62)+14,'345 GHz predicted (fixed ratio)','end',0,9,CC.hyp);
+  }
+  /* data + error bars */
+  let path='';
+  EP_DAYS.forEach((d,i)=>{
+    const px=X(d),py=Y(EP_VAL[i]),e=EP_ERR[i]*(opts.err2?1.6:1);
+    path+=(i?'L':'M')+px+' '+py+' ';
+    s+='<line x1="'+px+'" y1="'+Y(EP_VAL[i]-e)+'" x2="'+px+'" y2="'+Y(EP_VAL[i]+e)+'" stroke="'+CC.ev+'" stroke-width="1.2"/>';
+    s+='<line x1="'+(px-3)+'" y1="'+Y(EP_VAL[i]-e)+'" x2="'+(px+3)+'" y2="'+Y(EP_VAL[i]-e)+'" stroke="'+CC.ev+'" stroke-width="1.2"/>';
+    s+='<line x1="'+(px-3)+'" y1="'+Y(EP_VAL[i]+e)+'" x2="'+(px+3)+'" y2="'+Y(EP_VAL[i]+e)+'" stroke="'+CC.ev+'" stroke-width="1.2"/>';
+    s+='<circle cx="'+px+'" cy="'+py+'" r="3.2" fill="#fff" stroke="'+CC.ev+'" stroke-width="1.8"/>';
+  });
+  s+='<path d="'+path+'" fill="none" stroke="'+CC.ev+'" stroke-width="1.1" opacity=".55"/>';
+  /* axes */
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+mainH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+='<line x1="'+mL+'" y1="'+(mT+mainH)+'" x2="'+(mL+pW)+'" y2="'+(mT+mainH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+=ticksY(mL,[-20,0,20,40],v=>v+'°',Y);
+  s+=ticksX(mL,mL+pW,mT+mainH,[-88,-66,-44,-22,0],v=>'S'+(v===0?'-000':String(v).replace('-','-0')),X);
+  s+=axLabel(mL-38,mT+mainH/2,'ΔEVPA (deg)','middle',-90,10,CC.ax);
+  s+=axLabel(mL+pW/2,mT+mainH+30,'scenario day (barycentric)','middle',0,10,CC.ax);
+  s+=axLabel(mL,14,'ALMA 230 GHz · EVPA drift vs GRMHD prediction interval · 9 epochs','start',0,11,'#0a1c30');
+  /* residual strip */
+  if(opts.resid){
+    const rT=mT+mainH+42,rH=40;
+    const RY=v=>rT+rH/2-(v/30)*(rH/2);
+    s+='<rect x="'+mL+'" y="'+rT+'" width="'+pW+'" height="'+rH+'" fill="rgba(13,40,70,.03)"/>';
+    s+='<line x1="'+mL+'" y1="'+RY(0)+'" x2="'+(mL+pW)+'" y2="'+RY(0)+'" stroke="'+CC.grid+'" stroke-width="1"/>';
+    EP_DAYS.forEach((d,i)=>{
+      const r=Math.max(0,EP_VAL[i]-band);
+      const px=X(d);
+      s+='<rect x="'+(px-4)+'" y="'+Math.min(RY(0),RY(r))+'" width="8" height="'+Math.abs(RY(r)-RY(0))+'" fill="'+(r>0?'rgba(109,52,196,.7)':'rgba(42,74,108,.35)')+'"/>';
+    });
+    s+=axLabel(mL-38,rT+rH/2,'resid (°)','middle',-90,9,CC.ax);
+    s+=axLabel(mL+pW,rT-6,'residual beyond permitted sector · epoch 9: '+(Math.max(0,EP_VAL[8]-band)).toFixed(0)+'°','end',0,9.5,CC.hyp);
+  }
+  return s+'</svg>';
+}
+/* --- Figure 2: magnetar RM series --- */
+function figRM(){
+  const W2=680,H2=210,mL=56,mR=14,mT=26,mB=38,pW=W2-mL-mR,pH=H2-mT-mB;
+  const X=i=>mL+i/4*pW, Y=v=>mT+pH/2-(v/8)*(pH/2);
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  s+='<rect x="'+mL+'" y="'+Y(3)+'" width="'+pW+'" height="'+(Y(-3)-Y(3))+'" fill="rgba(0,144,196,.06)"/>';
+  s+=axLabel(mL+6,Y(3)-4,'stability bound ±3 %','start',0,9.5,CC.ev);
+  const req=[0,3.2,6.1,9.4,12.1];
+  let p2='';req.forEach((v,i)=>{p2+=(i?'L':'M')+X(i)+' '+Y(v)+' ';});
+  s+='<path d="'+p2+'" fill="none" stroke="'+CC.asm+'" stroke-width="1.3" stroke-dasharray="5 4"/>';
+  s+=axLabel(X(4)-4,Y(12.1)-6,'RM change a common screen would require','end',0,9.5,CC.asm);
+  [0.4,-0.6,0.9,-0.3,0.5].forEach((v,i)=>{
+    s+='<line x1="'+X(i)+'" y1="'+Y(v-1.1)+'" x2="'+X(i)+'" y2="'+Y(v+1.1)+'" stroke="'+CC.ev+'" stroke-width="1.2"/>';
+    s+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3" fill="#fff" stroke="'+CC.ev+'" stroke-width="1.8"/>';
+  });
+  s+='<line x1="'+mL+'" y1="'+(mT+pH)+'" x2="'+(mL+pW)+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+=ticksY(mL,[-4,0,4,8,12],v=>v+'%',Y);
+  s+=ticksX(mL,mL+pW,mT+pH,[0,1,2,3,4],v=>'ep '+(v+1),X);
+  s+=axLabel(mL-40,mT+pH/2,'ΔRM (%)','middle',-90,10,CC.ax);
+  s+=axLabel(mL,14,'PSR J1745−2900 · rotation measure · control sightline at 0.1 pc projected separation','start',0,11,'#0a1c30');
+  return s+'</svg>';
+}
+/* --- Figure 3: R(βi) cross-domain mapping --- */
+function figRbeta(opts){
+  opts=opts||{};
+  const W2=680,H2=270,mL=52,mR=14,mT=26,mB=40,pW=W2-mL-mR,pH=H2-mT-mB;
+  const X=v=>mL+v/1.6*pW, Y=v=>mT+pH-(v/11)*pH;
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  s+='<rect x="'+X(0.7)+'" y="'+mT+'" width="'+(X(1.1)-X(0.7))+'" height="'+pH+'" fill="rgba(109,52,196,.05)"/>';
+  s+=axLabel(X(0.9),mT+12,'regime overlap βi ∈ [0.7, 1.1]','middle',0,9,CC.hyp);
+  for(let g=2;g<=10;g+=2)s+='<line x1="'+mL+'" y1="'+Y(g)+'" x2="'+(mL+pW)+'" y2="'+Y(g)+'" stroke="'+CC.grid+'"/>';
+  let p1='';for(let i=0;i<=40;i++){const b=i/40*0.92;const r=Math.min(4.0,Math.pow(b*2.2,2)*1.15+0.4);p1+=(i?'L':'M')+X(b)+' '+Y(r)+' ';}
+  s+='<path d="'+p1+'" fill="none" stroke="'+CC.calc+'" stroke-width="1.6"/>';
+  s+='<line x1="'+X(0.92)+'" y1="'+Y(4)+'" x2="'+X(1.55)+'" y2="'+Y(4)+'" stroke="'+CC.calc+'" stroke-width="1.6"/>';
+  s+=axLabel(X(1.2),Y(4)-7,'simulation prescription — truncated by convention','middle',0,9.5,CC.calc);
+  if(!opts.removed){
+    let p3='';for(let i=0;i<=30;i++){const b=0.55+i/30*0.9;const r=Math.min(9.0,Math.pow(b*2.2,2)*1.15+0.4);p3+=(i?'L':'M')+X(b)+' '+Y(r)+' ';}
+    s+='<path d="'+p3+'" fill="none" stroke="'+CC.hyp+'" stroke-width="1.6" stroke-dasharray="6 5"/>';
+    s+=axLabel(X(1.5),Y(9.9),'laboratory-informed continuation','end',0,9.5,CC.hyp);
+    const lx=X(0.9),ly=Y(7.9);
+    s+='<line x1="'+X(0.7)+'" y1="'+ly+'" x2="'+X(1.1)+'" y2="'+ly+'" stroke="'+CC.ev+'" stroke-width="1.4"/>';
+    s+='<line x1="'+lx+'" y1="'+Y(6.3)+'" x2="'+lx+'" y2="'+Y(9.5)+'" stroke="'+CC.ev+'" stroke-width="1.4"/>';
+    s+='<circle cx="'+lx+'" cy="'+ly+'" r="4" fill="#fff" stroke="'+CC.ev+'" stroke-width="2"/>';
+    for(let k=1;k<=3;k++)s+='<circle cx="'+lx+'" cy="'+ly+'" r="'+(6+k*5)+'" fill="none" stroke="rgba(168,94,8,'+(0.55-k*0.13)+')" stroke-width="1"/>';
+    s+=axLabel(lx-24,ly+34,'laboratory: R = 7.9 ± 1.6 at βi = 0.9 ± 0.2','start',0,9.5,CC.ev);
+    s+=axLabel(lx-24,ly+47,'unreplicated · 3 limitation rings attached','start',0,8.5,CC.asm);
+  }else{
+    s+=axLabel(X(0.9),Y(7.9),'laboratory mapping REMOVED — dependent results collapsed','middle',0,10,CC.bad);
+  }
+  s+='<line x1="'+mL+'" y1="'+(mT+pH)+'" x2="'+(mL+pW)+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+=ticksY(mL,[0,2,4,6,8,10],v=>v,Y);
+  s+=ticksX(mL,mL+pW,mT+pH,[0,0.4,0.8,1.2,1.6],v=>v.toFixed(1),X);
+  s+=axLabel(mL-34,mT+pH/2,'R = heating partition','middle',-90,10,CC.ax);
+  s+=axLabel(mL+pW/2,mT+pH+30,'βi (ion plasma beta) — dimensionless','middle',0,10,CC.ax);
+  s+=axLabel(mL,14,'Cross-domain mapping · laboratory reconnection ↔ GRMHD sub-grid heating · common representation R(βi)','start',0,11,'#0a1c30');
+  return s+'</svg>';
+}
+/* --- Figure 4: parameter space containment --- */
+function figParam(){
+  const ext=S.asm.heating==='extended';
+  const W2=680,H2=300,mL=56,mR=16,mT=26,mB=42,pW=W2-mL-mR,pH=H2-mT-mB;
+  const X=v=>mL+(v/160)*pW, Y=v=>mT+pH-(v/60)*pH;
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  for(let g=10;g<60;g+=10)s+='<line x1="'+mL+'" y1="'+Y(g)+'" x2="'+(mL+pW)+'" y2="'+Y(g)+'" stroke="'+CC.grid+'"/>';
+  for(let g=40;g<160;g+=40)s+='<line x1="'+X(g)+'" y1="'+mT+'" x2="'+X(g)+'" y2="'+(mT+pH)+'" stroke="'+CC.grid+'"/>';
+  s+='<rect x="'+mL+'" y="'+Y(60)+'" width="'+pW+'" height="'+(Y(45)-Y(60))+'" fill="rgba(176,54,54,.06)"/>';
+  s+=axLabel(mL+pW-8,Y(56),'i > 45° excluded — photon-ring asymmetry','end',0,9.5,CC.bad);
+  const blobs=[[40,24,16,7],[52,30,13,5],[34,18,11,4.5]];
+  blobs.forEach(b=>{
+    const grow=ext?1.9:1;
+    s+='<ellipse cx="'+X(b[0]*(ext?1.5:1))+'" cy="'+Y(b[1])+'" rx="'+(b[2]/160*pW*grow)+'" ry="'+(b[3]/60*pH)+'" fill="rgba(42,74,108,.13)" stroke="'+CC.calc+'" stroke-width="1.1"/>';
+  });
+  s+=axLabel(X(44),Y(37),'retained MAD sub-regions ('+(ext?'laboratory-informed heating':'R_high = 40')+')','middle',0,9.5,CC.calc);
+  const mx=X(ext?76:118),my=Y(25);
+  s+='<line x1="'+(mx-8)+'" y1="'+my+'" x2="'+(mx+8)+'" y2="'+my+'" stroke="'+CC.ev+'" stroke-width="2"/>';
+  s+='<line x1="'+mx+'" y1="'+(my-8)+'" x2="'+mx+'" y2="'+(my+8)+'" stroke="'+CC.ev+'" stroke-width="2"/>';
+  s+=axLabel(mx+12,my-8,'region required by the revised trajectory','start',0,9.5,CC.ev);
+  s+=axLabel(mx+12,my+16,ext?'containment 3 / 3 after re-run':'containment 0 / 3 — outside every retained sub-region','start',0,9.5,ext?CC.ok:CC.hyp);
+  s+='<line x1="'+mL+'" y1="'+(mT+pH)+'" x2="'+(mL+pW)+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+=ticksX(mL,mL+pW,mT+pH,[0,40,80,120,160],v=>v,X);
+  s+=ticksY(mL,[0,15,30,45,60],v=>v+'°',Y);
+  s+=axLabel(mL+pW/2,mT+pH+30,'effective heating parameter (R_high equivalent)','middle',0,10,CC.ax);
+  s+=axLabel(mL-40,mT+pH/2,'inclination i','middle',-90,10,CC.ax);
+  s+=axLabel(mL,14,'GRMHD ensemble volume · a/M = 0.94 · retained sub-regions vs revised-trajectory requirement','start',0,11,'#0a1c30');
+  return s+'</svg>';
+}
+/* --- Figure 5: archival cross-match timeline --- */
+function figXmatch(run){
+  const W2=680,H2=250,mL=110,mR=16,mT=26,mB=40,pW=W2-mL-mR,pH=H2-mT-mB;
+  const X=d=>mL+(d+100)/100*pW;
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  const rows=[['ALMA polarisation ×9',mT+34,CC.ev],['VLA magnetar RM ×5',mT+84,CC.calc],['Chandra flares ×34',mT+134,CC.hyp]];
+  rows.forEach(r=>{
+    s+='<line x1="'+mL+'" y1="'+r[1]+'" x2="'+(mL+pW)+'" y2="'+r[1]+'" stroke="'+CC.grid+'"/>';
+    s+=axLabel(mL-8,r[1]+3,r[0],'end',0,9,r[2]);
+  });
+  /* overlap windows */
+  let sd=13;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const winDays=[-66,-52.5,-39,-25.5,-12,-3];
+  winDays.forEach((d,i)=>{
+    s+='<rect x="'+(X(d)-8)+'" y="'+(mT+22)+'" width="16" height="126" fill="rgba(109,52,196,'+(run?0.10:0.05)+')" stroke="rgba(109,52,196,'+(run?0.55:0.25)+')" stroke-width="1"/>';
+    if(run)s+=axLabel(X(d),mT+160,'W'+(i+1),'middle',0,8.5,CC.hyp);
+  });
+  EP_DAYS.forEach(d=>{s+='<line x1="'+X(d)+'" y1="'+(mT+26)+'" x2="'+X(d)+'" y2="'+(mT+42)+'" stroke="'+CC.ev+'" stroke-width="2"/>';});
+  [-80,-64,-48,-32,-16].forEach(d=>{s+='<line x1="'+X(d)+'" y1="'+(mT+76)+'" x2="'+X(d)+'" y2="'+(mT+92)+'" stroke="'+CC.calc+'" stroke-width="2"/>';});
+  for(let i=0;i<34;i++){const d=-96+rnd()*94;
+    s+='<rect x="'+(X(d)-1)+'" y="'+(mT+128)+'" width="2" height="12" fill="rgba(109,52,196,.8)"/>';}
+  s+='<line x1="'+mL+'" y1="'+(mT+pH)+'" x2="'+(mL+pW)+'" y2="'+(mT+pH)+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  s+=ticksX(mL,mL+pW,mT+pH,[-100,-75,-50,-25,0],v=>'S-'+String(Math.abs(v)).padStart(3,'0'),X);
+  s+=axLabel(mL+pW/2,mT+pH+30,'scenario day (barycentric, common frame)','middle',0,10,CC.ax);
+  s+=axLabel(mL,14,'Multi-instrument temporal alignment · 6 overlap windows at 2σ'+(run?' · cross-match EXECUTED — flare–EVPA correlation r = 0.04 ± 0.09':' · cross-match pending'),'start',0,11,'#0a1c30');
+  return s+'</svg>';
+}
+/* --- Figure 6: family small-multiple sparkline --- */
+function sparkFam(f){
+  const W2=150,H2=44;
+  let bandW; if(f.id==='mad40')bandW=14; else if(f.id==='madlab')bandW=38; else if(f.id==='sane')bandW=30; else if(f.id==='madhi')bandW=18; else bandW=41;
+  const Y=v=>H2/2-(v/52)*(H2/2-4), X=i=>8+i/8*(W2-16);
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="rgba(13,40,70,.03)" rx="4"/>';
+  s+='<rect x="4" y="'+Y(bandW)+'" width="'+(W2-8)+'" height="'+(Y(-bandW)-Y(bandW))+'" fill="rgba(42,74,108,.12)"/>';
+  let p='';EP_VAL.forEach((v,i)=>{p+=(i?'L':'M')+X(i)+' '+Y(v)+' ';});
+  s+='<path d="'+p+'" fill="none" stroke="'+CC.ev+'" stroke-width="1.4"/>';
+  return s+'</svg>';
+}
+/* --- Figure 7: memory timeline --- */
+function figMemory(){
+  const W2=680,H2=120,mL=30,mR=20,pW=W2-mL-mR,yT=64;
+  const X=d=>mL+(300-d)/300*pW;
+  let s=svgOpen(W2,H2);
+  s+='<rect width="'+W2+'" height="'+H2+'" fill="#fdfefe" rx="6"/>';
+  s+='<line x1="'+mL+'" y1="'+yT+'" x2="'+(mL+pW)+'" y2="'+yT+'" stroke="'+CC.ax+'" stroke-width="1.2"/>';
+  const pts=[[277,'S-277','model fixed',CC.calc],[201,'S-201','jet rejected',CC.dim],[144,'S-144','heating rejected',CC.asm],[97,'S-097','screen adopted',CC.asm],[44,'S-044','lab result',CC.ev],[0,'S-000','today',CC.clm]];
+  pts.forEach((p,i)=>{
+    const x=X(p[0]);const sel=MEM[S.memIdx]&&MEM[S.memIdx].d==='S-'+String(p[0]).padStart(3,'0');
+    s+='<line x1="'+x+'" y1="'+(yT-10)+'" x2="'+x+'" y2="'+yT+'" stroke="'+p[3]+'" stroke-width="2"/>';
+    if(sel)s+='<circle cx="'+x+'" cy="'+(yT-14)+'" r="4" fill="none" stroke="'+CC.ev+'" stroke-width="1.6"/>';
+    s+=axLabel(x,yT+16,p[1],'middle',0,8.5,p[3]);
+    s+=axLabel(x,yT+30,p[2],'middle',0,8,CC.dim);
+  });
+  if(S.memoryLive){
+    s+='<path d="M'+X(144)+' '+(yT-10)+' C '+X(100)+' 12, '+X(40)+' 12, '+X(0)+' '+(yT-12)+'" fill="none" stroke="'+CC.asm+'" stroke-width="1.4"/>';
+    s+=axLabel(X(70),18,'branch reactivated — constraint expired','middle',0,9,CC.asm);
+  }else{
+    s+='<path d="M'+X(144)+' '+(yT-10)+' C '+X(100)+' 16, '+X(40)+' 16, '+X(0)+' '+(yT-12)+'" fill="none" stroke="rgba(168,94,8,.45)" stroke-width="1.2" stroke-dasharray="3 5"/>';
+    s+=axLabel(X(70),20,'dormant branch · rejection reason attached','middle',0,9,'rgba(168,94,8,.7)');
+  }
+  s+=axLabel(mL,12,'Scientific memory · 412 reasoning states indexed · rejection conditions live','start',0,10.5,'#0a1c30');
+  return s+'</svg>';
+}
+/* --- Figure 8: change-detection chain --- */
+function figChain(ev,hot){
+  const n=ev.chain.length,W2=680,H2=112,gap=8,bw=(W2-16-(n-1)*gap)/n;
+  let s=svgOpen(W2,H2);
+  ev.chain.forEach((c,i)=>{
+    const x=8+i*(bw+gap);
+    const col=CC[c.p];
+    const on=hot===undefined||hot===i;
+    s+='<rect x="'+x+'" y="26" width="'+bw+'" height="58" rx="6" fill="'+(on?'rgba(255,255,255,.92)':'rgba(255,255,255,.5)')+'" stroke="'+col+'" stroke-width="'+(on?1.4:0.8)+'" opacity="'+(on?1:0.55)+'"/>';
+    s+=axLabel(x+bw/2,20,String(i+1),'middle',0,8.5,CC.dim);
+    const words=c.k.split(' ');
+    if(words.length>1&&bw<100){
+      s+=axLabel(x+bw/2,50,words.slice(0,Math.ceil(words.length/2)).join(' '),'middle',0,8.6,col);
+      s+=axLabel(x+bw/2,62,words.slice(Math.ceil(words.length/2)).join(' '),'middle',0,8.6,col);
+    }else{
+      s+=axLabel(x+bw/2,56,c.k,'middle',0,8.6,col);
+    }
+    if(i<n-1)s+='<path d="M'+(x+bw+1)+' 55 l'+(gap-3)+' 0 m-4 -4 l4 4 l-4 4" stroke="'+CC.ax+'" stroke-width="1" fill="none"/>';
+  });
+  s+=axLabel(8,104,'material-change pipeline — every stage is inspectable below','start',0,8.5,CC.dim);
+  return s+'</svg>';
+}
+/* --- Figure 9: claim support path --- */
+function figSupport(kind){
+  const links=kind==='fals'
+    ?[['Working claim','clm'],['230/345 GHz EVPA + magnetar RM','ev'],['Outcome branches','calc']]
+    :[['Measurement — 9-epoch trajectory','ev'],['Boundary — permitted ±14° sector','calc'],['Assumption — heating prescription','asm'],['Ensemble — retained volume','calc'],['Claim — conditional inference','clm']];
+  const n=links.length,W2=680,H2=92,gap=10,bw=(W2-16-(n-1)*gap)/n;
+  let s=svgOpen(W2,H2);
+  links.forEach((l,i)=>{
+    const x=8+i*(bw+gap),col=CC[l[1]];
+    s+='<rect x="'+x+'" y="18" width="'+bw+'" height="46" rx="6" fill="rgba(255,255,255,.9)" stroke="'+col+'" stroke-width="1.3"/>';
+    const parts=l[0].split(' — ');
+    s+=axLabel(x+bw/2,parts[1]?36:44,parts[0],'middle',0,9,col);
+    if(parts[1])s+=axLabel(x+bw/2,50,parts[1],'middle',0,8,CC.dim);
+    if(i<n-1)s+='<path d="M'+(x+bw+1)+' 41 l'+(gap-4)+' 0 m-4 -4 l4 4 l-4 4" stroke="'+CC.ax+'" stroke-width="1.1" fill="none"/>';
+  });
+  s+=axLabel(8,84,kind==='fals'?'decisive falsification route — one campaign resolves all three configurations':'five-link support chain — break any link and everything downstream loses support','start',0,8.5,CC.dim);
+  return s+'</svg>';
+}
+/* ---------------- shared UI builders ---------------- */
+function setHead(crumb,title,stat){
+  $('#wsHead').innerHTML='<div class="crumb">'+crumb+'</div><h1>'+title+'</h1>'+(stat?'<div class="stat">'+stat+'</div>':'');
+}
+function setBody(html){$('#wsBody').innerHTML=html;}
+function setPanel(secs){
+  $('#panelBody').innerHTML=secs.map((s,i)=>
+    '<div class="ps'+(s.open||i<2?' open':'')+'"><div class="ph"><span class="h">'+s.h+'</span><span class="car">›</span></div><div class="pb">'+s.b+'</div></div>'
+  ).join('');
+}
+function stdPanel(o){
+  const secs=[];
+  if(o.result)secs.push({h:'Result',b:o.result,open:true});
+  if(o.basis)secs.push({h:'Scientific basis',b:o.basis,open:true});
+  if(o.prov)secs.push({h:'Provenance',b:o.prov});
+  if(o.assum)secs.push({h:'Assumptions',b:o.assum});
+  if(o.sens)secs.push({h:'Sensitivity',b:o.sens});
+  if(o.comp)secs.push({h:'Competing interpretation',b:o.comp});
+  if(o.act)secs.push({h:'Recommended action',b:o.act});
+  if(o.tech)secs.push({h:'Technical audit',b:'<div class="mini">'+o.tech.map(t=>'<div>'+t+'</div>').join('')+'</div>'});
+  setPanel(secs);
+}
+function fig(svg,cap){return '<div class="figure fade">'+svg+(cap?'<div class="fcap">'+cap+'</div>':'')+'</div>';}
+function card(h,body,extra){return '<div class="card fade'+(extra||'')+'">'+(h?'<h3>'+h+'</h3>':'')+body+'</div>';}
+function bar(v,p){return '<div class="bar"><i style="width:'+(v*100).toFixed(0)+'%;background:'+CC[p||'hyp']+'"></i></div>';}
+function verb(act,label,pri){return '<button class="btn'+(pri?' pri':'')+'" data-act="'+act+'">'+label+'</button>';}
+function sevIcon(sv){const c=sv===3?CC.bad:sv===2?CC.asm:CC.dim;return '<span class="sevdot" style="background:'+c+'"></span>';}
+
+/* ============================================================================
+   Part D: workspace views
+   Every analysis result is organized the same way in the intelligence panel:
+   Result · Scientific basis · Provenance · Assumptions · Sensitivity ·
+   Competing interpretation · Recommended action · Technical audit.
+   ========================================================================== */
+
+/* ------------------------------------------------------------- WATCH ----- */
+function vBrief(){
+  setHead('WATCH · EXECUTIVE BRIEFING · ANALYSIS CYCLE COMPLETE · S-000 02:14 UTC',
+    'The revised ALMA polarisation trajectory is no longer contained by the selected GRMHD model family.',
+    'Parallax completed an autonomous analysis cycle while you were away. Four material changes were admitted; everything else was evaluated and set aside.');
+  setBody(
+    card(null,
+      '<h3>Why</h3><div class="tt" style="font-size:13.5px;color:var(--ink)">The failure is controlled primarily by an '+
+      '<span class="tr-asm trace" data-act="trace:dep">inherited electron-heating prescription</span> — 83 % of boundary variance on the failing axis — '+
+      'not by the revised measurement uncertainty: <span class="tr-calc trace" data-act="cmd:calib">doubling the calibration term still leaves a 22° residual at 3.1σ</span>.</div>'+
+      '<div class="callout"><div class="cap">RECOMMENDED ACTION</div><div class="tx">Re-run three MAD ensemble members with the laboratory-informed heating range before requesting new telescope time — this eliminates 64 % of the surviving explanation space at zero observing cost.</div></div>'+
+      '<div class="verbrow">'+verb('ev:0','Inspect the failure',true)+verb('go:watch:queue','Change queue (4)')+verb('go:claim:audit','Audit the working claim')+verb('demo:replay','Replay first-minute demonstration')+'</div>',' hero')+
+    '<div class="grid3">'+
+    card('Consequences',
+      '<ul class="ml">'+
+      '<li>1 prior conclusion lost support — <b>“field geometry is stationary”</b> (support path broken)</li>'+
+      '<li>1 rejected explanation became eligible — <b>electron heating</b>, rejected S-144, condition expired</li>'+
+      '<li>3 experiments changed priority — the ensemble re-run is now first</li>'+
+      '<li>1 archival dataset became scientifically decisive — Chandra flares vs eruption timing</li>'+
+      '<li>the current working claim requires revision (v3 recomputed live)</li></ul>')+
+    card('Evidence summary',
+      '<ul class="ml">'+
+      '<li>'+chip('ev')+' 9 ALMA epochs · EVPA drift 41° ± 6° · m_L stable 4.2 %</li>'+
+      '<li>'+chip('calc')+' 3 / 3 retained model sub-regions fail containment</li>'+
+      '<li>'+chip('ev')+' magnetar control sightline flat to 3 %</li>'+
+      '<li>'+chip('hyp')+' laboratory heating mapping available — unreplicated</li>'+
+      '<li>'+chip('ev')+' 34 archival X-ray flares overlap six epochs — unused</li>'+
+      '<li>'+chip('asm')+' 2 unmeasured assumptions carry the leading configuration</li></ul>')+
+    card('System activity — last cycle',
+      '<div class="stats">'+
+      '<div class="s"><div class="v">217</div><div class="k">source families monitored</div></div>'+
+      '<div class="s"><div class="v">18,420</div><div class="k">records evaluated</div></div>'+
+      '<div class="s"><div class="v">146</div><div class="k">datasets normalized</div></div>'+
+      '<div class="s"><div class="v">1,120</div><div class="k">trajectories re-evaluated</div></div>'+
+      '<div class="s"><div class="v">31</div><div class="k">research nodes recomputed</div></div>'+
+      '<div class="s"><div class="v">32</div><div class="k">cross-domain mappings tested</div></div></div>'+
+      '<div class="sep"></div><div class="tt" style="font-size:11px">Material: 4 changes. Set aside as irrelevant: 18,207 records (cadence, non-overlapping targets, sub-threshold numerical diffs). <span class="trace tr-calc" data-act="go:watch:sources">Open the source perimeter →</span></div>')+
+    '</div>');
+  stdPanel({
+    result:'The selected GRMHD family (MAD, R_high = 40) no longer contains the revised nine-epoch polarisation trajectory. The failure is a property of a model boundary controlled by an unmeasured assumption.',
+    basis:'Revised band-6 polarimetry (leakage v4.2) re-reduced across 9 epochs; containment tested against 3 retained parameter sub-regions built from 1,120 library trajectories; failure at epoch 4, residual 27° at 4.5σ by epoch 9.',
+    prov:chip('ev')+' ALMA archive reprocessing · '+chip('calc')+' simulation library envelope · '+chip('asm')+' S-277 model-selection note · full record trace available via <span class="trace" data-act="cmd:sources">“show every source touching the failed boundary”</span>.',
+    assum:'Static foreground screen (S-097, untested at current epochs) · electron-heating prescription (S-277, convention). Both are released or stress-tested from Analyze → Assumptions.',
+    sens:'Doubling calibration uncertainty: breach survives (3.1σ). Releasing the screen assumption: explanation ranking inverts. Removing the laboratory mapping: heating branch re-closes.',
+    comp:'A sub-0.1 pc variable Faraday screen — currently covering 1/5 active structures; rises to 3/5 if its required assumption is granted.',
+    act:'Re-run 3 MAD ensemble members with the laboratory-informed heating range (11 d wall-clock, no telescope time), then decide on the 230/345 GHz campaign.',
+    tech:['pipeline: CASA 6.5 + independent AIPS path · leakage v4.2','model: MAD library a/M 0.94 · i 20–30° · envelope + resolution terms','claim version v3 · recomputed this session','replication: trajectory ×2 pipelines · magnetar ×2 programmes · lab ×1 (unreplicated)']});
+}
+function vQueue(){
+  setHead('WATCH · CHANGE QUEUE · MATERIAL CHANGES ONLY',
+    'Four changes altered an assumption, boundary, hypothesis, conclusion or experiment.',
+    '18,420 records evaluated · 4 admitted as material · severity reflects downstream structural impact');
+  setBody(card(null,
+    '<table class="tbl"><tr><th></th><th>Change</th><th>Source · time</th><th>Volume</th><th>Operation → result</th><th>Affected structures</th></tr>'+
+    EVENTS.map((e,i)=>'<tr class="click" data-act="ev:'+i+'"><td>'+sevIcon(e.sev)+'</td><td style="max-width:230px"><b>'+e.t+'</b></td>'+
+      '<td class="mono" style="font-size:10px">'+e.src+'<br>'+e.time+'</td><td class="mono" style="font-size:10px">'+e.vol+'</td>'+
+      '<td style="max-width:250px">'+e.op+'<br><b style="color:var(--hyp)">'+e.res+'</b></td>'+
+      '<td style="max-width:170px">'+e.aff.map(a=>'<span class="chip calc" style="margin:1px 2px 1px 0">'+a+'</span>').join('')+'</td></tr>').join('')+
+    '</table>'));
+  stdPanel({
+    result:'4 material changes this cycle. 18,207 records evaluated and set aside as immaterial — none touched an active structure.',
+    basis:'Materiality test: does the record alter a measurement, calibration, model boundary, uncertainty surface, assumption, hypothesis, prior conclusion, experiment ranking, claim, or a rejected branch? Only records passing at least one test are queued.',
+    act:'Open a change to see its full detection → consequence chain.',
+    tech:['queue ordered by structural severity','each change carries provenance edges into affected nodes']});
+}
+function vChain(){
+  const e=EVENTS[S.eventIdx];
+  const figMap={alma:()=>fig(figEVPA({resid:true}),'<b>Figure —</b> revised 230 GHz EVPA trajectory against the GRMHD prediction interval. Points: measured epochs with propagated 1σ errors. Shaded band: permitted ±14° sector from 1,120 retained library trajectories. Lower strip: residual beyond the boundary.'),
+    magnetar:()=>fig(figRM(),'<b>Figure —</b> magnetar rotation measure over the drift interval, against the RM change a common foreground screen would require to produce the 41° EVPA drift.'),
+    lab:()=>fig(figRbeta(),'<b>Figure —</b> the laboratory point enters through dimensional analysis and lands on the continuation of the truncated simulation prescription. Amber rings: permanent limitation markers.'),
+    xray:()=>fig(figXmatch(S.xmatchRun),'<b>Figure —</b> all three instruments aligned in a common barycentric frame. Shaded columns: 2σ covariance-matched overlap windows.')};
+  setHead('WATCH · CHANGE '+(S.eventIdx+1)+' OF 4 · DETECTION → CONSEQUENCE CHAIN', e.t,
+    e.src+' · '+e.time+' · '+e.vol);
+  setBody(
+    card('Material-change pipeline',figChain(e)+
+      '<table class="tbl">'+e.chain.map((c,i)=>'<tr><td style="width:150px"><b style="color:'+CC[c.p]+'">'+(i+1)+' · '+c.k+'</b><br>'+chip(c.p)+'</td><td>'+c.v+'</td></tr>').join('')+'</table>')+
+    figMap[e.id]()+
+    card('Actions','<div class="verbrow">'+
+      (e.id==='alma'?verb('go:analyze:assumptions','Open the responsible assumption',true)+verb('cmd:calib','Test calibration-only escape'):'')+
+      (e.id==='magnetar'?verb('go:analyze:hypotheses','See effect on explanations',true):'')+
+      (e.id==='lab'?verb('go:analyze:mapping','Open the cross-domain mapping',true)+verb('go:memory:rejected','See the expired rejection'):'')+
+      (e.id==='xray'?verb('xmatch:run','Execute the cross-match now',true):'')+
+      verb('go:watch:queue','Back to change queue')+'</div>'));
+  stdPanel({
+    result:e.res+'.',
+    basis:e.op+'. Every stage of the chain above is a computed operation, not a narrative.',
+    prov:chip('ev')+' '+e.src+' · '+e.vol+' · provenance edges attach this change to '+e.aff.length+' active structures.',
+    assum:e.id==='alma'?'The failing boundary is held by the heating prescription (S-277). The observation itself carries no model content.':'See chain stage 5.',
+    sens:e.chain[5]?e.chain[5].v:'—',
+    comp:e.id==='alma'?'Calibration error as sole cause — tested and excluded (3.1σ residual survives doubling).':e.id==='magnetar'?'Sub-0.1 pc screen structure — not excluded by this sightline.':'—',
+    act:e.act+'.',
+    tech:['severity '+e.sev+' / 3 · '+e.aff.length+' structures affected','chain stages recomputed on every assumption change']});
+}
+function vSources(){
+  setHead('WATCH · SOURCE PERIMETER · AUTONOMOUS MONITORING',
+    '217 source families monitored continuously. 18,420 records evaluated this cycle — 4 were material.',
+    'The perimeter spans public archives, literature, simulation and code infrastructure, laboratory feeds, and your own research record.');
+  setBody(
+    card(null,'<div class="stats">'+
+      '<div class="s"><div class="v">217</div><div class="k">families</div></div>'+
+      '<div class="s"><div class="v">18,420</div><div class="k">records evaluated</div></div>'+
+      '<div class="s"><div class="v">146</div><div class="k">datasets normalized</div></div>'+
+      '<div class="s"><div class="v">32</div><div class="k">cross-domain mappings</div></div>'+
+      '<div class="s"><div class="v">4</div><div class="k">material</div></div>'+
+      '<div class="s"><div class="v">18,207</div><div class="k">set aside</div></div></div>')+
+    card('Perimeter by source class',
+      '<table class="tbl"><tr><th>Source class</th><th>Families</th><th>Records</th><th>Material</th><th>Disposition</th></tr>'+
+      SOURCES.map(r=>'<tr><td><b>'+r[0]+'</b></td><td class="mono">'+r[1]+'</td><td class="mono">'+r[2].toLocaleString('en-US')+'</td>'+
+        '<td class="mono" style="color:'+(r[3]?CC.hyp:CC.dim)+'">'+r[3]+'</td><td>'+r[4]+'</td></tr>').join('')+'</table>'));
+  stdPanel({
+    result:'The monitoring perimeter is armed across 15 source classes. Nothing material arrives without being traced into the active model; nothing immaterial interrupts you.',
+    basis:'Each record is normalized (frame, units, covariance) and tested against the materiality criteria before queueing.',
+    prov:'Every admitted record carries provenance edges; the full trace for the failed boundary lists 11 records across 6 classes.',
+    act:'Adjust nothing — the perimeter reconfigures itself when the active model changes.',
+    tech:['normalization: barycentric time · SI + conventional astro units','materiality tests: 10 structural criteria','watch latency: minutes for archives · hours for literature']});
+}
+function vCalibW(){
+  setHead('WATCH · CALIBRATION CHANGE · BAND-6 LEAKAGE v4.1 → v4.2',
+    'The revised leakage calibration is the trigger of the containment failure — and cannot itself explain it.',
+    'Calibration provenance traced forward through every dependent structure.');
+  setBody(
+    card('Calibration comparison','<table class="tbl"><tr><th>Term</th><th>v4.1 (previous)</th><th>v4.2 (revised)</th><th>Effect</th></tr>'+
+      '<tr><td><b>D-term amplitude</b></td><td class="mono">0.021 ± 0.004</td><td class="mono">0.016 ± 0.002</td><td>per-epoch EVPA shifts up to 3.1°</td></tr>'+
+      '<tr><td><b>Cross-hand phase</b></td><td class="mono">±4.2°</td><td class="mono">±2.0°</td><td>tighter covariance — drift becomes significant</td></tr>'+
+      '<tr><td><b>Reduction pipelines</b></td><td class="mono">CASA 6.5</td><td class="mono">CASA 6.5 + AIPS check</td><td>drift reproduced in both — replication ×2</td></tr></table>')+
+    fig(figEVPA({resid:false,band:14,band2:S.cf.calib2?19:undefined,band2Note:'±19° · calibration uncertainty doubled — still exits',err2:S.cf.calib2}),
+      '<b>Figure —</b> trajectory under v4.2. '+(S.cf.calib2?'Dashed: the counterfactual boundary with the leakage term doubled. The trajectory still exits at epoch 5 (22° residual, 3.1σ): calibration error alone cannot restore containment.':'Run the counterfactual to test whether calibration error alone could absorb the breach.'))+
+    card('Counterfactual','<div class="verbrow">'+verb('cf:calib2',S.cf.calib2?'Restore nominal calibration uncertainty':'Double the calibration uncertainty and re-propagate',!S.cf.calib2)+verb('cmd:iso','Isolate everything depending on this file')+'</div>'),
+  );
+  stdPanel({
+    result:S.cf.calib2?'Counterfactual complete: with the leakage systematic doubled across all nine epochs, the permitted sector widens ±14° → ±19° and the trajectory still exits (epoch 5, 22°, 3.1σ). The breach is a property of the model boundary.':'Calibration v4.2 re-derived the leakage terms; the drift survives re-reduction in two independent pipelines.',
+    basis:'Leakage terms re-propagated through the full per-epoch covariance; containment re-tested against all retained sub-regions.',
+    prov:'Calibration file v4.2 → 2 observations re-reduced · 1 envelope re-tested · 1 assumption re-illuminated · 1 conclusion demoted · 1 experiment reprioritized. Nothing else touches this file.',
+    assum:'None introduced — this is a measured-layer operation.',
+    sens:'The counterfactual bounds the largest plausible hidden systematic; pointing, gain and bandpass terms are bounded below 0.3σ effect.',
+    act:'Accept the calibration; direct scrutiny at the heating assumption, which owns the boundary.',
+    tech:['v4.2 issued 02:14 UTC · 9 epochs re-issued','covariance-aware propagation · χ² per epoch reported','replication: CASA + AIPS independent paths']});
+}
+function vAffected(){
+  setHead('WATCH · AFFECTED CONCLUSIONS','What this cycle demoted, revived and reprioritized.',
+    '31 downstream research nodes recomputed after the containment failure.');
+  setBody(
+    card('Demoted — support path broken','<table class="tbl">'+
+      '<tr><td style="width:170px">'+chip('calc')+'<br><b>“Field geometry is stationary”</b></td><td>Inherited the ±14° envelope as its only support path. Demoted, not deleted: its dependency structure is preserved and it recovers automatically if an ensemble re-run restores containment without heating changes.</td></tr></table>')+
+    card('Revived — rejection condition expired','<table class="tbl">'+
+      '<tr><td style="width:170px">'+chip('asm')+'<br><b>Electron-heating branch (S-144)</b></td><td>Rejected because no measurement constrained the heating ratio at βi ≈ 1. The S-044 laboratory result is exactly that measurement — the attached reconsideration condition has expired and the branch is eligible for reactivation. <span class="trace tr-asm" data-act="go:memory:rejected">Open in Memory →</span></td></tr></table>')+
+    card('Reprioritized — experiment ranking','<table class="tbl">'+
+      '<tr><td><b>1.</b> Laboratory-informed ensemble re-run</td><td>was #3 — now first: 64 % volume elimination at zero observing cost</td></tr>'+
+      '<tr><td><b>2.</b> 230/345 GHz + magnetar campaign</td><td>unchanged content, now second — decisive falsifier</td></tr>'+
+      '<tr><td><b>3.</b> Archival flare cross-match</td><td>entered the ranking — decisive against eruptions, immediate</td></tr></table>'+
+      '<div class="verbrow">'+verb('go:analyze:experiments','Open the full ranking',true)+'</div>'));
+  stdPanel({
+    result:'One conclusion demoted, one branch revived, three experiments reprioritized, one claim flagged for revision.',
+    basis:'Dependency graph traversal from the failed boundary: 31 nodes recomputed, 2 demoted, 1 reopened, 3 reordered.',
+    prov:'Each affected node lists the provenance edge through which the change reached it.',
+    sens:'All of these revert automatically if a re-run restores containment under the inherited heating.',
+    act:'Nothing is deleted. Demotions preserve structure; revivals carry their original rejection context.',
+    tech:['graph: 412 reasoning states · 31 touched this cycle','recompute time: 90 s (simulated)']});
+}
+
+/* ------------------------------------------------------------- MODEL ----- */
+function vSystem(){
+  setHead('MODEL · PHYSICAL SYSTEM · SGR A* ACCRETION FLOW',
+    'The reconstructed physical system — rendered from the retained GRMHD configuration.',
+    'Ray-traced geodesics · Doppler-beamed emissivity · lensed photon ring · every layer maps to a model structure.');
+  const L=S.layers;
+  const lc=(id,label)=>'<button class="lchip'+(L[id]?' on':'')+'" data-act="layer:'+id+'">'+label+'</button>';
+  setBody('<div class="layerchips">'+
+    lc('emission','Volumetric emission')+lc('field','Magnetic-field structure')+lc('pol','Polarisation vectors')+
+    lc('geo','Observation geometry')+lc('screen','Faraday screen')+lc('region','Emission-region marker')+
+    '</div>'+
+    '<div class="verbrow" style="margin-top:0">'+
+    '<span class="chip asm">heating: '+S.asm.heating+'</span>'+
+    verb('asm:heating',S.asm.heating==='narrow'?'Widen heating prior (laboratory-informed)':'Restore inherited heating')+
+    '<span class="chip asm">screen: '+S.asm.screen+'</span>'+
+    verb('asm:screen',S.asm.screen==='static'?'Release static screen':'Restore static screen')+
+    verb('go:model:param','Parameter space')+'</div>');
+  stdPanel({
+    result:'Active configuration: MAD · a/M = 0.94 · i = 20–30° · heating '+(S.asm.heating==='extended'?'laboratory-informed (R ≲ 8 near βi ≈ 1) — containment restored 3/3 after re-run':'R_high = 40 (inherited) — containment 0/3')+'.',
+    basis:'The render is driven by the retained parameter volume: Doppler asymmetry from Keplerian orbital motion, shadow and photon ring from the lensing geometry, emissivity peak at r ≈ '+(S.asm.heating==='extended'?'6.3':'4.1')+' r_g.',
+    prov:chip('ev')+' ring morphology, polarimetry · '+chip('calc')+' field geometry, emissivity distribution · '+chip('asm')+' heating prescription, foreground screen · '+chip('hyp')+' emission-region migration (candidate).',
+    assum:'Heating prescription (S-277) and foreground screen (S-097) — toggle either above and the physical model recomputes: sector width, emissivity peak, ensemble containment, explanation ranking, experiment order.',
+    sens:'Widening the heating prior moves the emissivity peak outward and restores containment; releasing the screen adds a time-variable Faraday veil along the sightline.',
+    comp:'SANE topology — excluded: overproduces m_L ×2.3 under identical constraints.',
+    act:'Inspect polarisation epoch-cycling on the render; open Parameter space for containment.',
+    tech:['render: WebGL geodesic integrator · 150 steps · beaming ∝ δ³','not a full GRMHD solve — a faithful projection of the retained configuration','layers correspond 1:1 to model structures']});
+}
+function vParamSpace(){
+  setHead('MODEL · PARAMETER SPACE · ENSEMBLE CONTAINMENT',
+    'Where the revised trajectory sits in the retained GRMHD volume.',
+    'Heating currently '+S.asm.heating+' — toggle to watch the retained sub-regions reorganise.');
+  setBody(
+    fig(figParam(),'<b>Figure —</b> retained sub-regions (navy) against the region the revised trajectory requires (cyan cross). High inclination is excluded independently by photon-ring asymmetry.')+
+    card('Controls','<div class="verbrow">'+verb('asm:heating',S.asm.heating==='narrow'?'Apply laboratory-informed heating range':'Restore inherited heating (R_high = 40)',S.asm.heating==='narrow')+verb('go:analyze:families','Compare model families')+'</div>'));
+  stdPanel({
+    result:S.asm.heating==='extended'?'Under the laboratory-informed heating range the retained sub-regions widen and containment is restored 3 / 3 after ensemble re-run.':'Under the inherited prescription the trajectory requirement falls outside every retained sub-region: containment 0 / 3.',
+    basis:'1,120 library trajectories define the retained volume; the requirement region is the locus of parameters whose predicted EVPA drift contains the observation.',
+    assum:'The heating axis is the only unmeasured direction — its width is set by assumption, not data.',
+    sens:'83 % of boundary variance on the failing axis comes from the heating prescription; spin and inclination are pinned by ring measurements.',
+    act:'Re-run 3 ensemble members inside the widened prior to convert the preview into a computed result.',
+    tech:['axes: effective R_high equivalent × inclination · spin marginalized at 0.94','sub-regions: 68 % containment contours','exclusions: m_L, ring asymmetry applied as hard constraints']});
+}
+function vUncert(){
+  setHead('MODEL · UNCERTAINTY BUDGET','Where the boundary uncertainty actually comes from.',
+    'Variance decomposition along the failing (EVPA-drift) axis.');
+  const rows=[['Electron-heating prescription','asm',0.83,'assumption — no direct measurement until S-044'],
+   ['Sub-grid resolution terms','calc',0.07,'bounded by convergence study'],
+   ['Calibration (leakage v4.2)','ev',0.05,'measured; counterfactual tested'],
+   ['Spin / inclination residual','calc',0.03,'pinned by ring morphology'],
+   ['Foreground screen model','asm',0.02,'static assumption — separate axis']];
+  setBody(card('Variance decomposition — failing axis',
+    '<table class="tbl"><tr><th>Contribution</th><th>Class</th><th>Share</th><th></th><th>Status</th></tr>'+
+    rows.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+chip(r[1])+'</td><td class="mono">'+(r[2]*100).toFixed(0)+'%</td><td style="width:130px">'+bar(r[2],r[1])+'</td><td>'+r[3]+'</td></tr>').join('')+'</table>'+
+    '<div class="verbrow">'+verb('cmd:weak','Identify the most influential unmeasured assumption',true)+'</div>'));
+  stdPanel({
+    result:'The permitted-sector boundary is assumption-dominated: 83 % of variance on the failing axis is the heating prescription.',
+    basis:'Sensitivity sweep across the four structural constraints; each perturbed within its plausible range and the boundary recomputed.',
+    assum:'Two unmeasured: heating range and screen stability. Everything else is measured or bounded.',
+    act:'Measurement leverage lives in the heating axis — exactly where the laboratory mapping applies.',
+    tech:['method: one-at-a-time + Sobol cross-check','recomputed on every assumption change']});
+}
+function vProvClasses(){
+  setHead('MODEL · PROVENANCE CLASSES','Measured · calculated · assumed · proposed — separated, always.',
+    'Every structure in the active model carries its provenance class. Nothing is rendered without it.');
+  setBody('<div class="grid2">'+
+    card(chip('ev','measured')+' 4 structures','<ul class="ml"><li>9-epoch EVPA trajectory (±6°, replicated ×2)</li><li>magnetar RM series (3 % bound, replicated ×2)</li><li>laboratory partition point R = 7.9 ± 1.6 (unreplicated)</li><li>archival flare catalogue (34 in-window)</li></ul>')+
+    card(chip('calc','calculated')+' 5 structures','<ul class="ml"><li>permitted ±14° sector (1,120 trajectories)</li><li>retained parameter sub-regions</li><li>uncertainty surface / variance decomposition</li><li>experiment elimination fractions (2,400-draw MC)</li><li>consequence graph (31 nodes)</li></ul>')+
+    card(chip('asm','assumed')+' 2 structures','<ul class="ml"><li>electron-heating prescription (S-277 · convention · 4 downstream claims)</li><li>static foreground screen (S-097 · 3 downstream claims)</li></ul>')+
+    card(chip('hyp','proposed')+' 3 + 1 structures','<ul class="ml"><li>three candidate configurations (ranked by coverage)</li><li>the working claim — graphite when assembled, violet in its untested parts</li></ul>')+
+    '</div>');
+  stdPanel({
+    result:'What is measured, what is calculated, what is assumed, and what is proposed are never blended. The colour system is the epistemology.',
+    basis:'Class assignment happens at admission time and is immutable; derived structures inherit the weakest class in their support chain for display.',
+    act:'Use the command “separate measured quantities from model-derived quantities” anywhere in the system.',
+    tech:['classes: measured / calculated / assumed / proposed / claim','inheritance: min-class along support path']});
+}
+
+/* ------------------------------------------------------------ ANALYZE ---- */
+function vEvidence(){
+  const removedNote=Object.keys(S.cf.removed).filter(k=>S.cf.removed[k]);
+  setHead('ANALYZE · EVIDENCE vs PREDICTION',
+    'Four observational structures are admitted. One of them breaks the selected model family.',
+    (S.cf.repOnly?'REPLICATION FILTER ACTIVE — unreplicated structures receded. ':'')+(removedNote.length?'Removed (counterfactual): '+removedNote.join(', ')+'. ':'')+'Every dataset is inspectable, removable and pipeline-comparable.');
+  setBody(
+    fig(figEVPA({resid:true, ghost:(S.asm.heating==='narrow'&&!S.cf.droplab)?38:undefined, band:S.asm.heating==='extended'?38:14, bandNote:S.asm.heating==='extended'?'laboratory-informed':undefined}),
+      '<b>Figure 1 —</b> the primary scientific figure: EVPA drift vs prediction interval. '+(S.asm.heating==='extended'?'Laboratory-informed sector: containment restored 9/9 pending ensemble re-run.':'Dashed violet: preview of the laboratory-informed sector (±38°).'))+
+    card('Admitted datasets','<table class="tbl"><tr><th>Dataset</th><th>Replication</th><th>Structural role</th><th>Influence</th><th></th></tr>'+
+      DATASETS.map(d=>{
+        const off=S.cf.removed[d.id]||(S.cf.repOnly&&!d.repOK)||(S.cf.droplab&&d.id==='lab');
+        return '<tr style="'+(off?'opacity:.4':'')+'"><td style="max-width:250px">'+chip(d.p)+' <b>'+d.n+'</b><br><span class="mono" style="font-size:9.5px;color:var(--dim)">'+d.vol+'</span></td>'+
+        '<td style="max-width:130px">'+(d.repOK?'<span class="chip ok">replicated</span>':'<span class="chip asm">unreplicated</span>')+'<br><span style="font-size:10px">'+d.rep+'</span></td>'+
+        '<td style="max-width:190px">'+d.role+'</td><td style="width:90px">'+bar(d.influence,d.p)+'</td>'+
+        '<td><button class="btn sm" data-act="ds:inspect:'+d.id+'">Inspect</button> <button class="btn sm" data-act="ds:remove:'+d.id+'">'+(S.cf.removed[d.id]?'Restore':'Remove')+'</button></td></tr>';}).join('')+'</table>'+
+      '<div class="verbrow">'+verb('cf:reponly',S.cf.repOnly?'Disable replication filter':'Show only independently replicated evidence')+verb('cmd:loo','Test the claim against removal of each dataset')+'</div>'));
+  stdPanel({
+    result:'The nine-epoch trajectory exits the permitted sector at epoch 4 and never re-enters — under '+(S.asm.heating==='extended'?'the laboratory-informed sector, containment is restored':'the inherited sector, 3 of 3 sub-regions fail')+'.',
+    basis:'Data: 4 admitted structures with propagated uncertainty. Prediction: envelope of 1,120 retained library trajectories.',
+    prov:DATASETS.map(d=>'<b>'+d.n.split('·')[0]+'</b> — '+d.src).join('<br>'),
+    assum:'The prediction interval carries the heating assumption; the data carry none.',
+    sens:'Leave-one-out: essential (ALMA) · load-bearing (magnetar) · conditional (laboratory) · redundant pre-test (flares).',
+    comp:'No admitted evidence contradicts the drift itself; the contest is over its cause.',
+    act:'If any dataset looks suspect, remove it here and watch the claim recompute rather than arguing hypothetically.',
+    tech:['covariance: per-epoch, cross-epoch r = 0.11','pipelines: CASA 6.5 / AIPS agreement 0.4σ','replication accounting shown per dataset']});
+}
+function vFamilies(){
+  setHead('ANALYZE · MODEL-FAMILY COMPARISON · IDENTICAL CONSTRAINTS',
+    'Five families tested against the same three observables. One survives.',
+    'Constraints: revised EVPA trajectory · fractional polarisation m_L · photon-ring asymmetry.');
+  setBody(card(null,'<table class="tbl"><tr><th>Family</th><th>Trajectory vs interval</th><th>Containment</th><th>m_L</th><th>Ring</th><th>Verdict</th><th>Viability</th></tr>'+
+    FAMS.map(f=>'<tr><td style="max-width:190px"><b>'+f.n+'</b><br><span style="font-size:10.5px;color:var(--dim)">'+f.note+'</span></td>'+
+      '<td>'+sparkFam(f)+'</td><td style="max-width:140px">'+f.traj+'</td><td>'+(f.ml.includes('over')?'<span class="chip bad">×2.3</span>':'<span class="chip ok">ok</span>')+'</td>'+
+      '<td>'+(f.ring.includes('violated')?'<span class="chip bad">violated</span>':'<span class="chip ok">ok</span>')+'</td>'+
+      '<td>'+(f.verdict==='viable'?'<span class="chip ok">viable</span>':f.verdict==='conditional'?'<span class="chip asm">conditional</span>':'<span class="chip bad">excluded</span>')+'</td>'+
+      '<td style="width:90px">'+bar(f.bar,f.p)+'</td></tr>').join('')+'</table>'+
+    '<div class="verbrow">'+verb('go:model:param','See in parameter space')+verb('asm:heating',S.asm.heating==='narrow'?'Apply laboratory-informed heating':'Restore inherited heating')+'</div>'));
+  stdPanel({
+    result:'Only laboratory-informed MAD achieves full containment. SANE is excluded by fractional polarisation (×2.3 overproduction); high inclination by ring asymmetry; the hybrid survives only conditionally.',
+    basis:'Each family evaluated under identical observational constraints — no per-family tuning. Sparklines show the same measured trajectory against each family’s permitted interval.',
+    assum:'The hybrid requires releasing the static-screen assumption; laboratory-informed MAD requires the cross-domain mapping.',
+    sens:'Family ordering is stable under calibration doubling; it inverts only if the laboratory mapping is rejected AND the screen is released.',
+    comp:'MAD + variable-screen hybrid — the standing conditional alternative.',
+    act:'The ensemble re-run converts “viable” from preview to computed result for laboratory-informed MAD.',
+    tech:['constraints applied as hard cuts, then coverage scored','2 GRMHD codes cross-checked for MAD members','identical leakage calibration across all comparisons']});
+}
+function vAssumptions(){
+  const scr=S.asm.screen,heat=S.asm.heating;
+  setHead('ANALYZE · ASSUMPTIONS','Two structural constraints control the failed boundary. Change one — the model recomputes.',
+    'Remove, weaken, replace, trace inheritance, or inspect the evidence beneath each assumption.');
+  setBody(
+    card(chip('asm')+' Electron-heating prescription',
+      '<div class="tt"><b>Current: '+(heat==='narrow'?'narrow — R_high fixed at 40 by simulation convention (S-277)':'extended — laboratory-informed, R ≲ 8 near βi ≈ 1')+'.</b> '+
+      'Controls the permitted-sector width, the emissivity distribution, ensemble containment, the explanation ranking and the experiment order. 83 % of boundary variance on the failing axis · 4 downstream claims inherit it.</div>'+
+      '<div class="verbrow"><div class="toggler"><button class="'+(heat==='narrow'?'on':'')+'" data-act="asm:heating:narrow">narrow (inherited)</button><button class="'+(heat==='extended'?'on':'')+'" data-act="asm:heating:extended">extended (lab-informed)</button></div>'+
+      verb('cmd:inherit','Trace downstream inheritance')+verb('go:analyze:mapping','Evidence beneath it')+verb('go:model:uncert','Uncertainty contribution')+'</div>')+
+    card(chip('asm')+' Galactic-Centre foreground screen',
+      '<div class="tt"><b>Current: '+(scr==='static'?'static — extrapolated from early-campaign RM stability (S-097), never re-tested at current epochs':'variable on ≤ 30-day scales — released; the sightline veil is now time-dependent')+'.</b> 3 downstream conclusions inherit it. Bounded by one control sightline at 0.1 pc; sub-0.1 pc structure open.</div>'+
+      '<div class="verbrow"><div class="toggler"><button class="'+(scr==='static'?'on':'')+'" data-act="asm:screen:static">static</button><button class="'+(scr==='variable'?'on':'')+'" data-act="asm:screen:variable">variable (released)</button></div>'+
+      verb('ds:inspect:mag','Evidence beneath it')+'</div>')+
+    card('Propagation — recomputed on change',
+      '<table class="tbl"><tr><th>Configuration</th><th>Evidence coverage</th><th></th></tr>'+
+      ranked().map(h=>'<tr><td><b>'+h.n+'</b></td><td class="mono">'+(h.s*100).toFixed(0)+'% weighted coverage</td><td style="width:120px">'+bar(h.s,'hyp')+'</td></tr>').join('')+'</table>'+
+      '<div class="tt" style="font-size:11px;margin-top:8px">Also recomputed: permitted sector ('+(heat==='extended'?'±38°':'±14°')+') · containment ('+(heat==='extended'?'3/3 after re-run':'0/3')+') · experiment order (leader: '+experiments()[0].n.split(' ').slice(0,4).join(' ')+'…) · claim text (see Claim mode).</div>'));
+  stdPanel({
+    result:'Leading configuration under the current assumption set: '+ranked()[0].n+' ('+(ranked()[0].s*100).toFixed(0)+'% weighted coverage).',
+    basis:'Assumption changes propagate through the dependency graph: 31 nodes recompute; nothing is narrated that is not recomputed.',
+    prov:'Heating: adopted S-277, first constrained S-044 (laboratory). Screen: adopted S-097 from early-campaign RM stability.',
+    assum:'These two are the only unmeasured structural constraints in the active model.',
+    sens:'Screen release inverts the explanation ranking; heating extension restores containment but depends on the unreplicated mapping.',
+    comp:'Whichever configuration is not leading under your current toggles — the table updates live.',
+    act:'Choose the assumption set you are willing to defend, then open Claim mode: the claim text is recomputed from it.',
+    tech:['weakest-assumption score: variance × downstream load ÷ independent support','heating dominates: 0.83 × 4 ÷ 1','recompute: full graph, this session']});
+}
+function vHypsView(){
+  setHead('ANALYZE · COMPETING EXPLANATIONS','Three configurations remain compatible with part of the evidence.',
+    'Ranked by weighted evidence coverage — transparent bookkeeping, not posterior probability.');
+  setBody(ranked().map((h,i)=>card(
+    (i+1)+' · '+chip('hyp')+' '+(i===0?'<span class="chip clm">leading</span>':''),
+    '<h2 style="margin-top:2px">'+h.n+'</h2><div class="tt">'+h.d+'</div>'+
+    '<div style="margin:10px 0 4px;max-width:340px">'+bar(h.s,'hyp')+'<span class="mono" style="font-size:9px;color:var(--dim)">'+(h.s*100).toFixed(0)+'% weighted evidence coverage</span></div>'+
+    '<div class="grid2" style="margin-top:10px">'+
+    '<div><div class="eyebrow">Explains</div><ul class="ml">'+h.ex.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+
+    '<div class="eyebrow" style="margin-top:10px">Fails to explain / conflicts</div><ul class="ml">'+h.fx.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+
+    '<div class="eyebrow" style="margin-top:10px">Requires (assumptions)</div><ul class="ml">'+h.rq.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>'+
+    '<div><div class="eyebrow">Predicts</div><ul class="ml"><li>'+h.pr+'</li></ul>'+
+    '<div class="eyebrow" style="margin-top:10px">Falsified by</div><ul class="ml"><li>'+h.ct+'</li></ul>'+
+    '<div class="eyebrow" style="margin-top:10px">Replication</div><ul class="ml"><li>'+h.rep+'</li></ul>'+
+    '<div class="eyebrow" style="margin-top:10px">Best discriminator</div><ul class="ml"><li>'+h.disc+'</li></ul></div></div>'+
+    '<div class="tt" style="font-size:11px;margin-top:8px;color:var(--dim)">Sensitivity: '+h.sn+'</div>')).join('')+
+    card('Actions','<div class="verbrow">'+verb('cmd:against','Show the evidence against the leading explanation',true)+verb('go:analyze:experiments','Best discriminating experiments')+'</div>'));
+  stdPanel({
+    result:'Leading: '+ranked()[0].n+'. The ranking is a function of the assumption set — it is recomputed, never remembered.',
+    basis:'Coverage = fraction of admitted structures contained, weighted by measurement uncertainty, penalized per required unmeasured assumption.',
+    assum:'Each card lists its own required assumptions explicitly.',
+    sens:'Screen release: ranking inverts. Laboratory mapping removed: leader falls 61 % → 33 %.',
+    comp:'The second-ranked card, always visible above.',
+    act:'Run the best discriminator for the pair you care about — the experiment table computes which observation separates which pair.',
+    tech:['weights: 1/σ² per structure','penalty: ×0.8 per required unmeasured assumption','no priors — bookkeeping, not Bayes']});
+}
+function vExps(){
+  const E=experiments();
+  const catChip=c=>'<span class="chip clm" style="margin:1px 2px">'+c+'</span>';
+  setHead('ANALYZE · EXPERIMENT PRIORITIZATION','Which observation eliminates the most surviving explanation volume.',
+    'Scored by parameter-volume elimination over a 2,400-draw Monte-Carlo under the current assumption set — the order changes when assumptions change.');
+  setBody(card(null,'<table class="tbl"><tr><th>#</th><th>Experiment</th><th>Eliminates</th><th>Info gain</th><th>Time</th><th>Cost / facility</th><th>Categories</th></tr>'+
+    E.map((x,i)=>'<tr class="click" data-act="exp:'+x.id+'"><td class="mono">'+(i+1)+'</td><td style="max-width:250px"><b>'+x.n+'</b><br><span style="font-size:10.5px;color:var(--dim)">'+x.dep+'</span></td>'+
+      '<td style="width:120px"><span class="mono">'+(x.p*100).toFixed(0)+'%</span>'+bar(x.p,'clm')+'</td><td class="mono">'+x.bits.toFixed(1)+' bits</td>'+
+      '<td class="mono" style="font-size:10px">'+x.time+'</td><td class="mono" style="font-size:10px">'+x.cost+'<br>'+x.tel+(x.sim!=='—'?' · '+x.sim:'')+'</td>'+
+      '<td style="max-width:150px">'+x.cat.map(catChip).join('')+'</td></tr>').join('')+'</table>'+
+    '<div class="tt" style="font-size:11px;margin-top:8px">Select an experiment for outcome branches and per-hypothesis effect.</div>'));
+  const x=E.find(e=>e.id===S.expSel)||E[0];
+  stdPanel({
+    result:'#1 under the current assumptions: '+E[0].n+' — eliminates '+(E[0].p*100).toFixed(0)+'% of surviving explanation volume.',
+    basis:'Each of 2,400 draws is a survivable configuration; each candidate observation is scored by the fraction of draws its simulated outcome would exclude.',
+    assum:'Ranking is conditional on the assumption set: with the screen released, the magnetar cadence takes #1 (86 %).',
+    sens:'Selected — '+x.n+':<br><b>Outcome branches</b><ul class="ml">'+x.branches.map(b=>'<li>'+b+'</li>').join('')+'</ul>',
+    comp:'<b>Effect per hypothesis</b><br>heating: '+x.fx.heating+'<br>eruptions: '+x.fx.erupt+'<br>screen: '+x.fx.screen,
+    act:'Run the archival cross-match immediately (zero cost); schedule the ensemble re-run; hold telescope requests until both return.',
+    tech:['MC: 2,400 draws over retained volume','categories: highest yield · fastest · lowest cost · decisive falsifier · archival · new observation · simulation','info gain: expected Shannon reduction over configuration space']});
+}
+function vMapping(){
+  setHead('ANALYZE · CROSS-DOMAIN MAPPING · LABORATORY ↔ ACCRETION',
+    'Both systems reduce to the same dimensionless heating partition R(βi).',
+    S.cf.droplab?'MAPPING REMOVED (counterfactual) — dependent results collapsed.':'Prior widening only — the value never transfers. Three limitation markers are permanent.');
+  setBody(
+    card('Transformation workflow','<table class="tbl">'+
+      [['1 · Laboratory measurement','ev','Reconnection experiment: electron/ion energisation partition, R = 7.9 ± 1.6 at βi = 0.9 ± 0.2.'],
+       ['2 · Normalized variables','calc','Energisation converted to dimensionless form; units and regime variables aligned (βi, σ, T_e/T_i).'],
+       ['3 · Dimensionless function','calc','Both systems expressed as R(βi) — the only representation in which they are comparable.'],
+       ['4 · Overlap region','calc','Parameter-space overlap βi ∈ [0.7, 1.1]; structural residual 0.11 (normalized).'],
+       ['5 · Simulation prior','hyp','The truncated GRMHD prescription gains a laboratory-informed continuation: prior widened to R ≲ 8.'],
+       ['6 · Astrophysical effect','hyp','Permitted EVPA sector widens ±14° → ±38°; emission peak migrates outward; containment restorable.']]
+      .map(r=>'<tr><td style="width:190px"><b style="color:'+CC[r[1]]+'">'+r[0]+'</b><br>'+chip(r[1])+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>')+
+    fig(figRbeta({removed:S.cf.droplab}),'<b>Figure —</b> common representation. Navy: simulation prescription (truncated by convention, not measurement). Cyan: laboratory point with amber limitation rings. Violet dashes: laboratory-informed continuation.')+
+    card('Limits of the connection — attached permanently','<ul class="ml">'+
+      '<li>'+chip('asm')+' scale separation ~10¹¹ between laboratory and accretion flow</li>'+
+      '<li>'+chip('asm')+' laboratory electrons are collisional; the flow is collisionless</li>'+
+      '<li>'+chip('asm')+' no radiative (synchrotron) cooling in the laboratory plasma</li></ul>'+
+      '<div class="verbrow">'+verb('cf:droplab',S.cf.droplab?'Restore the mapping':'Remove every result dependent on this mapping')+verb('go:memory:rejected','The rejection this expired')+'</div>'));
+  stdPanel({
+    result:S.cf.droplab?'Counterfactual: with the mapping removed, the heating extension, the ±38° preview and the S-144 branch reactivation all withdraw. The containment failure itself is untouched — it never depended on the laboratory.':'The laboratory result legitimately widens the heating prior. It may never transfer a value: the permitted use is prior widening under three permanent limitations.',
+    basis:'Dimensional analysis maps laboratory energisation into R(βi); overlap and structural residual computed in the common representation.',
+    prov:chip('ev')+' one reconnection experiment (unreplicated) · scanned from 117 adjacent-domain families, 6,431 records.',
+    assum:'The mapping itself is the assumption — its three limitation markers are inherited by every claim that uses it.',
+    sens:'Removing the mapping drops the leading configuration from 61 % to 33 % coverage and re-attaches the S-144 rejection constraint.',
+    comp:'Treating the mapping as a value transfer — explicitly forbidden by the limitation set.',
+    act:'Request replication of the laboratory measurement; until then every dependent claim carries “unreplicated” visibly.',
+    tech:['conversion: dimensional analysis · regime overlap test','residual: 0.11 normalized structural distance','distinction enforced: prior widening ≠ value transfer']});
+}
+function vXmatchView(){
+  setHead('ANALYZE · ARCHIVAL CROSS-MATCH · HIGH-ENERGY CATALOGUES',
+    S.xmatchRun?'Cross-match executed: no flare–EVPA correlation. The eruption configuration is strongly disfavoured.':'34 archival X-ray flares fall inside six polarisation epochs. The catalogues were never joined — until now.',
+    '14 catalogues · 7,963 records · barycentric alignment · covariance-aware matching.');
+  setBody(
+    fig(figXmatch(S.xmatchRun),'<b>Figure —</b> three instruments on one time base. '+(S.xmatchRun?'Correlation computed inside the six 2σ windows: r = 0.04 ± 0.09 — consistent with zero.':'Window 4 (epoch 6) contains nine flares — the decisive test at zero observing cost.'))+
+    card('Overlap windows','<table class="tbl"><tr><th>Window</th><th>Epochs</th><th>Flares</th><th>Test quality</th></tr>'+
+      [['W1','2–3','2','marginal — sampling straddles the flares'],['W2','3','3','usable'],['W3','4–5','5','good'],['W4','6','9','decisive — densest overlap'],['W5','7','8','good'],['W6','8–9','7','good']]
+      .map(w=>'<tr><td class="mono">'+w[0]+'</td><td class="mono">'+w[1]+'</td><td class="mono">'+w[2]+'</td><td>'+w[3]+'</td></tr>').join('')+'</table>'+
+      '<div class="verbrow">'+(S.xmatchRun?verb('go:analyze:hypotheses','See the recomputed ranking',true):verb('xmatch:run','Execute the cross-match',true))+'</div>'));
+  stdPanel({
+    result:S.xmatchRun?'Zero flare–EVPA correlation (r = 0.04 ± 0.09 across 6 windows). The eruption configuration’s predicted signature is absent; its coverage drops accordingly.':'A decisive discriminator exists in public data at zero observing cost. The eruption configuration predicts flare-locked EVPA excursions inside these windows.',
+    basis:'Both epoch grids in a common barycentric frame; uncertainty windows propagated; covariance-aware matching at 2σ.',
+    prov:chip('ev')+' Chandra public archive · 14 catalogues · autonomous detection — this dataset was absent from the active model until the scan.',
+    assum:'None — archival evidence, measured layer.',
+    sens:S.xmatchRun?'The leading claim predicted this null result and obtained it — one of its two open predictions is now closed.':'A positive correlation would destroy the leading claim; a null removes its competitor.',
+    comp:'Eruption-driven drift — the configuration under direct test here.',
+    act:S.xmatchRun?'Update the claim (done automatically); proceed to the ensemble re-run.':'Execute now — the result lands in the explanation ranking immediately.',
+    tech:['alignment: barycentric TDB','matching: 2σ covariance windows','cost: zero observing time']});
+}
+function vCounter(){
+  setHead('ANALYZE · COUNTERFACTUALS','Stress the model deliberately. Every switch recomputes the graph — nothing is narrative.',
+    'Active: '+[S.cf.calib2?'calibration ×2':'',S.cf.droplab?'lab mapping removed':'',S.cf.repOnly?'replication filter':'',S.asm.screen==='variable'?'screen released':'',S.asm.heating==='extended'?'heating extended':''].filter(Boolean).join(' · ')||'none');
+  const row=(n,d,act,on,effect)=>'<tr><td style="width:250px"><b>'+n+'</b><br><span style="font-size:10.5px;color:var(--dim)">'+d+'</span></td>'+
+    '<td>'+effect+'</td><td style="width:180px"><button class="btn sm'+(on?' pri':'')+'" data-act="'+act+'">'+(on?'Active — revert':'Run')+'</button></td></tr>';
+  setBody(card(null,'<table class="tbl">'+
+    row('Double calibration uncertainty','systematics escape test','cf:calib2',S.cf.calib2,'Sector ±14° → ±19°; breach survives at 3.1σ. Calibration alone cannot explain the failure.')+
+    row('Remove the laboratory mapping','cross-domain dependency test','cf:droplab',S.cf.droplab,'Heating extension, ±38° preview and branch reactivation collapse; containment failure untouched.')+
+    row('Release the static-screen assumption','assumption stress','asm:screen',S.asm.screen==='variable','Explanation ranking inverts; claim becomes conditional on sub-0.1 pc screen structure.')+
+    row('Apply laboratory-informed heating','prior widening','asm:heating',S.asm.heating==='extended','Sector widens to ±38°; containment restorable 3/3 after re-run; emission peak migrates outward.')+
+    row('Replication filter','independent-support test','cf:reponly',S.cf.repOnly,'Unreplicated structures recede; claim narrows to “failure is real and assumption-controlled”.')+
+    '</table>'+'<div class="verbrow">'+verb('cf:reset','Reset all counterfactuals')+verb('go:claim:audit','Run the full adversarial audit',true)+'</div>'));
+  stdPanel({
+    result:'Counterfactual console. Current leading configuration: '+ranked()[0].n+' ('+(ranked()[0].s*100).toFixed(0)+'%).',
+    basis:'Each counterfactual is a real recomputation of the dependency graph under a modified premise — the same machinery the audit uses.',
+    sens:'Combinations compose: e.g. screen released + mapping removed leaves the variable screen leading.',
+    act:'Use these to find which premise your conclusion actually rests on before a referee does.',
+    tech:['engine: 31-node graph recompute per toggle','all effects reversible; nothing is deleted']});
+}
+
+/* ------------------------------------------------------------ MEMORY ----- */
+function vTimeline(){
+  const m=MEM[S.memIdx];
+  setHead('MEMORY · RESEARCH HISTORY · STATE '+(S.memIdx+1)+' OF '+MEM.length,
+    m.b,'Scenario day '+m.d+' · 412 reasoning states indexed · every belief carries its evidence context and expiry conditions.');
+  setBody(
+    fig(figMemory(),'<b>Figure —</b> time-resolved research states. The amber arc is the rejected heating branch: dormant with its rejection reason attached'+(S.memoryLive?' — now reactivated.':'; it reactivates when its condition expires.'))+
+    card('State '+m.d,'<table class="tbl">'+
+      '<tr><td style="width:170px"><b>What was believed</b></td><td>'+m.b+'</td></tr>'+
+      '<tr><td><b>Why</b> '+chip('asm')+'</td><td>'+m.a+'</td></tr>'+
+      '<tr><td><b>Evidence at the time</b> '+chip('ev')+'</td><td>'+m.ev+'</td></tr>'+
+      '<tr><td><b>What was missing / attached</b></td><td>'+m.w+'</td></tr></table>'+
+      '<div class="verbrow">'+
+      (S.memIdx>0?verb('mem:prev','← Earlier state'):'')+
+      (S.memIdx<MEM.length-1?verb('mem:next','Later state →'):'')+
+      (m.c==='reactivate'&&!S.memoryLive?verb('mem:react','Reactivate this branch',true):'')+
+      (S.memoryLive&&S.memIdx===MEM.length-1?verb('go:analyze:hypotheses','See it live in the ranking',true):'')+
+      verb('go:memory:compare','Compare S-144 with the present model')+'</div>'));
+  stdPanel({
+    result:S.memoryLive?'The S-144 branch is reactivated: electron heating re-enters as a live configuration carrying its full rejection context.':'You are reading state '+m.d+'. Memory stores beliefs with their evidence context — not summaries of them.',
+    basis:'Each state records: belief, supporting reasoning, evidence then available, missing evidence, and any attached reconsideration condition.',
+    prov:'States are immutable; reactivation adds a new edge, it rewrites nothing.',
+    assum:'Rejection conditions are live structures with expiry tests — they are checked every cycle, not re-read by you.',
+    sens:'If the laboratory mapping is removed, the S-144 constraint re-forms automatically.',
+    act:'Reactivate eligible branches from here; compare any two states side by side.',
+    tech:['412 states · 5 shown as milestones','expiry check: every autonomous cycle']});
+}
+function vRejected(){
+  setHead('MEMORY · REJECTED HYPOTHESES · EXPIRY CONDITIONS',
+    'Rejections are live structures. Each carries the reason, the missing evidence, and the condition under which it must be reconsidered.','');
+  setBody(card(null,'<table class="tbl"><tr><th>Day</th><th>Hypothesis</th><th>Why rejected</th><th>Reconsideration condition</th><th>Status</th></tr>'+
+    REJECTED.map(r=>'<tr><td class="mono">'+r.d+'</td><td><b>'+r.n+'</b></td><td>'+r.why+'</td><td>'+r.cond+'</td>'+
+      '<td>'+(r.status.includes('EXPIRED')?'<span class="chip asm">condition expired</span><br><span style="font-size:10px">'+r.status+'</span>':'<span class="chip calc">standing</span><br><span style="font-size:10px">'+r.status+'</span>')+'</td></tr>').join('')+'</table>'+
+    '<div class="verbrow">'+(!S.memoryLive?verb('mem:react','Reactivate the eligible branch',true):verb('go:analyze:hypotheses','The revived branch in the live ranking',true))+verb('go:memory:timeline','Full research history')+'</div>'));
+  stdPanel({
+    result:'One rejection condition has expired: the S-144 heating rejection was contingent on the absence of a direct measurement, and S-044 supplied one.',
+    basis:'Conditions are evaluated automatically against every admitted record — no one re-reads old notes to notice an expiry.',
+    prov:'The expiry trace: S-144 condition → S-044 laboratory admission → eligibility flag this cycle.',
+    act:'Reactivate the branch; it re-enters the ranking as a configuration, not a conclusion.',
+    tech:['conditions stored as machine-checkable predicates','expiry does not auto-promote — it flags eligibility']});
+}
+function vCompare(){
+  setHead('MEMORY · STATE COMPARISON · S-144 vs S-000',
+    'The same question, fifteen months apart. What changed is evidence — not opinion.','Side-by-side comparison of the model state at rejection time and now.');
+  const rows=[
+   ['Polarisation evidence','6 epochs · no significant drift','9 epochs · monotonic 41° ± 6° drift','ev'],
+   ['Heating constraint','none — free parameter, unfalsifiable','laboratory R = 7.9 ± 1.6 at βi ≈ 0.9 (unreplicated)','ev'],
+   ['Control sightline','single-epoch magnetar check','5-epoch series, flat to 3 %, replicated ×2','ev'],
+   ['Heating hypothesis status','rejected — nothing constrained it','eligible — rejection condition expired','asm'],
+   ['Model containment','9 / 9 within ±14°','3 / 9 — fails after epoch 4','calc'],
+   ['Working claim','stationary field geometry (v0)','conditional intrinsic-mechanism claim (v3)','clm']];
+  setBody(card(null,'<table class="tbl"><tr><th>Dimension</th><th>S-144 (rejection day)</th><th>S-000 (today)</th></tr>'+
+    rows.map(r=>'<tr><td style="width:160px">'+chip(r[3])+' <b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
+    '<div class="verbrow">'+verb('go:memory:reason','Reconstruct the reasoning that led here')+'</div>'));
+  stdPanel({
+    result:'Every difference between the two states is an evidence difference. The S-144 rejection was correct given S-144 evidence; it is obsolete given S-000 evidence.',
+    basis:'Direct diff of the stored model states — no reconstruction from memory or notes.',
+    act:'This comparison is what you show a collaborator who remembers the old rejection.',
+    tech:['states immutable · diff computed live','claim lineage v0 → v3 preserved']});
+}
+function vReason(){
+  setHead('MEMORY · REASONING RECONSTRUCTION','Think aloud. Parallax maps the structure of what you say onto the active model — then verifies each statement.',
+    'Statements are classified into evidence · calculation · assumption · inference — and defects are flagged against the model, not against style.');
+  let stream='';
+  for(let i=0;i<S.reason.spoken;i++){
+    const l=SPEECH[i];
+    stream+='<tr><td style="width:26px" class="mono">'+(i+1)+'</td><td style="max-width:300px">“'+l.s+'”</td><td>'+
+      l.d.map(d=>'<div style="margin:2px 0">'+chip(d.p)+' <span style="font-size:11px">'+d.x+'</span></div>').join('')+'</td></tr>';
+  }
+  setBody(
+    card('Session transcript · structure detection',
+      (stream?'<table class="tbl"><tr><th>#</th><th>Statement</th><th>Detected structure · verification</th></tr>'+stream+'</table>':'<div class="tt">No statements yet. Begin the session — each statement is analysed as it arrives.</div>')+
+      '<div class="verbrow">'+(S.reason.spoken<SPEECH.length?verb('rsn:speak',S.reason.spoken?'Next statement':'Begin session',true):(!S.reason.recon?verb('rsn:recon','Reconstruct and verify the full argument',true):''))+'</div>')+
+    (S.reason.recon?card('Argument reconstruction · 9 statements checked · 6 supported · 3 defects',
+      '<div class="grid3">'+
+      '<div><div class="eyebrow" style="color:var(--ev)">Evidence used</div><ul class="ml"><li>9-epoch monotonic trajectory (verified)</li><li>early-campaign RM stability (verified, but extrapolated)</li></ul></div>'+
+      '<div><div class="eyebrow" style="color:var(--calc)">Valid inferences</div><ul class="ml"><li>MAD → field reorganisation (supported)</li><li>monotonicity argues against eruptions (supported)</li></ul></div>'+
+      '<div><div class="eyebrow" style="color:var(--asm)">Defects</div><ul class="ml">'+DEFECTS.map(d=>'<li><b>'+d.k+'</b> — '+d.v+'<br><span style="color:var(--dim)">Fix: '+d.fix+'</span></li>').join('')+'</ul></div>'+
+      '</div>'+
+      '<div class="callout"><div class="cap">CONNECTION TO EARLIER REASONING</div><div class="tx">Your final statement restates the branch you rejected at S-144 — whose rejection condition has now expired. The system reconnects your live reasoning to your own history.</div></div>'+
+      '<div class="verbrow">'+verb('go:memory:rejected','Open the S-144 rejection')+verb('go:claim:builder','Assemble a cautious claim',true)+'</div>'):''));
+  stdPanel({
+    result:S.reason.recon?'Your reasoning holds, with three structural defects: an unsupported extrapolation, a false dichotomy, and one omitted decisive dataset.':'Reasoning session in progress — '+S.reason.spoken+' of '+SPEECH.length+' statements analysed.',
+    basis:'Each statement is parsed into evidence references, causal links, assumptions and inferences, then verified against the active model.',
+    assum:'Defect detection is structural: nothing is flagged unless the model contains the contradicting or missing element.',
+    comp:'The false dichotomy (statement 4): both screen variation and heating error may contribute — the model carries them as weighted configurations, not exclusive alternatives.',
+    act:'Convert the surviving structure into a claim — Claim mode assembles only verified components.',
+    tech:['classification: 6 structural categories','verification: against admitted structures only']});
+}
+
+/* ------------------------------------------------------------- CLAIM ----- */
+function claimText(){
+  if(S.asm.screen==='variable')
+    return 'If the foreground screen varies on ≤ 30-day scales, <span class="tr-hyp trace" data-act="trace:inf">a variable rotation-measure screen</span> accounts for the drift at least as well as intrinsic mechanisms, and the polarisation record cannot presently isolate accretion physics.';
+  return 'If <span class="tr-asm trace" data-act="trace:dep">the foreground screen is stable on ≤ 30-day scales</span> and <span class="tr-asm trace" data-act="trace:lab">the heating ratio extends to R ≳ 8 near βi ≈ 1</span>, then <span class="tr-hyp trace" data-act="trace:inf">variable electron heating in a magnetically arrested flow</span> explains the <span class="tr-ev trace" data-act="trace:alma">nine-epoch EVPA drift</span> more consistently than <span class="tr-hyp trace" data-act="trace:fal">flux eruptions</span> or <span class="tr-hyp trace" data-act="trace:mag">a variable screen</span>.';
+}
+function vBuilder(){
+  const st=S.claim.step;
+  setHead('CLAIM · CONSTRUCTION','The claim is assembled from verified components — never generated.',
+    st<9?('Component '+st+' of 9 verified. Each component is checked against the model before the next is admitted.'):'All nine components verified. Every phrase traces to evidence.');
+  const compRows=COMPS.map((c,i)=>'<tr style="'+(i<st?'':'opacity:.38')+'"><td class="mono" style="width:22px">'+(i+1)+'</td>'+
+    '<td style="width:170px">'+chip(c.p)+' <b>'+c.k+'</b></td><td>'+c.v+'</td>'+
+    '<td style="width:80px">'+(i<st?'<span class="chip ok">verified</span>':'<span class="chip calc">pending</span>')+'</td>'+
+    '<td>'+(i<st?'<button class="btn sm" data-act="trace:'+c.tr+'">Trace</button>':'')+'</td></tr>').join('');
+  setBody(
+    card('Components — verified in order','<table class="tbl"><tr><th></th><th>Component</th><th>Content</th><th>Status</th><th></th></tr>'+compRows+'</table>'+
+      '<div class="verbrow">'+(st<9?verb('clm:step',st===0?'Begin assembly':'Verify next component',true)+(st>0?verb('clm:all','Assemble all'):''):verb('clm:reset','Reset assembly'))+'</div>')+
+    (st>=9?card('The assembled claim',
+      '<div class="callout" style="border-left-color:var(--clm)"><div class="cap">WORKING CLAIM · v3 · CONDITIONAL · click any phrase to trace it</div><div class="tx" style="font-size:14.5px">'+claimText()+'</div></div>'+
+      '<div class="grid2" style="margin-top:12px"><div><div class="eyebrow">Validity architecture</div><div class="mini" style="font-family:var(--m);font-size:9.5px;line-height:2;color:var(--calc)">'+
+      ['supported by 3 independent evidence chains','depends on 2 unmeasured assumptions (screen · heating range)','survives removal of 1 dataset · fails without the ALMA trajectory','fails if foreground correlation exceeds 0.4',
+       'parameter-volume survival: '+(S.asm.screen==='variable'?'9':'18')+' %','strongest competitor covers '+ranked()[1].ex.length+' / 5 active structures',
+       'replication: lab mapping ×1 · trajectory ×2 pipelines','last recomputation: this session · model v3 · S-000'].map(x=>'▪ '+x).join('<br>')+'</div></div>'+
+      '<div><div class="eyebrow">Predictions still open</div><ul class="ml"><li>EVPA drift scales 230→345 GHz in fixed ratio (untested)</li><li>'+(S.xmatchRun?'flare–EVPA null — <b>obtained</b> (r = 0.04 ± 0.09)':'flare–EVPA correlation is null (untested — archival)')+'</li></ul>'+
+      '<div class="eyebrow" style="margin-top:10px">Falsified by</div><ul class="ml"><li>correlated magnetar RM excursion → screen returns</li><li>flare-locked EVPA behaviour → eruptions return</li></ul></div></div>'+
+      '<div class="verbrow">'+verb('go:claim:audit','Audit this claim adversarially',true)+verb('go:claim:support','Support paths')+verb('go:claim:versions','Version history')+verb('go:analyze:assumptions','Change an assumption')+'</div>'):''));
+  stdPanel({
+    result:st>=9?'Claim v3 assembled and live. It is conditional by construction: its two unmeasured premises are stated inside the claim text itself.':'Assembly in progress — components are admitted only after verification against the model.',
+    basis:'Components 1–7 are measured, calculated or independently constrained structures; component 8 is the inference; component 9 is its own destruction condition.',
+    prov:'Click any phrase in the claim (or Trace on any component) for its full source, operation and uncertainty chain.',
+    assum:'Static screen · extended heating — both visible as amber phrases inside the claim.',
+    sens:'The claim text itself recomputes when assumptions change — release the screen in Analyze and return here.',
+    comp:ranked()[1].n+' — the strongest standing alternative.',
+    act:st>=9?'Run the adversarial audit before showing this to anyone.':'Continue assembly.',
+    tech:['assembly: verify-then-admit, in order','claim versions preserved: v1 · v2 · v3','phrase-level provenance via trace links']});
+}
+function vSupportView(){
+  setHead('CLAIM · SUPPORT PATHS & FALSIFICATION','Five links carry the claim. One of them is an assumption.',
+    'Break any link and everything downstream loses support — the graph, not rhetoric, decides.');
+  setBody(
+    card('Support chain',figSupport('sup')+'<table class="tbl">'+
+      [['Link 1 · measurement','ev','Nine-epoch trajectory — essential; the claim has no subject without it.'],
+       ['Link 2 · boundary','calc','±14° permitted sector from 1,120 library trajectories.'],
+       ['Link 3 · assumption','asm','Heating prescription — the only unmeasured link in the chain.'],
+       ['Link 4 · ensemble','calc','Retained parameter volume; 0/3 containment before extension, 3/3 after.'],
+       ['Link 5 · claim','clm','Conditional inference — carries every upstream limitation.']]
+      .map(r=>'<tr><td style="width:170px"><b style="color:'+CC[r[1]]+'">'+r[0]+'</b> '+chip(r[1])+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>')+
+    card('Shortest path to falsification',figSupport('fals')+
+      '<table class="tbl">'+
+      [['Outcome A','ev','Frequency-scaled drift + flat magnetar → heating configuration confirmed.'],
+       ['Outcome B','hyp','Correlated magnetar excursion → screen returns; claim destroyed.'],
+       ['Outcome C','hyp','Flare-locked EVPA in the archival record → eruptions return; claim destroyed.']]
+      .map(r=>'<tr><td style="width:120px"><b>'+r[0]+'</b> '+chip(r[1])+'</td><td>'+r[2]+'</td></tr>').join('')+
+      '</table><div class="tt" style="font-size:11px;margin-top:6px">One 21-day campaign (ALMA + VLA, 6 epochs) resolves all three configurations. The claim names its own executioner.</div>'));
+  stdPanel({
+    result:'The claim rests on a five-link chain with exactly one unmeasured link (the heating assumption) and names two concrete observations that would destroy it.',
+    basis:'Dependency-graph traversal from the claim node; paths scored by structural necessity.',
+    sens:'Link 3 is where all audit pressure concentrates — as the uncertainty budget predicts.',
+    act:'Fund the 230/345 GHz campaign only after the free tests (re-run, cross-match) return.',
+    tech:['graph: claim → 5 links → 11 records','falsification routes costed in Experiments']});
+}
+function vVersions(){
+  setHead('CLAIM · VERSION HISTORY','Three versions. Every revision is an evidence event, not an edit.','');
+  setBody(card(null,'<table class="tbl"><tr><th>Version</th><th>Containment state</th><th>Trigger</th><th>What changed</th></tr>'+
+    CLAIMV.map(v=>'<tr><td class="mono"><b>'+v.v+'</b></td><td>'+(v.c==='recomputed live'?(S.asm.heating==='extended'?'9 / 9 after re-run (pending)':'containment failure integrated'):v.c)+'</td><td>'+v.n+'</td><td>'+v.diff+'</td></tr>').join('')+'</table>'+
+    '<div class="verbrow">'+verb('go:memory:compare','Compare model states behind v0 and v3')+'</div>'));
+  stdPanel({
+    result:'The claim lineage is fully preserved: v1 (post-laboratory), v2 (post-magnetar), v3 (post-containment-failure, live).',
+    basis:'Versions are snapshots of the claim with the model state that produced them.',
+    act:'Cite the version, not the sentence — each version knows its own evidence base.',
+    tech:['snapshots immutable · v3 recomputes live within the session']});
+}
+function vAudit(){
+  const done=S.claim.audited;
+  setHead('CLAIM · ADVERSARIAL AUDIT',done?'The claim survives the audit. Its physical interpretation depends critically on two structures.':'The system attacks its own claim with every tool it has.',
+    done?'Eight attacks executed. Two produced conditional weakening; none produced collapse.':'Attacks: dataset removal · assumption release · calibration stress · mapping removal · competitor advancement · replication filter · fragile-path trace · hidden-systematics sweep.');
+  setBody(
+    (S.claim.step<9?card('Prerequisite','<div class="tt">The claim must be assembled before it can be audited.</div><div class="verbrow">'+verb('clm:all','Assemble the claim now',true)+'</div>'):
+    card('Attack sequence','<table class="tbl"><tr><th>Attack</th><th>Outcome</th><th>Claim integrity after attack</th><th>Verdict</th></tr>'+
+      ATTACKS.map((a,i)=>'<tr style="'+(done?'':'opacity:.4')+'"><td style="width:190px"><b>'+a.n+'</b></td><td>'+(done?a.out:'—')+'</td>'+
+        '<td style="width:110px">'+(done?bar(a.lvl,a.lvl>0.6?'calc':'asm'):'')+'</td>'+
+        '<td>'+(done?(a.verdict==='survives'?'<span class="chip ok">survives</span>':'<span class="chip asm">weakens</span>'):'<span class="chip calc">queued</span>')+'</td></tr>').join('')+'</table>'+
+      '<div class="verbrow">'+(!done?verb('audit:run','Execute the full audit',true):verb('go:claim:support','Show surviving support structure',true)+verb('cmd:fals','Most efficient falsifier'))+'</div>')));
+  stdPanel(done?{
+    result:'Survives. Critical dependencies: the static foreground screen and the laboratory mapping. Under attack the claim contracts to “the containment failure is real and assumption-controlled” — which stands on replicated evidence alone.',
+    basis:'All 9 components re-verified; every support path stress-tested by perturbation; competitors advanced under equal weighting; sensitivity swept across both unmeasured assumptions.',
+    prov:'Attack outcomes are graph recomputations — identical machinery to the counterfactual console.',
+    assum:'The audit cannot remove the two declared premises; it can only price them. Their price is visible above.',
+    sens:'Weakest point: the unreplicated laboratory mapping (attack 4). Strongest survival: calibration stress (attack 3).',
+    comp:'Sub-0.1 pc variable screen — survives as the standing alternative, not the leader.',
+    act:'Publishable posture: state the claim conditionally, attach the audit table, and run the two free tests first.',
+    tech:['8 attacks · deterministic · re-runnable','audit output stored with claim v3']}:{
+    result:'Audit not yet executed for the current claim version.',
+    basis:'The audit runs the same graph recomputation as the counterfactual console, across all attack classes at once.',
+    act:'Execute — the claim visibly weakens, becomes conditional, or collapses. There is no rhetorical mode.',
+    tech:['attacks: 8 classes','runtime: seconds (simulated)']});
+}
+
+/* ============================================================================
+   Part E: navigation · action dispatch · command aperture · demonstration · boot
+   ========================================================================== */
+const MODES=[
+ ['watch','WATCH','what changed · what it affected'],
+ ['model','MODEL','the active research model'],
+ ['analyze','ANALYZE','evidence · hypotheses · experiments'],
+ ['memory','MEMORY','history · rejections · reasoning'],
+ ['claim','CLAIM','construction · falsification · audit']];
+const TOOLS={
+ watch:[
+  {id:'brief',n:'Executive briefing',d:'Main finding, consequences, recommended action',view:vBrief},
+  {id:'queue',n:'Change queue',d:'4 material changes this cycle',view:vQueue},
+  {id:'chain',n:'Change analysis',d:'Detection → consequence chain',view:vChain,hidden:true},
+  {id:'sources',n:'Source perimeter',d:'217 families · what was processed and ignored',view:vSources},
+  {id:'calib',n:'Calibration changes',d:'Band-6 leakage v4.1 → v4.2 · counterfactual',view:vCalibW},
+  {id:'affected',n:'Affected conclusions',d:'Demotions · revivals · reprioritizations',view:vAffected}],
+ model:[
+  {id:'system',n:'Physical system',d:'Ray-traced accretion flow · layered environment',view:vSystem},
+  {id:'param',n:'Parameter space',d:'Ensemble volume · containment',view:vParamSpace},
+  {id:'uncert',n:'Uncertainty budget',d:'Variance decomposition of the boundary',view:vUncert},
+  {id:'prov',n:'Provenance classes',d:'Measured · calculated · assumed · proposed',view:vProvClasses}],
+ analyze:[
+  {id:'evidence',n:'Evidence vs prediction',d:'Primary scientific figure · dataset controls',view:vEvidence},
+  {id:'families',n:'Model families',d:'MAD · SANE · hybrids under identical constraints',view:vFamilies},
+  {id:'assumptions',n:'Assumptions',d:'Release · weaken · trace inheritance',view:vAssumptions},
+  {id:'hypotheses',n:'Competing explanations',d:'Full analysis per configuration',view:vHypsView},
+  {id:'experiments',n:'Experiment ranking',d:'Volume elimination · cost · outcome branches',view:vExps},
+  {id:'mapping',n:'Cross-domain mapping',d:'Laboratory ↔ accretion · R(βi)',view:vMapping},
+  {id:'xmatch',n:'Archival cross-match',d:'X-ray flares vs polarisation epochs',view:vXmatchView},
+  {id:'counter',n:'Counterfactuals',d:'Stress the model deliberately',view:vCounter}],
+ memory:[
+  {id:'timeline',n:'Research history',d:'Time-resolved model states',view:vTimeline},
+  {id:'rejected',n:'Rejected hypotheses',d:'Rejection reasons · expiry conditions',view:vRejected},
+  {id:'compare',n:'State comparison',d:'S-144 vs present, side by side',view:vCompare},
+  {id:'reason',n:'Reasoning reconstruction',d:'Think aloud · structural verification',view:vReason}],
+ claim:[
+  {id:'builder',n:'Construct claim',d:'Nine verified components → one claim',view:vBuilder},
+  {id:'support',n:'Support & falsification',d:'Five-link chain · destruction routes',view:vSupportView},
+  {id:'versions',n:'Version history',d:'v1 → v3 · evidence-triggered revisions',view:vVersions},
+  {id:'audit',n:'Adversarial audit',d:'Eight attacks · what survives',view:vAudit}]};
+function toolOf(){return TOOLS[S.mode].find(t=>t.id===S.tool)||TOOLS[S.mode][0];}
+function nav(mode,tool){
+  S.mode=mode;S.tool=tool||TOOLS[mode][0].id;
+  renderAll();
+}
+function renderAll(){
+  $('#tabs').innerHTML=MODES.map(m=>'<button class="tab'+(S.mode===m[0]?' on':'')+'" data-mode="'+m[0]+'">'+m[1]+
+    (m[0]==='watch'?'<span class="n">4</span>':'')+'<small>'+m[2]+'</small></button>').join('');
+  const md=MODES.find(m=>m[0]===S.mode);
+  $('#railTitle').textContent='CAPABILITIES — '+md[1];
+  $('#railDesc').textContent=md[2];
+  $('#railList').innerHTML=TOOLS[S.mode].filter(t=>!t.hidden).map(t=>
+    '<button class="nav-item'+(S.tool===t.id?' on':'')+'" data-nav="'+S.mode+':'+t.id+'"><span class="n"><span class="dot"></span>'+t.n+'</span><span class="d">'+t.d+'</span></button>').join('');
+  glSet(S.mode==='model'&&S.tool==='system');
+  toolOf().view();
+  $('#wsScroll').scrollTop=0;
+}
+/* trace section prepended to the panel */
+function showTrace(key){
+  const tr=TRACES[key];if(!tr)return;
+  $('#app').classList.remove('pcol');$('#app').classList.add('pshow');
+  const d=document.createElement('div');
+  d.className='ps open';
+  d.innerHTML='<div class="ph"><span class="h" style="color:'+CC[tr.p]+'">TRACE · '+tr.t+'</span><span class="car">›</span></div><div class="pb">'+chip(tr.p)+'<div style="margin-top:6px">'+tr.b+'</div></div>';
+  const pb=$('#panelBody');
+  const old=pb.querySelector('.ps.tracesec');if(old)old.remove();
+  d.classList.add('tracesec');pb.prepend(d);pb.scrollTop=0;
+}
+function panelNote(title,html,col){
+  $('#app').classList.remove('pcol');$('#app').classList.add('pshow');
+  const d=document.createElement('div');d.className='ps open tracesec';
+  d.innerHTML='<div class="ph"><span class="h" style="color:'+(col||CC.ev)+'">'+title+'</span><span class="car">›</span></div><div class="pb">'+html+'</div>';
+  const pb=$('#panelBody');const old=pb.querySelector('.ps.tracesec');if(old)old.remove();
+  d.prepend&&pb.prepend(d);pb.scrollTop=0;
+}
+/* assumption + counterfactual switches propagate through the graph */
+function applyState(){
+  consistency();
+  GL.heatT=S.asm.heating==='extended'?1:0;
+  GL.scrVarT=S.asm.screen==='variable'?1:0;
+  GL.screenT=S.layers.screen?(S.asm.screen==='variable'?0.85:0.5):0;
+  GL.fieldT=S.layers.field?1:0;
+  renderAll();
+  if(RM&&GL.on)glFrame();
+}
+/* ------------------------------------------------------------- actions --- */
+function act(a){
+  const p=a.split(':');
+  switch(p[0]){
+   case 'go': nav(p[1],p[2]); break;
+   case 'ev': S.eventIdx=+p[1]; nav('watch','chain'); break;
+   case 'layer': S.layers[p[1]]=!S.layers[p[1]]; applyState(); break;
+   case 'asm':
+     if(p[1]==='heating') S.asm.heating=p[2]||(S.asm.heating==='narrow'?'extended':'narrow');
+     else S.asm.screen=p[2]||(S.asm.screen==='static'?'variable':'static');
+     applyState(); break;
+   case 'cf':
+     if(p[1]==='calib2')S.cf.calib2=!S.cf.calib2;
+     else if(p[1]==='droplab')S.cf.droplab=!S.cf.droplab;
+     else if(p[1]==='reponly')S.cf.repOnly=!S.cf.repOnly;
+     else if(p[1]==='reset'){S.cf={calib2:false,droplab:false,repOnly:false,removed:{}};}
+     applyState(); break;
+   case 'ds':
+     if(p[1]==='remove'){S.cf.removed[p[2]]=!S.cf.removed[p[2]];applyState();}
+     else{const d=DATASETS.find(x=>x.id===p[2]);
+       panelNote('DATASET · '+d.n,chip(d.p)+' '+(d.repOK?chip('ok','replicated'):chip('asm','unreplicated'))+
+        '<div style="margin-top:6px"><b>Volume:</b> '+d.vol+'<br><b>Pipeline:</b> '+d.pipe+'<br><b>Covariance:</b> '+d.cov+'<br><b>Structural role:</b> '+d.role+'<br><b>Source:</b> '+d.src+'<br><b>Replication:</b> '+d.rep+'</div>',CC[d.p]);}
+     break;
+   case 'exp': S.expSel=p[1]; renderAll(); break;
+   case 'xmatch': S.xmatchRun=true; consistency(); nav('analyze','xmatch'); break;
+   case 'mem':
+     if(p[1]==='prev')S.memIdx=Math.max(0,S.memIdx-1);
+     else if(p[1]==='next')S.memIdx=Math.min(MEM.length-1,S.memIdx+1);
+     else if(p[1]==='react'){S.memoryLive=true;HYPS[0].s=Math.min(0.95,HYPS[0].s+0.05);S.memIdx=MEM.length-1;}
+     if(S.mode!=='memory')nav('memory','timeline');else renderAll(); break;
+   case 'rsn':
+     if(p[1]==='speak')S.reason.spoken=Math.min(SPEECH.length,S.reason.spoken+1);
+     else S.reason.recon=true;
+     renderAll(); break;
+   case 'clm':
+     if(p[1]==='step')S.claim.step=Math.min(9,S.claim.step+1);
+     else if(p[1]==='all')S.claim.step=9;
+     else {S.claim.step=0;S.claim.audited=false;}
+     if(S.mode!=='claim')nav('claim','builder');else renderAll(); break;
+   case 'audit': S.claim.audited=true; renderAll(); break;
+   case 'trace': showTrace(p[1]); break;
+   case 'cmd': cmdRun(p[1]); break;
+   case 'demo': startDemo(true); break;
+  }
+}
+document.addEventListener('click',e=>{
+  const nv=e.target.closest('[data-nav]');
+  if(nv){const q=nv.dataset.nav.split(':');nav(q[0],q[1]);return;}
+  const tb=e.target.closest('[data-mode]');
+  if(tb){nav(tb.dataset.mode);return;}
+  const el=e.target.closest('[data-act]');
+  if(el){act(el.dataset.act);return;}
+  const ph=e.target.closest('.ps > .ph');
+  if(ph){ph.parentElement.classList.toggle('open');return;}
+});
+/* ------------------------------------------------------------- commands -- */
+const CMDS=[
+ {t:'Parallax, what changed overnight?',k:['changed','overnight','new'],w:'Watch',run:()=>nav('watch','brief')},
+ {t:'Parallax, isolate everything affected by the revised calibration.',k:['isolate','calibration file','affected by'],w:'Watch',id:'iso',
+  run:()=>{nav('watch','calib');panelNote('DEPENDENCY ISOLATION · calibration v4.2','6 structures depend on this file — everything else is independent of it:<div class="mini" style="margin-top:6px"><div>9-epoch trajectory + m_L series (re-reduced)</div><div>containment test vs ±14° sector (re-run — failure confirmed)</div><div>heating assumption (re-illuminated as boundary owner)</div><div>“stationary geometry” conclusion (demoted)</div><div>experiment ranking (reordered)</div></div><b>Untouched:</b> magnetar constraint · laboratory mapping · archival flares.',CC.calc);}},
+ {t:'Parallax, show every conclusion that inherits this assumption.',k:['inherit','conclusion that'],w:'Analyze',id:'inherit',
+  run:()=>{nav('analyze','assumptions');panelNote('INHERITANCE · electron-heating prescription','4 downstream claims inherit the heating prescription:<div class="mini" style="margin-top:6px"><div>“field geometry is stationary” (demoted this cycle)</div><div>emission-region radius estimate (r ≈ 4.1 r_g)</div><div>variability-mechanism exclusion of S-201</div><div>working claim v3 (declared premise)</div></div>Each carries the assumption as a visible amber dependency.',CC.asm);}},
+ {t:'Parallax, identify the weakest assumption in the active model.',k:['weakest','influential unmeasured'],w:'Model',id:'weak',
+  run:()=>{nav('model','uncert');panelNote('WEAKEST ASSUMPTION','The inherited electron-heating prescription. Score = variance share (83 %) × downstream claims (4) ÷ independent support (1 unreplicated constraint). The static screen is second (2 % variance but 3 dependents and one sightline of support).',CC.asm);}},
+ {t:'Parallax, compare MAD and SANE under identical constraints.',k:['mad','sane','compare mad'],w:'Analyze',run:()=>nav('analyze','families')},
+ {t:'Parallax, show only independently replicated evidence.',k:['replicated'],w:'Analyze',
+  run:()=>{S.cf.repOnly=true;consistency();nav('analyze','evidence');}},
+ {t:'Parallax, remove every result dependent on the laboratory mapping.',k:['remove every','laboratory mapping','dependent on the lab'],w:'Analyze',
+  run:()=>{S.cf.droplab=true;consistency();nav('analyze','mapping');}},
+ {t:'Parallax, test the claim against removal of each dataset.',k:['removal of each','leave-one-out','loo'],w:'Claim',id:'loo',
+  run:()=>{S.claim.step=9;nav('analyze','evidence');panelNote('LEAVE-ONE-OUT · each dataset removed in turn','<div class="mini"><div>− ALMA trajectory → claim collapses (essential)</div><div>− magnetar sightline → survives demoted; screen parity returns (load-bearing)</div><div>− laboratory mapping → survives narrower; heating branch re-closes (conditional)</div><div>− archival flares → unchanged (redundant pre-test)</div></div>The claim survives three of four removals.',CC.clm);}},
+ {t:'Parallax, reconstruct why I rejected electron heating.',k:['why did i reject','rejected electron'],w:'Memory',
+  run:()=>{S.memIdx=1;nav('memory','timeline');}},
+ {t:'Parallax, compare the S-144 model with the present model.',k:['s-144','compare the s'],w:'Memory',run:()=>nav('memory','compare')},
+ {t:'Parallax, show the strongest evidence against the leading explanation.',k:['against the leading','counter'],w:'Analyze',id:'against',
+  run:()=>{nav('analyze','hypotheses');panelNote('ADVERSARIAL RETRIEVAL · case against '+ranked()[0].n,'<div class="mini"><div>sub-0.1 pc screen structure — the magnetar bound does not reach below 0.1 pc</div><div>the predicted flare–EVPA null was '+(S.xmatchRun?'obtained (r = 0.04)':'not yet tested')+'</div><div>the heating extension rests on one unreplicated mapping across 10¹¹ in scale</div></div>These are the strongest standing objections, retrieved deliberately.',CC.bad);}},
+ {t:'Parallax, rank the next experiments by information gain.',k:['rank','information gain','experiments by'],w:'Analyze',run:()=>nav('analyze','experiments')},
+ {t:'Parallax, show the fastest path to falsification.',k:['falsif','fastest path','shortest'],w:'Claim',id:'fals',
+  run:()=>{S.claim.step=9;nav('claim','support');}},
+ {t:'Parallax, cross-match the polarisation epochs with all accessible high-energy catalogues.',k:['cross-match','x-ray','flare'],w:'Analyze',
+  run:()=>{S.xmatchRun=true;consistency();nav('analyze','xmatch');}},
+ {t:'Parallax, separate measured quantities from model-derived quantities.',k:['separate measured','measured from'],w:'Model',run:()=>nav('model','prov')},
+ {t:'Parallax, trace this sentence in the claim back to its source.',k:['trace this sentence','back to its source'],w:'Claim',
+  run:()=>{S.claim.step=9;nav('claim','builder');panelNote('PHRASE TRACING','Click any coloured phrase in the assembled claim — each opens its full source, operation and uncertainty chain. Amber phrases are the claim’s declared premises.',CC.clm);}},
+ {t:'Parallax, show what changed when the foreground assumption was released.',k:['foreground assumption','screen assumption','released'],w:'Analyze',
+  run:()=>{S.asm.screen='variable';consistency();nav('analyze','assumptions');}},
+ {t:'Parallax, test whether calibration error alone can explain the mismatch.',k:['calibration error','alone','explain the mismatch'],w:'Watch',id:'calib',
+  run:()=>{S.cf.calib2=true;nav('watch','calib');}},
+ {t:'Parallax, show every source touching the failed boundary.',k:['source touching','sources touch','records touch'],w:'Watch',id:'sources',
+  run:()=>{nav('watch','sources');panelNote('SOURCE TRACE · failed boundary','11 records carry provenance edges into the ±14° boundary:<div class="mini" style="margin-top:6px"><div>1 calibration file (trigger — leakage v4.2)</div><div>3 simulation-library releases</div><div>2 reduction-pipeline code revisions</div><div>1 instrument note</div><div>3 archival observation sets</div><div>your own S-277 model-selection note</div></div>',CC.calc);}},
+ {t:'Parallax, summarize the current state of the research model.',k:['summarize','current state'],w:'Watch',run:()=>nav('watch','brief')}
+];
+const ap=$('#ap'),apIn=$('#apIn'),apSug=$('#apSug');
+function openAp(){ap.classList.add('on');apIn.value='';renderSug('');setTimeout(()=>apIn.focus(),40);}
+function closeAp(){ap.classList.remove('on');}
+function renderSug(q){
+  const list=CMDS.filter(c=>!q||c.t.toLowerCase().includes(q)||c.k.some(k=>k.includes(q)||q.includes(k)));
+  apSug.innerHTML=list.map((c,i)=>'<button class="sug'+(i===0&&q?' sel':'')+'" data-i="'+CMDS.indexOf(c)+'"><span class="pfx">→</span><span>'+c.t+'</span><span class="where">'+c.w+'</span></button>').join('')
+   ||'<div class="sug" style="cursor:default;color:var(--dim)">No matching operation. Commands act on the model: audit, isolate, compare, falsify, cross-match, separate, reconstruct…</div>';
+}
+function cmdRun(id){const c=CMDS.find(x=>x.id===id);if(c)c.run();}
+apIn.addEventListener('input',()=>renderSug(apIn.value.trim().toLowerCase()));
+apIn.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const sel=apSug.querySelector('.sug.sel')||apSug.querySelector('.sug[data-i]');
+    if(sel&&sel.dataset.i!==undefined){closeAp();CMDS[+sel.dataset.i].run();}
+  }
+});
+apSug.addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&b.dataset.i!==undefined){closeAp();CMDS[+b.dataset.i].run();}});
+ap.addEventListener('click',e=>{if(e.target===ap)closeAp();});
+$('#cmdBtn').addEventListener('click',openAp);
+$('#watchPill').addEventListener('click',()=>nav('watch','brief'));
+$('#panelTgl').addEventListener('click',()=>{
+  if(innerWidth<=980)$('#app').classList.toggle('pshow');
+  else $('#app').classList.toggle('pcol');
+});
+/* capability index */
+const idx=$('#idx');
+$('#idxBtn').addEventListener('click',()=>{buildIdx();idx.classList.add('on');});
+idx.addEventListener('click',e=>{if(e.target===idx)idx.classList.remove('on');});
+function buildIdx(){
+  let out='';
+  MODES.forEach(m=>{TOOLS[m[0]].filter(t=>!t.hidden).forEach(t=>{
+    out+='<button class="idxcell" data-nav="'+m[0]+':'+t.id+'"><div class="m">'+m[1]+'</div><div class="n">'+t.n+'</div><div class="d">'+t.d+'</div></button>';});});
+  $('#idxGrid').innerHTML=out;
+}
+$('#idxGrid').addEventListener('click',e=>{const c=e.target.closest('[data-nav]');if(c)idx.classList.remove('on');});
+/* keyboard */
+addEventListener('keydown',e=>{
+  if(ap.classList.contains('on')){if(e.key==='Escape'){closeAp();e.preventDefault();}return;}
+  if(idx.classList.contains('on')){if(e.key==='Escape')idx.classList.remove('on');return;}
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;
+  if(S.phase!=='live')return;
+  if(e.key==='/'){openAp();e.preventDefault();return;}
+  if(e.key==='Escape'&&innerWidth<=980){$('#app').classList.remove('pshow');return;}
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=5)nav(MODES[n-1][0]);
+});
+addEventListener('resize',()=>{if(GL.on&&RM)glFrame();});
+/* mobile intelligence-panel button */
+(function(){
+  const b=document.createElement('button');b.id='panelBtn';b.className='btn sm';b.textContent='Intel';
+  b.style.cssText='display:none';
+  b.addEventListener('click',()=>$('#app').classList.toggle('pshow'));
+  $('#topright').insertBefore(b,$('#cmdBtn'));
+  const st=document.createElement('style');
+  st.textContent='@media(max-width:980px){#panelBtn{display:inline-block!important}}';
+  document.head.appendChild(st);
+})();
+
+/* ------------------------------------------------- construction + demo --- */
+const CSEQ=[
+ ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.10],
+ ['Assembling the physical system','shadow · photon ring · accretion flow · field geometry',0.24],
+ ['Separating measurement from interpretation','every structure carries its provenance class',0.38],
+ ['Placing observations against predictions','permitted sector · 1,120 library trajectories',0.52],
+ ['Attaching assumptions to the boundaries they control','heating prescription · foreground screen · prior locks',0.64],
+ ['Aligning instruments in time','ALMA · VLA · Chandra archive · simulation epochs',0.76],
+ ['Restoring your scientific memory','412 reasoning states · rejection conditions attached',0.88],
+ ['Model live — beginning autonomous cycle','monitoring perimeter armed',1]];
+const DEMO=[
+ ['Stage 1 — Research-model reconstruction','physical target · observations · simulations · assumptions · prior reasoning organized into one model',5200,
+  ()=>{nav('model','system');}],
+ ['Stage 2 — Autonomous monitoring','217 source families scanned · 18,420 records evaluated · only scientifically material changes selected',5200,
+  ()=>{nav('watch','sources');}],
+ ['Stage 3 — New ALMA evidence admitted','revised band-6 records: 9 epochs re-reduced under leakage v4.2 · covariance rebuilt',5200,
+  ()=>{S.eventIdx=0;nav('watch','chain');}],
+ ['Stage 4 — Model failure detected','prediction overlaid: the trajectory exits the permitted ±14° sector at epoch 4 · 3/3 sub-regions fail · 4.5σ',5600,
+  ()=>{nav('analyze','evidence');}],
+ ['Stage 5 — Dependency traced','the failed boundary is controlled by an inherited unmeasured heating prescription — 83 % of variance',5200,
+  ()=>{nav('model','uncert');}],
+ ['Stage 6 — Downstream impact propagated','1 conclusion demoted · 1 rejected hypothesis becomes eligible · 3 experiments reprioritized · claim flagged',5200,
+  ()=>{nav('watch','affected');}],
+ ['Stage 7 — Cross-domain discovery','laboratory reconnection result converted to R(βi) · overlap tested · limitations attached permanently',5600,
+  ()=>{nav('analyze','mapping');}],
+ ['Stage 8 — Counterfactual executed','heating prior widened to the laboratory-informed range · ensemble re-run preview: containment restorable 3/3',5200,
+  ()=>{S.asm.heating='extended';consistency();nav('model','param');}],
+ ['Stage 9 — Competing explanation constrained','magnetar control sightline flat to 3 % · variable-screen configuration demoted',5200,
+  ()=>{S.asm.heating='narrow';consistency();S.eventIdx=1;nav('watch','chain');}],
+ ['Stage 10 — Archival cross-match','34 X-ray flares synchronized against the epochs · 6 overlap windows at 2σ · decisive test at zero cost',5200,
+  ()=>{nav('analyze','xmatch');}],
+ ['Stage 11 — Recommended action ranked','laboratory-informed ensemble re-run first: 64 % volume elimination · no telescope time',5200,
+  ()=>{nav('analyze','experiments');}],
+ ['Stage 12 — Claim constructed','nine components verified in order · assumptions and limitations visible inside the claim text',5600,
+  ()=>{S.claim.step=9;nav('claim','builder');}],
+ ['Stage 13 — Adversarial audit','eight attacks executed · the claim survives, conditional on two declared structures',5600,
+  ()=>{S.claim.audited=true;nav('claim','audit');}]];
+let demoTimer=null;
+function startDemo(replay){
+  if(replay){S.claim.step=0;S.claim.audited=false;S.asm.heating='narrow';S.asm.screen='static';consistency();}
+  S.demo=true;S.phase='live';
+  $('#app').classList.add('on');
+  const d=$('#demo');d.classList.add('on');
+  let i=0;
+  function step(){
+    if(i>=DEMO.length)return endDemo();
+    const st=DEMO[i];
+    d.classList.remove('vis');
+    setTimeout(()=>{
+      $('#dc').textContent=st[0];$('#ds').textContent=st[1];
+      $('#dn').textContent='FIRST-MINUTE DEMONSTRATION · '+(i+1)+' / '+DEMO.length;
+      d.classList.add('vis');
+      try{st[3]();}catch(err){console.warn(err);}
+    },300);
+    i++;demoTimer=setTimeout(step,RM?Math.min(st[2],3800):st[2]);
+  }
+  step();
+}
+function endDemo(){
+  clearTimeout(demoTimer);S.demo=false;
+  $('#demo').classList.remove('on');
+  S.claim.step=9;S.claim.audited=false;S.asm.heating='narrow';S.asm.screen='static';
+  S.cf={calib2:false,droplab:false,repOnly:false,removed:{}};S.xmatchRun=false;
+  consistency();
+  nav('watch','brief');
+}
+$('#dskip').addEventListener('click',endDemo);
+/* ------------------------------------------------------------- boot ------ */
+$('#go').addEventListener('click',()=>{
+  if(S.phase!=='onb')return;S.phase='construct';
+  const onb=$('#onb');onb.style.opacity=0;onb.style.filter='blur(8px)';onb.style.pointerEvents='none';
+  setTimeout(()=>onb.remove(),1300);
+  const cons=$('#cons');cons.classList.add('on');cons.style.opacity=1;
+  const cl=$('#cline'),ct=$('#ctick'),cb=$('#cbar');
+  let i=0;
+  const stepMs=RM?500:1500;
+  function nx(){
+    if(i>=CSEQ.length){
+      cons.style.opacity=0;setTimeout(()=>cons.remove(),900);
+      setTimeout(()=>startDemo(false),600);return;
+    }
+    const q=CSEQ[i];
+    cl.classList.remove('on');ct.classList.remove('on');
+    setTimeout(()=>{cl.textContent=q[0];ct.textContent=q[1];cb.style.width=(q[2]*100)+'%';
+      cl.classList.add('on');ct.classList.add('on');},320);
+    i++;setTimeout(nx,stepMs);
+  }
+  cons.style.transition='opacity .8s';
+  nx();
+});
+$('#ta').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#go').click();}});
+</script>
+</body>
+</html>
