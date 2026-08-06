@@ -35,9 +35,8 @@ body{
   background-image:radial-gradient(rgba(20,50,90,.06) .5px,transparent .6px);background-size:3px 3px;z-index:3}
 button{font-family:var(--f)}
 canvas{display:block}
-#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:#03070e;pointer-events:none;
-  -webkit-mask-image:radial-gradient(115% 105% at 50% 50%,#000 52%,transparent 76%);
-  mask-image:radial-gradient(115% 105% at 50% 50%,#000 52%,transparent 76%)}
+#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:transparent;pointer-events:none;
+  filter:drop-shadow(0 26px 44px rgba(6,40,80,.35))}
 #gl.on{opacity:1}
 #stage{position:fixed;inset:0;width:100%;height:100%;z-index:7;touch-action:none;pointer-events:none}
 #figInput{position:fixed;z-index:8;touch-action:none;cursor:default}
@@ -433,7 +432,7 @@ details.grp>.gb{padding-top:6px}
     <div class="sq" id="speakEcho"></div>
     <div class="srow">
       <span class="sind"><i></i></span>
-      <input id="speakIn" placeholder="Think aloud — PARALLAX analyses while you type…" autocomplete="off" spellcheck="false">
+      <input id="speakIn" placeholder="Ask or think aloud — “which model family fits best?”" autocomplete="off" spellcheck="false">
       <span class="skey">↵</span>
     </div>
     <div id="speakLive"></div>
@@ -720,7 +719,7 @@ const FSH=[
 '    float dop=1./(g*(1.-beta*dot(tang,nOb)));',
 '    float boost=pow(dop,3.);',
 '    float e=(.20+1.45*n)*band*boost*(0.42+temp)*.78;',
-'    vec3 tint=mix(vec3(.26,.56,.92),vec3(1.,.96,.88),clamp(temp*1.55-.42,0.,1.));',
+'    vec3 tint=mix(vec3(.02,.46,.80),vec3(1.,.97,.92),clamp(temp*1.55-.42,0.,1.));',
 '    tint=mix(tint,tint*vec3(1.12,.86,.70),clamp(1.-dop,0.,1.)*.7);',
 '    tint=mix(tint,tint*vec3(.85,.95,1.12),clamp(dop-1.,0.,1.)*.45);',
 '    float alpha=clamp(e*.8,0.,.96);',
@@ -731,31 +730,33 @@ const FSH=[
 '  }',
 '  if(dot(p,p)>240.)break;',
 ' }',
-' if(!captured&&trans>0.01){',
-'  vec3 bd=normalize(v);',
-'  vec3 bg=vec3(.010,.026,.052)+stars(bd)*.9;',
-'  col+=trans*bg;',
-' }',
+' float aDisk=clamp(1.-trans,0.,1.);',
 ' if(uField>0.01){',
 '  float funnel=exp(-pow(abs(uv.x)*3.4,2.))*smoothstep(.15,.9,abs(uv.y-.06))*exp(-abs(uv.y)*1.1);',
-'  col+=uField*vec3(.10,.22,.34)*funnel*.5;',
+'  col+=uField*vec3(.03,.20,.36)*funnel*.28;',
+'  aDisk=max(aDisk,uField*funnel*.10);',
 ' }',
 ' if(uScreen>0.01){',
 '  vec2 sp=uv*vec2(1.4,2.6)+vec2(T*.008*(1.+9.*uScrVar),T*.004*uScrVar);',
 '  float hz=fbm(sp+fbm(sp*1.7)*.6);',
 '  float veil=(.05+.30*hz)*uScreen;',
-'  col=col*(1.-veil*.55)+vec3(.32,.21,.08)*veil*.8;',
+'  col=col*(1.-veil*.5)+vec3(.5,.33,.11)*veil*aDisk*.9;',
+'  aDisk=min(1.,aDisk+veil*.22*step(.02,aDisk));',
 ' }',
-' col=1.-exp(-col*1.18);',
-' col=pow(col,vec3(.92));',
-' float vig=1.-.34*dot(uv*.62,uv*.62);',
-' col*=vig;',
-' gl_FragColor=vec4(col,1.);}'
+' col=1.-exp(-col*1.35);',
+' col=pow(col,vec3(.94));',
+' float a=aDisk;',
+' if(captured){',
+'  vec3 core=vec3(.05,.085,.155);',
+'  col=col+core*(1.-aDisk)*.9;',
+'  a=max(aDisk,.82);',
+' }',
+' gl_FragColor=vec4(col*min(a+.15,1.),a);}'
 ].join('\n');
 function glInit(){
   if(GL.gl!==null)return GL.ok;
   const cv=$('#gl');let gl=null;
-  try{gl=cv.getContext('webgl',{antialias:false,alpha:false});}catch(e){gl=null;}
+  try{gl=cv.getContext('webgl',{antialias:false,alpha:true,premultipliedAlpha:true});}catch(e){gl=null;}
   GL.gl=gl||false;
   if(!gl){GL.ok=false;return false;}
   const sh=(ty,src)=>{const s=gl.createShader(ty);gl.shaderSource(s,src);gl.compileShader(s);
@@ -773,10 +774,12 @@ function glInit(){
 }
 function glFrame(t){
   if(!GL.on||!GL.ok)return;
+  const cvv=$('#gl');
+  if(cvv.style.display==='none')return;
   const gl=GL.gl,cv=gl.canvas;
   const dpr=Math.min(devicePixelRatio||1,innerWidth<900?1:1.35);
   const cw=cv.clientWidth||innerWidth,chh=cv.clientHeight||innerHeight;
-  const bw=Math.max(2,Math.floor(cw*dpr*0.8)),bh=Math.max(2,Math.floor(chh*dpr*0.8));
+  const bw=Math.max(2,Math.floor(cw*dpr*0.72)),bh=Math.max(2,Math.floor(chh*dpr*0.72));
   if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh;gl.viewport(0,0,bw,bh);}
   GL.heat+=(GL.heatT-GL.heat)*0.05;GL.field+=(GL.fieldT-GL.field)*0.06;
   GL.screen+=(GL.screenT-GL.screen)*0.05;GL.scrVar+=(GL.scrVarT-GL.scrVar)*0.05;
@@ -1551,32 +1554,32 @@ MODES_IMPL.model={
        const a=i/26*TAU;
        const px=cx+Math.cos(a)*rr2,py=cy+Math.sin(a)*rr2*0.62;
        const ta=a+Math.PI/2+evpa;
-       ctx.strokeStyle='rgba(64,205,255,.8)';ctx.lineWidth=1.4;
+       ctx.strokeStyle='#0f86b8';ctx.lineWidth=1.4;
        ctx.beginPath();ctx.moveTo(px-Math.cos(ta)*7,py-Math.sin(ta)*7);ctx.lineTo(px+Math.cos(ta)*7,py+Math.sin(ta)*7);ctx.stroke();
      }
-     mono('POLARISATION · EPOCH '+(ep+1)+'/9 · EVPA '+(EPOCH_EVPA[ep]+20.5).toFixed(1)+'° · m_L 4.2 %',cx+rr2*0.55,cy+rr2*0.72,8.5,'rgba(64,205,255,.9)','left');
+     mono('POLARISATION · EPOCH '+(ep+1)+'/9 · EVPA '+(EPOCH_EVPA[ep]+20.5).toFixed(1)+'° · m_L 4.2 %',cx+rr2*0.55,cy+rr2*0.72,8.5,'#0b6e99','left');
    }
    if(L.region&&GL.on){
      const peak=lerp(2.05,3.15,GL.heat);
      const rx=scale*peak,ry=scale*peak*0.41;
-     ctx.strokeStyle='rgba(150,120,255,.7)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
+     ctx.strokeStyle='rgba(109,52,196,.75)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-     mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+10,cy,8.5,'rgba(170,140,255,.9)','left');
+     mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+10,cy,8.5,'#6d34c4','left');
      if(S.mod.shift&&S.asm.heating<0.5){
        const p2=3.15,rx2=scale*p2,ry2=rx2*0.41;
        ctx.strokeStyle='rgba(190,160,255,.55)';ctx.setLineDash([2,5]);
        ctx.beginPath();ctx.ellipse(cx,cy,rx2,ry2,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-       mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2-10,cy+14,8,'rgba(190,160,255,.85)','right');
+       mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2-10,cy+14,8,'#6d34c4','right');
      }
    }
    if(L.geo&&GL.on){
      const ox=stageW()*0.84,oy=SH*0.8;
-     ctx.strokeStyle='rgba(200,225,244,.5)';ctx.setLineDash([2,6]);ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(36,66,92,.5)';ctx.setLineDash([2,6]);ctx.lineWidth=1;
      ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(cx+scale*1.4,cy+scale*0.4);ctx.stroke();ctx.setLineDash([]);
-     ctx.strokeStyle='rgba(220,238,250,.85)';ctx.lineWidth=1.2;
+     ctx.strokeStyle='rgba(20,45,70,.85)';ctx.lineWidth=1.2;
      ctx.beginPath();ctx.arc(ox,oy,6,0,TAU);ctx.stroke();
      ctx.beginPath();ctx.moveTo(ox-11,oy);ctx.lineTo(ox+11,oy);ctx.moveTo(ox,oy-11);ctx.lineTo(ox,oy+11);ctx.stroke();
-     mono('OBSERVER · ALMA/VLA · i ≈ 24° · SCREEN '+S.asm.screen.toUpperCase()+' ON SIGHTLINE',ox-14,oy+22,8,'rgba(200,225,244,.8)','right');
+     mono('OBSERVER · ALMA/VLA · i ≈ 24° · SCREEN '+S.asm.screen.toUpperCase()+' ON SIGHTLINE',ox-14,oy+22,8,'rgba(36,66,92,.85)','right');
    }
    if(L.sane&&GL.on){
      ctx.save();ctx.setLineDash([3,5]);
@@ -1586,57 +1589,57 @@ MODES_IMPL.model={
          const rr=scale*(1.7+0.9*Math.sin(q*9+k*2.4));
          const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr*0.5-(q-0.5)*scale*1.6;
          i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
-       ctx.strokeStyle='rgba(150,120,255,.28)';ctx.lineWidth=1;ctx.stroke();}
+       ctx.strokeStyle='rgba(109,52,196,.3)';ctx.lineWidth=1;ctx.stroke();}
      ctx.restore();
-     mono('SANE FIELD GHOST · IDENTICAL CONSTRAINTS · m_L OVERPRODUCED ×2.3 → FAMILY EXCLUDED',cx,cy+scale*2.75,8.5,'rgba(170,140,255,.95)');
+     mono('SANE FIELD GHOST · IDENTICAL CONSTRAINTS · m_L OVERPRODUCED ×2.3 → FAMILY EXCLUDED',cx,cy+scale*2.75,8.5,'#6d34c4');
    }
    if(L.gauge&&GL.on){
      const rg=scale*4.35;
      const d2a=d=>(-158+((d+15)/70)*136)*Math.PI/180;
      const breathe=RM?0:Math.sin(t*1.2)*0.5;
-     ctx.strokeStyle='rgba(160,200,230,.3)';ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(13,40,70,.25)';ctx.lineWidth=1;
      ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-15),d2a(55));ctx.stroke();
-     ctx.strokeStyle='rgba(90,150,210,.28)';ctx.lineWidth=15;
+     ctx.strokeStyle='rgba(42,74,108,.20)';ctx.lineWidth=15;
      ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-W-breathe),d2a(W+breathe));ctx.stroke();
      [-W,W].forEach(dd=>{const a=d2a(dd);
-       ctx.strokeStyle='rgba(150,200,240,.9)';ctx.lineWidth=1.4;
+       ctx.strokeStyle='#2a4a6c';ctx.lineWidth=1.4;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-11),cy+Math.sin(a)*(rg-11));ctx.lineTo(cx+Math.cos(a)*(rg+11),cy+Math.sin(a)*(rg+11));ctx.stroke();});
-     mono('GRMHD PERMITTED ±'+W+'° · 1,120 TRAJECTORIES',cx+Math.cos(d2a(-14))*(rg+4),cy+Math.sin(d2a(-14))*(rg+4)-14,8.2,'rgba(150,200,240,.95)','left');
+     mono('GRMHD PERMITTED ±'+W+'° · 1,120 TRAJECTORIES',cx+Math.cos(d2a(-14))*(rg+4),cy+Math.sin(d2a(-14))*(rg+4)-14,8.2,'#2a4a6c','left');
      if(S.mod.alt){
-       ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(150,200,240,.55)';ctx.lineWidth=1;
+       ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(42,74,108,.6)';ctx.lineWidth=1;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-19),d2a(19));ctx.stroke();ctx.setLineDash([]);
-       mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-30,8,'rgba(150,200,240,.9)');
+       mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-30,8,'#2a4a6c');
      }
      if(S.mod.shift&&W<41){
-       ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(170,140,255,.8)';ctx.lineWidth=1.2;
+       ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(109,52,196,.8)';ctx.lineWidth=1.2;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-42),d2a(42));ctx.stroke();ctx.setLineDash([]);
-       mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-30,8,'rgba(190,160,255,.95)');
+       mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-30,8,'#6d34c4');
      }
      let exited=false;
      for(let i=0;i<9;i++){
        const v=EP_VAL[i],a=d2a(v),inb=v<=W;
-       ctx.strokeStyle=inb?'rgba(80,210,255,.95)':'rgba(190,150,255,.98)';ctx.lineWidth=2;
+       ctx.strokeStyle=inb?'#0090c4':'#6d34c4';ctx.lineWidth=2;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-8),cy+Math.sin(a)*(rg-8));ctx.lineTo(cx+Math.cos(a)*(rg+8),cy+Math.sin(a)*(rg+8));ctx.stroke();
        if(S.mod.alt){
-         ctx.strokeStyle='rgba(80,210,255,.35)';ctx.lineWidth=3;
+         ctx.strokeStyle='rgba(0,144,196,.35)';ctx.lineWidth=3;
          ctx.beginPath();ctx.arc(cx,cy,rg,d2a(v-EP_ERR[i]),d2a(v+EP_ERR[i]));ctx.stroke();
        }
        if(!exited&&v>W){exited=true;
-         mono('EXIT · EPOCH '+(i+1)+' · 4.5σ BY EPOCH 9',cx+Math.cos(a)*(rg+30),cy+Math.sin(a)*(rg+30),8,'rgba(190,150,255,.95)');}
+         mono('EXIT · EPOCH '+(i+1)+' · 4.5σ BY EPOCH 9',cx+Math.cos(a)*(rg+30),cy+Math.sin(a)*(rg+30),8,'#6d34c4');}
      }
-     mono('MEASURED DRIFT 41°±6°',cx+Math.cos(d2a(55))*(rg+6)+8,cy+Math.sin(d2a(55))*(rg+6),8.2,'rgba(80,210,255,.95)','left');
+     mono('MEASURED DRIFT 41°±6°',cx+Math.cos(d2a(55))*(rg+6)+8,cy+Math.sin(d2a(55))*(rg+6),8.2,'#0090c4','left');
      const bx=cx-rg+6,by=cy+scale*1.6;
      for(let k=0;k<3;k++){
        const ok=S.asm.heating>0.5;
-       ctx.strokeStyle=ok?'rgba(94,224,168,.9)':'rgba(190,150,255,.8)';ctx.lineWidth=1.2;
+       ctx.strokeStyle=ok?'#1b7d4f':'rgba(109,52,196,.75)';ctx.lineWidth=1.2;
        ctx.strokeRect(bx-34,by+k*15,11,9);
-       if(ok){ctx.fillStyle='rgba(94,224,168,.35)';ctx.fillRect(bx-34,by+k*15,11,9);}
+       if(ok){ctx.fillStyle='rgba(27,125,79,.3)';ctx.fillRect(bx-34,by+k*15,11,9);}
      }
-     mono('ENSEMBLE '+(S.asm.heating>0.5?'3/3':'0/3'),bx-28,by+56,7.5,S.asm.heating>0.5?'rgba(94,224,168,.9)':'rgba(190,150,255,.85)','left');
+     mono('ENSEMBLE '+(S.asm.heating>0.5?'3/3':'0/3'),bx-28,by+56,7.5,S.asm.heating>0.5?'#1b7d4f':'#6d34c4','left');
    }
    if(GL.on){
      const cn=containN();
-     mono('SECTOR ±'+W+'° · CONTAINMENT '+cn+'/9 '+(cn===9?'— RESTORED':'— EXITS AT EPOCH '+(EP_VAL.findIndex(v=>v>W)+1))+' · HEATING '+(S.asm.heating>0.85?'LAB-INFORMED':S.asm.heating<0.15?'INHERITED (UNMEASURED)':'PARTIAL'),cx,SH-150,9.5,cn===9?'#5ee0a8':'#c9a5ff');
+     mono('SECTOR ±'+W+'° · CONTAINMENT '+cn+'/9 '+(cn===9?'— RESTORED':'— EXITS AT EPOCH '+(EP_VAL.findIndex(v=>v>W)+1))+' · HEATING '+(S.asm.heating>0.85?'LAB-INFORMED':S.asm.heating<0.15?'INHERITED (UNMEASURED)':'PARTIAL'),cx,SH-150,9.5,cn===9?'#1b7d4f':'#6d34c4');
    }
  },
  click(){}, drop(){}
@@ -2794,6 +2797,8 @@ speakIn.addEventListener('keydown',e=>{
   const text=speakIn.value.trim();
   if(!text||S.phase!=='live')return;
   speakIn.value='';
+  $('#speakLive').innerHTML='';
+  if(runQuery(text))return;
   const v=analyzeThought(text);
   const card=document.createElement('div');
   card.className='echo';
@@ -2834,6 +2839,12 @@ speakIn.addEventListener('input',()=>{
   const live=$('#speakLive');
   if(txt.length<10){live.innerHTML='';return;}
   speakT=setTimeout(()=>{
+    const tq=txt.toLowerCase();
+    const q=QUERIES.find(q2=>q2.k.test(tq));
+    if(q||/^(search|find|which|what|cross)/.test(tq)){
+      live.innerHTML=chip('clm','QUERY')+chip('calc',(q?q.label:'corpus search')+' — ↵ computes');
+      return;
+    }
     const v=analyzeThought(txt);
     live.innerHTML=v.slice(0,3).map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('');
   },300);
@@ -3052,6 +3063,11 @@ const LIVEBIND={
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
  watchstats:()=>S.counters.fam+' source families · <b>'+S.counters.rec.toLocaleString('en-US')+'</b> records evaluated · 4 material · '+(18207+(S.counters.rec-18420))+' set aside · screen '+S.asm.screen+(S.xmatchRun?' · cross-match executed (r = 0.04)':''),
+ transcript:()=>{let h2='';
+   for(let i=0;i<S.spoken;i++){const sp=SPEECH[i];
+     h2+='<div style="border-top:1px solid var(--line);padding:6px 0"><p style="margin:0;font-style:italic">“'+sp.s+'”</p>'+
+      '<div class="chips" style="margin-top:3px">'+sp.d.map(d=>chip(d[0],d[1].split('—')[0].trim().slice(0,30))).join('')+(sp.r?chip('bad','REVIEWER RISK'):'')+'</div></div>';}
+   return h2||'<p style="color:var(--dim)">No statements yet — speak below, or press “Next statement”.</p>';},
  reason:()=>'Statements analysed: <b>'+S.spoken+' / '+SPEECH.length+'</b>'+(S.thoughtN?' + '+S.thoughtN+' spoken via the bar':'')+' · defects on record: assumption without support, false dichotomy, omitted evidence · 1 reconnection to S-144.'};
 function refreshDoc(){
   document.querySelectorAll('[data-lv]').forEach(el=>{
@@ -3100,7 +3116,8 @@ function stationsFor(mode){
      '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>'+
      '<table class="dtable"><tr><th></th><th>Change</th><th></th></tr>'+
      EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.res+'</span></td><td><button class="abtn sm" data-act="evc:'+i+'">chain</button></td></tr>').join('')+'</table>'+
-     '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'},
+     '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'+
+     '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
    {id:'lit',label:'Literature agreement',sub:'9 sources · 3 contradictions',vis:'lit',
     html:'<h2>Your static-screen assumption rests on contested literature.</h2>'+
      '<p>Nine sources reduced to three shared parameters, compared pairwise in σ. <b>D21 disputes the B18/W20 stability cluster at 4.0σ</b> — and your S-097 adoption inherited that dispute silently. The m_L tension (S15, 2.5σ) is method-level: single-dish beam depolarization.</p>'+
@@ -3129,6 +3146,7 @@ function stationsFor(mode){
    {id:'hyps',label:'Competing explanations',sub:'live dossiers',vis:'live',
     cap:'<b>Live instrument.</b> Evidence pulls, contradiction pushes; excluding a dataset reshapes the space. Drop one hypothesis onto another to collide them; SHIFT previews the screen counterfactual.',
     html:'<h2>Three configurations survive; their order is a function of your assumptions.</h2>'+
+     '<div class="acts"><button class="abtn" data-act="asm:screen">Toggle screen premise</button><button class="abtn" data-act="act:xmatch">Run cross-match</button><button class="abtn" data-act="ds:toggle:lab">Exclude / restore lab mapping</button></div>'+
      '<div data-lv="hyps">'+hypsHTML()+'</div>'},
    {id:'matrix',label:'Evidence structure',sub:'roles · reliability',vis:'live',
     cap:'<b>Live instrument.</b> The same landscape — the table on the left is its exact structural content.',
@@ -3166,6 +3184,7 @@ function stationsFor(mode){
     cap:'<b>Live instrument.</b> Drag components into the core to attach, out to detach — support physically carries the structure; detaching the observation collapses the claim and rewrites the sentence on the left.',
     html:'<h2 data-lv="claimtxt">'+LIVEBIND.claimtxt()+'</h2>'+
      '<p>Assembled from verified components, never generated. Premises are stated inside the text; falsifiers are concrete: a correlated magnetar excursion returns the screen; flare-locked EVPA returns eruptions. One 21-day campaign resolves all three configurations.</p>'+
+     '<div class="acts"><button class="abtn" data-act="clm:all">Attach all verified components</button><button class="abtn" data-act="clm:audit">Run structural audit</button><button class="abtn" data-act="clm:detachall">Strip to components</button></div>'+
      '<div data-lv="comps">'+compsHTML()+'</div>'},
    {id:'referee',label:'Referee simulation',sub:'6 objections · ranked',vis:'live',
     cap:'<b>Live instrument.</b> The structure under attack — exposures require a declared premise or a scheduled test.',
@@ -3177,7 +3196,9 @@ function stationsFor(mode){
     cap:'<b>Live instrument.</b> Statements stack with verification tags; threads arc to the model, memory and evidence anchors.',
     html:'<h2>Speak, and the system verifies — while you type.</h2>'+
      '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to your rejected reasoning, reviewer risk, rewording, and the missing test that settles the sentence.</p>'+
-     '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'}];
+     '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'+
+     '<div class="acts"><button class="abtn" data-act="rsn:next">Next statement</button><button class="abtn" data-act="rsn:map">Argument map</button></div>'+
+     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'}];
 }
 S.st={watch:0,model:0,analyze:0,memory:0,claim:0,reason:0};
 function renderDoc(){
@@ -3261,6 +3282,110 @@ addEventListener('keydown',e=>{
   if(e.key==='ArrowUp'||e.key==='PageUp'){goStation(-1);e.preventDefault();}
 });
 
+
+
+/* ============================================================================
+   Interrogation engine — ask the operating system a scientific question,
+   get a computed, ranked, sourced answer. Wired into the speak bar and
+   the command aperture.
+   ========================================================================== */
+function famScores(){
+  const labGone=S.droplab||S.removed.lab;
+  return [
+   {n:'MAD · laboratory-informed heating',s:labGone?0.30:(S.asm.heating>0.5?0.88:0.80),
+    b:labGone?'mapping absent — the widened prior has no physical basis':'containment '+(S.asm.heating>0.5?'9/9 (re-run preview)':'restorable 9/9')+' · m_L consistent · ring consistent',
+    req:'laboratory mapping (unreplicated)'},
+   {n:'MAD + variable-screen hybrid',s:S.asm.screen==='variable'?0.62:0.34,
+    b:'contains the trajectory only if the screen absorbs the residual',req:'sub-0.1 pc screen structure (literature-contested)'},
+   {n:'MAD · R_high = 40 (inherited)',s:0.12,b:'containment 0/3 — excluded by the revised trajectory',req:'—'},
+   {n:'SANE · any heating',s:0.08,b:'fractional polarisation overproduced ×2.3 — excluded',req:'—'},
+   {n:'MAD · inclination > 45°',s:0.05,b:'photon-ring asymmetry violated — excluded',req:'—'}
+  ].sort((a,b)=>b.s-a.s);
+}
+function answerCard(title,rows,basis,actions){
+  inspect('<div class="chips">'+chip('calc','computed now')+chip('clm','ranked answer')+'</div>'+
+   '<div class="rows">'+rows.map((r,i)=>irow('#'+(i+1),'<b>'+r[0]+'</b>'+(r[1]!==null?ibar(r[1],C.clm):'')+'<span style="font-size:9.6px;color:var(--dim)">'+r[2]+'</span>')).join('')+
+   irow('Basis',basis)+'</div>'+
+   (actions?'<div class="acts">'+actions+'</div>':''));
+  inspTitle(title);
+  postEvent('query answered — '+title.toLowerCase(),'hot');
+}
+const QUERIES=[
+ {label:'which model family fits the data best',k:/(model )?famil|family fits|which model(?! famil)? fits|fits (the data )?best/,
+  run:()=>{const F=famScores();
+   answerCard('Best-fitting model family',
+    F.map(f=>[f.n,f.s,f.b+' · requires: '+f.req]),
+    'All families scored against identical constraints: revised trajectory containment, fractional polarisation, photon-ring asymmetry — recomputed under your current assumption set.',
+    '<button class="abtn sm" data-act="sub:model:default">Physical model</button><button class="abtn sm" data-act="sub:model:sens">Sensitivity</button>');}},
+ {label:'which experiment should I run next',k:/which experiment|next experiment|best (test|observation)|what should i (run|observe|do next)/,
+  run:()=>{const E=experiments();
+   answerCard('Next experiment — ranked by volume elimination',
+    E.map(x=>[x.n,x.p,x.c+' · '+x.tag]),
+    '2,400-draw Monte-Carlo over the retained volume under the current assumptions; the order inverts if the screen is released.',
+    '<button class="abtn sm" data-act="sub:analyze:pareto">Cost–yield frontier</button><button class="abtn sm" data-act="budget:zero">Best free option</button>');}},
+ {label:'which assumption is weakest',k:/weakest assumption|which assumption|most (dangerous|influential) assumption/,
+  run:()=>{answerCard('Weakest assumption',
+    [['Electron-heating prescription',0.83,'83 % failing-axis variance · 4 downstream claims · unmeasured until S-044'],
+     ['Static foreground screen',0.34,'3 dependents · literature-contested (D21, 4.0σ) · bounded at 0.1 pc only']],
+    'Score = variance share × downstream load ÷ independent support.',
+    '<button class="abtn sm" data-act="sub:model:graph">Dependency graph</button><button class="abtn sm" data-act="asm:screen">Release the screen</button>');}},
+ {label:'which paper contradicts my assumptions',k:/which (paper|source)|literature.*(contradict|disagree)|contradict.*(paper|literature|source)/,
+  run:()=>{const lit=litAgreement();
+   answerCard('Literature contradictions standing',
+    lit.conflicts.map(c2=>[c2.label,Math.min(1,c2.t/5),c2.detail]),
+    PAPERS.length+' sources · '+lit.pairs+' pairwise comparisons in σ units · your S-097 screen premise inherits the D21 dispute.',
+    '<button class="abtn sm" data-act="sub:watch:lit">Agreement instrument</button>');}},
+ {label:'which explanation covers the evidence best',k:/which (hypothesis|explanation|configuration)|explains? (the )?(evidence|drift) best/,
+  run:()=>{const r=ranked();
+   answerCard('Explanation ranking — evidence coverage',
+    r.map(h=>[h.full,h.s,'explains '+h.ex.length+' · conflicts '+h.fx.length+' · requires '+h.rq.length+' assumptions · '+h.rep]),
+    'Coverage weighted 1/σ², penalised ×0.8 per unmeasured assumption. Recomputed live.',
+    '<button class="abtn sm" data-act="sub:analyze:hyps">Evidence landscape</button>');}},
+ {label:'cross-analyse the flares against the epochs',k:/cross.?(anal|match)|flare.*epoch|epoch.*flare|x.?ray.*polar/,
+  run:()=>{const was=S.xmatchRun;
+   if(!S.xmatchRun){S.xmatchRun=true;consistency();renderIntel();}
+   answerCard(was?'Cross-analysis (on record)':'Cross-analysis executed now',
+    [['flare–EVPA correlation',0.04,'r = 0.04 ± 0.09 across 6 covariance windows — consistent with zero'],
+     ['eruption configuration',HYPS[1].s,'demoted to '+(HYPS[1].s*100).toFixed(0)+'% — its predicted signature is absent'],
+     ['leading claim',ranked()[0].s,'predicted this null and obtained it']],
+    '34 archival flares · 14 catalogues · barycentric alignment · zero observing cost.',
+    '<button class="abtn sm" data-act="sub:analyze:hyps">Recomputed ranking</button>');}},
+ {label:'what happens if the screen assumption is released',k:/what (if|happens).*screen|release.*screen.*(what|effect)/,
+  run:()=>{const cur=covIf(S.asm.screen==='variable'),alt=covIf(S.asm.screen!=='variable');
+   answerCard('Counterfactual — screen '+(S.asm.screen==='static'?'released':'restored'),
+    [['heating coverage',alt[0],(cur[0]*100).toFixed(0)+'% → '+(alt[0]*100).toFixed(0)+'%'],
+     ['eruption coverage',alt[1],(cur[1]*100).toFixed(0)+'% → '+(alt[1]*100).toFixed(0)+'%'],
+     ['screen coverage',alt[2],(cur[2]*100).toFixed(0)+'% → '+(alt[2]*100).toFixed(0)+'%']],
+    'Full graph recompute under the flipped premise — parameter-volume survival moves '+(S.asm.screen==='static'?'18% → 9%':'9% → 18%')+'.',
+    '<button class="abtn sm" data-act="asm:screen">Apply it</button>');}}
+];
+function runQuery(text){
+  const t=text.toLowerCase();
+  for(const q of QUERIES)if(q.k.test(t)){q.run();return true;}
+  const m=t.match(/(?:search|find|look ?up)\s+(?:for\s+)?(.+)/);
+  if(m){
+    const term=m[1].trim();
+    const hits=[];
+    DATASETS.forEach(d=>{if((d.n+d.role+d.src).toLowerCase().includes(term))hits.push(['dataset',d.n,d.role]);});
+    PAPERS.forEach(p=>{if((p.label+p.method).toLowerCase().includes(term))hits.push(['paper',p.label,p.method+' · '+p.v+'±'+p.sig]);});
+    HYPS.forEach(h2=>{if((h2.full+h2.d).toLowerCase().includes(term))hits.push(['hypothesis',h2.full,(h2.s*100).toFixed(0)+'% coverage']);});
+    MEM.forEach(m2=>{if((m2.b+m2.a).toLowerCase().includes(term))hits.push(['memory','S-'+String(m2.d).padStart(3,'0')+' · '+m2.b,m2.w]);});
+    EVENTS.forEach(ev=>{if((ev.t+ev.res).toLowerCase().includes(term))hits.push(['change',ev.t,ev.res]);});
+    inspect('<div class="chips">'+chip('calc','corpus search')+chip('ev',hits.length+' hits')+'</div>'+
+     '<div class="rows">'+(hits.length?hits.slice(0,8).map(h2=>irow(h2[0],'<b>'+h2[1]+'</b><br><span style="font-size:9.6px;color:var(--dim)">'+h2[2]+'</span>')).join(''):irow('Result','nothing in the active model matches “'+esc2(term)+'” — the perimeter continues watching for it'))+'</div>');
+    inspTitle('Search — “'+esc2(term)+'”');
+    postEvent('corpus search — “'+term+'” · '+hits.length+' hits','hot');
+    return true;
+  }
+  return false;
+}
+CMDS.push(
+ ['Parallax, find which model family fits the data best.','query',()=>QUERIES[0].run()],
+ ['Parallax, which experiment should I run next?','query',()=>QUERIES[1].run()],
+ ['Parallax, which assumption is weakest?','query',()=>QUERIES[2].run()],
+ ['Parallax, which papers contradict my assumptions?','query',()=>QUERIES[3].run()],
+ ['Parallax, cross-analyse the flares against the polarisation epochs.','query',()=>QUERIES[5].run()],
+ ['Parallax, what happens if the screen assumption is released?','query',()=>QUERIES[6].run()]);
 
 /* ------- boot ------- */
 const CSEQ=[
