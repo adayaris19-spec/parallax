@@ -76,6 +76,12 @@ canvas{display:block}
   border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
   font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 #cmdHint b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:6px}
+#liveBtn{position:absolute;top:14px;right:132px;pointer-events:auto;background:none;
+  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
+  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#liveBtn b{font-family:var(--m);font-weight:700;color:var(--dim);margin-left:6px}
+#liveBtn.on{border-color:rgba(62,207,149,.7)}
+#liveBtn.on b{color:var(--ok)}
 
 /* live model vitals — always present: the model never sleeps */
 #vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
@@ -460,6 +466,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <button id="cmdHint">Command<b>/</b></button>
+  <button id="liveBtn">DATA<b>SIM</b></button>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2517,9 +2524,9 @@ function renderStrip(){
   if(S.phase!=='live'){el.innerHTML='';return;}
   const r=ranked()[0],cn=containN();
   el.innerHTML='<span>S-000 · '+clock()+' UTC</span>'+
-   '<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>'+
+   (typeof LIVE!=='undefined'&&LIVE.on?'<span style="color:'+C.ok+'">LINK<b style="color:'+C.ok+'">LIVE</b></span><span>REAL RECORDS<b>'+LIVE.total+'</b></span>':'<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>')+
    '<span>FEEDS<b>1,247</b></span>'+
-   '<span style="color:'+C.asm+'">MATERIAL<b style="color:'+C.asm+'">Δ4</b></span>'+
+   '<span style="color:'+C.asm+'">MATERIAL<b style="color:'+C.asm+'">Δ'+(typeof LIVE!=='undefined'&&LIVE.on?LIVE.material:4)+'</b></span>'+
    '<span style="color:'+C.ev+'">ACTION<b style="color:'+C.ev+'">1</b></span>'+
    '<span>SECTOR<b>±'+sectorW()+'°</b></span>'+
    '<span>CONTAIN<b'+(cn===9?' style="color:'+C.ok+'"':'')+'>'+cn+'/9</b></span>'+
@@ -3509,6 +3516,10 @@ const VISTITLE={evpa:'EVPA vs prediction — live',lit:'Literature agreement —
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
   if(mode==='watch')return [
+   ...(typeof LIVE!=='undefined'&&LIVE.on?[{id:'live',label:'Live perimeter',sub:'Supabase link · real feeds',vis:null,
+    html:'<h2>The perimeter is reading the real literature.</h2>'+
+     '<p>arXiv and NASA ADS are polled every hour by your ingest worker; every record is scored by the intelligence gate (Claude) against the research profile, and material changes are filed as Δ findings — automatically, whether or not this page is open.</p>'+
+     '<div data-lv="livefeed">'+LIVEBIND.livefeed()+'</div>'}]:[]),
    {id:'brief',label:'Executive briefing',sub:'main finding · next action',vis:'live',vsize:'l',
     cap:'<b>Intake funnel — live.</b> Click a gate for its filter; click a node for its chain; drag a node onto ACTION to propagate it.<span class="capline" data-lv="watchstats">'+LIVEBIND.watchstats()+'</span>',
     html:'<h2>The revised ALMA polarisation trajectory is no longer contained by the selected GRMHD model family.</h2>'+
@@ -3878,6 +3889,57 @@ CMDS.push(
  ['Parallax, cross-analyse the flares against the polarisation epochs.','query',()=>QUERIES[5].run()],
  ['Parallax, what happens if the screen assumption is released?','query',()=>QUERIES[6].run()]);
 
+/* ---------------- LIVE DATA LINK — Supabase ---------------- */
+const SUPA_URL='https://zfmjjazkmolvywvayjzj.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
+const LIVE={on:false,recs:[],finds:[],total:0,relevant:0,material:0,err:null,ts:0};
+async function supaGet(path){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+async function fetchLive(){
+  try{
+    const recs=await supaGet('records?select=id,source,source_id,title,url,published_at,relevance,relevant,material&order=id.desc&limit=100');
+    const finds=await supaGet('findings?select=id,title,why,severity,created_at&order=id.desc&limit=40');
+    LIVE.recs=recs;LIVE.finds=finds;
+    LIVE.total=recs.length;
+    LIVE.relevant=recs.filter(r=>r.relevant===true).length;
+    LIVE.material=recs.filter(r=>r.material===true).length;
+    LIVE.err=null;LIVE.ts=Date.now();
+    postEvent('live perimeter sync — '+LIVE.total+' records · '+LIVE.relevant+' relevant · '+LIVE.material+' material','hot');
+  }catch(e){
+    LIVE.err=String(e&&e.message||e);
+    postEvent('live sync failed ('+LIVE.err+') — if you are viewing the artifact, open the GitHub Pages build instead','warn');
+  }
+  renderIntel();
+}
+let liveTimer=null;
+function setLive(on){
+  LIVE.on=on;
+  const b=$('#liveBtn');
+  if(b){b.innerHTML='DATA<b>'+(on?'LIVE':'SIM')+'</b>';b.classList.toggle('on',on);}
+  clearInterval(liveTimer);
+  if(on){fetchLive();liveTimer=setInterval(fetchLive,60000);}
+  if(S.phase==='live'){S.st.watch=0;if(S.mode==='watch')renderDoc();renderIntel();}
+}
+document.addEventListener('click',e=>{if(e.target.closest('#liveBtn'))setLive(!LIVE.on);});
+LIVEBIND.livefeed=()=>{
+  if(!LIVE.recs.length)return '<p style="color:var(--dim)">'+(LIVE.err
+    ?'Live link unavailable from this host ('+LIVE.err+'). The artifact page blocks external data — open the GitHub Pages build or the local file.'
+    :'Syncing the live perimeter…')+'</p>';
+  return '<p><b>'+LIVE.total+'</b> real records on file · <b>'+LIVE.relevant+'</b> judged relevant · <b>'+LIVE.material+'</b> material · synced '+new Date(LIVE.ts).toLocaleTimeString()+' · auto-refresh 60 s</p>'+
+   '<table class="dtable"><tr><th>Record</th><th>Source</th><th>Rel</th><th>Verdict</th></tr>'+
+   LIVE.recs.slice(0,30).map(r=>'<tr><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+((r.title||r.source_id||'').slice(0,110))+'</a></td>'+
+    '<td>'+r.source+'</td>'+
+    '<td>'+(r.relevance==null?'…':(r.relevance*100).toFixed(0)+'%')+'</td>'+
+    '<td>'+(r.material?'<b style="color:'+C.asm+'">Δ MATERIAL</b>'
+      :r.relevant===true?'<span style="color:'+C.ev+'">relevant</span>'
+      :r.relevant===false?'<span style="color:var(--dim)">discarded</span>'
+      :'<span style="color:var(--dim)">queued</span>')+'</td></tr>').join('')+'</table>'+
+   (LIVE.finds.length?'<h2 style="font-size:14px;margin-top:14px">Δ material findings</h2>'+
+     LIVE.finds.map(f=>'<p style="font-size:11.6px;border-left:3px solid '+C.asm+';padding-left:10px"><b>'+(f.title||'')+'</b><br>'+(f.why||'')+'</p>').join(''):'');
+};
 /* ------- boot ------- */
 const CSEQ=[
  ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.15],
