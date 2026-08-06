@@ -181,7 +181,7 @@ details.grp>.gb{padding-top:6px}
 /* ---- the document IS the workspace: dense text with figures embedded inside it ---- */
 #doc{position:fixed;top:56px;left:0;right:0;bottom:0;overflow:hidden;z-index:5;pointer-events:none}
 /* station stepper — one strip, one axis */
-#ststep{position:absolute;left:26px;top:16px;width:min(420px,30vw);pointer-events:auto}
+#ststep{position:absolute;left:26px;top:16px;width:min(500px,35vw);pointer-events:auto}
 #ststep .mt{font-size:7.4px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
 #ststep .row{display:flex;align-items:center;gap:10px}
 .stpn{background:none;border:0;cursor:pointer;padding:2px;position:relative}
@@ -194,7 +194,7 @@ details.grp>.gb{padding-top:6px}
 .stpa{background:none;border:0;cursor:pointer;color:var(--ink2);font-size:13px;padding:0 4px}
 .stpa:hover{color:var(--ev)}
 /* active station: text pane left, visual pane right — both alive */
-#stext{position:absolute;left:26px;top:106px;bottom:96px;width:min(420px,30vw);overflow-y:auto;overflow-x:hidden;transition:width .3s}
+#stext{position:absolute;left:26px;top:106px;bottom:96px;width:min(500px,35vw);overflow-y:auto;overflow-x:hidden;transition:width .3s}
 #stext.wide{width:auto;right:40px;max-width:1080px}
 #stext.m{width:min(560px,41vw)}
 #svis.m{left:calc(min(560px,41vw) + 64px)}
@@ -206,7 +206,7 @@ details.grp>.gb{padding-top:6px}
 #stext-unused{
   pointer-events:auto;scrollbar-width:none;padding-right:10px;mask-image:linear-gradient(180deg,transparent 0,#000 18px,#000 calc(100% - 26px),transparent 100%)}
 #stext::-webkit-scrollbar{display:none}
-#svis{position:absolute;left:calc(min(420px,30vw) + 78px);right:14px;top:20px;bottom:86px;
+#svis{position:absolute;left:calc(min(500px,35vw) + 60px);right:14px;top:20px;bottom:86px;
   pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;perspective:1400px}
 #svis .vin{width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:center;
   transition:transform .25s ease-out;transform-style:preserve-3d;will-change:transform}
@@ -743,7 +743,7 @@ const FSH=[
 ' uv.x+=uOff;',
 ' float inc=.42;',
 ' float cy=cos(uYaw),sy=sin(uYaw);',
-' vec3 ro0=vec3(0.,sin(inc),-cos(inc))*13.5;',
+' vec3 ro0=vec3(0.,sin(inc),-cos(inc))*15.2;',
 ' vec3 ro=vec3(ro0.x*cy-ro0.z*sy,ro0.y,ro0.x*sy+ro0.z*cy);',
 ' vec3 ww=normalize(-ro);vec3 uu=normalize(cross(vec3(0.,1.,0.),ww));vec3 vv=cross(ww,uu);',
 ' vec3 rd=normalize(uv.x*uu+uv.y*vv+2.15*uZoom*ww);',
@@ -1657,7 +1657,7 @@ MODES_IMPL.model={
  },
  draw(){
    if(!GL.on)txt('WebGL unavailable — physical render disabled',stageW()/2,SH/2,12,C.dim);
-   const cx=stageW()/2,cy=SH/2,scale=SH/2/(13.5/(2.15*GL.zoom));
+   const cx=stageW()/2,cy=SH/2,scale=SH/2/(15.2/(2.15*GL.zoom));
    const L=this.layers,t=World.t,W=sectorW();
    if(L.pol&&GL.on){
      const ep=Math.floor((RM?3:World.t/1.6)%9);
@@ -1677,12 +1677,14 @@ MODES_IMPL.model={
      const rx=scale*peak,ry=scale*peak*0.41;
      ctx.strokeStyle='rgba(176,138,245,.75)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-     mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+10,cy,8.5,'#b08af5','left');
+     ctx.strokeStyle='rgba(176,138,245,.5)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.moveTo(cx+rx,cy);ctx.lineTo(cx+rx+8,cy-3);ctx.stroke();
+     mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+11,cy-6,8.5,'#b08af5','left');
      if(S.mod.shift&&S.asm.heating<0.5){
        const p2=3.15,rx2=scale*p2,ry2=rx2*0.41;
        ctx.strokeStyle='rgba(190,160,255,.55)';ctx.setLineDash([2,5]);
        ctx.beginPath();ctx.ellipse(cx,cy,rx2,ry2,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-       mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2-10,cy+14,8,'#b08af5','right');
+       mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2*0.6,cy+ry2+18,8,'#b08af5','right');
      }
    }
    if(L.geo&&GL.on){
@@ -1698,11 +1700,11 @@ MODES_IMPL.model={
        const rx3=scale*rv/2,ry3=scale*rv/2*0.41;
        ctx.strokeStyle='rgba(150,200,240,.13)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
        ctx.beginPath();ctx.ellipse(cx,cy,rx3,ry3,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-       mono('r = '+rv+' r_g',cx+rx3*0.99+4,cy+4,6.8,'rgba(150,200,240,.5)','left');
+       mono('r = '+rv+' r_g',cx-rx3*0.83-6,cy+ry3*0.56+10,6.8,'rgba(150,200,240,.5)','right');
      });
      ctx.strokeStyle='rgba(150,200,240,.28)';ctx.lineWidth=1;ctx.setLineDash([6,5]);
      ctx.beginPath();ctx.moveTo(cx,cy-scale*2.9);ctx.lineTo(cx,cy+scale*2.9);ctx.stroke();ctx.setLineDash([]);
-     mono('SPIN AXIS · a/M = 0.94 · PROGRADE',cx+7,cy-scale*2.9+10,7,'rgba(150,200,240,.6)','left');
+     mono('SPIN AXIS · a/M = 0.94 · PROGRADE',cx+7,cy+scale*2.9-8,7,'rgba(150,200,240,.6)','left');
    }
    if(L.sane&&GL.on){
      ctx.save();ctx.setLineDash([3,5]);
@@ -1727,16 +1729,22 @@ MODES_IMPL.model={
      [-W,W].forEach(dd=>{const a=d2a(dd);
        ctx.strokeStyle='#8fb4dc';ctx.lineWidth=1.4;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-11),cy+Math.sin(a)*(rg-11));ctx.lineTo(cx+Math.cos(a)*(rg+11),cy+Math.sin(a)*(rg+11));ctx.stroke();});
+     for(let dg=-15;dg<=55;dg+=5){const a2=d2a(dg),maj=dg%15===0;
+       ctx.strokeStyle='rgba(150,200,240,'+(maj?'.5':'.22')+')';ctx.lineWidth=1;
+       ctx.beginPath();ctx.moveTo(cx+Math.cos(a2)*(rg+2),cy+Math.sin(a2)*(rg+2));
+       ctx.lineTo(cx+Math.cos(a2)*(rg+(maj?8:5)),cy+Math.sin(a2)*(rg+(maj?8:5)));ctx.stroke();
+       if(maj)mono(dg+'°',cx+Math.cos(a2)*(rg-17),cy+Math.sin(a2)*(rg-17)+3,6,'rgba(150,200,240,.45)');
+     }
      mono('GRMHD PERMITTED ±'+W+'° · 1,120 TRAJECTORIES',cx+Math.cos(d2a(-14))*(rg+4),cy+Math.sin(d2a(-14))*(rg+4)-14,8.2,'#8fb4dc','left');
      if(S.mod.alt){
        ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(130,170,215,.6)';ctx.lineWidth=1;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-19),d2a(19));ctx.stroke();ctx.setLineDash([]);
-       mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-30,8,'#8fb4dc');
+       mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-46,8,'#8fb4dc');
      }
      if(S.mod.shift&&W<41){
        ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(176,138,245,.8)';ctx.lineWidth=1.2;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-42),d2a(42));ctx.stroke();ctx.setLineDash([]);
-       mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-30,8,'#b08af5');
+       mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-62,8,'#b08af5');
      }
      let exited=false;
      for(let i=0;i<9;i++){
@@ -2000,6 +2008,31 @@ MODES_IMPL.memory={
      mono(v[1],X(v[0]),yT+56,8,hex2(C.clm,on?0.8:0.3));
    });
    mono('claim lineage',X(20),yT+72,7.5,C.dim);
+   /* evidence-on-hand step chart — what was known when each belief formed */
+   {const EV=[[300,1,'EHT RING'],[97,2,'MAGNETAR'],[88,3,'ALMA EP 1'],[66,4,null],[55,5,null],[44,6,'LAB R(βi)'],[33,7,'FLARE JOIN'],[0,8,'ALMA EP 9 · REVISED']];
+    const yB=yT+150,uh=9,nowX=X(S.scrubDay);
+    ctx.strokeStyle='rgba(150,200,240,.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x0-30,yB);ctx.lineTo(x1+30,yB);ctx.stroke();
+    for(let i=0;i<EV.length;i++){
+      const xa=X(EV[i][0]),xb=i<EV.length-1?X(EV[i+1][0]):x1+30,yv=yB-EV[i][1]*uh;
+      const seg=(xs,xe,dim2)=>{ctx.strokeStyle=dim2?'rgba(150,200,240,.16)':'rgba(46,200,245,.55)';ctx.lineWidth=1.3;
+        ctx.beginPath();ctx.moveTo(xs,yv);ctx.lineTo(xe,yv);ctx.stroke();};
+      if(nowX>=xb)seg(xa,xb,false);
+      else if(nowX<=xa)seg(xa,xb,true);
+      else{seg(xa,nowX,false);seg(nowX,xb,true);}
+      if(i<EV.length-1){ctx.strokeStyle='rgba(46,200,245,.3)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(xb,yv);ctx.lineTo(xb,yB-EV[i+1][1]*uh);ctx.stroke();}
+      if(EV[i][2])mono(EV[i][2],xa+3,yv-5,6,'rgba(125,156,184,.7)','left');
+    }
+    mono('EVIDENCE STREAMS ON HAND AT NOW · '+(function(){let v=1;EV.forEach(e=>{if(S.scrubDay<=e[0])v=e[1];});return v;})()+' / 8 — A BELIEF IS JUDGED AGAINST WHAT WAS KNOWABLE, NOT WHAT IS KNOWN',x0-30,yB+16,7,'rgba(125,156,184,.8)','left');
+   }
+   /* second armed predicate — S-201, condition not yet met */
+   {const b2=X(201),e2=X(0);
+    ctx.strokeStyle='rgba(125,156,184,.3)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
+    ctx.beginPath();ctx.moveTo(b2,yT-16);
+    ctx.bezierCurveTo(lerp(b2,e2,0.3),yT-62,lerp(b2,e2,0.7),yT-62,e2,yT-18);ctx.stroke();ctx.setLineDash([]);
+    mono('S-201 PREDICATE ARMED — REOPEN IF CORE SHIFT > 2σ · NOT MET',(b2+e2)/2,yT-68,6.5,'rgba(125,156,184,.6)');
+   }
    txt('SCIENTIFIC MEMORY — 412 reasoning states · beliefs carry their evidence context and expiry conditions',stageW()/2,118,9.5,C.dim,'center',800);
  },
  click(o){
@@ -3330,6 +3363,15 @@ const LIVEBIND={
    (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
+ sysref:()=>{const W=sectorW(),cn=containN(),pk=(lerp(2.05,3.15,S.asm.heating)*2).toFixed(1);
+   return '<table class="dtable"><tr><th>Parameter</th><th>Value</th><th>Provenance</th></tr>'+
+   [['Spin a/M','0.94 prograde','EHT ring morphology — measured'],
+    ['Inclination i','24°','photon-ring asymmetry — pinned'],
+    ['Emission peak','r ≈ '+pk+' r_g','recomputes with the heating prior'],
+    ['Permitted sector','±'+W+'°','union of 1,120 retained trajectories'],
+    ['Containment','<b>'+cn+' / 9</b>',cn===9?'<b style="color:'+C.ok+'">restored (preview)</b>':'exits at epoch '+(EP_VAL.findIndex(v=>v>W)+1)+' — never re-enters'],
+    ['Ensemble re-run',S.asm.heating>0.5?'<b style="color:'+C.ok+'">3/3 queued</b>':'0/3 queued','11 d · zero telescope hours']]
+   .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>';},
  epochs:()=>{const W=sectorW(),alt=S.mod.alt?1.6:1;
    return '<table class="dtable"><tr><th>#</th><th>Session</th><th>EVPA</th><th>σ</th><th>Residual</th><th></th></tr>'+
     EP_VAL.map((v,i)=>{const res=Math.max(0,v-W);
@@ -3435,7 +3477,8 @@ function stationsFor(mode){
     cap:'<b>Live instrument.</b> The containment gauge is embedded on the object: the breathing band is the permitted sector, ticks are the nine epochs, violet exits the boundary. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.',
     html:'<h2>One boundary of the physical model is broken — and the break is assumption-shaped.</h2>'+
      '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
-     '<p>The permitted sector is the union of 1,120 retained trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the S-277 heating convention. Stretch the prior in the figure — containment, ranking, claim and every number here recompute.</p>'},
+     '<p>The permitted sector is the union of 1,120 retained trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the S-277 heating convention. Stretch the prior in the figure — containment, ranking, claim and every number here recompute.</p>'+
+     '<div data-lv="sysref">'+LIVEBIND.sysref()+'</div>'},
    {id:'evpa',label:'Evidence vs prediction',sub:'the primary figure',vis:'evpa',
     html:'<h2>Nine measured epochs against the permitted sector.</h2>'+
      '<p>Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior — its width, the exit epoch and the ±42° preview update live with the slider on the system station.</p>'+
@@ -3495,6 +3538,11 @@ function stationsFor(mode){
     html:'<h2>Every belief is stored with its evidence context — and one expiry condition has fired.</h2>'+
      '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
      '<div class="acts"><button class="abtn" data-act="mem:replay">Replay the evolution</button><button class="abtn" data-act="act:react">Reactivate eligible branch</button></div>'+
+     '<table class="dtable"><tr><th>Expiry predicate</th><th>State</th><th>Condition</th></tr>'+
+     [['S-144 rejection','<b style="color:'+C.hyp+'">EXPIRED — fired at S-044</b>','reopen when a direct R(βi) measurement exists'],
+      ['S-201 rejection','armed — not met','reopen if the EHT core shift moves &gt; 2σ'],
+      ['S-097 adoption','<b style="color:'+C.asm+'">no predicate — silent</b>','never re-tested since adoption · flagged eroding']]
+     .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
      '<div>'+memHTML()+'</div>'},
    {id:'compare',label:'S-144 vs now',sub:'what changed is evidence',vis:null,
     html:'<h2>The S-144 rejection was correct then, and is obsolete now.</h2>'+
