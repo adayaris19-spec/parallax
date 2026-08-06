@@ -49,7 +49,7 @@ canvas{display:block}
 #brand .sim{display:inline-block;margin-left:10px;font-family:var(--m);font-size:7px;letter-spacing:.16em;
   color:var(--asm);border:1px dashed rgba(168,94,8,.55);padding:2px 6px;border-radius:3px;vertical-align:2px}
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-#dock{position:absolute;top:12px;left:calc((100% - 332px)/2);transform:translateX(-50%);display:flex;gap:2px;pointer-events:auto;
+#dock{position:absolute;top:12px;left:calc(50% - 80px);transform:translateX(-50%);display:flex;gap:2px;pointer-events:auto;
   background:rgba(250,253,255,.72);border:1px solid var(--line2);border-radius:10px;padding:4px;
   backdrop-filter:blur(12px);box-shadow:0 8px 30px -14px rgba(10,30,60,.4)}
 .dk{background:none;border:0;border-radius:7px;padding:8px 14px;cursor:pointer;text-align:center}
@@ -82,7 +82,7 @@ canvas{display:block}
 #vitals .note{font-family:var(--m);font-size:7.5px;color:var(--dim);letter-spacing:.06em}
 
 /* per-mode instrument controls (bottom center) */
-#ctl{position:absolute;left:calc((100% - 332px)/2);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
+#ctl{position:absolute;left:calc(50% - 80px);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
   pointer-events:auto;flex-wrap:wrap;justify-content:center;max-width:74vw}
 .cchip{background:rgba(250,253,255,.78);border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;
   font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--ink2);backdrop-filter:blur(8px)}
@@ -106,7 +106,7 @@ canvas{display:block}
 #insp .ih{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 #insp .ih .t{font-size:13px;font-weight:700;color:#0a1c30;line-height:1.4}
 #insp .ih .x{background:none;border:0;cursor:pointer;color:var(--dim);font-size:14px;padding:2px 4px}
-#insp .chips,#intel .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+#insp .chips,#intel .chips,.pcard .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .chip{display:inline-flex;align-items:center;font-family:var(--m);font-size:7.5px;letter-spacing:.14em;
   text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:3px;white-space:nowrap}
 .chip.ev{color:var(--ev);border-color:rgba(0,144,196,.5);background:rgba(0,144,196,.06)}
@@ -116,7 +116,7 @@ canvas{display:block}
 .chip.clm{color:var(--clm);border-color:rgba(22,32,47,.55);background:rgba(255,255,255,.65)}
 .chip.ok{color:var(--ok);border-color:rgba(27,125,79,.5);background:rgba(27,125,79,.06)}
 .chip.bad{color:var(--bad);border-color:rgba(176,54,54,.5);background:rgba(176,54,54,.06)}
-#insp .rows,#intel .rows{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+#insp .rows,#intel .rows,.pcard .rows{margin-top:10px;display:flex;flex-direction:column;gap:6px}
 .irow{display:flex;gap:8px;font-size:10.8px;line-height:1.5;color:var(--ink2)}
 .irow .ik{flex:none;width:88px;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
 .irow b{color:var(--ink);font-weight:650}
@@ -124,16 +124,16 @@ canvas{display:block}
 .ibar .b{flex:1;height:4px;border-radius:2px;background:rgba(13,40,70,.12);overflow:hidden}
 .ibar .b i{display:block;height:100%;border-radius:2px}
 .ibar .v{font-family:var(--m);font-size:8px;color:var(--ink2)}
-#insp details,#intel details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
-#insp summary,#intel summary{cursor:pointer;font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);list-style:none}
-#insp summary::before,#intel summary::before{content:'▸ ';color:var(--ev)}
-#insp details[open] summary::before,#intel details[open] summary::before{content:'▾ '}
-#insp details .db,#intel details .db{margin-top:7px;font-size:10.6px;line-height:1.65;color:var(--ink2)}
+#insp details,#intel details,.pcard details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+#insp summary,#intel summary,.pcard summary{cursor:pointer;font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);list-style:none}
+#insp summary::before,#intel summary::before,.pcard summary::before{content:'▸ ';color:var(--ev)}
+#insp details[open] summary::before,#intel details[open] summary::before,.pcard details[open] summary::before{content:'▾ '}
+#insp details .db,#intel details .db,.pcard details .db{margin-top:7px;font-size:10.6px;line-height:1.65;color:var(--ink2)}
 .mini{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 .mini .m{display:flex;gap:7px;align-items:baseline;font-size:10.2px;line-height:1.45;color:var(--ink2)}
 .mini .m .n{flex:none;font-family:var(--m);font-size:7.5px;color:#fff;border-radius:50%;width:14px;height:14px;
   display:inline-flex;align-items:center;justify-content:center}
-#insp .acts,#intel .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+#insp .acts,#intel .acts,.pcard .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .abtn{background:var(--surf);border:1px solid var(--line2);border-radius:6px;padding:6px 10px;cursor:pointer;
   font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 .abtn:hover{background:#fff;border-color:rgba(13,40,70,.45)}
@@ -171,10 +171,55 @@ details.grp>summary::before{content:'▸ ';color:var(--ev)}
 details.grp[open]>summary::before{content:'▾ '}
 details.grp>summary .lv{font-family:var(--m);font-size:6.8px;color:var(--ev)}
 details.grp>.gb{padding-top:6px}
-/* live intelligence panel — always on, recomputes with every manipulation */
-#intel{position:absolute;top:56px;right:0;bottom:0;width:332px;pointer-events:auto;overflow-y:auto;
-  background:rgba(248,252,255,.88);border-left:1px solid var(--line2);backdrop-filter:blur(16px);
-  padding:10px 14px 24px;scrollbar-width:thin;box-shadow:-12px 0 40px -30px rgba(10,30,60,.5)}
+/* ---- workspace intelligence: no sidebar — findings, activity, telemetry, floating cards ---- */
+#findings{position:absolute;top:66px;left:18px;width:308px;max-height:calc(100vh - 320px);overflow-y:auto;
+  pointer-events:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;z-index:11}
+#findings::-webkit-scrollbar{display:none}
+.fnd{background:rgba(250,253,255,.97);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;cursor:pointer;
+  backdrop-filter:blur(10px);box-shadow:0 8px 26px -18px rgba(10,30,60,.45)}
+.fnd .fh{display:flex;gap:8px;align-items:flex-start}
+.fnd .sv{flex:none;width:7px;height:7px;border-radius:50%;margin-top:4px}
+.fnd .ft{font-size:10.6px;line-height:1.5;color:var(--ink);font-weight:650}
+.fnd .fb{display:none;margin-top:6px}
+.fnd.open .fb{display:block}
+.fnd .fr{display:flex;gap:6px;font-size:9.8px;line-height:1.55;color:var(--ink2);padding:2px 0}
+.fnd .fr .fk{flex:none;width:64px;font-size:6.8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
+.fnd .prov{font-family:var(--m);font-size:7.4px;color:var(--dim);margin-top:4px}
+#activity{position:absolute;top:66px;right:16px;width:264px;pointer-events:auto;z-index:11}
+#activity .ah{display:flex;justify-content:space-between;align-items:center;font-size:7.2px;letter-spacing:.24em;
+  font-weight:800;color:var(--dim);text-transform:uppercase;padding:0 2px 5px}
+#activity .aw{display:flex;gap:5px;align-items:center;font-family:var(--m);font-size:6.8px;color:var(--ev)}
+#activity .aw i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(0,144,196,.9);animation:bl 2.2s infinite}
+#actList{display:flex;flex-direction:column;gap:3px;max-height:30vh;overflow:hidden}
+.ae{background:rgba(250,253,255,.93);border:1px solid var(--line);border-radius:6px;padding:4px 8px;
+  font-family:var(--m);font-size:8px;line-height:1.5;color:var(--calc);animation:fi .4s both;letter-spacing:.02em}
+.ae .at{color:var(--dim);margin-right:6px}
+.ae.hot{border-color:rgba(0,144,196,.55);color:var(--ev);background:rgba(0,144,196,.06)}
+.ae.warn{border-color:rgba(168,94,8,.5);color:var(--asm)}
+#telemetry{position:absolute;right:16px;bottom:16px;width:264px;pointer-events:auto;z-index:11;
+  background:rgba(250,253,255,.96);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;
+  backdrop-filter:blur(10px);box-shadow:0 10px 30px -18px rgba(10,30,60,.5)}
+#telemetry .th2{font-size:7.2px;letter-spacing:.24em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
+#telemetry .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+.tm{display:flex;justify-content:space-between;gap:6px;font-family:var(--m);font-size:8.2px;line-height:1.7;border-radius:3px;padding:0 3px}
+.tm .tk{color:var(--dim);letter-spacing:.02em}
+.tm .tv{color:var(--ink);font-weight:600;text-align:right}
+.tm.bad .tv{color:var(--bad)}.tm.ok .tv{color:var(--ok)}.tm.hy .tv{color:var(--hyp)}.tm.am .tv{color:var(--asm)}
+#chipsDock{position:absolute;right:16px;bottom:212px;width:264px;display:flex;flex-wrap:wrap;gap:4px;
+  pointer-events:auto;z-index:11;justify-content:flex-end}
+.ichip{background:rgba(250,253,255,.8);border:1px solid var(--line2);border-radius:6px;padding:4px 8px;cursor:pointer;
+  font-size:7.2px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+.ichip:hover{background:#fff;border-color:rgba(13,40,70,.45)}
+/* floating contextual cards — intelligence appears where you work */
+#cards{position:absolute;inset:0;pointer-events:none;z-index:20}
+.pcard{position:absolute;width:330px;max-height:52vh;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;
+  background:rgba(252,254,255,.95);border:1px solid var(--line2);border-radius:11px;padding:11px 14px;
+  backdrop-filter:blur(14px);box-shadow:0 20px 54px -22px rgba(10,30,60,.55);animation:fi .25s both}
+.pcard .ph2{display:flex;justify-content:space-between;align-items:center;cursor:grab;margin-bottom:6px}
+.pcard .ph2 .pt{font-size:7.4px;letter-spacing:.2em;font-weight:800;color:var(--ink2);text-transform:uppercase}
+.pcard .ph2 .px2{cursor:pointer;color:var(--dim);font-size:13px;padding:0 3px}
+#speakLive{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+#speakLive:empty{display:none}
 .isec{border-bottom:1px solid var(--line);padding:8px 0}
 .isec>.sh{display:flex;justify-content:space-between;align-items:center;font-size:7.4px;letter-spacing:.24em;
   font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
@@ -195,14 +240,14 @@ details.grp>.gb{padding-top:6px}
 #tip .th{font-weight:800;font-size:7.6px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:3px;color:#7fd4ff}
 #tip .tq{color:#9fc0d8;font-family:var(--m);font-size:7.4px;margin-top:4px;letter-spacing:.04em}
 /* hint line above ctl */
-#hint{position:absolute;left:calc((100% - 332px)/2);top:64px;transform:translateX(-50%);pointer-events:none;
+#hint{position:absolute;left:calc(50% - 80px);top:62px;transform:translateX(-50%);pointer-events:none;
   font-family:var(--m);font-size:8.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase;
   background:rgba(250,253,255,.6);padding:5px 12px;border-radius:6px;opacity:0;transition:opacity .5s;white-space:nowrap}
 #hint.on{opacity:1}
 #hint.dark{background:rgba(10,22,36,.6);color:#9fc0d8}
 
 /* briefing overlay card */
-#brief{position:absolute;top:76px;left:22px;width:360px;pointer-events:auto;background:rgba(252,254,255,.94);
+#brief{position:absolute;top:76px;left:340px;width:360px;pointer-events:auto;background:rgba(252,254,255,.94);
   border:1px solid var(--line2);border-radius:12px;padding:16px 18px;backdrop-filter:blur(14px);
   box-shadow:0 18px 50px -20px rgba(10,30,60,.5);display:none}
 #brief.on{display:block;animation:slidein .5s cubic-bezier(.2,.8,.2,1)}
@@ -257,8 +302,9 @@ details.grp>.gb{padding-top:6px}
 #cons .pb i{display:block;height:100%;background:var(--ev);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
 
 @media(max-width:900px){
-  #intel{display:none}
+  #findings,#activity,#telemetry,#chipsDock{display:none}
   #speak{width:min(430px,88vw);bottom:112px}
+  #brief{left:22px}
   #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto;left:50%}
   #ctl{left:50%}#hint{left:50%}
   .dk{padding:7px 9px}.dk .d{display:none}
@@ -285,15 +331,20 @@ details.grp>.gb{padding-top:6px}
   <button id="cmdHint">Command<b>/</b></button>
   <div id="ctl"></div>
   <div id="hint"></div>
-  <div id="intel"></div>
+  <div id="findings"></div>
+  <div id="activity"><div class="ah">SYSTEM ACTIVITY<span class="aw"><i></i>WORKING</span></div><div id="actList"></div></div>
+  <div id="chipsDock"></div>
+  <div id="telemetry"></div>
+  <div id="cards"></div>
   <div id="brief"></div>
   <div id="speak">
     <div class="sq" id="speakEcho"></div>
     <div class="srow">
       <span class="sind"><i></i></span>
-      <input id="speakIn" placeholder="Think aloud — PARALLAX verifies every sentence against the live model…" autocomplete="off" spellcheck="false">
+      <input id="speakIn" placeholder="Think aloud — PARALLAX analyses while you type…" autocomplete="off" spellcheck="false">
       <span class="skey">↵</span>
     </div>
+    <div id="speakLive"></div>
   </div>
   <div id="tip"></div>
 </div>
@@ -642,7 +693,7 @@ function glFrame(t){
   gl.uniform1f(GL.u.uHeat,GL.heat);gl.uniform1f(GL.u.uField,GL.field);
   gl.uniform1f(GL.u.uScreen,GL.screen);gl.uniform1f(GL.u.uScrVar,GL.scrVar);
   gl.uniform1f(GL.u.uYaw,GL.yaw);gl.uniform1f(GL.u.uZoom,GL.zoom);
-  gl.uniform1f(GL.u.uOff,innerWidth>900?(166*bw/innerWidth)*2/bh:0);
+  gl.uniform1f(GL.u.uOff,innerWidth>900?(80*bw/innerWidth)*2/bh:0);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 function glSet(on){
@@ -665,7 +716,7 @@ let SW=0,SH=0,DPR=1;
 function sresize(){DPR=Math.min(devicePixelRatio||1,2);SW=innerWidth;SH=innerHeight;
   stage.width=SW*DPR;stage.height=SH*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',sresize);sresize();
-function stageW(){return innerWidth>900?SW-332:SW;}
+function stageW(){return innerWidth>900?SW-160:SW;}
 const World={objs:[],t:0};
 function findObj(id){return World.objs.find(o=>o.id===id&&!o.dead);}
 function spawn(o){
@@ -674,7 +725,7 @@ function spawn(o){
   o.s=o.s!==undefined?o.s:0.6; o.tsc=1;
   World.objs.push(o);return o;
 }
-function clearMode(){World.objs.forEach(o=>{o.ta=0;o.dead=true;});}
+function clearMode(){World.objs.forEach(o=>{o.ta=0;o.dead=true;o.a=Math.min(o.a,0.45);});}
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
   ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function txt(t,x,y,size,col,align,weight,ls){
@@ -698,8 +749,15 @@ function link(x1,y1,x2,y2,col,a,w,dash){
 /* ------- inspector (progressive disclosure) ------- */
 let SEL=null;
 const FOCUS={title:null,html:null};
-function inspect(html){if(!html){FOCUS.title=null;FOCUS.html=null;SEL=null;}else FOCUS.html=html;renderIntel();}
-function inspTitle(t){FOCUS.title=t;renderIntel();}
+function inspect(html){
+  if(!html){FOCUS.title=null;FOCUS.html=null;SEL=null;if(typeof closeCard==='function')closeCard('focus');return;}
+  FOCUS.html=html;
+  const px=(PTR.x>4||PTR.y>4)?PTR.x+20:340, py=(PTR.x>4||PTR.y>4)?PTR.y-40:SH-430;
+  popCard('focus',FOCUS.title||'INSPECTOR',html,px,py);
+  const c=CARDS['focus'];
+  if(c){c.el.style.left=clamp(px,12,SW-350)+'px';c.el.style.top=clamp(py,64,SH-300)+'px';}
+}
+function inspTitle(t){FOCUS.title=t;if(FOCUS.html)popCard('focus',t,FOCUS.html);}
 function ibar(v,col){return '<div class="ibar"><div class="b"><i style="width:'+(v*100).toFixed(0)+'%;background:'+col+'"></i></div><span class="v">'+(v*100).toFixed(0)+'%</span></div>';}
 function irow(k,v){return '<div class="irow"><span class="ik">'+k+'</span><span>'+v+'</span></div>';}
 function minirows(arr){return '<div class="mini">'+arr.map((r,i)=>'<div class="m"><span class="n" style="background:'+C[r[1]]+'">'+(i+1)+'</span><span><b style="color:'+C[r[1]]+'">'+r[0]+'</b> — '+r[2]+'</span></div>').join('')+'</div>';}
@@ -743,88 +801,220 @@ function dataBlock(){
 function keyFindings(){
   const W=sectorW(),cn=containN(),r=ranked(),lead=r[0];
   const F=[];
-  F.push({sv:cn===9?0.3:0.95,t:cn===9?'Containment restored: all 9 epochs inside the laboratory-informed ±'+W+'° sector (pending ensemble re-run).':'The selected model family fails: the trajectory exits the ±'+W+'° sector at epoch '+(EP_VAL.findIndex(v=>v>W)+1)+' and never re-enters.',
-    b:'3/3 retained sub-regions tested. Residual at epoch 9: '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'°. Calibration doubled still leaves 3.1σ — this is a boundary property, not measurement error.',
-    p:'ALMA band-6 v4.2 · 1,120 library trajectories · counterfactual engine',act:'go:model'});
+  F.push({sv:cn===9?0.3:0.95,
+    t:cn===9?'Containment restored: all 9 epochs inside the ±'+W+'° laboratory-informed sector.':'The selected model family fails: the trajectory exits the ±'+W+'° sector at epoch '+(EP_VAL.findIndex(v=>v>W)+1)+'.',
+    why:'The boundary is 83 % controlled by the inherited heating prescription — an unmeasured convention from S-277. Calibration doubled still leaves 3.1σ.',
+    ev:'9 ALMA epochs (±6°, ×2 pipelines) vs 1,120 library trajectories · 3/3 sub-regions tested · residual at epoch 9: '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'°',
+    conf:cn===9?'high, pending ensemble re-run (11 d, zero telescope)':'4.5σ — boundary property, not measurement error',
+    next:cn===9?'schedule the re-run; hold telescope requests':'re-run 3 members with the lab-informed prior — 64 % volume eliminated free',
+    p:'ALMA band-6 v4.2 · containment engine',act:'go:model'});
   const lit=litAgreement();
-  if(S.asm.screen==='static'&&lit.conflicts.length)F.push({sv:0.8,t:'Your static-screen assumption rests on contested literature: '+lit.conflicts[0].label+'.',
-    b:lit.conflicts[0].detail+' The S-097 adoption inherited this dispute silently — no admitted evidence resolves it at current epochs.',
-    p:'autonomous literature comparison · '+PAPERS.length+' sources · tension in σ units',act:'sub:watch:lit'});
-  F.push({sv:S.memoryLive?0.35:0.7,t:S.memoryLive?'The S-144 heating branch is reactivated and now leads the ranking.':'A rejected hypothesis became eligible: the S-144 heating rejection condition expired at S-044.',
-    b:'Rejected because no measurement constrained R at βi ≈ 1; the laboratory partition (R = 7.9 ± 1.6) is exactly that measurement. Reactivation adds an edge — it rewrites nothing.',
-    p:'scientific memory · machine-checked expiry predicates',act:'go:memory'});
-  F.push(S.xmatchRun?{sv:0.3,t:'The free decisive test returned null: no flare–EVPA correlation (r = 0.04 ± 0.09).',
-    b:'The eruption configuration predicted flare-locked excursions inside 6 overlap windows; the signature is absent. The leading claim predicted this null and obtained it.',
-    p:'archival cross-match · 14 catalogues · 2σ covariance windows',act:'go:analyze'}
-   :{sv:0.75,t:'A decisive test is available free: 34 archival X-ray flares overlap six epochs, never cross-referenced.',
-    b:'Eruption-driven drift must be flare-locked. Six 2σ windows exist; window 4 holds nine flares. A null removes one configuration; a correlation destroys the leading claim.',
-    p:'autonomous archival scan · zero observing cost',act:'act:xmatch'});
-  if(S.claimCollapsed)F.push({sv:0.9,t:'The working claim is collapsed: its subject (the observation) is detached.',b:'Reattach component 1 to rebuild. Every downstream structure is suspended.',p:'claim structure engine',act:'go:claim'});
-  else F.push({sv:S.audited?0.35:0.55,t:S.audited?'Claim v3 survives adversarial review with 2 critical dependencies (screen · lab mapping).':'Claim v3 is '+(S.attached.size===9?'assembled but not yet audited against referee attack.':'incomplete — '+S.attached.size+' / 9 components attached.'),
-    b:'Under attack it contracts to “the failure is real and assumption-controlled,” which stands on replicated evidence alone.',p:'referee simulation · 8 attack classes',act:'sub:claim:referee'});
+  if(S.asm.screen==='static'&&lit.conflicts.length)F.push({sv:0.8,
+    t:'Your static-screen assumption rests on contested literature ('+lit.conflicts[0].a+' vs '+lit.conflicts[0].b+', '+lit.conflicts[0].t.toFixed(1)+'σ).',
+    why:'S-097 adopted screen stability from the B18/W20 cluster; D21 disputes it at '+lit.conflicts[0].t.toFixed(1)+'σ and the dispute was inherited silently.',
+    ev:PAPERS.length+' sources · '+lit.pairs+' pairwise comparisons · '+lit.conflicts.length+' contradictions standing',
+    conf:'assumption-level exposure — 3 downstream conclusions inherit it',
+    next:'declare the premise inside the claim, or bound it with the 7-day magnetar cadence',
+    p:'literature agreement engine',act:'sub:watch:lit'});
+  F.push({sv:S.memoryLive?0.35:0.7,
+    t:S.memoryLive?'The S-144 heating branch is reactivated and leads the ranking.':'A rejected hypothesis became eligible: the S-144 rejection condition expired.',
+    why:'Rejected for lack of any heating-partition measurement; the S-044 laboratory result (R = 7.9 ± 1.6 at βi ≈ 0.9) is exactly that measurement.',
+    ev:'machine-checked expiry predicate · laboratory point unreplicated (confidence 34 %)',
+    conf:S.memoryLive?'live configuration — carries its rejection context':'eligibility flagged, not auto-promoted',
+    next:S.memoryLive?'quantify with the ensemble re-run':'reactivate from Memory, or by speaking the hypothesis aloud',
+    p:'scientific memory engine',act:'go:memory'});
+  F.push(S.xmatchRun?{sv:0.3,
+    t:'The free decisive test returned null: no flare–EVPA correlation (r = 0.04 ± 0.09).',
+    why:'Eruption-driven drift must be flare-locked; the signature is absent across all 6 overlap windows.',
+    ev:'34 archival flares · 14 catalogues · 2σ covariance windows',
+    conf:'eruption configuration demoted to '+(HYPS[1].s*100).toFixed(0)+'%',
+    next:'fold the null into the claim (done automatically); proceed to the re-run',
+    p:'archival cross-match engine',act:'go:analyze'}
+   :{sv:0.75,
+    t:'A decisive test is available free: 34 archival X-ray flares overlap six epochs, never cross-referenced.',
+    why:'If the drift is eruption-driven it must correlate with flare timing; window 4 alone holds nine flares.',
+    ev:'6 overlap windows at 2σ · public data · zero observing cost',
+    conf:'decisive against one configuration either way',
+    next:'execute the cross-match now',
+    p:'autonomous archival scan',act:'act:xmatch'});
+  if(S.claimCollapsed)F.push({sv:0.9,t:'The working claim is collapsed: its subject is detached.',
+    why:'Component 1 (the observation) is structural — without it the claim is about nothing.',
+    ev:'claim structure engine · support '+(supportScore()*100).toFixed(0)+'%',conf:'suspended',
+    next:'reattach the observation to rebuild',p:'claim engine',act:'go:claim'});
+  else F.push({sv:S.audited?0.35:0.55,
+    t:S.audited?'Claim v3 survives referee simulation with 2 exposures (screen · lab mapping).':'Claim v3 is '+(S.attached.size===9?'assembled and awaiting referee simulation.':'incomplete — '+S.attached.size+' / 9 components attached.'),
+    why:'Under attack it contracts to “the failure is real and assumption-controlled,” which stands on replicated evidence alone.',
+    ev:'8 attack classes · 6 ranked objections · severities live with model state',
+    conf:S.audited?'survives conditionally':'unaudited',
+    next:S.audited?'address the two exposures before submission':'run the referee simulation',
+    p:'referee simulation engine',act:'sub:claim:referee'});
   F.sort((a,b)=>b.sv-a.sv);
   return F;
 }
-function grp(key,title,body,live){
-  return '<details class="grp" data-k="'+key+'"><summary>'+title+(live?'<span class="lv">● LIVE</span>':'')+'</summary><div class="gb">'+body+'</div></details>';
+/* ---------------- floating contextual cards — intelligence where you work ---------------- */
+const CARDS={};let cardZ=30;
+function dragify(el){
+  const h=el.querySelector('.ph2');
+  h.addEventListener('pointerdown',e=>{
+    if(e.target.closest('[data-cclose]'))return;
+    const sx=e.clientX-el.offsetLeft,sy=e.clientY-el.offsetTop;
+    el.style.zIndex=++cardZ;
+    const mv=ev=>{el.style.left=clamp(ev.clientX-sx,8,SW-200)+'px';el.style.top=clamp(ev.clientY-sy,60,SH-120)+'px';};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);
+  });
+}
+function popCard(id,title,html,x,y,render){
+  let c=CARDS[id];
+  if(!c){
+    const el=document.createElement('div');el.className='pcard';
+    $('#cards').appendChild(el);
+    el.style.left=clamp((x===undefined?SW/2-165:x),12,SW-350)+'px';
+    el.style.top=clamp((y===undefined?130:y),64,SH-280)+'px';
+    CARDS[id]={el,render:null};c=CARDS[id];
+  }
+  if(render!==undefined)c.render=render;
+  c.el.style.zIndex=++cardZ;
+  c.el.innerHTML='<div class="ph2"><span class="pt">'+title+'</span><span class="px2" data-cclose="'+id+'">✕</span></div><div class="pb2">'+html+'</div>';
+  dragify(c.el);
+}
+function closeCard(id){const c=CARDS[id];if(c){c.el.remove();delete CARDS[id];}}
+function refreshCards(){
+  Object.keys(CARDS).forEach(id=>{
+    const c=CARDS[id];if(!c.render)return;
+    const r=c.render();
+    const b=c.el.querySelector('.pb2'),t2=c.el.querySelector('.pt');
+    if(b)b.innerHTML=r.html;if(t2)t2.textContent=r.title;
+  });
+}
+document.addEventListener('click',e=>{
+  const x2=e.target.closest('[data-cclose]');
+  if(x2){const id=x2.dataset.cclose;closeCard(id);
+    if(id==='focus'){FOCUS.title=null;FOCUS.html=null;SEL=null;}return;}
+  const ch=e.target.closest('[data-ipanel]');
+  if(ch){openLivePanel(ch.dataset.ipanel,e.clientX-340,e.clientY-200);return;}
+  const fd=e.target.closest('.fnd');
+  if(fd&&!e.target.closest('[data-act]'))fd.classList.toggle('open');
+});
+/* ---------------- live intelligence panels (one click, never a sidebar) ---------------- */
+const PANELS={
+ evidence:()=>{const lead=ranked()[0];return {title:'Evidence · reliability — live',html:
+   DATASETS.map(d=>{const off=S.removed[d.id]||(S.droplab&&d.id==='lab');const rel=EVMAT[lead.id][d.id];
+     return ir2('ev.'+d.id,d.id,(off?'<s>':'<b>')+d.n+(off?'</s>':'</b>')+' · replication confidence <b>'+REPCONF[d.id]+'%</b><br>'+
+       (off?chip('bad','excluded'):chip(d.p))+' '+(d.rep?chip('ok','×2'):chip('asm','unrep'))+(off?'':' '+(rel>0?chip('ev','supports leading'):rel<0?chip('asm','conflicts leading'):chip('calc','silent'))));}).join('')};},
+ literature:()=>{const lit=litAgreement();return {title:'Literature · source agreement — live',html:
+   ir2('lit.n','Scanned',PAPERS.length+' sources · '+lit.pairs+' comparisons · '+lit.conflicts.length+' contradictions')+
+   lit.conflicts.map((c2,i)=>ir2('lit.c'+i,c2.t.toFixed(1)+'σ','<b>'+c2.label+'</b> — '+c2.detail)).join('')+
+   ir2('lit.a','Agreement',lit.agree.join(' · '))+
+   '<div class="acts"><button class="abtn sm" data-act="sub:watch:lit">Open instrument</button></div>'};},
+ contradictions:()=>{const contra=[];
+   if(S.removed.alma)contra.push(['fatal','No subject — the trajectory itself is excluded.']);
+   contra.push(S.xmatchRun?['resolved','Flare–EVPA null obtained — eruption signature absent.']:['open','Monotonic drift vs stochastic eruptions — decidable free.']);
+   contra.push(S.asm.screen==='static'?['standing','Flat magnetar vs common screen: needs 12× the RM bound.']:['granted','Variable screen granted sub-0.1 pc structure.']);
+   if(S.droplab||S.removed.lab)contra.push(['standing','Heating extension has no basis — mapping absent.']);
+   contra.push(['literature','D21 vs B18: 4.0σ on RM stability — feeds your screen premise.']);
+   return {title:'Contradictions — live',html:contra.map((c2,i)=>ir2('ct.'+i,c2[0],c2[1])).join('')};},
+ assumptions:()=>({title:'Assumptions — click to change',html:
+   ir2('as.scr','Screen','<span class="togl" data-act="asm:screen"><b>'+S.asm.screen+'</b> — click to '+(S.asm.screen==='static'?'release':'restore')+'</span> · 3 dependents · literature-contested (D21)')+
+   ir2('as.heat','Heating','<b>±'+sectorW()+'° sector</b> · '+(S.asm.heating<0.15?'inherited R_high = 40 (S-277, unmeasured)':S.asm.heating>0.85?'laboratory-informed R ≲ 8 (S-044)':'prior partially widened')+' · 83 % variance · 4 dependents')+
+   '<div class="acts"><button class="abtn sm" data-act="sub:model:graph">Dependency graph</button><button class="abtn sm" data-act="sub:model:sens">Sensitivity</button><button class="abtn sm" data-act="sub:model:uncert">Uncertainty chain</button></div>'}),
+ experiments:()=>{const E=experiments();return {title:'Experiments · optimization — live',html:
+   E.map((x,i)=>ir2('ex.'+x.id,'#'+(i+1),'<b>'+x.n+'</b>'+ibar(x.p,C.clm)+'<span style="font-size:8.6px;color:var(--dim)">'+x.c+' · '+x.tag+'</span>')).join('')+
+   '<div class="acts"><button class="abtn sm" data-act="sub:analyze:pareto">Cost–yield frontier</button></div>'};},
+ claim:()=>({title:'Working claim — rewrites live',html:
+   ir2('cl.txt','Text','<b>'+claimSentence()+'</b>')+
+   ir2('cl.int','Integrity',S.attached.size+' / 9'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation conditionally':' · unaudited'))+
+   ir2('cl.pr','Predictions','230→345 GHz scaling <i>untested</i> · flare null '+(S.xmatchRun?'<b>obtained</b>':'<i>untested</i>'))+
+   '<div class="acts"><button class="abtn sm" data-act="go:claim">Open structure</button><button class="abtn sm" data-act="sub:claim:referee">Referee simulation</button></div>'}),
+ data:()=>({title:'Data — '+S.mode,html:dataBlock()}),
+ method:()=>({title:'Method · provenance — '+S.mode,html:'<div class="dt">'+METHODS[S.mode].join('\n')+'</div><div class="dt" style="margin-top:5px;color:var(--dim)" id="liveCounters">'+counterLine()+'</div>'})};
+function openLivePanel(key,x,y){
+  const b=PANELS[key];if(!b)return;
+  const r=b();
+  popCard('lp_'+key,r.title,r.html,x,y,b);
+}
+/* ---------------- workspace intelligence renderers ---------------- */
+function renderFindings(){
+  const holder=$('#findings');
+  const open=new Set(Array.from(holder.querySelectorAll('.fnd.open')).map(d=>d.dataset.fk));
+  const anyOpen=holder.querySelectorAll('.fnd').length>0;
+  holder.innerHTML=keyFindings().map((f,i)=>
+    '<div class="fnd'+((open.has('f'+i)||(!anyOpen&&i===0))?' open':'')+iflash('kf.'+i,f.t)+'" data-fk="f'+i+'">'+
+    '<div class="fh"><span class="sv" style="background:'+(f.sv>0.7?C.bad:f.sv>0.5?C.asm:C.ok)+'"></span><span class="ft">'+f.t+'</span></div>'+
+    '<div class="fb">'+
+    '<div class="fr"><span class="fk">Why</span><span>'+f.why+'</span></div>'+
+    '<div class="fr"><span class="fk">Evidence</span><span>'+f.ev+'</span></div>'+
+    '<div class="fr"><span class="fk">Confidence</span><span>'+f.conf+'</span></div>'+
+    '<div class="fr"><span class="fk">Next</span><span><b>'+f.next+'</b></span></div>'+
+    '<div class="prov">'+f.p+'</div>'+
+    '<div class="acts" style="margin-top:5px"><button class="abtn sm" data-act="'+f.act+'">Open instrument</button></div>'+
+    '</div></div>').join('');
+}
+function renderTelemetry(){
+  const W=sectorW(),cn=containN(),r=ranked();
+  const sig=(41-W)/6.7;
+  const lit=litAgreement();
+  const rows=[
+   ['CONTAIN',cn+'/9',cn===9?'ok':'bad'],['SECTOR','±'+W+'°',''],
+   ['EXIT σ',sig<=0?'—':sig.toFixed(1),sig<=0?'ok':'bad'],['HEAT PRIOR',(S.asm.heating*100).toFixed(0)+'%','am'],
+   ['SCREEN',S.asm.screen==='static'?'STATIC':'VARIABLE','am'],['LIT CONFL',lit.conflicts.length,'bad'],
+   ['COV·HEAT',(HYPS[0].s*100).toFixed(0)+'%','hy'],['COV·ERUPT',(HYPS[1].s*100).toFixed(0)+'%','hy'],
+   ['COV·SCREEN',(HYPS[2].s*100).toFixed(0)+'%','hy'],['XMATCH r',S.xmatchRun?'0.04':'—',S.xmatchRun?'ok':''],
+   ['CLAIM',S.attached.size+'/9',S.claimCollapsed?'bad':''],['SUPPORT',(supportScore()*100).toFixed(0)+'%',''],
+   ['SURVIVAL',(W>=42?64:S.asm.screen==='variable'?9:18)+'%',''],['REFEREE',S.audited?'COND':'—',S.audited?'ok':''],
+   ['REP·MIN','34%','am'],['RECORDS',(S.counters.rec/1000).toFixed(1)+'k','']];
+  $('#telemetry').innerHTML='<div class="th2"><span>MODEL TELEMETRY</span><span>S-000 LIVE</span></div><div class="tgrid">'+
+   rows.map(rw=>'<div class="tm '+rw[2]+iflash('tm.'+rw[0],rw[1])+'"><span class="tk">'+rw[0]+'</span><span class="tv">'+rw[1]+'</span></div>').join('')+'</div>';
+}
+function renderChipsDock(){
+  $('#chipsDock').innerHTML=['evidence','literature','contradictions','assumptions','experiments','claim','data','method']
+   .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
 }
 function renderIntel(){
   if(S.phase!=='live')return;
-  const panel=$('#intel');
-  const openKeys=new Set(Array.from(panel.querySelectorAll('details.grp[open]')).map(d=>d.dataset.k));
-  const openKf=new Set(Array.from(panel.querySelectorAll('.kf.open')).map(d=>d.dataset.kf));
-  const r=ranked(),lead=r[0],W=sectorW();
-  let h='';
-  if(FOCUS.html)h+='<div class="isec"><div class="sh"><span>FOCUS'+(FOCUS.title?' · '+esc2(FOCUS.title):'')+'</span><span style="cursor:pointer" data-act="insp:close">✕</span></div>'+FOCUS.html+'</div>';
-  /* 1 — conclusions first, ranked by severity, drill-down inline */
-  h+='<div class="isec"><div class="sh"><span>KEY FINDINGS — RANKED</span><span class="lv">● LIVE</span></div>'+
-    keyFindings().map((f,i)=>'<div class="kf'+((openKf.has('kf'+i)||i===0)?' open':'')+iflash('kf.'+i,f.t)+'" data-kf="kf'+i+'">'+
-      '<span class="sv" style="background:'+(f.sv>0.7?C.bad:f.sv>0.5?C.asm:C.ok)+'"></span>'+
-      '<span><span class="kt">'+f.t+'</span><span class="kb">'+f.b+'<div class="prov">'+f.p+'</div>'+
-      '<div class="acts" style="margin-top:6px"><button class="abtn sm" data-act="'+f.act+'">Open instrument</button></div></span></span></div>').join('')+'</div>';
-  /* 2 — leading explanation state */
-  h+='<div class="isec">'+
-    ir2('res.lead','Leading','<b>'+lead.n+'</b>'+ibar(lead.s,C.hyp))+
-    ir2('res.next','Then',r[1].id+' '+(r[1].s*100).toFixed(0)+'% · '+r[2].id+' '+(r[2].s*100).toFixed(0)+'%')+
-    ir2('res.claim','Claim','<b>'+claimSentence()+'</b>')+'</div>';
-  /* 3 — drill-down groups (state preserved across recomputes) */
-  const openG=k=>openKeys.has(k)?' open':'';
-  let g='';
-  g+='<details class="grp'+'" data-k="ev"'+(openKeys.has('ev')?' open':'')+'><summary>Evidence · reliability'+'<span class="lv">● LIVE</span></summary><div class="gb">'+
-    DATASETS.map(d=>{const off=S.removed[d.id]||(S.droplab&&d.id==='lab');
-      const rel=EVMAT[lead.id][d.id];
-      return ir2('ev.'+d.id,d.id,(off?'<s>':'<b>')+d.n+(off?'</s>':'</b>')+' · replication confidence <b>'+REPCONF[d.id]+'%</b><br>'+
-        (off?chip('bad','excluded'):chip(d.p))+' '+(d.rep?chip('ok','×2'):chip('asm','unrep'))+(off?'':' '+(rel>0?chip('ev','supports leading'):rel<0?chip('asm','conflicts leading'):chip('calc','silent'))));}).join('')+'</div></details>';
-  const lit=litAgreement();
-  g+='<details class="grp" data-k="lit"'+(openKeys.has('lit')?' open':'')+'><summary>Literature · source agreement<span class="lv">● LIVE</span></summary><div class="gb">'+
-    ir2('lit.n','Scanned',PAPERS.length+' sources · '+lit.pairs+' pairwise comparisons · '+lit.conflicts.length+' contradictions')+
-    lit.conflicts.map((c2,i)=>ir2('lit.c'+i,c2.t.toFixed(1)+'σ','<b>'+c2.label+'</b> — '+c2.detail)).join('')+
-    ir2('lit.a','Agreement',lit.agree.join(' · '))+
-    '<div class="acts"><button class="abtn sm" data-act="sub:watch:lit">Open agreement instrument</button></div></div></details>';
-  const contra=[];
-  if(S.removed.alma)contra.push(['fatal','No subject — the trajectory itself is excluded.']);
-  contra.push(S.xmatchRun?['resolved','Flare–EVPA null obtained — eruption signature absent.']:['open','Monotonic drift vs stochastic eruptions — decidable free.']);
-  contra.push(S.asm.screen==='static'?['standing','Flat magnetar vs common screen: needs 12× the RM bound.']:['granted','Variable screen granted sub-0.1 pc structure.']);
-  if(S.droplab||S.removed.lab)contra.push(['standing','Heating extension has no basis — mapping absent.']);
-  g+='<details class="grp" data-k="ct"'+(openKeys.has('ct')?' open':'')+'><summary>Contradictions<span class="lv">● LIVE</span></summary><div class="gb">'+contra.map((c2,i)=>ir2('ct.'+i,c2[0],c2[1])).join('')+'</div></details>';
-  g+='<details class="grp" data-k="as"'+(openKeys.has('as')?' open':'')+'><summary>Assumptions<span class="lv">● LIVE</span></summary><div class="gb">'+
-    ir2('as.scr','Screen','<span class="togl" data-act="asm:screen"><b>'+S.asm.screen+'</b> — click to '+(S.asm.screen==='static'?'release':'restore')+'</span> · 3 dependents · literature-contested (D21)')+
-    ir2('as.heat','Heating','<b>±'+W+'° sector</b> · '+(S.asm.heating<0.15?'inherited R_high = 40 (S-277, unmeasured)':S.asm.heating>0.85?'laboratory-informed R ≲ 8 (S-044)':'prior partially widened')+' · 83 % variance · 4 dependents')+
-    '<div class="acts"><button class="abtn sm" data-act="sub:model:graph">Dependency graph</button><button class="abtn sm" data-act="sub:model:sens">Sensitivity</button></div></div></details>';
-  const E=experiments();
-  g+='<details class="grp" data-k="ex"'+(openKeys.has('ex')?' open':'')+'><summary>Experiments · optimization<span class="lv">● LIVE</span></summary><div class="gb">'+
-    E.map((x,i)=>ir2('ex.'+x.id,'#'+(i+1),'<b>'+x.n+'</b>'+ibar(x.p,C.clm)+'<span style="font-size:8.6px;color:var(--dim)">'+x.c+' · '+x.tag+'</span>')).join('')+
-    '<div class="acts"><button class="abtn sm" data-act="sub:analyze:pareto">Cost–yield frontier</button></div></div></details>';
-  g+='<details class="grp" data-k="dt"'+(openKeys.has('dt')?' open':'')+'><summary>Data — '+S.mode+'</summary><div class="gb">'+dataBlock()+'</div></details>';
-  g+='<details class="grp" data-k="mt"'+(openKeys.has('mt')?' open':'')+'><summary>Method · provenance</summary><div class="gb"><div class="dt">'+METHODS[S.mode].join('\n')+'</div>'+
-    '<div class="dt" style="margin-top:5px;color:var(--dim)" id="liveCounters">'+counterLine()+'</div></div></details>';
-  h+=g;
-  panel.innerHTML=h;
+  renderFindings();renderTelemetry();renderChipsDock();refreshCards();
 }
-document.addEventListener('click',e=>{
-  const kf=e.target.closest('.kf');
-  if(kf&&!e.target.closest('[data-act]'))kf.classList.toggle('open');
-});
+/* ---------------- system activity — PARALLAX is always working ---------------- */
+const ACTQ=[];
+function clock(){const t=2*3600+14*60+7+Math.floor(World.t);
+  return String(Math.floor(t/3600)).padStart(2,'0')+':'+String(Math.floor(t%3600/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
+function postEvent(txt,cls){
+  ACTQ.unshift({t:clock(),txt,cls:cls||''});
+  if(ACTQ.length>8)ACTQ.pop();
+  const el=$('#actList');
+  if(el)el.innerHTML=ACTQ.map(a=>'<div class="ae '+a.cls+'"><span class="at">'+a.t+'</span>'+a.txt+'</div>').join('');
+}
+const AMBIENT=[
+ ()=>{const n=3+Math.floor(Math.random()*14);S.counters.rec+=n;return ['perimeter scan — '+n+' records evaluated · 0 material',''];},
+ ()=>['literature watch — '+PAPERS.length+' sources · '+litAgreement().conflicts.length+' contradictions stable',''],
+ ()=>['ensemble watch — 1,120 trajectories · no numerical drift',''],
+ ()=>['memory expiry scan — 412 states · '+(S.memoryLive?'0':'1')+' eligible branch',''],
+ ()=>['hidden-connection residuals unchanged — 0.11 · 0.38 · 0.55 · 0.61',''],
+ ()=>['magnetar feed nominal — ΔRM 0.3 % (bound 3 %)',''],
+ ()=>['referee model idle — '+refereeSim().filter(o=>o.st.startsWith('exposed')).length+' exposures standing','warn'],
+ ()=>['uncertainty chain verified — exit '+((41-sectorW())/6.7<=0?'contained':((41-sectorW())/6.7).toFixed(1)+'σ'),''],
+ ()=>['claim v3 recomputed — support '+(supportScore()*100).toFixed(0)+'%','']];
+let ambI=0;
+setInterval(()=>{
+  if(S.phase!=='live'||document.hidden)return;
+  const f=AMBIENT[ambI++%AMBIENT.length];
+  const r=f();postEvent(r[0],r[1]);
+  const el=document.getElementById('liveCounters');
+  if(el)el.innerHTML=counterLine();
+},RM?8000:4600);
+function postEventForAction(a){
+  const p=a.split(':');
+  if(p[0]==='sub')postEvent('instrument armed — '+p[1]+':'+p[2],'hot');
+  else if(p[0]==='asm')postEvent('assumption changed — 31 nodes recomputed · leading '+ranked()[0].id+' '+(ranked()[0].s*100).toFixed(0)+'%','hot');
+  else if(p[0]==='act'&&p[1]==='xmatch')postEvent('cross-match executed — r = 0.04 ± 0.09 · eruption demoted','hot');
+  else if(p[0]==='act'&&p[1]==='react')postEvent('S-144 branch reactivated — reasoning graph rewired','hot');
+  else if(p[0]==='clm')postEvent('claim structure changed — support '+(supportScore()*100).toFixed(0)+'% · '+S.attached.size+'/9','hot');
+  else if(p[0]==='ref')postEvent('referee simulation running — 6 objections queued','warn');
+  else if(p[0]==='ds')postEvent('evidence set changed — coverage recomputed','hot');
+  else if(p[0]==='cf')postEvent('counterfactual applied — dependent structures updated','warn');
+  else if(p[0]==='budget')postEvent('experiment frontier re-optimized — budget: '+p[1],'');
+  else if(p[0]==='mem'&&p[1]==='replay')postEvent('historical replay engaged — 6 states','hot');
+}
 const esc2=t=>String(t).replace(/</g,'&lt;');
 function vitals(){renderIntel();}
 /* ------- pointer input ------- */
@@ -2476,6 +2666,8 @@ speakIn.addEventListener('keydown',e=>{
    '<div class="ev2">'+v.map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('')+'</div>'+
    '<div class="vb">'+v[0].d+(v.length>1?' <b>+'+(v.length-1)+' more — see focus.</b>':'')+'</div>';
   speakEcho.prepend(card);
+  $('#speakLive').innerHTML='';
+  postEvent('reasoning verified — '+v.length+' structure'+(v.length>1?'s':'')+' flagged','hot');
   while(speakEcho.children.length>2)speakEcho.lastChild.remove();
   setTimeout(()=>{if(card.parentNode)card.remove();},14000);
   inspect('<div class="chips">'+v.map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('')+'</div>'+
@@ -2493,6 +2685,23 @@ speakIn.addEventListener('keydown',e=>{
       tx:Math.max(wS/2+16,stageW()*0.38),ty:SH*0.62,x:stageW()*0.38,y:SH*0.7,hitW:wS,hitH:h2,r:0});
     MODES_IMPL.reason.restack();
   }
+});
+const __act=act;
+act=function(a){__act(a);try{postEventForAction(a);}catch(err){}};
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='heatSl')postEvent('heating prior → ±'+sectorW()+'° — containment '+containN()+'/9 · ranking + claim recomputed','hot');
+});
+/* live-typing analysis: the reasoning layer works while you speak */
+let speakT=null;
+speakIn.addEventListener('input',()=>{
+  clearTimeout(speakT);
+  const txt=speakIn.value.trim();
+  const live=$('#speakLive');
+  if(txt.length<10){live.innerHTML='';return;}
+  speakT=setTimeout(()=>{
+    const v=analyzeThought(txt);
+    live.innerHTML=v.slice(0,3).map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('');
+  },300);
 });
 /* new commands for the engines */
 CMDS.push(
