@@ -37,7 +37,7 @@ button{font-family:var(--f)}
 canvas{display:block}
 #gl{position:fixed;inset:0;width:100%;height:100%;z-index:1;opacity:0;transition:opacity .9s;background:#03070e;pointer-events:none}
 #gl.on{opacity:1}
-#stage{position:fixed;inset:0;z-index:4;touch-action:none}
+#stage{position:fixed;inset:0;width:100%;height:100%;z-index:4;touch-action:none}
 .vig{position:fixed;inset:0;pointer-events:none;z-index:2;
   background:radial-gradient(120% 100% at 50% 45%, rgba(10,30,60,0) 55%, rgba(10,30,60,.16) 100%)}
 
@@ -862,7 +862,7 @@ MODES_IMPL.watch={
    EVENTS.forEach((ev,i)=>{
      const a=-Math.PI/2+i*(TAU/4)+0.4;
      spawn({kind:'matnode',id:'mat'+i,mode:'watch',ev,sev:ev.sev,i,ph:i*2,
-       tx:cx+Math.cos(a)*215,ty:cy+Math.sin(a)*160,x:cx,y:cy,r:30,drag:true,homeA:a});
+       tx:cx+Math.cos(a)*Math.min(SW*0.27,215),ty:cy+Math.sin(a)*Math.min(SH*0.24,160),x:cx,y:cy,r:Math.min(30,SW*0.045),drag:true,homeA:a});
    });
    SRCCLS.forEach((s,i)=>{
      const a=i/SRCCLS.length*TAU-Math.PI/2;
@@ -906,7 +906,7 @@ MODES_IMPL.watch={
        inspectEvent(o.ev,true);
        S.counters.rec+=Math.floor(200+Math.random()*400);
      }
-     o.tx=core.x+Math.cos(o.homeA)*215;o.ty=core.y+Math.sin(o.homeA)*160;
+     o.tx=core.x+Math.cos(o.homeA)*Math.min(SW*0.27,215);o.ty=core.y+Math.sin(o.homeA)*Math.min(SH*0.24,160);
    }
  }
 };
@@ -999,19 +999,22 @@ MODES_IMPL.analyze={
    HYPS.forEach((h,i)=>{
      const a=-Math.PI/2+i*(TAU/3);
      spawn({kind:'hyp',id:'hyp_'+h.id,mode:'analyze',h,drag:true,
-       tx:cx+Math.cos(a)*Math.min(SW*0.18,250),ty:cy+Math.sin(a)*150,x:cx,y:cy,r:0});
+       tx:cx+Math.cos(a)*Math.min(SW*0.22,250),ty:cy+Math.sin(a)*Math.min(SH*0.18,150),x:cx,y:cy,r:0});
    });
+   const narrow=SW<860, chipW=Math.min(168,SW*0.42);
    DATASETS.forEach((d,i)=>{
+     const hx=narrow?SW/2+(i%2-0.5)*(chipW+12):SW/2+(i-1.5)*180;
+     const hy=narrow?SH-166+Math.floor(i/2)*46:SH-118;
      spawn({kind:'chipEv',id:'ev_'+d.id,mode:'analyze',p:d.p,d,drag:true,
        text:d.n,sub:d.rep?'replicated':'unreplicated',
-       tx:SW/2+(i-1.5)*180,ty:SH-118,hitW:168,hitH:38,r:0,homeX:SW/2+(i-1.5)*180,homeY:SH-118});
+       tx:hx,ty:hy,hitW:chipW,hitH:38,r:0,homeX:hx,homeY:hy});
    });
-   spawn({kind:'zone',id:'zone',mode:'analyze',tx:SW-140,ty:SH-190,hitW:200,hitH:86,r:0});
+   spawn({kind:'zone',id:'zone',mode:'analyze',tx:SW-Math.min(140,SW*0.26),ty:narrow?SH-300:SH-190,hitW:Math.min(200,SW*0.46),hitH:86,r:0});
    hint('DRAG EVIDENCE INTO “EXCLUDE” · DROP ONE HYPOTHESIS ONTO ANOTHER TO COMPARE · CLICK TO EXPAND');
    this.resize();
  },
  resize(){
-   World.objs.forEach(o=>{if(o.kind==='hyp')o.r=34+o.h.s*52;});
+   const hsc=clamp(Math.min(SW,SH)/900,0.62,1);World.objs.forEach(o=>{if(o.kind==='hyp')o.r=(34+o.h.s*52)*hsc;});
    const lead=ranked()[0];
    World.objs.forEach(o=>{if(o.kind==='hyp')o.lead=o.h.id===lead.id;});
  },
@@ -1059,7 +1062,7 @@ MODES_IMPL.analyze={
      const other=World.objs.find(h2=>h2.kind==='hyp'&&h2!==o&&Math.hypot(h2.x-o.x,h2.y-o.y)<h2.r+o.r);
      if(other)inspectCompare(o.h,other.h);
      const i=HYPS.indexOf(o.h),a=-Math.PI/2+i*(TAU/3);
-     o.tx=SW/2+Math.cos(a)*Math.min(SW*0.18,250);o.ty=SH/2-30+Math.sin(a)*150;
+     o.tx=SW/2+Math.cos(a)*Math.min(SW*0.22,250);o.ty=SH/2-30+Math.sin(a)*Math.min(SH*0.18,150);
      World.objs.forEach(h=>h.tsc=1);
    }
  }
@@ -1191,15 +1194,16 @@ MODES_IMPL.claim={
      const att=S.attached.has(i);
      const pos=this.slot(i,att);
      spawn({kind:'comp',id:'comp'+i,mode:'claim',c,idx:i,drag:true,
-       tx:pos.x,ty:pos.y,x:cx,y:cy,hitW:172,hitH:30,r:0,flick:0});
+       tx:pos.x,ty:pos.y,x:cx,y:cy,hitW:Math.min(172,SW*0.44),hitH:30,r:0,flick:0});
    });
    hint('DRAG VERIFIED COMPONENTS INTO THE CORE · DETACH ANY PIECE — EVERYTHING DOWNSTREAM RECOMPUTES');
  },
  slot(i,att){
    const cx=SW/2,cy=SH/2-24;
-   if(att){const a=-Math.PI/2+i/9*TAU;return {x:cx+Math.cos(a)*220,y:cy+Math.sin(a)*156};}
-   const row=Math.floor(i/5),col=i%5;
-   return {x:SW/2+(col-( (i<5?5:4)-1)/2)*185,y:SH-136+row*40};
+   if(att){const a=-Math.PI/2+i/9*TAU;return {x:cx+Math.cos(a)*Math.min(220,SW*0.30),y:cy+Math.sin(a)*Math.min(156,SH*0.24)};}
+   const cols=SW<900?2:5, spacing=Math.min(185,SW/(cols+0.35));
+   const row=Math.floor(i/cols),col=i%cols,inRow=Math.min(cols,9-row*cols);
+   return {x:SW/2+(col-(inRow-1)/2)*spacing,y:SH-(SW<900?238:136)+row*40};
  },
  draw(){
    const core=findObj('ccore');if(!core)return;
@@ -1309,13 +1313,14 @@ MODES_IMPL.reason={
  },
  addStmt(i,instant){
    const sp=SPEECH[i];
-   const lines=wrapText(sp.s,52);
+   const lines=wrapText(sp.s,SW<900?34:52);
    ctx.font='800 7.6px Inter';
    const tags=sp.d.map(d=>{const label=d[1].split('—')[0].split(':')[0].trim().toUpperCase();
      return [d[0],d[1],label,ctx.measureText(label).width+16];});
    const h=Math.max(lines.length*15+16,tags.length*17+8);
+   const wS=Math.min(440,SW*0.5);
    const o=spawn({kind:'stmt',id:'st'+i,mode:'reason',lines,tags,sp,i,drag:false,
-     tx:SW*0.38,ty:0,x:SW*0.38,y:SH*0.7,hitW:440,hitH:h,r:0});
+     tx:Math.max(wS/2+16,SW*0.38-(440-wS)*0.3),ty:0,x:SW*0.38,y:SH*0.7,hitW:wS,hitH:h,r:0});
    if(instant){o.a=1;o.ta=1;}
    this.restack();
  },
