@@ -35,7 +35,9 @@ body{
   background-image:radial-gradient(rgba(20,50,90,.06) .5px,transparent .6px);background-size:3px 3px;z-index:3}
 button{font-family:var(--f)}
 canvas{display:block}
-#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:#03070e;pointer-events:none;border-radius:10px}
+#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:#03070e;pointer-events:none;
+  -webkit-mask-image:radial-gradient(115% 105% at 50% 50%,#000 52%,transparent 76%);
+  mask-image:radial-gradient(115% 105% at 50% 50%,#000 52%,transparent 76%)}
 #gl.on{opacity:1}
 #stage{position:fixed;inset:0;width:100%;height:100%;z-index:7;touch-action:none;pointer-events:none}
 #figInput{position:fixed;z-index:8;touch-action:none;cursor:default}
@@ -51,19 +53,17 @@ canvas{display:block}
 #brand .sim{display:inline-block;margin-left:10px;font-family:var(--m);font-size:7px;letter-spacing:.16em;
   color:var(--asm);border:1px dashed rgba(168,94,8,.55);padding:2px 6px;border-radius:3px;vertical-align:2px}
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-#dock{position:absolute;top:12px;left:calc(50% - 80px);transform:translateX(-50%);display:flex;gap:2px;pointer-events:auto;
-  background:rgba(250,253,255,.72);border:1px solid var(--line2);border-radius:10px;padding:4px;
-  backdrop-filter:blur(12px);box-shadow:0 8px 30px -14px rgba(10,30,60,.4)}
-.dk{background:none;border:0;border-radius:7px;padding:8px 14px;cursor:pointer;text-align:center}
+#dock{position:absolute;top:12px;left:calc(50% - 80px);transform:translateX(-50%);display:flex;gap:14px;pointer-events:auto}
+.dk{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 3px;cursor:pointer;text-align:center}
 .dk .n{font-size:9.5px;letter-spacing:.22em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .dk .d{margin-top:2px;font-size:7.5px;letter-spacing:.06em;color:var(--dim);white-space:nowrap}
-.dk:hover{background:rgba(255,255,255,.75)}
-.dk.on{background:#13293f}
-.dk.on .n{color:#eaf4fb}.dk.on .d{color:#8fb4cf}
+.dk:hover .n{color:var(--ink)}
+.dk.on{border-bottom-color:#13293f}
+.dk.on .n{color:#0a1c30}.dk.on .d{color:var(--ink2)}
 .dk .badge{display:inline-block;font-family:var(--m);font-size:7px;color:#fff;background:var(--ev);
   border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:2px}
-#cmdHint{position:absolute;top:12px;right:12px;pointer-events:auto;background:rgba(250,253,255,.72);
-  border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;
+#cmdHint{position:absolute;top:14px;right:14px;pointer-events:auto;background:none;
+  border:0;border-bottom:1px solid rgba(13,40,70,.4);padding:4px 2px;cursor:pointer;
   font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 #cmdHint b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:6px}
 
@@ -86,18 +86,17 @@ canvas{display:block}
 /* per-mode instrument controls (bottom center) */
 #ctl{position:absolute;left:calc(50% - 80px);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
   pointer-events:auto;flex-wrap:wrap;justify-content:center;max-width:74vw}
-.cchip{background:rgba(250,253,255,.78);border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;
-  font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--ink2);backdrop-filter:blur(8px)}
-.cchip:hover{background:#fff}
-.cchip.on{background:#13293f;color:#eaf4fb;border-color:#13293f}
-.cchip.acc{border-color:rgba(0,144,196,.6);color:var(--ev)}
-.cslider{display:flex;align-items:center;gap:9px;background:rgba(250,253,255,.78);border:1px solid var(--line2);
-  border-radius:8px;padding:7px 12px;backdrop-filter:blur(8px)}
+.cchip{background:none;border:0;border-bottom:1px solid rgba(13,40,70,.4);border-radius:0;padding:4px 2px;cursor:pointer;
+  font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
+.cchip:hover{color:var(--ink);border-color:var(--ev)}
+.cchip.on{color:#0a1c30;border-bottom:2px solid #13293f}
+.cchip.acc{color:var(--ev);border-color:rgba(0,144,196,.6)}
+.cslider{display:flex;align-items:center;gap:9px;background:none;border:0;border-bottom:1px solid rgba(13,40,70,.25);padding:4px 2px}
 .cslider label{font-size:8px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--asm)}
 .cslider input{width:130px;accent-color:#a85e08}
 .cslider .rv{font-family:var(--m);font-size:8.5px;color:var(--ink2);min-width:60px}
-#ctl .dark{background:rgba(10,22,36,.7);color:#c9dfee;border-color:rgba(159,192,216,.35)}
-#ctl .dark.on{background:rgba(0,144,196,.3);border-color:rgba(0,190,255,.7);color:#eaf9ff}
+#ctl .dark,#figCtl .dark{background:none;color:#24425c;border-color:rgba(13,40,70,.4)}
+#ctl .dark.on,#figCtl .dark.on{color:#0a1c30;border-bottom:2px solid #13293f}
 
 /* inspector — progressive disclosure card, never a wall of text */
 #insp{position:absolute;top:70px;right:22px;width:330px;max-height:calc(100% - 160px);overflow-y:auto;
@@ -136,23 +135,21 @@ canvas{display:block}
 .mini .m .n{flex:none;font-family:var(--m);font-size:7.5px;color:#fff;border-radius:50%;width:14px;height:14px;
   display:inline-flex;align-items:center;justify-content:center}
 #insp .acts,#intel .acts,.pcard .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
-.abtn{background:var(--surf);border:1px solid var(--line2);border-radius:6px;padding:6px 10px;cursor:pointer;
+.abtn{background:none;border:0;border-bottom:1px solid rgba(13,40,70,.4);border-radius:0;padding:3px 1px;cursor:pointer;
   font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink)}
-.abtn:hover{background:#fff;border-color:rgba(13,40,70,.45)}
-.abtn.pri{background:#13293f;border-color:#13293f;color:#eaf4fb}
+.abtn:hover{color:var(--ev);border-color:var(--ev)}
+.abtn.pri{color:#0a1c30;border-bottom:2px solid #13293f}
 .abtn.warn{color:var(--bad);border-color:rgba(176,54,54,.45)}
 
 /* global reasoning bar — talk to the operating system from anywhere */
 #speak{position:absolute;left:22px;bottom:16px;width:min(430px,32vw);pointer-events:auto;z-index:12}
-#speak .srow{display:flex;align-items:center;gap:9px;background:rgba(250,253,255,.9);border:1px solid var(--line2);
-  border-radius:9px;padding:9px 12px;backdrop-filter:blur(12px);box-shadow:0 10px 34px -18px rgba(10,30,60,.5)}
+#speak .srow{display:flex;align-items:center;gap:9px;background:none;border-bottom:1.5px solid rgba(13,40,70,.5);padding:7px 2px}
 #speak .sind i{display:block;width:7px;height:7px;border-radius:50%;background:var(--ev);box-shadow:0 0 8px rgba(0,144,196,.9);animation:bl 2.4s infinite}
 #speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:11.5px;color:var(--ink)}
 #speakIn::placeholder{color:#6d89a2}
 #speak .skey{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 #speak .sq{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.echo{background:rgba(250,253,255,.92);border:1px solid var(--line2);border-left:3px solid var(--clm);border-radius:8px;
-  padding:8px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);animation:fi .4s both;box-shadow:0 8px 24px -16px rgba(10,30,60,.4)}
+.echo{background:none;border:0;border-left:3px solid var(--clm);padding:4px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);animation:fi .4s both}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .echo .eq{font-style:italic;color:var(--ink);font-weight:520}
 .echo .ev2{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
@@ -177,20 +174,18 @@ details.grp>.gb{padding-top:6px}
 #doc{position:fixed;top:56px;left:0;right:296px;bottom:0;overflow-y:auto;z-index:5;pointer-events:none;
   padding:18px 26px 120px 26px;scrollbar-width:thin}
 #doc .din{max-width:960px;margin:0 auto}
-.sec{pointer-events:auto;background:rgba(252,254,255,.94);border:1px solid var(--line2);border-radius:11px;padding:16px 20px;margin-bottom:12px;
-  box-shadow:0 2px 3px rgba(10,30,60,.04),0 12px 30px -24px rgba(10,30,60,.3)}
-.sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sec{pointer-events:auto;background:none;border:0;padding:6px 2px 18px;margin-bottom:10px}
+.sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(13,40,70,.25);padding-bottom:6px}
 .sec>.sh3 .st3{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase}
 .sec>.sh3 .sl3{font-family:var(--m);font-size:7px;color:var(--ev);letter-spacing:.1em}
 .sec h2{margin:0 0 6px;font-weight:400;font-size:17px;line-height:1.45;color:#0a1c30}
 .sec p{margin:6px 0;font-size:12.3px;line-height:1.75;color:var(--ink2)}
 .sec p b{color:var(--ink);font-weight:650}
-.sec .fig{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.75);padding:10px;margin:10px 0}
+.sec .fig{border:0;background:none;padding:0;margin:12px 0;position:relative}
 .sec .fig svg{display:block;width:100%;height:auto}
 .sec .fig .fcap{margin-top:7px;font-size:10.3px;line-height:1.6;color:var(--dim);padding:0 3px}
 .sec .fig .fcap b{color:var(--ink2)}
 #liveFig{height:440px;border-radius:8px;background:transparent;position:relative;pointer-events:none}
-.sec.figsec{background:transparent;border-color:rgba(13,40,70,.22);box-shadow:none}
 .sec.figsec .fig{background:transparent}
 #liveFig.dark{background:transparent}
 #figCtl{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:center}
@@ -203,7 +198,7 @@ details.grp>.gb{padding-top:6px}
 .dtable tr.click:hover td{background:rgba(255,255,255,.7)}
 .inbar{display:inline-block;width:76px;height:5px;border-radius:3px;background:rgba(13,40,70,.1);vertical-align:1px;overflow:hidden;margin:0 5px}
 .inbar i{display:block;height:100%;border-radius:3px}
-.kfd{border-left:3px solid;padding:7px 12px;margin:7px 0;background:rgba(255,255,255,.66);border-radius:0 8px 8px 0;cursor:pointer}
+.kfd{border-left:3px solid;padding:5px 12px;margin:9px 0;background:none;cursor:pointer}
 .kfd .kt2{font-size:12.4px;line-height:1.55;color:var(--ink);font-weight:650}
 .kfd .kb2{display:none;margin-top:5px}
 .kfd.open .kb2{display:block}
@@ -230,14 +225,13 @@ details.grp>.gb{padding-top:6px}
 #activity .aw{display:flex;gap:5px;align-items:center;font-family:var(--m);font-size:6.8px;color:var(--ev)}
 #activity .aw i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(0,144,196,.9);animation:bl 2.2s infinite}
 #actList{display:flex;flex-direction:column;gap:3px;max-height:30vh;overflow:hidden}
-.ae{background:rgba(250,253,255,.93);border:1px solid var(--line);border-radius:6px;padding:4px 8px;
+.ae{background:none;border:0;border-left:2px solid rgba(13,40,70,.25);padding:2px 8px;
   font-family:var(--m);font-size:8px;line-height:1.5;color:var(--calc);animation:fi .4s both;letter-spacing:.02em}
 .ae .at{color:var(--dim);margin-right:6px}
-.ae.hot{border-color:rgba(0,144,196,.55);color:var(--ev);background:rgba(0,144,196,.06)}
-.ae.warn{border-color:rgba(168,94,8,.5);color:var(--asm)}
+.ae.hot{border-left-color:var(--ev);color:var(--ev)}
+.ae.warn{border-left-color:var(--asm);color:var(--asm)}
 #telemetry{position:absolute;right:16px;bottom:16px;width:264px;pointer-events:auto;z-index:11;
-  background:rgba(250,253,255,.96);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;
-  backdrop-filter:blur(10px);box-shadow:0 10px 30px -18px rgba(10,30,60,.5)}
+  background:none;border-top:1px solid rgba(13,40,70,.35);padding:8px 2px 0}
 #telemetry .th2{font-size:7.2px;letter-spacing:.24em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
 #telemetry .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
 .tm{display:flex;justify-content:space-between;gap:6px;font-family:var(--m);font-size:8.2px;line-height:1.7;border-radius:3px;padding:0 3px}
@@ -246,18 +240,21 @@ details.grp>.gb{padding-top:6px}
 .tm.bad .tv{color:var(--bad)}.tm.ok .tv{color:var(--ok)}.tm.hy .tv{color:var(--hyp)}.tm.am .tv{color:var(--asm)}
 #chipsDock{position:absolute;right:16px;bottom:212px;width:264px;display:flex;flex-wrap:wrap;gap:4px;
   pointer-events:auto;z-index:11;justify-content:flex-end}
-.ichip{background:rgba(250,253,255,.8);border:1px solid var(--line2);border-radius:6px;padding:4px 8px;cursor:pointer;
+.ichip{background:none;border:0;border-bottom:1px solid rgba(13,40,70,.35);padding:2px 1px;cursor:pointer;
   font-size:7.2px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
-.ichip:hover{background:#fff;border-color:rgba(13,40,70,.45)}
+.ichip:hover{color:var(--ink);border-color:var(--ev)}
 /* floating contextual cards — intelligence appears where you work */
 #cards{position:absolute;inset:0;pointer-events:none;z-index:20}
-.pcard{position:absolute;width:330px;max-height:52vh;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;
-  background:rgba(252,254,255,.95);border:1px solid var(--line2);border-radius:11px;padding:11px 14px;
-  backdrop-filter:blur(14px);box-shadow:0 20px 54px -22px rgba(10,30,60,.55);animation:fi .25s both}
+.pcard{position:absolute;width:340px;max-height:52vh;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;
+  background:rgba(214,233,247,.66);border:0;border-radius:14px;padding:12px 15px;
+  backdrop-filter:blur(22px) saturate(1.15);box-shadow:0 24px 60px -24px rgba(10,30,60,.6);animation:fi .25s both}
 .pcard .ph2{display:flex;justify-content:space-between;align-items:center;cursor:grab;margin-bottom:6px}
 .pcard .ph2 .pt{font-size:7.4px;letter-spacing:.2em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .pcard .ph2 .px2{cursor:pointer;color:var(--dim);font-size:13px;padding:0 3px}
 #speakLive{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.figpop{position:absolute;top:-4px;right:0;background:none;border:0;border-bottom:1px solid rgba(13,40,70,.35);
+  cursor:pointer;font-size:7px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--dim);padding:2px 1px;z-index:2}
+.figpop:hover{color:var(--ev);border-color:var(--ev)}
 #speakLive:empty{display:none}
 .isec{border-bottom:1px solid var(--line);padding:8px 0}
 .isec>.sh{display:flex;justify-content:space-between;align-items:center;font-size:7.4px;letter-spacing:.24em;
@@ -2791,7 +2788,7 @@ function svgEVPA(){
   const W2=660,H2=252,mL=46,mT=20,mB=34,pW=W2-mL-14,pH=H2-mT-mB;
   const Wd=sectorW();
   const X=i=>mL+i/8*pW, Y=v=>mT+pH-(v+16)/64*pH;
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   for(let g=-10;g<=50;g+=10)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(13,40,70,.07)');
   s2+='<rect x="'+mL+'" y="'+Y(Wd)+'" width="'+pW+'" height="'+(Y(-Wd)-Y(Wd))+'" fill="rgba(42,74,108,.10)"/>';
   s2+=sL(mL,Y(Wd),mL+pW,Y(Wd),C.calc,1.1)+sL(mL,Y(-Wd),mL+pW,Y(-Wd),C.calc,1.1);
@@ -2814,7 +2811,7 @@ function svgEVPA(){
 function svgLit(){
   const lit=litAgreement(),W2=660,H2=240,y0=200,y1=42;
   const cols={rm:70,ml:290,rh:510};
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   const pos={};
   Object.keys(PARAMDEF).forEach(pm=>{
     const pd=PARAMDEF[pm],x=cols[pm];
@@ -2843,7 +2840,7 @@ function svgLit(){
 function svgDep(){
   const W2=660,H2=330;
   const colX=[86,258,430,588];
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   const pos={},byCol={};
   GNODES.forEach(g=>{byCol[g[2]]=(byCol[g[2]]||0)+1;});
   const cnt={};
@@ -2872,7 +2869,7 @@ function svgDep(){
 }
 function svgFunnel(){
   const st=uncStages(),W2=660,H2=200,x0=60,x1=610,yc=96;
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   const xs=st.map((_,i)=>x0+(x1-x0)*i/(st.length-1));
   let up='',dn='';
   xs.forEach((x,i)=>{const w=st[i].w*62;up+=(i?'L':'M')+x+' '+(yc-w)+' ';});
@@ -2887,7 +2884,7 @@ function svgFunnel(){
 }
 function svgSens(){
   const rows=sensRows(),W2=660,H2=192,x0=200,w=340;
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   rows.forEach((r2,i)=>{const y=40+i*30;
     s2+=sT(x0-8,y+7,r2[0],'end',9,C.ink,650)+
      '<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="8" rx="3" fill="rgba(13,40,70,.09)"/>'+
@@ -2900,7 +2897,7 @@ function svgPareto(){
   const pts=paretoPts(),W2=660,H2=250,x0=60,x1=600,y0=200,y1=48;
   const best=(function(){let c=pts.filter(p=>S.budget==='zero'?p.tel===0:S.budget==='fast'?p.days<=30:true);if(!c.length)c=pts;return c.slice().sort((a,b)=>b.p-a.p)[0];})();
   const X=d=>x0+(x1-x0)*d/90, Y=p=>y0-(p-0.3)/0.6*(y0-y1);
-  let s2=svgO(W2,H2)+'<rect width="'+W2+'" height="'+H2+'" fill="#fdfeff" rx="6"/>';
+  let s2=svgO(W2,H2);
   s2+=sL(x0-14,y0+14,x1+10,y0+14,'rgba(13,40,70,.35)',1.1)+sL(x0-14,y0+14,x0-14,y1-10,'rgba(13,40,70,.35)',1.1);
   [0,30,60,90].forEach(d=>s2+=sT(X(d),y0+28,d+' d','middle',7.8,C.dim));
   [40,60,80].forEach(p=>s2+=sT(x0-20,Y(p/100)+3,p+'%','end',7.8,C.dim));
@@ -2993,7 +2990,15 @@ function refreshDoc(){
 }
 document.addEventListener('click',e=>{
   const kd=e.target.closest('.kfd');
-  if(kd&&!e.target.closest('[data-act]'))kd.classList.toggle('open');
+  if(kd&&!e.target.closest('[data-act]')){kd.classList.toggle('open');return;}
+  const fp=e.target.closest('[data-figpop]');
+  if(fp){
+    const k=fp.dataset.figpop;
+    const titles={evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+      funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
+    popCard('fig_'+k,titles[k]||k,LIVEBIND[k](),e.clientX-380,e.clientY-160,()=>({title:titles[k]||k,html:LIVEBIND[k]()}));
+    const c=CARDS['fig_'+k];if(c)c.el.style.width='520px';
+  }
 });
 /* ---------------- mode documents ---------------- */
 function dsec(id,label,inner,fig){
@@ -3017,7 +3022,7 @@ const DOCS={
    '<p>Every change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node consequence propagation → ranked action. Click any row to open it.</p>')+
   dsec('lit','Autonomous literature comparison',
    '<p>Nine sources were reduced to three shared parameters and compared pairwise in σ units. <b>Your S-097 static-screen adoption sits on the contested column:</b> D21 disputes the B18/W20 stability cluster at <b>4.0σ</b>, and the dispute was inherited silently. The m_L tension (S15, 2.5σ) is method-level — single-dish beam depolarization — not physical.</p>'+
-   '<div class="fig"><div data-lv="lit">'+svgLit()+'</div><div class="fcap"><b>Figure.</b> Sources placed at their claimed values; red dashed links are contradictions with their tension in σ; navy dashed lines are the values your model adopts; grey σ ranges are 1σ.</div></div>'),
+   '<div class="fig"><button class="figpop" data-figpop="lit">⠿ float figure</button><div data-lv="lit">'+svgLit()+'</div><div class="fcap"><b>Figure.</b> Sources placed at their claimed values; red dashed links are contradictions with their tension in σ; navy dashed lines are the values your model adopts; grey σ ranges are 1σ.</div></div>'),
  model:()=>
   dsec('finding','Physical model — state of containment',
    '<h2>One boundary of the physical model is broken, and the break is assumption-shaped.</h2>'+
@@ -3027,16 +3032,16 @@ const DOCS={
    figLive('<b>Live instrument.</b> GRMHD render with the containment gauge embedded on the object: the breathing band is the permitted sector, ticks are the nine measured epochs, violet marks exit the boundary. Drag to rotate · scroll to zoom · SHIFT = laboratory counterfactual · ALT = uncertainty layers. The heating slider is a scientific control: it recomputes the model, not the picture.',true),true)+
   dsec('evpa','Evidence against prediction',
    '<p>The primary scientific figure. Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior. The exit epoch and the ±42° preview update live with the slider above.</p>'+
-   '<div class="fig"><div data-lv="evpa">'+svgEVPA()+'</div><div class="fcap"><b>Figure.</b> Hold ALT anywhere to inflate the error bars to the calibration-doubled counterfactual — the trajectory still exits (3.1σ): the breach is a boundary property.</div></div>')+
+   '<div class="fig"><button class="figpop" data-figpop="evpa">⠿ float figure</button><div data-lv="evpa">'+svgEVPA()+'</div><div class="fcap"><b>Figure.</b> Hold ALT anywhere to inflate the error bars to the calibration-doubled counterfactual — the trajectory still exits (3.1σ): the breach is a boundary property.</div></div>')+
   dsec('graph','Causal structure — what feeds what',
    '<p>Every structure in the model carries provenance edges. The two amber nodes are the only unmeasured structures; the heating prescription alone carries <b>83 % of failing-axis variance and 4 downstream claims</b>. Click any node for its full upstream/downstream trace.</p>'+
-   '<div class="fig"><div data-lv="dep">'+svgDep()+'</div><div class="fcap"><b>Figure.</b> Evidence → calculation → assumption → consequence. The demoted conclusion and the expired S-144 rejection are live states, not annotations.</div></div>')+
+   '<div class="fig"><button class="figpop" data-figpop="dep">⠿ float figure</button><div data-lv="dep">'+svgDep()+'</div><div class="fcap"><b>Figure.</b> Evidence → calculation → assumption → consequence. The demoted conclusion and the expired S-144 rejection are live states, not annotations.</div></div>')+
   dsec('uncert','Uncertainty propagation',
    '<p>The chain from instrument systematic to claim survival. Each stage inherits and amplifies the last; the funnel is the uncertainty budget of the entire argument.</p>'+
-   '<div class="fig"><div data-lv="funnel">'+svgFunnel()+'</div><div class="fcap"><b>Figure.</b> Stage 4 is the decision point: at ×1 the exit is significant; at ×2 (hold ALT) it survives at 3.1σ — calibration cannot absorb the breach.</div></div>')+
+   '<div class="fig"><button class="figpop" data-figpop="funnel">⠿ float figure</button><div data-lv="funnel">'+svgFunnel()+'</div><div class="fcap"><b>Figure.</b> Stage 4 is the decision point: at ×1 the exit is significant; at ×2 (hold ALT) it survives at 3.1σ — calibration cannot absorb the breach.</div></div>')+
   dsec('sens','Parameter sensitivity',
    '<p>Where measurement leverage actually lives. The heating prior dominates; spin and inclination are pinned by ring morphology; the screen flips the ranking but not the residual.</p>'+
-   '<div class="fig"><div data-lv="sens">'+svgSens()+'</div><div class="fcap"><b>Figure.</b> Amber bars are assumptions — exactly where the laboratory mapping applies.</div></div>'),
+   '<div class="fig"><button class="figpop" data-figpop="sens">⠿ float figure</button><div data-lv="sens">'+svgSens()+'</div><div class="fcap"><b>Figure.</b> Amber bars are assumptions — exactly where the laboratory mapping applies.</div></div>'),
  analyze:()=>
   dsec('hyps','Competing explanations — full dossiers',
    '<h2>Three configurations survive; their order is a function of your assumption set.</h2>'+
@@ -3052,7 +3057,7 @@ const DOCS={
    '<div data-lv="exps">'+expsHTML()+'</div>'+
    '<div class="acts" style="margin:4px 0">'+
    '<button class="abtn sm" data-act="budget:any">Unconstrained</button><button class="abtn sm" data-act="budget:zero">Zero telescope</button><button class="abtn sm" data-act="budget:fast">≤ 30 days</button></div>'+
-   '<div class="fig"><div data-lv="pareto">'+svgPareto()+'</div><div class="fcap"><b>Figure.</b> Bubble area = telescope hours; the dashed line is the efficient frontier; the cyan pick is optimal under the selected budget.</div></div>')+
+   '<div class="fig"><button class="figpop" data-figpop="pareto">⠿ float figure</button><div data-lv="pareto">'+svgPareto()+'</div><div class="fcap"><b>Figure.</b> Bubble area = telescope hours; the dashed line is the efficient frontier; the cyan pick is optimal under the selected budget.</div></div>')+
   dsec('hidden','Cross-domain discovery audit',
    '<p>117 adjacent-domain families scanned, 32 candidate mappings tested in a common dimensionless representation, <b>one admitted</b>: laboratory reconnection → R(βi), residual 0.11, prior-widening only. Kept with reasons: solar-wind cascade (near-miss, 0.38 — no surviving observable); MRI fluid analogue (rejected — no regime overlap); materials percolation (rejected, 0.61). A connection may widen a prior; it may never transfer a value.</p>'),
  memory:()=>
