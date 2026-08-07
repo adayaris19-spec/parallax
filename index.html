@@ -17,7 +17,7 @@
    ============================================================ */
 :root{
   --ev:#2ec8f5; --calc:#8fb4dc; --asm:#e8a13a; --hyp:#b08af5; --clm:#dce9f5;
-  --ink:#e6f2fe; --ink2:#c2d9ec; --dim:#7d9cb8;
+  --ink:#f2f9ff; --ink2:#d6e8f8; --dim:#9fbdd6;
   --line:rgba(150,200,240,.16); --line2:rgba(150,200,240,.3);
   --surf:rgba(12,26,44,.88);
   --ok:#3ecf95; --bad:#f57a7a;
@@ -29,13 +29,13 @@ html,body{height:100%;margin:0;overflow:hidden}
 body{
   font-family:var(--f);color:var(--ink);
   background:
-    radial-gradient(120% 90% at 66% 28%, rgba(24,84,140,.35) 0%, rgba(14,48,86,.16) 34%, rgba(14,48,86,0) 68%),
-    radial-gradient(90% 80% at 12% 92%, rgba(64,24,130,.20) 0%, rgba(64,24,130,0) 60%),
-    radial-gradient(80% 70% at 90% 6%, rgba(0,120,190,.16) 0%, rgba(0,120,190,0) 55%),
-    linear-gradient(180deg,#030b16 0%,#061527 46%,#0a1f36 100%);
+    radial-gradient(120% 90% at 66% 26%, rgba(74,168,232,.30) 0%, rgba(40,110,180,.14) 36%, rgba(40,110,180,0) 68%),
+    radial-gradient(90% 80% at 10% 94%, rgba(96,58,180,.22) 0%, rgba(96,58,180,0) 62%),
+    radial-gradient(80% 70% at 92% 4%, rgba(40,190,235,.20) 0%, rgba(40,190,235,0) 58%),
+    linear-gradient(180deg,#12294a 0%,#1b3c66 48%,#24507f 100%);
   -webkit-font-smoothing:antialiased;user-select:none;
 }
-#grain{position:fixed;inset:0;pointer-events:none;opacity:.6;mix-blend-mode:screen;
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.34;mix-blend-mode:screen;
   background-image:
    radial-gradient(rgba(215,238,255,.6) .6px,transparent 1px),
    radial-gradient(rgba(150,205,250,.4) .5px,transparent .9px),
@@ -45,13 +45,14 @@ body{
 
 button{font-family:var(--f)}
 canvas{display:block}
-#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:transparent;pointer-events:none}
+#gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:transparent;pointer-events:none;
+  filter:drop-shadow(0 0 40px rgba(70,205,255,.28))}
 #gl.on{opacity:1}
 #stage{position:fixed;inset:0;width:100%;height:100%;z-index:7;touch-action:none;pointer-events:none}
 #figInput{position:fixed;z-index:8;touch-action:none;cursor:default}
 #gl{z-index:6}
 .vig{position:fixed;inset:0;pointer-events:none;z-index:2;
-  background:radial-gradient(120% 100% at 50% 45%, rgba(0,4,10,0) 52%, rgba(0,4,10,.5) 100%)}
+  background:radial-gradient(125% 105% at 50% 46%, rgba(4,14,30,0) 56%, rgba(4,14,30,.34) 100%)}
 
 /* ------- chrome (kept minimal — the stage is the interface) ------- */
 #chrome{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity 1s}
@@ -103,7 +104,7 @@ canvas{display:block}
 
 /* live model vitals — always present: the model never sleeps */
 #vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
-  background:rgba(10,24,40,.78);border:1px solid var(--line2);border-radius:10px;padding:12px 14px;
+  background:rgba(18,42,74,.78);border:1px solid var(--line2);border-radius:10px;padding:12px 14px;
   backdrop-filter:blur(10px);min-width:250px;box-shadow:0 8px 30px -16px rgba(10,30,60,.4)}
 #vitals .vh{display:flex;justify-content:space-between;align-items:center}
 #vitals .vh .t{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--ink2);text-transform:uppercase}
@@ -129,12 +130,12 @@ canvas{display:block}
 .cslider label{font-size:8px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--asm)}
 .cslider input{width:130px;accent-color:#e8a13a}
 .cslider .rv{font-family:var(--m);font-size:8.5px;color:var(--ink2);min-width:60px}
-#ctl .dark,#figCtl .dark{background:none;color:#c2d9ec;border-color:rgba(150,200,240,.4)}
+#ctl .dark,#figCtl .dark{background:none;color:#d6e8f8;border-color:rgba(150,200,240,.4)}
 #ctl .dark.on,#figCtl .dark.on{color:#eef7ff;border-bottom:2px solid #2f88c0}
 
 /* inspector — progressive disclosure card, never a wall of text */
 #insp{position:absolute;top:70px;right:22px;width:330px;max-height:calc(100% - 160px);overflow-y:auto;
-  pointer-events:auto;background:rgba(12,26,44,.92);border:1px solid var(--line2);border-radius:12px;
+  pointer-events:auto;background:rgba(16,40,72,.84);border:1px solid var(--line2);border-radius:12px;
   padding:14px 16px;backdrop-filter:blur(14px);box-shadow:0 18px 50px -20px rgba(10,30,60,.5);
   transform:translateX(16px);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s;scrollbar-width:thin}
 #insp.on{transform:none;opacity:1}
@@ -211,7 +212,7 @@ details.grp>.gb{padding-top:6px}
 #ststep .mt{font-size:7.4px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
 #ststep .row{display:flex;align-items:center;gap:10px}
 .stpn{background:none;border:0;cursor:pointer;padding:2px;position:relative}
-.stpn i{display:block;width:9px;height:9px;border-radius:50%;border:1.4px solid rgba(150,200,240,.45);background:rgba(13,30,52,.9)}
+.stpn i{display:block;width:9px;height:9px;border-radius:50%;border:1.4px solid rgba(150,200,240,.45);background:rgba(20,46,80,.9)}
 .stpn.on i{border-color:var(--ev);background:var(--ev);box-shadow:0 0 10px rgba(46,200,245,.85)}
 .stpn:hover i{border-color:var(--ev)}
 #ststep .cur{margin-top:8px}
@@ -233,16 +234,25 @@ details.grp>.gb{padding-top:6px}
 #svis.full #figCtl{position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;justify-content:center}
 #svis.m{perspective:1150px}
 #svis.m .vin{max-width:620px;margin:0 auto;transform-style:preserve-3d;transform:rotateX(8deg);
+  filter:drop-shadow(0 0 26px rgba(70,205,255,.22)) drop-shadow(0 18px 40px rgba(4,20,44,.5));
   transition:transform .16s ease-out;will-change:transform}
 #svis.m .vin>[data-lv]{transform:translateZ(30px)}
 #svis.m .vin .fcap{transform:translateZ(54px)}
 #svis.m .vin .figpop{transform:translateZ(54px)}
-#svis.m .vin:before{content:'';position:absolute;left:-7%;right:-7%;top:14%;bottom:-12%;transform:translateZ(-56px);pointer-events:none;
+#svis.m .vin:before{content:'';position:absolute;left:-7%;right:-7%;top:12%;bottom:-14%;transform:translateZ(-56px);pointer-events:none;
   background:
-   linear-gradient(rgba(46,200,245,.05),rgba(46,200,245,0) 55%),
-   repeating-linear-gradient(90deg,rgba(150,200,240,.075) 0 1px,transparent 1px 46px),
-   repeating-linear-gradient(0deg,rgba(150,200,240,.075) 0 1px,transparent 1px 46px);
-  border:1px solid rgba(150,200,240,.11)}
+   linear-gradient(rgba(70,205,255,.10),rgba(70,205,255,0) 60%),
+   repeating-linear-gradient(90deg,rgba(120,215,255,.10) 0 1px,transparent 1px 44px),
+   repeating-linear-gradient(0deg,rgba(120,215,255,.10) 0 1px,transparent 1px 44px);
+  border:1px solid rgba(120,215,255,.20);
+  box-shadow:0 0 40px rgba(60,190,255,.14) inset}
+#svis.m .vin:after{content:'';position:absolute;left:-7%;right:-7%;top:12%;bottom:-14%;transform:translateZ(-54px);pointer-events:none;
+  background:
+   linear-gradient(#5fd3ff,#5fd3ff) left top/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) left top/2px 26px,
+   linear-gradient(#5fd3ff,#5fd3ff) right top/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) right top/2px 26px,
+   linear-gradient(#5fd3ff,#5fd3ff) left bottom/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) left bottom/2px 26px,
+   linear-gradient(#5fd3ff,#5fd3ff) right bottom/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) right bottom/2px 26px;
+  background-repeat:no-repeat;opacity:.65}
 #svis.m[data-flat] .vin{transform:none!important}
 #svis.m[data-flat] .vin>[data-lv],#svis.m[data-flat] .vin .fcap,#svis.m[data-flat] .vin .figpop{transform:none}
 #svis.m[data-flat] .vin:before{display:none}
@@ -290,7 +300,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   font-size:7.6px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);padding:3px 1px}
 #bandBtn:hover{color:var(--ev);border-color:var(--ev)}
 #bandMenu{position:absolute;right:0;bottom:56px;display:none;flex-direction:column;gap:6px;align-items:flex-end;
-  background:rgba(13,30,52,.8);backdrop-filter:blur(18px);border-radius:12px;padding:12px 14px;
+  background:rgba(20,46,80,.8);backdrop-filter:blur(18px);border-radius:12px;padding:12px 14px;
   box-shadow:0 18px 48px -20px rgba(10,30,60,.5)}
 #bandMenu.on{display:flex}
 .sec{pointer-events:auto;background:none;border:0;padding:6px 2px 18px;margin-bottom:10px}
@@ -328,7 +338,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #findings{display:none;position:absolute;top:66px;left:18px;width:308px;max-height:calc(100vh - 320px);overflow-y:auto;
   pointer-events:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;z-index:11}
 #findings::-webkit-scrollbar{display:none}
-.fnd{background:rgba(10,24,40,.97);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;cursor:pointer;
+.fnd{background:rgba(18,42,74,.97);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;cursor:pointer;
   backdrop-filter:blur(10px);box-shadow:0 8px 26px -18px rgba(10,30,60,.45)}
 .fnd .fh{display:flex;gap:8px;align-items:flex-start}
 .fnd .sv{flex:none;width:7px;height:7px;border-radius:50%;margin-top:4px}
@@ -363,7 +373,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 /* floating contextual cards — intelligence appears where you work */
 #cards{position:absolute;inset:0;pointer-events:none;z-index:20}
 .pcard{position:absolute;width:340px;max-height:52vh;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;
-  background:rgba(13,30,52,.66);border:0;border-radius:14px;padding:12px 15px;
+  background:rgba(20,46,80,.66);border:0;border-radius:14px;padding:12px 15px;
   backdrop-filter:blur(22px) saturate(1.15);box-shadow:0 24px 60px -24px rgba(10,30,60,.6);animation:fi .25s both}
 .pcard .ph2{display:flex;justify-content:space-between;align-items:center;cursor:grab;margin-bottom:6px}
 .pcard .ph2 .pt{font-size:7.4px;letter-spacing:.2em;font-weight:800;color:var(--ink2);text-transform:uppercase}
@@ -395,12 +405,12 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 /* hint line above ctl */
 #hint{display:none;position:absolute;left:calc(50% - 80px);top:92px;transform:translateX(-50%);pointer-events:none;
   font-family:var(--m);font-size:8.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase;
-  background:rgba(10,24,40,.6);padding:5px 12px;border-radius:6px;opacity:0;transition:opacity .5s;white-space:nowrap}
+  background:rgba(18,42,74,.6);padding:5px 12px;border-radius:6px;opacity:0;transition:opacity .5s;white-space:nowrap}
 #hint.on{opacity:1}
 #hint.dark{background:rgba(10,22,36,.6);color:#9fc0d8}
 
 /* briefing overlay card */
-#brief{position:absolute;top:76px;left:340px;width:360px;pointer-events:auto;background:rgba(12,26,44,.94);
+#brief{position:absolute;top:76px;left:340px;width:360px;pointer-events:auto;background:rgba(16,40,72,.86);
   border:1px solid var(--line2);border-radius:12px;padding:16px 18px;backdrop-filter:blur(14px);
   box-shadow:0 18px 50px -20px rgba(10,30,60,.5);display:none}
 #brief.on{display:block;animation:slidein .5s cubic-bezier(.2,.8,.2,1)}
@@ -437,7 +447,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #onb .sub{margin-top:16px;font-size:13px;color:#a8c6de;text-align:center;padding:0 20px;max-width:600px;line-height:1.8}
 #field{margin-top:46px;width:min(720px,86vw)}
 #field .q{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;font-weight:800}
-#field textarea{width:100%;height:68px;resize:none;background:transparent;border:0;outline:0;color:#e6f2fe;
+#field textarea{width:100%;height:68px;resize:none;background:transparent;border:0;outline:0;color:#f2f9ff;
   font-family:var(--f);font-weight:300;font-size:clamp(14px,1.9vw,19px);line-height:1.6;padding:0 0 12px}
 #field textarea::placeholder{color:#6d89a2}
 #field .rule{height:1px;background:linear-gradient(90deg,rgba(150,200,240,.6),rgba(150,200,240,.08))}
@@ -484,7 +494,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b36</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b38</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -537,7 +547,7 @@ const $=s=>document.querySelector(s);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TAU=Math.PI*2;
-const C={ev:'#2ec8f5',calc:'#8fb4dc',asm:'#e8a13a',hyp:'#b08af5',clm:'#dce9f5',ok:'#3ecf95',bad:'#f57a7a',dim:'#7d9cb8',ink:'#e6f2fe',ink2:'#c2d9ec'};
+const C={ev:'#2ec8f5',calc:'#8fb4dc',asm:'#e8a13a',hyp:'#b08af5',clm:'#dce9f5',ok:'#3ecf95',bad:'#f57a7a',dim:'#9fbdd6',ink:'#f2f9ff',ink2:'#d6e8f8'};
 const chip=(p,l)=>'<span class="chip '+p+'">'+(l||{ev:'measured',calc:'calculated',asm:'assumed',hyp:'proposed',clm:'claim'}[p])+'</span>';
 
 const S={
@@ -1450,7 +1460,7 @@ const DRAW={
    const sc=o.s;
    ctx.save();ctx.translate(o.x,o.y);ctx.scale(sc,sc);
    const col=o.sev===3?C.bad:o.sev===2?C.asm:C.calc;
-   ctx.fillStyle='rgba(12,26,44,.94)';ctx.strokeStyle=col;ctx.lineWidth=1.5;
+   ctx.fillStyle='rgba(16,40,72,.86)';ctx.strokeStyle=col;ctx.lineWidth=1.5;
    ctx.beginPath();ctx.arc(0,0,o.r,0,TAU);ctx.fill();ctx.stroke();
    ctx.strokeStyle=hex2(col,.35);ctx.beginPath();ctx.arc(0,0,o.r+5+2*Math.sin(World.t*2+o.ph),0,TAU);ctx.stroke();
    txt('Δ',0,2,17,col,'center',300);
@@ -1461,7 +1471,7 @@ const DRAW={
  hyp(o){
    const h=o.h,r=o.r;
    o.sd=o.sd===undefined?h.s:o.sd+(h.s-o.sd)*0.06;
-   ctx.fillStyle='rgba(12,26,44,.92)';
+   ctx.fillStyle='rgba(16,40,72,.84)';
    ctx.strokeStyle=hex2(C.hyp,.8);ctx.lineWidth=o===SEL?2.2:1.3;
    ctx.beginPath();ctx.arc(o.x,o.y,r,0,TAU);ctx.fill();ctx.stroke();
    /* coverage ring */
@@ -1482,7 +1492,7 @@ const DRAW={
  chipEv(o){
    const w=o.hitW,h=o.hitH,off=o.off;
    ctx.save();if(off)ctx.globalAlpha*=0.45;
-   ctx.fillStyle='rgba(12,26,44,.94)';ctx.strokeStyle=C[o.p];ctx.lineWidth=1.3;
+   ctx.fillStyle='rgba(16,40,72,.86)';ctx.strokeStyle=C[o.p];ctx.lineWidth=1.3;
    if(off)ctx.setLineDash([4,4]);
    rr(o.x-w/2,o.y-h/2,w,h,7);ctx.fill();ctx.stroke();ctx.setLineDash([]);
    ctx.fillStyle=C[o.p];ctx.fillRect(o.x-w/2,o.y-h/2,4,h);
@@ -1501,7 +1511,7 @@ const DRAW={
    const on=o.day>=S.scrubDay-0.5;
    const col=o.m.c==='rejection'?C.asm:o.m.c==='release'?C.ev:o.m.c==='reactivate'?C.hyp:C.calc;
    ctx.save();if(!on)ctx.globalAlpha*=0.28;
-   ctx.fillStyle='rgba(12,26,44,.95)';ctx.strokeStyle=col;ctx.lineWidth=o===SEL?2.4:1.4;
+   ctx.fillStyle='rgba(16,40,72,.88)';ctx.strokeStyle=col;ctx.lineWidth=o===SEL?2.4:1.4;
    ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.stroke();
    mono('S-'+String(o.day).padStart(3,'0'),o.x,o.y-1,8,col);
    const lines=wrapText(o.m.b,22).slice(0,2);
@@ -1516,7 +1526,7 @@ const DRAW={
  },
  comp(o){
    const w=o.hitW,h=o.hitH,att=S.attached.has(o.idx);
-   ctx.fillStyle=att?'rgba(12,26,44,.97)':'rgba(12,26,44,.8)';
+   ctx.fillStyle=att?'rgba(16,40,72,.9)':'rgba(16,40,72,.72)';
    ctx.strokeStyle=C[o.c.p];ctx.lineWidth=att?1.6:1.1;
    if(!att)ctx.setLineDash([3,3]);
    rr(o.x-w/2,o.y-h/2,w,h,7);ctx.fill();ctx.stroke();ctx.setLineDash([]);
@@ -1552,14 +1562,14 @@ const DRAW={
    if(o.shake>0){o.shake-=0.015;const s2=o.shake*6;o.x+=Math.sin(World.t*40)*s2;}
  },
  anchor(o){
-   ctx.fillStyle='rgba(12,26,44,.9)';ctx.strokeStyle=C[o.col];ctx.lineWidth=1.4;
+   ctx.fillStyle='rgba(16,40,72,.82)';ctx.strokeStyle=C[o.col];ctx.lineWidth=1.4;
    ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.stroke();
    txt(o.icon,o.x,o.y,11,C[o.col],'center',400);
    txt(o.text,o.x,o.y+o.r+12,8,C.dim,'center',800);
  },
  stmt(o){
    const w=o.hitW,h=o.hitH;
-   ctx.fillStyle='rgba(12,26,44,.95)';ctx.strokeStyle=hex2(C.clm,.35);ctx.lineWidth=1;
+   ctx.fillStyle='rgba(16,40,72,.88)';ctx.strokeStyle=hex2(C.clm,.35);ctx.lineWidth=1;
    rr(o.x-w/2,o.y-h/2,w,h,9);ctx.fill();ctx.stroke();
    ctx.fillStyle=C.clm;ctx.fillRect(o.x-w/2,o.y-h/2,3,h);
    o.lines.forEach((l,i)=>txt((i===0?'“':'')+l+(i===o.lines.length-1?'”':''),o.x-w/2+14,o.y-h/2+16+i*15,10.5,C.ink,'left',500));
@@ -2801,7 +2811,7 @@ DRAW.gnode=function(o){
   if(tr){em=(o.gid===S.traceId||tr.up.has(o.gid)||tr.down.has(o.gid))?1:0.25;}
   ctx.save();ctx.globalAlpha*=em;
   const off=(o.gid==='alma'&&S.removed.alma)||(o.gid==='lab'&&(S.removed.lab||S.droplab))||(o.gid==='mag'&&S.removed.mag);
-  ctx.fillStyle='rgba(12,26,44,.95)';ctx.strokeStyle=o.gid==='stat'?C.bad:C[o.cls];ctx.lineWidth=o.gid===S.traceId?2.2:1.2;
+  ctx.fillStyle='rgba(16,40,72,.88)';ctx.strokeStyle=o.gid==='stat'?C.bad:C[o.cls];ctx.lineWidth=o.gid===S.traceId?2.2:1.2;
   if(off)ctx.setLineDash([4,4]);
   rr(o.x-w/2,o.y-h2/2,w,h2,6);ctx.fill();ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=C[o.cls];ctx.fillRect(o.x-w/2,o.y-h2/2,3,h2);
@@ -2811,7 +2821,7 @@ DRAW.gnode=function(o){
 DRAW.obox=function(o){
   const w=o.hitW,h2=o.hitH;
   const col=o.st==='resolved'?C.ok:o.st==='mitigated'?C.calc:C.bad;
-  ctx.fillStyle='rgba(12,26,44,.95)';ctx.strokeStyle=col;ctx.lineWidth=1.3;
+  ctx.fillStyle='rgba(16,40,72,.88)';ctx.strokeStyle=col;ctx.lineWidth=1.3;
   rr(o.x-w/2,o.y-h2/2,w,h2,7);ctx.fill();ctx.stroke();
   ctx.fillStyle='rgba(150,200,240,.1)';ctx.fillRect(o.x-w/2+10,o.y+h2/2-12,90,4);
   ctx.fillStyle=col;ctx.fillRect(o.x-w/2+10,o.y+h2/2-12,90*o.sev,4);
@@ -3273,7 +3283,7 @@ function fDefs(u){
    '<radialGradient id="haloV'+u+'"><stop offset="0" stop-color="#b08af5" stop-opacity=".15"/><stop offset="1" stop-color="#b08af5" stop-opacity="0"/></radialGradient>'+
    '<radialGradient id="haloE'+u+'"><stop offset="0" stop-color="#2ec8f5" stop-opacity=".14"/><stop offset="1" stop-color="#2ec8f5" stop-opacity="0"/></radialGradient>'+
    '<marker id="arwE'+u+'" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#2ec8f5"/></marker>'+
-   '<marker id="arwD'+u+'" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#7d9cb8"/></marker>'+
+   '<marker id="arwD'+u+'" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#9fbdd6"/></marker>'+
    '<marker id="arwB'+u+'" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#f57a7a"/></marker>'+
   '</defs>';
 }
@@ -3770,6 +3780,14 @@ function stationsFor(mode){
        '<td style="color:'+(hot?C.bad:C.dim)+(hot?';font-weight:700':'')+'">'+(inb?'within bound':t.toFixed(1)+'σ'+(hot?' ⚠':''))+'</td></tr>';}).join('')+'</table>'+
      '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 % · pre-D21 RM stability cluster. Citation structure: W20 inherits B18; E22 inherits M16 — the stability cluster is <b>two measurements, not three</b>, and D21 stands alone against it.</p>'+
      '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
+  if(mode==='reason')return [
+   {id:'chamber',label:'Reasoning chamber',sub:'speak, and the system verifies',vis:'live',vsize:'l',
+    cap:'<b>Live instrument.</b> Statements stack with verification tags; threads arc to the evidence anchors.',
+    html:'<h2>Speak, and the system verifies — while you type.</h2>'+
+     '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to reasoning you already rejected, reviewer risk, and the missing test that would settle the sentence.</p>'+
+     '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'+
+     '<div class="acts"><button class="abtn" data-act="rsn:next">Next statement</button><button class="abtn" data-act="rsn:map">Argument map</button></div>'+
+     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'}];
   if(!hasSeries()&&hasSyn()){
     if(mode==='model')return [
      {id:'state',label:'State of the question',sub:'what the literature establishes',vis:'timeline',
@@ -4567,7 +4585,7 @@ function svgResults(){
     const y=Y(r.relevance);
     const col=r.material?C.asm:r.relevant?C.ev:C.dim;
     s2+=sL(x,mT+pH,x,y,col,1,r.relevant?null:'2 3');
-    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:3.6)+'" fill="'+(r.material?'rgba(232,161,58,.25)':'rgba(12,26,44,.9)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:1.4)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
+    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:3.6)+'" fill="'+(r.material?'rgba(232,161,58,.25)':'rgba(16,40,72,.82)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:1.4)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
     if(r.material)s2+=sM(x,y-11,'MATERIAL','middle',5.6,C.asm,800,'.08em');
   });
   s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
@@ -4610,7 +4628,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b36'],
+    ['Build running','b38'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+C.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
