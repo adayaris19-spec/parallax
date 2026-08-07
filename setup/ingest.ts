@@ -1,4 +1,17 @@
-// PARALLAX ingest worker v5 — paste into the Supabase Edge Function named `ingest`.
+// PARALLAX ingest worker v6 — paste into the Supabase Edge Function named `ingest`.
+//
+// v6 fixes the reason every question came back looking the same:
+//   * the live search sorted arXiv by SUBMITTED DATE. A query that matched little
+//     therefore returned "the newest papers in that category" instead of nothing,
+//     so every cosmology question returned the same recent astro-ph.CO papers.
+//     The live search now sorts by RELEVANCE. Date sorting stays on the cron sweep,
+//     where new arrivals are the point.
+//   * the model was asked to write the arXiv query string itself and kept adding a
+//     narrowing AND group and a cat: filter, which is what emptied the result set.
+//     It now returns only a list of terms; the query is assembled in code.
+//   * the user's own words are ALWAYS searched as a separate rung and merged in, so
+//     no interpretation can steer the corpus away from what was asked.
+//   * Crossref is polled alongside arXiv and ADS, so coverage is not just physics.
 //
 // Two modes:
 //   1. Cron sweep  (no body, or {})           -> polls the stored watches, stores + scores records
@@ -52,9 +65,9 @@ function pick(xml: string, tag: string): string {
   return m ? m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() : "";
 }
 
-async function pollArxiv(query: string, rows = 25) {
+async function pollArxiv(query: string, rows = 25, by: "relevance" | "submittedDate" = "submittedDate") {
   const url = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(query)}` +
-    `&sortBy=submittedDate&sortOrder=descending&max_results=${rows}`;
+    `&sortBy=${by}&sortOrder=descending&max_results=${rows}`;
   const xml = await (await fetch(url)).text();
   const out: any[] = [];
   for (const entry of xml.split("<entry>").slice(1)) {
@@ -73,10 +86,10 @@ async function pollArxiv(query: string, rows = 25) {
   return out;
 }
 
-async function pollAds(query: string, rows = 25) {
+async function pollAds(query: string, rows = 25, by: "score desc" | "date desc" = "date desc") {
   if (!ADS) return [];
   const url = `https://api.adsabs.harvard.edu/v1/search/query?q=${encodeURIComponent(query)}` +
-    `&fl=bibcode,title,abstract,author,date&rows=${rows}&sort=date%20desc`;
+    `&fl=bibcode,title,abstract,author,date&rows=${rows}&sort=${encodeURIComponent(by)}`;
   const r = await fetch(url, { headers: { Authorization: `Bearer ${ADS}` } });
   if (!r.ok) { console.log("ads", r.status); return []; }
   const j = await r.json();
@@ -91,7 +104,61 @@ async function pollAds(query: string, rows = 25) {
   }));
 }
 
-// Ask Claude to turn a natural-language question into a real arXiv query + profile.
+// Crossref indexes essentially every discipline, needs no key, and is what makes
+// this a science tool rather than a physics tool.
+async function pollCrossref(query: string, rows = 20) {
+  try {
+    const url = `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(query)}` +
+      `&rows=${rows}&sort=relevance&select=DOI,title,abstract,author,issued,container-title,type` +
+      `&filter=type:journal-article&mailto=parallax@example.org`;
+    const r = await fetch(url, { headers: { "User-Agent": "PARALLAX/1.0 (research monitor)" } });
+    if (!r.ok) { console.log("crossref", r.status); return []; }
+    const j = await r.json();
+    return (j.message?.items ?? []).map((d: any) => {
+      const dp = d.issued?.["date-parts"]?.[0] ?? [];
+      const iso = dp.length
+        ? `${dp[0]}-${String(dp[1] ?? 1).padStart(2, "0")}-${String(dp[2] ?? 1).padStart(2, "0")}`
+        : null;
+      return {
+        source: "crossref",
+        source_id: `doi:${d.DOI}`,
+        title: (d.title ?? [""])[0] ?? "",
+        abstract: String(d.abstract ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 4000),
+        authors: (d.author ?? []).slice(0, 8).map((a: any) => `${a.given ?? ""} ${a.family ?? ""}`.trim()).join(", "),
+        url: `https://doi.org/${d.DOI}`,
+        published_at: iso,
+      };
+    }).filter((x: any) => x.title);
+  } catch (e) { console.log("crossref fail", String(e)); return []; }
+}
+
+// The query is built here, not by the model. A model asked for a query string kept
+// bolting on a second AND group and a cat: filter, which emptied the result set -
+// and an empty result set plus a date sort is exactly how every question ends up
+// returning the same recent papers.
+const STOP = new Set(("a an the of in on for to and or with that this is are was were be been being do does did " +
+  "what why how which when where can could should would there their it its we i my about any new from at by vs " +
+  "versus have has had not no than then so such as into over under between").split(" "));
+function qTerms(text: string): string[] {
+  // acronyms carry the whole question in some fields (NP, DNA, CMB, QCD), so a
+  // blanket length filter would throw the topic away
+  const raw = String(text).replace(/[^A-Za-z0-9\-\s]/g, " ").split(/\s+/).filter(Boolean);
+  const out: string[] = [];
+  for (const w of raw) {
+    const low = w.toLowerCase();
+    if (STOP.has(low)) continue;
+    const keep = low.length > 2 || /[0-9]/.test(w) || (w.length >= 2 && w === w.toUpperCase());
+    if (keep && out.indexOf(low) < 0) out.push(low);
+  }
+  return out.slice(0, 8);
+}
+function grp(terms: string[]): string {
+  const parts = terms.map((t) => String(t).replace(/["\\]/g, " ").trim()).filter(Boolean)
+    .map((v) => (v.includes(" ") ? `all:"${v}"` : `all:${v}`));
+  return parts.length ? "(" + parts.join(" OR ") + ")" : "";
+}
+
+// Ask Claude to turn a natural-language question into search TERMS - never a query string.
 async function interpret(question: string) {
   if (!ANT) return null;
   const prompt =
@@ -99,21 +166,21 @@ async function interpret(question: string) {
     `QUESTION: ${question}\n\n` +
     `Return ONLY JSON:\n` +
     `{"field":"short field name",` +
-    `"arxiv":"an arXiv API search_query using all:/ti:/abs:/cat: prefixes, AND/OR, quoted phrases",` +
-    `"broad":"a deliberately wider fallback arXiv query for the same topic",` +
+    `"terms":["4-7 search terms or short phrases the literature on this actually uses"],` +
+    `"core":["the 2-3 most central of those terms"],` +
     `"ads":"an ADS query for the same topic",` +
     `"quantity":{"sym":"symbol","name":"the measurable quantity a claim here would rest on","unit":"unit or empty"},` +
     `"tracked":["3-5 specific quantities/claims to watch"]}\n\n` +
     `Rules:\n` +
-    `- The input may be a bare topic ("parallel universes", "cosmic microwave background", "dark matter") ` +
-    `or a full question. Both must work. Never refuse and never return an empty query.\n` +
-    `- Map colloquial phrasing to the terms physicists publish under (parallel universes -> multiverse, ` +
+    `- The input may be a bare topic ("parallel universes", "photosynthesis", "dark matter", ` +
+    `"CRISPR off-target effects") or a full question. Both must work, in ANY field of science - ` +
+    `physics, astronomy, chemistry, biology, earth science, computer science, mathematics.\n` +
+    `- Map colloquial phrasing to the terms researchers publish under (parallel universes -> multiverse, ` +
     `eternal inflation, many-worlds; time travel -> closed timelike curves, wormholes).\n` +
-    `- "arxiv" must be BROAD: 3-6 core synonyms joined with OR in ONE group, using all: prefixes. ` +
-    `Do NOT add a second AND group of qualifier words like testable/observational/constraints — ` +
-    `that over-narrows and returns noise. At most add one cat: filter.\n` +
-    `- "broad" must be even wider: 2-3 of the most common terms only, no cat: filter.\n` +
-    `- Never return a bare list of stopwords.`;
+    `- "terms" are TERMS, not a query. Do not write AND, OR, parentheses, cat: or any prefix. ` +
+    `Do not include qualifier words like testable, observational, constraints, signatures - ` +
+    `they narrow the search to nothing and the search then returns whatever is merely recent.\n` +
+    `- Never return stopwords, and never return an empty list.`;
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
@@ -232,24 +299,44 @@ async function handle(req: Request): Promise<Response> {
       watch.tracked = ["primary measured quantity", "competing explanations", "systematic uncertainties"];
     }
 
-    // try the precise query, then the broad one, then a raw fallback
-    const ladder = [prof?.arxiv, prof?.broad, String(body.q || asked)].filter(Boolean) as string[];
-    let found: any[] = [];
-    let usedQuery = "";
-    for (const qq of ladder) {
-      found = await pollArxiv(qq, limit);
-      usedQuery = qq;
-      if (found.length) break;
+    // Queries are assembled here. The interpretation is one rung; the user's own
+    // words are ALWAYS another, and both are merged, so no interpretation can
+    // steer the corpus away from what was actually asked.
+    const iTerms: string[] = Array.isArray(prof?.terms) ? prof.terms.map(String).slice(0, 7) : [];
+    const iCore: string[] = Array.isArray(prof?.core) && prof.core.length
+      ? prof.core.map(String).slice(0, 3) : iTerms.slice(0, 3);
+    const own = qTerms(asked);
+    const rungs = [
+      { why: "interpreted terms", q: grp(iTerms) },
+      { why: "your own words", q: grp(own) },
+      { why: "core terms only", q: grp(iCore) },
+      { why: "whole phrase", q: own.length ? `all:"${own.join(" ")}"` : "" },
+    ].filter((r) => r.q);
+
+    const found: any[] = [];
+    const seen = new Set<string>();
+    const usedRungs: string[] = [];
+    const push = (rows: any[]) => {
+      for (const rec of rows) {
+        if (!rec?.source_id || seen.has(rec.source_id)) continue;
+        seen.add(rec.source_id); found.push(rec);
+      }
+    };
+    // rung 1 and rung 2 always run; the rest only if the corpus is still thin
+    for (let i = 0; i < rungs.length; i++) {
+      if (i >= 2 && found.length >= limit) break;
+      const rows = await pollArxiv(rungs[i].q, limit, "relevance");
+      if (rows.length) usedRungs.push(rungs[i].why + ": " + rungs[i].q);
+      push(rows);
     }
-    if (prof?.ads) {
-      const adsRows = await pollAds(prof.ads, limit);
-      const seen = new Set(found.map((f) => f.source_id));
-      for (const rec of adsRows) if (!seen.has(rec.source_id)) found.push(rec);
-    }
+    // the other two archives, scored by relevance rather than recency
+    if (prof?.ads) push(await pollAds(String(prof.ads), Math.ceil(limit / 2), "score desc"));
+    push(await pollCrossref(iTerms.length ? iTerms.slice(0, 4).join(" ") : asked, Math.ceil(limit / 2)));
+    const usedQuery = usedRungs[0] ?? (rungs[0]?.q ?? asked);
 
     // score in parallel — sequential scoring of a dozen abstracts blows the wall clock
     const scored: any[] = await Promise.all(
-      found.slice(0, limit).map(async (rec) => {
+      found.slice(0, Math.max(limit, 16)).map(async (rec) => {
         let v: any = null;
         try { v = await scoreRecord(rec, watch); } catch (_) { v = null; }
         return {
@@ -279,9 +366,9 @@ async function handle(req: Request): Promise<Response> {
       mode: "search", question: asked, synthesis,
       profile: prof ? {
         field: prof.field ?? "", quantity: prof.quantity ?? null,
-        tracked: watch.tracked, arxiv: prof.arxiv ?? "", ads: prof.ads ?? "",
+        tracked: watch.tracked, terms: iTerms, ads: prof.ads ?? "",
       } : null,
-      query: usedQuery,
+      query: usedQuery, rungs: usedRungs, worker: 6,
       pulled: found.length, scored: scored.length,
       relevant: scored.filter((r) => r.relevant).length,
       material: scored.filter((r) => r.material).length,
@@ -304,7 +391,7 @@ async function handle(req: Request): Promise<Response> {
 
   let pulled = 0;
   for (const w of watches) {
-    const found = [...(await pollArxiv(w.q)), ...(await pollAds(w.q))];
+    const found = [...(await pollArxiv(w.q, 25, "submittedDate")), ...(await pollAds(w.q, 25, "date desc"))];
     pulled += found.length;
     if (found.length) {
       await sb("records?on_conflict=source_id", "POST", found,
