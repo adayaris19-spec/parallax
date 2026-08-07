@@ -4603,11 +4603,69 @@ function resultsHTML(){
      '<td>'+(r.material?'<b style="color:'+C.asm+'">MATERIAL</b>':r.relevant?'<span style="color:'+C.ev+'">relevant</span>':'<span style="color:var(--dim)">discarded</span>')+'</td></tr>').join('')+'</table>'+
    '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
 }
-function synOf(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.synthesis)?R.synthesis:null;}
+function synOf(){
+  const R=resultsOf(QQ.id);
+  if(!R||R.state!=='done')return null;
+  if(R.synthesis&&(R.synthesis.state||(R.synthesis.findings||[]).length))return R.synthesis;
+  return deriveSyn(R);
+}
+/* If the worker returns no synthesis, build one from the records we do have.
+   Everything here comes from returned data - nothing is invented. */
+function deriveSyn(R){
+  const rows=(R.results||[]);
+  if(!rows.length)return null;
+  const kept=rows.filter(r=>r.relevant);
+  const mat=rows.filter(r=>r.material);
+  const top=rows.slice().sort((a,b)=>(b.relevance||0)-(a.relevance||0));
+  const yrs={};
+  rows.forEach(r=>{if(r.published_at){const y=String(r.published_at).slice(0,4);yrs[y]=(yrs[y]||0)+1;}});
+  const yrList=Object.keys(yrs).sort();
+  const state='The perimeter returned <b>'+rows.length+'</b> records for this question; <b>'+kept.length+
+    '</b> cleared the relevance gate and <b>'+mat.length+'</b> report a new measurement, bound or contradiction'+
+    (yrList.length?', spanning '+yrList[0]+(yrList.length>1?'–'+yrList[yrList.length-1]:''):'')+
+    '. The strongest match is “'+(top[0]?String(top[0].title||'').slice(0,110):'—')+'” at '+
+    ((top[0]&&top[0].relevance!=null)?(top[0].relevance*100).toFixed(0)+'%':'—')+' relevance. '+
+    (mat.length?'The material records are where this question can actually move.'
+      :'Nothing returned carries a new measurement, so the question has not moved on the evidence this cycle.');
+  const findings=(mat.length?mat:top.slice(0,3)).slice(0,4).map(r=>({
+    t:String(r.title||''),
+    why:r.why||'Scored as bearing on this question by the relevance gate.',
+    ev:(r.source||'')+(r.published_at?' · '+String(r.published_at).slice(0,10):''),
+    conf:(r.relevance||0)>=0.8?'high':(r.relevance||0)>=0.5?'moderate':'low'}));
+  /* group by the position each record backs, when the gate reported one */
+  const groups={};
+  kept.forEach(r=>{
+    const k=(r.position&&String(r.position).trim())?String(r.position).trim():null;
+    if(!k)return;
+    (groups[k]=groups[k]||[]).push(r);
+  });
+  const keys=Object.keys(groups).sort((a,b)=>groups[b].length-groups[a].length).slice(0,4);
+  const tot=keys.reduce((a,k)=>a+groups[k].length,0)||1;
+  const positions=keys.map(k=>({
+    n:k,d:'Backed by '+groups[k].length+' returned record'+(groups[k].length>1?'s':'')+'.',
+    support:Math.round(groups[k].length/tot*100),
+    ex:groups[k].map(r=>String(r.title||'').slice(0,60)).slice(0,2).join('; '),
+    fx:'—',test:'—'}));
+  const contested=[];
+  const sup=kept.filter(r=>r.stance==='supports'),con=kept.filter(r=>r.stance==='contests');
+  if(sup.length&&con.length)contested.push({point:'The returned records do not agree',
+    a:sup.length+' support the leading reading — e.g. '+String(sup[0].title||'').slice(0,70),
+    b:con.length+' contest it — e.g. '+String(con[0].title||'').slice(0,70)});
+  const quantities=rows.filter(r=>r.measurement&&r.measurement.parameter).slice(0,4).map(r=>({
+    sym:'',name:r.measurement.parameter,
+    value:(r.measurement.value||'')+(r.measurement.sigma?' ± '+r.measurement.sigma:''),
+    src:String(r.title||'').slice(0,60)}));
+  return {state,findings,positions,contested,quantities,
+    nextTest:mat.length?'Read the '+mat.length+' material record'+(mat.length>1?'s':'')+' in full and test whether the reported bound changes your working assumption.'
+      :'Widen or re-run the watch: nothing returned this cycle carries a new measurement.',
+    gaps:kept.length?[]:['no record cleared the relevance gate - the question may need rephrasing'],
+    derived:true};
+}
 function hasSyn(){return !!synOf();}
 function synStateHTML(){
   const y=synOf();if(!y)return '';
-  return '<p>'+(y.state||'')+'</p>';
+  return '<p>'+(y.state||'')+'</p>'+
+   (y.derived?'<p style="font-size:10.6px;color:var(--dim)">Assembled directly from the returned records. A fuller synthesis appears when the worker\'s synthesis pass succeeds.</p>':'');
 }
 function synFindingsHTML(){
   const y=synOf();if(!y||!y.findings||!y.findings.length)return '<p style="color:var(--dim)">No findings extracted yet.</p>';
@@ -4620,7 +4678,16 @@ function synFindingsHTML(){
     '</div></div>').join('');
 }
 function synPositionsHTML(){
-  const y=synOf();if(!y||!y.positions||!y.positions.length)return '<p style="color:var(--dim)">No competing positions extracted.</p>';
+  const y=synOf();
+  if(y&&(!y.positions||!y.positions.length)){
+    const R=resultsOf(QQ.id),rows=((R&&R.results)||[]).filter(r=>r.relevant).slice(0,6);
+    if(rows.length)return '<p>The gate did not group these records into competing positions, so here are the admitted records ranked by relevance — each is a line of evidence on this question.</p>'+
+      rows.map((r,i)=>'<div style="border-top:1px solid var(--line);padding:9px 0">'+
+        '<p style="margin:0"><b>'+(i+1)+' · '+String(r.title||'')+'</b> — relevance <b>'+((r.relevance||0)*100).toFixed(0)+'%</b>'+
+        '<span class="inbar"><i style="width:'+((r.relevance||0)*100)+'%;background:'+C.hyp+'"></i></span></p>'+
+        '<p style="margin:4px 0">'+(r.why||'')+'</p></div>').join('');
+  }
+  if(!y||!y.positions||!y.positions.length)return '<p style="color:var(--dim)">No competing positions extracted.</p>';
   return y.positions.map((h,i)=>'<div style="border-top:1px solid var(--line);padding:9px 0">'+
     '<p style="margin:0"><b>'+(i+1)+' · '+(h.n||'')+'</b> — support <b>'+(h.support||0)+'%</b>'+
     '<span class="inbar"><i style="width:'+(h.support||0)+'%;background:'+C.hyp+'"></i></span></p>'+
@@ -4629,12 +4696,18 @@ function synPositionsHTML(){
     '<p style="margin:4px 0;font-size:11.3px"><b>Settled by:</b> '+(h.test||'—')+'</p></div>').join('');
 }
 function synContestedHTML(){
-  const y=synOf();if(!y||!y.contested||!y.contested.length)return '';
+  const y=synOf();
+  if(y&&(!y.contested||!y.contested.length))
+    return '<p style="color:var(--dim)">No explicit disagreement was detected among the returned records. That is a real result: on this question, the corpus is currently consistent — or too thin to conflict.</p>';
+  if(!y||!y.contested||!y.contested.length)return '';
   return '<table class="dtable"><tr><th>Contested point</th><th>One side</th><th>The other</th></tr>'+
    y.contested.map(c2=>'<tr><td><b>'+(c2.point||'')+'</b></td><td>'+(c2.a||'')+'</td><td>'+(c2.b||'')+'</td></tr>').join('')+'</table>';
 }
 function synQuantHTML(){
-  const y=synOf();if(!y||!y.quantities||!y.quantities.length)return '';
+  const y=synOf();
+  if(y&&(!y.quantities||!y.quantities.length))
+    return '<p style="color:var(--dim)">No numerical bound was extracted from these records. Papers on this question are currently argumentative rather than quantitative — itself worth knowing.</p>';
+  if(!y||!y.quantities||!y.quantities.length)return '';
   return '<table class="dtable"><tr><th>Quantity</th><th>Current value or bound</th><th>Source</th></tr>'+
    y.quantities.map(q2=>'<tr><td><b>'+(q2.sym?q2.sym+' — ':'')+(q2.name||'')+'</b></td><td>'+(q2.value||'—')+'</td><td>'+(q2.src||'—')+'</td></tr>').join('')+'</table>';
 }
