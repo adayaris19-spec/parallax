@@ -58,7 +58,7 @@ canvas{display:block}
 #brand .sim{display:inline-block;margin-left:10px;font-family:var(--m);font-size:7px;letter-spacing:.16em;
   color:var(--asm);border:1px dashed rgba(232,161,58,.55);padding:2px 6px;border-radius:3px;vertical-align:2px}
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-#dock{position:absolute;top:12px;left:calc(50% - 80px);transform:translateX(-50%);display:flex;gap:14px;pointer-events:auto}
+#dock{position:absolute;top:12px;left:calc(50% - 130px);transform:translateX(-50%);display:flex;gap:14px;pointer-events:auto}
 .dk{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 3px;cursor:pointer;text-align:center}
 .dk .n{font-size:9.5px;letter-spacing:.22em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .dk .d{margin-top:2px;font-size:7.5px;letter-spacing:.06em;color:var(--dim);white-space:nowrap}
@@ -73,24 +73,22 @@ canvas{display:block}
   pointer-events:none;white-space:nowrap;overflow:hidden}
 #strip b{color:var(--ink);font-weight:650;margin-left:4px}
 #strip:empty{display:none}
-#cmdHint{position:absolute;top:14px;right:14px;pointer-events:auto;background:none;
-  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
-  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#hud{position:absolute;top:12px;right:14px;display:flex;gap:16px;align-items:center;pointer-events:auto;z-index:12}
+#hud button{background:none;border:0;border-bottom:1px solid rgba(150,200,240,.35);padding:4px 2px;cursor:pointer;
+  font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink);white-space:nowrap}
+#hud button:hover{border-color:var(--ev)}
+#hud button b{font-family:var(--m);font-weight:700;margin-left:6px;max-width:130px;overflow:hidden;text-overflow:ellipsis;
+  display:inline-block;vertical-align:bottom}
+#cmdHint b{color:var(--ev)}
 #cmdHint b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:6px}
-#liveBtn{position:absolute;top:14px;right:132px;pointer-events:auto;background:none;
-  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
-  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
-#liveBtn b{font-family:var(--m);font-weight:700;color:var(--dim);margin-left:6px}
+
+#liveBtn b{color:var(--dim)}
 #liveBtn.on{border-color:rgba(62,207,149,.7)}
 #liveBtn.on b{color:var(--ok)}
-#planBtn{position:absolute;top:14px;right:250px;pointer-events:auto;background:none;
-  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
-  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
-#planBtn b{font-family:var(--m);font-weight:700;color:var(--hyp);margin-left:6px}
-#qBtn{position:absolute;top:14px;right:400px;pointer-events:auto;background:none;
-  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
-  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
-#qBtn b{font-family:var(--m);font-weight:700;color:var(--ev);margin-left:6px}
+
+#planBtn b{color:var(--hyp)}
+
+#qBtn b{color:var(--ev)}
 
 /* live model vitals — always present: the model never sleeps */
 #vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
@@ -223,7 +221,7 @@ details.grp>.gb{padding-top:6px}
 .fcap .capline{display:block;margin-top:5px;font-family:var(--m);font-size:9px;letter-spacing:.06em;color:var(--ink2)}
 #svis.full #figCtl{position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;justify-content:center}
 #svis.m{perspective:1150px}
-#svis.m .vin{max-width:620px;margin:0 auto;transform-style:preserve-3d;transform:rotateX(15deg);
+#svis.m .vin{max-width:620px;margin:0 auto;transform-style:preserve-3d;transform:rotateX(8deg);
   transition:transform .16s ease-out;will-change:transform}
 #svis.m .vin>[data-lv]{transform:translateZ(30px)}
 #svis.m .vin .fcap{transform:translateZ(54px)}
@@ -474,10 +472,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="brand"><span class="p">PARALLAX</span><span class="sim">SIMULATED SCENARIO</span></div>
   <div id="dock"></div>
   <div id="strip"></div>
-  <button id="cmdHint">Command<b>/</b></button>
-  <button id="liveBtn">DATA<b>SIM</b></button>
-  <button id="planBtn">PLAN<b>RESEARCHER</b></button>
-  <button id="qBtn">QUESTION<b>SGRA</b></button>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -542,41 +537,21 @@ const S={
   spoken:0, yaw:0, zoom:1, briefSeen:false, mod:{shift:false,alt:false}, claimCollapsed:false, reasonMap:false,
   counters:{rec:18420, fam:1247, mat:4, raw:2143208}, relTh:1, budgetDays:null
 };
-const QUESTIONS=[
-{id:'sgra',name:'Sgr A* polarisation drift',object:'Sgr A* · Galactic Centre black hole',
+const DEMOS=[
+{id:'sgra',short:'sgra',name:'Sgr A* polarisation drift',object:'Sgr A* · Galactic Centre black hole',
  field:'black-hole accretion',hero:'blackhole',
  q:{sym:'EVPA',name:'polarisation angle',unit:'°',lo:-16,hi:48,per:'epoch',band:'permitted sector'},
  bandLo:14,bandHi:42,bandCtl:'heating prior',
  series:Array.from({length:9},(_,i)=>41*i/8+Math.sin(i*2.3)*1.6),
  errs:Array.from({length:9},(_,i)=>4.4+i*0.28),
  feedq:'("Sgr A*" OR "Sagittarius A*") AND (polarization OR "rotation measure" OR GRMHD)',
- tracked:['EVPA drift at 230 GHz','Faraday screen stability','electron heating R_high','fractional polarisation m_L']},
-{id:'exo',name:'K2-18b methane-CO2 disequilibrium',object:'K2-18 b · habitable-zone sub-Neptune',
- field:'exoplanet atmospheres',hero:'transit',
- q:{sym:'depth',name:'transit depth excess',unit:' ppm',lo:-20,hi:120,per:'band',band:'photochemical envelope'},
- bandLo:22,bandHi:88,bandCtl:'mixing-ratio prior',
- series:[8,14,26,38,57,71,84,96,104],
- errs:[9,9.5,10,11,12,13,14,15,17],
- feedq:'"K2-18" AND (atmosphere OR JWST OR methane OR dimethyl)',
- tracked:['CH4 abundance','CO2 abundance','DMS candidate feature at 3.4 um','interior/ocean scenario priors']},
-{id:'gw',name:'GW ringdown overtone consistency',object:'GW231109 · binary black-hole merger',
- field:'gravitational-wave tests of GR',hero:'strain',
- q:{sym:'δf',name:'ringdown frequency deviation',unit:'%',lo:-4,hi:16,per:'segment',band:'GR-consistent band'},
- bandLo:3,bandHi:11,bandCtl:'calibration prior',
- series:[0.4,0.9,1.8,2.9,4.4,6.1,8.0,9.6,11.4],
- errs:[1.2,1.25,1.3,1.4,1.5,1.6,1.7,1.85,2.0],
- feedq:'(ringdown OR quasinormal) AND ("black hole" OR merger) AND (LIGO OR Virgo OR KAGRA)',
- tracked:['fundamental QNM frequency','first overtone amplitude','remnant mass and spin','calibration systematics']},
-{id:'dm',name:'Sub-GeV dark matter exclusion tension',object:'Xenon/He target · direct detection',
- field:'dark matter direct detection',hero:'exclusion',
- q:{sym:'σ_SI',name:'cross-section excess',unit:'e-45',lo:-1,hi:9,per:'bin',band:'background envelope'},
- bandLo:2,bandHi:6,bandCtl:'background model prior',
- series:[0.2,0.5,0.9,1.5,2.4,3.4,4.6,5.7,6.8],
- errs:[0.7,0.72,0.75,0.8,0.85,0.9,1.0,1.1,1.25],
- feedq:'("dark matter" AND ("direct detection" OR WIMP) AND (xenon OR "sub-GeV"))',
- tracked:['spin-independent cross-section limit','neutrino fog proximity','background model','light-mass threshold']}
+ tracked:['EVPA drift at 230 GHz','Faraday screen stability','electron heating R_high','fractional polarisation m_L']}
 ];
-let QQ=QUESTIONS[0];
+const EMPTYQ={id:'none',short:'none',name:'no watch open',object:'',field:'',hero:null,
+ q:{sym:'value',name:'tracked quantity',unit:'',lo:0,hi:10,per:'measurement',band:'permitted interval'},
+ bandLo:2,bandHi:8,bandCtl:'working prior',series:null,errs:null,feedq:'',tracked:[],empty:true};
+const QUESTIONS=[];
+let QQ=EMPTYQ;
 const HYPS=[
  {id:'heating',n:'Electron heating extended',full:'Underestimated electron-heating range',s:0,
   d:'Heating partition reaches R ≳ 8 near βi ≈ 1; the emission region migrates outward, producing the drift intrinsically.',
@@ -2664,6 +2639,7 @@ function renderStrip(){
   const el=$('#strip');if(!el)return;
   if(S.phase!=='live'){el.innerHTML='';return;}
   const r=ranked()[0],cn=containN();
+  const qLbl=noWatch()?'none':(QQ.short||QQ.id);
   el.innerHTML='<span>S-000 · '+clock()+' UTC</span>'+
    (typeof LIVE!=='undefined'&&LIVE.on?'<span style="color:'+C.ok+'">LINK<b style="color:'+C.ok+'">LIVE</b></span><span>REAL RECORDS<b>'+LIVE.total+'</b></span>':'<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>')+
    '<span>FEEDS<b>1,247</b></span>'+
@@ -3120,9 +3096,12 @@ act=function(a){
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
   if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','questions');return;}
+  if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
+  if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
   if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim()){addQuestion(el.value.trim());jumpStation('watch','questions');}return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
-    if(i>0){QUESTIONS.splice(i,1);if(QQ.id===p[1])setQuestion(QUESTIONS[0].id);else renderIntel();}return;}
+    if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];
+      if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
   if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
     postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
   if(p[0]==='budget'){S.budget=p[1];S.budgetDays=null;renderIntel();return;}
@@ -3583,7 +3562,7 @@ function memHTML(){
    '<p style="margin:3px 0;font-size:11.3px"><b>Why:</b> '+m.a+' <b>Context:</b> '+m.w+'</p></div>').join('');
 }
 const LIVEBIND={
- kf:kfHTML, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
+ kf:kfHTML, resfig:svgResults, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
  hyps:hypsHTML, exps:expsHTML, matrix:matrixHTML, referee:refereeHTML, comps:compsHTML,
  claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
    (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
@@ -3598,6 +3577,8 @@ const LIVEBIND={
  qfigh:()=>hasSeries()?QN().figH:'Nothing to plot — and that is the honest answer.',
  qfigp:()=>hasSeries()?QN().figP:emptySeriesHTML(),
  questions:()=>questionsHTML(),
+ results:()=>resultsHTML(),
+ resfig:()=>svgResults(),
  plans:()=>plansHTML(),
  econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
@@ -3678,9 +3659,26 @@ function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
 /* ---------------- stations: the mode is a mechanism, not an article ---------------- */
-const VISTITLE={evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+const VISTITLE={resfig:'Research return - real records, scored',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
+  if(noWatch())return [
+   {id:'start',label:'Open your first watch',sub:'nothing is being tracked yet',vis:null,
+    html:'<h2>PARALLAX is not watching anything yet.</h2>'+
+     '<p>This machine reads the scientific literature continuously, scores every record against a question you define, and surfaces only what changes an assumption, a boundary or a conclusion. It has no opinions of its own and no preloaded subject - you give it the question.</p>'+
+     '<div data-lv="questions">'+questionsHTML()+'</div>'}];
+  if(mode==='watch'&&!hasSeries())return [
+   {id:'research',label:'Research return',sub:'what the perimeter actually found',
+    vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
+    html:'<h2>What this question actually returned.</h2>'+
+     '<div data-lv="results">'+resultsHTML()+'</div>'},
+   {id:'questions',label:'Watched questions',sub:'open, switch or drop a watch',vis:null,
+    html:'<h2>Watches</h2>'+'<div data-lv="questions">'+questionsHTML()+'</div>'},
+   {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
+    html:'<h2>Three tiers, priced from measured cost.</h2>'+
+     '<div data-lv="plans">'+plansHTML()+'</div>'+
+     '<h2 style="font-size:15px;margin-top:16px">Unit economics — per user, per month</h2>'+
+     '<div data-lv="econ">'+unitEconHTML()+'</div>'}];
   if(mode==='watch')return [
    ...(typeof LIVE!=='undefined'&&LIVE.on?[{id:'live',label:'Live perimeter',sub:'Supabase link · real feeds',vis:null,
     html:'<h2>The perimeter is reading the real literature.</h2>'+
@@ -3706,6 +3704,10 @@ function stationsFor(mode){
      EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.res+'</span></td><td><button class="abtn sm" data-act="evc:'+i+'">chain</button></td></tr>').join('')+'</table>'+
      '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'+
      '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
+   {id:'research',label:'Research return',sub:'what the perimeter actually found',
+    vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
+    html:'<h2>What this question actually returned.</h2>'+
+     '<div data-lv="results">'+resultsHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
     html:'<h2>The mechanism is not about black holes.</h2>'+
      '<div data-lv="questions">'+questionsHTML()+'</div>'},
@@ -3729,6 +3731,14 @@ function stationsFor(mode){
        '<td style="color:'+(hot?C.bad:C.dim)+(hot?';font-weight:700':'')+'">'+(inb?'within bound':t.toFixed(1)+'σ'+(hot?' ⚠':''))+'</td></tr>';}).join('')+'</table>'+
      '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 % · pre-D21 RM stability cluster. Citation structure: W20 inherits B18; E22 inherits M16 — the stability cluster is <b>two measurements, not three</b>, and D21 stands alone against it.</p>'+
      '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
+  if(!hasSeries())return [
+   {id:'nodata',label:'No series on this watch',sub:'instruments unlock with data',vis:null,
+    html:'<h2>'+mode.toUpperCase()+' has nothing to operate on yet.</h2>'+
+     '<p>This mode manipulates a measured series — values with uncertainties tested against a permitted band. '+
+     'The active watch (<b>'+QQ.name+'</b>) has a live feed and a scoring profile, but no series on file, so these instruments stay dark rather than showing you a shape that means nothing.</p>'+
+     '<div data-lv="results">'+resultsHTML()+'</div>'+
+     '<div class="acts"><button class="abtn" data-act="sub:watch:questions">Open or switch watch</button>'+
+     '<button class="abtn" data-act="qdemo">Load the Sgr A* worked example</button></div>'}];
   if(mode==='model')return [
    {id:'system',label:hasSeries()?'Physical system':'Watch status',sub:hasSeries()?'render · containment gauge':'no measured series yet',vis:hasSeries()?'live':null,vsize:'l',
     cap:'<b>Live instrument.</b> The breathing band is the permitted sector; ticks are the nine epochs; violet exits. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.<span class="capline" data-lv="modelstats">'+LIVEBIND.modelstats()+'</span>',
@@ -3873,7 +3883,7 @@ document.addEventListener('pointermove',e=>{
   const r=sv.getBoundingClientRect();
   const nx=clamp((e.clientX-(r.left+r.width/2))/Math.max(1,r.width),-0.75,0.75);
   const ny=clamp((e.clientY-(r.top+r.height/2))/Math.max(1,r.height),-0.75,0.75);
-  sv.style.transform='rotateX('+(15-ny*9).toFixed(2)+'deg) rotateY('+(nx*12).toFixed(2)+'deg)';
+  sv.style.transform='rotateX('+(8-ny*6).toFixed(2)+'deg) rotateY('+(nx*8).toFixed(2)+'deg)';
 });
 document.addEventListener('dblclick',e=>{
   const sv=e.target.closest('#svis.m');
@@ -4291,7 +4301,8 @@ function synthQuestion(text){
     q:{sym:'value',name:'tracked quantity',unit:'',lo:0,hi:10,per:'measurement',band:'permitted interval'},
     bandLo:2,bandHi:8,bandCtl:'working prior',
     tracked:['primary measured quantity','competing explanations','systematic uncertainties','replication status']};
-  return {id:'usr_'+Math.abs(t.split('').reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0)).toString(36),
+  const shortLbl=(terms[0]||t.slice(0,10)).slice(0,12);
+  return {id:'usr_'+Math.abs(t.split('').reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0)).toString(36),short:shortLbl,
     name:t.length>64?t.slice(0,61)+'...':t,
     object:t,
     field:g.field,hero:g.hero,
@@ -4303,7 +4314,36 @@ function synthQuestion(text){
 }
 /* a watch only earns instruments once it holds a measured series */
 const hasSeries=()=>!!(QQ.series&&QQ.series.length);
+const noWatch=()=>!QUESTIONS.length||QQ.empty;
 const heroOf=()=>hasSeries()?QQ.hero:null;
+
+/* ---- research a watch for real: arXiv + ADS via the edge function ---- */
+const RES={busy:false,byQ:{}};
+function resultsOf(id){return RES.byQ[id]||null;}
+async function researchQuestion(q){
+  if(RES.busy)return;
+  RES.busy=true;
+  RES.byQ[q.id]={state:'searching',t0:Date.now()};
+  renderIntel();
+  postEvent('researching - '+q.name+' - querying arXiv and ADS','hot');
+  try{
+    const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+      body:JSON.stringify({q:q.feedq,name:q.name,tracked:q.tracked,limit:12,store:true})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    if(!j.results)throw new Error('worker returned no results - redeploy the ingest function');
+    RES.byQ[q.id]={state:'done',ts:Date.now(),...j};
+    postEvent('research complete - '+j.pulled+' records - '+j.relevant+' relevant - '+j.material+' material','hot');
+  }catch(e){
+    RES.byQ[q.id]={state:'error',err:String(e&&e.message||e)};
+    postEvent('research failed - '+String(e&&e.message||e),'warn');
+  }
+  RES.busy=false;
+  renderIntel();
+}
 function addQuestion(text){
   const q=synthQuestion(text);
   if(!q){postEvent('question too short to open a watch','warn');return;}
@@ -4312,26 +4352,87 @@ function addQuestion(text){
   QUESTIONS.push(q);
   postEvent('watch opened - '+q.name+' - '+(q.matched?'domain recognised: '+q.field:'generic profile'),'hot');
   setQuestion(q.id);
+  researchQuestion(q);
 }
 function setQuestion(id){
-  const q=QUESTIONS.find(x=>x.id===id);if(!q)return;
+  const q=(id===EMPTYQ.id)?EMPTYQ:QUESTIONS.find(x=>x.id===id);if(!q)return;
   QQ=q;
   EP_VAL=q.series?q.series.slice():[];EP_ERR=q.errs?q.errs.slice():[];
   S.asm.heating=0;S.mod={shift:false,alt:false};S.budgetDays=null;
   consistency();
-  const b=$('#qBtn');if(b)b.innerHTML='QUESTION<b>'+q.id.toUpperCase()+'</b>';
+  const b=$('#qBtn');if(b)b.innerHTML='WATCH<b>'+(q.short||q.id).toUpperCase()+'</b>';
   if(S.phase==='live'){nav(S.mode);renderIntel();}
   postEvent('question switched - '+q.name+' - instruments re-derived','hot');
 }
+
+function svgResults(){
+  const R=resultsOf(QQ.id);
+  if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
+  const u=++FID,W2=680,H2=300,mL=54,mT=52,pW=W2-mL-22,pH=150;
+  const rows=R.results.slice(0,12);
+  const times=rows.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t));
+  const tMin=times.length?Math.min(...times):0,tMax=times.length?Math.max(...times):1;
+  const span=Math.max(1,tMax-tMin);
+  const X=t=>mL+((t-tMin)/span)*pW;
+  const Y=rel=>mT+pH-(rel||0)*pH;
+  let s2=svgO(W2,H2)+fDefs(u);
+  s2=roHead(s2,'RESEARCH RETURN',[
+    ['PULLED',R.pulled,C.ink],['RELEVANT',R.relevant,C.ev],
+    ['MATERIAL',R.material,R.material?C.asm:C.dim],
+    ['SPAN',times.length?Math.round(span/86400000)+' d':'-',C.calc],
+    ['GATE','CLAUDE',C.hyp]],300);
+  for(let g=0;g<=1.0001;g+=0.25){
+    s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.07)')+
+        sM(mL-8,Y(g)+3,(g*100).toFixed(0)+'%','end',6.4,C.dim,600,'0');}
+  s2+=sM(mL-8,mT-10,'RELEVANCE','start',6,C.dim,800,'.14em');
+  const thr=0.5;
+  s2+=sL(mL,Y(thr),mL+pW,Y(thr),C.calc,1,'5 4')+
+      sM(mL+pW,Y(thr)-5,'ADMISSION THRESHOLD','end',6,C.calc,750,'.08em');
+  rows.forEach((r,i)=>{
+    const t=r.published_at?Date.parse(r.published_at):NaN;
+    const x=isNaN(t)?mL+pW*(i/Math.max(1,rows.length-1)):X(t);
+    const y=Y(r.relevance);
+    const col=r.material?C.asm:r.relevant?C.ev:C.dim;
+    s2+=sL(x,mT+pH,x,y,col,1,r.relevant?null:'2 3');
+    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:3.6)+'" fill="'+(r.material?'rgba(232,161,58,.25)':'rgba(12,26,44,.9)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:1.4)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
+    if(r.material)s2+=sM(x,y-11,'MATERIAL','middle',5.6,C.asm,800,'.08em');
+  });
+  s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
+  if(times.length){
+    s2+=sM(mL,mT+pH+14,new Date(tMin).toISOString().slice(0,10),'start',6.2,C.dim,600,'0')+
+        sM(mL+pW,mT+pH+14,new Date(tMax).toISOString().slice(0,10),'end',6.2,C.dim,600,'0')+
+        sM(mL+pW/2,mT+pH+14,'SUBMISSION DATE','middle',6,C.dim,750,'.14em');}
+  const kept=rows.filter(r=>r.relevant).length;
+  s2+=sM(mL,H2-30,'EVERY MARK IS A REAL RECORD RETURNED BY THIS QUESTION. HEIGHT = RELEVANCE SCORED BY THE GATE.','start',6.2,C.dim,700,'.06em');
+  s2+=sM(mL,H2-16,kept+' OF '+rows.length+' CLEARED THE THRESHOLD'+(R.material?' - '+R.material+' CARRY A NEW MEASUREMENT':' - NONE CARRY A NEW MEASUREMENT YET'),'start',6.6,kept?C.ev:C.dim,800,'.06em');
+  return s2+'</svg>';
+}
+function resultsHTML(){
+  const R=resultsOf(QQ.id);
+  if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet. <button class="abtn" data-act="qres">Research now</button></p>';
+  if(R.state==='searching')return '<p style="color:'+C.ev+'">Researching - querying arXiv and NASA ADS, then scoring every abstract against this question...</p>';
+  if(R.state==='error')return '<p style="color:'+C.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
+    '<p style="font-size:11.4px">This is almost always the worker: the <code>ingest</code> edge function must be redeployed with the v2 code in <code>setup/ingest.ts</code>, which adds on-demand search and browser CORS headers. Everything else here is unaffected.</p>'+
+    '<div class="acts"><button class="abtn" data-act="qres">Retry</button></div>';
+  const rows=R.results||[];
+  return '<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared relevance - <b>'+R.material+'</b> material - scored by the intelligence gate '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+   '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
+   rows.map((r,i)=>'<tr data-x="res:'+i+'"><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
+     (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
+     '<td>'+r.source+'</td><td>'+(r.relevance==null?'-':(r.relevance*100).toFixed(0)+'%')+'</td>'+
+     '<td>'+(r.material?'<b style="color:'+C.asm+'">MATERIAL</b>':r.relevant?'<span style="color:'+C.ev+'">relevant</span>':'<span style="color:var(--dim)">discarded</span>')+'</td></tr>').join('')+'</table>'+
+   '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
+}
 function questionsHTML(){
-  return '<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Hero instrument</th><th></th></tr>'+
+  return (QUESTIONS.length?'<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Instrument</th><th></th></tr>'+
    QUESTIONS.map(q=>'<tr'+(q.id===QQ.id?' style="background:rgba(46,200,245,.05)"':'')+'>'+
     '<td><b>'+q.name+'</b><br><span style="font-size:10px;color:var(--dim)">'+q.object+'</span></td>'+
     '<td>'+q.field+'</td>'+
     '<td>'+q.q.sym+' - '+q.q.name+'</td>'+
     '<td>'+(q.series?(q.hero||'text only'):'<span style="color:var(--dim)">none — no series</span>')+'</td>'+
     '<td>'+(q.id===QQ.id?'<b style="color:'+C.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+
-    (q.typed?' <button class="abtn sm warn" data-act="qdel:'+q.id+'">drop</button>':'')+'</td></tr>').join('')+'</table>'+
+    ' <button class="abtn sm warn" data-act="qdel:'+q.id+'">drop</button></td></tr>').join('')+'</table>':'')+
+   (QUESTIONS.length?'':'<p style="color:var(--dim)">No watches open. Type a question below - PARALLAX will parse it into a tracked quantity and a live feed query, then research it immediately against arXiv and NASA ADS.</p>')+
    '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
    '<div style="display:flex;gap:8px;align-items:center;max-width:640px">'+
    '<input id="qIn" placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
@@ -4340,8 +4441,9 @@ function questionsHTML(){
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
    '<p style="font-size:11px;color:var(--dim)">The question is parsed into a domain, a tracked quantity, a permitted band and a live feed query. '+
    'If the domain is recognised its instruments are pre-configured; if not, the watch opens without a hero instrument — no visual is invented for data that does not exist.</p>'+
-   '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and hero instrument. Nothing about the machine is specific to black holes - switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
-   '<p style="font-size:11.4px"><b>Watching this question live:</b> the ingest worker polls <code style="color:var(--ev)">'+QQ.feedq+'</code> and scores every record against: '+QQ.tracked.join(' · ')+'.</p>';
+   '<div class="acts" style="margin-top:10px"><button class="abtn sm" data-act="qdemo">Load the Sgr A* worked example</button></div>'+
+   '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and instrument set. Switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
+   (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
 }
 /* ------- boot ------- */
 const CSEQ=[
