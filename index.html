@@ -4372,14 +4372,20 @@ async function researchQuestion(q){
   renderIntel();
   postEvent('researching - '+q.name+' - querying arXiv and ADS','hot');
   try{
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),75000);
     const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
-      method:'POST',
+      method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:12,store:true})
+      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:8,store:true})
     });
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const j=await r.json();
-    if(!j.results)throw new Error('worker returned no results - redeploy the ingest function');
+    clearTimeout(timer);
+    const raw=await r.text();
+    let j=null;try{j=JSON.parse(raw);}catch(e){}
+    if(!r.ok)throw new Error('HTTP '+r.status+' — '+String(raw).slice(0,240));
+    if(!j)throw new Error('worker did not return JSON — '+String(raw).slice(0,240));
+    if(j.error)throw new Error('worker error — '+j.error);
+    if(!j.results)throw new Error('worker returned no results field (old code still deployed) — '+String(raw).slice(0,200));
     if(j.profile){
       if(j.profile.field)q.field=j.profile.field;
       if(j.profile.tracked&&j.profile.tracked.length)q.tracked=j.profile.tracked;
@@ -4466,8 +4472,8 @@ function svgResults(){
 function resultsHTML(){
   if(SANDBOXED)return envNote();
   const R=resultsOf(QQ.id);
-  if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet. <button class="abtn" data-act="qres">Research now</button></p>';
-  if(R.state==='searching')return '<p style="color:'+C.ev+'">Researching - querying arXiv and NASA ADS, then scoring every abstract against this question...</p>';
+  if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet.</p><div class="acts"><button class="abtn pri" data-act="qres">Research now</button><button class="abtn" data-act="qping">Test the worker connection</button></div>';
+  if(R.state==='searching')return '<p style="color:'+C.ev+'">Researching — translating the question, querying arXiv and NASA ADS, then scoring every abstract. This takes 10–30 seconds on the first run.</p>';
   if(R.state==='error')return '<p style="color:'+C.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
     (/Failed to fetch|NetworkError|load failed/i.test(R.err)
       ?'<p style="font-size:11.4px">A <i>Failed to fetch</i> means the browser never reached Supabase at all. Two causes, in order of likelihood: (1) the page is running somewhere that blocks external requests — use the deployed build, not a preview; (2) the <code>ingest</code> function has not been redeployed with the v3 code, so it never answers the browser preflight.</p>'

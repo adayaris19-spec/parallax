@@ -1,4 +1,4 @@
-// PARALLAX ingest worker v2 — paste into the Supabase Edge Function named `ingest`.
+// PARALLAX ingest worker v4 — paste into the Supabase Edge Function named `ingest`.
 //
 // Two modes:
 //   1. Cron sweep  (no body, or {})           -> polls the stored watches, stores + scores records
@@ -152,6 +152,16 @@ async function scoreRecord(rec: any, watch: { name: string; tracked: string[] })
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  try {
+    return await handle(req);
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String((e as Error)?.message ?? e) }), {
+      status: 500, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+});
+
+async function handle(req: Request): Promise<Response> {
 
   let body: any = {};
   try { body = await req.json(); } catch { /* cron sends nothing */ }
@@ -159,7 +169,7 @@ Deno.serve(async (req) => {
   // ---------- mode 2: live on-demand research for one typed question ----------
   if (body && (body.q || body.question)) {
     const asked = String(body.question || body.name || body.q).slice(0, 400);
-    const limit = Math.min(Number(body.limit) || 12, 25);
+    const limit = Math.min(Number(body.limit) || 8, 20);
 
     // Claude turns the question into a real query + watch profile
     const prof = await interpret(asked);
@@ -187,16 +197,19 @@ Deno.serve(async (req) => {
       for (const rec of adsRows) if (!seen.has(rec.source_id)) found.push(rec);
     }
 
-    const scored: any[] = [];
-    for (const rec of found.slice(0, limit)) {
-      const v = await scoreRecord(rec, watch);
-      scored.push({
-        source: rec.source, source_id: rec.source_id, title: rec.title,
-        url: rec.url, published_at: rec.published_at,
-        relevance: v?.relevance ?? null, relevant: v?.relevant ?? null,
-        material: !!v?.material, why: v?.why ?? "", measurement: v?.measurement ?? null,
-      });
-    }
+    // score in parallel — sequential scoring of a dozen abstracts blows the wall clock
+    const scored: any[] = await Promise.all(
+      found.slice(0, limit).map(async (rec) => {
+        let v: any = null;
+        try { v = await scoreRecord(rec, watch); } catch (_) { v = null; }
+        return {
+          source: rec.source, source_id: rec.source_id, title: rec.title,
+          url: rec.url, published_at: rec.published_at,
+          relevance: v?.relevance ?? null, relevant: v?.relevant ?? null,
+          material: !!v?.material, why: v?.why ?? "", measurement: v?.measurement ?? null,
+        };
+      }),
+    );
     if (body.store && found.length) {
       await sb("records?on_conflict=source_id", "POST", found,
         "resolution=ignore-duplicates,return=minimal");
@@ -259,4 +272,4 @@ Deno.serve(async (req) => {
   }
   return new Response(JSON.stringify({ mode: "sweep", watches: watches.length, pulled, scored, material }),
     { headers: { ...CORS, "Content-Type": "application/json" } });
-});
+}
