@@ -87,6 +87,7 @@ canvas{display:block}
 #hud button b{font-family:var(--m);font-weight:700;margin-left:6px;max-width:130px;overflow:hidden;text-overflow:ellipsis;
   display:inline-block;vertical-align:bottom}
 #cmdHint b{color:var(--ev)}
+#bld{font-family:var(--m);font-size:8px;letter-spacing:.14em;color:var(--dim);opacity:.75}
 #cmdHint b{font-family:var(--m);font-weight:400;color:var(--ev);margin-left:6px}
 
 #liveBtn b{color:var(--dim)}
@@ -480,7 +481,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b34</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2644,6 +2645,12 @@ addEventListener('keydown',e=>{
 });
 addEventListener('resize',()=>{if(S.phase==='live')nav(S.mode);});
 let bannerTimer=null;
+addEventListener('error',ev=>{
+  try{setBanner('bad','<b>SCRIPT ERROR</b> - '+String(ev.message)+' @ line '+ev.lineno);}catch(e){}
+});
+addEventListener('unhandledrejection',ev=>{
+  try{setBanner('bad','<b>UNHANDLED REJECTION</b> - '+String(ev.reason&&ev.reason.message||ev.reason));}catch(e){}
+});
 function setBanner(kind,html){
   const el=$('#banner');if(!el)return;
   clearInterval(bannerTimer);bannerTimer=null;
@@ -3114,7 +3121,10 @@ act=function(a){
   if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
   if(p[0]==='qping'){pingWorker();return;}
   if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
-  if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim())addQuestion(el.value.trim());return;}
+  if(p[0]==='qadd'){const el=$('#qIn');
+    if(!el){setBanner('bad','<b>INPUT NOT FOUND</b> - the question field is not on this station');return;}
+    if(!el.value.trim()){setBanner('bad','<b>NOTHING TYPED</b> - type a question in the box first');return;}
+    addQuestion(el.value.trim());return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
     if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];saveState();
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
@@ -4125,8 +4135,12 @@ function setLive(on){
   if(S.phase==='live'){S.st.watch=0;if(S.mode==='watch')renderDoc();renderIntel();}
 }
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&e.target&&e.target.id==='qIn'&&e.target.value.trim()){
-    addQuestion(e.target.value.trim());e.preventDefault();}
+  if(e.key!=='Enter')return;
+  if(!e.target||e.target.id!=='qIn')return;
+  e.preventDefault();
+  const v=String(e.target.value||'').trim();
+  if(!v){setBanner('bad','<b>NOTHING TYPED</b> - type a question in the box first');return;}
+  addQuestion(v);
 });
 document.addEventListener('click',e=>{
   if(e.target.closest('#liveBtn'))setLive(!LIVE.on);
@@ -4456,6 +4470,7 @@ function loadState(){
   }catch(e){return false;}
 }
 function addQuestion(text){
+  try{setBanner('work','<b>OPENING WATCH</b> - "'+String(text).slice(0,80)+'"');}catch(e){}
   const q=synthQuestion(text);
   if(!q){postEvent('question too short to open a watch','warn');return;}
   const dup=QUESTIONS.find(x=>x.id===q.id);
