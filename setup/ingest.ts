@@ -91,6 +91,40 @@ async function pollAds(query: string, rows = 25) {
   }));
 }
 
+// Ask Claude to turn a natural-language question into a real arXiv query + profile.
+async function interpret(question: string) {
+  if (!ANT) return null;
+  const prompt =
+    `Translate this scientific question into a literature-search profile.\n\n` +
+    `QUESTION: ${question}\n\n` +
+    `Return ONLY JSON:\n` +
+    `{"field":"short field name",` +
+    `"arxiv":"an arXiv API search_query using all:/ti:/abs:/cat: prefixes, AND/OR, quoted phrases",` +
+    `"broad":"a deliberately wider fallback arXiv query for the same topic",` +
+    `"ads":"an ADS query for the same topic",` +
+    `"quantity":{"sym":"symbol","name":"the measurable quantity a claim here would rest on","unit":"unit or empty"},` +
+    `"tracked":["3-5 specific quantities/claims to watch"]}\n\n` +
+    `Rules: map colloquial phrasing to the terms physicists actually publish under ` +
+    `(e.g. "parallel universes" -> multiverse, eternal inflation, many-worlds; ` +
+    `"is time travel possible" -> closed timelike curves, wormholes, chronology protection). ` +
+    `Prefer 2-4 core concepts joined with OR inside one AND group; include a cat: filter when the field is clear. ` +
+    `Never return a bare list of common words.`;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 700,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!r.ok) { console.log("interpret", r.status, await r.text()); return null; }
+  const j = await r.json();
+  const m = (j.content?.[0]?.text ?? "").match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { return JSON.parse(m[0]); } catch { return null; }
+}
+
 async function scoreRecord(rec: any, watch: { name: string; tracked: string[] }) {
   if (!ANT) return null;
   const prompt =
@@ -123,15 +157,35 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { /* cron sends nothing */ }
 
   // ---------- mode 2: live on-demand research for one typed question ----------
-  if (body && body.q) {
-    const watch = {
-      name: String(body.name || body.q).slice(0, 300),
-      tracked: Array.isArray(body.tracked) && body.tracked.length
-        ? body.tracked.slice(0, 8).map((t: any) => String(t).slice(0, 200))
-        : ["primary measured quantity", "competing explanations", "systematic uncertainties"],
-    };
+  if (body && (body.q || body.question)) {
+    const asked = String(body.question || body.name || body.q).slice(0, 400);
     const limit = Math.min(Number(body.limit) || 12, 25);
-    const found = [...(await pollArxiv(String(body.q), limit)), ...(await pollAds(String(body.q), limit))];
+
+    // Claude turns the question into a real query + watch profile
+    const prof = await interpret(asked);
+    const watch = {
+      name: asked,
+      tracked: (prof?.tracked && prof.tracked.length ? prof.tracked : (body.tracked || []))
+        .slice(0, 6).map((t: any) => String(t).slice(0, 200)),
+    };
+    if (!watch.tracked.length) {
+      watch.tracked = ["primary measured quantity", "competing explanations", "systematic uncertainties"];
+    }
+
+    // try the precise query, then the broad one, then a raw fallback
+    const ladder = [prof?.arxiv, prof?.broad, String(body.q || asked)].filter(Boolean) as string[];
+    let found: any[] = [];
+    let usedQuery = "";
+    for (const qq of ladder) {
+      found = await pollArxiv(qq, limit);
+      usedQuery = qq;
+      if (found.length) break;
+    }
+    if (prof?.ads) {
+      const adsRows = await pollAds(prof.ads, limit);
+      const seen = new Set(found.map((f) => f.source_id));
+      for (const rec of adsRows) if (!seen.has(rec.source_id)) found.push(rec);
+    }
 
     const scored: any[] = [];
     for (const rec of found.slice(0, limit)) {
@@ -143,13 +197,18 @@ Deno.serve(async (req) => {
         material: !!v?.material, why: v?.why ?? "", measurement: v?.measurement ?? null,
       });
     }
-    if (body.store) {
+    if (body.store && found.length) {
       await sb("records?on_conflict=source_id", "POST", found,
         "resolution=ignore-duplicates,return=minimal");
     }
     scored.sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0));
     return new Response(JSON.stringify({
-      mode: "search", question: watch.name, query: body.q,
+      mode: "search", question: asked,
+      profile: prof ? {
+        field: prof.field ?? "", quantity: prof.quantity ?? null,
+        tracked: watch.tracked, arxiv: prof.arxiv ?? "", ads: prof.ads ?? "",
+      } : null,
+      query: usedQuery,
       pulled: found.length, scored: scored.length,
       relevant: scored.filter((r) => r.relevant).length,
       material: scored.filter((r) => r.material).length,

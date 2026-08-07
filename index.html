@@ -55,8 +55,7 @@ canvas{display:block}
 #chrome.on{opacity:1}
 #brand{position:absolute;top:16px;left:22px;pointer-events:auto}
 #brand .p{font-size:13px;letter-spacing:.46em;font-weight:600;color:#eef7ff}
-#brand .sim{display:inline-block;margin-left:10px;font-family:var(--m);font-size:7px;letter-spacing:.16em;
-  color:var(--asm);border:1px dashed rgba(232,161,58,.55);padding:2px 6px;border-radius:3px;vertical-align:2px}
+
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
 #dock{position:absolute;top:12px;left:calc(50% - 130px);transform:translateX(-50%);display:flex;gap:14px;pointer-events:auto}
 .dk{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 3px;cursor:pointer;text-align:center}
@@ -469,7 +468,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 <canvas id="stage"></canvas>
 
 <div id="chrome">
-  <div id="brand"><span class="p">PARALLAX</span><span class="sim">SIMULATED SCENARIO</span></div>
+  <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button></div>
@@ -4330,11 +4329,21 @@ async function researchQuestion(q){
     const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
       method:'POST',
       headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-      body:JSON.stringify({q:q.feedq,name:q.name,tracked:q.tracked,limit:12,store:true})
+      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:12,store:true})
     });
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     if(!j.results)throw new Error('worker returned no results - redeploy the ingest function');
+    if(j.profile){
+      if(j.profile.field)q.field=j.profile.field;
+      if(j.profile.tracked&&j.profile.tracked.length)q.tracked=j.profile.tracked;
+      if(j.profile.quantity&&j.profile.quantity.name){
+        q.q=Object.assign({},q.q,{sym:j.profile.quantity.sym||q.q.sym,
+          name:j.profile.quantity.name,unit:j.profile.quantity.unit||''});
+      }
+      q.interpreted=true;
+    }
+    if(j.query)q.feedq=j.query;
     RES.byQ[q.id]={state:'done',ts:Date.now(),...j};
     postEvent('research complete - '+j.pulled+' records - '+j.relevant+' relevant - '+j.material+' material','hot');
   }catch(e){
@@ -4415,7 +4424,14 @@ function resultsHTML(){
     '<p style="font-size:11.4px">This is almost always the worker: the <code>ingest</code> edge function must be redeployed with the v2 code in <code>setup/ingest.ts</code>, which adds on-demand search and browser CORS headers. Everything else here is unaffected.</p>'+
     '<div class="acts"><button class="abtn" data-act="qres">Retry</button></div>';
   const rows=R.results||[];
-  return '<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared relevance - <b>'+R.material+'</b> material - scored by the intelligence gate '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+  const prof=R.profile?'<p style="font-size:11.4px"><b>Interpreted as:</b> '+(R.profile.field||'—')+
+    ' · tracking '+(R.profile.tracked||[]).join(' · ')+
+    '<br><b>Query actually run:</b> <code style="color:'+C.ev+'">'+(R.query||'')+'</code></p>':'';
+  if(!rows.length)return prof+'<p style="color:'+C.asm+'"><b>No records returned.</b> The query ran but nothing came back — '+
+    'either the phrasing does not map onto published work, or this topic sits outside arXiv and ADS coverage. '+
+    'Try naming the object, effect or observable directly.</p>'+
+    '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
+  return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared relevance - <b>'+R.material+'</b> material - scored by the intelligence gate '+new Date(R.ts).toLocaleTimeString()+'</p>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
    rows.map((r,i)=>'<tr data-x="res:'+i+'"><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
      (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
@@ -4439,8 +4455,7 @@ function questionsHTML(){
    'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(150,200,240,.45);outline:0;'+
    'font-family:var(--f);font-size:12.5px;color:var(--ink);padding:6px 2px" autocomplete="off">'+
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
-   '<p style="font-size:11px;color:var(--dim)">The question is parsed into a domain, a tracked quantity, a permitted band and a live feed query. '+
-   'If the domain is recognised its instruments are pre-configured; if not, the watch opens without a hero instrument — no visual is invented for data that does not exist.</p>'+
+   '<p style="font-size:11px;color:var(--dim)">Ask in plain language — “are parallel universes testable?”, “can we detect dark matter with quantum sensors?”. The question is sent to the intelligence gate, which translates it into the terms physicists actually publish under, runs it against arXiv and NASA ADS, and scores every abstract it gets back. No visual is invented for data that does not exist.</p>'+
    '<div class="acts" style="margin-top:10px"><button class="abtn sm" data-act="qdemo">Load the Sgr A* worked example</button></div>'+
    '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and instrument set. Switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
    (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
