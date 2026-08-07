@@ -72,6 +72,14 @@ canvas{display:block}
   pointer-events:none;white-space:nowrap;overflow:hidden}
 #strip b{color:var(--ink);font-weight:650;margin-left:4px}
 #strip:empty{display:none}
+#banner{position:absolute;top:84px;left:0;right:0;z-index:14;pointer-events:auto;
+  padding:10px 22px;font-size:12.5px;line-height:1.5;display:none;
+  border-bottom:1px solid rgba(150,200,240,.2);backdrop-filter:blur(10px)}
+#banner.on{display:block}
+#banner.work{background:rgba(46,200,245,.10);color:#bfe9ff}
+#banner.good{background:rgba(62,207,149,.10);color:#b7f0d8}
+#banner.bad{background:rgba(245,122,122,.12);color:#ffd2d2}
+#banner b{font-family:var(--m)}
 #hud{position:absolute;top:12px;right:14px;display:flex;gap:16px;align-items:center;pointer-events:auto;z-index:12}
 #hud button{background:none;border:0;border-bottom:1px solid rgba(150,200,240,.35);padding:4px 2px;cursor:pointer;
   font-size:8px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink);white-space:nowrap}
@@ -471,6 +479,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="strip"></div>
+  <div id="banner"></div>
   <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button></div>
   <div id="ctl"></div>
   <div id="hint"></div>
@@ -2634,6 +2643,13 @@ addEventListener('keydown',e=>{
   if(n>=1&&n<=6)nav(MODEDEFS[n-1][0]);
 });
 addEventListener('resize',()=>{if(S.phase==='live')nav(S.mode);});
+let bannerTimer=null;
+function setBanner(kind,html){
+  const el=$('#banner');if(!el)return;
+  clearInterval(bannerTimer);bannerTimer=null;
+  if(!kind){el.className='';el.innerHTML='';return;}
+  el.className='on '+kind;el.innerHTML=html;
+}
 function renderStrip(){
   const el=$('#strip');if(!el)return;
   if(S.phase!=='live'){el.innerHTML='';return;}
@@ -3100,7 +3116,7 @@ act=function(a){
   if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
   if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim())addQuestion(el.value.trim());return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
-    if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];
+    if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];saveState();
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
   if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
     postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
@@ -4366,10 +4382,16 @@ function pingHTML(){
    '<div class="acts"><button class="abtn" data-act="qping">Re-test</button></div>';
 }
 async function researchQuestion(q){
-  if(RES.busy)return;
+  if(RES.busy){setBanner('work','<b>ALREADY RESEARCHING</b> - one query is still running; it will finish shortly.');return;}
   RES.busy=true;
   RES.byQ[q.id]={state:'searching',t0:Date.now()};
   renderIntel();
+  const started=Date.now();
+  setBanner('work','<b>RESEARCHING</b> - "'+q.name+'" - translating the question, querying arXiv + NASA ADS, scoring each abstract... <b id="bsec">0s</b>');
+  bannerTimer=setInterval(()=>{
+    const el=document.getElementById('bsec');
+    if(el)el.textContent=Math.round((Date.now()-started)/1000)+'s';
+  },1000);
   postEvent('researching - '+q.name+' - querying arXiv and ADS','hot');
   try{
     const ctl=new AbortController();
@@ -4397,13 +4419,41 @@ async function researchQuestion(q){
     }
     if(j.query)q.feedq=j.query;
     RES.byQ[q.id]={state:'done',ts:Date.now(),...j};
+    saveState();
     postEvent('research complete - '+j.pulled+' records - '+j.relevant+' relevant - '+j.material+' material','hot');
+    setBanner('good','<b>DONE</b> - '+j.pulled+' records returned, '+j.relevant+' cleared relevance, '+j.material+' material. Results are below.');
+    setTimeout(()=>setBanner(null),9000);
   }catch(e){
     RES.byQ[q.id]={state:'error',err:String(e&&e.message||e)};
+    saveState();
     postEvent('research failed - '+String(e&&e.message||e),'warn');
+    setBanner('bad','<b>RESEARCH FAILED</b> - '+String(e&&e.message||e).slice(0,300));
   }
   RES.busy=false;
   renderIntel();
+}
+const LSKEY='parallax.v1';
+function saveState(){
+  try{
+    localStorage.setItem(LSKEY,JSON.stringify({
+      questions:QUESTIONS,results:RES.byQ,
+      active:QQ&&QQ.id?QQ.id:null,saved:Date.now()}));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LSKEY);if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!d||!Array.isArray(d.questions))return false;
+    QUESTIONS.length=0;
+    d.questions.forEach(q=>QUESTIONS.push(q));
+    RES.byQ=d.results||{};
+    Object.keys(RES.byQ).forEach(k=>{if(RES.byQ[k]&&RES.byQ[k].state==='searching')delete RES.byQ[k];});
+    const act=d.active&&QUESTIONS.find(x=>x.id===d.active);
+    QQ=act||QUESTIONS[0]||EMPTYQ;
+    if(QQ&&QQ.series){EP_VAL=QQ.series.slice();EP_ERR=QQ.errs?QQ.errs.slice():[];}
+    return true;
+  }catch(e){return false;}
 }
 function addQuestion(text){
   const q=synthQuestion(text);
@@ -4411,6 +4461,7 @@ function addQuestion(text){
   const dup=QUESTIONS.find(x=>x.id===q.id);
   if(dup){setQuestion(dup.id);return;}
   QUESTIONS.push(q);
+  saveState();
   postEvent('watch opened - '+q.name+' - '+(q.matched?'domain recognised: '+q.field:'generic profile'),'hot');
   setQuestion(q.id);
   jumpStation('watch','research');
@@ -4423,6 +4474,7 @@ function setQuestion(id){
   S.asm.heating=0;S.mod={shift:false,alt:false};S.budgetDays=null;
   consistency();
   const b=$('#qBtn');if(b)b.innerHTML='WATCH<b>'+(q.short||q.id).toUpperCase()+'</b>';
+  saveState();
   if(S.phase==='live'){nav(S.mode);renderIntel();}
   postEvent('question switched - '+q.name+' - instruments re-derived','hot');
 }
@@ -4537,7 +4589,7 @@ $('#go').addEventListener('click',()=>{
     if(i>=CSEQ.length){
       cons.style.opacity=0;cons.style.transition='opacity .8s';setTimeout(()=>cons.remove(),900);
       S.phase='live';$('#chrome').classList.add('on');
-      renderDock();nav('watch');
+      renderDock();try{loadState();}catch(e){}nav('watch');
       return;
     }
     const q=CSEQ[i];
