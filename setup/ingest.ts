@@ -322,16 +322,25 @@ async function handle(req: Request): Promise<Response> {
         seen.add(rec.source_id); found.push(rec);
       }
     };
-    // rung 1 and rung 2 always run; the rest only if the corpus is still thin
-    for (let i = 0; i < rungs.length; i++) {
-      if (i >= 2 && found.length >= limit) break;
-      const rows = await pollArxiv(rungs[i].q, limit, "relevance");
-      if (rows.length) usedRungs.push(rungs[i].why + ": " + rungs[i].q);
-      push(rows);
+    // Everything the first pass needs goes out at once. Run one after another this
+    // was six round trips before a single abstract could be scored, and a browser
+    // that gave up mid-sweep left the question with nothing at all.
+    const head = rungs.slice(0, 2);
+    const [r0, r1, adsRows, crRows] = await Promise.all([
+      head[0] ? pollArxiv(head[0].q, limit, "relevance") : Promise.resolve([] as any[]),
+      head[1] ? pollArxiv(head[1].q, limit, "relevance") : Promise.resolve([] as any[]),
+      prof?.ads ? pollAds(String(prof.ads), Math.ceil(limit / 2), "score desc") : Promise.resolve([] as any[]),
+      pollCrossref(iTerms.length ? iTerms.slice(0, 4).join(" ") : asked, Math.ceil(limit / 2)),
+    ]);
+    if (r0.length && head[0]) usedRungs.push(head[0].why + ": " + head[0].q);
+    if (r1.length && head[1]) usedRungs.push(head[1].why + ": " + head[1].q);
+    push(r0); push(r1); push(adsRows); push(crRows);
+    // widen only when the first pass came back thin
+    if (found.length < Math.min(6, limit)) {
+      const tail = rungs.slice(2);
+      const more = await Promise.all(tail.map((rg) => pollArxiv(rg.q, limit, "relevance")));
+      more.forEach((rows, i) => { if (rows.length) usedRungs.push(tail[i].why + ": " + tail[i].q); push(rows); });
     }
-    // the other two archives, scored by relevance rather than recency
-    if (prof?.ads) push(await pollAds(String(prof.ads), Math.ceil(limit / 2), "score desc"));
-    push(await pollCrossref(iTerms.length ? iTerms.slice(0, 4).join(" ") : asked, Math.ceil(limit / 2)));
     const usedQuery = usedRungs[0] ?? (rungs[0]?.q ?? asked);
 
     // score in parallel — sequential scoring of a dozen abstracts blows the wall clock

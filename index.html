@@ -525,7 +525,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b50</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b51</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3197,7 +3197,11 @@ act=function(a){
   }
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
-  if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','questions');return;}
+  if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','research');
+    const w=QUESTIONS.find(x=>x.id===p[1]);
+    const pr=resultsOf(p[1]);
+    if(w&&!SANDBOXED&&(!pr||pr.state==='error'))researchQuestion(w);
+    return;}
   if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
   if(p[0]==='qping'){pingWorker();return;}
   if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
@@ -4558,7 +4562,7 @@ const noWatch=()=>!QUESTIONS.length||QQ.empty;
 const heroOf=()=>hasSeries()?QQ.hero:null;
 
 /* ---- research a watch for real: arXiv + ADS via the edge function ---- */
-const RES={busy:false,byQ:{}};
+const RES={busy:false,byQ:{},queue:[]};
 const SANDBOXED=(function(){
   try{return location.protocol==='blob:'||/claude\.ai|anthropic|usercontent/.test(location.hostname)||window.top!==window.self;}
   catch(e){return true;}
@@ -4645,13 +4649,26 @@ function pingHTML(){
 async function researchQuestion(q){
   /* a sweep that died between the flag and the finally would lock every later
      question out for the rest of the session - never trust the flag past 100 s */
-  if(RES.busy&&RES.t0&&Date.now()-RES.t0>100000)RES.busy=false;
-  if(RES.busy){setBanner('work','<b>ALREADY RESEARCHING</b> - one query is still running; it will finish shortly.');return;}
+  if(RES.busy&&RES.t0&&Date.now()-RES.t0>150000)RES.busy=false;
+  /* A sweep takes tens of seconds. Anything asked while one is running used to be
+     thrown away here: the watch was created and made active, but never researched,
+     so the screen kept showing whichever watch DID have a stored result. That is
+     the whole "it only ever answers one question" symptom. Queue instead. */
+  if(RES.busy){
+    if(!RES.queue.find(x=>x.id===q.id)){
+      RES.queue.push(q);
+      RES.byQ[q.id]={state:'queued',t0:Date.now()};
+      setBanner('work','<b>QUEUED</b> - "'+q.name+'" starts as soon as the running sweep finishes ('+RES.queue.length+' waiting).');
+      postEvent('queued - '+q.name+' - '+RES.queue.length+' waiting','');
+      if(S.phase==='live')renderDoc();
+    }
+    return;
+  }
   RES.busy=true;RES.t0=Date.now();
   RES.byQ[q.id]={state:'searching',t0:Date.now()};
   renderIntel();
   const started=Date.now();
-  setBanner('work','<b>RESEARCHING</b> - "'+q.name+'" - translating the question, querying arXiv + NASA ADS, scoring each abstract... <b id="bsec">0s</b>');
+  setBanner('work','<b>RESEARCHING</b> - "'+q.name+'" - arXiv + NASA ADS + Crossref, then scoring every abstract... <b id="bsec">0s</b>');
   bannerTimer=setInterval(()=>{
     const el=document.getElementById('bsec');
     if(el)el.textContent=Math.round((Date.now()-started)/1000)+'s';
@@ -4659,7 +4676,7 @@ async function researchQuestion(q){
   postEvent('researching - '+q.name+' - querying arXiv and ADS','hot');
   try{
     const ctl=new AbortController();
-    const timer=setTimeout(()=>ctl.abort(),75000);
+    const timer=setTimeout(()=>ctl.abort(),120000);
     const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
       method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
@@ -4702,9 +4719,11 @@ async function researchQuestion(q){
     postEvent('research failed - '+String(e&&e.message||e),'warn');
     setBanner('bad','<b>RESEARCH FAILED</b> - '+String(e&&e.message||e).slice(0,300));
   }
-  RES.busy=false;
+  RES.busy=false;RES.t0=0;
   if(S.phase==='live')renderDoc();
   renderIntel();
+  const nx=RES.queue.shift();
+  if(nx)setTimeout(()=>researchQuestion(nx),80);
 }
 const LSKEY='parallax.v1';
 function saveState(){
@@ -4939,7 +4958,8 @@ function resultsHTML(){
   if(SANDBOXED)return envNote();
   const R=resultsOf(QQ.id);
   if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet.</p><div class="acts"><button class="abtn pri" data-act="qres">Research now</button><button class="abtn" data-act="qping">Test the worker connection</button></div>';
-  if(R.state==='searching')return '<p style="color:'+TC.ev+'">Researching — translating the question, querying arXiv and NASA ADS, then scoring every abstract. This takes 10–30 seconds on the first run.</p>';
+  if(R.state==='queued')return '<p style="color:'+TC.asm+'"><b>Queued.</b> Another sweep is still running; this question starts the moment it finishes. Nothing is lost.</p>';
+  if(R.state==='searching')return '<p style="color:'+TC.ev+'"><b>Researching “'+QQ.name+'”</b> — translating the question, querying arXiv, NASA ADS and Crossref, then scoring every abstract. A first run can take up to a minute.</p>';
   if(R.state==='error')return '<p style="color:'+TC.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
     (/Failed to fetch|NetworkError|load failed/i.test(R.err)
       ?'<p style="font-size:11.4px">A <i>Failed to fetch</i> means the browser never reached Supabase at all. Two causes, in order of likelihood: (1) the page is running somewhere that blocks external requests — use the deployed build, not a preview; (2) the <code>ingest</code> function has not been redeployed with the v3 code, so it never answers the browser preflight.</p>'
@@ -4976,7 +4996,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b50'],
+    ['Build running','b51'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
