@@ -17,7 +17,7 @@
    ============================================================ */
 :root{
   --ev:#0a6a90; --calc:#38536f; --asm:#b4560a; --hyp:#5a34a8; --clm:#1b2b3d;
-  --ink:#14263a; --ink2:#33506d; --dim:#71889e;
+  --ink:#14263a; --ink2:#2e4a66; --dim:#54697d;
   --line:rgba(26,52,84,.16); --line2:rgba(26,52,84,.30);
   --surf:rgba(255,253,249,.82);
   --ok:#12855a; --bad:#c0392b;
@@ -69,16 +69,16 @@ canvas{display:block}
   border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:2px}
 #strip{position:absolute;top:52px;left:0;right:0;height:26px;display:flex;gap:26px;align-items:center;justify-content:center;
   font-family:var(--m);font-size:8.4px;letter-spacing:.1em;color:var(--dim);
-  border-top:1px solid rgba(150,200,240,.12);border-bottom:1px solid rgba(150,200,240,.12);
+  border-top:1px solid rgba(26,52,84,.12);border-bottom:1px solid rgba(26,52,84,.12);
   pointer-events:none;white-space:nowrap;overflow:hidden}
 #strip b{color:var(--ink);font-weight:650;margin-left:4px}
 #strip:empty{display:none}
 #banner{position:absolute;top:84px;left:0;right:0;z-index:14;pointer-events:auto;
   padding:10px 22px;font-size:12.5px;line-height:1.5;display:none;
-  border-bottom:1px solid rgba(150,200,240,.2);backdrop-filter:blur(10px)}
+  border-bottom:1px solid rgba(26,52,84,.2);backdrop-filter:blur(10px)}
 #banner.on{display:block}
-#banner.work{background:rgba(11,126,168,.10);color:#0b5f80}
-#banner.good{background:rgba(18,133,90,.12);color:#0d6b48}
+#banner.work{background:rgba(11,126,168,.13);color:#084b66}
+#banner.good{background:rgba(18,133,90,.14);color:#0a5439}
 #banner.bad{background:rgba(192,57,43,.10);color:#96271c}
 #banner b{font-family:var(--m)}
 #hud{position:absolute;top:12px;right:14px;display:flex;gap:16px;align-items:center;pointer-events:auto;z-index:12}
@@ -106,11 +106,11 @@ canvas{display:block}
 #vitals .vh{display:flex;justify-content:space-between;align-items:center}
 #vitals .vh .t{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 #vitals .vh .live{display:flex;align-items:center;gap:5px;font-family:var(--m);font-size:7.5px;color:var(--ev)}
-#vitals .vh .live i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(46,200,245,.9);animation:bl 2.8s infinite}
+#vitals .vh .live i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(10,106,144,.9);animation:bl 2.8s infinite}
 @keyframes bl{0%,100%{opacity:.35}50%{opacity:1}}
 .vrow{display:flex;align-items:center;gap:8px}
 .vrow .k{width:86px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--dim)}
-.vrow .b{flex:1;height:4px;border-radius:2px;background:rgba(150,200,240,.12);overflow:hidden}
+.vrow .b{flex:1;height:4px;border-radius:2px;background:rgba(26,52,84,.12);overflow:hidden}
 .vrow .b i{display:block;height:100%;border-radius:2px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
 .vrow .v{font-family:var(--m);font-size:8.5px;color:var(--ink2);min-width:72px;text-align:right}
 #vitals .note{font-family:var(--m);font-size:7.5px;color:var(--dim);letter-spacing:.06em}
@@ -118,12 +118,12 @@ canvas{display:block}
 /* per-mode instrument controls (bottom center) */
 #ctl{position:absolute;left:calc(50% - 80px);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
   pointer-events:auto;flex-wrap:wrap;justify-content:center;max-width:74vw}
-.cchip{background:none;border:0;border-bottom:1px solid rgba(150,200,240,.4);border-radius:0;padding:4px 2px;cursor:pointer;
+.cchip{background:none;border:0;border-bottom:1px solid rgba(26,52,84,.4);border-radius:0;padding:4px 2px;cursor:pointer;
   font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
 .cchip:hover{color:var(--ink);border-color:var(--ev)}
 .cchip.on{color:#0e3a56;border-bottom:2px solid #0b7ea8}
-.cchip.acc{color:var(--ev);border-color:rgba(46,200,245,.6)}
-.cslider{display:flex;align-items:center;gap:9px;background:none;border:0;border-bottom:1px solid rgba(150,200,240,.25);padding:4px 2px}
+.cchip.acc{color:var(--ev);border-color:rgba(10,106,144,.6)}
+.cslider{display:flex;align-items:center;gap:9px;background:none;border:0;border-bottom:1px solid rgba(26,52,84,.25);padding:4px 2px}
 .cslider label{font-size:8px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--asm)}
 .cslider input{width:130px;accent-color:#e8a13a}
 .cslider .rv{font-family:var(--m);font-size:8.5px;color:var(--ink2);min-width:60px}
@@ -142,11 +142,11 @@ canvas{display:block}
 #insp .chips,#intel .chips,.pcard .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .chip{display:inline-flex;align-items:center;font-family:var(--m);font-size:7.5px;letter-spacing:.14em;
   text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:3px;white-space:nowrap}
-.chip.ev{color:var(--ev);border-color:rgba(46,200,245,.5);background:rgba(46,200,245,.06)}
-.chip.calc{color:var(--calc);border-color:rgba(130,170,215,.5);background:rgba(130,170,215,.06)}
+.chip.ev{color:var(--ev);border-color:rgba(10,106,144,.5);background:rgba(10,106,144,.06)}
+.chip.calc{color:var(--calc);border-color:rgba(30,58,92,.5);background:rgba(30,58,92,.06)}
 .chip.asm{color:var(--asm);border-color:rgba(232,161,58,.5);background:rgba(232,161,58,.07)}
 .chip.hyp{color:var(--hyp);border-color:rgba(176,138,245,.5);background:rgba(176,138,245,.06)}
-.chip.clm{color:var(--clm);border-color:rgba(220,233,245,.55);background:rgba(150,200,240,.08)}
+.chip.clm{color:var(--clm);border-color:rgba(32,54,80,.55);background:rgba(26,52,84,.08)}
 .chip.ok{color:var(--ok);border-color:rgba(62,207,149,.5);background:rgba(62,207,149,.06)}
 .chip.bad{color:var(--bad);border-color:rgba(245,122,122,.5);background:rgba(245,122,122,.06)}
 #insp .rows,#intel .rows,.pcard .rows{margin-top:10px;display:flex;flex-direction:column;gap:6px}
@@ -154,7 +154,7 @@ canvas{display:block}
 .irow .ik{flex:none;width:88px;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
 .irow b{color:var(--ink);font-weight:650}
 .ibar{display:flex;align-items:center;gap:7px}
-.ibar .b{flex:1;height:4px;border-radius:2px;background:rgba(150,200,240,.12);overflow:hidden}
+.ibar .b{flex:1;height:4px;border-radius:2px;background:rgba(26,52,84,.12);overflow:hidden}
 .ibar .b i{display:block;height:100%;border-radius:2px}
 .ibar .v{font-family:var(--m);font-size:8px;color:var(--ink2)}
 #insp details,#intel details,.pcard details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
@@ -167,7 +167,7 @@ canvas{display:block}
 .mini .m .n{flex:none;font-family:var(--m);font-size:7.5px;color:#fff;border-radius:50%;width:14px;height:14px;
   display:inline-flex;align-items:center;justify-content:center}
 #insp .acts,#intel .acts,.pcard .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
-.abtn{background:none;border:0;border-bottom:1px solid rgba(150,200,240,.4);border-radius:0;padding:3px 1px;cursor:pointer;
+.abtn{background:none;border:0;border-bottom:1px solid rgba(26,52,84,.4);border-radius:0;padding:3px 1px;cursor:pointer;
   font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 .abtn:hover{color:var(--ev);border-color:var(--ev)}
 .abtn.pri{color:#0e3a56;border-bottom:2px solid #0b7ea8}
@@ -175,8 +175,8 @@ canvas{display:block}
 
 /* global reasoning bar — talk to the operating system from anywhere */
 #speak{position:absolute;left:20px;bottom:12px;width:min(460px,32vw);pointer-events:auto;z-index:12}
-#speak .srow{display:flex;align-items:center;gap:9px;background:none;border-bottom:1.5px solid rgba(150,200,240,.5);padding:7px 2px}
-#speak .sind i{display:block;width:7px;height:7px;border-radius:50%;background:var(--ev);box-shadow:0 0 8px rgba(46,200,245,.9);animation:bl 2.4s infinite}
+#speak .srow{display:flex;align-items:center;gap:9px;background:none;border-bottom:1.5px solid rgba(26,52,84,.5);padding:7px 2px}
+#speak .sind i{display:block;width:7px;height:7px;border-radius:50%;background:var(--ev);box-shadow:0 0 8px rgba(10,106,144,.9);animation:bl 2.4s infinite}
 #speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:11.5px;color:var(--ink)}
 #speakIn::placeholder{color:#6d89a2}
 #speak .skey{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
@@ -189,7 +189,7 @@ canvas{display:block}
 .echo .vb b{color:var(--ink)}
 /* ranked key findings — conclusions first, drill-down for everything else */
 .kf{display:flex;gap:8px;align-items:flex-start;padding:6px 4px;border-radius:6px;cursor:pointer}
-.kf:hover{background:rgba(150,200,240,.08)}
+.kf:hover{background:rgba(26,52,84,.08)}
 .kf .sv{flex:none;width:7px;height:7px;border-radius:50%;margin-top:4px}
 .kf .kt{font-size:10.8px;line-height:1.5;color:var(--ink);font-weight:600}
 .kf .kb{display:none;font-size:10.2px;line-height:1.6;color:var(--ink2);font-weight:400;margin-top:4px}
@@ -221,15 +221,14 @@ details.grp>.gb{padding-top:6px}
 #stext{position:absolute;left:26px;top:96px;bottom:92px;width:min(560px,39vw);overflow-y:auto;overflow-x:hidden;transition:width .3s}
 #stext.wide{width:auto;right:40px;max-width:1080px}
 #stext.m{width:min(600px,43vw)}
-#svis.m{left:calc(min(600px,43vw) + 56px)}
+#svis.m{left:calc(min(560px,40vw) + 48px)}
 #svis.full{left:calc(min(560px,39vw) + 44px);right:0;top:34px;bottom:64px}
 #svis.full .vin{display:block;height:100%;max-width:none;transform:none!important}
 
 /* the full-bleed instrument gets the same treatment: no border, no corners -
    the volume simply stops being dark as it reaches the room */
 #svis.full #liveFig{position:absolute;inset:0;height:auto;min-height:0;border-radius:0;
-  background:radial-gradient(86% 80% at 46% 32%,rgba(22,62,102,.62) 0%,rgba(7,18,33,.94) 56%,rgba(6,16,30,.97) 100%);
-  box-shadow:none;
+  background:none;box-shadow:none;
   -webkit-mask-image:
     linear-gradient(90deg,transparent 0%,#000 10%,#000 95%,rgba(0,0,0,.35) 100%),
     linear-gradient(180deg,transparent 0%,#000 7%,#000 92%,transparent 100%);
@@ -239,50 +238,51 @@ details.grp>.gb{padding-top:6px}
     linear-gradient(180deg,transparent 0%,#000 7%,#000 92%,transparent 100%);
   mask-composite:intersect}
 #svis.full .fcap{color:var(--ink2)}
+#svis.full.gl #liveFig{background:radial-gradient(52% 62% at 48% 44%,rgba(11,11,13,.97) 0%,rgba(17,16,18,.90) 40%,rgba(27,24,22,.44) 70%,rgba(32,28,25,0) 100%)}
 #svis.full .fcap{position:absolute;left:50%;transform:translateX(-50%);bottom:2px;margin:0;max-width:900px;text-align:center}
 #svis.full .fcap b{color:var(--ink)}
 .fcap .capline{display:block;margin-top:5px;font-family:var(--m);font-size:9px;letter-spacing:.06em;color:var(--ink2)}
 #svis.full #figCtl{position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;justify-content:center;z-index:3}
 #svis.m{perspective:1150px}
-#svis.m .vin{max-width:680px;margin:0 auto;height:auto;align-self:center;
+#svis.m .vin{max-width:780px;margin:0 auto;height:auto;align-self:center;
   transform-style:preserve-3d;transform:rotateX(8deg);
   padding:34px 34px 30px;border-radius:0;background:none;box-shadow:none;
   transition:transform .16s ease-out;will-change:transform}
-/* The projected volume. Not a panel: a body of light whose edges dissolve into
-   the room. Two crossed linear masks keep the readout fully lit while the
-   overhang fades out on all four sides, so there is no border anywhere. */
-.vglow{position:absolute;inset:-70px -92px -62px;pointer-events:none;z-index:0;
+/* The plate. A sheet of instrument-white lifted off the page: the figure is
+   drawn ON something, that something has thickness, a lit top edge and a real
+   shadow underneath it. No navy, no border, no glow. */
+.vglow{position:absolute;inset:-30px -40px -26px;pointer-events:none;z-index:0;border-radius:3px;
+  background:linear-gradient(178deg,rgba(255,254,251,.99) 0%,rgba(253,250,244,.98) 46%,rgba(245,240,230,.975) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 -1px 0 rgba(120,100,72,.12) inset,
+    0 2px 3px rgba(72,58,38,.10),
+    0 10px 20px -6px rgba(72,58,38,.17),
+    0 34px 56px -20px rgba(60,48,32,.25),
+    0 64px 96px -40px rgba(48,38,26,.22)}
+/* the ruled surface of the plate - a drafting sheet, not decoration */
+.vgrid{position:absolute;inset:-30px -40px -26px;pointer-events:none;z-index:0;border-radius:3px;
   background:
-    radial-gradient(46% 34% at 50% 6%,rgba(52,148,204,.26) 0%,rgba(52,148,204,0) 100%),
-    radial-gradient(40% 30% at 50% 100%,rgba(255,146,40,.13) 0%,rgba(255,146,40,0) 100%),
-    linear-gradient(180deg,rgba(10,26,46,.93) 0%,rgba(8,21,38,.965) 34%,rgba(8,20,36,.965) 68%,rgba(9,23,40,.93) 100%);
-  -webkit-mask-image:
-    linear-gradient(90deg,transparent 0%,#000 11%,#000 89%,transparent 100%),
-    linear-gradient(180deg,transparent 0%,#000 12.5%,#000 87.5%,transparent 100%);
-  -webkit-mask-composite:source-in;
-  mask-image:
-    linear-gradient(90deg,transparent 0%,#000 11%,#000 89%,transparent 100%),
-    linear-gradient(180deg,transparent 0%,#000 12.5%,#000 87.5%,transparent 100%);
-  mask-composite:intersect}
-#svis.m .vin>.vglow{position:absolute;inset:-70px -92px -62px;z-index:0}
+   repeating-linear-gradient(90deg,rgba(26,52,84,.05) 0 1px,transparent 1px 26px),
+   repeating-linear-gradient(0deg,rgba(26,52,84,.05) 0 1px,transparent 1px 26px);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%)}
+#svis.m .vin>.vglow,#svis.m .vin>.vgrid{position:absolute;inset:-30px -40px -26px;z-index:0}
 #svis.m .vin>[data-lv],#svis.m .vin>.fcap,#svis.m .vin>#liveFig,#svis.m .vin>#figCtl{position:relative;z-index:1}
-#svis.full .vglow{display:none}
+#svis.full .vglow,#svis.full .vgrid{display:none}
 #svis.m .vin>[data-lv]{transform:translateZ(30px)}
-#svis.m .vin .fcap{transform:translateZ(54px);color:#a9cfe8}
+#svis.m .vin .fcap{transform:translateZ(54px);color:var(--ink2)}
 #svis.m .vin .figpop{transform:translateZ(54px)}
-#svis.m .vin:before{content:'';position:absolute;inset:-52px -74px -44px;pointer-events:none;z-index:0;
-  background:
-   repeating-linear-gradient(90deg,rgba(96,186,232,.10) 0 1px,transparent 1px 34px),
-   repeating-linear-gradient(0deg,rgba(96,186,232,.10) 0 1px,transparent 1px 34px);
-  -webkit-mask-image:radial-gradient(46% 44% at 50% 46%,#000 0%,rgba(0,0,0,.55) 58%,transparent 96%);
-  mask-image:radial-gradient(46% 44% at 50% 46%,#000 0%,rgba(0,0,0,.55) 58%,transparent 96%)}
-#svis.m .vin:after{content:'';position:absolute;left:16%;right:16%;bottom:-58px;height:74px;pointer-events:none;z-index:0;
-  background:radial-gradient(50% 60% at 50% 22%,rgba(255,150,42,.30) 0%,rgba(255,150,42,0) 78%);
-  filter:blur(16px)}
+/* the shadow the plate throws on the room, offset by the plate's own lean */
+#svis.m .vin:before{content:'';position:absolute;inset:-10px -18px -56px;pointer-events:none;z-index:-1;
+  border-radius:10px;filter:blur(20px);
+  background:radial-gradient(58% 56% at 50% 68%,rgba(74,58,36,.34) 0%,rgba(74,58,36,.12) 60%,rgba(74,58,36,0) 100%)}
+/* the plate's header rule - amber, the one warm signal on the sheet */
+#svis.m .vin:after{content:'';position:absolute;left:-40px;right:-40px;top:-30px;height:2px;pointer-events:none;z-index:1;
+  background:linear-gradient(90deg,rgba(180,86,10,0) 0%,rgba(180,86,10,.62) 8%,rgba(180,86,10,.62) 92%,rgba(180,86,10,0) 100%)}
 #svis.m[data-flat] .vin{transform:none!important}
 #svis.m[data-flat] .vin>[data-lv],#svis.m[data-flat] .vin .fcap,#svis.m[data-flat] .vin .figpop{transform:none}
-#svis.m[data-flat] .vin:before,#svis.m[data-flat] .vin:after{display:none}
-#svis.m[data-flat] .vglow{opacity:.5}
+#svis.m[data-flat] .vin:before{opacity:.3}
 #svis.m #liveFig{flex:none;height:min(48vh,430px)}
 .inlinefig{max-width:560px;margin:8px 0}
 .inlinefig svg{width:100%;height:auto}
@@ -298,25 +298,26 @@ details.grp>.gb{padding-top:6px}
 
 #svis .vin{pointer-events:none}
 #svis .vin .fcap,#svis .vin #figCtl,#svis .vin [data-lv],#svis .vin .figpop{pointer-events:auto}
-#svis #liveFig{flex:1;min-height:320px;border-radius:0;
-  background:radial-gradient(74% 74% at 50% 40%,rgba(18,52,88,.62) 0%,rgba(8,20,36,.34) 64%,rgba(8,20,36,0) 100%);
-  box-shadow:none}
+#svis #liveFig{flex:1;min-height:320px;border-radius:0;background:none;box-shadow:none}
+/* the only dark surface left in the product is the sky the black hole occupies:
+   a graphite aperture with a soft edge, never a navy panel */
+#svis.gl #liveFig{background:radial-gradient(46% 54% at 50% 46%,rgba(12,12,14,.97) 0%,rgba(17,16,18,.90) 42%,rgba(26,23,22,.50) 72%,rgba(32,28,25,0) 100%)}
 #svis .fcap{margin-top:10px;font-size:10.6px;line-height:1.6;color:var(--dim);max-width:820px;align-self:center}
-#svis .fcap b{color:#d8ecfb}
+#svis .fcap b{color:var(--ink)}
 .stIn{animation:stIn .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes stIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
 .vIn{animation:vIn .5s cubic-bezier(.2,.8,.2,1)}
 @keyframes vIn{from{opacity:0;transform:translateY(14px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
 svg.xdim [data-hl]{opacity:.28;transition:opacity .16s}
-svg.xdim [data-hl].xhl{opacity:1;filter:drop-shadow(0 0 8px rgba(46,200,245,.9))}
+svg.xdim [data-hl].xhl{opacity:1;filter:drop-shadow(0 0 8px rgba(10,106,144,.9))}
 tr[data-x]{cursor:crosshair}
-tr[data-x]:hover td{background:rgba(46,200,245,.07)}
+tr[data-x]:hover td{background:rgba(10,106,144,.07)}
 tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .lvflash{animation:lvf 1s}
-@keyframes lvf{0%{filter:drop-shadow(0 0 14px rgba(46,200,245,.55))}100%{filter:none}}
+@keyframes lvf{0%{filter:drop-shadow(0 0 14px rgba(10,106,144,.55))}100%{filter:none}}
 /* the single status band: speak · activity · telemetry · panels — one glance */
 #band{position:absolute;left:calc(min(460px,32vw) + 52px);right:16px;bottom:12px;height:52px;pointer-events:auto;
-  display:flex;align-items:center;gap:22px;border-top:1px solid rgba(150,200,240,.3);padding-top:8px}
+  display:flex;align-items:center;gap:22px;border-top:1px solid rgba(26,52,84,.3);padding-top:8px}
 #bandAct{flex:1;min-width:0;font-family:var(--m);font-size:8.4px;letter-spacing:.04em;color:var(--calc);cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bandAct .at{color:var(--dim);margin-right:7px}
@@ -325,7 +326,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #bandTel{display:flex;gap:16px;font-family:var(--m);font-size:8.4px;color:var(--ink2);cursor:pointer;flex:none}
 #bandTel b{color:var(--ink);font-weight:650}
 #bandTel .bad b{color:var(--bad)}#bandTel .ok b{color:var(--ok)}
-#bandBtn{flex:none;background:none;border:0;border-bottom:1px solid rgba(150,200,240,.4);cursor:pointer;
+#bandBtn{flex:none;background:none;border:0;border-bottom:1px solid rgba(26,52,84,.4);cursor:pointer;
   font-size:7.6px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--ink2);padding:3px 1px}
 #bandBtn:hover{color:var(--ev);border-color:var(--ev)}
 #bandMenu{position:absolute;right:0;bottom:56px;display:none;flex-direction:column;gap:6px;align-items:flex-end;
@@ -333,7 +334,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   box-shadow:0 18px 48px -20px rgba(10,30,60,.5)}
 #bandMenu.on{display:flex}
 .sec{pointer-events:auto;background:none;border:0;padding:6px 2px 18px;margin-bottom:10px}
-.sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(150,200,240,.25);padding-bottom:6px}
+.sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(26,52,84,.25);padding-bottom:6px}
 .sec>.sh3 .st3{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase}
 .sec>.sh3 .sl3{font-family:var(--m);font-size:7px;color:var(--ev);letter-spacing:.1em}
 .sec h2{margin:0 0 6px;font-weight:420;font-size:19.5px;line-height:1.45;color:#14263a;
@@ -354,8 +355,8 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .dtable td{padding:6px 8px 6px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55;color:var(--ink2)}
 .dtable td b{color:var(--ink)}
 .dtable tr.click{cursor:pointer}
-.dtable tr.click:hover td{background:rgba(150,200,240,.08)}
-.inbar{display:inline-block;width:76px;height:5px;border-radius:3px;background:rgba(150,200,240,.1);vertical-align:1px;overflow:hidden;margin:0 5px}
+.dtable tr.click:hover td{background:rgba(26,52,84,.08)}
+.inbar{display:inline-block;width:76px;height:5px;border-radius:3px;background:rgba(26,52,84,.1);vertical-align:1px;overflow:hidden;margin:0 5px}
 .inbar i{display:block;height:100%;border-radius:3px}
 .kfd{border-left:3px solid;padding:5px 12px;margin:9px 0;background:none;cursor:pointer}
 .kfd .kt2{font-size:12.4px;line-height:1.55;color:var(--ink);font-weight:650}
@@ -382,9 +383,9 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #activity .ah{display:flex;justify-content:space-between;align-items:center;font-size:7.2px;letter-spacing:.24em;
   font-weight:800;color:var(--dim);text-transform:uppercase;padding:0 2px 5px}
 #activity .aw{display:flex;gap:5px;align-items:center;font-family:var(--m);font-size:6.8px;color:var(--ev)}
-#activity .aw i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(46,200,245,.9);animation:bl 2.2s infinite}
+#activity .aw i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(10,106,144,.9);animation:bl 2.2s infinite}
 #actList{display:flex;flex-direction:column;gap:3px;max-height:30vh;overflow:hidden}
-.ae{background:none;border:0;border-left:2px solid rgba(150,200,240,.25);padding:2px 8px;
+.ae{background:none;border:0;border-left:2px solid rgba(26,52,84,.25);padding:2px 8px;
   font-family:var(--m);font-size:8px;line-height:1.5;color:var(--calc);animation:fi .4s both;letter-spacing:.02em}
 .ae .at{color:var(--dim);margin-right:6px}
 .ae.hot{border-left-color:var(--ev);color:var(--ev)}
@@ -397,7 +398,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .tm .tv{color:var(--ink);font-weight:600;text-align:right}
 .tm.bad .tv{color:var(--bad)}.tm.ok .tv{color:var(--ok)}.tm.hy .tv{color:var(--hyp)}.tm.am .tv{color:var(--asm)}
 #chipsDock{display:none}
-.ichip{background:none;border:0;border-bottom:1px solid rgba(150,200,240,.35);padding:2px 1px;cursor:pointer;
+.ichip{background:none;border:0;border-bottom:1px solid rgba(26,52,84,.35);padding:2px 1px;cursor:pointer;
   font-size:7.2px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink2)}
 .ichip:hover{color:var(--ink);border-color:var(--ev)}
 /* floating contextual cards — intelligence appears where you work */
@@ -409,7 +410,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .pcard .ph2 .pt{font-size:7.4px;letter-spacing:.2em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .pcard .ph2 .px2{cursor:pointer;color:var(--dim);font-size:13px;padding:0 3px}
 #speakLive{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.figpop{position:absolute;top:-4px;right:0;background:none;border:0;border-bottom:1px solid rgba(150,200,240,.35);
+.figpop{position:absolute;top:-4px;right:0;background:none;border:0;border-bottom:1px solid rgba(26,52,84,.35);
   cursor:pointer;font-size:7px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--dim);padding:2px 1px;z-index:2}
 .figpop:hover{color:var(--ev);border-color:var(--ev)}
 #speakLive:empty{display:none}
@@ -420,10 +421,10 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .ir{display:flex;gap:7px;font-size:10.3px;line-height:1.5;color:var(--ink2);padding:2.5px 3px;border-radius:4px}
 .ir .k{flex:none;width:78px;font-size:7.1px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:2px}
 .ir b{color:var(--ink);font-weight:650}
-.ir .togl{cursor:pointer;border-bottom:1px dotted rgba(150,200,240,.45)}
-.ir .togl:hover{background:rgba(46,200,245,.08)}
+.ir .togl{cursor:pointer;border-bottom:1px dotted rgba(26,52,84,.45)}
+.ir .togl:hover{background:rgba(10,106,144,.08)}
 .flash{animation:fl 1.5s}
-@keyframes fl{0%{background:rgba(46,200,245,.26)}100%{background:transparent}}
+@keyframes fl{0%{background:rgba(10,106,144,.26)}100%{background:transparent}}
 .dt{font-family:var(--m);font-size:8.4px;line-height:1.85;color:var(--calc);white-space:pre;overflow-x:auto}
 .dt i{font-style:normal;color:var(--hyp)}
 .dt em{font-style:normal;color:var(--ev)}
@@ -448,7 +449,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #brief .eb{font-size:7.5px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:var(--ev)}
 #brief h1{margin:7px 0 0;font-size:14.5px;font-weight:700;line-height:1.5;color:#14263a}
 #brief .why{margin-top:8px;font-size:11px;line-height:1.65;color:var(--ink2)}
-#brief .act{margin-top:9px;border-left:3px solid var(--clm);padding:6px 10px;background:rgba(150,200,240,.08);
+#brief .act{margin-top:9px;border-left:3px solid var(--clm);padding:6px 10px;background:rgba(26,52,84,.08);
   font-size:10.6px;line-height:1.6;color:var(--ink);font-weight:520}
 #brief .stats{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 #brief .bacts{display:flex;gap:6px;margin-top:11px}
@@ -459,14 +460,14 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #ap.on{display:flex}
 #apBox{margin-top:14vh;width:min(700px,90vw)}
 #apBox .lbl{font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink2);font-weight:800}
-#apIn{width:100%;margin-top:12px;background:transparent;border:0;outline:0;color:#eaf6ff;
+#apIn{width:100%;margin-top:12px;background:transparent;border:0;outline:0;color:var(--ink);
   font-family:var(--f);font-weight:300;font-size:clamp(16px,2.2vw,22px);padding:0 0 12px}
-#apIn::placeholder{color:#5d7a94}
-#apRule{height:1px;background:linear-gradient(90deg,rgba(46,200,245,.9),rgba(150,200,240,.1))}
+#apIn::placeholder{color:var(--dim)}
+#apRule{height:1px;background:linear-gradient(90deg,rgba(10,106,144,.9),rgba(26,52,84,.1))}
 #apSug{margin-top:14px;max-height:46vh;overflow-y:auto;border-radius:8px;scrollbar-width:none}
-.sug{display:flex;gap:10px;width:100%;text-align:left;background:rgba(12,26,44,.65);border:0;
+.sug{display:flex;gap:10px;width:100%;text-align:left;background:rgba(255,253,249,.88);border:0;
   border-bottom:1px solid var(--line);padding:10px 13px;cursor:pointer;font-size:12px;color:var(--ink);align-items:baseline}
-.sug:hover,.sug.sel{background:rgba(150,200,240,.14)}
+.sug:hover,.sug.sel{background:rgba(26,52,84,.14)}
 .sug .pfx{font-family:var(--m);font-size:9px;color:var(--ev)}
 .sug .where{margin-left:auto;font-family:var(--m);font-size:7.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
 
@@ -487,12 +488,12 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #go:hover{background:#3ea0d8}
 #cons{position:fixed;inset:0;z-index:75;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 #cons.on{display:flex}
-#cons .line{font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:#cfe4f6;font-weight:800;
+#cons .line{font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:#123049;font-weight:800;
   opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s;text-align:center;padding:0 16px}
 #cons .line.on{opacity:1;transform:none}
 #cons .tick{margin-top:12px;font-family:var(--m);font-size:8px;letter-spacing:.2em;color:var(--dim);opacity:0;transition:opacity .5s}
 #cons .tick.on{opacity:1}
-#cons .pb{margin-top:30px;width:min(400px,70vw);height:2px;background:rgba(150,200,240,.14);border-radius:1px;overflow:hidden}
+#cons .pb{margin-top:30px;width:min(400px,70vw);height:2px;background:rgba(26,52,84,.14);border-radius:1px;overflow:hidden}
 #cons .pb i{display:block;height:100%;background:var(--ev);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
 
 @media(max-width:900px){
@@ -525,7 +526,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b44</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b45</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -578,10 +579,12 @@ const $=s=>document.querySelector(s);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TAU=Math.PI*2;
-const C={ev:'#2fb3e0',calc:'#7ea6cc',asm:'#ff9a2e',hyp:'#a98cf0',clm:'#dceaf7',ok:'#3fd39a',bad:'#ff7a7a',dim:'#7f9db5',ink:'#eaf6ff',ink2:'#c9e2f5'};
+/* One provenance palette, read against the bright room. There is no second,
+   dark-tuned palette any more: no figure sits on a navy panel. */
+const C={ev:'#0a6a90',calc:'#33587a',asm:'#b4560a',hyp:'#5a34a8',clm:'#1b2b3d',ok:'#12855a',bad:'#b3382a',dim:'#54697d',ink:'#14263a',ink2:'#33506d'};
 /* TC is the same provenance code read against the bright room, not the dark projection.
    Text in the document must never be painted with a colour tuned for a hologram. */
-const TC={ev:'#0a6a90',calc:'#38536f',asm:'#b4560a',hyp:'#5a34a8',clm:'#1b2b3d',ok:'#12855a',bad:'#b3382a',dim:'#6d859b',ink:'#14263a',ink2:'#33506d'};
+const TC=C;
 const chip=(p,l)=>'<span class="chip '+p+'">'+(l||{ev:'measured',calc:'calculated',asm:'assumed',hyp:'proposed',clm:'claim'}[p])+'</span>';
 
 const S={
@@ -957,6 +960,7 @@ function glFrame(t){
 function glSet(on){
   GL.on=on&&glInit();
   $('#gl').classList.toggle('on',GL.on);
+  const sv=document.getElementById('svis');if(sv)sv.classList.toggle('gl',GL.on);
   $('#brand').classList.toggle('dark',GL.on);
   if(GL.on){
     GL.heatT=S.asm.heating;GL.scrVarT=S.asm.screen==='variable'?1:0;
@@ -1439,7 +1443,7 @@ function loop(now){
   if(FIG.ok&&S.phase==='live'&&typeof CURVIS!=='undefined'&&CURVIS==='live'&&!RM){
     ctx.save();ctx.translate(PARA.x*26,PARA.y*17);
     const vpx=SW/2-PARA.x*300,vpy=SH*0.24-PARA.y*130;
-    ctx.strokeStyle='rgba(150,200,240,.05)';ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(26,52,84,.05)';ctx.lineWidth=1;
     for(let i=-8;i<=8;i++){
       const bx=SW/2+i*160;
       ctx.beginPath();ctx.moveTo(bx,SH+60);
@@ -1472,7 +1476,7 @@ function wrapText(t,maxChars){
   if(cur.trim())lines.push(cur.trim());return lines;
 }
 /* ---------------- draw dispatch ---------------- */
-const GLOWK={gate:'rgba(46,200,245,.4)',hyp:'rgba(176,138,245,.6)',core:'rgba(46,200,245,.55)',ccore:'rgba(220,233,245,.5)',matnode:'rgba(46,200,245,.4)',epoint:'rgba(46,200,245,.45)',memnode:'rgba(130,170,215,.4)',scrub:'rgba(46,200,245,.6)',paper:'rgba(46,200,245,.35)',anchor:'rgba(130,170,215,.45)'};
+const GLOWK={gate:'rgba(10,106,144,.4)',hyp:'rgba(90,52,168,.6)',core:'rgba(10,106,144,.55)',ccore:'rgba(32,54,80,.5)',matnode:'rgba(10,106,144,.4)',epoint:'rgba(10,106,144,.45)',memnode:'rgba(30,58,92,.4)',scrub:'rgba(10,106,144,.6)',paper:'rgba(10,106,144,.35)',anchor:'rgba(30,58,92,.45)'};
 const DRAW={
  label(o){txt(o.text,o.x,o.y,o.size||9,o.col||C.dim,o.align||'center',700);},
  mlabel(o){mono(o.text,o.x,o.y,o.size||8.5,o.col||C.dim,o.align||'center');},
@@ -1574,7 +1578,7 @@ const DRAW={
    const sag=S.claimCollapsed?66:Math.round((1-sup)*16);
    const oy=o.y+sag;
    ctx.save();ctx.translate(o.x,oy);ctx.rotate(World.t*0.1+(S.claimCollapsed?0.35:0));
-   ctx.strokeStyle=S.claimCollapsed?'rgba(245,122,122,.8)':(sup<0.55?'rgba(232,161,58,.85)':'rgba(220,233,245,.8)');ctx.lineWidth=1.5;
+   ctx.strokeStyle=S.claimCollapsed?'rgba(179,56,42,.8)':(sup<0.55?'rgba(180,86,10,.85)':'rgba(32,54,80,.8)');ctx.lineWidth=1.5;
    ctx.beginPath();
    for(let i=0;i<6;i++){const a=i/6*TAU;
      const j=RM?0:Math.sin(World.t*7+i*2.1)*inst*3.4;
@@ -1583,13 +1587,13 @@ const DRAW={
    ctx.closePath();ctx.stroke();
    for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){
      const a1=i/6*TAU,a2=j/6*TAU;
-     ctx.strokeStyle='rgba(220,233,245,'+(0.1+0.16*sup)+')';ctx.lineWidth=.8;
+     ctx.strokeStyle='rgba(32,54,80,'+(0.1+0.16*sup)+')';ctx.lineWidth=.8;
      ctx.beginPath();ctx.moveTo(Math.cos(a1)*r,Math.sin(a1)*r*0.85);ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r*0.85);ctx.stroke();
    }
    ctx.restore();
    ctx.strokeStyle=S.claimCollapsed?C.bad:C.clm;ctx.lineWidth=3;
    ctx.beginPath();ctx.arc(o.x,oy,r+14,-Math.PI/2,-Math.PI/2+sup*TAU);ctx.stroke();
-   ctx.strokeStyle='rgba(220,233,245,.12)';
+   ctx.strokeStyle='rgba(32,54,80,.12)';
    ctx.beginPath();ctx.arc(o.x,oy,r+14,0,TAU);ctx.stroke();
    txt(S.claimCollapsed?'CLAIM COLLAPSED':n===0?'EMPTY CLAIM':n<9?'CLAIM · '+n+' / 9 · SUPPORT '+(sup*100).toFixed(0)+'%':'WORKING CLAIM v3 · SUPPORT '+(sup*100).toFixed(0)+'%',o.x,oy-6,10,S.claimCollapsed?C.bad:C.clm,'center',800);
    mono(S.claimCollapsed?'reattach the observation to rebuild':n===9?(S.audited?'audited · survives conditionally':'assembled · unaudited'):'evidence physically carries the structure — weights shown in DATA',o.x,oy+11,7.2,C.dim);
@@ -1617,7 +1621,7 @@ const DRAW={
  },
  defect(o){
    const w=o.hitW,h=o.hitH;
-   ctx.fillStyle='rgba(12,26,44,.96)';ctx.strokeStyle=C[o.col];ctx.lineWidth=1.5;
+   ctx.fillStyle='rgba(255,253,249,.96)';ctx.strokeStyle=C[o.col];ctx.lineWidth=1.5;
    rr(o.x-w/2,o.y-h/2,w,h,8);ctx.fill();ctx.stroke();
    txt(o.title,o.x,o.y-8,9.5,C[o.col],'center',800);
    txt(o.sub,o.x,o.y+9,8.5,C.ink2,'center',600);
@@ -1629,9 +1633,9 @@ const GATES=[['ALL FEEDS','2.14M / month',1],['RELEVANT','18,420 cycle',0.34],['
 const MODES_IMPL={};
 DRAW.gate=function(o){
   const h2=o.gh||60;
-  ctx.strokeStyle='rgba(150,200,240,.55)';ctx.lineWidth=1.3;
+  ctx.strokeStyle='rgba(26,52,84,.55)';ctx.lineWidth=1.3;
   ctx.beginPath();ctx.moveTo(o.x,o.y-h2-8);ctx.lineTo(o.x,o.y+h2+8);ctx.stroke();
-  [-1,1].forEach(s2=>{ctx.strokeStyle='rgba(46,200,245,.8)';ctx.lineWidth=1.6;
+  [-1,1].forEach(s2=>{ctx.strokeStyle='rgba(10,106,144,.8)';ctx.lineWidth=1.6;
     ctx.beginPath();ctx.moveTo(o.x-5,o.y+s2*(h2+8));ctx.lineTo(o.x+5,o.y+s2*(h2+8));ctx.stroke();});
   txt(o.label,o.x,o.y-h2-26,9.2,C.ink,'center',800);
   mono(o.sub,o.x,o.y-h2-13,7.4,C.ev);
@@ -1675,13 +1679,13 @@ MODES_IMPL.watch={
    ctx.lineTo(gx(4),cy+H[4]);
    for(let i=4;i>0;i--){const xm=(gx(i)+gx(i-1))/2;ctx.bezierCurveTo(xm,cy+H[i],xm,cy+H[i-1],gx(i-1),cy+H[i-1]);}
    ctx.closePath();
-   ctx.fillStyle='rgba(130,170,215,.08)';ctx.fill();
-   ctx.strokeStyle='rgba(130,170,215,.4)';ctx.lineWidth=1;ctx.stroke();
+   ctx.fillStyle='rgba(30,58,92,.08)';ctx.fill();
+   ctx.strokeStyle='rgba(30,58,92,.4)';ctx.lineWidth=1;ctx.stroke();
    /* shed mass peeling off at every gate */
    for(let i=1;i<5;i++){const x=gx(i);
      [-1,1].forEach(s2=>{
        for(let k=0;k<4;k++){
-         ctx.strokeStyle='rgba(125,156,184,'+(0.26-k*0.055)+')';ctx.lineWidth=1;
+         ctx.strokeStyle='rgba(46,68,92,'+(0.26-k*0.055)+')';ctx.lineWidth=1;
          ctx.beginPath();ctx.moveTo(x-2,cy+s2*(H[i]+2+k*3));
          ctx.quadraticCurveTo(x+18+k*6,cy+s2*(H[i]+14+k*12),x+38+k*11,cy+s2*(H[i]+30+k*20));
          ctx.stroke();}
@@ -1693,8 +1697,8 @@ MODES_IMPL.watch={
    const WHY=['NO OBJECT / BAND / EPOCH OVERLAP','REDUNDANT · BELOW SIGNIFICANCE VS RETAINED VOLUME','NO ASSUMPTION, BOUNDARY OR RANKING IMPACT','RANKED BELOW ACTION THRESHOLD'];
    for(let i=0;i<4;i++){const xm=(gx(i)+gx(i+1))/2,hm=(H[i]+H[i+1])/2;
      mono(RED[i],xm,cy-hm-16,10,C.ev);
-     mono(KILLN[i],xm,cy+hm+22,7,'rgba(125,156,184,.9)');
-     mono(WHY[i],xm,cy+hm+34,6.2,'rgba(125,156,184,.55)');
+     mono(KILLN[i],xm,cy+hm+22,7,'rgba(46,68,92,.9)');
+     mono(WHY[i],xm,cy+hm+34,6.2,'rgba(46,68,92,.55)');
    }
    /* live records flowing inside the body */
    if(!RM&&Math.random()<0.75){
@@ -1711,10 +1715,10 @@ MODES_IMPL.watch={
      const fade=clamp((dgx-px)/60,0,1);
      if(px>dgx+8){STREAM.splice(i,1);if(p.die>=2)S.counters.rec+=1;continue;}
      const py=cy+(p.y-cy)*(hb(px)/H[0]);
-     const col=p.die>=4?'rgba(46,200,245,'+(0.9*fade)+')':p.die>=3?'rgba(176,138,245,'+(0.75*fade)+')':'rgba(130,170,215,'+(0.4*fade)+')';
+     const col=p.die>=4?'rgba(10,106,144,'+(0.9*fade)+')':p.die>=3?'rgba(90,52,168,'+(0.75*fade)+')':'rgba(30,58,92,'+(0.4*fade)+')';
      ctx.strokeStyle=col;ctx.lineWidth=p.die>=3?1.8:1;
      ctx.beginPath();ctx.moveTo(px-9-p.v*2,py);ctx.lineTo(px,py);ctx.stroke();
-     if(p.name&&px<x0+170)mono(p.name,px+4,py-7,6.6,'rgba(125,156,184,.85)','left');
+     if(p.name&&px<x0+170)mono(p.name,px+4,py-7,6.6,'rgba(46,68,92,.85)','left');
    }
    /* the four survivors dock as material nodes */
    World.objs.forEach(o=>{
@@ -1723,7 +1727,7 @@ MODES_IMPL.watch={
        if(g4)link(g4.x,g4.y,o.x,o.y,C.ev,0.3,1,[2,5]);
      }
    });
-   mono('RELEVANCE APERTURE ×'+S.relTh.toFixed(2)+' — DRAG THIS GATE VERTICALLY · THE WHOLE CASCADE RECOMPUTES',gx(1),cy-H[0]-4,6.4,'rgba(46,200,245,.8)');
+   mono('RELEVANCE APERTURE ×'+S.relTh.toFixed(2)+' — DRAG THIS GATE VERTICALLY · THE WHOLE CASCADE RECOMPUTES',gx(1),cy-H[0]-4,6.4,'rgba(10,106,144,.8)');
    txt('THE PERIMETER READS EVERYTHING — WIDTH IS THE NUMBER OF RECORDS STILL ALIVE (LOG SCALE)',stageW()/2,64,9.5,C.dim,'center',800);
    mono(S.counters.raw.toLocaleString('en-US')+' RECORDS READ THIS MONTH · '+S.counters.rec.toLocaleString('en-US')+' RELEVANT · 312 COMPARED · 4 MATERIAL · 1 ACTION',stageW()/2,82,8,C.calc);
  },
@@ -1808,36 +1812,36 @@ MODES_IMPL.model={
    if(L.region&&GL.on){
      const peak=lerp(2.05,3.15,GL.heat);
      const rx=scale*peak,ry=scale*peak*0.41;
-     ctx.strokeStyle='rgba(176,138,245,.75)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
+     ctx.strokeStyle='rgba(90,52,168,.75)';ctx.lineWidth=1.2;ctx.setLineDash([5,5]);
      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-     ctx.strokeStyle='rgba(176,138,245,.5)';ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(90,52,168,.5)';ctx.lineWidth=1;
      ctx.beginPath();ctx.moveTo(cx+rx,cy);ctx.lineTo(cx+rx+8,cy-3);ctx.stroke();
      mono('EMISSION PEAK r ≈ '+(peak*2).toFixed(1)+' r_g'+(GL.heat>0.5?' · MIGRATED OUTWARD':''),cx+rx+11,cy-6,8.5,'#b08af5','left');
      if(S.mod.shift&&S.asm.heating<0.5){
        const p2=3.15,rx2=scale*p2,ry2=rx2*0.41;
-       ctx.strokeStyle='rgba(190,160,255,.55)';ctx.setLineDash([2,5]);
+       ctx.strokeStyle='rgba(90,52,168,.55)';ctx.setLineDash([2,5]);
        ctx.beginPath();ctx.ellipse(cx,cy,rx2,ry2,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
        mono('LAB-INFORMED PEAK r ≈ 6.3 r_g',cx-rx2*0.6,cy+ry2+18,8,'#b08af5','right');
      }
    }
    if(L.geo&&GL.on){
      const ox=stageW()*0.84,oy=SH*0.8;
-     ctx.strokeStyle='rgba(150,200,240,.4)';ctx.setLineDash([2,6]);ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(26,52,84,.4)';ctx.setLineDash([2,6]);ctx.lineWidth=1;
      ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(cx+scale*1.4,cy+scale*0.4);ctx.stroke();ctx.setLineDash([]);
-     ctx.strokeStyle='rgba(150,200,240,.75)';ctx.lineWidth=1.2;
+     ctx.strokeStyle='rgba(26,52,84,.75)';ctx.lineWidth=1.2;
      ctx.beginPath();ctx.arc(ox,oy,6,0,TAU);ctx.stroke();
      ctx.beginPath();ctx.moveTo(ox-11,oy);ctx.lineTo(ox+11,oy);ctx.moveTo(ox,oy-11);ctx.lineTo(ox,oy+11);ctx.stroke();
-     mono('OBSERVER · ALMA/VLA · i ≈ 24° · SCREEN '+S.asm.screen.toUpperCase()+' ON SIGHTLINE',ox-14,oy+22,8,'rgba(150,200,240,.75)','right');
+     mono('OBSERVER · ALMA/VLA · i ≈ 24° · SCREEN '+S.asm.screen.toUpperCase()+' ON SIGHTLINE',ox-14,oy+22,8,'rgba(26,52,84,.75)','right');
      /* radial scale — the render is a measured object, not an illustration */
      [3,6,10].forEach(rv=>{
        const rx3=scale*rv/2,ry3=scale*rv/2*0.41;
-       ctx.strokeStyle='rgba(150,200,240,.13)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
+       ctx.strokeStyle='rgba(26,52,84,.13)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
        ctx.beginPath();ctx.ellipse(cx,cy,rx3,ry3,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
-       mono('r = '+rv+' r_g',cx-rx3*0.83-6,cy+ry3*0.56+10,6.8,'rgba(150,200,240,.5)','right');
+       mono('r = '+rv+' r_g',cx-rx3*0.83-6,cy+ry3*0.56+10,6.8,'rgba(26,52,84,.5)','right');
      });
-     ctx.strokeStyle='rgba(150,200,240,.28)';ctx.lineWidth=1;ctx.setLineDash([6,5]);
+     ctx.strokeStyle='rgba(26,52,84,.28)';ctx.lineWidth=1;ctx.setLineDash([6,5]);
      ctx.beginPath();ctx.moveTo(cx,cy-scale*2.9);ctx.lineTo(cx,cy+scale*2.9);ctx.stroke();ctx.setLineDash([]);
-     mono('SPIN AXIS · a/M = 0.94 · PROGRADE',cx+7,cy+scale*2.9-8,7,'rgba(150,200,240,.6)','left');
+     mono('SPIN AXIS · a/M = 0.94 · PROGRADE',cx+7,cy+scale*2.9-8,7,'rgba(26,52,84,.6)','left');
    }
    if(L.sane&&GL.on){
      ctx.save();ctx.setLineDash([3,5]);
@@ -1847,7 +1851,7 @@ MODES_IMPL.model={
          const rr=scale*(1.7+0.9*Math.sin(q*9+k*2.4));
          const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr*0.5-(q-0.5)*scale*1.6;
          i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
-       ctx.strokeStyle='rgba(176,138,245,.3)';ctx.lineWidth=1;ctx.stroke();}
+       ctx.strokeStyle='rgba(90,52,168,.3)';ctx.lineWidth=1;ctx.stroke();}
      ctx.restore();
      mono('SANE FIELD GHOST · IDENTICAL CONSTRAINTS · m_L OVERPRODUCED ×2.3 → FAMILY EXCLUDED',cx,cy+scale*2.75,8.5,'#b08af5');
    }
@@ -1855,27 +1859,27 @@ MODES_IMPL.model={
      const rg=scale*4.35;
      const d2a=d=>(-158+((d+15)/70)*136)*Math.PI/180;
      const breathe=RM?0:Math.sin(t*1.2)*0.5;
-     ctx.strokeStyle='rgba(150,200,240,.25)';ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(26,52,84,.25)';ctx.lineWidth=1;
      ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-15),d2a(55));ctx.stroke();
-     ctx.strokeStyle='rgba(130,170,215,.20)';ctx.lineWidth=15;
+     ctx.strokeStyle='rgba(30,58,92,.20)';ctx.lineWidth=15;
      ctx.beginPath();ctx.arc(cx,cy,rg,d2a(-W-breathe),d2a(W+breathe));ctx.stroke();
      [-W,W].forEach(dd=>{const a=d2a(dd);
        ctx.strokeStyle='#8fb4dc';ctx.lineWidth=1.4;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-11),cy+Math.sin(a)*(rg-11));ctx.lineTo(cx+Math.cos(a)*(rg+11),cy+Math.sin(a)*(rg+11));ctx.stroke();});
      for(let dg=-15;dg<=55;dg+=5){const a2=d2a(dg),maj=dg%15===0;
-       ctx.strokeStyle='rgba(150,200,240,'+(maj?'.5':'.22')+')';ctx.lineWidth=1;
+       ctx.strokeStyle='rgba(26,52,84,'+(maj?'.5':'.22')+')';ctx.lineWidth=1;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a2)*(rg+2),cy+Math.sin(a2)*(rg+2));
        ctx.lineTo(cx+Math.cos(a2)*(rg+(maj?8:5)),cy+Math.sin(a2)*(rg+(maj?8:5)));ctx.stroke();
-       if(maj)mono(dg+'°',cx+Math.cos(a2)*(rg-17),cy+Math.sin(a2)*(rg-17)+3,6,'rgba(150,200,240,.45)');
+       if(maj)mono(dg+'°',cx+Math.cos(a2)*(rg-17),cy+Math.sin(a2)*(rg-17)+3,6,'rgba(26,52,84,.45)');
      }
      mono('GRMHD PERMITTED ±'+W+'° · 1,120 TRAJECTORIES',cx+Math.cos(d2a(-14))*(rg+4),cy+Math.sin(d2a(-14))*(rg+4)-14,8.2,'#8fb4dc','left');
      if(S.mod.alt){
-       ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(130,170,215,.6)';ctx.lineWidth=1;
+       ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(30,58,92,.6)';ctx.lineWidth=1;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-19),d2a(19));ctx.stroke();ctx.setLineDash([]);
        mono('UNCERTAINTY LAYER · CAL ×2 → ±19° — TRAJECTORY STILL EXITS (3.1σ)',cx,cy-rg-46,8,'#8fb4dc');
      }
      if(S.mod.shift&&W<41){
-       ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(176,138,245,.8)';ctx.lineWidth=1.2;
+       ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(90,52,168,.8)';ctx.lineWidth=1.2;
        ctx.beginPath();ctx.arc(cx,cy,rg+14,d2a(-42),d2a(42));ctx.stroke();ctx.setLineDash([]);
        mono('COUNTERFACTUAL · LAB PRIOR ±42° → CONTAINMENT RESTORED 9/9',cx,cy-rg-62,8,'#b08af5');
      }
@@ -1885,7 +1889,7 @@ MODES_IMPL.model={
        ctx.strokeStyle=inb?'#2ec8f5':'#b08af5';ctx.lineWidth=2;
        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(rg-8),cy+Math.sin(a)*(rg-8));ctx.lineTo(cx+Math.cos(a)*(rg+8),cy+Math.sin(a)*(rg+8));ctx.stroke();
        if(S.mod.alt){
-         ctx.strokeStyle='rgba(46,200,245,.35)';ctx.lineWidth=3;
+         ctx.strokeStyle='rgba(10,106,144,.35)';ctx.lineWidth=3;
          ctx.beginPath();ctx.arc(cx,cy,rg,d2a(v-EP_ERR[i]),d2a(v+EP_ERR[i]));ctx.stroke();
        }
        if(!exited&&v>W){exited=true;
@@ -1895,9 +1899,9 @@ MODES_IMPL.model={
      const bx=cx-rg+6,by=cy+scale*1.6;
      for(let k=0;k<3;k++){
        const ok=S.asm.heating>0.5;
-       ctx.strokeStyle=ok?'#3ecf95':'rgba(176,138,245,.75)';ctx.lineWidth=1.2;
+       ctx.strokeStyle=ok?'#3ecf95':'rgba(90,52,168,.75)';ctx.lineWidth=1.2;
        ctx.strokeRect(bx-34,by+k*15,11,9);
-       if(ok){ctx.fillStyle='rgba(62,207,149,.3)';ctx.fillRect(bx-34,by+k*15,11,9);}
+       if(ok){ctx.fillStyle='rgba(18,133,90,.3)';ctx.fillRect(bx-34,by+k*15,11,9);}
      }
      mono('ENSEMBLE '+(S.asm.heating>0.5?'3/3':'0/3'),bx-28,by+56,7.5,S.asm.heating>0.5?'#3ecf95':'#b08af5','left');
    }
@@ -1912,7 +1916,7 @@ const HERO={
  transit(){
    const cx=stageW()/2,cy=SH*0.42,W2=Math.min(760,stageW()*0.62),H2=170;
    const x0=cx-W2/2,y0=cy+H2/2;
-   ctx.strokeStyle='rgba(150,200,240,.25)';ctx.lineWidth=1;
+   ctx.strokeStyle='rgba(26,52,84,.25)';ctx.lineWidth=1;
    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+W2,y0);ctx.stroke();
    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0-H2);ctx.stroke();
    const depth=H2*(0.30+0.45*S.asm.heating);
@@ -1927,7 +1931,7 @@ const HERO={
    const bw=W2/EP_VAL.length;
    EP_VAL.forEach((v,i)=>{
      const bh=v/QQ.q.hi*110, bx=x0+i*bw+bw*0.2, inb=v<=sectorW();
-     ctx.fillStyle=inb?'rgba(46,200,245,.28)':'rgba(176,138,245,.32)';
+     ctx.fillStyle=inb?'rgba(10,106,144,.28)':'rgba(90,52,168,.32)';
      ctx.strokeStyle=inb?C.ev:C.hyp;ctx.lineWidth=1.2;
      ctx.fillRect(bx,cy+H2/2+58-bh,bw*0.6,bh);ctx.strokeRect(bx,cy+H2/2+58-bh,bw*0.6,bh);
      mono(v.toFixed(0),bx+bw*0.3,cy+H2/2+70,6.4,inb?C.ev:C.hyp);
@@ -1942,7 +1946,7 @@ const HERO={
  strain(){
    const cx=stageW()/2,cy=SH*0.40,W2=Math.min(780,stageW()*0.64);
    const x0=cx-W2/2;
-   ctx.strokeStyle='rgba(150,200,240,.2)';ctx.lineWidth=1;
+   ctx.strokeStyle='rgba(26,52,84,.2)';ctx.lineWidth=1;
    ctx.beginPath();ctx.moveTo(x0,cy);ctx.lineTo(x0+W2,cy);ctx.stroke();
    ctx.strokeStyle=C.ev;ctx.lineWidth=1.6;ctx.beginPath();
    for(let i=0;i<=400;i++){
@@ -1954,7 +1958,7 @@ const HERO={
      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
    }
    ctx.stroke();
-   ctx.strokeStyle='rgba(176,138,245,.55)';ctx.setLineDash([3,4]);ctx.lineWidth=1;
+   ctx.strokeStyle='rgba(90,52,168,.55)';ctx.setLineDash([3,4]);ctx.lineWidth=1;
    ctx.beginPath();ctx.moveTo(x0+W2*0.62,cy-110);ctx.lineTo(x0+W2*0.62,cy+110);ctx.stroke();ctx.setLineDash([]);
    mono('MERGER',x0+W2*0.62+5,cy-114,7.5,C.hyp,'left');
    mono('RINGDOWN WINDOW - OVERTONE FIT',x0+W2*0.72,cy+124,8,C.hyp,'left');
@@ -1970,12 +1974,12 @@ const HERO={
  exclusion(){
    const cx=stageW()/2,cy=SH*0.46,W2=Math.min(700,stageW()*0.58),H2=250;
    const x0=cx-W2/2,y0=cy+H2/2;
-   ctx.strokeStyle='rgba(150,200,240,.25)';ctx.lineWidth=1;
+   ctx.strokeStyle='rgba(26,52,84,.25)';ctx.lineWidth=1;
    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+W2,y0);ctx.stroke();
    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0-H2);ctx.stroke();
    mono('MASS m_chi (GeV) ->',x0+W2,y0+20,7.5,C.dim,'right');
    mono('CROSS-SECTION',x0-8,y0-H2-6,7.5,C.dim,'right');
-   ctx.fillStyle='rgba(232,161,58,.08)';
+   ctx.fillStyle='rgba(180,86,10,.08)';
    ctx.beginPath();ctx.moveTo(x0,y0);
    for(let i=0;i<=60;i++){const q=i/60;ctx.lineTo(x0+q*W2,y0-30-40*Math.exp(-q*3.2));}
    ctx.lineTo(x0+W2,y0);ctx.closePath();ctx.fill();
@@ -2057,7 +2061,7 @@ MODES_IMPL.analyze={
          const q=(t*0.22+(x1*7+y2)%1)%1;
          const mx=(x1+x2)/2,my=(y1+y2)/2-Math.hypot(x2-x1,y2-y1)*0.08;
          const px=(1-q)*(1-q)*x1+2*(1-q)*q*mx+q*q*x2, py=(1-q)*(1-q)*y1+2*(1-q)*q*my+q*q*y2;
-         ctx.fillStyle='rgba(0,160,215,.8)';ctx.beginPath();ctx.arc(px,py,2.1,0,TAU);ctx.fill();
+         ctx.fillStyle='rgba(10,106,144,.8)';ctx.beginPath();ctx.arc(px,py,2.1,0,TAU);ctx.fill();
        }
        if((SEL===h||SEL===c)&&Math.min(c.a,h.a)>0.8){
          const mx=(x1+x2)/2,my=(y1+y2)/2-Math.hypot(x2-x1,y2-y1)*0.08;
@@ -2071,7 +2075,7 @@ MODES_IMPL.analyze={
      World.objs.forEach(h=>{
        if(h.kind!=='hyp'||h.dead)return;
        const gi=HYPS.indexOf(h.h),gv=alt[gi];
-       ctx.strokeStyle='rgba(176,138,245,.6)';ctx.lineWidth=2;ctx.setLineDash([3,5]);
+       ctx.strokeStyle='rgba(90,52,168,.6)';ctx.lineWidth=2;ctx.setLineDash([3,5]);
        ctx.beginPath();ctx.arc(h.x,h.y,h.r+14,-Math.PI/2,-Math.PI/2+gv*TAU);ctx.stroke();ctx.setLineDash([]);
        mono((gv*100).toFixed(0)+'%',h.x+h.r+20,h.y-h.r*0.6,7.5,C.hyp,'left');
      });
@@ -2085,7 +2089,7 @@ MODES_IMPL.analyze={
      E.forEach(x=>{
        const cur=this.expE[x.id]===undefined?x.p:this.expE[x.id]+=(x.p-this.expE[x.id])*0.08;
        this.expE[x.id]=cur;
-       ctx.fillStyle='rgba(150,200,240,.10)';ctx.fillRect(126,ey,120,4);
+       ctx.fillStyle='rgba(26,52,84,.10)';ctx.fillRect(126,ey,120,4);
        ctx.fillStyle=C.clm;ctx.fillRect(126,ey,120*cur,4);
        mono((cur*100).toFixed(0)+'%',252,ey+2,7.4,C.clm,'left');
        mono(x.n.slice(0,30),126,ey+11,7,C.dim,'left');
@@ -2201,12 +2205,12 @@ MODES_IMPL.memory={
    for(let i=this.pulses.length-1;i>=0;i--){
      const p=this.pulses[i];p.age+=1/60;
      if(p.age>1){this.pulses.splice(i,1);continue;}
-     ctx.strokeStyle='rgba(46,200,245,'+(0.7*(1-p.age))+')';ctx.lineWidth=1.4;
+     ctx.strokeStyle='rgba(10,106,144,'+(0.7*(1-p.age))+')';ctx.lineWidth=1.4;
      ctx.beginPath();ctx.arc(p.x,p.y,8+p.age*30,0,TAU);ctx.stroke();
    }
    /* belief decay: the untested screen assumption erodes as time passes it */
    {const nx=X(97),decay=clamp((97-S.scrubDay)/97,0,1);
-    if(decay>0.05){ctx.setLineDash([4,2+6*decay]);ctx.strokeStyle='rgba(232,161,58,'+(0.35+0.3*decay)+')';ctx.lineWidth=1;
+    if(decay>0.05){ctx.setLineDash([4,2+6*decay]);ctx.strokeStyle='rgba(180,86,10,'+(0.35+0.3*decay)+')';ctx.lineWidth=1;
      ctx.beginPath();ctx.arc(nx,yT,27,0,TAU);ctx.stroke();ctx.setLineDash([]);
      if(decay>0.6)mono('never re-tested — eroding',nx,yT-40,7,C.asm);}}
    ctx.strokeStyle=hex2(C.clm,.5);ctx.lineWidth=1.2;
@@ -2237,27 +2241,27 @@ MODES_IMPL.memory={
    /* evidence-on-hand step chart — what was known when each belief formed */
    {const EV=[[300,1,'EHT RING'],[97,2,'MAGNETAR'],[88,3,'ALMA EP 1'],[66,4,null],[55,5,null],[44,6,'LAB R(βi)'],[33,7,'FLARE JOIN'],[0,8,'ALMA EP 9 · REVISED']];
     const yB=yT+150,uh=9,nowX=X(S.scrubDay);
-    ctx.strokeStyle='rgba(150,200,240,.2)';ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(26,52,84,.2)';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x0-30,yB);ctx.lineTo(x1+30,yB);ctx.stroke();
     for(let i=0;i<EV.length;i++){
       const xa=X(EV[i][0]),xb=i<EV.length-1?X(EV[i+1][0]):x1+30,yv=yB-EV[i][1]*uh;
-      const seg=(xs,xe,dim2)=>{ctx.strokeStyle=dim2?'rgba(150,200,240,.16)':'rgba(46,200,245,.55)';ctx.lineWidth=1.3;
+      const seg=(xs,xe,dim2)=>{ctx.strokeStyle=dim2?'rgba(26,52,84,.16)':'rgba(10,106,144,.55)';ctx.lineWidth=1.3;
         ctx.beginPath();ctx.moveTo(xs,yv);ctx.lineTo(xe,yv);ctx.stroke();};
       if(nowX>=xb)seg(xa,xb,false);
       else if(nowX<=xa)seg(xa,xb,true);
       else{seg(xa,nowX,false);seg(nowX,xb,true);}
-      if(i<EV.length-1){ctx.strokeStyle='rgba(46,200,245,.3)';ctx.lineWidth=1;
+      if(i<EV.length-1){ctx.strokeStyle='rgba(10,106,144,.3)';ctx.lineWidth=1;
         ctx.beginPath();ctx.moveTo(xb,yv);ctx.lineTo(xb,yB-EV[i+1][1]*uh);ctx.stroke();}
-      if(EV[i][2])mono(EV[i][2],xa+3,yv-5,6,'rgba(125,156,184,.7)','left');
+      if(EV[i][2])mono(EV[i][2],xa+3,yv-5,6,'rgba(46,68,92,.7)','left');
     }
-    mono('EVIDENCE STREAMS ON HAND AT NOW · '+(function(){let v=1;EV.forEach(e=>{if(S.scrubDay<=e[0])v=e[1];});return v;})()+' / 8 — A BELIEF IS JUDGED AGAINST WHAT WAS KNOWABLE, NOT WHAT IS KNOWN',x0-30,yB+16,7,'rgba(125,156,184,.8)','left');
+    mono('EVIDENCE STREAMS ON HAND AT NOW · '+(function(){let v=1;EV.forEach(e=>{if(S.scrubDay<=e[0])v=e[1];});return v;})()+' / 8 — A BELIEF IS JUDGED AGAINST WHAT WAS KNOWABLE, NOT WHAT IS KNOWN',x0-30,yB+16,7,'rgba(46,68,92,.8)','left');
    }
    /* second armed predicate — S-201, condition not yet met */
    {const b2=X(201),e2=X(0);
-    ctx.strokeStyle='rgba(125,156,184,.3)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
+    ctx.strokeStyle='rgba(46,68,92,.3)';ctx.lineWidth=1;ctx.setLineDash([2,7]);
     ctx.beginPath();ctx.moveTo(b2,yT-16);
     ctx.bezierCurveTo(lerp(b2,e2,0.3),yT-62,lerp(b2,e2,0.7),yT-62,e2,yT-18);ctx.stroke();ctx.setLineDash([]);
-    mono('S-201 PREDICATE ARMED — REOPEN IF CORE SHIFT > 2σ · NOT MET',(b2+e2)/2,yT-68,6.5,'rgba(125,156,184,.6)');
+    mono('S-201 PREDICATE ARMED — REOPEN IF CORE SHIFT > 2σ · NOT MET',(b2+e2)/2,yT-68,6.5,'rgba(46,68,92,.6)');
    }
    txt('SCIENTIFIC MEMORY — 412 reasoning states · beliefs carry their evidence context and expiry conditions',stageW()/2,118,9.5,C.dim,'center',800);
  },
@@ -2314,11 +2318,11 @@ MODES_IMPL.claim={
    const cx=stageW()/2,cy=SH/2-24;
    const rxO=Math.min(430,stageW()/2-110),ryO=Math.min(250,SH/2-90);
    /* verified-component ring + radial load sockets */
-   ctx.strokeStyle='rgba(150,200,240,.10)';ctx.setLineDash([3,8]);ctx.lineWidth=1;
+   ctx.strokeStyle='rgba(26,52,84,.10)';ctx.setLineDash([3,8]);ctx.lineWidth=1;
    ctx.beginPath();ctx.ellipse(cx,cy,rxO,ryO,0,0,TAU);ctx.stroke();ctx.setLineDash([]);
    COMPS.forEach((c2,i)=>{
      const pin=this.slot(i,true),pout=this.slot(i,false);
-     ctx.strokeStyle='rgba(150,200,240,.09)';ctx.lineWidth=1;ctx.setLineDash([2,6]);
+     ctx.strokeStyle='rgba(26,52,84,.09)';ctx.lineWidth=1;ctx.setLineDash([2,6]);
      ctx.beginPath();ctx.moveTo(pout.x,pout.y);ctx.lineTo(pin.x,pin.y);ctx.stroke();ctx.setLineDash([]);
    });
    World.objs.forEach(o=>{
@@ -2326,7 +2330,7 @@ MODES_IMPL.claim={
      if(S.attached.has(o.idx)){
        const fl=(o.idx===5&&!RM)?0.65+0.35*Math.sin(World.t*5.2):1; /* unreplicated support flickers */
        link(o.x,o.y,core.x,core.y+(S.claimCollapsed?66:0),S.claimCollapsed?C.bad:C[o.c.p],0.55*o.a*fl,0.8+CWEIGHT[o.idx]*1.6,S.claimCollapsed?[3,4]:null);
-       mono('w '+CWEIGHT[o.idx].toFixed(1),(o.x+core.x)/2+9,(o.y+core.y+(S.claimCollapsed?66:0))/2,6.6,'rgba(150,200,240,.55)','left');
+       mono('w '+CWEIGHT[o.idx].toFixed(1),(o.x+core.x)/2+9,(o.y+core.y+(S.claimCollapsed?66:0))/2,6.6,'rgba(26,52,84,.55)','left');
      }
    });
    /* audit strikes */
@@ -2346,7 +2350,7 @@ MODES_IMPL.claim={
    const n=S.attached.size;
    txt(n===9?'EVERY PHRASE OF THE CLAIM TRACES TO A COMPONENT ON THE RING — CLICK ANY PIECE'
      :'THE CLAIM IS ASSEMBLED, NEVER GENERATED — COMPONENTS LOAD ONLY AFTER VERIFICATION',stageW()/2,56,9.5,C.dim,'center',800);
-   mono('OUTER RING: VERIFIED, UNLOADED · DRAG INWARD TO LOAD-BEAR · OUTWARD TO DETACH · LOADED '+n+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%',stageW()/2,72,7,'rgba(125,156,184,.75)');
+   mono('OUTER RING: VERIFIED, UNLOADED · DRAG INWARD TO LOAD-BEAR · OUTWARD TO DETACH · LOADED '+n+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%',stageW()/2,72,7,'rgba(46,68,92,.75)');
  },
  auditI:-1,auditT:0,
  click(o){
@@ -2857,7 +2861,7 @@ DRAW.obox=function(o){
   const col=o.st==='resolved'?C.ok:o.st==='mitigated'?C.calc:C.bad;
   ctx.fillStyle='rgba(255,253,249,.95)';ctx.strokeStyle=col;ctx.lineWidth=1.3;
   rr(o.x-w/2,o.y-h2/2,w,h2,7);ctx.fill();ctx.stroke();
-  ctx.fillStyle='rgba(150,200,240,.1)';ctx.fillRect(o.x-w/2+10,o.y+h2/2-12,90,4);
+  ctx.fillStyle='rgba(26,52,84,.1)';ctx.fillRect(o.x-w/2+10,o.y+h2/2-12,90,4);
   ctx.fillStyle=col;ctx.fillRect(o.x-w/2+10,o.y+h2/2-12,90*o.sev,4);
   const lines=wrapText(o.t,Math.floor(w/6.2)).slice(0,2);
   lines.forEach((l,i)=>txt(l,o.x-w/2+10,o.y-h2/2+14+i*13,9.2,C.ink,'left',650));
@@ -2865,7 +2869,7 @@ DRAW.obox=function(o){
 };
 DRAW.epoint=function(o){
   const best=o.best;
-  ctx.fillStyle=best?'rgba(46,200,245,.2)':'rgba(130,170,215,.12)';
+  ctx.fillStyle=best?'rgba(10,106,144,.2)':'rgba(30,58,92,.12)';
   ctx.strokeStyle=best?C.ev:C.calc;ctx.lineWidth=best?2:1.2;
   ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,TAU);ctx.fill();ctx.stroke();
   txt(o.p.n,o.x,o.y-o.r-10,8.6,best?C.ev:C.ink2,'center',700);
@@ -2895,13 +2899,13 @@ const ENG={
     const y0=SH*0.72,y1=SH*0.24;
     Object.keys(PARAMDEF).forEach(pm=>{
       const pd=PARAMDEF[pm],x=cols[pm];
-      ctx.strokeStyle='rgba(150,200,240,.35)';ctx.lineWidth=1;
+      ctx.strokeStyle='rgba(26,52,84,.35)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(x-24,y0);ctx.lineTo(x-24,y1);ctx.stroke();
       for(let k=0;k<=4;k++){const vv=pd.min+(pd.max-pd.min)*k/4,yy=lerp(y0,y1,k/4);
-        ctx.strokeStyle='rgba(150,200,240,.25)';ctx.beginPath();ctx.moveTo(x-28,yy);ctx.lineTo(x-24,yy);ctx.stroke();
+        ctx.strokeStyle='rgba(26,52,84,.25)';ctx.beginPath();ctx.moveTo(x-28,yy);ctx.lineTo(x-24,yy);ctx.stroke();
         mono(vv.toFixed(pd.max>20?0:1),x-32,yy,7,C.dim,'right');}
       const ya=lerp(y0,y1,(pd.adopt-pd.min)/(pd.max-pd.min));
-      ctx.strokeStyle='rgba(130,170,215,.7)';ctx.setLineDash([5,4]);
+      ctx.strokeStyle='rgba(30,58,92,.7)';ctx.setLineDash([5,4]);
       ctx.beginPath();ctx.moveTo(x-24,ya);ctx.lineTo(x+150,ya);ctx.stroke();ctx.setLineDash([]);
       mono(pd.adoptL.toUpperCase(),x+8,ya-9,7,C.calc,'left');
       txt(pd.n.toUpperCase(),x+40,y0+26,8.4,C.ink2,'center',800);
@@ -2984,8 +2988,8 @@ const ENG={
     ctx.beginPath();
     xs.forEach((x,i)=>{const w2=st[i].w*SH*0.16;i?ctx.lineTo(x,yc-w2):ctx.moveTo(x,yc-w2);});
     for(let i=xs.length-1;i>=0;i--)ctx.lineTo(xs[i],yc+st[i].w*SH*0.16);
-    ctx.closePath();ctx.fillStyle='rgba(130,170,215,.10)';ctx.fill();
-    ctx.strokeStyle='rgba(130,170,215,.5)';ctx.lineWidth=1.1;ctx.stroke();
+    ctx.closePath();ctx.fillStyle='rgba(30,58,92,.10)';ctx.fill();
+    ctx.strokeStyle='rgba(30,58,92,.5)';ctx.lineWidth=1.1;ctx.stroke();
     st.forEach((sg,i)=>{
       const x=xs[i];
       ctx.strokeStyle=C.calc;ctx.lineWidth=1.2;
@@ -3005,7 +3009,7 @@ const ENG={
     rows.forEach((r2,i)=>{
       const y=y0+i*64;
       txt(r2[0],x0-14,y+7,10.5,C.ink,'right',700);
-      ctx.fillStyle='rgba(150,200,240,.1)';ctx.fillRect(x0,y,w,10);
+      ctx.fillStyle='rgba(26,52,84,.1)';ctx.fillRect(x0,y,w,10);
       ctx.fillStyle=C[r2[1]];ctx.fillRect(x0,y,w*r2[2],10);
       mono((r2[2]*100).toFixed(0)+'%',x0+w+10,y+6,8.5,C[r2[1]],'left');
       mono(r2[3],x0,y+24,7.4,C.dim,'left');
@@ -3035,7 +3039,7 @@ const ENG={
   },
   draw(){
     const x0=stageW()*0.14,x1=stageW()*0.86,y0=SH*0.74,y1=SH*0.24;
-    ctx.strokeStyle='rgba(150,200,240,.35)';ctx.lineWidth=1.1;
+    ctx.strokeStyle='rgba(26,52,84,.35)';ctx.lineWidth=1.1;
     ctx.beginPath();ctx.moveTo(x0-30,y0+20);ctx.lineTo(x1+20,y0+20);ctx.moveTo(x0-30,y0+20);ctx.lineTo(x0-30,y1-16);ctx.stroke();
     [0,30,60,90].forEach(d=>{mono(d+' d',lerp(x0,x1,d/90),y0+34,7.4,C.dim);});
     [40,60,80].forEach(p=>{mono(p+'%',x0-40,lerp(y0,y1,(p/100-0.3)/0.6),7.4,C.dim,'right');});
@@ -3325,9 +3329,9 @@ const pulse=()=>'';
 const dashflow=()=>'';
 const drawon=()=>'';
 function roHead(s2,title,ro,x0){
-  s2+=sM(52,16,title,'start',8.6,'#eaf6ff',800,'.16em');
-  ro.forEach((r,i)=>{const x=x0+i*78;
-    s2+=sM(x,11,r[0],'start',5.8,C.dim,700,'.14em')+sM(x,22,r[1],'start',8.8,r[2],780,'.02em');});
+  s2+=sM(52,16,title,'start',9.6,C.ink,800,'.16em');
+  ro.forEach((r,i)=>{const x=x0+i*72;
+    s2+=sM(x,10,r[0],'start',6.6,C.dim,750,'.13em')+sM(x,23,r[1],'start',10,r[2],790,'.02em');});
   return s2;
 }
 function svgEVPA(){
@@ -3344,10 +3348,10 @@ function svgEVPA(){
     ['EXIT',exI>0?'#'+(exI+1):'-',C.hyp],['RESID@9',res9.toFixed(0)+QQ.q.unit,C.hyp],
     ['SIGNIF',res9<=0?'—':sg9.toFixed(1)+'σ',sg9>3?C.bad:C.calc]],286);
   const gstep=Math.max(1,Math.round(QSP/6));
-  for(let g=Math.ceil(QLO/gstep)*gstep;g<=QHI;g+=gstep)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.06)');
+  for(let g=Math.ceil(QLO/gstep)*gstep;g<=QHI;g+=gstep)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(26,52,84,.06)');
   s2+='<rect x="'+mL+'" y="'+Y(Wd)+'" width="'+pW+'" height="'+(Y(-Wd)-Y(Wd))+'" fill="url(#bandv'+u+')"/>';
   s2+='<g filter="url(#gw'+u+')">'+sL(mL,Y(Wd),mL+pW,Y(Wd),C.calc,1.3)+sL(mL,Y(-Wd),mL+pW,Y(-Wd),C.calc,1.3)+'</g>';
-  s2+='<g data-bh="1" style="cursor:ns-resize"><rect x="'+(mL+pW-62)+'" y="'+(Y(Wd)-10)+'" width="62" height="20" rx="3" fill="rgba(46,200,245,.07)" stroke="rgba(46,200,245,.6)" stroke-width="1"/>'+
+  s2+='<g data-bh="1" style="cursor:ns-resize"><rect x="'+(mL+pW-62)+'" y="'+(Y(Wd)-10)+'" width="62" height="20" rx="3" fill="rgba(10,106,144,.07)" stroke="rgba(10,106,144,.6)" stroke-width="1"/>'+
       sM(mL+pW-31,Y(Wd)+3,'◆ DRAG','middle',6.4,C.ev,800,'.12em')+'</g>';
   s2+=sM(mL+6,Y(Wd)+14,QQ.q.band.toUpperCase()+' <= '+Wd+QQ.q.unit+' - DRAG THE BOUNDARY TO ACTUATE THE '+QQ.bandCtl.toUpperCase(),'start',6.2,C.calc,800,'.1em');
   if(Wd<QQ.bandHi-1)s2+=sL(mL,Y(QQ.bandHi),mL+pW,Y(QQ.bandHi),C.hyp,1.2,'6 4')+sM(mL+pW-4,Y(QQ.bandHi)-6,'WIDENED PRIOR '+QQ.bandHi+QQ.q.unit+' PREVIEW','end',6.2,C.hyp,800,'.1em');
@@ -3377,11 +3381,11 @@ function svgEVPA(){
   for(let g=Math.ceil(QLO/gstep)*gstep;g<=QHI;g+=gstep)s2+=sM(mL-8,Y(g)+3,g+QQ.q.unit,'end',6.8,C.dim,600,'0');
   EP_VAL.forEach((v,i)=>s2+=sM(X(i),mT+mainH+12,QQ.q.per.slice(0,2).toUpperCase()+' '+(i+1),'middle',5.6,C.dim,600,'0'));
   s2+=sM(mL,resTop-6,'RESIDUAL BEYOND BOUNDARY · σ PER EPOCH','start',6.2,C.dim,800,'.14em');
-  s2+=sL(mL,resTop+resH,mL+pW,resTop+resH,'rgba(150,200,240,.35)',1);
+  s2+=sL(mL,resTop+resH,mL+pW,resTop+resH,'rgba(26,52,84,.35)',1);
   EP_VAL.forEach((v,i)=>{const r=Math.max(0,v-Wd),px=X(i);
     if(r<=0){s2+='<g data-hl="ep:'+i+'">'+sM(px,resTop+resH-5,'in','middle',5.8,C.ok,650,'0')+'</g>';return;}
     const bh=Math.min(resH-8,r/30*resH),sg=r/(EP_ERR[i]*alt);
-    s2+='<g data-hl="ep:'+i+'"><rect x="'+(px-7)+'" y="'+(resTop+resH-bh)+'" width="14" height="'+bh+'" rx="2" fill="rgba(176,138,245,.26)" stroke="rgba(176,138,245,.55)" stroke-width="1"/>'+
+    s2+='<g data-hl="ep:'+i+'"><rect x="'+(px-7)+'" y="'+(resTop+resH-bh)+'" width="14" height="'+bh+'" rx="2" fill="rgba(90,52,168,.26)" stroke="rgba(90,52,168,.55)" stroke-width="1"/>'+
         sM(px,resTop+resH-bh-4,sg.toFixed(1)+'σ','middle',6.2,C.hyp,750,'0')+'</g>';});
   s2+=sM(mL,H2-8,QQ.object.toUpperCase()+' - ERRORS '+(S.mod.alt?'x1.6 STRESSED (ALT)':'PROPAGATED 1 SIGMA')+' - THE BREACH IS BOUNDARY-SHAPED, NOT NOISE-SHAPED','start',6,C.dim,650,'.08em');
   return s2+'</svg>';
@@ -3397,9 +3401,9 @@ function svgLit(){
   const pos={};
   Object.keys(PARAMDEF).forEach(pm=>{
     const pd=PARAMDEF[pm],x=cols[pm];
-    s2+=sL(x-14,y0,x-14,y1,'rgba(150,200,240,.3)');
+    s2+=sL(x-14,y0,x-14,y1,'rgba(26,52,84,.3)');
     const ya=y0-(pd.adopt-pd.min)/(pd.max-pd.min)*(y0-y1);
-    s2+='<rect x="'+(x-14)+'" y="'+(ya-8)+'" width="158" height="16" fill="rgba(130,170,215,.07)"/>'+
+    s2+='<rect x="'+(x-14)+'" y="'+(ya-8)+'" width="158" height="16" fill="rgba(30,58,92,.07)"/>'+
         sL(x-14,ya,x+144,ya,C.calc,1,'4 3')+sM(x-8,ya-11,pd.adoptL.toUpperCase(),'start',5.8,C.calc,750,'.06em');
     PAPERS.filter(p=>p.param===pm).forEach((p,i)=>{
       const y=y0-(p.v-pd.min)/(pd.max-pd.min)*(y0-y1),px=x+16+i*46;
@@ -3416,7 +3420,7 @@ function svgLit(){
   const cl=[pos.B18,pos.W20];
   if(cl[0]&&cl[1]){
     const cx=(cl[0][0]+cl[1][0])/2,cy=(cl[0][1]+cl[1][1])/2;
-    s2+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="46" ry="24" fill="none" stroke="rgba(62,207,149,.55)" stroke-width="1" stroke-dasharray="3 4"/>'+
+    s2+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="46" ry="24" fill="none" stroke="rgba(18,133,90,.55)" stroke-width="1" stroke-dasharray="3 4"/>'+
         sM(cx+52,cy+16,'STABILITY CLUSTER','start',5.8,C.ok,750,'.1em');
   }
   lit.conflicts.forEach(cf=>{
@@ -3428,11 +3432,11 @@ function svgLit(){
   [['W20','B18'],['E22','M16'],['E22p','G21']].forEach(pr=>{
     const a=pos[pr[0]],b=pos[pr[1]];if(!a||!b)return;
     const mx=(a[0]+b[0])/2,my=Math.max(a[1],b[1])+26;
-    s2+='<path d="M'+a[0]+' '+(a[1]+7)+' Q '+mx+' '+my+', '+b[0]+' '+(b[1]+7)+'" fill="none" stroke="rgba(125,156,184,.6)" stroke-width="1" stroke-dasharray="2 3" marker-end="url(#arwD'+u+')"/>';
+    s2+='<path d="M'+a[0]+' '+(a[1]+7)+' Q '+mx+' '+my+', '+b[0]+' '+(b[1]+7)+'" fill="none" stroke="rgba(46,68,92,.6)" stroke-width="1" stroke-dasharray="2 3" marker-end="url(#arwD'+u+')"/>';
   });
   const verd=[['CONTESTED — D21 STANDS 4.0σ AGAINST THE CLUSTER',C.bad],['METHOD-LEVEL — SINGLE-DISH BEAM DEPOLARIZATION',C.asm],['CONSISTENT ≤1.3σ — SAFE TO ADOPT',C.ok]];
   Object.keys(cols).forEach((pm,i)=>{
-    s2+=sL(cols[pm]-14,y0+30,cols[pm]+144,y0+30,'rgba(150,200,240,.18)',1)+
+    s2+=sL(cols[pm]-14,y0+30,cols[pm]+144,y0+30,'rgba(26,52,84,.18)',1)+
         sM(cols[pm]-8,y0+46,'VERDICT','start',5.4,C.dim,800,'.16em')+
         '<foreignObject x="'+(cols[pm]-8)+'" y="'+(y0+52)+'" width="152" height="46"><div xmlns="http://www.w3.org/1999/xhtml" style="font:600 7.4px ui-monospace,Menlo,monospace;letter-spacing:.05em;color:'+verd[i][1]+';line-height:1.5">'+verd[i][0]+'</div></foreignObject>';
   });
@@ -3473,7 +3477,7 @@ function svgDep(){
   GNODES.forEach(g=>{
     const p2=pos[g[0]],hot=g[0]==='heat'||g[0]==='screen';
     s2+='<g data-act="gn2:'+g[0]+'" data-hl="gn:'+g[0]+'" style="cursor:pointer">'+
-      '<rect x="'+(p2[0]-64)+'" y="'+(p2[1]-13)+'" width="128" height="26" rx="6" fill="rgba(14,30,52,.95)" stroke="'+C[g[1]]+'" stroke-width="'+(hot?1.8:1.1)+'"'+(hot?' filter="url(#gw'+u+')"':'')+'/>'+
+      '<rect x="'+(p2[0]-64)+'" y="'+(p2[1]-13)+'" width="128" height="26" rx="6" fill="rgba(255,253,249,.95)" stroke="'+C[g[1]]+'" stroke-width="'+(hot?1.8:1.1)+'"'+(hot?' filter="url(#gw'+u+')"':'')+'/>'+
       '<rect x="'+(p2[0]-64)+'" y="'+(p2[1]-13)+'" width="3" height="26" fill="'+C[g[1]]+'"/>'+
       sT(p2[0]+2,p2[1]+3,short[g[0]],'middle',7.8,g[0]==='stat'?C.bad:C.ink,650)+'</g>';
     if(g[1]==='asm')s2+=sM(p2[0]+64,p2[1]-17,'→'+traceSets(g[0]).down.size+' downstream','end',5.6,C.asm,750,'.04em');
@@ -3497,7 +3501,7 @@ function svgFunnel(){
   let up='',dn='';
   xs.forEach((x,i)=>{const w=st[i].w*66;up+=(i?'L':'M')+x+' '+(yc-w)+' ';});
   for(let i=xs.length-1;i>=0;i--)dn+='L'+xs[i]+' '+(yc+st[i].w*66)+' ';
-  s2+='<path d="'+up+dn+'Z" fill="url(#flow'+u+')" stroke="rgba(130,170,215,.55)" stroke-width="1" filter="url(#gw'+u+')"/>';
+  s2+='<path d="'+up+dn+'Z" fill="url(#flow'+u+')" stroke="rgba(30,58,92,.55)" stroke-width="1" filter="url(#gw'+u+')"/>';
   st.forEach((sg,i)=>{const x=xs[i],w=st[i].w*66;
     s2+=sL(x,yc-w-6,x,yc+w+6,C.calc,1.1)+
       sM(x,yc-w-24,(i+1)+' · '+sg.n.toUpperCase(),'middle',6,C.ink2,800,'.08em')+
@@ -3516,7 +3520,7 @@ function svgSens(){
   let s2=svgO(W2,H2)+fDefs(u);
   rows.forEach((r2,i)=>{const y=44+i*30,dom=r2[2]>=.5;
     s2+='<g data-hl="sens:'+i+'">'+sT(x0-8,y+7,r2[0],'end',9,C.ink,650)+
-     '<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="8" rx="3" fill="rgba(150,200,240,.09)"/>'+
+     '<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="8" rx="3" fill="rgba(26,52,84,.09)"/>'+
      '<rect x="'+x0+'" y="'+y+'" width="'+(w*r2[2])+'" height="8" rx="3" fill="'+C[r2[1]]+'"'+(dom?' filter="url(#gw'+u+')"':'')+'/>'+
      sM(x0+w+8,y+8,(r2[2]*100).toFixed(0)+'%','start',8.2,C[r2[1]],750,'0');
     s2+='</g>';
@@ -3538,13 +3542,13 @@ function svgPareto(){
     ['REMOVES',(best.p*100).toFixed(0)+'%',C.ev],
     ['COST',best.tel+'h · '+best.days+'d',C.calc],
     ['FREE YIELD','64%',C.ok]],286);
-  if(S.budget==='fast')s2+='<rect x="'+X(30)+'" y="'+y1+'" width="'+(x1-X(30))+'" height="'+(y0-y1)+'" fill="rgba(245,122,122,.05)"/>'+
+  if(S.budget==='fast')s2+='<rect x="'+X(30)+'" y="'+y1+'" width="'+(x1-X(30))+'" height="'+(y0-y1)+'" fill="rgba(179,56,42,.05)"/>'+
     sM(X(30)+8,y1+12,'OVER BUDGET','start',6,C.bad,800,'.14em')+sL(X(30),y1,X(30),y0,C.bad,1,'4 4');
-  s2+=sL(x0-14,y0+14,x1+10,y0+14,'rgba(150,200,240,.35)',1.1)+sL(x0-14,y0+14,x0-14,y1-10,'rgba(150,200,240,.35)',1.1);
+  s2+=sL(x0-14,y0+14,x1+10,y0+14,'rgba(26,52,84,.35)',1.1)+sL(x0-14,y0+14,x0-14,y1-10,'rgba(26,52,84,.35)',1.1);
   {const bx2=bd!=null?X(bd):x1+2;
    if(bd!=null){s2+=sL(bx2,y1-8,bx2,y0+14,C.ev,1,'5 4');
-     s2+='<rect x="'+bx2+'" y="'+(y1-8)+'" width="'+(x1+10-bx2)+'" height="'+(y0+22-y1)+'" fill="rgba(245,122,122,.04)"/>';}
-   s2+='<g data-bud="1" style="cursor:ew-resize"><rect x="'+(bx2-10)+'" y="'+(y1-28)+'" width="20" height="17" rx="3" fill="rgba(46,200,245,.09)" stroke="rgba(46,200,245,.65)" stroke-width="1"/>'+
+     s2+='<rect x="'+bx2+'" y="'+(y1-8)+'" width="'+(x1+10-bx2)+'" height="'+(y0+22-y1)+'" fill="rgba(179,56,42,.04)"/>';}
+   s2+='<g data-bud="1" style="cursor:ew-resize"><rect x="'+(bx2-10)+'" y="'+(y1-28)+'" width="20" height="17" rx="3" fill="rgba(10,106,144,.09)" stroke="rgba(10,106,144,.65)" stroke-width="1"/>'+
      sM(bx2,y1-16,'⇔','middle',8.4,C.ev,800,'0')+'</g>'+
      sM(bx2+(bd!=null&&bd<50?7:-7),y1-33,bd!=null?'DAY BUDGET ≤ '+bd+' D — DRAG · RE-RANKS LIVE':'DRAG TO SET A DAY BUDGET — THE FRONTIER RE-RANKS LIVE',(bd!=null&&bd<50?'start':'end'),6,C.ev,750,'.08em');}
   [0,10,30,60,90].forEach(d=>s2+=sM(X(d),y0+30,d+'d','middle',6.8,C.dim,600,'0'));
@@ -3568,7 +3572,7 @@ function svgPareto(){
     const isB=p.id===best.id,ex=excl(p),dm=!ex&&dom(p)&&!isB,r=6+p.tel*0.55;
     s2+='<g data-hl="exp:'+p.id+'">';
     if(isB)s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(r+22)+'" fill="url(#haloE'+u+')"/>';
-    s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+r+'" fill="'+(isB?'rgba(46,200,245,.18)':'rgba(130,170,215,.09)')+'" stroke="'+(ex?C.bad:isB?C.ev:C.calc)+'" stroke-width="'+(isB?2:1.1)+'"'+(ex||dm?' stroke-dasharray="3 3" opacity=".55"':'')+(isB?' filter="url(#gw'+u+')"':'')+'/>';
+    s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+r+'" fill="'+(isB?'rgba(10,106,144,.18)':'rgba(30,58,92,.09)')+'" stroke="'+(ex?C.bad:isB?C.ev:C.calc)+'" stroke-width="'+(isB?2:1.1)+'"'+(ex||dm?' stroke-dasharray="3 3" opacity=".55"':'')+(isB?' filter="url(#gw'+u+')"':'')+'/>';
     if(isB)s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(r+7)+'" fill="none" stroke="'+C.ev+'" stroke-width="1">'+pulse('r',(r+5)+';'+(r+13)+';'+(r+5),'3s')+pulse('opacity','.8;.1;.8','3s')+'</circle>';
     s2+=sT(X(p.days),Y(p.p)-(r+6),p.n,'middle',7.8,isB?C.ev:C.ink2,700)+
         sM(X(p.days),Y(p.p)+(r+13),(p.p*100).toFixed(0)+'% · '+p.tel+'h TEL · '+p.days+'d','middle',5.8,ex?C.bad:C.dim,650,'.02em');
@@ -3744,7 +3748,7 @@ function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
 /* ---------------- stations: the mode is a mechanism, not an article ---------------- */
-const VISTITLE={resfig:'Admission control - drag the line, the corpus re-filters',timeline:'Literature arrival - real submission dates',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+const VISTITLE={resfig:'Admission volume - drag the plate, the plane cuts the corpus',timeline:'Arrival terrain - one surface per archive',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
   if(noWatch())return [
@@ -3840,20 +3844,20 @@ function stationsFor(mode){
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'},
      {id:'findings',label:'Findings',sub:'extracted · then audited',vis:'resfig',
-      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>What the returned literature establishes.</h2>'+
        '<div data-lv="synfind">'+synFindingsHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:18px">Audit of the corpus these findings rest on</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'}];
     if(mode==='analyze')return [
      {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:'resfig',
-      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>The explanations currently on the table.</h2>'+
        '<div data-lv="synpos">'+synPositionsHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:18px">What the corpus behind them looks like</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
      {id:'contested',label:'Contested points',sub:'disagreement · camps · currency',vis:'resfig',
-      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>Where the literature disagrees with itself.</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
@@ -3996,8 +4000,8 @@ function renderDoc(){
    '<div class="cur"><div class="c1">'+st.label+'</div><div class="c2">'+st.sub+' · scroll / arrows to move</div></div></div>';
   window.CURVIS=st.vis;
   const visInner=!st.vis?null:st.vis==='live'
-   ?'<div class="vglow"></div><div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
-   :'<div class="vglow"></div><button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
+   ?'<div class="vglow"></div><div class="vgrid"></div><div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
+   :'<div class="vglow"></div><div class="vgrid"></div><button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
   const menu=['evidence','literature','contradictions','assumptions','experiments','claim','data','method','activity','telemetry']
    .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
   const mcls=st.vsize==='l'?'':' m';
@@ -4657,64 +4661,141 @@ function setQuestion(id){
   postEvent('question switched - '+q.name+' - instruments re-derived','hot');
 }
 
+/* ---------------------------------------------------------------------------
+   THE ADMISSION VOLUME.
+
+   Not a scatter plot with a line through it. A three-axis solid you are looking
+   into: submission date runs away to the right along the floor, the archive the
+   record came from is the depth axis, and relevance is height. The admission
+   threshold is a PLANE cutting horizontally through that solid - drag the plate
+   and the plane rises or falls through the corpus, and everything it separates
+   re-reads instantly.
+
+   The back wall carries the marginal relevance distribution, which is the thing
+   a physicist would actually draw next to this: it says whether the retrieval
+   is bimodal (a real signal plus junk) or a single smear (a bad query).
+   --------------------------------------------------------------------------- */
 function svgResults(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
-  const u=++FID,W2=680,H2=326,mL=56,mT=54,pW=W2-mL-24,pH=162;
-  const thr=thrOf();
-  const all=R.results;
-  const rows=all.slice(0,30);
-  const times=rows.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t));
-  const tMin=times.length?Math.min(...times):0,tMax=times.length?Math.max(...times):1;
-  const span=Math.max(1,tMax-tMin);
-  const X=t=>mL+((t-tMin)/span)*pW;
-  const Y=rel=>mT+pH-clamp(rel||0,0,1)*pH;
+  const u2=++FID,W2=680,H2=444;
+  const thr=thrOf(), all=R.results;
+
+  /* --- the three axes of the solid --- */
+  const OX=98,OY=318,TX=382,TY=46,LX=106,LY=-68,HH=194;
+  const P=(a,b,h)=>[OX+a*TX+b*LX, OY+a*TY+b*LY-h*HH];
+  const pt=(a,b,h)=>{const q=P(a,b,h);return q[0].toFixed(1)+','+q[1].toFixed(1);};
+  const quad=(c,o,...pts)=>'<polygon points="'+pts.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+c+'"'+(o||'')+'/>';
+
+  /* --- depth axis: one lane per archive --- */
+  const lanes=[];all.forEach(r=>{const k=r.source||'unknown';if(lanes.indexOf(k)<0)lanes.push(k);});
+  const NL=lanes.length, lv=i=>NL===1?0.5:(i+0.5)/NL;
+
+  /* --- time axis --- */
+  const ts=all.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t));
+  const tMin=ts.length?Math.min(...ts):0,tMax=ts.length?Math.max(...ts):1,span=Math.max(1,tMax-tMin);
+  const uOf=(r,i)=>{const t=r.published_at?Date.parse(r.published_at):NaN;
+    return isNaN(t)?(i/Math.max(1,all.length-1)):(t-tMin)/span;};
+
   const adm=all.filter(r=>(r.relevance||0)>=thr);
   const admMat=adm.filter(r=>r.material).length;
   const gateAdm=all.filter(r=>r.relevant).length;
-  let s2=svgO(W2,H2)+fDefs(u);
-  s2=roHead(s2,'ADMISSION CONTROL',[
+
+  let s2=svgO(W2,H2)+fDefs(u2);
+  s2=roHead(s2,'ADMISSION VOLUME',[
     ['PULLED',all.length,C.ink],
-    ['THRESHOLD',(thr*100).toFixed(0)+'%',C.asm],
-    ['ADMITTED',adm.length,adm.length?C.ev:C.dim],
+    ['PLANE',(thr*100).toFixed(0)+'%',C.asm],
+    ['ABOVE',adm.length,adm.length?C.ev:C.dim],
     ['MATERIAL',admMat,admMat?C.asm:C.dim],
-    ['SPAN',times.length?Math.round(span/86400000)+' d':'-',C.calc]],330);
-  /* the two territories the line divides */
-  s2+='<rect x="'+mL+'" y="'+mT+'" width="'+pW+'" height="'+Math.max(0,Y(thr)-mT)+'" fill="rgba(255,154,46,.07)"/>'+
-      '<rect x="'+mL+'" y="'+Y(thr)+'" width="'+pW+'" height="'+Math.max(0,mT+pH-Y(thr))+'" fill="rgba(110,140,170,.10)"/>';
-  for(let g=0;g<=1.0001;g+=0.25){
-    s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.07)')+
-        sM(mL-8,Y(g)+3,(g*100).toFixed(0)+'%','end',6.4,C.dim,600,'0');}
-  s2+=sM(mL-8,mT-10,'RELEVANCE','start',6,C.dim,800,'.14em');
-  rows.forEach((r,i)=>{
-    const t=r.published_at?Date.parse(r.published_at):NaN;
-    const x=isNaN(t)?mL+pW*(i/Math.max(1,rows.length-1)):X(t);
-    const y=Y(r.relevance);
-    const inn=(r.relevance||0)>=thr;
-    const col=r.material?C.asm:inn?C.ev:C.dim;
-    s2+=sL(x,mT+pH,x,y,col,inn?1.2:0.8,inn?null:'2 3');
-    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:inn?3.8:2.6)+'" fill="'+(r.material?'rgba(255,154,46,.28)':inn?'rgba(222,242,255,.92)':'rgba(140,168,192,.22)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:inn?1.5:1)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
-    if(r.material)s2+=sM(x,y<mT+22?y+15:y-11,'MATERIAL','middle',5.6,C.asm,800,'.08em');
-    else if(inn)s2+=sM(x,y<mT+16?y+13:y-9,((r.relevance||0)*100).toFixed(0),'middle',5.4,C.ev,700,'0');
+    ['ARCHIVES',NL,C.calc]],318);
+
+  /* ---- the solid: three planes and the open wireframe that closes the box ---- */
+  const EDGE=' stroke="rgba(26,52,84,.30)" stroke-width="0.9"';
+  s2+=quad('rgba(26,52,84,.040)',EDGE,[0,1,0],[1,1,0],[1,1,1],[0,1,1]);
+  s2+=quad('rgba(26,52,84,.022)',EDGE,[0,0,0],[0,1,0],[0,1,1],[0,0,1]);
+  s2+=quad('rgba(26,52,84,.050)',EDGE,[0,0,0],[1,0,0],[1,1,0],[0,1,0]);
+  /* the two open edges of the box, dashed - the volume is a solid you look into */
+  [[[1,0,0],[1,0,1]],[[1,0,1],[1,1,1]],[[0,0,1],[1,0,1]]].forEach(e=>{
+    const a1=P(e[0][0],e[0][1],e[0][2]),b1=P(e[1][0],e[1][1],e[1][2]);
+    s2+='<line x1="'+a1[0]+'" y1="'+a1[1]+'" x2="'+b1[0]+'" y2="'+b1[1]+'" stroke="rgba(26,52,84,.22)" stroke-width="0.8" stroke-dasharray="3 3"/>';});
+
+  /* ---- marginal relevance distribution, drawn on the back wall ---- */
+  const NB=8, hist=new Array(NB).fill(0);
+  all.forEach(r=>{hist[Math.min(NB-1,Math.floor((r.relevance||0)*NB))]++;});
+  const hMax=Math.max(1,...hist);
+  hist.forEach((n,i)=>{
+    if(!n)return;
+    const h0=i/NB+0.06/NB, h1=(i+1)/NB-0.06/NB, w=n/hMax*0.34;
+    const above=(i+0.5)/NB>=thr;
+    s2+=quad(above?'rgba(10,106,144,.30)':'rgba(26,52,84,.14)',null,[0,1,h0],[w,1,h0],[w,1,h1],[0,1,h1]);
+    const lb=P(w,1,(h0+h1)/2);
+    s2+='<text x="'+(lb[0]+4)+'" y="'+(lb[1]+2.2)+'" font-size="7.4" fill="'+(above?C.ev:C.dim)+'" font-family="ui-monospace,Menlo,monospace" font-weight="750">'+n+'</text>';
   });
-  /* the line you are holding */
-  s2+='<rect x="'+mL+'" y="'+(Y(thr)-4)+'" width="'+pW+'" height="8" fill="rgba(255,154,46,.14)"/>';
-  s2+=sL(mL,Y(thr),mL+pW,Y(thr),C.asm,1.8,'6 3');
-  s2+='<polygon points="'+(mL-5)+','+Y(thr)+' '+(mL-13)+','+(Y(thr)-5)+' '+(mL-13)+','+(Y(thr)+5)+'" fill="'+C.asm+'"/>';
-  s2+=sM(mL+5,Y(thr)-7,'ADMISSION THRESHOLD '+(thr*100).toFixed(0)+'% - DRAG TO MOVE','start',6.4,C.asm,800,'.07em');
-  s2+=sM(mL+pW-2,mT+12,'ADMITTED - '+adm.length+' RECORD'+(adm.length===1?'':'S')+' REACH YOUR READING','end',6.2,C.ev,750,'.07em');
-  s2+=sM(mL+pW-2,mT+pH-6,'HELD BACK - '+(all.length-adm.length)+' RECORD'+(all.length-adm.length===1?'':'S')+' SUPPRESSED','end',6.2,C.dim,750,'.07em');
-  s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
-  if(times.length){
-    s2+=sM(mL,mT+pH+14,new Date(tMin).toISOString().slice(0,10),'start',6.2,C.dim,600,'0')+
-        sM(mL+pW,mT+pH+14,new Date(tMax).toISOString().slice(0,10),'end',6.2,C.dim,600,'0')+
-        sM(mL+pW/2,mT+pH+14,'SUBMISSION DATE','middle',6,C.dim,750,'.14em');}
-  const delta=adm.length-gateAdm;
-  s2+=sM(mL,H2-42,'THE GATE ADMITTED '+gateAdm+' AT ITS OWN CUT. YOUR LINE ADMITS '+adm.length+
-    (delta===0?' - THE SAME SET.':delta>0?' - '+delta+' MORE THAN THE GATE.':' - '+(-delta)+' FEWER THAN THE GATE.'),'start',6.2,C.calc,750,'.06em');
-  s2+=sM(mL,H2-28,admMat?admMat+' OF THE ADMITTED RECORDS CARRY A NEW MEASUREMENT OR BOUND.'
-    :'NO ADMITTED RECORD CARRIES A NEW MEASUREMENT - LOWER THE LINE OR RE-RUN THE WATCH.','start',6.6,admMat?C.asm:C.dim,800,'.06em');
-  s2+=sM(mL,H2-14,'RAISE THE LINE TO READ LESS AND TRUST MORE. LOWER IT TO SEE WHAT THE GATE THREW AWAY.','start',6.2,C.dim,650,'.06em');
+  s2+='<text x="'+(P(0,1,1)[0]+2)+'" y="'+(P(0,1,1)[1]-7)+'" font-size="7.2" fill="'+C.dim+'" font-weight="800" letter-spacing=".14em" font-family="ui-monospace,Menlo,monospace">MARGINAL RELEVANCE DISTRIBUTION</text>';
+
+  /* ---- floor ruling: one line per lane boundary, one per time decile ---- */
+  for(let i=0;i<=NL;i++){const b=i/NL;
+    s2+='<line x1="'+P(0,b,0)[0]+'" y1="'+P(0,b,0)[1]+'" x2="'+P(1,b,0)[0]+'" y2="'+P(1,b,0)[1]+'" stroke="rgba(26,52,84,.16)" stroke-width="0.9"/>';}
+  for(let k=0;k<=4;k++){const a=k/4;
+    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,.11)" stroke-width="0.8"/>';
+    if(ts.length)s2+='<text x="'+P(a,0,0)[0]+'" y="'+(P(a,0,0)[1]+16)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+new Date(tMin+a*span).toISOString().slice(0,7)+'</text>';}
+  s2+='<text x="'+(P(0.5,0,0)[0])+'" y="'+(P(0.5,0,0)[1]+31)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">SUBMISSION DATE</text>';
+
+  /* ---- the height axis, at the near-left edge of the solid ---- */
+  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>';
+  for(let g=0;g<=1.0001;g+=0.25){const q=P(0,0,g);
+    s2+='<line x1="'+(q[0]-4)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1"/>'+
+        sM(q[0]-8,q[1]+3,(g*100).toFixed(0)+'%','end',7.6,C.dim,650,'0');}
+  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-38)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-38)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RELEVANCE</text>';
+
+  /* ---- the records, back lane first so the solid reads front-to-back ---- */
+  const items=all.map((r,i)=>({r:r,i:i,a:uOf(r,i),b:lv(lanes.indexOf(r.source||'unknown')),h:clamp(r.relevance||0,0,1)}))
+    .sort((x,y)=>(y.b-x.b)||(x.a-y.a));
+  const caps=[];
+  items.forEach(o=>{
+    const base=P(o.a,o.b,0), top=P(o.a,o.b,o.h);
+    const inn=o.h>=thr, mat=o.r.material;
+    const col=mat?C.asm:inn?C.ev:'rgba(26,52,84,.34)';
+    /* the record's footprint on the floor - the depth cue that makes it stand up */
+    s2+='<ellipse cx="'+base[0].toFixed(1)+'" cy="'+base[1].toFixed(1)+'" rx="'+(mat?6:4.4)+'" ry="'+(mat?2.4:1.8)+'" fill="rgba(46,38,26,'+(inn?0.16:0.07)+')"/>';
+    s2+='<line x1="'+base[0].toFixed(1)+'" y1="'+base[1].toFixed(1)+'" x2="'+top[0].toFixed(1)+'" y2="'+top[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+(mat?2.1:inn?1.3:0.9)+'"'+(inn?'':' stroke-dasharray="2 3"')+'/>';
+    caps.push({o:o,top:top,col:col,inn:inn,mat:mat});
+  });
+
+  /* ---- the admission plane, cutting the solid at the height you are holding ---- */
+  s2+=quad('rgba(180,86,10,.13)',' stroke="'+C.asm+'" stroke-width="1.5" stroke-dasharray="6 3"',[0,0,thr],[1,0,thr],[1,1,thr],[0,1,thr]);
+  const pf=P(0,0,thr);
+  s2+='<polygon points="'+(pf[0]-6)+','+pf[1]+' '+(pf[0]-15)+','+(pf[1]-5)+' '+(pf[0]-15)+','+(pf[1]+5)+'" fill="'+C.asm+'"/>';
+  const pm=P(0.42,0,thr);
+  s2+='<rect x="'+(pm[0]-62)+'" y="'+(pm[1]-17)+'" width="124" height="15" fill="rgba(255,253,249,.88)"/>';
+  s2+=sM(pm[0],pm[1]-6,'ADMISSION PLANE '+(thr*100).toFixed(0)+'%','middle',8,C.asm,800,'.06em');
+
+  /* ---- caps last, so what is admitted sits above the plane ---- */
+  caps.forEach(c=>{
+    s2+='<g data-hl="res:'+c.o.i+'"><circle cx="'+c.top[0].toFixed(1)+'" cy="'+c.top[1].toFixed(1)+'" r="'+(c.mat?5.4:c.inn?3.7:2.5)+'" fill="'+(c.mat?'rgba(180,86,10,.22)':c.inn?'rgba(255,253,249,.96)':'rgba(255,253,249,.6)')+'" stroke="'+c.col+'" stroke-width="'+(c.mat?2:c.inn?1.5:1)+'"/></g>';
+    if(c.mat)s2+=sM(c.top[0],c.top[1]-11,'MATERIAL','middle',7,C.asm,800,'.07em');
+  });
+
+  /* ---- the depth axis is labelled where each lane ends ---- */
+  lanes.forEach((k,i)=>{
+    const q=P(1,lv(i),0), sub=all.filter(r=>(r.source||'unknown')===k);
+    const a2=sub.filter(r=>(r.relevance||0)>=thr).length;
+    s2+='<line x1="'+q[0]+'" y1="'+q[1]+'" x2="'+(q[0]+9)+'" y2="'+q[1]+'" stroke="rgba(26,52,84,.3)" stroke-width="0.8"/>'+
+      sM(q[0]+13,q[1]+2.8,k.toUpperCase()+'  '+a2+'/'+sub.length+' ABOVE','start',7.6,a2?C.ev:C.dim,780,'.07em');
+  });
+  s2+=sM(P(1,1,0)[0]+9,P(1,1,0)[1]-12,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+
+  /* ---- what the figure is telling you ---- */
+  const d=adm.length-gateAdm;
+  const top2=hist.slice(Math.ceil(NB*0.6)).reduce((a,b)=>a+b,0), bot=hist.slice(0,Math.floor(NB*0.4)).reduce((a,b)=>a+b,0);
+  const mid=all.length-top2-bot;
+  s2+=sM(54,H2-46,'THE GATE ADMITTED '+gateAdm+'. YOUR PLANE ADMITS '+adm.length+
+    (d===0?' - THE SAME SET.':d>0?' - '+d+' MORE.':' - '+(-d)+' FEWER.'),'start',8.2,C.calc,760,'.04em');
+  s2+=sM(54,H2-27,(top2&&bot&&mid<=Math.min(top2,bot)
+      ?'THE DISTRIBUTION IS SPLIT - '+top2+' ON TARGET, '+bot+' OFF TARGET, LITTLE IN BETWEEN. THE QUERY IS SEPARATING CLEANLY.'
+      :top2>=bot?'THE DISTRIBUTION LEANS ON TARGET - '+top2+' HIGH AGAINST '+bot+' LOW.'
+      :'THE DISTRIBUTION LEANS OFF TARGET - '+bot+' LOW AGAINST '+top2+' HIGH. THE QUERY IS FINDING THE FIELD, NOT THE QUESTION.'),'start',8.2,C.ink2,760,'.04em');
+  s2+=sM(54,H2-8,'DRAG THE PLATE TO RAISE OR LOWER THE PLANE THROUGH THE SOLID.','start',8.2,C.asm,800,'.04em');
   return s2+'</svg>';
 }
 function resultsHTML(){
@@ -4738,10 +4819,10 @@ function resultsHTML(){
     '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
   const thr=thrOf(),adm=rows.filter(r=>(r.relevance||0)>=thr);
   return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
-   '<p style="font-size:11.4px"><b>Your admission line is at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
-   ' records are admitted. Drag the projection up to raise the line, down to lower it; this table, the figure and the coverage ledger all re-filter as it moves.</p>'+
+   '<p style="font-size:11.4px"><b>Your admission plane sits at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
+   ' records rise above it. Drag the plate up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
-   rows.map((r,i)=>'<tr data-x="res:'+i+'"'+((r.relevance||0)>=thr?'':' style="opacity:.42"')+'><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
+   rows.map((r,i)=>'<tr data-x="res:'+i+'"'+((r.relevance||0)>=thr?'':' style="opacity:.66"')+'><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
      (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
      '<td>'+r.source+'</td><td>'+(r.relevance==null?'-':(r.relevance*100).toFixed(0)+'%')+'</td>'+
      '<td>'+(r.material?'<b style="color:'+TC.asm+'">MATERIAL</b>':(r.relevance||0)>=thr?'<span style="color:'+TC.ev+'">admitted</span>':'<span style="color:var(--dim)">below your line</span>')+'</td></tr>').join('')+'</table>'+
@@ -4750,7 +4831,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b44'],
+    ['Build running','b45'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5041,41 +5122,103 @@ function synGapsHTML(){
   return (y.nextTest?'<p><b>Most decisive next step:</b> '+y.nextTest+'</p>':'')+
    (y.gaps&&y.gaps.length?'<p><b>What is missing:</b> '+y.gaps.join(' · ')+'</p>':'');
 }
-/* publication timeline built from the real submission dates */
+/* ---------------------------------------------------------------------------
+   ARRIVAL TERRAIN. The same solid as the admission volume, read the other way:
+   each archive gets its own plane running back into the figure, and on that
+   plane its cumulative arrival curve rises. Stacked in depth rather than
+   overplotted, so you can see which archive is actually driving the growth -
+   the thing an overlaid 2D line chart hides.
+   --------------------------------------------------------------------------- */
 function svgTimeline(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
   const rows=R.results.filter(r=>r.published_at);
   if(!rows.length)return '';
-  const u=++FID,W2=680,H2=250,mL=54,mT=52,pW=W2-mL-22,pH=120;
+  const u2=++FID,W2=680,H2=424;
+  const OX=98,OY=304,TX=384,TY=46,LX=104,LY=-66,HH=182;
+  const P=(a,b,h)=>[OX+a*TX+b*LX, OY+a*TY+b*LY-h*HH];
+  const pt=(a,b,h)=>{const q=P(a,b,h);return q[0].toFixed(1)+','+q[1].toFixed(1);};
+  const quad=(c,o,...ps)=>'<polygon points="'+ps.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+c+'"'+(o||'')+'/>';
+
+  const lanes=[];rows.forEach(r=>{const k=r.source||'unknown';if(lanes.indexOf(k)<0)lanes.push(k);});
+  const NL=lanes.length, lv=i=>NL===1?0.5:(i+0.5)/NL;
   const ts=rows.map(r=>Date.parse(r.published_at)).filter(t=>!isNaN(t));
   const tMin=Math.min(...ts),tMax=Math.max(...ts),span=Math.max(1,tMax-tMin);
-  const X=t=>mL+((t-tMin)/span)*pW;
-  let s2=svgO(W2,H2)+fDefs(u);
-  s2=roHead(s2,'LITERATURE TIMELINE',[
-    ['RECORDS',rows.length,C.ink],['SPAN',Math.round(span/86400000)+' d',C.calc],
-    ['NEWEST',new Date(tMax).toISOString().slice(0,10),C.ev],
-    ['RELEVANT',R.relevant,C.ev],['MATERIAL',R.material,R.material?C.asm:C.dim]],286);
-  s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
-  const sorted=rows.slice().sort((a,b)=>Date.parse(a.published_at)-Date.parse(b.published_at));
-  let cum=0;let path='';
-  sorted.forEach((r,i)=>{cum++;const x=X(Date.parse(r.published_at));
-    const y=mT+pH-(cum/sorted.length)*pH;
-    path+=(i?'L':'M')+x+' '+y+' ';});
-  s2+='<path d="'+path+'" fill="none" stroke="'+C.calc+'" stroke-width="1.4" opacity=".8"/>';
-  sorted.forEach(r=>{const x=X(Date.parse(r.published_at));
-    const col=r.material?C.asm:r.relevant?C.ev:C.dim;
-    s2+=sL(x,mT+pH,x,mT+pH-(r.material?36:r.relevant?24:12),col,r.material?2.2:1.3);
-    if(r.material)s2+='<circle cx="'+x+'" cy="'+(mT+pH-38)+'" r="4" fill="rgba(232,161,58,.3)" stroke="'+C.asm+'" stroke-width="1.6" filter="url(#gw'+u+')"/>';});
-  s2+=sM(mL,mT+pH+16,new Date(tMin).toISOString().slice(0,10),'start',6.4,C.dim,600,'0')+
-      sM(mL+pW,mT+pH+16,new Date(tMax).toISOString().slice(0,10),'end',6.4,C.dim,600,'0');
-  s2+=sM(mL,H2-26,'TALL AMBER = A NEW MEASUREMENT OR BOUND. CYAN = CLEARED RELEVANCE. THE CURVE IS CUMULATIVE ARRIVAL.','start',6.2,C.dim,700,'.06em');
-  s2+=sM(mL,H2-12,'THIS IS THE ARRIVAL HISTORY OF THE ACTUAL RECORDS RETURNED FOR THIS QUESTION.','start',6.2,C.dim,650,'.06em');
+  const DAY=86400000;
+
+  let s2=svgO(W2,H2)+fDefs(u2);
+  const y90=ts.filter(t=>Date.now()-t<=90*DAY).length;
+  s2=roHead(s2,'ARRIVAL TERRAIN',[
+    ['RECORDS',rows.length,C.ink],['SPAN',Math.round(span/DAY)+' d',C.calc],
+    ['ARCHIVES',NL,C.calc],['LAST 90 d',y90,y90?C.ev:C.dim],
+    ['NEWEST',new Date(tMax).toISOString().slice(0,7),C.ev]],318);
+
+  const EDGE=' stroke="rgba(26,52,84,.28)" stroke-width="0.9"';
+  s2+=quad('rgba(26,52,84,.038)',EDGE,[0,1,0],[1,1,0],[1,1,1],[0,1,1]);
+  s2+=quad('rgba(26,52,84,.020)',EDGE,[0,0,0],[0,1,0],[0,1,1],[0,0,1]);
+  s2+=quad('rgba(26,52,84,.048)',EDGE,[0,0,0],[1,0,0],[1,1,0],[0,1,0]);
+
+  /* time ruling on the floor */
+  for(let k=0;k<=4;k++){const a=k/4;
+    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,.11)" stroke-width="0.8"/>';
+    s2+='<text x="'+P(a,0,0)[0]+'" y="'+(P(a,0,0)[1]+16)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+new Date(tMin+a*span).toISOString().slice(0,7)+'</text>';}
+  s2+='<text x="'+P(0.5,0,0)[0]+'" y="'+(P(0.5,0,0)[1]+31)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">SUBMISSION DATE</text>';
+
+  /* the height axis is a count, so it gets integer ticks */
+  const maxN=Math.max(...lanes.map(k=>rows.filter(r=>(r.source||'unknown')===k).length));
+  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>';
+  for(let g=0;g<=1.0001;g+=0.5){const q=P(0,0,g);
+    s2+='<line x1="'+(q[0]-4)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1"/>'+
+        sM(q[0]-8,q[1]+3,Math.round(g*maxN),'end',7.6,C.dim,650,'0');}
+  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-36)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-36)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RECORDS ARRIVED</text>';
+
+  /* one cumulative surface per archive, back lane first */
+  const order=lanes.map((k,i)=>({k:k,i:i,b:lv(i)})).sort((x,y)=>y.b-x.b);
+  order.forEach(L=>{
+    const sub=rows.filter(r=>(r.source||'unknown')===L.k)
+      .sort((a,b)=>Date.parse(a.published_at)-Date.parse(b.published_at));
+    if(!sub.length)return;
+    const col=L.i%2?C.hyp:C.ev;
+    let path='',fill='M '+pt(0,L.b,0)+' ';
+    sub.forEach((r,j)=>{
+      const a=(Date.parse(r.published_at)-tMin)/span, h=(j+1)/maxN;
+      const prev=j?(j)/maxN:0;
+      path+=(j?'L':'M')+pt(a,L.b,prev)+' L '+pt(a,L.b,h)+' ';
+      fill+='L '+pt(a,L.b,prev)+' L '+pt(a,L.b,h)+' ';
+    });
+    const aEnd=(Date.parse(sub[sub.length-1].published_at)-tMin)/span;
+    path+='L '+pt(1,L.b,sub.length/maxN)+' ';
+    fill+='L '+pt(1,L.b,sub.length/maxN)+' L '+pt(1,L.b,0)+' Z';
+    s2+='<path d="'+fill+'" fill="'+(L.i%2?'rgba(90,52,168,.10)':'rgba(10,106,144,.10)')+'"/>';
+    s2+='<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round"/>';
+    sub.forEach((r,j)=>{
+      const a=(Date.parse(r.published_at)-tMin)/span, q=P(a,L.b,(j+1)/maxN), base=P(a,L.b,0);
+      s2+='<ellipse cx="'+base[0].toFixed(1)+'" cy="'+base[1].toFixed(1)+'" rx="'+(r.material?5.4:3.4)+'" ry="'+(r.material?2.2:1.4)+'" fill="rgba(46,38,26,'+(r.material?0.18:0.09)+')"/>';
+      if(r.material){
+        s2+='<line x1="'+base[0]+'" y1="'+base[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.asm+'" stroke-width="1.8"/>'+
+            '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.6" fill="rgba(180,86,10,.22)" stroke="'+C.asm+'" stroke-width="1.8"/>'+
+            sM(q[0],q[1]-11,'MATERIAL','middle',7,C.asm,800,'.07em');
+      } else {
+        s2+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="2.4" fill="rgba(255,253,249,.95)" stroke="'+col+'" stroke-width="1.1"/>';
+      }
+    });
+    const e=P(1,L.b,sub.length/maxN);
+    s2+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+(e[0]+9)+'" y2="'+e[1]+'" stroke="rgba(26,52,84,.3)" stroke-width="0.8"/>'+
+        sM(e[0]+13,e[1]+2.8,L.k.toUpperCase()+'  '+sub.length+' RECORDS','start',7.6,col,780,'.07em');
+  });
+  s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-12,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+
+  /* what the terrain says */
+  const half=tMin+span/2, recent=ts.filter(t=>t>=half).length;
+  const lead=lanes.map(k=>[k,rows.filter(r=>(r.source||'unknown')===k).length]).sort((a,b)=>b[1]-a[1])[0];
+  s2+=sM(54,H2-46,'EACH SURFACE IS ONE ARCHIVE. STEEPER MEANS THE QUESTION WAS WORKED HARDER IN THAT WINDOW.','start',8.2,C.dim,720,'.04em');
+  s2+=sM(54,H2-27,lead?(lead[0].toUpperCase()+' CARRIES '+lead[1]+' OF '+rows.length+' RECORDS - IT IS DRIVING THIS QUESTION'+(NL>1?', NOT THE OTHER ARCHIVE'+(NL>2?'S':''):'')+'.'):'','start',8.2,C.ink2,760,'.04em');
+  s2+=sM(54,H2-8,Math.round(recent/rows.length*100)+'% OF THE CORPUS LANDED IN THE MORE RECENT HALF OF ITS OWN SPAN.','start',8.2,C.calc,760,'.04em');
   return s2+'</svg>';
 }
 function questionsHTML(){
   return (QUESTIONS.length?'<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Instrument</th><th></th></tr>'+
-   QUESTIONS.map(q=>'<tr'+(q.id===QQ.id?' style="background:rgba(46,200,245,.05)"':'')+'>'+
+   QUESTIONS.map(q=>'<tr'+(q.id===QQ.id?' style="background:rgba(10,106,144,.05)"':'')+'>'+
     '<td><b>'+q.name+'</b><br><span style="font-size:10px;color:var(--dim)">'+q.object+'</span></td>'+
     '<td>'+q.field+'</td>'+
     '<td>'+q.q.sym+' - '+q.q.name+'</td>'+
@@ -5086,7 +5229,7 @@ function questionsHTML(){
    '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
    '<div style="display:flex;gap:8px;align-items:center;max-width:640px">'+
    '<input id="qIn" placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
-   'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(150,200,240,.45);outline:0;'+
+   'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(26,52,84,.45);outline:0;'+
    'font-family:var(--f);font-size:12.5px;color:var(--ink);padding:6px 2px" autocomplete="off">'+
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
    '<p style="font-size:11px;color:var(--dim)">Ask in plain language — “are parallel universes testable?”, “can we detect dark matter with quantum sensors?”. The question is sent to the intelligence gate, which translates it into the terms physicists actually publish under, runs it against arXiv and NASA ADS, and scores every abstract it gets back. No visual is invented for data that does not exist.</p>'+
