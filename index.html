@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>PARALLAX — Scientific Operating System</title>
 <style>
 /* ============================================================
@@ -481,7 +484,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b34</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b36</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3605,6 +3608,7 @@ const LIVEBIND={
  questions:()=>questionsHTML(),
  ping:()=>pingHTML(),
  results:()=>resultsHTML(),
+ diag:()=>diagHTML(),
  resfig:()=>svgResults(),
  timeline:()=>svgTimeline(),
  synstate:()=>synStateHTML(),
@@ -3802,8 +3806,8 @@ function stationsFor(mode){
   if(!hasSeries())return [
    {id:'nodata',label:'No series on this watch',sub:'research it to unlock the modes',vis:null,
     html:'<h2>'+mode.toUpperCase()+' has nothing to operate on yet.</h2>'+
-     '<p>This mode works from the literature this watch returns. <b>'+QQ.name+'</b> has not been researched yet — run it and this mode fills with the state of the question, its competing explanations, contested points and arrival history.</p>'+
-     '<div data-lv="results">'+resultsHTML()+'</div>'+
+     '<p>This mode works from the literature this watch returns. Run the research and it fills with the state of the question, competing explanations, contested points and arrival history.</p>'+
+     '<div data-lv="diag">'+diagHTML()+'</div>'+
      '<div class="acts"><button class="abtn pri" data-act="qres">Research now</button>'+
      '<button class="abtn" data-act="sub:watch:questions">Open or switch watch</button></div>'}];
   if(mode==='model')return [
@@ -4602,6 +4606,23 @@ function resultsHTML(){
      '<td>'+r.source+'</td><td>'+(r.relevance==null?'-':(r.relevance*100).toFixed(0)+'%')+'</td>'+
      '<td>'+(r.material?'<b style="color:'+C.asm+'">MATERIAL</b>':r.relevant?'<span style="color:'+C.ev+'">relevant</span>':'<span style="color:var(--dim)">discarded</span>')+'</td></tr>').join('')+'</table>'+
    '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
+}
+function diagHTML(){
+  const R=resultsOf(QQ.id);
+  const rows=[
+    ['Build running','b36'],
+    ['Active watch',QQ&&QQ.name?QQ.name:'none'],
+    ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+C.bad+'">no</b>'],
+    ['Records returned',R&&R.results?R.results.length:0],
+    ['Cleared relevance',R&&R.results?R.results.filter(x=>x.relevant).length:0],
+    ['Worker synthesis',R&&R.synthesis?'yes':'no (falling back to records)'],
+    ['Synthesis available',synOf()?'<b style="color:'+C.ok+'">yes</b>':'<b style="color:'+C.bad+'">no</b>'],
+    ['Measured series',hasSeries()?'yes':'no (expected for a literature watch)']
+  ];
+  return '<p style="font-size:11.4px;color:var(--dim)">Why this mode is empty:</p>'+
+   '<table class="dtable">'+rows.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table>'+
+   (R&&R.results&&R.results.length&&!synOf()
+     ?'<p style="color:'+C.bad+'">Records exist but no synthesis could be derived — send this table to Claude.</p>':'');
 }
 function synOf(){
   const R=resultsOf(QQ.id);
