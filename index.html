@@ -29,10 +29,9 @@ html,body{height:100%;margin:0;overflow:hidden}
 body{
   font-family:var(--f);color:var(--ink);
   background:
-    radial-gradient(124% 94% at 66% 20%, rgba(255,166,58,.34) 0%, rgba(242,146,48,.15) 40%, rgba(242,146,48,0) 72%),
-    radial-gradient(96% 86% at 6% 98%, rgba(255,138,40,.24) 0%, rgba(255,138,40,0) 64%),
-    radial-gradient(70% 62% at 96% 4%, rgba(48,150,200,.15) 0%, rgba(48,150,200,0) 56%),
-    linear-gradient(168deg,#fbf5e9 0%,#f4efe4 44%,#e9ebea 100%);
+    radial-gradient(118% 90% at 72% 12%, rgba(255,208,152,.13) 0%, rgba(255,208,152,0) 60%),
+    radial-gradient(88% 78% at 4% 100%, rgba(196,190,178,.20) 0%, rgba(196,190,178,0) 58%),
+    linear-gradient(168deg,#faf8f3 0%,#f4f3ef 46%,#edeeee 100%);
   -webkit-font-smoothing:antialiased;user-select:none;
 }
 #grain{position:fixed;inset:0;pointer-events:none;opacity:.30;mix-blend-mode:multiply;
@@ -243,46 +242,9 @@ details.grp>.gb{padding-top:6px}
 #svis.full .fcap b{color:var(--ink)}
 .fcap .capline{display:block;margin-top:5px;font-family:var(--m);font-size:9px;letter-spacing:.06em;color:var(--ink2)}
 #svis.full #figCtl{position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;justify-content:center;z-index:3}
-#svis.m{perspective:1150px}
-#svis.m .vin{max-width:780px;margin:0 auto;height:auto;align-self:center;
-  transform-style:preserve-3d;transform:rotateX(8deg);
-  padding:34px 34px 30px;border-radius:0;background:none;box-shadow:none;
-  transition:transform .16s ease-out;will-change:transform}
-/* The plate. A sheet of instrument-white lifted off the page: the figure is
-   drawn ON something, that something has thickness, a lit top edge and a real
-   shadow underneath it. No navy, no border, no glow. */
-.vglow{position:absolute;inset:-30px -40px -26px;pointer-events:none;z-index:0;border-radius:3px;
-  background:linear-gradient(178deg,rgba(255,254,251,.99) 0%,rgba(253,250,244,.98) 46%,rgba(245,240,230,.975) 100%);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.95) inset,
-    0 -1px 0 rgba(120,100,72,.12) inset,
-    0 2px 3px rgba(72,58,38,.10),
-    0 10px 20px -6px rgba(72,58,38,.17),
-    0 34px 56px -20px rgba(60,48,32,.25),
-    0 64px 96px -40px rgba(48,38,26,.22)}
-/* the ruled surface of the plate - a drafting sheet, not decoration */
-.vgrid{position:absolute;inset:-30px -40px -26px;pointer-events:none;z-index:0;border-radius:3px;
-  background:
-   repeating-linear-gradient(90deg,rgba(26,52,84,.05) 0 1px,transparent 1px 26px),
-   repeating-linear-gradient(0deg,rgba(26,52,84,.05) 0 1px,transparent 1px 26px);
-  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%);
-  mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%)}
-#svis.m .vin>.vglow,#svis.m .vin>.vgrid{position:absolute;inset:-30px -40px -26px;z-index:0}
-#svis.m .vin>[data-lv],#svis.m .vin>.fcap,#svis.m .vin>#liveFig,#svis.m .vin>#figCtl{position:relative;z-index:1}
-#svis.full .vglow,#svis.full .vgrid{display:none}
-#svis.m .vin>[data-lv]{transform:translateZ(30px)}
-#svis.m .vin .fcap{transform:translateZ(54px);color:var(--ink2)}
-#svis.m .vin .figpop{transform:translateZ(54px)}
-/* the shadow the plate throws on the room, offset by the plate's own lean */
-#svis.m .vin:before{content:'';position:absolute;inset:-10px -18px -56px;pointer-events:none;z-index:-1;
-  border-radius:10px;filter:blur(20px);
-  background:radial-gradient(58% 56% at 50% 68%,rgba(74,58,36,.34) 0%,rgba(74,58,36,.12) 60%,rgba(74,58,36,0) 100%)}
-/* the plate's header rule - amber, the one warm signal on the sheet */
-#svis.m .vin:after{content:'';position:absolute;left:-40px;right:-40px;top:-30px;height:2px;pointer-events:none;z-index:1;
-  background:linear-gradient(90deg,rgba(180,86,10,0) 0%,rgba(180,86,10,.62) 8%,rgba(180,86,10,.62) 92%,rgba(180,86,10,0) 100%)}
-#svis.m[data-flat] .vin{transform:none!important}
-#svis.m[data-flat] .vin>[data-lv],#svis.m[data-flat] .vin .fcap,#svis.m[data-flat] .vin .figpop{transform:none}
-#svis.m[data-flat] .vin:before{opacity:.3}
+#svis.m .vin{max-width:800px;margin:0 auto;height:auto;align-self:center;
+  padding:8px 6px 10px;background:none;box-shadow:none;cursor:ns-resize}
+#svis.m .vin>[data-lv],#svis.m .vin>.fcap,#svis.m .vin>#liveFig,#svis.m .vin>#figCtl{position:relative}
 #svis.m #liveFig{flex:none;height:min(48vh,430px)}
 .inlinefig{max-width:560px;margin:8px 0}
 .inlinefig svg{width:100%;height:auto}
@@ -526,7 +488,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b45</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b46</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3748,7 +3710,7 @@ function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
 /* ---------------- stations: the mode is a mechanism, not an article ---------------- */
-const VISTITLE={resfig:'Admission volume - drag the plate, the plane cuts the corpus',timeline:'Arrival terrain - one surface per archive',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+const VISTITLE={resfig:'Admission volume - drag it, the plane cuts the corpus',timeline:'Arrival terrain - one surface per archive',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
   if(noWatch())return [
@@ -3844,20 +3806,20 @@ function stationsFor(mode){
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'},
      {id:'findings',label:'Findings',sub:'extracted · then audited',vis:'resfig',
-      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the figure up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>What the returned literature establishes.</h2>'+
        '<div data-lv="synfind">'+synFindingsHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:18px">Audit of the corpus these findings rest on</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'}];
     if(mode==='analyze')return [
      {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:'resfig',
-      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the figure up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>The explanations currently on the table.</h2>'+
        '<div data-lv="synpos">'+synPositionsHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:18px">What the corpus behind them looks like</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
      {id:'contested',label:'Contested points',sub:'disagreement · camps · currency',vis:'resfig',
-      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the plate up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
+      cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the figure up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
       html:'<h2>Where the literature disagrees with itself.</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
@@ -4000,8 +3962,8 @@ function renderDoc(){
    '<div class="cur"><div class="c1">'+st.label+'</div><div class="c2">'+st.sub+' · scroll / arrows to move</div></div></div>';
   window.CURVIS=st.vis;
   const visInner=!st.vis?null:st.vis==='live'
-   ?'<div class="vglow"></div><div class="vgrid"></div><div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
-   :'<div class="vglow"></div><div class="vgrid"></div><button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
+   ?'<div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
+   :'<button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
   const menu=['evidence','literature','contradictions','assumptions','experiments','claim','data','method','activity','telemetry']
    .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
   const mcls=st.vsize==='l'?'':' m';
@@ -4048,12 +4010,11 @@ function thrReport(){
 document.addEventListener('pointerdown',e=>{
   const v=e.target.closest('#svis.m .vin');
   if(!v||e.target.closest('button,[data-act],[data-figpop],[data-bh],[data-bud]'))return;
-  DRAGZ.on=true;DRAGZ.y0=e.clientY;DRAGZ.t0=thrOf();DRAGZ.moved=false;v.style.cursor='ns-resize';
+  DRAGZ.on=true;DRAGZ.y0=e.clientY;DRAGZ.t0=thrOf();DRAGZ.moved=false;
 });
 document.addEventListener('pointerup',()=>{
   if(!DRAGZ.on)return;
   DRAGZ.on=false;
-  const sv=document.querySelector('#svis.m .vin');if(sv)sv.style.cursor='';
   if(DRAGZ.moved)thrReport();
 });
 document.addEventListener('pointermove',e=>{
@@ -4062,27 +4023,8 @@ document.addEventListener('pointermove',e=>{
   if(DRAGZ.on){
     const dy=DRAGZ.y0-e.clientY;
     if(Math.abs(dy)>2)DRAGZ.moved=true;
-    const sv2=document.querySelector('#svis.m .vin');
-    if(sv2){
-      const lift=clamp(dy/3.4,-40,40);
-      sv2.style.transform='perspective(1200px) rotateX('+(8-lift*0.06).toFixed(2)+'deg) translateZ('+lift.toFixed(1)+'px)';
-    }
     setThr(DRAGZ.t0+dy/260);
-    return;
   }
-  if(RM)return;
-  const sv=document.querySelector('#svis.m:not([data-flat]) .vin');
-  if(!sv)return;
-  const r=sv.getBoundingClientRect();
-  const nx=clamp((e.clientX-(r.left+r.width/2))/Math.max(1,r.width),-0.75,0.75);
-  const ny=clamp((e.clientY-(r.top+r.height/2))/Math.max(1,r.height),-0.75,0.75);
-  sv.style.transform='perspective(1200px) rotateX('+(8-ny*6).toFixed(2)+'deg) rotateY('+(nx*8).toFixed(2)+'deg)';
-});
-document.addEventListener('dblclick',e=>{
-  const sv=e.target.closest('#svis.m');
-  if(!sv)return;
-  if(sv.hasAttribute('data-flat'))sv.removeAttribute('data-flat');
-  else{sv.setAttribute('data-flat','1');const v=sv.querySelector('.vin');if(v)v.style.transform='';}
 });
 function goStation(d,abs){
   const sts=stationsFor(S.mode);
@@ -4662,40 +4604,47 @@ function setQuestion(id){
 }
 
 /* ---------------------------------------------------------------------------
-   THE ADMISSION VOLUME.
+   THE ADMISSION VOLUME - a solid, drawn as a solid.
 
-   Not a scatter plot with a line through it. A three-axis solid you are looking
-   into: submission date runs away to the right along the floor, the archive the
-   record came from is the depth axis, and relevance is height. The admission
-   threshold is a PLANE cutting horizontally through that solid - drag the plate
-   and the plane rises or falls through the corpus, and everything it separates
-   re-reads instantly.
+   Submission date runs away to the right along the floor. The archive a record
+   came from is the depth axis. Relevance is height. Every record is an extruded
+   column with a lit top, a mid-tone front face and a shaded right face, standing
+   on its own cast shadow; columns further back lose contrast the way real ones
+   do. The admission threshold is a SLAB with thickness cutting horizontally
+   through the volume - drag anywhere on the figure and it rises or falls, and
+   every table on the left re-filters against it.
 
-   The back wall carries the marginal relevance distribution, which is the thing
-   a physicist would actually draw next to this: it says whether the retrieval
-   is bimodal (a real signal plus junk) or a single smear (a bad query).
+   The back wall carries the marginal relevance distribution, extruded too. That
+   is the figure a physicist would draw beside this one: two clusters means the
+   query is separating the question from the field, one smear means it is not.
    --------------------------------------------------------------------------- */
 function svgResults(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
-  const u2=++FID,W2=680,H2=444;
+  const u2=++FID,W2=680,H2=448;
   const thr=thrOf(), all=R.results;
 
-  /* --- the three axes of the solid --- */
-  const OX=98,OY=318,TX=382,TY=46,LX=106,LY=-68,HH=194;
+  /* ---- the projection ---- */
+  const OX=100,OY=322,TX=376,TY=48,LX=110,LY=-72,HH=196;
   const P=(a,b,h)=>[OX+a*TX+b*LX, OY+a*TY+b*LY-h*HH];
   const pt=(a,b,h)=>{const q=P(a,b,h);return q[0].toFixed(1)+','+q[1].toFixed(1);};
-  const quad=(c,o,...pts)=>'<polygon points="'+pts.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+c+'"'+(o||'')+'/>';
+  const face=(fill,stroke,pts)=>'<polygon points="'+pts.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+fill+
+    '"'+(stroke?' stroke="'+stroke+'" stroke-width="0.7" stroke-linejoin="round"':'')+'/>';
+  /* an extruded column: top cap lit, front face mid, right face shaded */
+  const col3=(a,b,h,du,dv,t,f,r2,st)=>{
+    const a0=a-du,a1=a+du,b0=b-dv,b1=b+dv;
+    return face(r2,st,[[a1,b0,0],[a1,b1,0],[a1,b1,h],[a1,b0,h]])+
+           face(f ,st,[[a0,b0,0],[a1,b0,0],[a1,b0,h],[a0,b0,h]])+
+           face(t ,st,[[a0,b0,h],[a1,b0,h],[a1,b1,h],[a0,b1,h]]);
+  };
 
-  /* --- depth axis: one lane per archive --- */
+  /* ---- axes ---- */
   const lanes=[];all.forEach(r=>{const k=r.source||'unknown';if(lanes.indexOf(k)<0)lanes.push(k);});
   const NL=lanes.length, lv=i=>NL===1?0.5:(i+0.5)/NL;
-
-  /* --- time axis --- */
   const ts=all.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t));
   const tMin=ts.length?Math.min(...ts):0,tMax=ts.length?Math.max(...ts):1,span=Math.max(1,tMax-tMin);
   const uOf=(r,i)=>{const t=r.published_at?Date.parse(r.published_at):NaN;
-    return isNaN(t)?(i/Math.max(1,all.length-1)):(t-tMin)/span;};
+    return isNaN(t)?(i/Math.max(1,all.length-1)):0.03+0.94*(t-tMin)/span;};
 
   const adm=all.filter(r=>(r.relevance||0)>=thr);
   const admMat=adm.filter(r=>r.material).length;
@@ -4709,93 +4658,116 @@ function svgResults(){
     ['MATERIAL',admMat,admMat?C.asm:C.dim],
     ['ARCHIVES',NL,C.calc]],318);
 
-  /* ---- the solid: three planes and the open wireframe that closes the box ---- */
-  const EDGE=' stroke="rgba(26,52,84,.30)" stroke-width="0.9"';
-  s2+=quad('rgba(26,52,84,.040)',EDGE,[0,1,0],[1,1,0],[1,1,1],[0,1,1]);
-  s2+=quad('rgba(26,52,84,.022)',EDGE,[0,0,0],[0,1,0],[0,1,1],[0,0,1]);
-  s2+=quad('rgba(26,52,84,.050)',EDGE,[0,0,0],[1,0,0],[1,1,0],[0,1,0]);
-  /* the two open edges of the box, dashed - the volume is a solid you look into */
-  [[[1,0,0],[1,0,1]],[[1,0,1],[1,1,1]],[[0,0,1],[1,0,1]]].forEach(e=>{
-    const a1=P(e[0][0],e[0][1],e[0][2]),b1=P(e[1][0],e[1][1],e[1][2]);
-    s2+='<line x1="'+a1[0]+'" y1="'+a1[1]+'" x2="'+b1[0]+'" y2="'+b1[1]+'" stroke="rgba(26,52,84,.22)" stroke-width="0.8" stroke-dasharray="3 3"/>';});
+  /* ---- the room: two walls and a floor, with ambient darkening toward the corner ---- */
+  s2+='<defs>'+
+    '<linearGradient id="wb'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a3454" stop-opacity=".018"/><stop offset="1" stop-color="#1a3454" stop-opacity=".085"/></linearGradient>'+
+    '<linearGradient id="wl'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a3454" stop-opacity=".010"/><stop offset="1" stop-color="#1a3454" stop-opacity=".055"/></linearGradient>'+
+    '<linearGradient id="fl'+u2+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1a3454" stop-opacity=".075"/><stop offset="1" stop-color="#1a3454" stop-opacity=".030"/></linearGradient>'+
+    '<linearGradient id="cOn'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a86ae"/><stop offset="1" stop-color="#0a6a90"/></linearGradient>'+
+    '<linearGradient id="cMat'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cf7415"/><stop offset="1" stop-color="#b4560a"/></linearGradient>'+
+    '<linearGradient id="cOff'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a3454" stop-opacity=".24"/><stop offset="1" stop-color="#1a3454" stop-opacity=".14"/></linearGradient>'+
+    '</defs>';
+  s2+=face('url(#wb'+u2+')',null,[[0,1,0],[1,1,0],[1,1,1],[0,1,1]]);
+  s2+=face('url(#wl'+u2+')',null,[[0,0,0],[0,1,0],[0,1,1],[0,0,1]]);
+  s2+=face('url(#fl'+u2+')',null,[[0,0,0],[1,0,0],[1,1,0],[0,1,0]]);
 
-  /* ---- marginal relevance distribution, drawn on the back wall ---- */
+  /* ---- floor ruling, graded by depth: near lines heavier, far lines lighter ---- */
+  for(let i=0;i<=NL*3;i++){const b=i/(NL*3),maj=i%3===0,o=((maj?0.22:0.06)-(maj?0.11:0.03)*b).toFixed(3),w=(maj?1.15-0.45*b:0.55).toFixed(2);
+    s2+='<line x1="'+P(0,b,0)[0]+'" y1="'+P(0,b,0)[1]+'" x2="'+P(1,b,0)[0]+'" y2="'+P(1,b,0)[1]+'" stroke="rgba(26,52,84,'+o+')" stroke-width="'+w+'"/>';}
+  for(let k=0;k<=16;k++){const a=k/16;
+    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,'+(k%4?'.045':'.11')+')" stroke-width="'+(k%4?0.6:0.85)+'"/>';
+    if(k%4)continue;
+    if(ts.length)s2+='<text x="'+P(a,0,0)[0]+'" y="'+(P(a,0,0)[1]+16)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+new Date(tMin+a*span).toISOString().slice(0,7)+'</text>';}
+  s2+='<text x="'+P(0.5,0,0)[0]+'" y="'+(P(0.5,0,0)[1]+31)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">SUBMISSION DATE</text>';
+
+  /* ---- marginal relevance distribution, extruded off the back wall ---- */
   const NB=8, hist=new Array(NB).fill(0);
+  s2+='<line x1="'+P(0,1,0)[0]+'" y1="'+P(0,1,0)[1]+'" x2="'+P(0,1,1)[0]+'" y2="'+P(0,1,1)[1]+'" stroke="rgba(26,52,84,.28)" stroke-width="1"/>';
+  for(let i=1;i<8;i++){const h=i/8;
+    s2+='<line x1="'+P(0,1,h)[0]+'" y1="'+P(0,1,h)[1]+'" x2="'+P(0.42,1,h)[0]+'" y2="'+P(0.42,1,h)[1]+'" stroke="rgba(26,52,84,.09)" stroke-width="0.7"/>';}
   all.forEach(r=>{hist[Math.min(NB-1,Math.floor((r.relevance||0)*NB))]++;});
   const hMax=Math.max(1,...hist);
   hist.forEach((n,i)=>{
     if(!n)return;
-    const h0=i/NB+0.06/NB, h1=(i+1)/NB-0.06/NB, w=n/hMax*0.34;
-    const above=(i+0.5)/NB>=thr;
-    s2+=quad(above?'rgba(10,106,144,.30)':'rgba(26,52,84,.14)',null,[0,1,h0],[w,1,h0],[w,1,h1],[0,1,h1]);
-    const lb=P(w,1,(h0+h1)/2);
-    s2+='<text x="'+(lb[0]+4)+'" y="'+(lb[1]+2.2)+'" font-size="7.4" fill="'+(above?C.ev:C.dim)+'" font-family="ui-monospace,Menlo,monospace" font-weight="750">'+n+'</text>';
+    const h0=i/NB+0.07/NB, h1=(i+1)/NB-0.07/NB, w=n/hMax*0.32, bF=1-0.016;
+    const on=(i+0.5)/NB>=thr;
+    const T=on?'rgba(47,158,196,.34)':'rgba(26,52,84,.15)';
+    const F=on?'rgba(10,106,144,.26)':'rgba(26,52,84,.11)';
+    const S=on?'rgba(8,83,111,.32)':'rgba(26,52,84,.14)';
+    s2+=face(F,null,[[0,bF,h0],[w,bF,h0],[w,bF,h1],[0,bF,h1]]);
+    s2+=face(T,null,[[0,bF,h1],[w,bF,h1],[w,1,h1],[0,1,h1]]);
+    s2+=face(S,null,[[w,bF,h0],[w,1,h0],[w,1,h1],[w,bF,h1]]);
+    const lb=P(w,bF,(h0+h1)/2);
+    s2+='<text x="'+(lb[0]+5)+'" y="'+(lb[1]+2.4)+'" font-size="7.4" fill="'+(on?C.ev:C.dim)+'" font-family="ui-monospace,Menlo,monospace" font-weight="750">'+n+'</text>';
   });
-  s2+='<text x="'+(P(0,1,1)[0]+2)+'" y="'+(P(0,1,1)[1]-7)+'" font-size="7.2" fill="'+C.dim+'" font-weight="800" letter-spacing=".14em" font-family="ui-monospace,Menlo,monospace">MARGINAL RELEVANCE DISTRIBUTION</text>';
+  s2+='<text x="'+(P(0,1,1)[0]+2)+'" y="'+(P(0,1,1)[1]-8)+'" font-size="7.2" fill="'+C.dim+'" font-weight="800" letter-spacing=".14em" font-family="ui-monospace,Menlo,monospace">MARGINAL RELEVANCE DISTRIBUTION</text>';
 
-  /* ---- floor ruling: one line per lane boundary, one per time decile ---- */
-  for(let i=0;i<=NL;i++){const b=i/NL;
-    s2+='<line x1="'+P(0,b,0)[0]+'" y1="'+P(0,b,0)[1]+'" x2="'+P(1,b,0)[0]+'" y2="'+P(1,b,0)[1]+'" stroke="rgba(26,52,84,.16)" stroke-width="0.9"/>';}
-  for(let k=0;k<=4;k++){const a=k/4;
-    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,.11)" stroke-width="0.8"/>';
-    if(ts.length)s2+='<text x="'+P(a,0,0)[0]+'" y="'+(P(a,0,0)[1]+16)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+new Date(tMin+a*span).toISOString().slice(0,7)+'</text>';}
-  s2+='<text x="'+(P(0.5,0,0)[0])+'" y="'+(P(0.5,0,0)[1]+31)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">SUBMISSION DATE</text>';
-
-  /* ---- the height axis, at the near-left edge of the solid ---- */
-  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>';
+  /* ---- height axis on the near-left edge ---- */
+  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.3"/>';
   for(let g=0;g<=1.0001;g+=0.25){const q=P(0,0,g);
-    s2+='<line x1="'+(q[0]-4)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1"/>'+
-        sM(q[0]-8,q[1]+3,(g*100).toFixed(0)+'%','end',7.6,C.dim,650,'0');}
-  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-38)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-38)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RELEVANCE</text>';
+    s2+='<line x1="'+(q[0]-5)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>'+
+        sM(q[0]-9,q[1]+3,(g*100).toFixed(0)+'%','end',7.6,C.dim,650,'0');}
+  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-40)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-40)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RELEVANCE</text>';
 
-  /* ---- the records, back lane first so the solid reads front-to-back ---- */
+  /* ---- the columns, painted back to front ---- */
+  const DU=0.009, DV=Math.min(0.085,0.34/NL);
   const items=all.map((r,i)=>({r:r,i:i,a:uOf(r,i),b:lv(lanes.indexOf(r.source||'unknown')),h:clamp(r.relevance||0,0,1)}))
     .sort((x,y)=>(y.b-x.b)||(x.a-y.a));
-  const caps=[];
+  const PAL={
+    mat:['#e89a34','url(#cMat'+u2+')','#8d4207'],
+    on :['#46b4d8','url(#cOn'+u2+')','#07536f'],
+    off:['rgba(26,52,84,.28)','url(#cOff'+u2+')','rgba(26,52,84,.15)']
+  };
   items.forEach(o=>{
-    const base=P(o.a,o.b,0), top=P(o.a,o.b,o.h);
-    const inn=o.h>=thr, mat=o.r.material;
-    const col=mat?C.asm:inn?C.ev:'rgba(26,52,84,.34)';
-    /* the record's footprint on the floor - the depth cue that makes it stand up */
-    s2+='<ellipse cx="'+base[0].toFixed(1)+'" cy="'+base[1].toFixed(1)+'" rx="'+(mat?6:4.4)+'" ry="'+(mat?2.4:1.8)+'" fill="rgba(46,38,26,'+(inn?0.16:0.07)+')"/>';
-    s2+='<line x1="'+base[0].toFixed(1)+'" y1="'+base[1].toFixed(1)+'" x2="'+top[0].toFixed(1)+'" y2="'+top[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+(mat?2.1:inn?1.3:0.9)+'"'+(inn?'':' stroke-dasharray="2 3"')+'/>';
-    caps.push({o:o,top:top,col:col,inn:inn,mat:mat});
+    const inn=o.h>=thr, mat=o.r.material, k=mat?'mat':inn?'on':'off';
+    const pal=PAL[k], du=mat?DU*1.7:DU, dv=mat?DV*0.62:DV*0.42;
+    const dep=(1-0.30*o.b).toFixed(3);
+    const base=P(o.a,o.b,0);
+    /* cast shadow, thrown away from the light and growing with the column */
+    s2+='<ellipse cx="'+(base[0]+3.5+o.h*4).toFixed(1)+'" cy="'+(base[1]+1.6+o.h*1.6).toFixed(1)+'" rx="'+(7+o.h*7).toFixed(1)+'" ry="'+(2.6+o.h*2.4).toFixed(1)+'" fill="rgba(48,40,28,'+(inn?0.13:0.06)+')"/>';
+    s2+='<g data-hl="res:'+o.i+'" opacity="'+dep+'">'+
+        col3(o.a,o.b,o.h,du,dv,pal[0],pal[1],pal[2],mat?'rgba(120,56,4,.55)':inn?'rgba(6,66,90,.45)':'rgba(26,52,84,.22)')+'</g>';
+    if(mat){
+      const tp=P(o.a,o.b,o.h);
+      /* the projection line a physicist would draw: read its height off the wall */
+      s2+='<line x1="'+tp[0]+'" y1="'+tp[1]+'" x2="'+P(o.a,1,o.h)[0]+'" y2="'+P(o.a,1,o.h)[1]+'" stroke="rgba(180,86,10,.42)" stroke-width="0.9" stroke-dasharray="3 3"/>';
+      s2+=sM(tp[0],tp[1]-9,'MATERIAL','middle',7,C.asm,800,'.07em');
+    }
   });
 
-  /* ---- the admission plane, cutting the solid at the height you are holding ---- */
-  s2+=quad('rgba(180,86,10,.13)',' stroke="'+C.asm+'" stroke-width="1.5" stroke-dasharray="6 3"',[0,0,thr],[1,0,thr],[1,1,thr],[0,1,thr]);
-  const pf=P(0,0,thr);
-  s2+='<polygon points="'+(pf[0]-6)+','+pf[1]+' '+(pf[0]-15)+','+(pf[1]-5)+' '+(pf[0]-15)+','+(pf[1]+5)+'" fill="'+C.asm+'"/>';
-  const pm=P(0.42,0,thr);
-  s2+='<rect x="'+(pm[0]-62)+'" y="'+(pm[1]-17)+'" width="124" height="15" fill="rgba(255,253,249,.88)"/>';
-  s2+=sM(pm[0],pm[1]-6,'ADMISSION PLANE '+(thr*100).toFixed(0)+'%','middle',8,C.asm,800,'.06em');
+  /* ---- the admission slab, with real thickness ---- */
+  const TH=0.016;
+  s2+=face('rgba(180,86,10,.24)',null,[[0,0,thr],[1,0,thr],[1,0,thr+TH],[0,0,thr+TH]]);
+  s2+=face('rgba(180,86,10,.17)',null,[[1,0,thr],[1,1,thr],[1,1,thr+TH],[1,0,thr+TH]]);
+  s2+=face('rgba(180,86,10,.11)','rgba(180,86,10,.85)',[[0,0,thr+TH],[1,0,thr+TH],[1,1,thr+TH],[0,1,thr+TH]]);
+  const pf=P(0,0,thr+TH/2);
+  s2+='<polygon points="'+(pf[0]-6)+','+pf[1]+' '+(pf[0]-16)+','+(pf[1]-5.5)+' '+(pf[0]-16)+','+(pf[1]+5.5)+'" fill="'+C.asm+'"/>';
 
-  /* ---- caps last, so what is admitted sits above the plane ---- */
-  caps.forEach(c=>{
-    s2+='<g data-hl="res:'+c.o.i+'"><circle cx="'+c.top[0].toFixed(1)+'" cy="'+c.top[1].toFixed(1)+'" r="'+(c.mat?5.4:c.inn?3.7:2.5)+'" fill="'+(c.mat?'rgba(180,86,10,.22)':c.inn?'rgba(255,253,249,.96)':'rgba(255,253,249,.6)')+'" stroke="'+c.col+'" stroke-width="'+(c.mat?2:c.inn?1.5:1)+'"/></g>';
-    if(c.mat)s2+=sM(c.top[0],c.top[1]-11,'MATERIAL','middle',7,C.asm,800,'.07em');
-  });
+  /* ---- the open wireframe that closes the box ---- */
+  [[[1,0,0],[1,0,1],'.30','1.1'],[[1,0,1],[1,1,1],'.20','0.8'],[[0,0,1],[1,0,1],'.24','0.9']].forEach(e=>{
+    const a1=P(e[0][0],e[0][1],e[0][2]),b1=P(e[1][0],e[1][1],e[1][2]);
+    s2+='<line x1="'+a1[0]+'" y1="'+a1[1]+'" x2="'+b1[0]+'" y2="'+b1[1]+'" stroke="rgba(26,52,84,'+e[2]+')" stroke-width="'+e[3]+'" stroke-dasharray="3 3"/>';});
 
   /* ---- the depth axis is labelled where each lane ends ---- */
   lanes.forEach((k,i)=>{
     const q=P(1,lv(i),0), sub=all.filter(r=>(r.source||'unknown')===k);
     const a2=sub.filter(r=>(r.relevance||0)>=thr).length;
-    s2+='<line x1="'+q[0]+'" y1="'+q[1]+'" x2="'+(q[0]+9)+'" y2="'+q[1]+'" stroke="rgba(26,52,84,.3)" stroke-width="0.8"/>'+
+    s2+='<line x1="'+q[0]+'" y1="'+q[1]+'" x2="'+(q[0]+9)+'" y2="'+q[1]+'" stroke="rgba(26,52,84,.32)" stroke-width="0.9"/>'+
       sM(q[0]+13,q[1]+2.8,k.toUpperCase()+'  '+a2+'/'+sub.length+' ABOVE','start',7.6,a2?C.ev:C.dim,780,'.07em');
   });
-  s2+=sM(P(1,1,0)[0]+9,P(1,1,0)[1]-12,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+  s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-15,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
 
-  /* ---- what the figure is telling you ---- */
+  /* ---- what the solid is telling you ---- */
   const d=adm.length-gateAdm;
   const top2=hist.slice(Math.ceil(NB*0.6)).reduce((a,b)=>a+b,0), bot=hist.slice(0,Math.floor(NB*0.4)).reduce((a,b)=>a+b,0);
   const mid=all.length-top2-bot;
   s2+=sM(54,H2-46,'THE GATE ADMITTED '+gateAdm+'. YOUR PLANE ADMITS '+adm.length+
     (d===0?' - THE SAME SET.':d>0?' - '+d+' MORE.':' - '+(-d)+' FEWER.'),'start',8.2,C.calc,760,'.04em');
   s2+=sM(54,H2-27,(top2&&bot&&mid<=Math.min(top2,bot)
-      ?'THE DISTRIBUTION IS SPLIT - '+top2+' ON TARGET, '+bot+' OFF TARGET, LITTLE IN BETWEEN. THE QUERY IS SEPARATING CLEANLY.'
+      ?'THE DISTRIBUTION IS SPLIT - '+top2+' ON TARGET, '+bot+' OFF TARGET, LITTLE BETWEEN. THE QUERY IS SEPARATING CLEANLY.'
       :top2>=bot?'THE DISTRIBUTION LEANS ON TARGET - '+top2+' HIGH AGAINST '+bot+' LOW.'
       :'THE DISTRIBUTION LEANS OFF TARGET - '+bot+' LOW AGAINST '+top2+' HIGH. THE QUERY IS FINDING THE FIELD, NOT THE QUESTION.'),'start',8.2,C.ink2,760,'.04em');
-  s2+=sM(54,H2-8,'DRAG THE PLATE TO RAISE OR LOWER THE PLANE THROUGH THE SOLID.','start',8.2,C.asm,800,'.04em');
+  s2+=sM(54,H2-8,'DRAG THE FIGURE UP OR DOWN TO MOVE THE PLANE THROUGH THE SOLID.','start',8.2,C.asm,800,'.04em');
   return s2+'</svg>';
 }
 function resultsHTML(){
@@ -4820,7 +4792,7 @@ function resultsHTML(){
   const thr=thrOf(),adm=rows.filter(r=>(r.relevance||0)>=thr);
   return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
    '<p style="font-size:11.4px"><b>Your admission plane sits at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
-   ' records rise above it. Drag the plate up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
+   ' records rise above it. Drag the figure up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
    rows.map((r,i)=>'<tr data-x="res:'+i+'"'+((r.relevance||0)>=thr?'':' style="opacity:.66"')+'><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
      (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
@@ -4831,7 +4803,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b45'],
+    ['Build running','b46'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5123,27 +5095,29 @@ function synGapsHTML(){
    (y.gaps&&y.gaps.length?'<p><b>What is missing:</b> '+y.gaps.join(' · ')+'</p>':'');
 }
 /* ---------------------------------------------------------------------------
-   ARRIVAL TERRAIN. The same solid as the admission volume, read the other way:
-   each archive gets its own plane running back into the figure, and on that
-   plane its cumulative arrival curve rises. Stacked in depth rather than
-   overplotted, so you can see which archive is actually driving the growth -
-   the thing an overlaid 2D line chart hides.
+   ARRIVAL TERRAIN. The same solid read the other way: each archive gets its own
+   ribbon running back into the figure, and on that ribbon its cumulative
+   arrival rises as a real extruded staircase - treads, risers and a front wall.
+   Stacked in depth rather than overplotted, so you can see which archive is
+   actually driving the question, which a single merged line hides.
    --------------------------------------------------------------------------- */
 function svgTimeline(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
   const rows=R.results.filter(r=>r.published_at);
   if(!rows.length)return '';
-  const u2=++FID,W2=680,H2=424;
-  const OX=98,OY=304,TX=384,TY=46,LX=104,LY=-66,HH=182;
+  const u2=++FID,W2=680,H2=430;
+  const OX=100,OY=308,TX=378,TY=48,LX=108,LY=-70,HH=184;
   const P=(a,b,h)=>[OX+a*TX+b*LX, OY+a*TY+b*LY-h*HH];
   const pt=(a,b,h)=>{const q=P(a,b,h);return q[0].toFixed(1)+','+q[1].toFixed(1);};
-  const quad=(c,o,...ps)=>'<polygon points="'+ps.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+c+'"'+(o||'')+'/>';
+  const face=(fill,stroke,pts)=>'<polygon points="'+pts.map(q=>pt(q[0],q[1],q[2])).join(' ')+'" fill="'+fill+
+    '"'+(stroke?' stroke="'+stroke+'" stroke-width="0.7" stroke-linejoin="round"':'')+'/>';
 
   const lanes=[];rows.forEach(r=>{const k=r.source||'unknown';if(lanes.indexOf(k)<0)lanes.push(k);});
   const NL=lanes.length, lv=i=>NL===1?0.5:(i+0.5)/NL;
   const ts=rows.map(r=>Date.parse(r.published_at)).filter(t=>!isNaN(t));
   const tMin=Math.min(...ts),tMax=Math.max(...ts),span=Math.max(1,tMax-tMin);
+  const aOf=t=>0.03+0.94*(t-tMin)/span;
   const DAY=86400000;
 
   let s2=svgO(W2,H2)+fDefs(u2);
@@ -5153,65 +5127,70 @@ function svgTimeline(){
     ['ARCHIVES',NL,C.calc],['LAST 90 d',y90,y90?C.ev:C.dim],
     ['NEWEST',new Date(tMax).toISOString().slice(0,7),C.ev]],318);
 
-  const EDGE=' stroke="rgba(26,52,84,.28)" stroke-width="0.9"';
-  s2+=quad('rgba(26,52,84,.038)',EDGE,[0,1,0],[1,1,0],[1,1,1],[0,1,1]);
-  s2+=quad('rgba(26,52,84,.020)',EDGE,[0,0,0],[0,1,0],[0,1,1],[0,0,1]);
-  s2+=quad('rgba(26,52,84,.048)',EDGE,[0,0,0],[1,0,0],[1,1,0],[0,1,0]);
+  s2+='<defs>'+
+    '<linearGradient id="wb'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a3454" stop-opacity=".015"/><stop offset="1" stop-color="#1a3454" stop-opacity=".075"/></linearGradient>'+
+    '<linearGradient id="wl'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a3454" stop-opacity=".008"/><stop offset="1" stop-color="#1a3454" stop-opacity=".05"/></linearGradient>'+
+    '<linearGradient id="fl'+u2+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1a3454" stop-opacity=".07"/><stop offset="1" stop-color="#1a3454" stop-opacity=".028"/></linearGradient>'+
+    '<linearGradient id="rb0'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a6a90" stop-opacity=".34"/><stop offset="1" stop-color="#0a6a90" stop-opacity=".14"/></linearGradient>'+
+    '<linearGradient id="rb1'+u2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a34a8" stop-opacity=".32"/><stop offset="1" stop-color="#5a34a8" stop-opacity=".13"/></linearGradient>'+
+    '</defs>';
+  s2+=face('url(#wb'+u2+')',null,[[0,1,0],[1,1,0],[1,1,1],[0,1,1]]);
+  s2+=face('url(#wl'+u2+')',null,[[0,0,0],[0,1,0],[0,1,1],[0,0,1]]);
+  s2+=face('url(#fl'+u2+')',null,[[0,0,0],[1,0,0],[1,1,0],[0,1,0]]);
 
-  /* time ruling on the floor */
-  for(let k=0;k<=4;k++){const a=k/4;
-    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,.11)" stroke-width="0.8"/>';
+  for(let k=0;k<=16;k++){const a=k/16;
+    s2+='<line x1="'+P(a,0,0)[0]+'" y1="'+P(a,0,0)[1]+'" x2="'+P(a,1,0)[0]+'" y2="'+P(a,1,0)[1]+'" stroke="rgba(26,52,84,'+(k%4?'.045':'.11')+')" stroke-width="'+(k%4?0.6:0.85)+'"/>';
+    if(k%4)continue;
     s2+='<text x="'+P(a,0,0)[0]+'" y="'+(P(a,0,0)[1]+16)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+new Date(tMin+a*span).toISOString().slice(0,7)+'</text>';}
   s2+='<text x="'+P(0.5,0,0)[0]+'" y="'+(P(0.5,0,0)[1]+31)+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">SUBMISSION DATE</text>';
 
-  /* the height axis is a count, so it gets integer ticks */
   const maxN=Math.max(...lanes.map(k=>rows.filter(r=>(r.source||'unknown')===k).length));
-  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>';
-  for(let g=0;g<=1.0001;g+=0.5){const q=P(0,0,g);
-    s2+='<line x1="'+(q[0]-4)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1"/>'+
-        sM(q[0]-8,q[1]+3,Math.round(g*maxN),'end',7.6,C.dim,650,'0');}
-  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-36)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-36)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RECORDS ARRIVED</text>';
+  s2+='<line x1="'+P(0,0,0)[0]+'" y1="'+P(0,0,0)[1]+'" x2="'+P(0,0,1)[0]+'" y2="'+P(0,0,1)[1]+'" stroke="'+C.ink2+'" stroke-width="1.3"/>';
+  for(let g=0;g<=1.0001;g+=0.25){const q=P(0,0,g);
+    s2+='<line x1="'+(q[0]-5)+'" y1="'+q[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.ink2+'" stroke-width="1.1"/>'+
+        sM(q[0]-9,q[1]+3,Math.round(g*maxN),'end',7.6,C.dim,650,'0');}
+  s2+='<text transform="rotate(-90 '+(P(0,0,0.5)[0]-38)+' '+P(0,0,0.5)[1]+')" x="'+(P(0,0,0.5)[0]-38)+'" y="'+P(0,0,0.5)[1]+'" text-anchor="middle" font-size="7.4" fill="'+C.dim+'" font-weight="800" letter-spacing=".16em" font-family="ui-monospace,Menlo,monospace">RECORDS ARRIVED</text>';
 
-  /* one cumulative surface per archive, back lane first */
+  const RW2=Math.min(0.34,0.78/NL);
+  const PAL=[['#3aa8cd','#0a6a90','#07536f'],['#8f6ee0','#5a34a8','#452782']];
   const order=lanes.map((k,i)=>({k:k,i:i,b:lv(i)})).sort((x,y)=>y.b-x.b);
   order.forEach(L=>{
     const sub=rows.filter(r=>(r.source||'unknown')===L.k)
       .sort((a,b)=>Date.parse(a.published_at)-Date.parse(b.published_at));
     if(!sub.length)return;
-    const col=L.i%2?C.hyp:C.ev;
-    let path='',fill='M '+pt(0,L.b,0)+' ';
+    const pal=PAL[L.i%2], b0=L.b-RW2/2, b1=L.b+RW2/2;
+    const dep=(1-0.26*L.b).toFixed(3);
+    s2+='<g opacity="'+dep+'">';
+    /* the staircase: a riser and a tread per record, extruded across the ribbon */
+    let prevA=0, prevH=0, front='M '+pt(0,b0,0)+' ';
     sub.forEach((r,j)=>{
-      const a=(Date.parse(r.published_at)-tMin)/span, h=(j+1)/maxN;
-      const prev=j?(j)/maxN:0;
-      path+=(j?'L':'M')+pt(a,L.b,prev)+' L '+pt(a,L.b,h)+' ';
-      fill+='L '+pt(a,L.b,prev)+' L '+pt(a,L.b,h)+' ';
+      const a=aOf(Date.parse(r.published_at)), h=(j+1)/maxN;
+      s2+=face(pal[1],null,[[prevA,b0,prevH],[a,b0,prevH],[a,b1,prevH],[prevA,b1,prevH]]); /* tread */
+      s2+=face(pal[0],null,[[a,b0,prevH],[a,b0,h],[a,b1,h],[a,b1,prevH]]);                  /* riser */
+      front+='L '+pt(a,b0,prevH)+' L '+pt(a,b0,h)+' ';
+      prevA=a;prevH=h;
     });
-    const aEnd=(Date.parse(sub[sub.length-1].published_at)-tMin)/span;
-    path+='L '+pt(1,L.b,sub.length/maxN)+' ';
-    fill+='L '+pt(1,L.b,sub.length/maxN)+' L '+pt(1,L.b,0)+' Z';
-    s2+='<path d="'+fill+'" fill="'+(L.i%2?'rgba(90,52,168,.10)':'rgba(10,106,144,.10)')+'"/>';
-    s2+='<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round"/>';
+    s2+=face(pal[1],null,[[prevA,b0,prevH],[1,b0,prevH],[1,b1,prevH],[prevA,b1,prevH]]);
+    front+='L '+pt(1,b0,prevH)+' L '+pt(1,b0,0)+' Z';
+    s2+='<path d="'+front+'" fill="url(#rb'+(L.i%2)+u2+')" stroke="'+pal[1]+'" stroke-width="1.2" stroke-linejoin="round"/>';
+    /* material records get a column standing on the terrain */
     sub.forEach((r,j)=>{
-      const a=(Date.parse(r.published_at)-tMin)/span, q=P(a,L.b,(j+1)/maxN), base=P(a,L.b,0);
-      s2+='<ellipse cx="'+base[0].toFixed(1)+'" cy="'+base[1].toFixed(1)+'" rx="'+(r.material?5.4:3.4)+'" ry="'+(r.material?2.2:1.4)+'" fill="rgba(46,38,26,'+(r.material?0.18:0.09)+')"/>';
-      if(r.material){
-        s2+='<line x1="'+base[0]+'" y1="'+base[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.asm+'" stroke-width="1.8"/>'+
-            '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.6" fill="rgba(180,86,10,.22)" stroke="'+C.asm+'" stroke-width="1.8"/>'+
-            sM(q[0],q[1]-11,'MATERIAL','middle',7,C.asm,800,'.07em');
-      } else {
-        s2+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="2.4" fill="rgba(255,253,249,.95)" stroke="'+col+'" stroke-width="1.1"/>';
-      }
+      if(!r.material)return;
+      const a=aOf(Date.parse(r.published_at)), h=(j+1)/maxN, q=P(a,L.b,h+0.16), base=P(a,L.b,h);
+      s2+='<line x1="'+base[0]+'" y1="'+base[1]+'" x2="'+q[0]+'" y2="'+q[1]+'" stroke="'+C.asm+'" stroke-width="2"/>'+
+          '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.8" fill="rgba(224,138,36,.35)" stroke="'+C.asm+'" stroke-width="1.9"/>'+
+          sM(q[0],q[1]-10,'MATERIAL','middle',7,C.asm,800,'.07em');
     });
-    const e=P(1,L.b,sub.length/maxN);
-    s2+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+(e[0]+9)+'" y2="'+e[1]+'" stroke="rgba(26,52,84,.3)" stroke-width="0.8"/>'+
-        sM(e[0]+13,e[1]+2.8,L.k.toUpperCase()+'  '+sub.length+' RECORDS','start',7.6,col,780,'.07em');
+    s2+='</g>';
+    const e=P(1,L.b,prevH);
+    s2+='<line x1="'+e[0]+'" y1="'+e[1]+'" x2="'+(e[0]+9)+'" y2="'+e[1]+'" stroke="rgba(26,52,84,.32)" stroke-width="0.9"/>'+
+        sM(e[0]+13,e[1]+2.8,L.k.toUpperCase()+'  '+sub.length+' RECORDS','start',7.6,pal[1],780,'.07em');
   });
-  s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-12,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+  s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-15,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
 
-  /* what the terrain says */
   const half=tMin+span/2, recent=ts.filter(t=>t>=half).length;
   const lead=lanes.map(k=>[k,rows.filter(r=>(r.source||'unknown')===k).length]).sort((a,b)=>b[1]-a[1])[0];
-  s2+=sM(54,H2-46,'EACH SURFACE IS ONE ARCHIVE. STEEPER MEANS THE QUESTION WAS WORKED HARDER IN THAT WINDOW.','start',8.2,C.dim,720,'.04em');
+  s2+=sM(54,H2-46,'EACH RIBBON IS ONE ARCHIVE. A TALL RISER IS A RECORD; A LONG TREAD IS SILENCE.','start',8.2,C.dim,720,'.04em');
   s2+=sM(54,H2-27,lead?(lead[0].toUpperCase()+' CARRIES '+lead[1]+' OF '+rows.length+' RECORDS - IT IS DRIVING THIS QUESTION'+(NL>1?', NOT THE OTHER ARCHIVE'+(NL>2?'S':''):'')+'.'):'','start',8.2,C.ink2,760,'.04em');
   s2+=sM(54,H2-8,Math.round(recent/rows.length*100)+'% OF THE CORPUS LANDED IN THE MORE RECENT HALF OF ITS OWN SPAN.','start',8.2,C.calc,760,'.04em');
   return s2+'</svg>';
