@@ -87,6 +87,10 @@ canvas{display:block}
   border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
   font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
 #planBtn b{font-family:var(--m);font-weight:700;color:var(--hyp);margin-left:6px}
+#qBtn{position:absolute;top:14px;right:400px;pointer-events:auto;background:none;
+  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
+  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#qBtn b{font-family:var(--m);font-weight:700;color:var(--ev);margin-left:6px}
 
 /* live model vitals — always present: the model never sleeps */
 #vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
@@ -473,6 +477,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <button id="cmdHint">Command<b>/</b></button>
   <button id="liveBtn">DATA<b>SIM</b></button>
   <button id="planBtn">PLAN<b>RESEARCHER</b></button>
+  <button id="qBtn">QUESTION<b>SGRA</b></button>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -537,6 +542,41 @@ const S={
   spoken:0, yaw:0, zoom:1, briefSeen:false, mod:{shift:false,alt:false}, claimCollapsed:false, reasonMap:false,
   counters:{rec:18420, fam:1247, mat:4, raw:2143208}, relTh:1, budgetDays:null
 };
+const QUESTIONS=[
+{id:'sgra',name:'Sgr A* polarisation drift',object:'Sgr A* · Galactic Centre black hole',
+ field:'black-hole accretion',hero:'blackhole',
+ q:{sym:'EVPA',name:'polarisation angle',unit:'°',lo:-16,hi:48,per:'epoch',band:'permitted sector'},
+ bandLo:14,bandHi:42,bandCtl:'heating prior',
+ series:Array.from({length:9},(_,i)=>41*i/8+Math.sin(i*2.3)*1.6),
+ errs:Array.from({length:9},(_,i)=>4.4+i*0.28),
+ feedq:'("Sgr A*" OR "Sagittarius A*") AND (polarization OR "rotation measure" OR GRMHD)',
+ tracked:['EVPA drift at 230 GHz','Faraday screen stability','electron heating R_high','fractional polarisation m_L']},
+{id:'exo',name:'K2-18b methane-CO2 disequilibrium',object:'K2-18 b · habitable-zone sub-Neptune',
+ field:'exoplanet atmospheres',hero:'transit',
+ q:{sym:'depth',name:'transit depth excess',unit:' ppm',lo:-20,hi:120,per:'band',band:'photochemical envelope'},
+ bandLo:22,bandHi:88,bandCtl:'mixing-ratio prior',
+ series:[8,14,26,38,57,71,84,96,104],
+ errs:[9,9.5,10,11,12,13,14,15,17],
+ feedq:'"K2-18" AND (atmosphere OR JWST OR methane OR dimethyl)',
+ tracked:['CH4 abundance','CO2 abundance','DMS candidate feature at 3.4 um','interior/ocean scenario priors']},
+{id:'gw',name:'GW ringdown overtone consistency',object:'GW231109 · binary black-hole merger',
+ field:'gravitational-wave tests of GR',hero:'strain',
+ q:{sym:'δf',name:'ringdown frequency deviation',unit:'%',lo:-4,hi:16,per:'segment',band:'GR-consistent band'},
+ bandLo:3,bandHi:11,bandCtl:'calibration prior',
+ series:[0.4,0.9,1.8,2.9,4.4,6.1,8.0,9.6,11.4],
+ errs:[1.2,1.25,1.3,1.4,1.5,1.6,1.7,1.85,2.0],
+ feedq:'(ringdown OR quasinormal) AND ("black hole" OR merger) AND (LIGO OR Virgo OR KAGRA)',
+ tracked:['fundamental QNM frequency','first overtone amplitude','remnant mass and spin','calibration systematics']},
+{id:'dm',name:'Sub-GeV dark matter exclusion tension',object:'Xenon/He target · direct detection',
+ field:'dark matter direct detection',hero:'exclusion',
+ q:{sym:'σ_SI',name:'cross-section excess',unit:'e-45',lo:-1,hi:9,per:'bin',band:'background envelope'},
+ bandLo:2,bandHi:6,bandCtl:'background model prior',
+ series:[0.2,0.5,0.9,1.5,2.4,3.4,4.6,5.7,6.8],
+ errs:[0.7,0.72,0.75,0.8,0.85,0.9,1.0,1.1,1.25],
+ feedq:'("dark matter" AND ("direct detection" OR WIMP) AND (xenon OR "sub-GeV"))',
+ tracked:['spin-independent cross-section limit','neutrino fog proximity','background model','light-mass threshold']}
+];
+let QQ=QUESTIONS[0];
 const HYPS=[
  {id:'heating',n:'Electron heating extended',full:'Underestimated electron-heating range',s:0,
   d:'Heating partition reaches R ≳ 8 near βi ≈ 1; the emission region migrates outward, producing the drift intrinsically.',
@@ -586,9 +626,9 @@ function covIf(screenVariable){
           clamp((0.22+0.36*f-0.02*h+(g('mag')?0.17:0))*(g('alma')?0.5:1),0.05,0.95)];
 }
 const ranked=()=>[...HYPS].sort((a,b)=>b.s-a.s);
-const sectorW=()=>Math.round(lerp(14,42,S.asm.heating));
+const sectorW=()=>Math.round(lerp(QQ.bandLo,QQ.bandHi,S.asm.heating));
 const containN=()=>{const w=sectorW();return EP_VAL.filter(v=>v<=w).length;};
-const EP_VAL=Array.from({length:9},(_,i)=>41*i/8+Math.sin(i*2.3)*1.6);
+let EP_VAL=QQ.series.slice();
 
 const DATASETS=[
  {id:'alma',n:'ALMA 9-epoch trajectory',p:'ev',rep:true,role:'essential — the claim loses its subject',
@@ -972,7 +1012,7 @@ function minirows(arr){return '<div class="mini">'+arr.map((r,i)=>'<div class="m
 function hint(t,dark){const h=$('#hint');if(!t){h.classList.remove('on');return;}
   h.textContent=t;h.classList.toggle('dark',!!dark);h.classList.add('on');}
 /* ------- vitals: the model is always alive ------- */
-const EP_ERR=Array.from({length:9},(_,i)=>4.4+i*0.28);
+let EP_ERR=QQ.errs.slice();
 let SNAP={};
 function iflash(key,val){const sv=String(val);const ch=SNAP[key]!==undefined&&SNAP[key]!==sv;SNAP[key]=sv;return ch?' flash':'';}
 function ir2(key,k,v){return '<div class="ir'+iflash(key,v)+'"><span class="k">'+k+'</span><span>'+v+'</span></div>';}
@@ -1716,7 +1756,8 @@ MODES_IMPL.model={
    hint('DRAG ROTATE · SCROLL ZOOM · SHIFT = LAB COUNTERFACTUAL · ALT = UNCERTAINTY · EVERY LAYER IS A MEASUREMENT OR A PREDICTION',true);
  },
  draw(){
-   if(!GL.on)txt('WebGL unavailable — physical render disabled',stageW()/2,SH/2,12,C.dim);
+   if(QQ.hero!=='blackhole'){HERO[QQ.hero]&&HERO[QQ.hero]();return;}
+   if(!GL.on)txt('WebGL unavailable - physical render disabled',stageW()/2,SH/2,12,C.dim);
    const cx=stageW()/2,cy=SH/2,scale=SH/2/(16.4/(2.15*GL.zoom));
    const L=this.layers,t=World.t,W=sectorW();
    if(L.pol&&GL.on){
@@ -1834,6 +1875,99 @@ MODES_IMPL.model={
    }
  },
  click(){}, drop(){}
+};
+const HERO={
+ transit(){
+   const cx=stageW()/2,cy=SH*0.42,W2=Math.min(760,stageW()*0.62),H2=170;
+   const x0=cx-W2/2,y0=cy+H2/2;
+   ctx.strokeStyle='rgba(150,200,240,.25)';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+W2,y0);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0-H2);ctx.stroke();
+   const depth=H2*(0.30+0.45*S.asm.heating);
+   ctx.strokeStyle=C.ev;ctx.lineWidth=2;ctx.beginPath();
+   for(let i=0;i<=120;i++){const q=i/120,x=x0+q*W2;
+     const inTr=q>0.34&&q<0.66;
+     const edge=inTr?Math.min(1,Math.min(q-0.34,0.66-q)/0.045):0;
+     const y=y0-H2*0.72+depth*edge;
+     i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+   ctx.stroke();
+   mono('TRANSIT LIGHT CURVE - DEPTH '+(1200+S.asm.heating*900).toFixed(0)+' ppm - JWST NIRSpec',x0,y0+18,8,C.ev,'left');
+   const bw=W2/EP_VAL.length;
+   EP_VAL.forEach((v,i)=>{
+     const bh=v/QQ.q.hi*110, bx=x0+i*bw+bw*0.2, inb=v<=sectorW();
+     ctx.fillStyle=inb?'rgba(46,200,245,.28)':'rgba(176,138,245,.32)';
+     ctx.strokeStyle=inb?C.ev:C.hyp;ctx.lineWidth=1.2;
+     ctx.fillRect(bx,cy+H2/2+58-bh,bw*0.6,bh);ctx.strokeRect(bx,cy+H2/2+58-bh,bw*0.6,bh);
+     mono(v.toFixed(0),bx+bw*0.3,cy+H2/2+70,6.4,inb?C.ev:C.hyp);
+   });
+   ctx.strokeStyle=C.calc;ctx.setLineDash([5,4]);ctx.lineWidth=1.2;
+   const by=cy+H2/2+58-sectorW()/QQ.q.hi*110;
+   ctx.beginPath();ctx.moveTo(x0,by);ctx.lineTo(x0+W2,by);ctx.stroke();ctx.setLineDash([]);
+   mono('PHOTOCHEMICAL ENVELOPE <= '+sectorW()+' ppm',x0+4,by-6,7.5,C.calc,'left');
+   mono('TRANSMISSION EXCESS PER BAND - 1.4-5.2 um - '+containN()+'/9 INSIDE ENVELOPE',cx,cy+H2/2+92,8.5,containN()===9?C.ok:C.hyp);
+   txt(QQ.object,cx,SH*0.14,12,C.ink,'center',700);
+ },
+ strain(){
+   const cx=stageW()/2,cy=SH*0.40,W2=Math.min(780,stageW()*0.64);
+   const x0=cx-W2/2;
+   ctx.strokeStyle='rgba(150,200,240,.2)';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x0,cy);ctx.lineTo(x0+W2,cy);ctx.stroke();
+   ctx.strokeStyle=C.ev;ctx.lineWidth=1.6;ctx.beginPath();
+   for(let i=0;i<=400;i++){
+     const q=i/400,x=x0+q*W2;
+     let amp,fr;
+     if(q<0.62){amp=16+70*Math.pow(q/0.62,3);fr=8+58*Math.pow(q/0.62,2.4);}
+     else{const d=(q-0.62)/0.38;amp=86*Math.exp(-d*5.2);fr=66;}
+     const y=cy-Math.sin(q*fr*2.2)*amp;
+     i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+   }
+   ctx.stroke();
+   ctx.strokeStyle='rgba(176,138,245,.55)';ctx.setLineDash([3,4]);ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x0+W2*0.62,cy-110);ctx.lineTo(x0+W2*0.62,cy+110);ctx.stroke();ctx.setLineDash([]);
+   mono('MERGER',x0+W2*0.62+5,cy-114,7.5,C.hyp,'left');
+   mono('RINGDOWN WINDOW - OVERTONE FIT',x0+W2*0.72,cy+124,8,C.hyp,'left');
+   mono('STRAIN h(t) - WHITENED - 3 DETECTORS COHERENT',x0,cy-128,8.5,C.ev,'left');
+   EP_VAL.forEach((v,i)=>{
+     const y=cy+150+i*11, w=v/QQ.q.hi*220, inb=v<=sectorW();
+     ctx.strokeStyle=inb?C.ev:C.hyp;ctx.lineWidth=3;
+     ctx.beginPath();ctx.moveTo(cx-130,y);ctx.lineTo(cx-130+w,y);ctx.stroke();
+   });
+   mono('DEVIATION PER SEGMENT vs GR-CONSISTENT BAND <= '+sectorW()+'% - '+containN()+'/9 CONSISTENT',cx,cy+262,8.5,containN()===9?C.ok:C.hyp);
+   txt(QQ.object,cx,SH*0.13,12,C.ink,'center',700);
+ },
+ exclusion(){
+   const cx=stageW()/2,cy=SH*0.46,W2=Math.min(700,stageW()*0.58),H2=250;
+   const x0=cx-W2/2,y0=cy+H2/2;
+   ctx.strokeStyle='rgba(150,200,240,.25)';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+W2,y0);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0-H2);ctx.stroke();
+   mono('MASS m_chi (GeV) ->',x0+W2,y0+20,7.5,C.dim,'right');
+   mono('CROSS-SECTION',x0-8,y0-H2-6,7.5,C.dim,'right');
+   ctx.fillStyle='rgba(232,161,58,.08)';
+   ctx.beginPath();ctx.moveTo(x0,y0);
+   for(let i=0;i<=60;i++){const q=i/60;ctx.lineTo(x0+q*W2,y0-30-40*Math.exp(-q*3.2));}
+   ctx.lineTo(x0+W2,y0);ctx.closePath();ctx.fill();
+   mono('NEUTRINO FOG - IRREDUCIBLE',x0+W2*0.42,y0-20,7,C.asm,'left');
+   ctx.strokeStyle=C.ev;ctx.lineWidth=2;ctx.beginPath();
+   for(let i=0;i<=80;i++){const q=i/80;
+     const y=y0-H2*0.82+H2*0.46*Math.exp(-Math.pow((q-0.16)/0.14,2))-H2*0.18*q;
+     i?ctx.lineTo(x0+q*W2,y):ctx.moveTo(x0+q*W2,y);}
+   ctx.stroke();
+   mono('90% CL EXCLUSION - THIS EXPOSURE',x0+6,y0-H2*0.86,7.5,C.ev,'left');
+   EP_VAL.forEach((v,i)=>{
+     const q=0.12+i*0.085,x=x0+q*W2,y=y0-v/QQ.q.hi*H2*0.8,inb=v<=sectorW();
+     ctx.strokeStyle=inb?C.ev:C.hyp;ctx.lineWidth=1.4;
+     const e=EP_ERR[i]/QQ.q.hi*H2*0.8;
+     ctx.beginPath();ctx.moveTo(x,y-e);ctx.lineTo(x,y+e);ctx.stroke();
+     ctx.fillStyle='#0b1a2c';ctx.beginPath();ctx.arc(x,y,3.2,0,TAU);ctx.fill();ctx.stroke();
+   });
+   ctx.strokeStyle=C.calc;ctx.setLineDash([5,4]);ctx.lineWidth=1.2;
+   const by=y0-sectorW()/QQ.q.hi*H2*0.8;
+   ctx.beginPath();ctx.moveTo(x0,by);ctx.lineTo(x0+W2,by);ctx.stroke();ctx.setLineDash([]);
+   mono('BACKGROUND ENVELOPE <= '+sectorW(),x0+4,by-6,7.5,C.calc,'left');
+   mono(containN()+'/9 BINS INSIDE THE BACKGROUND MODEL'+(containN()<9?' - EXCESS AT BIN '+(EP_VAL.findIndex(v=>v>sectorW())+1):''),cx,y0+42,8.5,containN()===9?C.ok:C.hyp);
+   txt(QQ.object,cx,SH*0.13,12,C.ink,'center',700);
+ }
 };
 /* ============================ ANALYZE ============================ */
 MODES_IMPL.analyze={
@@ -2402,7 +2536,7 @@ function nav(mode){
   tipEl.style.opacity=0;
   S.mode=mode;
   clearMode();inspect(null);
-  glSet(mode==='model');
+  glSet(mode==='model'&&QQ.hero==='blackhole');
   $('#brief').classList.remove('on');
   MODES_IMPL[mode].build();
   renderDoc();
@@ -2947,7 +3081,7 @@ const SUBDEFS={
   const base={build:B.build.bind(B),draw:B.draw.bind(B),click:(B.click||function(){}).bind(B),drop:(B.drop||function(){}).bind(B),dragMove:B.dragMove?B.dragMove.bind(B):null};
   B.build=function(){
     const sub=S.sub[m],eng=ENG[m+':'+sub];
-    if(m==='model')glSet(sub==='default');
+    if(m==='model')glSet(sub==='default'&&QQ.hero==='blackhole');
     if(eng)eng.build();else base.build();
   };
   B.draw=function(dt){const eng=ENG[m+':'+S.sub[m]];if(eng)eng.draw(dt);else base.draw(dt);};
@@ -2983,6 +3117,7 @@ act=function(a){
   }
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
+  if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','questions');return;}
   if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
     postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
   if(p[0]==='budget'){S.budget=p[1];S.budgetDays=null;renderIntel();return;}
@@ -3142,21 +3277,23 @@ function svgEVPA(){
   const u=++FID,W2=680,H2=402,mL=52,mT=40,pW=W2-mL-24,mainH=208;
   const resTop=mT+mainH+36,resH=62;
   const Wd=sectorW(),alt=S.mod.alt?1.6:1,cn=containN();
-  const X=i=>mL+i/8*pW, Y=v=>mT+mainH-(v+16)/64*mainH;
+  const QLO=QQ.q.lo,QHI=QQ.q.hi,QSP=QHI-QLO;
+  const X=i=>mL+i/8*pW, Y=v=>mT+mainH-(v-QLO)/QSP*mainH;
   const exI=EP_VAL.findIndex(v=>v>Wd);
   const res9=Math.max(0,EP_VAL[8]-Wd),sg9=res9/(EP_ERR[8]*alt);
   let s2=svgO(W2,H2)+fDefs(u);
-  s2=roHead(s2,'EVPA vs PREDICTION',[
-    ['SECTOR','±'+Wd+'°',C.calc],['CONTAIN',cn+'/9',cn===9?C.ok:C.hyp],
-    ['EXIT',exI>0?'EP '+(exI+1):'—',C.hyp],['RESID@9',res9.toFixed(0)+'°',C.hyp],
+  s2=roHead(s2,QQ.q.sym.toUpperCase()+' vs PREDICTION',[
+    ['BAND','<='+Wd+QQ.q.unit,C.calc],['CONTAIN',cn+'/9',cn===9?C.ok:C.hyp],
+    ['EXIT',exI>0?'#'+(exI+1):'-',C.hyp],['RESID@9',res9.toFixed(0)+QQ.q.unit,C.hyp],
     ['SIGNIF',res9<=0?'—':sg9.toFixed(1)+'σ',sg9>3?C.bad:C.calc]],286);
-  for(let g=-10;g<=50;g+=10)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.06)');
+  const gstep=Math.max(1,Math.round(QSP/6));
+  for(let g=Math.ceil(QLO/gstep)*gstep;g<=QHI;g+=gstep)s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.06)');
   s2+='<rect x="'+mL+'" y="'+Y(Wd)+'" width="'+pW+'" height="'+(Y(-Wd)-Y(Wd))+'" fill="url(#bandv'+u+')"/>';
   s2+='<g filter="url(#gw'+u+')">'+sL(mL,Y(Wd),mL+pW,Y(Wd),C.calc,1.3)+sL(mL,Y(-Wd),mL+pW,Y(-Wd),C.calc,1.3)+'</g>';
   s2+='<g data-bh="1" style="cursor:ns-resize"><rect x="'+(mL+pW-62)+'" y="'+(Y(Wd)-10)+'" width="62" height="20" rx="3" fill="rgba(46,200,245,.07)" stroke="rgba(46,200,245,.6)" stroke-width="1"/>'+
       sM(mL+pW-31,Y(Wd)+3,'◆ DRAG','middle',6.4,C.ev,800,'.12em')+'</g>';
-  s2+=sM(mL+6,Y(Wd)+14,'PERMITTED ±'+Wd+'° · UNION OF 1,120 RETAINED TRAJECTORIES — DRAG THE BOUNDARY TO ACTUATE THE HEATING PRIOR','start',6.2,C.calc,800,'.1em');
-  if(Wd<41)s2+=sL(mL,Y(42),mL+pW,Y(42),C.hyp,1.2,'6 4')+sM(mL+pW-4,Y(42)-6,'LAB-INFORMED ±42° PREVIEW','end',6.2,C.hyp,800,'.1em');
+  s2+=sM(mL+6,Y(Wd)+14,QQ.q.band.toUpperCase()+' <= '+Wd+QQ.q.unit+' - DRAG THE BOUNDARY TO ACTUATE THE '+QQ.bandCtl.toUpperCase(),'start',6.2,C.calc,800,'.1em');
+  if(Wd<QQ.bandHi-1)s2+=sL(mL,Y(QQ.bandHi),mL+pW,Y(QQ.bandHi),C.hyp,1.2,'6 4')+sM(mL+pW-4,Y(QQ.bandHi)-6,'WIDENED PRIOR '+QQ.bandHi+QQ.q.unit+' PREVIEW','end',6.2,C.hyp,800,'.1em');
   if(exI>0){
     const cx=X(exI);
     s2+=sL(cx,mT+8,cx,mT+mainH,C.hyp,1,'3 4');
@@ -3167,12 +3304,12 @@ function svgEVPA(){
   if(res9>0){
     const bx=X(8)-16,by1=Y(Wd),by2=Y(EP_VAL[8]),bmy=(by1+by2)/2;
     s2+=sL(bx,by1,bx,by2,C.hyp,1)+sL(bx-4,by1,bx+4,by1,C.hyp,1)+sL(bx-4,by2,bx+4,by2,C.hyp,1)+
-     '<text x="'+(bx-7)+'" y="'+bmy+'" transform="rotate(-90 '+(bx-7)+' '+bmy+')" text-anchor="middle" font-size="6.2" fill="'+C.hyp+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".06em">'+res9.toFixed(1)+'° BEYOND</text>';
+     '<text x="'+(bx-7)+'" y="'+bmy+'" transform="rotate(-90 '+(bx-7)+' '+bmy+')" text-anchor="middle" font-size="6.2" fill="'+C.hyp+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".06em">'+res9.toFixed(1)+QQ.q.unit+' BEYOND</text>';
   }
   const sl=(EP_VAL[8]-EP_VAL[0])/8;
   const ang=Math.atan2(Y(EP_VAL[4])-Y(EP_VAL[2]),X(4)-X(2))*180/Math.PI;
   const axx=X(5)+12,ayy=Y(EP_VAL[5])-14;
-  s2+='<text x="'+axx+'" y="'+ayy+'" transform="rotate('+ang.toFixed(1)+' '+axx+' '+ayy+')" font-size="6.2" fill="'+C.ev+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">DRIFT +'+sl.toFixed(1)+'°/EPOCH · +'+(sl/11).toFixed(2)+'°/DAY · MONOTONIC 9/9</text>';
+  s2+='<text x="'+axx+'" y="'+ayy+'" transform="rotate('+ang.toFixed(1)+' '+axx+' '+ayy+')" font-size="6.2" fill="'+C.ev+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">TREND +'+sl.toFixed(1)+QQ.q.unit+'/'+QQ.q.per.toUpperCase()+' MONOTONIC 9/9</text>';
   let path='';EP_VAL.forEach((v,i)=>{path+=(i?'L':'M')+X(i)+' '+Y(v)+' ';});
   s2+='<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="2.6" opacity=".26" filter="url(#gs'+u+')"'+drawon(1500,'1.4s')+'></path>'+
       '<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="1.1" opacity=".78"'+drawon(1500,'1.4s')+'></path>';
@@ -3180,8 +3317,8 @@ function svgEVPA(){
     s2+='<g data-hl="ep:'+i+'">'+sL(px,Y(v-e),px,Y(v+e),C.ev,1.2)+sL(px-3,Y(v-e),px+3,Y(v-e),C.ev,1.2)+sL(px-3,Y(v+e),px+3,Y(v+e),C.ev,1.2)+
      '<circle cx="'+px+'" cy="'+Y(v)+'" r="3" fill="#fff" stroke="'+(out?C.hyp:C.ev)+'" stroke-width="1.8"'+(out?' filter="url(#gw'+u+')"':'')+'/></g>';});
   s2+=sL(mL,mT+mainH,mL+pW,mT+mainH,C.ink2,1.1)+sL(mL,mT+8,mL,mT+mainH,C.ink2,1.1);
-  [-10,0,20,40].forEach(g=>s2+=sM(mL-8,Y(g)+3,g+'°','end',6.8,C.dim,600,'0'));
-  EP_VAL.forEach((v,i)=>s2+=sM(X(i),mT+mainH+12,'S-'+String(88-i*11).padStart(3,'0'),'middle',5.6,C.dim,600,'0'));
+  for(let g=Math.ceil(QLO/gstep)*gstep;g<=QHI;g+=gstep)s2+=sM(mL-8,Y(g)+3,g+QQ.q.unit,'end',6.8,C.dim,600,'0');
+  EP_VAL.forEach((v,i)=>s2+=sM(X(i),mT+mainH+12,QQ.q.per.slice(0,2).toUpperCase()+' '+(i+1),'middle',5.6,C.dim,600,'0'));
   s2+=sM(mL,resTop-6,'RESIDUAL BEYOND BOUNDARY · σ PER EPOCH','start',6.2,C.dim,800,'.14em');
   s2+=sL(mL,resTop+resH,mL+pW,resTop+resH,'rgba(150,200,240,.35)',1);
   EP_VAL.forEach((v,i)=>{const r=Math.max(0,v-Wd),px=X(i);
@@ -3189,7 +3326,7 @@ function svgEVPA(){
     const bh=Math.min(resH-8,r/30*resH),sg=r/(EP_ERR[i]*alt);
     s2+='<g data-hl="ep:'+i+'"><rect x="'+(px-7)+'" y="'+(resTop+resH-bh)+'" width="14" height="'+bh+'" rx="2" fill="rgba(176,138,245,.26)" stroke="rgba(176,138,245,.55)" stroke-width="1"/>'+
         sM(px,resTop+resH-bh-4,sg.toFixed(1)+'σ','middle',6.2,C.hyp,750,'0')+'</g>';});
-  s2+=sM(mL,H2-8,'ALMA BAND-6 · 2 PIPELINES AGREE · ERRORS '+(S.mod.alt?'×1.6 STRESSED (ALT)':'PROPAGATED 1σ')+' · THE BREACH IS BOUNDARY-SHAPED, NOT NOISE-SHAPED','start',6,C.dim,650,'.08em');
+  s2+=sM(mL,H2-8,QQ.object.toUpperCase()+' - ERRORS '+(S.mod.alt?'x1.6 STRESSED (ALT)':'PROPAGATED 1 SIGMA')+' - THE BREACH IS BOUNDARY-SHAPED, NOT NOISE-SHAPED','start',6,C.dim,650,'.08em');
   return s2+'</svg>';
 }
 function svgLit(){
@@ -3446,27 +3583,30 @@ const LIVEBIND={
  claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
    (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
  modelstats:()=>{const W=sectorW(),cn=containN();
-   return 'Under the current prior the permitted sector is <b>±'+W+'°</b> and containment is <b>'+cn+' / 9 epochs</b>'+
+   return 'Under the current prior the '+QQ.q.band+' is <b>&lt;= '+W+QQ.q.unit+'</b> and containment is <b>'+cn+' / 9 '+QQ.q.per+'s</b>'+
    (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
+ qbroken:()=>QN().broken,
+ qbody:()=>QN().body,
+ qfigh:()=>QN().figH,
+ qfigp:()=>QN().figP,
+ questions:()=>questionsHTML(),
  plans:()=>plansHTML(),
  econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
  claimline:()=>'STRUCTURE: LOADED '+S.attached.size+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED — SUBJECT DETACHED</b>':'')+' · WEAKEST STRUT: laboratory mapping (unreplicated)',
  sysref:()=>{const W=sectorW(),cn=containN(),pk=(lerp(2.05,3.15,S.asm.heating)*2).toFixed(1);
    return '<table class="dtable"><tr><th>Parameter</th><th>Value</th><th>Provenance</th></tr>'+
-   [['Spin a/M','0.94 prograde','EHT ring morphology — measured'],
-    ['Inclination i','24°','photon-ring asymmetry — pinned'],
-    ['Emission peak','r ≈ '+pk+' r_g','recomputes with the heating prior'],
-    ['Permitted sector','±'+W+'°','union of 1,120 retained trajectories'],
-    ['Containment','<b>'+cn+' / 9</b>',cn===9?'<b style="color:'+C.ok+'">restored (preview)</b>':'exits at epoch '+(EP_VAL.findIndex(v=>v>W)+1)+' — never re-enters'],
-    ['Ensemble re-run',S.asm.heating>0.5?'<b style="color:'+C.ok+'">3/3 queued</b>':'0/3 queued','11 d · zero telescope hours']]
+   QN().params.concat([
+    ['Permitted band','<= '+W+QQ.q.unit,QQ.q.band],
+    ['Containment','<b>'+cn+' / 9</b>',cn===9?'<b style="color:'+C.ok+'">restored (preview)</b>':'exits at '+QQ.q.per+' '+(EP_VAL.findIndex(v=>v>W)+1)+' — never re-enters'],
+    ['Ensemble re-run',S.asm.heating>0.5?'<b style="color:'+C.ok+'">3/3 queued</b>':'0/3 queued','11 d · zero telescope hours']])
    .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>';},
  epochs:()=>{const W=sectorW(),alt=S.mod.alt?1.6:1;
-   return '<table class="dtable"><tr><th>#</th><th>Session</th><th>EVPA</th><th>σ</th><th>Residual</th><th></th></tr>'+
+   return '<table class="dtable"><tr><th>#</th><th>'+QQ.q.per+'</th><th>'+QQ.q.sym+'</th><th>sigma</th><th>Residual</th><th></th></tr>'+
     EP_VAL.map((v,i)=>{const res=Math.max(0,v-W);
-     return '<tr data-x="ep:'+i+'"><td>'+(i+1)+'</td><td>S-'+String(88-i*11).padStart(3,'0')+'</td><td><b>'+v.toFixed(1)+'°</b></td><td>±'+(EP_ERR[i]*alt).toFixed(1)+'°</td>'+
+     return '<tr data-x="ep:'+i+'"><td>'+(i+1)+'</td><td>'+QQ.q.per+' '+(i+1)+'</td><td><b>'+v.toFixed(1)+QQ.q.unit+'</b></td><td>±'+(EP_ERR[i]*alt).toFixed(1)+'°</td>'+
       '<td'+(res>0?' style="color:'+C.hyp+';font-weight:700"':'')+'>'+(res>0?res.toFixed(1)+'°':'—')+'</td>'+
       '<td>'+(v<=W?'<span style="color:'+C.ok+'">in</span>':'<b style="color:'+C.hyp+'">out</b>')+'</td></tr>';}).join('')+'</table>';},
  varch:()=>{const W=sectorW();
@@ -3552,6 +3692,9 @@ function stationsFor(mode){
      EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.res+'</span></td><td><button class="abtn sm" data-act="evc:'+i+'">chain</button></td></tr>').join('')+'</table>'+
      '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'+
      '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
+   {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
+    html:'<h2>The mechanism is not about black holes.</h2>'+
+     '<div data-lv="questions">'+questionsHTML()+'</div>'},
    {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
     html:'<h2>Three tiers, priced from measured cost.</h2>'+
      '<div data-lv="plans">'+plansHTML()+'</div>'+
@@ -3575,13 +3718,13 @@ function stationsFor(mode){
   if(mode==='model')return [
    {id:'system',label:'Physical system',sub:'render · containment gauge',vis:'live',vsize:'l',
     cap:'<b>Live instrument.</b> The breathing band is the permitted sector; ticks are the nine epochs; violet exits. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.<span class="capline" data-lv="modelstats">'+LIVEBIND.modelstats()+'</span>',
-    html:'<h2>One boundary of the physical model is broken — and the break is assumption-shaped.</h2>'+
+    html:'<h2 data-lv="qbroken">'+LIVEBIND.qbroken()+'</h2>'+
      '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
-     '<p>The permitted sector is the union of 1,120 retained trajectories (MAD, a/M = 0.94, i = 20–30°). Its width is set almost entirely by the S-277 heating convention. Stretch the prior in the figure — containment, ranking, claim and every number here recompute.</p>'+
+     '<p data-lv="qbody">'+LIVEBIND.qbody()+'</p>'+
      '<div data-lv="sysref">'+LIVEBIND.sysref()+'</div>'},
    {id:'evpa',label:'Evidence vs prediction',sub:'the primary figure',vis:'evpa',
-    html:'<h2>Nine measured epochs against the permitted sector.</h2>'+
-     '<p>Cyan: measured EVPA with propagated 1σ errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior — its width, the exit epoch and the ±42° preview update live with the slider on the system station.</p>'+
+    html:'<h2 data-lv="qfigh">'+LIVEBIND.qfigh()+'</h2>'+
+     '<p data-lv="qfigp">'+LIVEBIND.qfigp()+'</p>'+
      '<div data-lv="epochs">'+LIVEBIND.epochs()+'</div>'+
      '<p>Hold <b>ALT</b> to inflate the errors to the calibration-doubled counterfactual: the trajectory still exits at 3.1σ. The breach is a property of the boundary, not the measurement.</p>'},
    {id:'graph',label:'Causal structure',sub:'what feeds what',vis:'dep',
@@ -3943,6 +4086,7 @@ function setLive(on){
 document.addEventListener('click',e=>{
   if(e.target.closest('#liveBtn'))setLive(!LIVE.on);
   if(e.target.closest('#planBtn'))jumpStation('watch','plans');
+  if(e.target.closest('#qBtn'))jumpStation('watch','questions');
 });
 LIVEBIND.livefeed=()=>{
   if(!LIVE.recs.length)return '<p style="color:var(--dim)">'+(LIVE.err
@@ -4024,6 +4168,58 @@ function unitEconHTML(){
    '<p style="font-size:11.4px">Costs are measured, not estimated: <b>$'+COST.perRecord.toFixed(4)+'</b> per record through the relevance gate (Haiku, ~400 in / 150 out tokens), <b>'+COST.recordsPerWatch+'</b> deduplicated records per watched question per month, <b>$'+COST.deepEach.toFixed(3)+'</b> per deep extraction, Stripe at 2.9 % + $0.30. Supabase is a fixed $25/mo project shared across all users — amortized here at $0.25.</p>'+
    '<p style="font-size:11.4px"><b>Break-even:</b> the $25 Supabase floor is covered by <b>1 RESEARCHER</b> subscriber. Every subscriber after that contributes roughly <b>$25</b> (Researcher) or <b>$105</b> (Laboratory) of gross profit per month. 20 Researchers + 3 Labs ≈ <b>$967/mo</b> revenue at ~<b>85 %</b> margin.</p>'+
    '<p style="font-size:11.4px"><b>Why these numbers hold:</b> every tier has a hard record ceiling, so a heavy user cannot outrun their price — the gate simply queues once the monthly ceiling is hit.</p>';
+}
+const QNARR={
+ sgra:{broken:'One boundary of the physical model is broken - and the break is assumption-shaped.',
+  body:'The permitted sector is the union of 1,120 retained GRMHD trajectories (MAD, a/M = 0.94, i = 20-30 deg). Its width is set almost entirely by the inherited S-277 heating convention. Stretch the prior on the figure - containment, ranking, claim and every number here recompute.',
+  figH:'Nine measured epochs against the permitted sector.',
+  figP:'Cyan: measured EVPA with propagated 1 sigma errors, reproduced in two independent pipelines. Shaded: the prediction interval under the current prior - its width, the exit epoch and the widened-prior preview update live as you drag the boundary.',
+  params:[['Spin a/M','0.94 prograde','EHT ring morphology - measured'],
+   ['Inclination i','24 deg','photon-ring asymmetry - pinned'],
+   ['Emission peak','r = 4.1 r_g','recomputes with the heating prior']]},
+ exo:{broken:'The measured transmission excess leaves the photochemical envelope - and the envelope is prior-shaped.',
+  body:'The envelope is the union of 640 retained photochemical models (metallicity 10-100x solar, Kzz 10^6-10^9). Its ceiling is set almost entirely by the assumed CH4/CO2 mixing-ratio prior. Stretch that prior on the figure and the disequilibrium claim recomputes.',
+  figH:'Nine spectral bands against the photochemical envelope.',
+  figP:'Cyan: measured transmission excess per band with propagated 1 sigma errors from two independent reduction pipelines. Shaded: the envelope permitted by equilibrium chemistry - bands above it require an active source.',
+  params:[['Host star','M2.5V, 0.36 Msun','Gaia DR3 - measured'],
+   ['Equilibrium T','265 K','insolation + albedo prior'],
+   ['CH4/CO2 ratio','driven by the prior','recomputes with the envelope']]},
+ gw:{broken:'The ringdown spectrum leaves the GR-consistent band - and the band is calibration-shaped.',
+  body:'The band is the union of 2,048 GR ringdown templates for the inferred remnant (M = 63 Msun, chi = 0.69). Its width is dominated by the detector calibration prior, not by the strain noise. Stretch it on the figure and the no-hair test recomputes.',
+  figH:'Nine ringdown segments against the GR-consistent band.',
+  figP:'Cyan: fractional frequency deviation per segment with propagated 1 sigma errors, coherent across three detectors. Shaded: the deviation permitted by GR for this remnant - segments above it are a no-hair violation or a calibration failure.',
+  params:[['Remnant mass','63 Msun','inspiral-merger fit - measured'],
+   ['Remnant spin','chi = 0.69','ringdown + inspiral consistent'],
+   ['Overtone amplitude','driven by the prior','recomputes with the band']]},
+ dm:{broken:'The event excess leaves the background envelope - and the envelope is model-shaped.',
+  body:'The envelope is the union of 380 background realisations (radiogenic neutrons, Rn-222 daughters, solar neutrinos). Its ceiling is dominated by the assumed background model, not by exposure. Stretch it on the figure and the detection claim recomputes.',
+  figH:'Nine mass bins against the background envelope.',
+  figP:'Cyan: measured cross-section excess per mass bin with propagated 1 sigma errors from two independent likelihood pipelines. Shaded: the excess permitted by the background model - bins above it are either signal or an unmodelled background.',
+  params:[['Exposure','1.2 tonne-year','livetime - measured'],
+   ['Threshold','0.6 keV nr','calibration campaign - pinned'],
+   ['Neutrino fog','0.4 dex below','irreducible floor']]}
+};
+const QN=()=>QNARR[QQ.id]||QNARR.sgra;
+function setQuestion(id){
+  const q=QUESTIONS.find(x=>x.id===id);if(!q)return;
+  QQ=q;
+  EP_VAL=q.series.slice();EP_ERR=q.errs.slice();
+  S.asm.heating=0;S.mod={shift:false,alt:false};S.budgetDays=null;
+  consistency();
+  const b=$('#qBtn');if(b)b.innerHTML='QUESTION<b>'+q.id.toUpperCase()+'</b>';
+  if(S.phase==='live'){nav(S.mode);renderIntel();}
+  postEvent('question switched - '+q.name+' - instruments re-derived','hot');
+}
+function questionsHTML(){
+  return '<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Hero instrument</th><th></th></tr>'+
+   QUESTIONS.map(q=>'<tr'+(q.id===QQ.id?' style="background:rgba(46,200,245,.05)"':'')+'>'+
+    '<td><b>'+q.name+'</b><br><span style="font-size:10px;color:var(--dim)">'+q.object+'</span></td>'+
+    '<td>'+q.field+'</td>'+
+    '<td>'+q.q.sym+' - '+q.q.name+'</td>'+
+    '<td>'+q.hero+'</td>'+
+    '<td>'+(q.id===QQ.id?'<b style="color:'+C.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+'</td></tr>').join('')+'</table>'+
+   '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and hero instrument. Nothing about the machine is specific to black holes - switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
+   '<p style="font-size:11.4px"><b>Watching this question live:</b> the ingest worker polls <code style="color:var(--ev)">'+QQ.feedq+'</code> and scores every record against: '+QQ.tracked.join(' · ')+'.</p>';
 }
 /* ------- boot ------- */
 const CSEQ=[
