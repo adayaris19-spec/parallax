@@ -179,8 +179,13 @@ canvas{display:block}
 #speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:11.5px;color:var(--ink)}
 #speakIn::placeholder{color:#6d89a2}
 #speak .skey{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+/* the bar does two different jobs and must say which one Enter will do */
+#barMode{flex:none;background:none;border:0;border-bottom:1.5px solid var(--asm);border-radius:0;cursor:pointer;
+  font-family:var(--m);font-size:8px;letter-spacing:.16em;font-weight:800;color:var(--asm);padding:1px 3px 2px}
+#barMode[data-mode="reason"]{border-bottom-color:var(--hyp);color:var(--hyp)}
 #speak .sq{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.echo{background:none;border:0;border-left:3px solid var(--clm);padding:4px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);animation:fi .4s both}
+.echo{background:rgba(252,250,246,.97);border:0;border-left:3px solid var(--clm);padding:7px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);
+  box-shadow:0 6px 18px -8px rgba(60,48,32,.30);animation:fi .4s both}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .echo .eq{font-style:italic;color:var(--ink);font-weight:520}
 .echo .ev2{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
@@ -416,6 +421,22 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #brief .stats{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 #brief .bacts{display:flex;gap:6px;margin-top:11px}
 
+/* plan & billing - a control-surface overlay, never a research station */
+#plansOv{position:fixed;inset:0;z-index:62;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(244,242,237,.82);backdrop-filter:blur(10px)}
+#plansOv.on{display:flex}
+#plansBox{margin-top:7vh;width:min(920px,92vw);max-height:84vh;overflow-y:auto;scrollbar-width:none;
+  background:rgba(255,254,251,.96);border:1px solid var(--line);border-radius:4px;padding:22px 26px 26px;
+  box-shadow:0 30px 70px -24px rgba(60,48,32,.30)}
+#plansBox::-webkit-scrollbar{display:none}
+#plansBox .lbl{font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);font-weight:800}
+#plansBox h2{margin:8px 0 12px;font-weight:420;font-size:19.5px;line-height:1.45;color:#14263a;
+  padding-left:11px;border-left:2px solid var(--asm)}
+#plansBox h2.sub2{font-size:15px;margin-top:20px}
+#plansX{position:sticky;top:0;float:right;background:none;border:0;cursor:pointer;font-family:var(--m);
+  font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:800}
+#plansX:hover{color:var(--ink)}
+
 /* command aperture */
 #ap{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;
   background:rgba(246,242,235,.72);backdrop-filter:blur(12px)}
@@ -488,7 +509,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b46</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b47</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -502,13 +523,23 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
     <div class="sq" id="speakEcho"></div>
     <div class="srow">
       <span class="sind"><i></i></span>
-      <input id="speakIn" placeholder="Ask or think aloud — “which model family fits best?”" autocomplete="off" spellcheck="false">
+      <button id="barMode" data-mode="research" title="Enter opens a watch and researches it">RESEARCH</button>
+      <input id="speakIn" placeholder="Search any question — “is dark matter self-interacting?”" autocomplete="off" spellcheck="false">
       <span class="skey">↵</span>
     </div>
     <div id="speakLive"></div>
   </div>
   <div id="tip"></div>
 </div>
+
+<div id="plansOv"><div id="plansBox">
+  <button id="plansX">close</button>
+  <div class="lbl">Plan &amp; billing</div>
+  <h2>Three tiers, priced from measured cost.</h2>
+  <div data-lv="plans"></div>
+  <h2 class="sub2">Unit economics — per user, per month</h2>
+  <div data-lv="econ"></div>
+</div></div>
 
 <div id="ap">
   <div id="apBox">
@@ -2533,6 +2564,7 @@ function nav(mode){
   if(S.phase!=='live')return;
   tipEl.style.opacity=0;
   S.mode=mode;
+  try{setBarMode(mode==='reason'?'reason':'research');}catch(e){}
   clearMode();inspect(null);
   glSet(mode==='model'&&heroOf()==='blackhole');
   $('#brief').classList.remove('on');
@@ -2647,6 +2679,16 @@ apIn.addEventListener('keydown',e=>{
 apSug.addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&b.dataset.i!==undefined){closeAp();CMDS[+b.dataset.i][2]();}});
 ap.addEventListener('click',e=>{if(e.target===ap)closeAp();});
 $('#cmdHint').addEventListener('click',openAp);
+function openPlans(){
+  const o=$('#plansOv');if(!o)return;
+  o.querySelector('[data-lv="plans"]').innerHTML=plansHTML();
+  o.querySelector('[data-lv="econ"]').innerHTML=unitEconHTML();
+  o.classList.add('on');
+}
+function closePlans(){const o=$('#plansOv');if(o)o.classList.remove('on');}
+$('#planBtn').addEventListener('click',openPlans);
+$('#plansOv').addEventListener('click',e=>{if(e.target.id==='plansOv'||e.target.id==='plansX')closePlans();});
+addEventListener('keydown',e=>{if(e.key==='Escape')closePlans();});
 addEventListener('keydown',e=>{
   if(ap.classList.contains('on')){if(e.key==='Escape')closeAp();return;}
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;
@@ -3142,6 +3184,7 @@ act=function(a){
     if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];saveState();
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
   if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
+   const ov=$('#plansOv');if(ov&&ov.classList.contains('on')){ov.querySelector('[data-lv="plans"]').innerHTML=plansHTML();ov.querySelector('[data-lv="econ"]').innerHTML=unitEconHTML();}
     postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
   if(p[0]==='budget'){S.budget=p[1];S.budgetDays=null;renderIntel();return;}
   _act(a);
@@ -3193,12 +3236,40 @@ function analyzeThought(text){
   return v;
 }
 const speakIn=$('#speakIn'),speakEcho=$('#speakEcho');
+/* ---------------------------------------------------------------------------
+   The bar at the bottom-left is the only text field on the screen, so it is
+   where everyone types their next question. It used to only feed the reasoning
+   verifier, which meant a typed topic was analysed as a sentence and never
+   researched - and the previous watch stayed on screen, looking like the answer.
+   It now defaults to RESEARCH and says so, and the toggle switches it to the
+   reasoning chamber deliberately rather than by accident.
+   --------------------------------------------------------------------------- */
+const barModeBtn=$('#barMode');
+function barMode(){return barModeBtn?barModeBtn.dataset.mode:'research';}
+function setBarMode(m){
+  if(!barModeBtn)return;
+  barModeBtn.dataset.mode=m;
+  barModeBtn.textContent=m==='research'?'RESEARCH':'REASON';
+  barModeBtn.title=m==='research'
+    ?'Enter opens a watch on what you type and researches it against arXiv and NASA ADS'
+    :'Enter sends what you type to the reasoning verifier instead of researching it';
+  speakIn.placeholder=m==='research'
+    ?'Search any question — “is dark matter self-interacting?”'
+    :'Think out loud — “I am assuming the screen is static”';
+  const lv=$('#speakLive');if(lv)lv.innerHTML='';
+}
+if(barModeBtn)barModeBtn.addEventListener('click',()=>setBarMode(barMode()==='research'?'reason':'research'));
 speakIn.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   const text=speakIn.value.trim();
   if(!text||S.phase!=='live')return;
   speakIn.value='';
   $('#speakLive').innerHTML='';
+  if(barMode()==='research'){
+    if(text.length<4){postEvent('too short to open a watch','warn');return;}
+    addQuestion(text);
+    return;
+  }
   if(runQuery(text))return;
   const v=analyzeThought(text);
   const card=document.createElement('div');
@@ -3241,6 +3312,10 @@ speakIn.addEventListener('input',()=>{
   if(txt.length<10){live.innerHTML='';return;}
   speakT=setTimeout(()=>{
     const tq=txt.toLowerCase();
+    if(barMode()==='research'){
+      live.innerHTML=chip('asm','↵ OPENS A WATCH')+chip('calc','arXiv + NASA ADS, scored on submit');
+      return;
+    }
     const q=QUERIES.find(q2=>q2.k.test(tq));
     if(q||/^(search|find|which|what|cross)/.test(tq)){
       live.innerHTML=chip('clm','QUERY')+chip('calc',(q?q.label:'corpus search')+' — ↵ computes');
@@ -3727,11 +3802,7 @@ function stationsFor(mode){
      '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'open, switch or drop a watch',vis:null,
     html:'<h2>Watches</h2>'+'<div data-lv="questions">'+questionsHTML()+'</div>'},
-   {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
-    html:'<h2>Three tiers, priced from measured cost.</h2>'+
-     '<div data-lv="plans">'+plansHTML()+'</div>'+
-     '<h2 style="font-size:15px;margin-top:16px">Unit economics — per user, per month</h2>'+
-     '<div data-lv="econ">'+unitEconHTML()+'</div>'}];
+   ];
   if(mode==='watch')return [
    ...(typeof LIVE!=='undefined'&&LIVE.on?[{id:'live',label:'Live perimeter',sub:'Supabase link · real feeds',vis:null,
     html:'<h2>The perimeter is reading the real literature.</h2>'+
@@ -3767,11 +3838,6 @@ function stationsFor(mode){
    {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
     html:'<h2>The mechanism is not about black holes.</h2>'+
      '<div data-lv="questions">'+questionsHTML()+'</div>'},
-   {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
-    html:'<h2>Three tiers, priced from measured cost.</h2>'+
-     '<div data-lv="plans">'+plansHTML()+'</div>'+
-     '<h2 style="font-size:15px;margin-top:16px">Unit economics — per user, per month</h2>'+
-     '<div data-lv="econ">'+unitEconHTML()+'</div>'},
    {id:'perimeter',label:'Source perimeter',sub:S.counters.fam.toLocaleString('en-US')+' feeds tracked',vis:null,
     html:'<h2>PARALLAX reads '+S.counters.fam.toLocaleString('en-US')+' feeds so that you read four findings.</h2>'+
      '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>'+
@@ -4575,6 +4641,7 @@ function loadState(){
     const act=d.active&&QUESTIONS.find(x=>x.id===d.active);
     QQ=act||QUESTIONS[0]||EMPTYQ;
     if(QQ&&QQ.series){EP_VAL=QQ.series.slice();EP_ERR=QQ.errs?QQ.errs.slice():[];}
+    try{renderWatchBtn();}catch(e){}
     return true;
   }catch(e){return false;}
 }
@@ -4583,13 +4650,26 @@ function addQuestion(text){
   const q=synthQuestion(text);
   if(!q){postEvent('question too short to open a watch','warn');return;}
   const dup=QUESTIONS.find(x=>x.id===q.id);
-  if(dup){setQuestion(dup.id);return;}
+  if(dup){
+    setQuestion(dup.id);
+    jumpStation('watch','research');
+    const prev=resultsOf(dup.id);
+    if(!prev||prev.state!=='done'||!prev.results||!prev.results.length){researchQuestion(dup);}
+    else{setBanner('good','<b>ALREADY WATCHING</b> - "'+dup.name+'" - showing the '+prev.results.length+
+      ' records it returned. Use <b>Re-run research</b> to sweep it again.');setTimeout(()=>setBanner(null),8000);}
+    return;
+  }
   QUESTIONS.push(q);
   saveState();
+  try{renderWatchBtn();}catch(e){}
   postEvent('watch opened - '+q.name+' - '+(q.matched?'domain recognised: '+q.field:'generic profile'),'hot');
   setQuestion(q.id);
   jumpStation('watch','research');
   researchQuestion(q);
+}
+function renderWatchBtn(){
+  const b=$('#qBtn');if(!b)return;
+  b.innerHTML='WATCH<b>'+(noWatch()?'NONE':String(QQ.short||QQ.id).toUpperCase())+'</b>';
 }
 function setQuestion(id){
   const q=(id===EMPTYQ.id)?EMPTYQ:QUESTIONS.find(x=>x.id===id);if(!q)return;
@@ -4597,7 +4677,7 @@ function setQuestion(id){
   EP_VAL=q.series?q.series.slice():[];EP_ERR=q.errs?q.errs.slice():[];
   S.asm.heating=0;S.mod={shift:false,alt:false};S.budgetDays=null;
   consistency();
-  const b=$('#qBtn');if(b)b.innerHTML='WATCH<b>'+(q.short||q.id).toUpperCase()+'</b>';
+  renderWatchBtn();
   saveState();
   if(S.phase==='live'){nav(S.mode);renderIntel();}
   postEvent('question switched - '+q.name+' - instruments re-derived','hot');
@@ -4803,7 +4883,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b46'],
+    ['Build running','b47'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
