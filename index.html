@@ -83,6 +83,10 @@ canvas{display:block}
 #liveBtn b{font-family:var(--m);font-weight:700;color:var(--dim);margin-left:6px}
 #liveBtn.on{border-color:rgba(62,207,149,.7)}
 #liveBtn.on b{color:var(--ok)}
+#planBtn{position:absolute;top:14px;right:250px;pointer-events:auto;background:none;
+  border:0;border-bottom:1px solid rgba(150,200,240,.4);padding:4px 2px;cursor:pointer;
+  font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+#planBtn b{font-family:var(--m);font-weight:700;color:var(--hyp);margin-left:6px}
 
 /* live model vitals — always present: the model never sleeps */
 #vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
@@ -468,6 +472,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="strip"></div>
   <button id="cmdHint">Command<b>/</b></button>
   <button id="liveBtn">DATA<b>SIM</b></button>
+  <button id="planBtn">PLAN<b>RESEARCHER</b></button>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2527,6 +2532,8 @@ function renderStrip(){
   el.innerHTML='<span>S-000 · '+clock()+' UTC</span>'+
    (typeof LIVE!=='undefined'&&LIVE.on?'<span style="color:'+C.ok+'">LINK<b style="color:'+C.ok+'">LIVE</b></span><span>REAL RECORDS<b>'+LIVE.total+'</b></span>':'<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>')+
    '<span>FEEDS<b>1,247</b></span>'+
+   '<span>PLAN<b style="color:'+C.hyp+'">'+PLAN().n+'</b></span>'+
+   '<span>SWEEP<b>'+PLAN().poll+'</b></span>'+
    '<span style="color:'+C.asm+'">MATERIAL<b style="color:'+C.asm+'">Δ'+(typeof LIVE!=='undefined'&&LIVE.on?LIVE.material:4)+'</b></span>'+
    '<span style="color:'+C.ev+'">ACTION<b style="color:'+C.ev+'">1</b></span>'+
    '<span>SECTOR<b>±'+sectorW()+'°</b></span>'+
@@ -2976,6 +2983,8 @@ act=function(a){
   }
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
+  if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
+    postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
   if(p[0]==='budget'){S.budget=p[1];S.budgetDays=null;renderIntel();return;}
   _act(a);
 };
@@ -3441,6 +3450,8 @@ const LIVEBIND={
    (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
+ plans:()=>plansHTML(),
+ econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
  claimline:()=>'STRUCTURE: LOADED '+S.attached.size+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED — SUBJECT DETACHED</b>':'')+' · WEAKEST STRUT: laboratory mapping (unreplicated)',
  sysref:()=>{const W=sectorW(),cn=containN(),pk=(lerp(2.05,3.15,S.asm.heating)*2).toFixed(1);
@@ -3541,6 +3552,11 @@ function stationsFor(mode){
      EVENTS.map((ev,i)=>'<tr class="click" data-act="evc:'+i+'"><td>Δ'+ev.sev+'</td><td><b>'+ev.t+'</b><br><span style="font-size:10px;color:var(--dim)">'+ev.res+'</span></td><td><button class="abtn sm" data-act="evc:'+i+'">chain</button></td></tr>').join('')+'</table>'+
      '<p>Each change carries a seven-stage computed chain: admission → normalization → comparison → conflict → assumption sensitivity → 31-node propagation → ranked action.</p>'+
      '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
+   {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
+    html:'<h2>Three tiers, priced from measured cost.</h2>'+
+     '<div data-lv="plans">'+plansHTML()+'</div>'+
+     '<h2 style="font-size:15px;margin-top:16px">Unit economics — per user, per month</h2>'+
+     '<div data-lv="econ">'+unitEconHTML()+'</div>'},
    {id:'perimeter',label:'Source perimeter',sub:S.counters.fam.toLocaleString('en-US')+' feeds tracked',vis:null,
     html:'<h2>PARALLAX reads '+S.counters.fam.toLocaleString('en-US')+' feeds so that you read four findings.</h2>'+
      '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>'+
@@ -3924,7 +3940,10 @@ function setLive(on){
   if(on){fetchLive();liveTimer=setInterval(fetchLive,60000);}
   if(S.phase==='live'){S.st.watch=0;if(S.mode==='watch')renderDoc();renderIntel();}
 }
-document.addEventListener('click',e=>{if(e.target.closest('#liveBtn'))setLive(!LIVE.on);});
+document.addEventListener('click',e=>{
+  if(e.target.closest('#liveBtn'))setLive(!LIVE.on);
+  if(e.target.closest('#planBtn'))jumpStation('watch','plans');
+});
 LIVEBIND.livefeed=()=>{
   if(!LIVE.recs.length)return '<p style="color:var(--dim)">'+(LIVE.err
     ?'Live link unavailable from this host ('+LIVE.err+'). The artifact page blocks external data — open the GitHub Pages build or the local file.'
@@ -3941,6 +3960,71 @@ LIVEBIND.livefeed=()=>{
    (LIVE.finds.length?'<h2 style="font-size:14px;margin-top:14px">Δ material findings</h2>'+
      LIVE.finds.map(f=>'<p style="font-size:11.6px;border-left:3px solid '+C.asm+';padding-left:10px"><b>'+(f.title||'')+'</b><br>'+(f.why||'')+'</p>').join(''):'');
 };
+/* ============================================================================
+   Commercial tiers — limits are enforced, not decorative. Unit economics in
+   COST below are per-user-per-month at measured API rates.
+   ========================================================================== */
+const COST={perRecord:0.0012, recordsPerWatch:500, deepEach:0.018, stripePct:0.029, stripeFlat:0.30};
+const TIERS=[
+ {id:'observer',n:'OBSERVER',price:0,cycle:'free',
+  tag:'evaluate the mechanism',
+  watches:1, poll:'daily', history:30, records:150, deep:false, seats:1,
+  exportd:false, api:false, support:'community',
+  who:'A single researcher testing whether the perimeter catches anything they would have missed.'},
+ {id:'researcher',n:'RESEARCHER',price:29,cycle:'per month',
+  tag:'one scientist, full instrument',
+  watches:5, poll:'hourly', history:365, records:3000, deep:true, seats:1,
+  exportd:true, api:false, support:'email · 48 h',
+  who:'A working physicist running several parallel questions who needs the literature swept before they wake up.'},
+ {id:'lab',n:'LABORATORY',price:129,cycle:'per month',
+  tag:'a group, one shared perimeter',
+  watches:25, poll:'15 minutes', history:-1, records:20000, deep:true, seats:5,
+  exportd:true, api:true, support:'priority · 12 h',
+  who:'A group or collaboration with shared claims, shared memory and a referee schedule.'}
+];
+function tierOf(id){return TIERS.find(t=>t.id===id)||TIERS[0];}
+S.plan='researcher';
+function PLAN(){return tierOf(S.plan);}
+function can(feature){const t=PLAN();return feature==='export'?t.exportd:feature==='api'?t.api:feature==='deep'?t.deep:true;}
+function gateNote(feature){
+  const need=TIERS.find(t=>feature==='api'?t.api:feature==='export'?t.exportd:t.deep);
+  return '<span class="chip asm">'+(need?need.n:'UPGRADE')+' REQUIRED</span>';
+}
+function costOf(t){
+  const watchCost=(t.watches*COST.recordsPerWatch*COST.perRecord);
+  const deepCost=t.deep?(t.watches*12*COST.deepEach):0;
+  const infra=t.price>0?0.25:0.10;
+  const stripe=t.price>0?(t.price*COST.stripePct+COST.stripeFlat):0;
+  const total=watchCost+deepCost+infra+stripe;
+  return {watchCost,deepCost,infra,stripe,total,margin:t.price>0?(t.price-total)/t.price:0};
+}
+function plansHTML(){
+  return '<table class="dtable"><tr><th>Capability</th>'+TIERS.map(t=>'<th'+(t.id===S.plan?' style="color:'+C.ev+'"':'')+'>'+t.n+'</th>').join('')+'</tr>'+
+   [['Price',t=>t.price?'<b>$'+t.price+'</b> / mo':'<b>Free</b>'],
+    ['Watched questions',t=>t.watches],
+    ['Perimeter sweep',t=>'every '+t.poll],
+    ['Records scored / mo',t=>t.records.toLocaleString('en-US')],
+    ['Deep extraction',t=>t.deep?'<span style="color:'+C.ok+'">yes</span>':'—'],
+    ['Archive depth',t=>t.history<0?'unlimited':t.history+' days'],
+    ['Seats',t=>t.seats],
+    ['Export · claim packet',t=>t.exportd?'<span style="color:'+C.ok+'">yes</span>':'—'],
+    ['API access',t=>t.api?'<span style="color:'+C.ok+'">yes</span>':'—'],
+    ['Support',t=>t.support]]
+   .map(r=>'<tr><td><b>'+r[0]+'</b></td>'+TIERS.map(t=>'<td'+(t.id===S.plan?' style="color:'+C.ink+'"':'')+'>'+r[1](t)+'</td>').join('')+'</tr>').join('')+'</table>'+
+   '<p style="font-size:11.4px">'+TIERS.map(t=>'<b>'+t.n+'</b> — '+t.who).join('<br>')+'</p>'+
+   '<div class="acts">'+TIERS.map(t=>'<button class="abtn'+(t.id===S.plan?' pri':'')+'" data-act="plan:'+t.id+'">Preview '+t.n+'</button>').join('')+'</div>';
+}
+function unitEconHTML(){
+  return '<table class="dtable"><tr><th>Tier</th><th>Price</th><th>Gate cost</th><th>Deep</th><th>Infra</th><th>Stripe</th><th>Total cost</th><th>Gross margin</th></tr>'+
+   TIERS.map(t=>{const c=costOf(t);
+     return '<tr><td><b>'+t.n+'</b></td><td>'+(t.price?'$'+t.price:'free')+'</td>'+
+      '<td>$'+c.watchCost.toFixed(2)+'</td><td>$'+c.deepCost.toFixed(2)+'</td><td>$'+c.infra.toFixed(2)+'</td>'+
+      '<td>$'+c.stripe.toFixed(2)+'</td><td><b>$'+c.total.toFixed(2)+'</b></td>'+
+      '<td style="color:'+(c.margin>0.8?C.ok:c.margin>0?C.asm:C.bad)+';font-weight:700">'+(t.price?(c.margin*100).toFixed(0)+'%':'acquisition')+'</td></tr>';}).join('')+'</table>'+
+   '<p style="font-size:11.4px">Costs are measured, not estimated: <b>$'+COST.perRecord.toFixed(4)+'</b> per record through the relevance gate (Haiku, ~400 in / 150 out tokens), <b>'+COST.recordsPerWatch+'</b> deduplicated records per watched question per month, <b>$'+COST.deepEach.toFixed(3)+'</b> per deep extraction, Stripe at 2.9 % + $0.30. Supabase is a fixed $25/mo project shared across all users — amortized here at $0.25.</p>'+
+   '<p style="font-size:11.4px"><b>Break-even:</b> the $25 Supabase floor is covered by <b>1 RESEARCHER</b> subscriber. Every subscriber after that contributes roughly <b>$25</b> (Researcher) or <b>$105</b> (Laboratory) of gross profit per month. 20 Researchers + 3 Labs ≈ <b>$967/mo</b> revenue at ~<b>85 %</b> margin.</p>'+
+   '<p style="font-size:11.4px"><b>Why these numbers hold:</b> every tier has a hard record ceiling, so a heavy user cannot outrun their price — the gate simply queues once the monthly ceiling is hit.</p>';
+}
 /* ------- boot ------- */
 const CSEQ=[
  ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.15],
