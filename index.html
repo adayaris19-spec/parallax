@@ -525,7 +525,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b49</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b50</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -4574,19 +4574,33 @@ function resultsOf(id){return RES.byQ[id]||null;}
    Worker versions before 6 sorted arXiv by submission date on the live search:
    a query that matched little returned "the newest papers in that category"
    instead of nothing, which is why unrelated questions came back looking alike. */
+const RAWTS='https://raw.githubusercontent.com/adayaris19-spec/parallax/main/setup/ingest.ts';
 function workerStaleHTML(){
   const R=resultsOf(QQ&&QQ.id);
+  if(!R||R.state!=='done')return '';
   const v=(R&&Number(R.worker))||RES.workerV||0;
   if(v>=6)return '';
-  if(!R||R.state!=='done')return '';
-  return '<div class="warnbox"><b>Your ingest worker is out of date (reports v'+(v||'&lt;6')+', current is v6).</b> '+
-   'Until it is redeployed, every question is searched with arXiv sorted by <i>submission date</i>, so a query that '+
-   'matches little returns whatever was posted most recently in that corner of the archive - which is why unrelated '+
-   'questions come back looking the same. '+
-   '<br><br><b>Fix, once:</b> open <code>setup/ingest.ts</code> in the repo, copy the whole file, paste it over the '+
-   '<code>ingest</code> function in Supabase (Edge Functions &rarr; ingest &rarr; Code), and Deploy. v6 sorts the live '+
-   'search by relevance, builds the query from terms instead of letting the model write one, always searches your own '+
-   'words as a separate pass, and adds Crossref so coverage is not limited to physics.</div>';
+  /* a return stored before v6 existed cannot report a version - say which case this is
+     rather than accusing the deployment of something the record cannot prove */
+  const unknown=(R.worker===undefined||R.worker===null)&&!RES.workerV;
+  return '<div class="warnbox">'+
+   (unknown
+     ?'<b>This return was stored before the worker version check existed, so PARALLAX cannot tell which code answered it.</b> '+
+      'If it came from a worker older than v6, the search was sorted by <i>submission date</i>: a query that matched little '+
+      'returned whatever was posted most recently in that corner of the archive, which is why unrelated questions came back '+
+      'looking alike. Test the connection below to see what is actually deployed right now.'
+     :'<b>Your ingest worker is out of date - it reports v'+v+', current is v6.</b> '+
+      'Until it is redeployed, the live search sorts arXiv by <i>submission date</i>, so a query that matches little returns '+
+      'whatever was posted most recently in that corner of the archive - which is why unrelated questions come back looking alike.')+
+   '<br><br><b>Fix, once:</b> open <a href="'+RAWTS+'" target="_blank" rel="noopener" style="color:'+TC.ev+'"><code>setup/ingest.ts</code></a>, '+
+   'select all and copy, then paste it over the <code>ingest</code> function in Supabase '+
+   '(Edge Functions &rarr; ingest &rarr; Code) and press Deploy. v6 sorts the live search by relevance, assembles the query '+
+   'from terms instead of letting the model write one, always searches your own words as a separate pass, and adds Crossref '+
+   'so coverage is not limited to physics.'+
+   '<div class="acts" style="margin-top:9px">'+
+   '<button class="abtn pri" data-act="qping">Test what is deployed now</button>'+
+   '<button class="abtn" data-act="qres">Re-run this question</button></div>'+
+   '<div data-lv="ping" style="margin-top:8px">'+(RES.ping?pingHTML():'')+'</div></div>';
 }
 async function pingWorker(){
   postEvent('pinging the ingest worker...','hot');
@@ -4608,6 +4622,8 @@ async function pingWorker(){
     RES.ping={ok:false,err:String(e&&e.message||e),ms:Date.now()-t0};
     postEvent('worker unreachable - '+RES.ping.err,'warn');
   }
+  document.querySelectorAll('[data-lv="ping"]').forEach(el=>{el.innerHTML=pingHTML();});
+  if(S.phase==='live')renderDoc();
   renderIntel();
 }
 function pingHTML(){
@@ -4960,7 +4976,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b49'],
+    ['Build running','b50'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
