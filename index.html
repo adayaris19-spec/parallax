@@ -16,7 +16,7 @@
    violet proposed · graphite claim.
    ============================================================ */
 :root{
-  --ev:#0b7ea8; --calc:#3d5f80; --asm:#c2650c; --hyp:#6a3bc4; --clm:#1b2b3d;
+  --ev:#0a6a90; --calc:#38536f; --asm:#b4560a; --hyp:#5a34a8; --clm:#1b2b3d;
   --ink:#14263a; --ink2:#33506d; --dim:#71889e;
   --line:rgba(26,52,84,.16); --line2:rgba(26,52,84,.30);
   --surf:rgba(255,253,249,.82);
@@ -29,10 +29,10 @@ html,body{height:100%;margin:0;overflow:hidden}
 body{
   font-family:var(--f);color:var(--ink);
   background:
-    radial-gradient(120% 90% at 68% 22%, rgba(255,176,74,.22) 0%, rgba(240,150,60,.09) 38%, rgba(240,150,60,0) 70%),
-    radial-gradient(92% 82% at 8% 96%, rgba(255,150,60,.16) 0%, rgba(255,150,60,0) 62%),
-    radial-gradient(78% 70% at 94% 6%, rgba(60,170,220,.16) 0%, rgba(60,170,220,0) 58%),
-    linear-gradient(168deg,#f7f3ec 0%,#eef0ee 42%,#e6ebf0 100%);
+    radial-gradient(124% 94% at 66% 20%, rgba(255,166,58,.34) 0%, rgba(242,146,48,.15) 40%, rgba(242,146,48,0) 72%),
+    radial-gradient(96% 86% at 6% 98%, rgba(255,138,40,.24) 0%, rgba(255,138,40,0) 64%),
+    radial-gradient(70% 62% at 96% 4%, rgba(48,150,200,.15) 0%, rgba(48,150,200,0) 56%),
+    linear-gradient(168deg,#fbf5e9 0%,#f4efe4 44%,#e9ebea 100%);
   -webkit-font-smoothing:antialiased;user-select:none;
 }
 #grain{position:fixed;inset:0;pointer-events:none;opacity:.30;mix-blend-mode:multiply;
@@ -63,9 +63,9 @@ canvas{display:block}
 .dk .n{font-size:9.5px;letter-spacing:.22em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .dk .d{margin-top:2px;font-size:7.5px;letter-spacing:.06em;color:var(--dim);white-space:nowrap}
 .dk:hover .n{color:var(--ink)}
-.dk.on{border-bottom-color:#2f88c0}
+.dk.on{border-bottom-color:var(--asm)}
 .dk.on .n{color:#0e3a56}.dk.on .d{color:var(--ink2)}
-.dk .badge{display:inline-block;font-family:var(--m);font-size:7px;color:#fff;background:var(--ev);
+.dk .badge{display:inline-block;font-family:var(--m);font-size:7px;color:#fff;background:var(--asm);
   border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:2px}
 #strip{position:absolute;top:52px;left:0;right:0;height:26px;display:flex;gap:26px;align-items:center;justify-content:center;
   font-family:var(--m);font-size:8.4px;letter-spacing:.1em;color:var(--dim);
@@ -209,9 +209,9 @@ details.grp>.gb{padding-top:6px}
 #ststep .mt{font-size:7.4px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
 #ststep .row{display:flex;align-items:center;gap:10px}
 .stpn{background:none;border:0;cursor:pointer;padding:2px;position:relative}
-.stpn i{display:block;width:9px;height:9px;border-radius:50%;border:1.4px solid rgba(150,200,240,.45);background:rgba(20,46,80,.9)}
-.stpn.on i{border-color:var(--ev);background:var(--ev);box-shadow:0 0 10px rgba(46,200,245,.85)}
-.stpn:hover i{border-color:var(--ev)}
+.stpn i{display:block;width:9px;height:9px;border-radius:50%;border:1.4px solid rgba(120,110,95,.42);background:rgba(255,253,249,.55)}
+.stpn.on i{border-color:var(--asm);background:var(--asm);box-shadow:0 0 9px rgba(196,96,12,.55)}
+.stpn:hover i{border-color:var(--asm)}
 #ststep .cur{margin-top:8px}
 #ststep .cur .c1{font-size:13px;font-weight:750;color:#14263a}
 #ststep .cur .c2{font-family:var(--m);font-size:8px;letter-spacing:.08em;color:var(--dim);margin-top:2px;text-transform:uppercase}
@@ -225,39 +225,64 @@ details.grp>.gb{padding-top:6px}
 #svis.full{left:calc(min(560px,39vw) + 44px);right:0;top:34px;bottom:64px}
 #svis.full .vin{display:block;height:100%;max-width:none;transform:none!important}
 
-#svis.full #liveFig{position:absolute;inset:0;height:auto;min-height:0;border-radius:8px;
-  background:radial-gradient(120% 90% at 50% 0%,rgba(30,90,140,.5),rgba(6,18,34,.95) 66%),linear-gradient(180deg,#08182c,#051221);
-  box-shadow:0 0 0 1px rgba(90,200,255,.3),0 0 60px rgba(60,190,255,.24),inset 0 0 90px rgba(40,150,220,.14)}
-#svis.full .fcap{color:#a9cfe8}
-#svis.full .fcap{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;margin:0;max-width:900px;text-align:center;text-shadow:0 1px 10px rgba(0,0,0,.85)}
+/* the full-bleed instrument gets the same treatment: no border, no corners -
+   the volume simply stops being dark as it reaches the room */
+#svis.full #liveFig{position:absolute;inset:0;height:auto;min-height:0;border-radius:0;
+  background:radial-gradient(86% 80% at 46% 32%,rgba(22,62,102,.62) 0%,rgba(7,18,33,.94) 56%,rgba(6,16,30,.97) 100%);
+  box-shadow:none;
+  -webkit-mask-image:
+    linear-gradient(90deg,transparent 0%,#000 10%,#000 95%,rgba(0,0,0,.35) 100%),
+    linear-gradient(180deg,transparent 0%,#000 7%,#000 92%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(90deg,transparent 0%,#000 10%,#000 95%,rgba(0,0,0,.35) 100%),
+    linear-gradient(180deg,transparent 0%,#000 7%,#000 92%,transparent 100%);
+  mask-composite:intersect}
+#svis.full .fcap{color:var(--ink2)}
+#svis.full .fcap{position:absolute;left:50%;transform:translateX(-50%);bottom:2px;margin:0;max-width:900px;text-align:center}
+#svis.full .fcap b{color:var(--ink)}
 .fcap .capline{display:block;margin-top:5px;font-family:var(--m);font-size:9px;letter-spacing:.06em;color:var(--ink2)}
 #svis.full #figCtl{position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;justify-content:center;z-index:3}
 #svis.m{perspective:1150px}
-#svis.m .vin{max-width:660px;margin:0 auto;transform-style:preserve-3d;transform:rotateX(8deg);
-  padding:26px 22px 30px;border-radius:6px;
-  background:
-    radial-gradient(120% 90% at 50% 0%,rgba(30,90,140,.55),rgba(6,18,34,.92) 65%),
-    linear-gradient(180deg,#08182c 0%,#061424 100%);
-  box-shadow:0 0 0 1px rgba(90,200,255,.35),0 0 46px rgba(60,190,255,.30),
-    0 26px 60px -18px rgba(10,30,60,.55),inset 0 0 70px rgba(40,150,220,.16);
+#svis.m .vin{max-width:680px;margin:0 auto;height:auto;align-self:center;
+  transform-style:preserve-3d;transform:rotateX(8deg);
+  padding:34px 34px 30px;border-radius:0;background:none;box-shadow:none;
   transition:transform .16s ease-out;will-change:transform}
+/* The projected volume. Not a panel: a body of light whose edges dissolve into
+   the room. Two crossed linear masks keep the readout fully lit while the
+   overhang fades out on all four sides, so there is no border anywhere. */
+.vglow{position:absolute;inset:-70px -92px -62px;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(46% 34% at 50% 6%,rgba(52,148,204,.26) 0%,rgba(52,148,204,0) 100%),
+    radial-gradient(40% 30% at 50% 100%,rgba(255,146,40,.13) 0%,rgba(255,146,40,0) 100%),
+    linear-gradient(180deg,rgba(10,26,46,.93) 0%,rgba(8,21,38,.965) 34%,rgba(8,20,36,.965) 68%,rgba(9,23,40,.93) 100%);
+  -webkit-mask-image:
+    linear-gradient(90deg,transparent 0%,#000 11%,#000 89%,transparent 100%),
+    linear-gradient(180deg,transparent 0%,#000 12.5%,#000 87.5%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(90deg,transparent 0%,#000 11%,#000 89%,transparent 100%),
+    linear-gradient(180deg,transparent 0%,#000 12.5%,#000 87.5%,transparent 100%);
+  mask-composite:intersect}
+#svis.m .vin>.vglow{position:absolute;inset:-70px -92px -62px;z-index:0}
+#svis.m .vin>[data-lv],#svis.m .vin>.fcap,#svis.m .vin>#liveFig,#svis.m .vin>#figCtl{position:relative;z-index:1}
+#svis.full .vglow{display:none}
 #svis.m .vin>[data-lv]{transform:translateZ(30px)}
 #svis.m .vin .fcap{transform:translateZ(54px);color:#a9cfe8}
 #svis.m .vin .figpop{transform:translateZ(54px)}
-#svis.m .vin:before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:6px;
+#svis.m .vin:before{content:'';position:absolute;inset:-52px -74px -44px;pointer-events:none;z-index:0;
   background:
-   repeating-linear-gradient(90deg,rgba(110,205,255,.11) 0 1px,transparent 1px 34px),
-   repeating-linear-gradient(0deg,rgba(110,205,255,.11) 0 1px,transparent 1px 34px)}
-#svis.m .vin:after{content:'';position:absolute;inset:-3px;pointer-events:none;
-  background:
-   linear-gradient(#5fd3ff,#5fd3ff) left top/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) left top/2px 26px,
-   linear-gradient(#5fd3ff,#5fd3ff) right top/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) right top/2px 26px,
-   linear-gradient(#5fd3ff,#5fd3ff) left bottom/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) left bottom/2px 26px,
-   linear-gradient(#5fd3ff,#5fd3ff) right bottom/26px 2px,linear-gradient(#5fd3ff,#5fd3ff) right bottom/2px 26px;
-  background-repeat:no-repeat;opacity:.65}
+   repeating-linear-gradient(90deg,rgba(96,186,232,.10) 0 1px,transparent 1px 34px),
+   repeating-linear-gradient(0deg,rgba(96,186,232,.10) 0 1px,transparent 1px 34px);
+  -webkit-mask-image:radial-gradient(46% 44% at 50% 46%,#000 0%,rgba(0,0,0,.55) 58%,transparent 96%);
+  mask-image:radial-gradient(46% 44% at 50% 46%,#000 0%,rgba(0,0,0,.55) 58%,transparent 96%)}
+#svis.m .vin:after{content:'';position:absolute;left:16%;right:16%;bottom:-58px;height:74px;pointer-events:none;z-index:0;
+  background:radial-gradient(50% 60% at 50% 22%,rgba(255,150,42,.30) 0%,rgba(255,150,42,0) 78%);
+  filter:blur(16px)}
 #svis.m[data-flat] .vin{transform:none!important}
 #svis.m[data-flat] .vin>[data-lv],#svis.m[data-flat] .vin .fcap,#svis.m[data-flat] .vin .figpop{transform:none}
-#svis.m[data-flat] .vin:before{display:none}
+#svis.m[data-flat] .vin:before,#svis.m[data-flat] .vin:after{display:none}
+#svis.m[data-flat] .vglow{opacity:.5}
 #svis.m #liveFig{flex:none;height:min(48vh,430px)}
 .inlinefig{max-width:560px;margin:8px 0}
 .inlinefig svg{width:100%;height:auto}
@@ -273,9 +298,9 @@ details.grp>.gb{padding-top:6px}
 
 #svis .vin{pointer-events:none}
 #svis .vin .fcap,#svis .vin #figCtl,#svis .vin [data-lv],#svis .vin .figpop{pointer-events:auto}
-#svis #liveFig{flex:1;min-height:320px;border-radius:6px;
-  background:radial-gradient(120% 90% at 50% 0%,rgba(30,90,140,.5),rgba(6,18,34,.94) 66%),linear-gradient(180deg,#08182c,#061424);
-  box-shadow:0 0 0 1px rgba(90,200,255,.32),0 0 46px rgba(60,190,255,.26),inset 0 0 80px rgba(40,150,220,.14)}
+#svis #liveFig{flex:1;min-height:320px;border-radius:0;
+  background:radial-gradient(74% 74% at 50% 40%,rgba(18,52,88,.62) 0%,rgba(8,20,36,.34) 64%,rgba(8,20,36,0) 100%);
+  box-shadow:none}
 #svis .fcap{margin-top:10px;font-size:10.6px;line-height:1.6;color:var(--dim);max-width:820px;align-self:center}
 #svis .fcap b{color:#d8ecfb}
 .stIn{animation:stIn .5s cubic-bezier(.2,.8,.2,1) both}
@@ -311,7 +336,8 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .sec>.sh3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(150,200,240,.25);padding-bottom:6px}
 .sec>.sh3 .st3{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--dim);text-transform:uppercase}
 .sec>.sh3 .sl3{font-family:var(--m);font-size:7px;color:var(--ev);letter-spacing:.1em}
-.sec h2{margin:0 0 6px;font-weight:420;font-size:19.5px;line-height:1.45;color:#14263a}
+.sec h2{margin:0 0 6px;font-weight:420;font-size:19.5px;line-height:1.45;color:#14263a;
+  padding-left:11px;border-left:2px solid var(--asm)}
 .sec p{margin:6px 0;font-size:12.3px;line-height:1.75;color:var(--ink2)}
 .sec p b{color:var(--ink);font-weight:650}
 .sec .fig{border:0;background:none;padding:0;margin:12px 0;position:relative}
@@ -499,7 +525,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b43</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b44</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -552,7 +578,10 @@ const $=s=>document.querySelector(s);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TAU=Math.PI*2;
-const C={ev:'#4fd8ff',calc:'#93bbe0',asm:'#ffb04a',hyp:'#c3a2ff',clm:'#e8f4ff',ok:'#4ee0a6',bad:'#ff8a8a',dim:'#8fb0c8',ink:'#eaf6ff',ink2:'#c9e2f5'};
+const C={ev:'#2fb3e0',calc:'#7ea6cc',asm:'#ff9a2e',hyp:'#a98cf0',clm:'#dceaf7',ok:'#3fd39a',bad:'#ff7a7a',dim:'#7f9db5',ink:'#eaf6ff',ink2:'#c9e2f5'};
+/* TC is the same provenance code read against the bright room, not the dark projection.
+   Text in the document must never be painted with a colour tuned for a hologram. */
+const TC={ev:'#0a6a90',calc:'#38536f',asm:'#b4560a',hyp:'#5a34a8',clm:'#1b2b3d',ok:'#12855a',bad:'#b3382a',dim:'#6d859b',ink:'#14263a',ink2:'#33506d'};
 const chip=(p,l)=>'<span class="chip '+p+'">'+(l||{ev:'measured',calc:'calculated',asm:'assumed',hyp:'proposed',clm:'claim'}[p])+'</span>';
 
 const S={
@@ -1173,7 +1202,7 @@ const PANELS={
    '<div class="acts"><button class="abtn sm" data-act="sub:analyze:pareto">Cost–yield frontier</button></div>'};},
  claim:()=>({title:'Working claim — rewrites live',html:
    ir2('cl.txt','Text','<b>'+claimSentence()+'</b>')+
-   ir2('cl.int','Integrity',S.attached.size+' / 9'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation conditionally':' · unaudited'))+
+   ir2('cl.int','Integrity',S.attached.size+' / 9'+(S.claimCollapsed?' · <b style="color:'+TC.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation conditionally':' · unaudited'))+
    ir2('cl.pr','Predictions','230→345 GHz scaling <i>untested</i> · flare null '+(S.xmatchRun?'<b>obtained</b>':'<i>untested</i>'))+
    '<div class="acts"><button class="abtn sm" data-act="go:claim">Open structure</button><button class="abtn sm" data-act="sub:claim:referee">Referee simulation</button></div>'}),
  data:()=>({title:'Data — '+S.mode,html:dataBlock()}),
@@ -1744,7 +1773,7 @@ function showBrief(){
   S.briefSeen=true;
   $('#brief').innerHTML='<div class="eb">AUTONOMOUS CYCLE COMPLETE · S-000 02:14 UTC</div>'+
    '<h1>The revised ALMA trajectory is no longer contained by the selected model family.</h1>'+
-   '<div class="why">Cause: an <b style="color:'+C.asm+'">inherited heating assumption</b> — not measurement error (breach survives calibration ×2 at 3.1σ).</div>'+
+   '<div class="why">Cause: an <b style="color:'+TC.asm+'">inherited heating assumption</b> — not measurement error (breach survives calibration ×2 at 3.1σ).</div>'+
    '<div class="act">Re-run 3 ensemble members with the laboratory-informed heating range — 64 % of explanation space eliminated at zero telescope cost.</div>'+
    '<div class="stats">'+chip('bad','1 conclusion demoted')+chip('asm','1 branch revived')+chip('calc','3 experiments reordered')+chip('ev','1 archival set decisive')+chip('clm','claim needs revision')+'</div>'+
    '<div class="bacts"><button class="abtn pri" data-act="brief:inspect">Inspect the failure</button><button class="abtn" data-act="brief:close">Dismiss</button></div>';
@@ -2125,7 +2154,7 @@ function inspectDataset(d){
 function inspectRelation(d,h){
   const rel=EVMAT[h.id][d.id];
   inspect('<div class="chips">'+chip(d.p,d.n)+chip('hyp',h.n)+'</div>'+
-   '<div class="rows">'+irow('Relation',rel>0?'<b style="color:'+C.ev+'">SUPPORTS</b> — this structure is inside the configuration’s coverage':rel<0?'<b style="color:'+C.asm+'">CONFLICTS</b> — the configuration cannot contain it':'<b>SILENT</b> — no structural relation')+
+   '<div class="rows">'+irow('Relation',rel>0?'<b style="color:'+TC.ev+'">SUPPORTS</b> — this structure is inside the configuration’s coverage':rel<0?'<b style="color:'+TC.asm+'">CONFLICTS</b> — the configuration cannot contain it':'<b>SILENT</b> — no structural relation')+
    irow('If removed','coverage recomputes live — drag it to the exclude zone to see')+'</div>');
   inspTitle('Evidence × hypothesis test');
 }
@@ -2474,7 +2503,7 @@ function inspectStmt(o){
   inspect('<div class="chips">'+o.tags.map(t=>chip(t[0],t[2])).join('')+'</div>'+
    '<div class="rows">'+irow('Statement','“'+o.sp.s+'”')+
    o.sp.d.map(d=>irow(d[0]==='asm'?'Assumption':d[0]==='ev'?'Evidence':d[0]==='calc'?'Causal link':'Inference',d[1])).join('')+
-   (o.sp.r?irow('Reviewer risk','<b style="color:'+C.bad+'">'+o.sp.r+'</b>'):'')+
+   (o.sp.r?irow('Reviewer risk','<b style="color:'+TC.bad+'">'+o.sp.r+'</b>'):'')+
    (o.sp.w?irow('Better wording',o.sp.w):'')+
    (o.sp.m?irow('Implication / test',o.sp.m):'')+'</div>'+
    (o.i===3?'<details open><summary>Why this is a defect</summary><div class="db">Screen variation and heating error are not exclusive — the model carries both as weighted configurations. Treating them as exclusive discards survivable volume.</div></details>':'')+
@@ -2681,15 +2710,15 @@ function renderStrip(){
   const r=ranked()[0],cn=containN();
   const qLbl=noWatch()?'none':(QQ.short||QQ.id);
   el.innerHTML='<span>S-000 · '+clock()+' UTC</span>'+
-   (typeof LIVE!=='undefined'&&LIVE.on?'<span style="color:'+C.ok+'">LINK<b style="color:'+C.ok+'">LIVE</b></span><span>REAL RECORDS<b>'+LIVE.total+'</b></span>':'<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>')+
+   (typeof LIVE!=='undefined'&&LIVE.on?'<span style="color:'+TC.ok+'">LINK<b style="color:'+TC.ok+'">LIVE</b></span><span>REAL RECORDS<b>'+LIVE.total+'</b></span>':'<span>PERIMETER<b>'+S.counters.raw.toLocaleString('en-US')+'</b></span>')+
    '<span>FEEDS<b>1,247</b></span>'+
-   '<span>PLAN<b style="color:'+C.hyp+'">'+PLAN().n+'</b></span>'+
+   '<span>PLAN<b style="color:'+TC.hyp+'">'+PLAN().n+'</b></span>'+
    '<span>SWEEP<b>'+PLAN().poll+'</b></span>'+
-   '<span style="color:'+C.asm+'">MATERIAL<b style="color:'+C.asm+'">Δ'+(typeof LIVE!=='undefined'&&LIVE.on?LIVE.material:4)+'</b></span>'+
-   '<span style="color:'+C.ev+'">ACTION<b style="color:'+C.ev+'">1</b></span>'+
+   '<span style="color:'+TC.asm+'">MATERIAL<b style="color:'+TC.asm+'">Δ'+(typeof LIVE!=='undefined'&&LIVE.on?LIVE.material:4)+'</b></span>'+
+   '<span style="color:'+TC.ev+'">ACTION<b style="color:'+TC.ev+'">1</b></span>'+
    (hasSeries()?'<span>BAND<b>&lt;='+sectorW()+QQ.q.unit+'</b></span>'+
-     '<span>CONTAIN<b'+(cn===9?' style="color:'+C.ok+'"':'')+'>'+cn+'/9</b></span>'
-    :'<span>SERIES<b style="color:'+C.dim+'">none</b></span>')+
+     '<span>CONTAIN<b'+(cn===9?' style="color:'+TC.ok+'"':'')+'>'+cn+'/9</b></span>'
+    :'<span>SERIES<b style="color:'+TC.dim+'">none</b></span>')+
    '<span>LEAD<b>'+r.id.toUpperCase()+' '+(r.s*100).toFixed(0)+'%</b></span>'+
    '<span>SUPPORT<b>'+(supportScore()*100).toFixed(0)+'%</b></span>';
 }
@@ -3554,7 +3583,7 @@ function svgPareto(){
 /* ---------------- live text bindings ---------------- */
 function kfHTML(){
   return keyFindings().map((f,i)=>
-   '<div class="kfd'+(i===0?' open':'')+'" data-kfd="k'+i+'" style="border-color:'+(f.sv>0.7?C.bad:f.sv>0.5?C.asm:C.ok)+'">'+
+   '<div class="kfd'+(i===0?' open':'')+'" data-kfd="k'+i+'" style="border-color:'+(f.sv>0.7?TC.bad:f.sv>0.5?TC.asm:TC.ok)+'">'+
    '<div class="kt2">'+f.t+(f.nv?' <span class="chip '+f.nvc+'">'+f.nv.split(' — ')[0]+'</span>':'')+'</div><div class="kb2">'+
    (f.nv?'<div class="fr"><span class="fk">Novelty</span><span>'+f.nv+'</span></div>':'')+
    '<div class="fr"><span class="fk">Why</span><span>'+f.why+'</span></div>'+
@@ -3569,7 +3598,7 @@ function hypsHTML(){
   return ranked().map((h,i)=>
    '<div style="border-top:1px solid var(--line);padding:9px 0">'+
    '<p style="margin:0"><b>'+(i+1)+' · '+h.full+'</b> — coverage <b>'+(h.s*100).toFixed(0)+'%</b>'+
-   '<span class="inbar"><i style="width:'+(h.s*100)+'%;background:'+C.hyp+'"></i></span>'+
+   '<span class="inbar"><i style="width:'+(h.s*100)+'%;background:'+TC.hyp+'"></i></span>'+
    (i===0?chip('hyp','leading'):'')+'</p>'+
    '<p style="margin:4px 0">'+h.d+'</p>'+
    '<p style="margin:4px 0;font-size:11.3px"><b>Explains:</b> '+h.ex.join('; ')+'. <b>Conflicts:</b> '+h.fx.join('; ')+'. <b>Requires:</b> '+h.rq.join('; ')+'.</p>'+
@@ -3578,7 +3607,7 @@ function hypsHTML(){
 function expsHTML(){
   return '<table class="dtable"><tr><th>#</th><th>Experiment</th><th>Eliminates</th><th>Cost · time</th><th>Class</th></tr>'+
    experiments().map((x,i)=>'<tr data-x="exp:'+x.id+'"><td>'+(i+1)+'</td><td><b>'+x.n+'</b></td>'+
-   '<td>'+(x.p*100).toFixed(0)+'%<span class="inbar"><i style="width:'+(x.p*100)+'%;background:'+C.clm+'"></i></span></td>'+
+   '<td>'+(x.p*100).toFixed(0)+'%<span class="inbar"><i style="width:'+(x.p*100)+'%;background:'+TC.clm+'"></i></span></td>'+
    '<td>'+x.c+'</td><td>'+x.tag+'</td></tr>').join('')+'</table>';
 }
 function matrixHTML(){
@@ -3586,7 +3615,7 @@ function matrixHTML(){
    DATASETS.map(d=>{const off=S.removed[d.id]||(S.droplab&&d.id==='lab');
     return '<tr><td><b>'+d.n+'</b></td>'+['heating','erupt','screen'].map(h=>{const r=EVMAT[h][d.id];
       return '<td style="color:'+(r>0?C.ev:r<0?C.asm:C.dim)+';font-weight:700">'+(off?'·':r>0?'supports':r<0?'conflicts':'—')+'</td>';}).join('')+
-    '<td>'+REPCONF[d.id]+'%</td><td>'+(off?'<b style="color:'+C.bad+'">excluded</b>':'admitted')+'</td></tr>';}).join('')+'</table>';
+    '<td>'+REPCONF[d.id]+'%</td><td>'+(off?'<b style="color:'+TC.bad+'">excluded</b>':'admitted')+'</td></tr>';}).join('')+'</table>';
 }
 function refereeHTML(){
   const O=refereeSim();
@@ -3598,7 +3627,7 @@ function refereeHTML(){
 function compsHTML(){
   return '<table class="dtable"><tr><th>#</th><th>Component</th><th>Weight</th><th>Status</th></tr>'+
    COMPS.map((c2,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+c2.k+'</b> — '+c2.v+'</td><td>'+CWEIGHT[i].toFixed(1)+'</td>'+
-   '<td>'+(S.attached.has(i)?'<b style="color:'+C.ok+'">attached</b>':'detached')+'</td></tr>').join('')+'</table>';
+   '<td>'+(S.attached.has(i)?'<b style="color:'+TC.ok+'">attached</b>':'detached')+'</td></tr>').join('')+'</table>';
 }
 function memHTML(){
   return MEM.map(m=>'<div style="border-top:1px solid var(--line);padding:7px 0">'+
@@ -3609,17 +3638,20 @@ const LIVEBIND={
  kf:kfHTML, resfig:svgResults, timeline:svgTimeline, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
  hyps:hypsHTML, exps:expsHTML, matrix:matrixHTML, referee:refereeHTML, comps:compsHTML,
  claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
-   (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
+   (S.claimCollapsed?' · <b style="color:'+TC.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
  modelstats:()=>{const W=sectorW(),cn=containN();
    if(!hasSeries())return 'No measured '+QQ.q.name+' on file. The perimeter is live on this question and scoring every record against '+QQ.tracked.length+' tracked quantities; nothing has yet produced a testable value with an uncertainty.';
    return 'Under the current prior the '+QQ.q.band+' is <b>&lt;= '+W+QQ.q.unit+'</b> and containment is <b>'+cn+' / 9 '+QQ.q.per+'s</b>'+
-   (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
+   (cn===9?' — <b style="color:'+TC.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
  qbroken:()=>hasSeries()?QN().broken:'No measured series is on file for this question yet.',
  qbody:()=>hasSeries()?QN().body:emptyWatchHTML(),
  qfigh:()=>hasSeries()?QN().figH:'Nothing to plot — and that is the honest answer.',
  qfigp:()=>hasSeries()?QN().figP:emptySeriesHTML(),
+ corpus:()=>corpusCoverageHTML(),
+ rchecks:()=>reasonChecksHTML(),
+ agree:()=>corpusAgreementHTML(),
  questions:()=>questionsHTML(),
  ping:()=>pingHTML(),
  results:()=>resultsHTML(),
@@ -3635,7 +3667,7 @@ const LIVEBIND={
  plans:()=>plansHTML(),
  econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
- claimline:()=>'STRUCTURE: LOADED '+S.attached.size+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED — SUBJECT DETACHED</b>':'')+' · WEAKEST STRUT: laboratory mapping (unreplicated)',
+ claimline:()=>'STRUCTURE: LOADED '+S.attached.size+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · <b style="color:'+TC.bad+'">COLLAPSED — SUBJECT DETACHED</b>':'')+' · WEAKEST STRUT: laboratory mapping (unreplicated)',
  sysref:()=>{const W=sectorW(),cn=containN(),pk=(lerp(2.05,3.15,S.asm.heating)*2).toFixed(1);
    if(!hasSeries())return '<table class="dtable"><tr><th>Watch state</th><th>Value</th><th>Meaning</th></tr>'+
     [['Question',QQ.name,'as typed'],
@@ -3648,17 +3680,17 @@ const LIVEBIND={
    return '<table class="dtable"><tr><th>Parameter</th><th>Value</th><th>Provenance</th></tr>'+
    QN().params.concat([
     ['Permitted band','<= '+W+QQ.q.unit,QQ.q.band],
-    ['Containment','<b>'+cn+' / 9</b>',cn===9?'<b style="color:'+C.ok+'">restored (preview)</b>':'exits at '+QQ.q.per+' '+(EP_VAL.findIndex(v=>v>W)+1)+' — never re-enters'],
-    ['Ensemble re-run',S.asm.heating>0.5?'<b style="color:'+C.ok+'">3/3 queued</b>':'0/3 queued','11 d · zero telescope hours']])
+    ['Containment','<b>'+cn+' / 9</b>',cn===9?'<b style="color:'+TC.ok+'">restored (preview)</b>':'exits at '+QQ.q.per+' '+(EP_VAL.findIndex(v=>v>W)+1)+' — never re-enters'],
+    ['Ensemble re-run',S.asm.heating>0.5?'<b style="color:'+TC.ok+'">3/3 queued</b>':'0/3 queued','11 d · zero telescope hours']])
    .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>';},
  epochs:()=>{const W=sectorW(),alt=S.mod.alt?1.6:1;
    return '<table class="dtable"><tr><th>#</th><th>'+QQ.q.per+'</th><th>'+QQ.q.sym+'</th><th>sigma</th><th>Residual</th><th></th></tr>'+
     EP_VAL.map((v,i)=>{const res=Math.max(0,v-W);
      return '<tr data-x="ep:'+i+'"><td>'+(i+1)+'</td><td>'+QQ.q.per+' '+(i+1)+'</td><td><b>'+v.toFixed(1)+QQ.q.unit+'</b></td><td>±'+(EP_ERR[i]*alt).toFixed(1)+'°</td>'+
-      '<td'+(res>0?' style="color:'+C.hyp+';font-weight:700"':'')+'>'+(res>0?res.toFixed(1)+'°':'—')+'</td>'+
-      '<td>'+(v<=W?'<span style="color:'+C.ok+'">in</span>':'<b style="color:'+C.hyp+'">out</b>')+'</td></tr>';}).join('')+'</table>';},
+      '<td'+(res>0?' style="color:'+TC.hyp+';font-weight:700"':'')+'>'+(res>0?res.toFixed(1)+'°':'—')+'</td>'+
+      '<td>'+(v<=W?'<span style="color:'+TC.ok+'">in</span>':'<b style="color:'+TC.hyp+'">out</b>')+'</td></tr>';}).join('')+'</table>';},
  varch:()=>{const W=sectorW();
-   return '<b>Validity architecture:</b> 3 evidence chains (trajectory · ensemble exclusion · control sightline) · 2 declared premises (static screen · lab mapping) · support <b>'+(supportScore()*100).toFixed(0)+'%</b> · survives calibration ×2 at 3.1σ · sector ±'+W+'° · lineage v1 (S-097, contained) → v2 (S-021, tension noted) → v3 (S-000, conditional'+(S.claimCollapsed?' — <b style="color:'+C.bad+'">collapsed</b>':'')+').';},
+   return '<b>Validity architecture:</b> 3 evidence chains (trajectory · ensemble exclusion · control sightline) · 2 declared premises (static screen · lab mapping) · support <b>'+(supportScore()*100).toFixed(0)+'%</b> · survives calibration ×2 at 3.1σ · sector ±'+W+'° · lineage v1 (S-097, contained) → v2 (S-021, tension noted) → v3 (S-000, conditional'+(S.claimCollapsed?' — <b style="color:'+TC.bad+'">collapsed</b>':'')+').';},
  watchstats:()=>'<b>'+S.counters.raw.toLocaleString('en-US')+'</b> records read across '+S.counters.fam.toLocaleString('en-US')+' feeds · <b>'+S.counters.rec.toLocaleString('en-US')+'</b> relevant · 312 compared · 4 material · 1 action · screen '+S.asm.screen+(S.xmatchRun?' · cross-match executed (r = 0.04)':''),
  transcript:()=>{let h2='';
    for(let i=0;i<S.spoken;i++){const sp=SPEECH[i];
@@ -3712,7 +3744,7 @@ function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
 /* ---------------- stations: the mode is a mechanism, not an article ---------------- */
-const VISTITLE={resfig:'Research return - real records, scored',timeline:'Literature arrival - real submission dates',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+const VISTITLE={resfig:'Admission control - drag the line, the corpus re-filters',timeline:'Literature arrival - real submission dates',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
   if(noWatch())return [
@@ -3724,7 +3756,9 @@ function stationsFor(mode){
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
     html:'<h2>What this question actually returned.</h2>'+
-     '<div data-lv="results">'+resultsHTML()+'</div>'},
+     '<div data-lv="results">'+resultsHTML()+'</div>'+
+     '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+     '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'open, switch or drop a watch',vis:null,
     html:'<h2>Watches</h2>'+'<div data-lv="questions">'+questionsHTML()+'</div>'},
    {id:'plans',label:'Tiers & unit economics',sub:'what it costs · what it sells for',vis:null,
@@ -3747,8 +3781,8 @@ function stationsFor(mode){
       ['Ensemble containment scoring — 1,120 trajectories × 9 epochs','≈ 1 week','live'],
       ['Archival flare–EVPA join — 34 flares across 14 catalogues','≈ 2 days','one click, free'],
       ['Referee anticipation — 6 objections drafted with responses','≈ 1 week','on demand']]
-      .map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td style="color:'+C.ev+';font-weight:650">'+r[2]+'</td></tr>').join('')+
-     '<tr><td><b>Researcher time displaced per cycle</b></td><td><b>≈ 11 weeks</b></td><td style="color:'+C.ev+';font-weight:700">this morning</td></tr></table>'+
+      .map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td style="color:'+TC.ev+';font-weight:650">'+r[2]+'</td></tr>').join('')+
+     '<tr><td><b>Researcher time displaced per cycle</b></td><td><b>≈ 11 weeks</b></td><td style="color:'+TC.ev+';font-weight:700">this morning</td></tr></table>'+
      '<div data-lv="kf">'+kfHTML()+'</div>'},
    {id:'changes',label:'Material changes',sub:'detection → consequence',vis:null,
     html:'<h2>Four changes altered an assumption, boundary, hypothesis, conclusion or experiment.</h2>'+
@@ -3761,7 +3795,9 @@ function stationsFor(mode){
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
     html:'<h2>What this question actually returned.</h2>'+
      '<div data-lv="synstate">'+synStateHTML()+'</div>'+
-     '<div data-lv="results">'+resultsHTML()+'</div>'},
+     '<div data-lv="results">'+resultsHTML()+'</div>'+
+     '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+     '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
     html:'<h2>The mechanism is not about black holes.</h2>'+
      '<div data-lv="questions">'+questionsHTML()+'</div>'},
@@ -3775,7 +3811,7 @@ function stationsFor(mode){
      '<p data-lv="watchstats">'+LIVEBIND.watchstats()+'</p>'+
      '<p>Observatories, satellites, archives, the literature graph, simulation consortia, laboratory facilities, code repositories — and your own notes, datasets and past reasoning. Everything is normalized, compared against the active model, and discarded unless it is material. The table shows the loudest 35 feeds this cycle.</p>'+
      '<table class="dtable"><tr><th>Feed</th><th>Class</th><th>Records</th><th>Status this cycle</th></tr>'+
-     SOURCEDB.map(f=>'<tr><td><b>'+f[0]+'</b></td><td>'+f[1]+'</td><td>'+f[2].toLocaleString('en-US')+'</td><td'+(f[3].indexOf('material')===0?' style="color:'+C.ev+';font-weight:650"':'')+'>'+f[3]+'</td></tr>').join('')+'</table>'},
+     SOURCEDB.map(f=>'<tr><td><b>'+f[0]+'</b></td><td>'+f[1]+'</td><td>'+f[2].toLocaleString('en-US')+'</td><td'+(f[3].indexOf('material')===0?' style="color:'+TC.ev+';font-weight:650"':'')+'>'+f[3]+'</td></tr>').join('')+'</table>'},
    {id:'lit',label:'Literature agreement',sub:'9 sources · 3 contradictions',vis:'lit',
     html:'<h2>Your static-screen assumption rests on contested literature.</h2>'+
      '<p>Nine sources reduced to three shared parameters, compared pairwise in σ. <b>D21 disputes the B18/W20 stability cluster at 4.0σ</b> — and your S-097 adoption inherited that dispute silently. The m_L tension (S15, 2.5σ) is method-level: single-dish beam depolarization.</p>'+
@@ -3792,7 +3828,8 @@ function stationsFor(mode){
      '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to reasoning you already rejected, reviewer risk, and the missing test that would settle the sentence.</p>'+
      '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'+
      '<div class="acts"><button class="abtn" data-act="rsn:next">Next statement</button><button class="abtn" data-act="rsn:map">Argument map</button></div>'+
-     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'}];
+     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'+
+     '<div data-lv="rchecks">'+reasonChecksHTML()+'</div>'}];
   if(!hasSeries()&&hasSyn()){
     if(mode==='model')return [
      {id:'state',label:'State of the question',sub:'what the literature establishes',vis:'timeline',
@@ -3800,23 +3837,33 @@ function stationsFor(mode){
        '<div data-lv="synstate">'+synStateHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:14px">Quantities on the table</h2>'+
        '<div data-lv="synqty">'+synQuantHTML()+'</div>'+
+       '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'},
-     {id:'findings',label:'Findings',sub:'extracted from the corpus',vis:null,
+     {id:'findings',label:'Findings',sub:'extracted · then audited',vis:'resfig',
+      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
       html:'<h2>What the returned literature establishes.</h2>'+
-       '<div data-lv="synfind">'+synFindingsHTML()+'</div>'}];
+       '<div data-lv="synfind">'+synFindingsHTML()+'</div>'+
+       '<h2 style="font-size:15px;margin-top:18px">Audit of the corpus these findings rest on</h2>'+
+       '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'}];
     if(mode==='analyze')return [
-     {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:null,
+     {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:'resfig',
+      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
       html:'<h2>The explanations currently on the table.</h2>'+
-       '<div data-lv="synpos">'+synPositionsHTML()+'</div>'},
-     {id:'contested',label:'Contested points',sub:'where the field disagrees',vis:null,
+       '<div data-lv="synpos">'+synPositionsHTML()+'</div>'+
+       '<h2 style="font-size:15px;margin-top:18px">What the corpus behind them looks like</h2>'+
+       '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
+     {id:'contested',label:'Contested points',sub:'disagreement · camps · currency',vis:'resfig',
+      cap:'<b>Admission control.</b> <b>Drag the projection up or down</b> to move the amber line. Above it, records reach your reading, findings and claim; below it they are suppressed. Every table on the left re-filters as you move it.',
       html:'<h2>Where the literature disagrees with itself.</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
+       '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
     if(mode==='memory')return [
      {id:'arrival',label:'Literature arrival',sub:'real submission dates',vis:'timeline',
       html:'<h2>How this question accumulated evidence.</h2>'+
        '<p>Every mark is a record this watch actually returned, placed at its real submission date. '+
        'Tall amber marks report a new measurement or bound; the curve is cumulative arrival.</p>'+
+       '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="results">'+resultsHTML()+'</div>'}];
     if(mode==='claim')return [
      {id:'standing',label:'What can be claimed',sub:'supported vs contested',vis:null,
@@ -3824,6 +3871,7 @@ function stationsFor(mode){
        '<div data-lv="synstate">'+synStateHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:14px">Contested — a claim here needs a premise</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
+       '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
   }
   if(!hasSeries())return [
@@ -3854,7 +3902,7 @@ function stationsFor(mode){
       ['sector','calculated','ensemble + covariance + heating','claim · “field stationary”','inherits heat in full'],
       ['s144','assumption (expired)','pre-S-044 absence of measurement','claim, via its rejection','condition has fired'],
       ['alma','measured','9 epochs · 2 pipelines','covariance · claim','replicated — safe']]
-     .map(r=>'<tr data-x="gn:'+r[0]+'"><td><b>'+gnLabel(r[0]).split(' — ')[0].split(':')[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td'+(r[4].indexOf('safe')<0?' style="color:'+C.asm+';font-weight:650"':'')+'>'+r[4]+'</td></tr>').join('')+'</table>'+
+     .map(r=>'<tr data-x="gn:'+r[0]+'"><td><b>'+gnLabel(r[0]).split(' — ')[0].split(':')[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td'+(r[4].indexOf('safe')<0?' style="color:'+TC.asm+';font-weight:650"':'')+'>'+r[4]+'</td></tr>').join('')+'</table>'+
      '<p>Reading: every path from an unmeasured node to the claim is a sentence a referee can attack. There are exactly <b>two</b> such paths — heating and screen — and both terminate in the premises the claim now declares.</p>'},
    {id:'budget',label:'Error budget',sub:'variance · leverage · counterfactual',vis:'funnel',
     html:'<h2>Where the uncertainty lives, and where leverage does.</h2>'+
@@ -3871,7 +3919,7 @@ function stationsFor(mode){
      '<div data-lv="hyps">'+hypsHTML()+'</div>'+
      '<p><b>What separates them</b> — the discriminator matrix, computed from the surviving pairs:</p>'+
      '<table class="dtable"><tr><th>Pair</th><th>Discriminator</th><th>Cost</th><th>Status</th></tr>'+
-     [['heating vs eruptions','flare-locked EVPA — eruptions require it, heating forbids it','free (archival)',S.xmatchRun?'<b style="color:'+C.ev+'">executed — null, eruptions demoted</b>':'available now'],
+     [['heating vs eruptions','flare-locked EVPA — eruptions require it, heating forbids it','free (archival)',S.xmatchRun?'<b style="color:'+TC.ev+'">executed — null, eruptions demoted</b>':'available now'],
       ['heating vs screen','7-day RM cadence on the magnetar — a correlated excursion returns the screen','18 h VLA · 84 d','proposed'],
       ['eruptions vs screen','230/345 GHz dual-band — screen rotation is λ²-dependent, eruption drift is not','23 h · 21 d','proposed'],
       ['heating vs itself','ensemble re-run ×3 under the lab prior — containment 9/9 or the family dies','0 h telescope · 11 d','recommended']]
@@ -3884,7 +3932,7 @@ function stationsFor(mode){
     html:'<h2>Which observation removes the most explanation volume, at what cost.</h2>'+
      '<div data-lv="exps">'+expsHTML()+'</div>'+
      '<p><b>Outcome branches</b> — both futures priced before you spend anything:</p>'+
-     '<p style="font-size:11.6px"><b>Archival cross-match (free):</b> r &gt; 0.3 keeps eruptions alive and reshapes the frontier; a null demotes them to 9 %.'+(S.xmatchRun?' <b style="color:'+C.ev+'">Executed: null, r = 0.04 ± 0.09.</b>':'')+
+     '<p style="font-size:11.6px"><b>Archival cross-match (free):</b> r &gt; 0.3 keeps eruptions alive and reshapes the frontier; a null demotes them to 9 %.'+(S.xmatchRun?' <b style="color:'+TC.ev+'">Executed: null, r = 0.04 ± 0.09.</b>':'')+
      '<br><b>Ensemble re-run ×3 (11 d, zero telescope):</b> containment 9/9 promotes lab-informed heating to ~88 % and the claim upgrades; continued exit kills the entire MAD-heating family and the screen hybrid leads.'+
      '<br><b>230/345 + magnetar (21 d, 23 h):</b> resolves all three configurations in one campaign — the only single experiment that does.'+
      '<br><b>7-day RM cadence (84 d, 18 h):</b> the direct screen test; decisive only if the screen hybrid still leads after the re-run. Sequencing matters: run the free and the 11-day tests first — 64 % of volume is removable before any telescope time is requested.</p>'+
@@ -3900,9 +3948,9 @@ function stationsFor(mode){
      '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
      '<div class="acts"><button class="abtn" data-act="mem:replay">Replay the evolution</button><button class="abtn" data-act="act:react">Reactivate eligible branch</button></div>'+
      '<table class="dtable"><tr><th>Expiry predicate</th><th>State</th><th>Condition</th></tr>'+
-     [['S-144 rejection','<b style="color:'+C.hyp+'">EXPIRED — fired at S-044</b>','reopen when a direct R(βi) measurement exists'],
+     [['S-144 rejection','<b style="color:'+TC.hyp+'">EXPIRED — fired at S-044</b>','reopen when a direct R(βi) measurement exists'],
       ['S-201 rejection','armed — not met','reopen if the EHT core shift moves &gt; 2σ'],
-      ['S-097 adoption','<b style="color:'+C.asm+'">no predicate — silent</b>','never re-tested since adoption · flagged eroding']]
+      ['S-097 adoption','<b style="color:'+TC.asm+'">no predicate — silent</b>','never re-tested since adoption · flagged eroding']]
      .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
      '<div>'+memHTML()+'</div>'},
    {id:'compare',label:'S-144 vs now',sub:'what changed is evidence',vis:null,
@@ -3933,7 +3981,8 @@ function stationsFor(mode){
      '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to your rejected reasoning, reviewer risk, rewording, and the missing test that settles the sentence.</p>'+
      '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'+
      '<div class="acts"><button class="abtn" data-act="rsn:next">Next statement</button><button class="abtn" data-act="rsn:map">Argument map</button></div>'+
-     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'}];
+     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'+
+     '<div data-lv="rchecks">'+reasonChecksHTML()+'</div>'}];
 }
 S.st={watch:0,model:0,analyze:0,memory:0,claim:0,reason:0};
 function renderDoc(){
@@ -3947,8 +3996,8 @@ function renderDoc(){
    '<div class="cur"><div class="c1">'+st.label+'</div><div class="c2">'+st.sub+' · scroll / arrows to move</div></div></div>';
   window.CURVIS=st.vis;
   const visInner=!st.vis?null:st.vis==='live'
-   ?'<div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
-   :'<button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
+   ?'<div class="vglow"></div><div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
+   :'<div class="vglow"></div><button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
   const menu=['evidence','literature','contradictions','assumptions','experiments','claim','data','method','activity','telemetry']
    .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
   const mcls=st.vsize==='l'?'':' m';
@@ -3968,39 +4017,53 @@ document.addEventListener('click',e=>{
 });
 /* holo tilt: figures lean toward the pointer — live instrument stays true */
 /* holographic projection — every plane sits at its own depth; the pose follows your hand */
-S.depth=1;
-const DEPTHN=['OVERVIEW','RECORDS','FULL DETAIL'];
-const DRAGZ={on:false,y0:0,d0:1};
-function setDepth(d){
-  const nd=clamp(Math.round(d),0,2);
-  if(nd===S.depth)return;
-  S.depth=nd;
-  postEvent('projection depth - '+DEPTHN[nd]+(nd===0?' (summary only)':nd===2?' (every annotation)':' (per record)'),'');
+/* The projection is a control surface, not a picture. Dragging it up and down
+   moves the admission threshold: the relevance a record must clear before this
+   machine will let it into your reading, your findings and your claim.
+   Every readout downstream recomputes as the line moves. */
+S.thr=0.40;
+function thrOf(){return S.thr===undefined?0.40:S.thr;}
+const DRAGZ={on:false,y0:0,t0:0.40,moved:false};
+function setThr(v,quiet){
+  const nv=clamp(Math.round(v*100)/100,0.05,0.95);
+  if(Math.abs(nv-thrOf())<0.0049)return;
+  S.thr=nv;
   const el=document.querySelector('[data-lv="resfig"]');
   if(el)el.innerHTML=svgResults();
-  renderIntel();
+  const tb=document.querySelector('[data-lv="results"]');
+  if(tb)tb.innerHTML=resultsHTML();
+  const cv=document.querySelector('[data-lv="corpus"]');
+  if(cv)cv.innerHTML=corpusCoverageHTML();
+  if(!quiet)renderIntel();
+}
+function thrReport(){
+  const R=resultsOf(QQ&&QQ.id),rows=(R&&R.results)||[];
+  const adm=rows.filter(r=>(r.relevance||0)>=thrOf()).length;
+  postEvent('admission threshold set to '+(thrOf()*100).toFixed(0)+'% - '+adm+' of '+rows.length+' records admitted','');
 }
 document.addEventListener('pointerdown',e=>{
   const v=e.target.closest('#svis.m .vin');
   if(!v||e.target.closest('button,[data-act],[data-figpop],[data-bh],[data-bud]'))return;
-  DRAGZ.on=true;DRAGZ.y0=e.clientY;DRAGZ.d0=S.depth;v.style.cursor='grabbing';
+  DRAGZ.on=true;DRAGZ.y0=e.clientY;DRAGZ.t0=thrOf();DRAGZ.moved=false;v.style.cursor='ns-resize';
 });
 document.addEventListener('pointerup',()=>{
   if(!DRAGZ.on)return;
   DRAGZ.on=false;
   const sv=document.querySelector('#svis.m .vin');if(sv)sv.style.cursor='';
+  if(DRAGZ.moved)thrReport();
 });
 document.addEventListener('pointermove',e=>{
   PARA.tx=clamp((e.clientX/innerWidth-0.5)*2,-1,1);
   PARA.ty=clamp((e.clientY/innerHeight-0.5)*2,-1,1);
   if(DRAGZ.on){
     const dy=DRAGZ.y0-e.clientY;
+    if(Math.abs(dy)>2)DRAGZ.moved=true;
     const sv2=document.querySelector('#svis.m .vin');
     if(sv2){
-      const lift=clamp(dy/2.2,-70,70);
-      sv2.style.transform='perspective(1200px) rotateX('+(8-lift*0.09).toFixed(2)+'deg) translateZ('+lift.toFixed(1)+'px) scale('+(1+lift/900).toFixed(3)+')';
+      const lift=clamp(dy/3.4,-40,40);
+      sv2.style.transform='perspective(1200px) rotateX('+(8-lift*0.06).toFixed(2)+'deg) translateZ('+lift.toFixed(1)+'px)';
     }
-    setDepth(DRAGZ.d0+dy/110);
+    setThr(DRAGZ.t0+dy/260);
     return;
   }
   if(RM)return;
@@ -4255,8 +4318,8 @@ LIVEBIND.livefeed=()=>{
    LIVE.recs.slice(0,30).map(r=>'<tr><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+((r.title||r.source_id||'').slice(0,110))+'</a></td>'+
     '<td>'+r.source+'</td>'+
     '<td>'+(r.relevance==null?'…':(r.relevance*100).toFixed(0)+'%')+'</td>'+
-    '<td>'+(r.material?'<b style="color:'+C.asm+'">Δ MATERIAL</b>'
-      :r.relevant===true?'<span style="color:'+C.ev+'">relevant</span>'
+    '<td>'+(r.material?'<b style="color:'+TC.asm+'">Δ MATERIAL</b>'
+      :r.relevant===true?'<span style="color:'+TC.ev+'">relevant</span>'
       :r.relevant===false?'<span style="color:var(--dim)">discarded</span>'
       :'<span style="color:var(--dim)">queued</span>')+'</td></tr>').join('')+'</table>'+
    (LIVE.finds.length?'<h2 style="font-size:14px;margin-top:14px">Δ material findings</h2>'+
@@ -4301,18 +4364,18 @@ function costOf(t){
   return {watchCost,deepCost,infra,stripe,total,margin:t.price>0?(t.price-total)/t.price:0};
 }
 function plansHTML(){
-  return '<table class="dtable"><tr><th>Capability</th>'+TIERS.map(t=>'<th'+(t.id===S.plan?' style="color:'+C.ev+'"':'')+'>'+t.n+'</th>').join('')+'</tr>'+
+  return '<table class="dtable"><tr><th>Capability</th>'+TIERS.map(t=>'<th'+(t.id===S.plan?' style="color:'+TC.ev+'"':'')+'>'+t.n+'</th>').join('')+'</tr>'+
    [['Price',t=>t.price?'<b>$'+t.price+'</b> / mo':'<b>Free</b>'],
     ['Watched questions',t=>t.watches],
     ['Perimeter sweep',t=>'every '+t.poll],
     ['Records scored / mo',t=>t.records.toLocaleString('en-US')],
-    ['Deep extraction',t=>t.deep?'<span style="color:'+C.ok+'">yes</span>':'—'],
+    ['Deep extraction',t=>t.deep?'<span style="color:'+TC.ok+'">yes</span>':'—'],
     ['Archive depth',t=>t.history<0?'unlimited':t.history+' days'],
     ['Seats',t=>t.seats],
-    ['Export · claim packet',t=>t.exportd?'<span style="color:'+C.ok+'">yes</span>':'—'],
-    ['API access',t=>t.api?'<span style="color:'+C.ok+'">yes</span>':'—'],
+    ['Export · claim packet',t=>t.exportd?'<span style="color:'+TC.ok+'">yes</span>':'—'],
+    ['API access',t=>t.api?'<span style="color:'+TC.ok+'">yes</span>':'—'],
     ['Support',t=>t.support]]
-   .map(r=>'<tr><td><b>'+r[0]+'</b></td>'+TIERS.map(t=>'<td'+(t.id===S.plan?' style="color:'+C.ink+'"':'')+'>'+r[1](t)+'</td>').join('')+'</tr>').join('')+'</table>'+
+   .map(r=>'<tr><td><b>'+r[0]+'</b></td>'+TIERS.map(t=>'<td'+(t.id===S.plan?' style="color:'+TC.ink+'"':'')+'>'+r[1](t)+'</td>').join('')+'</tr>').join('')+'</table>'+
    '<p style="font-size:11.4px">'+TIERS.map(t=>'<b>'+t.n+'</b> — '+t.who).join('<br>')+'</p>'+
    '<div class="acts">'+TIERS.map(t=>'<button class="abtn'+(t.id===S.plan?' pri':'')+'" data-act="plan:'+t.id+'">Preview '+t.n+'</button>').join('')+'</div>';
 }
@@ -4402,7 +4465,7 @@ function emptyWatchHTML(){
   return 'This watch was opened from a typed question, so the perimeter has a target but no measured series to test against. '+
    'PARALLAX will not draw a figure for data it does not have — until a series exists, this station stays text.'+
    '<br><br><b>Field detected:</b> '+QQ.field+(QQ.matched?' (recognised domain — instruments pre-configured)':' (generic profile — no domain match, so no hero instrument is assigned)')+
-   '<br><b>Feed query in use:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code>'+
+   '<br><b>Feed query in use:</b> <code style="color:'+TC.ev+'">'+QQ.feedq+'</code>'+
    '<br><b>Scoring against:</b> '+QQ.tracked.join(' · ')+
    '<br><br>Two things unlock the instruments: the perimeter returning records that carry a measurable quantity, or you attaching your own series.';
 }
@@ -4455,8 +4518,8 @@ const SANDBOXED=(function(){
 })();
 function envNote(){
   return SANDBOXED
-   ?'<p style="color:'+C.asm+'"><b>This preview cannot reach the internet.</b> The artifact viewer applies a strict content policy that blocks every external request, so no live research can run here — this is a property of the host page, not of PARALLAX or your worker.<br><br>'+
-    '<b>Open the deployed build instead:</b> <a href="https://adayaris19-spec.github.io/parallax/" target="_blank" rel="noopener" style="color:'+C.ev+'">adayaris19-spec.github.io/parallax</a> — the same file, served from a normal origin, where the research call works.</p>'
+   ?'<p style="color:'+TC.asm+'"><b>This preview cannot reach the internet.</b> The artifact viewer applies a strict content policy that blocks every external request, so no live research can run here — this is a property of the host page, not of PARALLAX or your worker.<br><br>'+
+    '<b>Open the deployed build instead:</b> <a href="https://adayaris19-spec.github.io/parallax/" target="_blank" rel="noopener" style="color:'+TC.ev+'">adayaris19-spec.github.io/parallax</a> — the same file, served from a normal origin, where the research call works.</p>'
    :'';
 }
 function resultsOf(id){return RES.byQ[id]||null;}
@@ -4483,12 +4546,12 @@ async function pingWorker(){
 function pingHTML(){
   const P=RES.ping;
   if(!P)return envNote()+'<div class="acts"><button class="abtn" data-act="qping">Test the worker connection</button></div>';
-  if(P.err)return '<p style="color:'+C.bad+'"><b>Unreachable</b> after '+P.ms+' ms - '+P.err+'</p>'+envNote()+
+  if(P.err)return '<p style="color:'+TC.bad+'"><b>Unreachable</b> after '+P.ms+' ms - '+P.err+'</p>'+envNote()+
     '<div class="acts"><button class="abtn" data-act="qping">Retry</button></div>';
   return '<table class="dtable"><tr><th>Check</th><th>Result</th></tr>'+
    [['HTTP status',P.status+(P.ok?' - reachable':' - error')],
     ['Round trip',P.ms+' ms'],
-    ['Worker version',P.v3?'<b style="color:'+C.ok+'">v3 - question interpretation live</b>':'<b style="color:'+C.bad+'">old code - redeploy setup/ingest.ts</b>'],
+    ['Worker version',P.v3?'<b style="color:'+TC.ok+'">v3 - question interpretation live</b>':'<b style="color:'+TC.bad+'">old code - redeploy setup/ingest.ts</b>'],
     ['Records on a test query',P.results]]
    .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table>'+
    (P.ok?'':'<p style="font-size:11.4px;color:var(--dim)">'+String(P.body||'').replace(/</g,'&lt;')+'</p>')+
@@ -4597,54 +4660,69 @@ function setQuestion(id){
 function svgResults(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
-  const u=++FID,W2=680,H2=300,mL=54,mT=52,pW=W2-mL-22,pH=150;
-  const D=S.depth===undefined?1:S.depth;
-  const rows=(D===0?R.results.filter(r=>r.relevant):R.results).slice(0,D===0?6:D===1?12:20);
+  const u=++FID,W2=680,H2=326,mL=56,mT=54,pW=W2-mL-24,pH=162;
+  const thr=thrOf();
+  const all=R.results;
+  const rows=all.slice(0,30);
   const times=rows.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t));
   const tMin=times.length?Math.min(...times):0,tMax=times.length?Math.max(...times):1;
   const span=Math.max(1,tMax-tMin);
   const X=t=>mL+((t-tMin)/span)*pW;
-  const Y=rel=>mT+pH-(rel||0)*pH;
+  const Y=rel=>mT+pH-clamp(rel||0,0,1)*pH;
+  const adm=all.filter(r=>(r.relevance||0)>=thr);
+  const admMat=adm.filter(r=>r.material).length;
+  const gateAdm=all.filter(r=>r.relevant).length;
   let s2=svgO(W2,H2)+fDefs(u);
-  s2=roHead(s2,'RESEARCH RETURN',[
-    ['PULLED',R.pulled,C.ink],['RELEVANT',R.relevant,C.ev],
-    ['MATERIAL',R.material,R.material?C.asm:C.dim],
-    ['SPAN',times.length?Math.round(span/86400000)+' d':'-',C.calc],
-    ['DEPTH',DEPTHN[D],C.hyp]],300);
+  s2=roHead(s2,'ADMISSION CONTROL',[
+    ['PULLED',all.length,C.ink],
+    ['THRESHOLD',(thr*100).toFixed(0)+'%',C.asm],
+    ['ADMITTED',adm.length,adm.length?C.ev:C.dim],
+    ['MATERIAL',admMat,admMat?C.asm:C.dim],
+    ['SPAN',times.length?Math.round(span/86400000)+' d':'-',C.calc]],330);
+  /* the two territories the line divides */
+  s2+='<rect x="'+mL+'" y="'+mT+'" width="'+pW+'" height="'+Math.max(0,Y(thr)-mT)+'" fill="rgba(255,154,46,.07)"/>'+
+      '<rect x="'+mL+'" y="'+Y(thr)+'" width="'+pW+'" height="'+Math.max(0,mT+pH-Y(thr))+'" fill="rgba(110,140,170,.10)"/>';
   for(let g=0;g<=1.0001;g+=0.25){
     s2+=sL(mL,Y(g),mL+pW,Y(g),'rgba(150,200,240,.07)')+
         sM(mL-8,Y(g)+3,(g*100).toFixed(0)+'%','end',6.4,C.dim,600,'0');}
   s2+=sM(mL-8,mT-10,'RELEVANCE','start',6,C.dim,800,'.14em');
-  const thr=0.5;
-  s2+=sL(mL,Y(thr),mL+pW,Y(thr),C.calc,1,'5 4')+
-      sM(mL+pW,Y(thr)-5,'ADMISSION THRESHOLD','end',6,C.calc,750,'.08em');
   rows.forEach((r,i)=>{
     const t=r.published_at?Date.parse(r.published_at):NaN;
     const x=isNaN(t)?mL+pW*(i/Math.max(1,rows.length-1)):X(t);
     const y=Y(r.relevance);
-    const col=r.material?C.asm:r.relevant?C.ev:C.dim;
-    s2+=sL(x,mT+pH,x,y,col,1,r.relevant?null:'2 3');
-    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:3.6)+'" fill="'+(r.material?'rgba(232,161,58,.25)':'rgba(255,253,249,.9)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:1.4)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
-    if(r.material)s2+=sM(x,y-11,'MATERIAL','middle',5.6,C.asm,800,'.08em');
-    if(D>=1&&r.relevant)s2+=sM(x,y-(r.material?20:11),((r.relevance||0)*100).toFixed(0)+'%','middle',5.4,C.ev,700,'0');
-    if(D>=2)s2+='<text x="'+(x+4)+'" y="'+(mT+pH-4)+'" transform="rotate(-90 '+(x+4)+' '+(mT+pH-4)+')" font-size="5" fill="'+C.dim+'" font-family="ui-monospace,Menlo,monospace">'+String(r.title||'').slice(0,44).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
+    const inn=(r.relevance||0)>=thr;
+    const col=r.material?C.asm:inn?C.ev:C.dim;
+    s2+=sL(x,mT+pH,x,y,col,inn?1.2:0.8,inn?null:'2 3');
+    s2+='<g data-hl="res:'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r.material?5.5:inn?3.8:2.6)+'" fill="'+(r.material?'rgba(255,154,46,.28)':inn?'rgba(222,242,255,.92)':'rgba(140,168,192,.22)')+'" stroke="'+col+'" stroke-width="'+(r.material?2:inn?1.5:1)+'"'+(r.material?' filter="url(#gw'+u+')"':'')+'/></g>';
+    if(r.material)s2+=sM(x,y<mT+22?y+15:y-11,'MATERIAL','middle',5.6,C.asm,800,'.08em');
+    else if(inn)s2+=sM(x,y<mT+16?y+13:y-9,((r.relevance||0)*100).toFixed(0),'middle',5.4,C.ev,700,'0');
   });
+  /* the line you are holding */
+  s2+='<rect x="'+mL+'" y="'+(Y(thr)-4)+'" width="'+pW+'" height="8" fill="rgba(255,154,46,.14)"/>';
+  s2+=sL(mL,Y(thr),mL+pW,Y(thr),C.asm,1.8,'6 3');
+  s2+='<polygon points="'+(mL-5)+','+Y(thr)+' '+(mL-13)+','+(Y(thr)-5)+' '+(mL-13)+','+(Y(thr)+5)+'" fill="'+C.asm+'"/>';
+  s2+=sM(mL+5,Y(thr)-7,'ADMISSION THRESHOLD '+(thr*100).toFixed(0)+'% - DRAG TO MOVE','start',6.4,C.asm,800,'.07em');
+  s2+=sM(mL+pW-2,mT+12,'ADMITTED - '+adm.length+' RECORD'+(adm.length===1?'':'S')+' REACH YOUR READING','end',6.2,C.ev,750,'.07em');
+  s2+=sM(mL+pW-2,mT+pH-6,'HELD BACK - '+(all.length-adm.length)+' RECORD'+(all.length-adm.length===1?'':'S')+' SUPPRESSED','end',6.2,C.dim,750,'.07em');
   s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
   if(times.length){
     s2+=sM(mL,mT+pH+14,new Date(tMin).toISOString().slice(0,10),'start',6.2,C.dim,600,'0')+
         sM(mL+pW,mT+pH+14,new Date(tMax).toISOString().slice(0,10),'end',6.2,C.dim,600,'0')+
         sM(mL+pW/2,mT+pH+14,'SUBMISSION DATE','middle',6,C.dim,750,'.14em');}
-  const kept=rows.filter(r=>r.relevant).length;
-  s2+=sM(mL,H2-30,'DRAG THE PROJECTION UP FOR MORE DETAIL, DOWN FOR LESS - SHOWING '+DEPTHN[D]+' ('+rows.length+' OF '+R.results.length+' RECORDS)','start',6.2,C.ev,750,'.06em');
-  s2+=sM(mL,H2-16,kept+' OF '+rows.length+' CLEARED THE THRESHOLD'+(R.material?' - '+R.material+' CARRY A NEW MEASUREMENT':' - NONE CARRY A NEW MEASUREMENT YET'),'start',6.6,kept?C.ev:C.dim,800,'.06em');
+  const delta=adm.length-gateAdm;
+  s2+=sM(mL,H2-42,'THE GATE ADMITTED '+gateAdm+' AT ITS OWN CUT. YOUR LINE ADMITS '+adm.length+
+    (delta===0?' - THE SAME SET.':delta>0?' - '+delta+' MORE THAN THE GATE.':' - '+(-delta)+' FEWER THAN THE GATE.'),'start',6.2,C.calc,750,'.06em');
+  s2+=sM(mL,H2-28,admMat?admMat+' OF THE ADMITTED RECORDS CARRY A NEW MEASUREMENT OR BOUND.'
+    :'NO ADMITTED RECORD CARRIES A NEW MEASUREMENT - LOWER THE LINE OR RE-RUN THE WATCH.','start',6.6,admMat?C.asm:C.dim,800,'.06em');
+  s2+=sM(mL,H2-14,'RAISE THE LINE TO READ LESS AND TRUST MORE. LOWER IT TO SEE WHAT THE GATE THREW AWAY.','start',6.2,C.dim,650,'.06em');
   return s2+'</svg>';
 }
 function resultsHTML(){
   if(SANDBOXED)return envNote();
   const R=resultsOf(QQ.id);
   if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet.</p><div class="acts"><button class="abtn pri" data-act="qres">Research now</button><button class="abtn" data-act="qping">Test the worker connection</button></div>';
-  if(R.state==='searching')return '<p style="color:'+C.ev+'">Researching — translating the question, querying arXiv and NASA ADS, then scoring every abstract. This takes 10–30 seconds on the first run.</p>';
-  if(R.state==='error')return '<p style="color:'+C.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
+  if(R.state==='searching')return '<p style="color:'+TC.ev+'">Researching — translating the question, querying arXiv and NASA ADS, then scoring every abstract. This takes 10–30 seconds on the first run.</p>';
+  if(R.state==='error')return '<p style="color:'+TC.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
     (/Failed to fetch|NetworkError|load failed/i.test(R.err)
       ?'<p style="font-size:11.4px">A <i>Failed to fetch</i> means the browser never reached Supabase at all. Two causes, in order of likelihood: (1) the page is running somewhere that blocks external requests — use the deployed build, not a preview; (2) the <code>ingest</code> function has not been redeployed with the v3 code, so it never answers the browser preflight.</p>'
       :'')+
@@ -4653,35 +4731,38 @@ function resultsHTML(){
   const rows=R.results||[];
   const prof=R.profile?'<p style="font-size:11.4px"><b>Interpreted as:</b> '+(R.profile.field||'—')+
     ' · tracking '+(R.profile.tracked||[]).join(' · ')+
-    '<br><b>Query actually run:</b> <code style="color:'+C.ev+'">'+(R.query||'')+'</code></p>':'';
-  if(!rows.length)return prof+'<p style="color:'+C.asm+'"><b>No records returned.</b> The query ran but nothing came back — '+
+    '<br><b>Query actually run:</b> <code style="color:'+TC.ev+'">'+(R.query||'')+'</code></p>':'';
+  if(!rows.length)return prof+'<p style="color:'+TC.asm+'"><b>No records returned.</b> The query ran but nothing came back — '+
     'either the phrasing does not map onto published work, or this topic sits outside arXiv and ADS coverage. '+
     'Try naming the object, effect or observable directly.</p>'+
     '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
-  return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared relevance - <b>'+R.material+'</b> material - scored by the intelligence gate '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+  const thr=thrOf(),adm=rows.filter(r=>(r.relevance||0)>=thr);
+  return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+   '<p style="font-size:11.4px"><b>Your admission line is at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
+   ' records are admitted. Drag the projection up to raise the line, down to lower it; this table, the figure and the coverage ledger all re-filter as it moves.</p>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
-   rows.map((r,i)=>'<tr data-x="res:'+i+'"><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
+   rows.map((r,i)=>'<tr data-x="res:'+i+'"'+((r.relevance||0)>=thr?'':' style="opacity:.42"')+'><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
      (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
      '<td>'+r.source+'</td><td>'+(r.relevance==null?'-':(r.relevance*100).toFixed(0)+'%')+'</td>'+
-     '<td>'+(r.material?'<b style="color:'+C.asm+'">MATERIAL</b>':r.relevant?'<span style="color:'+C.ev+'">relevant</span>':'<span style="color:var(--dim)">discarded</span>')+'</td></tr>').join('')+'</table>'+
+     '<td>'+(r.material?'<b style="color:'+TC.asm+'">MATERIAL</b>':(r.relevance||0)>=thr?'<span style="color:'+TC.ev+'">admitted</span>':'<span style="color:var(--dim)">below your line</span>')+'</td></tr>').join('')+'</table>'+
    '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
 }
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b43'],
+    ['Build running','b44'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
-    ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+C.bad+'">no</b>'],
+    ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
     ['Cleared relevance',R&&R.results?R.results.filter(x=>x.relevant).length:0],
     ['Worker synthesis',R&&R.synthesis?'yes':'no (falling back to records)'],
-    ['Synthesis available',synOf()?'<b style="color:'+C.ok+'">yes</b>':'<b style="color:'+C.bad+'">no</b>'],
+    ['Synthesis available',synOf()?'<b style="color:'+TC.ok+'">yes</b>':'<b style="color:'+TC.bad+'">no</b>'],
     ['Measured series',hasSeries()?'yes':'no (expected for a literature watch)']
   ];
   return '<p style="font-size:11.4px;color:var(--dim)">Why this mode is empty:</p>'+
    '<table class="dtable">'+rows.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table>'+
    (R&&R.results&&R.results.length&&!synOf()
-     ?'<p style="color:'+C.bad+'">Records exist but no synthesis could be derived — send this table to Claude.</p>':'');
+     ?'<p style="color:'+TC.bad+'">Records exist but no synthesis could be derived — send this table to Claude.</p>':'');
 }
 function synOf(){
   const R=resultsOf(QQ.id);
@@ -4741,6 +4822,170 @@ function deriveSyn(R){
     gaps:kept.length?[]:['no record cleared the relevance gate - the question may need rephrasing'],
     derived:true};
 }
+
+/* ---------------------------------------------------------------------------
+   Corpus ledgers. A station with a thin synthesis is still standing on a real
+   body of retrieved literature, and that body has structure worth reporting:
+   where it came from, how strong it is, how old it is, and how it splits.
+   Nothing below is invented - every number is counted off the returned records.
+   --------------------------------------------------------------------------- */
+function corpusRows(){
+  const R=resultsOf(QQ&&QQ.id);
+  return (R&&R.state==='done'&&R.results)?R.results:[];
+}
+function barCell(v,tot,col){
+  const pc=tot?Math.round(v/tot*100):0;
+  return '<td>'+v+' <span style="color:var(--dim)">('+pc+'%)</span>'+
+    '<span class="inbar"><i style="width:'+pc+'%;background:'+(col||TC.ev)+'"></i></span></td>';
+}
+function corpusCoverageHTML(){
+  const rows=corpusRows();
+  if(!rows.length)return '<p style="color:var(--dim)">No records retrieved on this watch yet, so there is no corpus to describe. Run the research and this ledger fills.</p>';
+  const thr=thrOf(),tot=rows.length;
+  const adm=rows.filter(r=>(r.relevance||0)>=thr).length;
+  const mat=rows.filter(r=>r.material).length;
+  const withNum=rows.filter(r=>r.measurement&&r.measurement.parameter).length;
+  const withPos=rows.filter(r=>r.position&&String(r.position).trim()).length;
+  const withWhy=rows.filter(r=>r.why&&String(r.why).trim()).length;
+  const dated=rows.filter(r=>r.published_at).length;
+
+  /* where it came from */
+  const src={};rows.forEach(r=>{const k=r.source||'unknown';src[k]=(src[k]||0)+1;});
+  const srcKeys=Object.keys(src).sort((a,b)=>src[b]-src[a]);
+
+  /* how strong it is */
+  const bands=[[0.8,1.01,'0.80 - 1.00','direct bearing on the question',TC.ev],
+               [0.6,0.8,'0.60 - 0.79','clearly relevant, not decisive',TC.ev],
+               [0.4,0.6,'0.40 - 0.59','adjacent - context, not evidence',TC.calc],
+               [0.2,0.4,'0.20 - 0.39','same field, different question',TC.dim],
+               [0,0.2,'0.00 - 0.19','retrieved but off-target',TC.dim]];
+  const bandRows=bands.map(b=>{
+    const n=rows.filter(r=>(r.relevance||0)>=b[0]&&(r.relevance||0)<b[1]).length;
+    return '<tr><td><b>'+b[2]+'</b><br><span style="font-size:10px;color:var(--dim)">'+b[3]+'</span></td>'+
+      barCell(n,tot,b[4])+'<td>'+(b[0]>=thr?'<span style="color:'+TC.ev+'">admitted</span>':b[1]<=thr?'<span style="color:var(--dim)">held back</span>':'<b style="color:'+TC.asm+'">split by your line</b>')+'</td></tr>';
+  }).join('');
+
+  const rel=rows.map(r=>r.relevance||0).sort((a,b)=>a-b);
+  const med=rel.length?rel[Math.floor(rel.length/2)]:0;
+  const mean=rel.length?rel.reduce((a,b)=>a+b,0)/rel.length:0;
+
+  return '<table class="dtable"><tr><th>Coverage</th><th>Count</th><th>What it means</th></tr>'+
+   '<tr><td><b>Records retrieved</b></td>'+barCell(tot,tot,TC.calc)+'<td>everything the feed query returned this cycle</td></tr>'+
+   '<tr><td><b>Admitted at your line</b></td>'+barCell(adm,tot,TC.ev)+'<td>reaches your reading at '+(thr*100).toFixed(0)+'% relevance</td></tr>'+
+   '<tr><td><b>Carry a measurement</b></td>'+barCell(withNum,tot,TC.asm)+'<td>a number with an uncertainty was extracted</td></tr>'+
+   '<tr><td><b>Material</b></td>'+barCell(mat,tot,TC.asm)+'<td>changes an assumption, bound or conclusion</td></tr>'+
+   '<tr><td><b>Assigned a position</b></td>'+barCell(withPos,tot,TC.hyp)+'<td>the gate could place it in an explanatory camp</td></tr>'+
+   '<tr><td><b>Reasoned admission</b></td>'+barCell(withWhy,tot,TC.calc)+'<td>the gate recorded why, not just a score</td></tr>'+
+   '<tr><td><b>Dated</b></td>'+barCell(dated,tot,TC.dim)+'<td>a submission date is on file for arrival analysis</td></tr>'+
+   '</table>'+
+   '<h2 style="font-size:15px;margin-top:16px">Where this corpus came from</h2>'+
+   '<table class="dtable"><tr><th>Archive</th><th>Records</th><th>Admitted at your line</th></tr>'+
+   srcKeys.map(k=>{const sub=rows.filter(r=>(r.source||'unknown')===k);
+     const a=sub.filter(r=>(r.relevance||0)>=thr).length;
+     return '<tr><td><b>'+k+'</b></td>'+barCell(src[k],tot,TC.calc)+
+      '<td>'+a+' of '+src[k]+' <span style="color:var(--dim)">('+(src[k]?Math.round(a/src[k]*100):0)+'% yield)</span></td></tr>';}).join('')+
+   '</table>'+
+   (srcKeys.length===1?'<p style="font-size:11.4px;color:var(--dim)">One archive answered this query. A single-archive corpus inherits that archive\'s coverage bias — arXiv skews toward preprints and theory, ADS toward published observational work. Treat the absence of the other as unknown, not as absence of work.</p>':'')+
+   '<h2 style="font-size:15px;margin-top:16px">How strong the corpus is</h2>'+
+   '<table class="dtable"><tr><th>Relevance band</th><th>Records</th><th>Against your line</th></tr>'+bandRows+'</table>'+
+   '<p style="font-size:11.4px">Median relevance <b>'+(med*100).toFixed(0)+'%</b>, mean <b>'+(mean*100).toFixed(0)+'%</b>. '+
+   (mean>=0.55?'This is a well-targeted retrieval — the query is finding the question, not the field.'
+    :mean>=0.35?'This is a mixed retrieval: the query is finding the field more reliably than the question. Naming the observable or the object directly will sharpen it.'
+    :'This is a diffuse retrieval. Most of what came back is same-field, different-question. Rephrase the watch around a specific observable, object or effect.')+'</p>';
+}
+function corpusAgreementHTML(){
+  const rows=corpusRows();
+  if(!rows.length)return '';
+  const thr=thrOf(),kept=rows.filter(r=>(r.relevance||0)>=thr);
+  const base=kept.length?kept:rows;
+  const sup=base.filter(r=>r.stance==='supports').length;
+  const con=base.filter(r=>r.stance==='contests').length;
+  const neu=base.length-sup-con;
+
+  /* explanatory camps */
+  const g={};base.forEach(r=>{const k=(r.position&&String(r.position).trim())||null;if(k)g[k]=(g[k]||0)+1;});
+  const gk=Object.keys(g).sort((a,b)=>g[b]-g[a]);
+  const gtot=gk.reduce((a,k)=>a+g[k],0);
+
+  /* arrival */
+  const ts=base.map(r=>r.published_at?Date.parse(r.published_at):NaN).filter(t=>!isNaN(t)).sort((a,b)=>a-b);
+  const now=Date.now(),DAY=86400000;
+  const y90=ts.filter(t=>now-t<=90*DAY).length;
+  const y12=ts.filter(t=>now-t<=365*DAY).length;
+  const y36=ts.filter(t=>now-t<=3*365*DAY).length;
+  const medAge=ts.length?Math.round((now-ts[Math.floor(ts.length/2)])/DAY):null;
+  const newest=ts.length?new Date(ts[ts.length-1]).toISOString().slice(0,10):'—';
+  const oldest=ts.length?new Date(ts[0]).toISOString().slice(0,10):'—';
+  const halfway=ts.length?ts[0]+(ts[ts.length-1]-ts[0])/2:0;
+  const recentHalf=ts.filter(t=>t>=halfway).length;
+  const accel=ts.length>3?(recentHalf/ts.length):null;
+
+  return '<h2 style="font-size:15px;margin-top:16px">How the admitted records line up</h2>'+
+   '<table class="dtable"><tr><th>Stance toward the leading reading</th><th>Records</th><th>Consequence</th></tr>'+
+   '<tr><td><b>Supports</b></td>'+barCell(sup,base.length,TC.ev)+'<td>consistent with the reading the corpus favours</td></tr>'+
+   '<tr><td><b>Contests</b></td>'+barCell(con,base.length,TC.bad)+'<td>each one is a live objection a referee can raise</td></tr>'+
+   '<tr><td><b>Neither</b></td>'+barCell(neu,base.length,TC.dim)+'<td>bears on the question without taking a side</td></tr>'+
+   '</table>'+
+   '<p style="font-size:11.4px">'+
+   (con===0&&sup>0?'<b>No record contests the leading reading.</b> That is not the same as consensus: it can mean the question has not yet attracted an opposing programme, or that the retrieval is one-sided. Lower the admission line and see whether opposition appears below it — if nothing does, the absence is real.'
+    :con>0&&sup===0?'<b>Everything admitted is an objection.</b> The corpus is arguing against a position no admitted record actually defends — the supporting literature is either older than this retrieval, or outside the archives queried.'
+    :con>0&&sup>0?'<b>The corpus is split '+sup+' to '+con+'.</b> A claim on this question has to survive the contesting side explicitly; treat each contesting record as a premise you must either adopt or refute in writing.'
+    :'<b>No record took a side.</b> The gate found this literature descriptive rather than adversarial — usual for a question that is being mapped rather than settled.')+'</p>'+
+   (gk.length?'<h2 style="font-size:15px;margin-top:16px">Explanatory camps present in the corpus</h2>'+
+     '<table class="dtable"><tr><th>Camp</th><th>Records backing it</th><th>Share of the placed corpus</th></tr>'+
+     gk.map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(g[k],gtot,TC.hyp)+
+       '<td>'+(gtot?Math.round(g[k]/gtot*100):0)+'% of '+gtot+' placed records</td></tr>').join('')+'</table>'+
+     (gk.length===1?'<p style="font-size:11.4px;color:var(--dim)">One camp only. Either the field has converged, or the retrieval has not reached the competing programme — the second is more common on a first sweep.</p>':'')
+    :'<p style="font-size:11.4px;color:var(--dim)">The gate could not place these records into competing explanatory camps. That happens when the corpus is methodological or observational rather than interpretive — there is work here, but no argument yet.</p>')+
+   '<h2 style="font-size:15px;margin-top:16px">How current this corpus is</h2>'+
+   '<table class="dtable"><tr><th>Window</th><th>Records</th><th>Reading</th></tr>'+
+   '<tr><td><b>Last 90 days</b></td>'+barCell(y90,base.length,TC.ev)+'<td>'+(y90?'the question is live right now':'nothing this quarter — the question is dormant or slow-moving')+'</td></tr>'+
+   '<tr><td><b>Last 12 months</b></td>'+barCell(y12,base.length,TC.ev)+'<td>'+(y12>=3?'an active programme is running':'sparse recent activity')+'</td></tr>'+
+   '<tr><td><b>Last 3 years</b></td>'+barCell(y36,base.length,TC.calc)+'<td>the current generation of work</td></tr>'+
+   '<tr><td><b>Newest record</b></td><td colspan="2">'+newest+(medAge!==null?' · median record age <b>'+medAge+' days</b>':'')+'</td></tr>'+
+   '<tr><td><b>Oldest record</b></td><td colspan="2">'+oldest+'</td></tr>'+
+   '</table>'+
+   (accel!==null?'<p style="font-size:11.4px">'+(accel>0.62?'<b>Arrival is accelerating.</b> '+Math.round(accel*100)+'% of the corpus landed in the more recent half of its own span — this question is being actively worked, and a claim written today has a short shelf life.'
+     :accel<0.38?'<b>Arrival is decelerating.</b> Only '+Math.round(accel*100)+'% of the corpus landed in the more recent half of its span — the field has largely moved on, so a new result here has unusual leverage.'
+     :'<b>Arrival is steady.</b> '+Math.round(accel*100)+'% of the corpus landed in the more recent half of its span — a mature, continuously worked question.')+'</p>':'');
+}
+
+/* The reasoning chamber is an input surface, but it should never read as an
+   empty room. These are the checks that run on every sentence you speak, with
+   their current state on this watch - all of it derived, none of it decorative. */
+function reasonChecksHTML(){
+  const rows=corpusRows();
+  const thr=thrOf(),kept=rows.filter(r=>(r.relevance||0)>=thr);
+  const mat=rows.filter(r=>r.material).length;
+  const con=kept.filter(r=>r.stance==='contests').length;
+  const withNum=rows.filter(r=>r.measurement&&r.measurement.parameter).length;
+  const camps={};kept.forEach(r=>{const k=(r.position&&String(r.position).trim())||null;if(k)camps[k]=1;});
+  const nCamp=Object.keys(camps).length;
+  const spoken=S.spoken||0;
+  const CH=[
+   ['Unsupported assumption','A clause asserted without a record behind it.',
+    rows.length?'armed - '+kept.length+' admitted records to match against':'idle - nothing retrieved to check against',rows.length?TC.ev:TC.dim],
+   ['Omitted counter-evidence','You state a position while admitted records contest it.',
+    con?'armed - '+con+' contesting record'+(con>1?'s':'')+' on file':'idle - no contesting record admitted at your line',con?TC.bad:TC.dim],
+   ['False dichotomy','Two options presented as exhaustive when the corpus holds more.',
+    nCamp>2?'armed - '+nCamp+' explanatory camps present':nCamp?'partial - '+nCamp+' camp'+(nCamp>1?'s':'')+' identified':'idle - no camps extracted',nCamp>2?TC.hyp:TC.dim],
+   ['Overconfidence','A number or bound stated harder than its source supports.',
+    withNum?'armed - '+withNum+' extracted measurement'+(withNum>1?'s':'')+' with uncertainties':'idle - no numerical claim in the corpus to check against',withNum?TC.asm:TC.dim],
+   ['Reconnection to rejected reasoning','You re-enter a line you already ruled out this session.',
+    spoken?'armed - '+spoken+' prior statement'+(spoken>1?'s':'')+' in the transcript':'idle - nothing spoken yet this session',spoken?TC.ev:TC.dim],
+   ['Referee risk','The sentence, as written, invites a specific objection.',
+    mat?'armed - '+mat+' material record'+(mat>1?'s':'')+' a referee will expect you to address':'idle - no material record to be held to',mat?TC.asm:TC.dim],
+   ['Missing decisive test','The claim has no stated observation that would settle it.',
+    'always armed - every claim is checked for a falsifier',TC.calc]];
+  return '<h2 style="font-size:15px;margin-top:16px">What is checking every sentence</h2>'+
+   '<table class="dtable"><tr><th>Check</th><th>What it catches</th><th>State on this watch</th></tr>'+
+   CH.map(c=>'<tr><td><b>'+c[0]+'</b></td><td>'+c[1]+'</td><td style="color:'+c[3]+'">'+c[2]+'</td></tr>').join('')+
+   '</table>'+
+   '<p style="font-size:11.4px">'+
+   (rows.length?'These checks run against the <b>'+rows.length+' records</b> this watch retrieved, of which <b>'+kept.length+
+     '</b> are admitted at your current line. Move the admission line and the evidence a statement is checked against moves with it - a sentence that survives at 30% may not survive at 70%.'
+    :'Nothing has been retrieved on this watch yet, so the evidence checks have nothing to compare a statement against. Run the research first; the structural checks - false dichotomy, missing decisive test - still apply.')+'</p>';
+}
 function hasSyn(){return !!synOf();}
 function synStateHTML(){
   const y=synOf();if(!y)return '';
@@ -4750,7 +4995,7 @@ function synStateHTML(){
 function synFindingsHTML(){
   const y=synOf();if(!y||!y.findings||!y.findings.length)return '<p style="color:var(--dim)">No findings extracted yet.</p>';
   return y.findings.map((f,i)=>'<div class="kfd'+(i===0?' open':'')+'" data-kfd="s'+i+'" style="border-color:'+
-    (f.conf==='high'?C.ev:f.conf==='low'?C.dim:C.asm)+'">'+
+    (f.conf==='high'?TC.ev:f.conf==='low'?TC.dim:TC.asm)+'">'+
     '<div class="kt2">'+(f.t||'')+'</div><div class="kb2">'+
     '<div class="fr"><span class="fk">Why</span><span>'+(f.why||'')+'</span></div>'+
     '<div class="fr"><span class="fk">Evidence</span><span>'+(f.ev||'')+'</span></div>'+
@@ -4764,13 +5009,13 @@ function synPositionsHTML(){
     if(rows.length)return '<p>The gate did not group these records into competing positions, so here are the admitted records ranked by relevance — each is a line of evidence on this question.</p>'+
       rows.map((r,i)=>'<div style="border-top:1px solid var(--line);padding:9px 0">'+
         '<p style="margin:0"><b>'+(i+1)+' · '+String(r.title||'')+'</b> — relevance <b>'+((r.relevance||0)*100).toFixed(0)+'%</b>'+
-        '<span class="inbar"><i style="width:'+((r.relevance||0)*100)+'%;background:'+C.hyp+'"></i></span></p>'+
+        '<span class="inbar"><i style="width:'+((r.relevance||0)*100)+'%;background:'+TC.hyp+'"></i></span></p>'+
         '<p style="margin:4px 0">'+(r.why||'')+'</p></div>').join('');
   }
   if(!y||!y.positions||!y.positions.length)return '<p style="color:var(--dim)">No competing positions extracted.</p>';
   return y.positions.map((h,i)=>'<div style="border-top:1px solid var(--line);padding:9px 0">'+
     '<p style="margin:0"><b>'+(i+1)+' · '+(h.n||'')+'</b> — support <b>'+(h.support||0)+'%</b>'+
-    '<span class="inbar"><i style="width:'+(h.support||0)+'%;background:'+C.hyp+'"></i></span></p>'+
+    '<span class="inbar"><i style="width:'+(h.support||0)+'%;background:'+TC.hyp+'"></i></span></p>'+
     '<p style="margin:4px 0">'+(h.d||'')+'</p>'+
     '<p style="margin:4px 0;font-size:11.3px"><b>Explains:</b> '+(h.ex||'—')+'  <b>Conflicts:</b> '+(h.fx||'—')+'</p>'+
     '<p style="margin:4px 0;font-size:11.3px"><b>Settled by:</b> '+(h.test||'—')+'</p></div>').join('');
@@ -4835,7 +5080,7 @@ function questionsHTML(){
     '<td>'+q.field+'</td>'+
     '<td>'+q.q.sym+' - '+q.q.name+'</td>'+
     '<td>'+(q.series?(q.hero||'text only'):'<span style="color:var(--dim)">none — no series</span>')+'</td>'+
-    '<td>'+(q.id===QQ.id?'<b style="color:'+C.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+
+    '<td>'+(q.id===QQ.id?'<b style="color:'+TC.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+
     ' <button class="abtn sm warn" data-act="qdel:'+q.id+'">drop</button></td></tr>').join('')+'</table>':'')+
    (QUESTIONS.length?'':'<p style="color:var(--dim)">No watches open. Type a question below - PARALLAX will parse it into a tracked quantity and a live feed query, then research it immediately against arXiv and NASA ADS.</p>')+
    '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
@@ -4849,7 +5094,7 @@ function questionsHTML(){
    '<h2 style="font-size:14px;margin-top:16px">Backend connection</h2>'+
    '<div data-lv="ping">'+pingHTML()+'</div>'+
    '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and instrument set. Switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
-   (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
+   (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+TC.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
 }
 /* ------- boot ------- */
 const CSEQ=[
