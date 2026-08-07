@@ -525,7 +525,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b51</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b52</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2755,7 +2755,9 @@ function renderStrip(){
    '<span>LEAD<b>'+r.id.toUpperCase()+' '+(r.s*100).toFixed(0)+'%</b></span>'+
    '<span>SUPPORT<b>'+(supportScore()*100).toFixed(0)+'%</b></span>';
 }
-setInterval(()=>{if(S.phase!=='live')return;const el=document.getElementById('liveCounters');if(el)el.innerHTML=counterLine();renderStrip();},900);
+setInterval(()=>{if(S.phase!=='live')return;const el=document.getElementById('liveCounters');if(el)el.innerHTML=counterLine();renderStrip();
+  const sc=document.getElementById('secs');
+  if(sc&&RES.t0)sc.textContent=Math.round((Date.now()-RES.t0)/1000)+'s';},900);
 
 /* ============================================================================
    Part 7: intelligence engines — every one computes, none decorates.
@@ -4630,6 +4632,19 @@ async function pingWorker(){
   if(S.phase==='live')renderDoc();
   renderIntel();
 }
+function lastCallHTML(){
+  const L=RES.lastCall;
+  if(!L)return '<p style="font-size:11.4px;color:var(--dim)">No call to the worker has been made yet this session.</p>';
+  return '<table class="dtable"><tr><th>Last call to the worker</th><th>Value</th></tr>'+
+   [['Question sent',L.q],
+    ['HTTP status',(L.status||'no response')+(L.ok?' - reachable':'')],
+    ['Round trip',L.ms+' ms'],
+    ['Body size',L.bytes+' bytes'],
+    ['When',agoStr(L.at)]]
+   .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table>'+
+   '<p style="font-size:10.6px;color:var(--dim);white-space:pre-wrap;word-break:break-word">'+
+   String(L.head||'').replace(/</g,'&lt;')+'</p>';
+}
 function pingHTML(){
   const P=RES.ping;
   if(!P)return envNote()+'<div class="acts"><button class="abtn" data-act="qping">Test the worker connection</button></div>';
@@ -4665,6 +4680,7 @@ async function researchQuestion(q){
     return;
   }
   RES.busy=true;RES.t0=Date.now();
+  saveState();
   RES.byQ[q.id]={state:'searching',t0:Date.now()};
   renderIntel();
   const started=Date.now();
@@ -4684,6 +4700,8 @@ async function researchQuestion(q){
     });
     clearTimeout(timer);
     const raw=await r.text();
+    RES.lastCall={q:q.name,status:r.status,ok:r.ok,ms:Date.now()-started,bytes:raw.length,
+      head:String(raw).slice(0,400),at:Date.now()};
     let j=null;try{j=JSON.parse(raw);}catch(e){}
     if(!r.ok)throw new Error('HTTP '+r.status+' — '+String(raw).slice(0,240));
     if(!j)throw new Error('worker did not return JSON — '+String(raw).slice(0,240));
@@ -4714,6 +4732,9 @@ async function researchQuestion(q){
     setBanner('good','<b>DONE</b> - '+j.pulled+' records returned, '+j.relevant+' cleared relevance, '+j.material+' material. Results are below.');
     setTimeout(()=>setBanner(null),9000);
   }catch(e){
+    if(!RES.lastCall||RES.lastCall.q!==q.name)
+      RES.lastCall={q:q.name,status:0,ok:false,ms:Date.now()-started,bytes:0,
+        head:String(e&&e.message||e).slice(0,400),at:Date.now()};
     RES.byQ[q.id]={state:'error',err:String(e&&e.message||e)};
     saveState();
     postEvent('research failed - '+String(e&&e.message||e),'warn');
@@ -4741,13 +4762,30 @@ function loadState(){
     QUESTIONS.length=0;
     d.questions.forEach(q=>QUESTIONS.push(q));
     RES.byQ=d.results||{};
-    Object.keys(RES.byQ).forEach(k=>{if(RES.byQ[k]&&RES.byQ[k].state==='searching')delete RES.byQ[k];});
+    /* a sweep interrupted by a reload used to be DELETED here, so the watch came
+       back reading "has not been researched yet" and nothing ever resumed it.
+       Mark it instead; bootResume picks it up. */
+    Object.keys(RES.byQ).forEach(k=>{const r=RES.byQ[k];
+      if(r&&(r.state==='searching'||r.state==='queued'))RES.byQ[k]={state:'interrupted',t0:r.t0||0};});
     const act=d.active&&QUESTIONS.find(x=>x.id===d.active);
     QQ=act||QUESTIONS[0]||EMPTYQ;
     if(QQ&&QQ.series){EP_VAL=QQ.series.slice();EP_ERR=QQ.errs?QQ.errs.slice():[];}
     try{renderWatchBtn();}catch(e){}
     return true;
   }catch(e){return false;}
+}
+/* Anything left unfinished, or an active watch with nothing in it, is picked up
+   here. Before this, an empty watch just sat there forever waiting to be clicked. */
+function bootResume(){
+  if(SANDBOXED||!QUESTIONS.length)return;
+  const need=[];
+  const bad=r=>!r||r.state==='interrupted'||r.state==='error'||r.state==='queued';
+  if(QQ&&QQ.id&&!QQ.empty&&bad(resultsOf(QQ.id)))need.push(QQ);
+  QUESTIONS.forEach(q=>{if(q!==QQ&&bad(resultsOf(q.id))&&resultsOf(q.id))need.push(q);});
+  if(!need.length)return;
+  postEvent('resuming '+need.length+' unfinished sweep'+(need.length>1?'s':''),'hot');
+  researchQuestion(need[0]);
+  for(let i=1;i<need.length;i++)if(!RES.queue.find(x=>x.id===need[i].id))RES.queue.push(need[i]);
 }
 function addQuestion(text){
   try{setBanner('work','<b>OPENING WATCH</b> - "'+String(text).slice(0,80)+'"');}catch(e){}
@@ -4957,15 +4995,21 @@ function svgResults(){
 function resultsHTML(){
   if(SANDBOXED)return envNote();
   const R=resultsOf(QQ.id);
-  if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet.</p><div class="acts"><button class="abtn pri" data-act="qres">Research now</button><button class="abtn" data-act="qping">Test the worker connection</button></div>';
+  if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet — starting it now.</p>'+
+    '<div class="acts"><button class="abtn pri" data-act="qres">Research now</button><button class="abtn" data-act="qping">Test the worker connection</button></div>'+
+    '<h2 style="font-size:14px;margin-top:16px">Diagnostics</h2>'+lastCallHTML();
+  if(R.state==='interrupted')return '<p style="color:'+TC.asm+'"><b>This sweep was interrupted by a page reload.</b> Restarting it now — nothing was lost.</p>';
   if(R.state==='queued')return '<p style="color:'+TC.asm+'"><b>Queued.</b> Another sweep is still running; this question starts the moment it finishes. Nothing is lost.</p>';
-  if(R.state==='searching')return '<p style="color:'+TC.ev+'"><b>Researching “'+QQ.name+'”</b> — translating the question, querying arXiv, NASA ADS and Crossref, then scoring every abstract. A first run can take up to a minute.</p>';
+  if(R.state==='searching')return '<p style="color:'+TC.ev+'"><b>Researching “'+QQ.name+'” — <span id="secs">0s</span></b><br>'+
+    'Translating the question, querying arXiv, NASA ADS and Crossref, then scoring every abstract. A first run can take up to a minute. '+
+    'It keeps running if you switch stations; do not reload.</p>';
   if(R.state==='error')return '<p style="color:'+TC.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
     (/Failed to fetch|NetworkError|load failed/i.test(R.err)
       ?'<p style="font-size:11.4px">A <i>Failed to fetch</i> means the browser never reached Supabase at all. Two causes, in order of likelihood: (1) the page is running somewhere that blocks external requests — use the deployed build, not a preview; (2) the <code>ingest</code> function has not been redeployed with the v3 code, so it never answers the browser preflight.</p>'
       :'')+
-    '<p style="font-size:11.4px">This is almost always the worker: the <code>ingest</code> edge function must be redeployed with the v2 code in <code>setup/ingest.ts</code>, which adds on-demand search and browser CORS headers. Everything else here is unaffected.</p>'+
-    '<div class="acts"><button class="abtn" data-act="qres">Retry</button></div>';
+    '<p style="font-size:11.4px">This is almost always the worker: the <code>ingest</code> edge function must carry the current code in <code>setup/ingest.ts</code>. Everything else here is unaffected.</p>'+
+    '<div class="acts"><button class="abtn" data-act="qres">Retry</button><button class="abtn" data-act="qping">Test the worker connection</button></div>'+
+    '<h2 style="font-size:14px;margin-top:16px">Exactly what came back</h2>'+lastCallHTML();
   const rows=R.results||[];
   const rungs=(R.rungs&&R.rungs.length)
     ?'<br><b>Searches actually run:</b> '+R.rungs.map(x=>'<code style="color:'+TC.ev+'">'+String(x).replace(/</g,'&lt;')+'</code>').join('<br>')
@@ -4996,7 +5040,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b51'],
+    ['Build running','b52'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5451,7 +5495,7 @@ $('#go').addEventListener('click',()=>{
     if(i>=CSEQ.length){
       cons.style.opacity=0;cons.style.transition='opacity .8s';setTimeout(()=>cons.remove(),900);
       S.phase='live';$('#chrome').classList.add('on');
-      renderDock();try{loadState();}catch(e){}nav('watch');
+      renderDock();try{loadState();}catch(e){}nav('watch');try{bootResume();}catch(e){}
       return;
     }
     const q=CSEQ[i];
