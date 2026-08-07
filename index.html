@@ -3096,8 +3096,9 @@ act=function(a){
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
   if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','questions');return;}
   if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
+  if(p[0]==='qping'){pingWorker();return;}
   if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
-  if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim()){addQuestion(el.value.trim());jumpStation('watch','questions');}return;}
+  if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim())addQuestion(el.value.trim());return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
     if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
@@ -3576,6 +3577,7 @@ const LIVEBIND={
  qfigh:()=>hasSeries()?QN().figH:'Nothing to plot — and that is the honest answer.',
  qfigp:()=>hasSeries()?QN().figP:emptySeriesHTML(),
  questions:()=>questionsHTML(),
+ ping:()=>pingHTML(),
  results:()=>resultsHTML(),
  resfig:()=>svgResults(),
  plans:()=>plansHTML(),
@@ -4108,7 +4110,7 @@ function setLive(on){
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target&&e.target.id==='qIn'&&e.target.value.trim()){
-    addQuestion(e.target.value.trim());jumpStation('watch','questions');e.preventDefault();}
+    addQuestion(e.target.value.trim());e.preventDefault();}
 });
 document.addEventListener('click',e=>{
   if(e.target.closest('#liveBtn'))setLive(!LIVE.on);
@@ -4318,7 +4320,51 @@ const heroOf=()=>hasSeries()?QQ.hero:null;
 
 /* ---- research a watch for real: arXiv + ADS via the edge function ---- */
 const RES={busy:false,byQ:{}};
+const SANDBOXED=(function(){
+  try{return location.protocol==='blob:'||/claude\.ai|anthropic|usercontent/.test(location.hostname)||window.top!==window.self;}
+  catch(e){return true;}
+})();
+function envNote(){
+  return SANDBOXED
+   ?'<p style="color:'+C.asm+'"><b>This preview cannot reach the internet.</b> The artifact viewer applies a strict content policy that blocks every external request, so no live research can run here — this is a property of the host page, not of PARALLAX or your worker.<br><br>'+
+    '<b>Open the deployed build instead:</b> <a href="https://adayaris19-spec.github.io/parallax/" target="_blank" rel="noopener" style="color:'+C.ev+'">adayaris19-spec.github.io/parallax</a> — the same file, served from a normal origin, where the research call works.</p>'
+   :'';
+}
 function resultsOf(id){return RES.byQ[id]||null;}
+async function pingWorker(){
+  postEvent('pinging the ingest worker...','hot');
+  const t0=Date.now();
+  try{
+    const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+      body:JSON.stringify({question:'test connection: black hole accretion',limit:3})});
+    const txt=await r.text();
+    let j=null;try{j=JSON.parse(txt);}catch(e){}
+    RES.ping={ok:r.ok,status:r.status,ms:Date.now()-t0,
+      v3:!!(j&&j.profile!==undefined),results:j&&j.results?j.results.length:0,
+      body:txt.slice(0,300)};
+    postEvent('worker responded '+r.status+' in '+RES.ping.ms+' ms'+(RES.ping.v3?' - v3 code live':' - OLD CODE, redeploy needed'),RES.ping.v3?'hot':'warn');
+  }catch(e){
+    RES.ping={ok:false,err:String(e&&e.message||e),ms:Date.now()-t0};
+    postEvent('worker unreachable - '+RES.ping.err,'warn');
+  }
+  renderIntel();
+}
+function pingHTML(){
+  const P=RES.ping;
+  if(!P)return envNote()+'<div class="acts"><button class="abtn" data-act="qping">Test the worker connection</button></div>';
+  if(P.err)return '<p style="color:'+C.bad+'"><b>Unreachable</b> after '+P.ms+' ms - '+P.err+'</p>'+envNote()+
+    '<div class="acts"><button class="abtn" data-act="qping">Retry</button></div>';
+  return '<table class="dtable"><tr><th>Check</th><th>Result</th></tr>'+
+   [['HTTP status',P.status+(P.ok?' - reachable':' - error')],
+    ['Round trip',P.ms+' ms'],
+    ['Worker version',P.v3?'<b style="color:'+C.ok+'">v3 - question interpretation live</b>':'<b style="color:'+C.bad+'">old code - redeploy setup/ingest.ts</b>'],
+    ['Records on a test query',P.results]]
+   .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table>'+
+   (P.ok?'':'<p style="font-size:11.4px;color:var(--dim)">'+String(P.body||'').replace(/</g,'&lt;')+'</p>')+
+   '<div class="acts"><button class="abtn" data-act="qping">Re-test</button></div>';
+}
 async function researchQuestion(q){
   if(RES.busy)return;
   RES.busy=true;
@@ -4361,6 +4407,7 @@ function addQuestion(text){
   QUESTIONS.push(q);
   postEvent('watch opened - '+q.name+' - '+(q.matched?'domain recognised: '+q.field:'generic profile'),'hot');
   setQuestion(q.id);
+  jumpStation('watch','research');
   researchQuestion(q);
 }
 function setQuestion(id){
@@ -4417,10 +4464,14 @@ function svgResults(){
   return s2+'</svg>';
 }
 function resultsHTML(){
+  if(SANDBOXED)return envNote();
   const R=resultsOf(QQ.id);
   if(!R)return '<p style="color:var(--dim)">This watch has not been researched yet. <button class="abtn" data-act="qres">Research now</button></p>';
   if(R.state==='searching')return '<p style="color:'+C.ev+'">Researching - querying arXiv and NASA ADS, then scoring every abstract against this question...</p>';
   if(R.state==='error')return '<p style="color:'+C.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
+    (/Failed to fetch|NetworkError|load failed/i.test(R.err)
+      ?'<p style="font-size:11.4px">A <i>Failed to fetch</i> means the browser never reached Supabase at all. Two causes, in order of likelihood: (1) the page is running somewhere that blocks external requests — use the deployed build, not a preview; (2) the <code>ingest</code> function has not been redeployed with the v3 code, so it never answers the browser preflight.</p>'
+      :'')+
     '<p style="font-size:11.4px">This is almost always the worker: the <code>ingest</code> edge function must be redeployed with the v2 code in <code>setup/ingest.ts</code>, which adds on-demand search and browser CORS headers. Everything else here is unaffected.</p>'+
     '<div class="acts"><button class="abtn" data-act="qres">Retry</button></div>';
   const rows=R.results||[];
@@ -4457,6 +4508,8 @@ function questionsHTML(){
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
    '<p style="font-size:11px;color:var(--dim)">Ask in plain language — “are parallel universes testable?”, “can we detect dark matter with quantum sensors?”. The question is sent to the intelligence gate, which translates it into the terms physicists actually publish under, runs it against arXiv and NASA ADS, and scores every abstract it gets back. No visual is invented for data that does not exist.</p>'+
    '<div class="acts" style="margin-top:10px"><button class="abtn sm" data-act="qdemo">Load the Sgr A* worked example</button></div>'+
+   '<h2 style="font-size:14px;margin-top:16px">Backend connection</h2>'+
+   '<div data-lv="ping">'+pingHTML()+'</div>'+
    '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and instrument set. Switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
    (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
 }
