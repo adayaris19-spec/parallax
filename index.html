@@ -173,15 +173,27 @@ canvas{display:block}
 .abtn.warn{color:var(--bad);border-color:rgba(245,122,122,.45)}
 
 /* global reasoning bar — talk to the operating system from anywhere */
-#speak{position:absolute;left:20px;bottom:12px;width:min(460px,32vw);pointer-events:auto;z-index:12}
-#speak .srow{display:flex;align-items:center;gap:9px;background:none;border-bottom:1.5px solid rgba(26,52,84,.5);padding:7px 2px}
+#speak{position:absolute;left:20px;bottom:12px;width:min(560px,38vw);pointer-events:auto;z-index:12}
+#speak .srow{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:3px;
+  background:rgba(255,254,251,.94);border:1px solid var(--line2);border-left:3px solid var(--asm)}
+#speak .srow:focus-within{border-color:var(--asm)}
 #speak .sind i{display:block;width:7px;height:7px;border-radius:50%;background:var(--ev);box-shadow:0 0 8px rgba(10,106,144,.9);animation:bl 2.4s infinite}
-#speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:11.5px;color:var(--ink)}
+#speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:12.5px;color:var(--ink)}
 #speakIn::placeholder{color:#6d89a2}
+.askbar{display:flex;gap:10px;align-items:center;margin:0 0 8px;padding:9px 12px;
+  background:rgba(255,254,251,.92);border:1px solid var(--line2);border-left:3px solid var(--asm);border-radius:3px}
+.askbar .asklbl{font-family:var(--m);font-size:8px;letter-spacing:.22em;font-weight:800;color:var(--asm);flex:none}
+.askbar input{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:13px;color:var(--ink);padding:3px 0}
+.askbar input::placeholder{color:var(--dim)}
+.askhint{font-size:11px;color:var(--dim);margin:0 0 14px}
+.stale{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0 0 10px;font-size:11.6px}
+.stale b{color:var(--ink)}
+.stale .old{color:var(--asm);font-weight:700}
 #speak .skey{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 /* the bar does two different jobs and must say which one Enter will do */
 #barMode{flex:none;background:none;border:0;border-bottom:1.5px solid var(--asm);border-radius:0;cursor:pointer;
   font-family:var(--m);font-size:8px;letter-spacing:.16em;font-weight:800;color:var(--asm);padding:1px 3px 2px}
+#speakGo{flex:none;font-size:8.5px}
 #barMode[data-mode="reason"]{border-bottom-color:var(--hyp);color:var(--hyp)}
 #speak .sq{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .echo{background:rgba(252,250,246,.97);border:0;border-left:3px solid var(--clm);padding:7px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);
@@ -509,7 +521,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b47</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b48</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -525,7 +537,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
       <span class="sind"><i></i></span>
       <button id="barMode" data-mode="research" title="Enter opens a watch and researches it">RESEARCH</button>
       <input id="speakIn" placeholder="Search any question — “is dark matter self-interacting?”" autocomplete="off" spellcheck="false">
-      <span class="skey">↵</span>
+      <button id="speakGo" class="abtn pri">Research it</button>
     </div>
     <div id="speakLive"></div>
   </div>
@@ -2679,6 +2691,15 @@ apIn.addEventListener('keydown',e=>{
 apSug.addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&b.dataset.i!==undefined){closeAp();CMDS[+b.dataset.i][2]();}});
 ap.addEventListener('click',e=>{if(e.target===ap)closeAp();});
 $('#cmdHint').addEventListener('click',openAp);
+document.addEventListener('keydown',e=>{
+  const el=e.target;
+  if(e.key!=='Enter'||!el||!el.matches||!el.matches('[data-qin]'))return;
+  e.preventDefault();
+  const v=el.value.trim();
+  if(v.length<4){setBanner('bad','<b>TOO SHORT</b> - give it a few words to work with');return;}
+  document.querySelectorAll('[data-qin]').forEach(x=>x.value='');
+  addQuestion(v);
+});
 function openPlans(){
   const o=$('#plansOv');if(!o)return;
   o.querySelector('[data-lv="plans"]').innerHTML=plansHTML();
@@ -3176,10 +3197,13 @@ act=function(a){
   if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
   if(p[0]==='qping'){pingWorker();return;}
   if(p[0]==='qres'){if(!noWatch())researchQuestion(QQ);return;}
-  if(p[0]==='qadd'){const el=$('#qIn');
+  if(p[0]==='qadd'){
+    const els=[...document.querySelectorAll('[data-qin],#qIn')];
+    const el=els.find(x=>x.value.trim())||els[0];
     if(!el){setBanner('bad','<b>INPUT NOT FOUND</b> - the question field is not on this station');return;}
-    if(!el.value.trim()){setBanner('bad','<b>NOTHING TYPED</b> - type a question in the box first');return;}
-    addQuestion(el.value.trim());return;}
+    if(!el.value.trim()){setBanner('bad','<b>NOTHING TYPED</b> - type a question in the box first');el.focus();return;}
+    const v=el.value.trim();els.forEach(x=>x.value='');
+    addQuestion(v);return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
     if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];saveState();
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
@@ -3250,6 +3274,8 @@ function setBarMode(m){
   if(!barModeBtn)return;
   barModeBtn.dataset.mode=m;
   barModeBtn.textContent=m==='research'?'RESEARCH':'REASON';
+  const go=document.getElementById('speakGo');
+  if(go)go.textContent=m==='research'?'Research it':'Verify it';
   barModeBtn.title=m==='research'
     ?'Enter opens a watch on what you type and researches it against arXiv and NASA ADS'
     :'Enter sends what you type to the reasoning verifier instead of researching it';
@@ -3259,6 +3285,11 @@ function setBarMode(m){
   const lv=$('#speakLive');if(lv)lv.innerHTML='';
 }
 if(barModeBtn)barModeBtn.addEventListener('click',()=>setBarMode(barMode()==='research'?'reason':'research'));
+const speakGo=$('#speakGo');
+if(speakGo)speakGo.addEventListener('click',()=>{
+  speakIn.focus();
+  speakIn.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+});
 speakIn.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   const text=speakIn.value.trim();
@@ -3790,13 +3821,13 @@ const VISTITLE={resfig:'Admission volume - drag it, the plane cuts the corpus',t
 function stationsFor(mode){
   if(noWatch())return [
    {id:'start',label:'Open your first watch',sub:'nothing is being tracked yet',vis:null,
-    html:'<h2>PARALLAX is not watching anything yet.</h2>'+
+    html:askHTML(false)+'<h2>PARALLAX is not watching anything yet.</h2>'+
      '<p>This machine reads the scientific literature continuously, scores every record against a question you define, and surfaces only what changes an assumption, a boundary or a conclusion. It has no opinions of its own and no preloaded subject - you give it the question.</p>'+
      '<div data-lv="questions">'+questionsHTML()+'</div>'}];
   if(mode==='watch'&&!hasSeries())return [
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
-    html:'<h2>What this question actually returned.</h2>'+
+    html:askHTML()+'<h2>What this question actually returned.</h2>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
      '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
      '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
@@ -3830,7 +3861,7 @@ function stationsFor(mode){
      '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
-    html:'<h2>What this question actually returned.</h2>'+
+    html:askHTML()+'<h2>What this question actually returned.</h2>'+
      '<div data-lv="synstate">'+synStateHTML()+'</div>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
      '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
@@ -3865,7 +3896,7 @@ function stationsFor(mode){
   if(!hasSeries()&&hasSyn()){
     if(mode==='model')return [
      {id:'state',label:'State of the question',sub:'what the literature establishes',vis:'timeline',
-      html:'<h2>Where this question actually stands.</h2>'+
+      html:askHTML(false)+'<h2>Where this question actually stands.</h2>'+
        '<div data-lv="synstate">'+synStateHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:14px">Quantities on the table</h2>'+
        '<div data-lv="synqty">'+synQuantHTML()+'</div>'+
@@ -3880,7 +3911,7 @@ function stationsFor(mode){
     if(mode==='analyze')return [
      {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:'resfig',
       cap:'<b>Admission volume.</b> Date runs away to the right, archive is the depth axis, relevance is height. <b>Drag the figure up or down</b> to move the amber plane through the solid — everything above it reaches your reading, findings and claim. The back wall carries the marginal relevance distribution: two clusters means the query is separating, one smear means it is not.',
-      html:'<h2>The explanations currently on the table.</h2>'+
+      html:askHTML(false)+'<h2>The explanations currently on the table.</h2>'+
        '<div data-lv="synpos">'+synPositionsHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:18px">What the corpus behind them looks like</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
@@ -3892,14 +3923,14 @@ function stationsFor(mode){
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
     if(mode==='memory')return [
      {id:'arrival',label:'Literature arrival',sub:'real submission dates',vis:'timeline',
-      html:'<h2>How this question accumulated evidence.</h2>'+
+      html:askHTML(false)+'<h2>How this question accumulated evidence.</h2>'+
        '<p>Every mark is a record this watch actually returned, placed at its real submission date. '+
        'Tall amber marks report a new measurement or bound; the curve is cumulative arrival.</p>'+
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="results">'+resultsHTML()+'</div>'}];
     if(mode==='claim')return [
      {id:'standing',label:'What can be claimed',sub:'supported vs contested',vis:null,
-      html:'<h2>What this literature will and will not support.</h2>'+
+      html:askHTML(false)+'<h2>What this literature will and will not support.</h2>'+
        '<div data-lv="synstate">'+synStateHTML()+'</div>'+
        '<h2 style="font-size:15px;margin-top:14px">Contested — a claim here needs a premise</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
@@ -3908,7 +3939,7 @@ function stationsFor(mode){
   }
   if(!hasSeries())return [
    {id:'nodata',label:'No series on this watch',sub:'research it to unlock the modes',vis:null,
-    html:'<h2>'+mode.toUpperCase()+' has nothing to operate on yet.</h2>'+
+    html:askHTML(false)+'<h2>'+mode.toUpperCase()+' has nothing to operate on yet.</h2>'+
      '<p>This mode works from the literature this watch returns. Run the research and it fills with the state of the question, competing explanations, contested points and arrival history.</p>'+
      '<div data-lv="diag">'+diagHTML()+'</div>'+
      '<div class="acts"><button class="abtn pri" data-act="qres">Research now</button>'+
@@ -4570,8 +4601,11 @@ function pingHTML(){
    '<div class="acts"><button class="abtn" data-act="qping">Re-test</button></div>';
 }
 async function researchQuestion(q){
+  /* a sweep that died between the flag and the finally would lock every later
+     question out for the rest of the session - never trust the flag past 100 s */
+  if(RES.busy&&RES.t0&&Date.now()-RES.t0>100000)RES.busy=false;
   if(RES.busy){setBanner('work','<b>ALREADY RESEARCHING</b> - one query is still running; it will finish shortly.');return;}
-  RES.busy=true;
+  RES.busy=true;RES.t0=Date.now();
   RES.byQ[q.id]={state:'searching',t0:Date.now()};
   renderIntel();
   const started=Date.now();
@@ -4870,7 +4904,13 @@ function resultsHTML(){
     'Try naming the object, effect or observable directly.</p>'+
     '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
   const thr=thrOf(),adm=rows.filter(r=>(r.relevance||0)>=thr);
-  return prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+  const age=Date.now()-(R.ts||0), old=age>30*60000;
+  return '<div class="stale"><span>Watching <b>'+QQ.name+'</b></span>'+
+   '<span'+(old?' class="old"':'')+'>researched '+agoStr(R.ts||Date.now())+'</span>'+
+   '<button class="abtn sm" data-act="qres">Re-run this sweep</button>'+
+   (QUESTIONS.length>1?'<button class="abtn sm" data-act="sub:watch:questions">Switch watch ('+QUESTIONS.length+' open)</button>':'')+'</div>'+
+   (old?'<p style="font-size:11.4px;color:'+TC.asm+'">This is the stored return from the last sweep, not a live one. Ask a new question above, or re-run this one.</p>':'')+
+   prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
    '<p style="font-size:11.4px"><b>Your admission plane sits at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
    ' records rise above it. Drag the figure up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
@@ -4883,7 +4923,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b47'],
+    ['Build running','b48'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5275,6 +5315,28 @@ function svgTimeline(){
   s2+=sM(54,H2-8,Math.round(recent/rows.length*100)+'% OF THE CORPUS LANDED IN THE MORE RECENT HALF OF ITS OWN SPAN.','start',8.2,C.calc,760,'.04em');
   return s2+'</svg>';
 }
+/* ---------------------------------------------------------------------------
+   The ask field. It used to live only on station 2 of WATCH, so anyone reading
+   a result had no visible way to ask the next question and simply kept looking
+   at the last one. It is now the first thing on every research station.
+   --------------------------------------------------------------------------- */
+function askHTML(sub){
+  return '<div class="askbar">'+
+    '<span class="asklbl">ASK</span>'+
+    '<input data-qin placeholder="Research any question - e.g. is the Hubble tension real?" autocomplete="off" spellcheck="false">'+
+    '<button class="abtn pri" data-act="qadd">Research it</button></div>'+
+    (sub===false?'':'<p class="askhint">Plain language. PARALLAX translates it into the terms physicists publish under, runs it against arXiv and NASA ADS, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.</p>');
+}
+/* how old is what you are looking at - a restored watch must never pass for a fresh one */
+function agoStr(ts){
+  const m=Math.max(0,Math.round((Date.now()-ts)/60000));
+  if(m<1)return 'just now';
+  if(m<60)return m+' minute'+(m===1?'':'s')+' ago';
+  const h=Math.round(m/60);
+  if(h<24)return h+' hour'+(h===1?'':'s')+' ago';
+  const d=Math.round(h/24);
+  return d+' day'+(d===1?'':'s')+' ago';
+}
 function questionsHTML(){
   return (QUESTIONS.length?'<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Instrument</th><th></th></tr>'+
    QUESTIONS.map(q=>'<tr'+(q.id===QQ.id?' style="background:rgba(10,106,144,.05)"':'')+'>'+
@@ -5287,7 +5349,7 @@ function questionsHTML(){
    (QUESTIONS.length?'':'<p style="color:var(--dim)">No watches open. Type a question below - PARALLAX will parse it into a tracked quantity and a live feed query, then research it immediately against arXiv and NASA ADS.</p>')+
    '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
    '<div style="display:flex;gap:8px;align-items:center;max-width:640px">'+
-   '<input id="qIn" placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
+   '<input id="qIn" data-qin placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
    'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(26,52,84,.45);outline:0;'+
    'font-family:var(--f);font-size:12.5px;color:var(--ink);padding:6px 2px" autocomplete="off">'+
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
