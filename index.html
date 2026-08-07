@@ -628,7 +628,7 @@ function covIf(screenVariable){
 const ranked=()=>[...HYPS].sort((a,b)=>b.s-a.s);
 const sectorW=()=>Math.round(lerp(QQ.bandLo,QQ.bandHi,S.asm.heating));
 const containN=()=>{const w=sectorW();return EP_VAL.filter(v=>v<=w).length;};
-let EP_VAL=QQ.series.slice();
+let EP_VAL=QQ.series?QQ.series.slice():[];
 
 const DATASETS=[
  {id:'alma',n:'ALMA 9-epoch trajectory',p:'ev',rep:true,role:'essential — the claim loses its subject',
@@ -1012,7 +1012,7 @@ function minirows(arr){return '<div class="mini">'+arr.map((r,i)=>'<div class="m
 function hint(t,dark){const h=$('#hint');if(!t){h.classList.remove('on');return;}
   h.textContent=t;h.classList.toggle('dark',!!dark);h.classList.add('on');}
 /* ------- vitals: the model is always alive ------- */
-let EP_ERR=QQ.errs.slice();
+let EP_ERR=QQ.errs?QQ.errs.slice():[];
 let SNAP={};
 function iflash(key,val){const sv=String(val);const ch=SNAP[key]!==undefined&&SNAP[key]!==sv;SNAP[key]=sv;return ch?' flash':'';}
 function ir2(key,k,v){return '<div class="ir'+iflash(key,v)+'"><span class="k">'+k+'</span><span>'+v+'</span></div>';}
@@ -1756,7 +1756,8 @@ MODES_IMPL.model={
    hint('DRAG ROTATE · SCROLL ZOOM · SHIFT = LAB COUNTERFACTUAL · ALT = UNCERTAINTY · EVERY LAYER IS A MEASUREMENT OR A PREDICTION',true);
  },
  draw(){
-   if(QQ.hero!=='blackhole'){HERO[QQ.hero]&&HERO[QQ.hero]();return;}
+   const hv=heroOf();
+   if(hv!=='blackhole'){HERO[hv]&&HERO[hv]();return;}
    if(!GL.on)txt('WebGL unavailable - physical render disabled',stageW()/2,SH/2,12,C.dim);
    const cx=stageW()/2,cy=SH/2,scale=SH/2/(16.4/(2.15*GL.zoom));
    const L=this.layers,t=World.t,W=sectorW();
@@ -2536,7 +2537,7 @@ function nav(mode){
   tipEl.style.opacity=0;
   S.mode=mode;
   clearMode();inspect(null);
-  glSet(mode==='model'&&QQ.hero==='blackhole');
+  glSet(mode==='model'&&heroOf()==='blackhole');
   $('#brief').classList.remove('on');
   MODES_IMPL[mode].build();
   renderDoc();
@@ -2670,8 +2671,9 @@ function renderStrip(){
    '<span>SWEEP<b>'+PLAN().poll+'</b></span>'+
    '<span style="color:'+C.asm+'">MATERIAL<b style="color:'+C.asm+'">Δ'+(typeof LIVE!=='undefined'&&LIVE.on?LIVE.material:4)+'</b></span>'+
    '<span style="color:'+C.ev+'">ACTION<b style="color:'+C.ev+'">1</b></span>'+
-   '<span>SECTOR<b>±'+sectorW()+'°</b></span>'+
-   '<span>CONTAIN<b'+(cn===9?' style="color:'+C.ok+'"':'')+'>'+cn+'/9</b></span>'+
+   (hasSeries()?'<span>BAND<b>&lt;='+sectorW()+QQ.q.unit+'</b></span>'+
+     '<span>CONTAIN<b'+(cn===9?' style="color:'+C.ok+'"':'')+'>'+cn+'/9</b></span>'
+    :'<span>SERIES<b style="color:'+C.dim+'">none</b></span>')+
    '<span>LEAD<b>'+r.id.toUpperCase()+' '+(r.s*100).toFixed(0)+'%</b></span>'+
    '<span>SUPPORT<b>'+(supportScore()*100).toFixed(0)+'%</b></span>';
 }
@@ -3081,7 +3083,7 @@ const SUBDEFS={
   const base={build:B.build.bind(B),draw:B.draw.bind(B),click:(B.click||function(){}).bind(B),drop:(B.drop||function(){}).bind(B),dragMove:B.dragMove?B.dragMove.bind(B):null};
   B.build=function(){
     const sub=S.sub[m],eng=ENG[m+':'+sub];
-    if(m==='model')glSet(sub==='default'&&QQ.hero==='blackhole');
+    if(m==='model')glSet(sub==='default'&&heroOf()==='blackhole');
     if(eng)eng.build();else base.build();
   };
   B.draw=function(dt){const eng=ENG[m+':'+S.sub[m]];if(eng)eng.draw(dt);else base.draw(dt);};
@@ -3118,6 +3120,9 @@ act=function(a){
   if(p[0]==='mem'&&p[1]==='replay'){startReplay();return;}
   if(p[0]==='ref'&&p[1]==='run'){S.refRun=true;S.audited=true;renderIntel();return;}
   if(p[0]==='q'){setQuestion(p[1]);jumpStation('watch','questions');return;}
+  if(p[0]==='qadd'){const el=$('#qIn');if(el&&el.value.trim()){addQuestion(el.value.trim());jumpStation('watch','questions');}return;}
+  if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
+    if(i>0){QUESTIONS.splice(i,1);if(QQ.id===p[1])setQuestion(QUESTIONS[0].id);else renderIntel();}return;}
   if(p[0]==='plan'){S.plan=p[1];const b=$('#planBtn');if(b)b.innerHTML='PLAN<b>'+PLAN().n+'</b>';
     postEvent('plan preview — '+PLAN().n+' · '+PLAN().watches+' watches · sweep every '+PLAN().poll,'hot');renderIntel();return;}
   if(p[0]==='budget'){S.budget=p[1];S.budgetDays=null;renderIntel();return;}
@@ -3583,20 +3588,29 @@ const LIVEBIND={
  claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
    (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
  modelstats:()=>{const W=sectorW(),cn=containN();
+   if(!hasSeries())return 'No measured '+QQ.q.name+' on file. The perimeter is live on this question and scoring every record against '+QQ.tracked.length+' tracked quantities; nothing has yet produced a testable value with an uncertainty.';
    return 'Under the current prior the '+QQ.q.band+' is <b>&lt;= '+W+QQ.q.unit+'</b> and containment is <b>'+cn+' / 9 '+QQ.q.per+'s</b>'+
    (cn===9?' — <b style="color:'+C.ok+'">restored</b>, pending the ensemble re-run.':' — the trajectory exits at epoch <b>'+(EP_VAL.findIndex(v=>v>W)+1)+'</b> and never re-enters (residual '+Math.max(0,EP_VAL[8]-W).toFixed(0)+'° at epoch 9).');},
  memstate:()=>{const m=[...MEM].reverse().find(m2=>m2.d>=S.scrubDay)||MEM[MEM.length-1];
    return '<b>NOW = S-'+String(Math.round(S.scrubDay)).padStart(3,'0')+'</b> · governing state: <b>S-'+String(m.d).padStart(3,'0')+' — '+m.b+'</b>. '+m.w+(S.memoryLive?' The reactivated branch is live in the ranking.':'');},
- qbroken:()=>QN().broken,
- qbody:()=>QN().body,
- qfigh:()=>QN().figH,
- qfigp:()=>QN().figP,
+ qbroken:()=>hasSeries()?QN().broken:'No measured series is on file for this question yet.',
+ qbody:()=>hasSeries()?QN().body:emptyWatchHTML(),
+ qfigh:()=>hasSeries()?QN().figH:'Nothing to plot — and that is the honest answer.',
+ qfigp:()=>hasSeries()?QN().figP:emptySeriesHTML(),
  questions:()=>questionsHTML(),
  plans:()=>plansHTML(),
  econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
  claimline:()=>'STRUCTURE: LOADED '+S.attached.size+'/9 · SUPPORT '+(supportScore()*100).toFixed(0)+'%'+(S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED — SUBJECT DETACHED</b>':'')+' · WEAKEST STRUT: laboratory mapping (unreplicated)',
  sysref:()=>{const W=sectorW(),cn=containN(),pk=(lerp(2.05,3.15,S.asm.heating)*2).toFixed(1);
+   if(!hasSeries())return '<table class="dtable"><tr><th>Watch state</th><th>Value</th><th>Meaning</th></tr>'+
+    [['Question',QQ.name,'as typed'],
+     ['Field',QQ.field,QQ.matched?'recognised domain':'no domain match'],
+     ['Hero instrument','none','assigned only when a series exists'],
+     ['Tracked quantities',QQ.tracked.length,QQ.tracked.join(' · ')],
+     ['Measured series','empty','nothing to plot, nothing to test'],
+     ['Perimeter','live','feed query active every sweep']]
+    .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>';
    return '<table class="dtable"><tr><th>Parameter</th><th>Value</th><th>Provenance</th></tr>'+
    QN().params.concat([
     ['Permitted band','<= '+W+QQ.q.unit,QQ.q.band],
@@ -3716,13 +3730,13 @@ function stationsFor(mode){
      '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 % · pre-D21 RM stability cluster. Citation structure: W20 inherits B18; E22 inherits M16 — the stability cluster is <b>two measurements, not three</b>, and D21 stands alone against it.</p>'+
      '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
   if(mode==='model')return [
-   {id:'system',label:'Physical system',sub:'render · containment gauge',vis:'live',vsize:'l',
+   {id:'system',label:hasSeries()?'Physical system':'Watch status',sub:hasSeries()?'render · containment gauge':'no measured series yet',vis:hasSeries()?'live':null,vsize:'l',
     cap:'<b>Live instrument.</b> The breathing band is the permitted sector; ticks are the nine epochs; violet exits. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.<span class="capline" data-lv="modelstats">'+LIVEBIND.modelstats()+'</span>',
     html:'<h2 data-lv="qbroken">'+LIVEBIND.qbroken()+'</h2>'+
      '<p data-lv="modelstats">'+LIVEBIND.modelstats()+'</p>'+
      '<p data-lv="qbody">'+LIVEBIND.qbody()+'</p>'+
      '<div data-lv="sysref">'+LIVEBIND.sysref()+'</div>'},
-   {id:'evpa',label:'Evidence vs prediction',sub:'the primary figure',vis:'evpa',
+   {id:'evpa',label:hasSeries()?'Evidence vs prediction':'Measured series',sub:hasSeries()?'the primary figure':'none on file',vis:hasSeries()?'evpa':null,
     html:'<h2 data-lv="qfigh">'+LIVEBIND.qfigh()+'</h2>'+
      '<p data-lv="qfigp">'+LIVEBIND.qfigp()+'</p>'+
      '<div data-lv="epochs">'+LIVEBIND.epochs()+'</div>'+
@@ -4083,6 +4097,10 @@ function setLive(on){
   if(on){fetchLive();liveTimer=setInterval(fetchLive,60000);}
   if(S.phase==='live'){S.st.watch=0;if(S.mode==='watch')renderDoc();renderIntel();}
 }
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target&&e.target.id==='qIn'&&e.target.value.trim()){
+    addQuestion(e.target.value.trim());jumpStation('watch','questions');e.preventDefault();}
+});
 document.addEventListener('click',e=>{
   if(e.target.closest('#liveBtn'))setLive(!LIVE.on);
   if(e.target.closest('#planBtn'))jumpStation('watch','plans');
@@ -4199,11 +4217,106 @@ const QNARR={
    ['Threshold','0.6 keV nr','calibration campaign - pinned'],
    ['Neutrino fog','0.4 dex below','irreducible floor']]}
 };
-const QN=()=>QNARR[QQ.id]||QNARR.sgra;
+const QN=()=>QNARR[QQ.id]||{broken:'',body:'',figH:'',figP:'',params:[]};
+
+/* ---- typed questions: synthesise a watch profile from free text ---- */
+const DOMAINS=[
+ {k:['black hole','sgr a','sagittarius','m87','event horizon','accretion','grmhd','eht','polarisation','polarization','faraday'],
+  field:'black-hole accretion',hero:'blackhole',
+  q:{sym:'EVPA',name:'polarisation angle',unit:'deg',lo:-16,hi:48,per:'epoch',band:'permitted sector'},
+  bandLo:14,bandHi:42,bandCtl:'heating prior',
+  tracked:['position-angle drift','Faraday screen stability','electron heating prescription','fractional polarisation']},
+ {k:['exoplanet','atmosphere','transit','jwst','biosignature','methane','k2-18','trappist','habitable','spectrum'],
+  field:'exoplanet atmospheres',hero:'transit',
+  q:{sym:'depth',name:'transit depth excess',unit:' ppm',lo:-20,hi:120,per:'band',band:'photochemical envelope'},
+  bandLo:22,bandHi:88,bandCtl:'mixing-ratio prior',
+  tracked:['molecular abundances','equilibrium chemistry baseline','stellar contamination','instrument systematics']},
+ {k:['gravitational wave','ligo','virgo','kagra','ringdown','merger','binary','quasinormal','strain','no-hair'],
+  field:'gravitational-wave astronomy',hero:'strain',
+  q:{sym:'df',name:'frequency deviation',unit:'%',lo:-4,hi:16,per:'segment',band:'GR-consistent band'},
+  bandLo:3,bandHi:11,bandCtl:'calibration prior',
+  tracked:['waveform consistency','remnant parameters','calibration systematics','detector coherence']},
+ {k:['dark matter','wimp','axion','direct detection','xenon','neutrino fog','recoil','cross-section'],
+  field:'dark matter searches',hero:'exclusion',
+  q:{sym:'sigma',name:'cross-section excess',unit:'e-45',lo:-1,hi:9,per:'bin',band:'background envelope'},
+  bandLo:2,bandHi:6,bandCtl:'background model prior',
+  tracked:['exclusion limit','background model','threshold calibration','irreducible neutrino floor']},
+ {k:['hubble','cosmolog','cmb','dark energy','sigma8','baryon','redshift','supernova','lambda-cdm','tension'],
+  field:'cosmology',hero:null,
+  q:{sym:'H0',name:'parameter tension',unit:' km/s/Mpc',lo:60,hi:80,per:'probe',band:'concordance interval'},
+  bandLo:68,bandHi:74,bandCtl:'calibration ladder prior',
+  tracked:['parameter tension across probes','distance-ladder calibration','early vs late universe','systematics budget']},
+ {k:['neutrino','muon','lhc','collider','quark','higgs','standard model','beyond the standard','g-2','flavour','flavor'],
+  field:'particle physics',hero:null,
+  q:{sym:'dev',name:'deviation from prediction',unit:' sigma',lo:-1,hi:7,per:'channel',band:'Standard Model band'},
+  bandLo:2,bandHi:5,bandCtl:'theory uncertainty',
+  tracked:['measured deviation','theory prediction','detector systematics','independent confirmation']},
+ {k:['fusion','tokamak','plasma','stellarator','confinement','iter','ignition'],
+  field:'plasma and fusion',hero:null,
+  q:{sym:'Q',name:'energy gain',unit:'',lo:0,hi:12,per:'shot',band:'projected envelope'},
+  bandLo:1,bandHi:8,bandCtl:'confinement scaling prior',
+  tracked:['energy gain','confinement time','disruption rate','scaling-law validity']}
+];
+
+function emptyWatchHTML(){
+  return 'This watch was opened from a typed question, so the perimeter has a target but no measured series to test against. '+
+   'PARALLAX will not draw a figure for data it does not have — until a series exists, this station stays text.'+
+   '<br><br><b>Field detected:</b> '+QQ.field+(QQ.matched?' (recognised domain — instruments pre-configured)':' (generic profile — no domain match, so no hero instrument is assigned)')+
+   '<br><b>Feed query in use:</b> <code style="color:'+C.ev+'">'+QQ.feedq+'</code>'+
+   '<br><b>Scoring against:</b> '+QQ.tracked.join(' · ')+
+   '<br><br>Two things unlock the instruments: the perimeter returning records that carry a measurable quantity, or you attaching your own series.';
+}
+function emptySeriesHTML(){
+  return 'A plot here would be decoration. There is no measured '+QQ.q.name+' on file for this question, so this station reports state instead of drawing one.'+
+   '<br><br><b>What exists:</b> a live feed query, a scoring profile and an empty series.'+
+   '<br><b>What is missing:</b> values with uncertainties, and a permitted band to test them against.'+
+   '<br><b>What happens next:</b> the moment a series is attached, this station becomes the primary figure — axis, units and boundary all derived from this question.';
+}
+function synthQuestion(text){
+  const t=String(text||'').trim();
+  if(t.length<4)return null;
+  const low=t.toLowerCase();
+  let best=null,bestScore=0;
+  DOMAINS.forEach(d=>{
+    const sc=d.k.reduce((a,w)=>a+(low.indexOf(w)>=0?(w.length>8?2:1):0),0);
+    if(sc>bestScore){bestScore=sc;best=d;}
+  });
+  const stop=new Set(['what','why','how','does','do','is','are','the','a','an','of','in','on','for','to','and','or','with','that','this','my','we','i','about','there','their','it','its','be','been','can','could','should','would','which','when','where','any','new','from','at','by','vs','versus']);
+  const words=low.replace(/[^a-z0-9\-\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w));
+  const terms=[...new Set(words)].slice(0,6);
+  const quoted=(t.match(/"([^"]+)"/g)||[]).map(x=>x);
+  const feedq=(quoted.length?quoted.join(' AND ')+(terms.length?' AND ':''):'')+
+    (terms.length?'('+terms.map(w=>'"'+w+'"').join(' OR ')+')':'');
+  const g=best||{field:'open scientific question',hero:null,
+    q:{sym:'value',name:'tracked quantity',unit:'',lo:0,hi:10,per:'measurement',band:'permitted interval'},
+    bandLo:2,bandHi:8,bandCtl:'working prior',
+    tracked:['primary measured quantity','competing explanations','systematic uncertainties','replication status']};
+  return {id:'usr_'+Math.abs(t.split('').reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0)).toString(36),
+    name:t.length>64?t.slice(0,61)+'...':t,
+    object:t,
+    field:g.field,hero:g.hero,
+    q:Object.assign({},g.q),bandLo:g.bandLo,bandHi:g.bandHi,bandCtl:g.bandCtl,
+    series:null,errs:null,
+    feedq:feedq||('"'+t.slice(0,60)+'"'),
+    tracked:g.tracked.slice(),
+    matched:!!best,typed:true};
+}
+/* a watch only earns instruments once it holds a measured series */
+const hasSeries=()=>!!(QQ.series&&QQ.series.length);
+const heroOf=()=>hasSeries()?QQ.hero:null;
+function addQuestion(text){
+  const q=synthQuestion(text);
+  if(!q){postEvent('question too short to open a watch','warn');return;}
+  const dup=QUESTIONS.find(x=>x.id===q.id);
+  if(dup){setQuestion(dup.id);return;}
+  QUESTIONS.push(q);
+  postEvent('watch opened - '+q.name+' - '+(q.matched?'domain recognised: '+q.field:'generic profile'),'hot');
+  setQuestion(q.id);
+}
 function setQuestion(id){
   const q=QUESTIONS.find(x=>x.id===id);if(!q)return;
   QQ=q;
-  EP_VAL=q.series.slice();EP_ERR=q.errs.slice();
+  EP_VAL=q.series?q.series.slice():[];EP_ERR=q.errs?q.errs.slice():[];
   S.asm.heating=0;S.mod={shift:false,alt:false};S.budgetDays=null;
   consistency();
   const b=$('#qBtn');if(b)b.innerHTML='QUESTION<b>'+q.id.toUpperCase()+'</b>';
@@ -4216,8 +4329,17 @@ function questionsHTML(){
     '<td><b>'+q.name+'</b><br><span style="font-size:10px;color:var(--dim)">'+q.object+'</span></td>'+
     '<td>'+q.field+'</td>'+
     '<td>'+q.q.sym+' - '+q.q.name+'</td>'+
-    '<td>'+q.hero+'</td>'+
-    '<td>'+(q.id===QQ.id?'<b style="color:'+C.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+'</td></tr>').join('')+'</table>'+
+    '<td>'+(q.series?(q.hero||'text only'):'<span style="color:var(--dim)">none — no series</span>')+'</td>'+
+    '<td>'+(q.id===QQ.id?'<b style="color:'+C.ev+'">ACTIVE</b>':'<button class="abtn sm" data-act="q:'+q.id+'">Switch</button>')+
+    (q.typed?' <button class="abtn sm warn" data-act="qdel:'+q.id+'">drop</button>':'')+'</td></tr>').join('')+'</table>'+
+   '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
+   '<div style="display:flex;gap:8px;align-items:center;max-width:640px">'+
+   '<input id="qIn" placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
+   'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(150,200,240,.45);outline:0;'+
+   'font-family:var(--f);font-size:12.5px;color:var(--ink);padding:6px 2px" autocomplete="off">'+
+   '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
+   '<p style="font-size:11px;color:var(--dim)">The question is parsed into a domain, a tracked quantity, a permitted band and a live feed query. '+
+   'If the domain is recognised its instruments are pre-configured; if not, the watch opens without a hero instrument — no visual is invented for data that does not exist.</p>'+
    '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and hero instrument. Nothing about the machine is specific to black holes - switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
    '<p style="font-size:11.4px"><b>Watching this question live:</b> the ingest worker polls <code style="color:var(--ev)">'+QQ.feedq+'</code> and scores every record against: '+QQ.tracked.join(' · ')+'.</p>';
 }
