@@ -1,4 +1,4 @@
-// PARALLAX ingest worker v4 — paste into the Supabase Edge Function named `ingest`.
+// PARALLAX ingest worker v5 — paste into the Supabase Edge Function named `ingest`.
 //
 // Two modes:
 //   1. Cron sweep  (no body, or {})           -> polls the stored watches, stores + scores records
@@ -104,11 +104,16 @@ async function interpret(question: string) {
     `"ads":"an ADS query for the same topic",` +
     `"quantity":{"sym":"symbol","name":"the measurable quantity a claim here would rest on","unit":"unit or empty"},` +
     `"tracked":["3-5 specific quantities/claims to watch"]}\n\n` +
-    `Rules: map colloquial phrasing to the terms physicists actually publish under ` +
-    `(e.g. "parallel universes" -> multiverse, eternal inflation, many-worlds; ` +
-    `"is time travel possible" -> closed timelike curves, wormholes, chronology protection). ` +
-    `Prefer 2-4 core concepts joined with OR inside one AND group; include a cat: filter when the field is clear. ` +
-    `Never return a bare list of common words.`;
+    `Rules:\n` +
+    `- The input may be a bare topic ("parallel universes", "cosmic microwave background", "dark matter") ` +
+    `or a full question. Both must work. Never refuse and never return an empty query.\n` +
+    `- Map colloquial phrasing to the terms physicists publish under (parallel universes -> multiverse, ` +
+    `eternal inflation, many-worlds; time travel -> closed timelike curves, wormholes).\n` +
+    `- "arxiv" must be BROAD: 3-6 core synonyms joined with OR in ONE group, using all: prefixes. ` +
+    `Do NOT add a second AND group of qualifier words like testable/observational/constraints — ` +
+    `that over-narrows and returns noise. At most add one cat: filter.\n` +
+    `- "broad" must be even wider: 2-3 of the most common terms only, no cat: filter.\n` +
+    `- Never return a bare list of stopwords.`;
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
@@ -128,12 +133,20 @@ async function interpret(question: string) {
 async function scoreRecord(rec: any, watch: { name: string; tracked: string[] }) {
   if (!ANT) return null;
   const prompt =
-    `You are the relevance gate of a research-monitoring system.\n` +
+    `You are the relevance gate of a research-monitoring system. Be useful, not pedantic.\n` +
     `Research question: ${watch.name}\nTracked quantities:\n- ${watch.tracked.join("\n- ")}\n\n` +
     `New record:\nTITLE: ${rec.title}\nABSTRACT: ${rec.abstract}\n\n` +
+    `Score relevance on this calibration:\n` +
+    `0.85-1.0 directly addresses the question or measures a tracked quantity\n` +
+    `0.60-0.84 same subfield, bears on the question's premises, methods or competing explanations\n` +
+    `0.40-0.59 adjacent: shares the physical system or observable but a different target\n` +
+    `0.15-0.39 same broad field only\n` +
+    `0.0-0.14 unrelated\n` +
+    `Set "relevant" true whenever relevance >= 0.40 — a researcher watching this question would want to see it.\n` +
+    `Set "material" true only if it reports a NEW measurement, constraint, bound or explicit contradiction.\n\n` +
     `Return ONLY JSON: {"relevance":0..1,"relevant":bool,"touches":[strings],` +
-    `"measurement":{"parameter":str,"value":str,"sigma":str}|null,"material":bool,"why":"one sentence"}. ` +
-    `"material"=true only if it reports a new measurement, constraint or contradiction of a tracked quantity.`;
+    `"stance":"supports"|"contests"|"neutral","position":"the explanation or claim this paper backs, <=12 words",` +
+    `"measurement":{"parameter":str,"value":str,"sigma":str}|null,"material":bool,"why":"one sentence"}`;
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
@@ -144,6 +157,43 @@ async function scoreRecord(rec: any, watch: { name: string; tracked: string[] })
     }),
   });
   if (!r.ok) { console.log("anthropic", r.status, await r.text()); return null; }
+  const j = await r.json();
+  const m = (j.content?.[0]?.text ?? "").match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { return JSON.parse(m[0]); } catch { return null; }
+}
+
+// Turn the returned corpus into the structures the other modes operate on.
+async function synthesize(question: string, recs: any[]) {
+  if (!ANT || !recs.length) return null;
+  const digest = recs.slice(0, 12).map((r, i) =>
+    `[${i + 1}] ${r.published_at ? String(r.published_at).slice(0, 7) : "n/a"} | ${r.title} | ${String(r.abstract || "").slice(0, 400)}`
+  ).join("\n");
+  const prompt =
+    `You are summarising the live literature on a research question for a physicist.\n\n` +
+    `QUESTION: ${question}\n\nRECORDS:\n${digest}\n\n` +
+    `Return ONLY JSON:\n` +
+    `{"state":"3-4 sentences on where this question actually stands, naming the real constraints",\n` +
+    ` "findings":[{"t":"the finding, one sentence","why":"why it matters","ev":"which records support it","conf":"high|moderate|low"}],\n` +
+    ` "positions":[{"n":"short name of the competing explanation","d":"one sentence","support":0-100,` +
+    `"ex":"what it explains","fx":"what conflicts with it","test":"the observation that would settle it"}],\n` +
+    ` "contested":[{"point":"the disagreement","a":"one side","b":"the other side"}],\n` +
+    ` "quantities":[{"sym":"symbol","name":"quantity","value":"best current value or bound","src":"source"}],\n` +
+    ` "nextTest":"the single most decisive observation or analysis",\n` +
+    ` "gaps":["what is missing to answer this question"]}\n\n` +
+    `Give 2-4 findings, 2-3 positions with support summing near 100, 1-3 contested points, ` +
+    `and up to 4 quantities. Be concrete and cite record numbers in "ev". Never invent measurements ` +
+    `that are not in the records.`;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!r.ok) { console.log("synth", r.status, await r.text()); return null; }
   const j = await r.json();
   const m = (j.content?.[0]?.text ?? "").match(/\{[\s\S]*\}/);
   if (!m) return null;
@@ -169,7 +219,7 @@ async function handle(req: Request): Promise<Response> {
   // ---------- mode 2: live on-demand research for one typed question ----------
   if (body && (body.q || body.question)) {
     const asked = String(body.question || body.name || body.q).slice(0, 400);
-    const limit = Math.min(Number(body.limit) || 8, 20);
+    const limit = Math.min(Number(body.limit) || 12, 25);
 
     // Claude turns the question into a real query + watch profile
     const prof = await interpret(asked);
@@ -215,8 +265,18 @@ async function handle(req: Request): Promise<Response> {
         "resolution=ignore-duplicates,return=minimal");
     }
     scored.sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0));
+
+    // synthesise from the records that actually cleared the gate (fall back to the best few)
+    const forSynth = found.filter((f) => {
+      const sc = scored.find((x) => x.source_id === f.source_id);
+      return sc && (sc.relevance ?? 0) >= 0.4;
+    });
+    const synthInput = (forSynth.length ? forSynth : found.slice(0, 6));
+    let synthesis: any = null;
+    try { synthesis = await synthesize(asked, synthInput); } catch (_) { synthesis = null; }
+
     return new Response(JSON.stringify({
-      mode: "search", question: asked,
+      mode: "search", question: asked, synthesis,
       profile: prof ? {
         field: prof.field ?? "", quantity: prof.quantity ?? null,
         tracked: watch.tracked, arxiv: prof.arxiv ?? "", ads: prof.ads ?? "",

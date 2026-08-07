@@ -3588,7 +3588,7 @@ function memHTML(){
    '<p style="margin:3px 0;font-size:11.3px"><b>Why:</b> '+m.a+' <b>Context:</b> '+m.w+'</p></div>').join('');
 }
 const LIVEBIND={
- kf:kfHTML, resfig:svgResults, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
+ kf:kfHTML, resfig:svgResults, timeline:svgTimeline, evpa:svgEVPA, lit:svgLit, dep:svgDep, funnel:svgFunnel, sens:svgSens, pareto:svgPareto,
  hyps:hypsHTML, exps:expsHTML, matrix:matrixHTML, referee:refereeHTML, comps:compsHTML,
  claimtxt:()=>'<b>'+claimSentence()+'</b> — integrity '+S.attached.size+'/9 · support '+(supportScore()*100).toFixed(0)+'%'+
    (S.claimCollapsed?' · <b style="color:'+C.bad+'">COLLAPSED</b>':'')+(S.audited?' · survives referee simulation with 2 exposures':' · unaudited'),
@@ -3606,6 +3606,13 @@ const LIVEBIND={
  ping:()=>pingHTML(),
  results:()=>resultsHTML(),
  resfig:()=>svgResults(),
+ timeline:()=>svgTimeline(),
+ synstate:()=>synStateHTML(),
+ synfind:()=>synFindingsHTML(),
+ synpos:()=>synPositionsHTML(),
+ syncon:()=>synContestedHTML(),
+ synqty:()=>synQuantHTML(),
+ syngaps:()=>synGapsHTML(),
  plans:()=>plansHTML(),
  econ:()=>unitEconHTML(),
  hypline:()=>{const r=ranked();return 'RANKING NOW: '+r.map(h=>h.id.toUpperCase()+' '+(h.s*100).toFixed(0)+'%').join(' · ')+' — the order is a function of your assumptions';},
@@ -3686,7 +3693,7 @@ function figLive(caption,dark){
   return '<div class="fig"><div id="liveFig"'+(dark?' class="dark"':'')+'></div><div class="fcap">'+caption+'</div><div id="figCtl"></div></div>';
 }
 /* ---------------- stations: the mode is a mechanism, not an article ---------------- */
-const VISTITLE={resfig:'Research return - real records, scored',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
+const VISTITLE={resfig:'Research return - real records, scored',timeline:'Literature arrival - real submission dates',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
   if(noWatch())return [
@@ -3734,6 +3741,7 @@ function stationsFor(mode){
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
     html:'<h2>What this question actually returned.</h2>'+
+     '<div data-lv="synstate">'+synStateHTML()+'</div>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
     html:'<h2>The mechanism is not about black holes.</h2>'+
@@ -3758,14 +3766,46 @@ function stationsFor(mode){
        '<td style="color:'+(hot?C.bad:C.dim)+(hot?';font-weight:700':'')+'">'+(inb?'within bound':t.toFixed(1)+'σ'+(hot?' ⚠':''))+'</td></tr>';}).join('')+'</table>'+
      '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 % · pre-D21 RM stability cluster. Citation structure: W20 inherits B18; E22 inherits M16 — the stability cluster is <b>two measurements, not three</b>, and D21 stands alone against it.</p>'+
      '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
+  if(!hasSeries()&&hasSyn()){
+    if(mode==='model')return [
+     {id:'state',label:'State of the question',sub:'what the literature establishes',vis:'timeline',
+      html:'<h2>Where this question actually stands.</h2>'+
+       '<div data-lv="synstate">'+synStateHTML()+'</div>'+
+       '<h2 style="font-size:15px;margin-top:14px">Quantities on the table</h2>'+
+       '<div data-lv="synqty">'+synQuantHTML()+'</div>'+
+       '<div data-lv="syngaps">'+synGapsHTML()+'</div>'},
+     {id:'findings',label:'Findings',sub:'extracted from the corpus',vis:null,
+      html:'<h2>What the returned literature establishes.</h2>'+
+       '<div data-lv="synfind">'+synFindingsHTML()+'</div>'}];
+    if(mode==='analyze')return [
+     {id:'positions',label:'Competing explanations',sub:'from the real corpus',vis:null,
+      html:'<h2>The explanations currently on the table.</h2>'+
+       '<div data-lv="synpos">'+synPositionsHTML()+'</div>'},
+     {id:'contested',label:'Contested points',sub:'where the field disagrees',vis:null,
+      html:'<h2>Where the literature disagrees with itself.</h2>'+
+       '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
+       '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
+    if(mode==='memory')return [
+     {id:'arrival',label:'Literature arrival',sub:'real submission dates',vis:'timeline',
+      html:'<h2>How this question accumulated evidence.</h2>'+
+       '<p>Every mark is a record this watch actually returned, placed at its real submission date. '+
+       'Tall amber marks report a new measurement or bound; the curve is cumulative arrival.</p>'+
+       '<div data-lv="results">'+resultsHTML()+'</div>'}];
+    if(mode==='claim')return [
+     {id:'standing',label:'What can be claimed',sub:'supported vs contested',vis:null,
+      html:'<h2>What this literature will and will not support.</h2>'+
+       '<div data-lv="synstate">'+synStateHTML()+'</div>'+
+       '<h2 style="font-size:15px;margin-top:14px">Contested — a claim here needs a premise</h2>'+
+       '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
+       '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
+  }
   if(!hasSeries())return [
-   {id:'nodata',label:'No series on this watch',sub:'instruments unlock with data',vis:null,
+   {id:'nodata',label:'No series on this watch',sub:'research it to unlock the modes',vis:null,
     html:'<h2>'+mode.toUpperCase()+' has nothing to operate on yet.</h2>'+
-     '<p>This mode manipulates a measured series — values with uncertainties tested against a permitted band. '+
-     'The active watch (<b>'+QQ.name+'</b>) has a live feed and a scoring profile, but no series on file, so these instruments stay dark rather than showing you a shape that means nothing.</p>'+
+     '<p>This mode works from the literature this watch returns. <b>'+QQ.name+'</b> has not been researched yet — run it and this mode fills with the state of the question, its competing explanations, contested points and arrival history.</p>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
-     '<div class="acts"><button class="abtn" data-act="sub:watch:questions">Open or switch watch</button>'+
-     '<button class="abtn" data-act="qdemo">Load the Sgr A* worked example</button></div>'}];
+     '<div class="acts"><button class="abtn pri" data-act="qres">Research now</button>'+
+     '<button class="abtn" data-act="sub:watch:questions">Open or switch watch</button></div>'}];
   if(mode==='model')return [
    {id:'system',label:hasSeries()?'Physical system':'Watch status',sub:hasSeries()?'render · containment gauge':'no measured series yet',vis:hasSeries()?'live':null,vsize:'l',
     cap:'<b>Live instrument.</b> The breathing band is the permitted sector; ticks are the nine epochs; violet exits. Drag rotate · scroll zoom · SHIFT lab counterfactual · ALT uncertainty.<span class="capline" data-lv="modelstats">'+LIVEBIND.modelstats()+'</span>',
@@ -4562,6 +4602,78 @@ function resultsHTML(){
      '<td>'+r.source+'</td><td>'+(r.relevance==null?'-':(r.relevance*100).toFixed(0)+'%')+'</td>'+
      '<td>'+(r.material?'<b style="color:'+C.asm+'">MATERIAL</b>':r.relevant?'<span style="color:'+C.ev+'">relevant</span>':'<span style="color:var(--dim)">discarded</span>')+'</td></tr>').join('')+'</table>'+
    '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
+}
+function synOf(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.synthesis)?R.synthesis:null;}
+function hasSyn(){return !!synOf();}
+function synStateHTML(){
+  const y=synOf();if(!y)return '';
+  return '<p>'+(y.state||'')+'</p>';
+}
+function synFindingsHTML(){
+  const y=synOf();if(!y||!y.findings||!y.findings.length)return '<p style="color:var(--dim)">No findings extracted yet.</p>';
+  return y.findings.map((f,i)=>'<div class="kfd'+(i===0?' open':'')+'" data-kfd="s'+i+'" style="border-color:'+
+    (f.conf==='high'?C.ev:f.conf==='low'?C.dim:C.asm)+'">'+
+    '<div class="kt2">'+(f.t||'')+'</div><div class="kb2">'+
+    '<div class="fr"><span class="fk">Why</span><span>'+(f.why||'')+'</span></div>'+
+    '<div class="fr"><span class="fk">Evidence</span><span>'+(f.ev||'')+'</span></div>'+
+    '<div class="fr"><span class="fk">Confidence</span><span>'+(f.conf||'')+'</span></div>'+
+    '</div></div>').join('');
+}
+function synPositionsHTML(){
+  const y=synOf();if(!y||!y.positions||!y.positions.length)return '<p style="color:var(--dim)">No competing positions extracted.</p>';
+  return y.positions.map((h,i)=>'<div style="border-top:1px solid var(--line);padding:9px 0">'+
+    '<p style="margin:0"><b>'+(i+1)+' · '+(h.n||'')+'</b> — support <b>'+(h.support||0)+'%</b>'+
+    '<span class="inbar"><i style="width:'+(h.support||0)+'%;background:'+C.hyp+'"></i></span></p>'+
+    '<p style="margin:4px 0">'+(h.d||'')+'</p>'+
+    '<p style="margin:4px 0;font-size:11.3px"><b>Explains:</b> '+(h.ex||'—')+'  <b>Conflicts:</b> '+(h.fx||'—')+'</p>'+
+    '<p style="margin:4px 0;font-size:11.3px"><b>Settled by:</b> '+(h.test||'—')+'</p></div>').join('');
+}
+function synContestedHTML(){
+  const y=synOf();if(!y||!y.contested||!y.contested.length)return '';
+  return '<table class="dtable"><tr><th>Contested point</th><th>One side</th><th>The other</th></tr>'+
+   y.contested.map(c2=>'<tr><td><b>'+(c2.point||'')+'</b></td><td>'+(c2.a||'')+'</td><td>'+(c2.b||'')+'</td></tr>').join('')+'</table>';
+}
+function synQuantHTML(){
+  const y=synOf();if(!y||!y.quantities||!y.quantities.length)return '';
+  return '<table class="dtable"><tr><th>Quantity</th><th>Current value or bound</th><th>Source</th></tr>'+
+   y.quantities.map(q2=>'<tr><td><b>'+(q2.sym?q2.sym+' — ':'')+(q2.name||'')+'</b></td><td>'+(q2.value||'—')+'</td><td>'+(q2.src||'—')+'</td></tr>').join('')+'</table>';
+}
+function synGapsHTML(){
+  const y=synOf();if(!y)return '';
+  return (y.nextTest?'<p><b>Most decisive next step:</b> '+y.nextTest+'</p>':'')+
+   (y.gaps&&y.gaps.length?'<p><b>What is missing:</b> '+y.gaps.join(' · ')+'</p>':'');
+}
+/* publication timeline built from the real submission dates */
+function svgTimeline(){
+  const R=resultsOf(QQ.id);
+  if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
+  const rows=R.results.filter(r=>r.published_at);
+  if(!rows.length)return '';
+  const u=++FID,W2=680,H2=250,mL=54,mT=52,pW=W2-mL-22,pH=120;
+  const ts=rows.map(r=>Date.parse(r.published_at)).filter(t=>!isNaN(t));
+  const tMin=Math.min(...ts),tMax=Math.max(...ts),span=Math.max(1,tMax-tMin);
+  const X=t=>mL+((t-tMin)/span)*pW;
+  let s2=svgO(W2,H2)+fDefs(u);
+  s2=roHead(s2,'LITERATURE TIMELINE',[
+    ['RECORDS',rows.length,C.ink],['SPAN',Math.round(span/86400000)+' d',C.calc],
+    ['NEWEST',new Date(tMax).toISOString().slice(0,10),C.ev],
+    ['RELEVANT',R.relevant,C.ev],['MATERIAL',R.material,R.material?C.asm:C.dim]],286);
+  s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(150,200,240,.35)',1.1);
+  const sorted=rows.slice().sort((a,b)=>Date.parse(a.published_at)-Date.parse(b.published_at));
+  let cum=0;let path='';
+  sorted.forEach((r,i)=>{cum++;const x=X(Date.parse(r.published_at));
+    const y=mT+pH-(cum/sorted.length)*pH;
+    path+=(i?'L':'M')+x+' '+y+' ';});
+  s2+='<path d="'+path+'" fill="none" stroke="'+C.calc+'" stroke-width="1.4" opacity=".8"/>';
+  sorted.forEach(r=>{const x=X(Date.parse(r.published_at));
+    const col=r.material?C.asm:r.relevant?C.ev:C.dim;
+    s2+=sL(x,mT+pH,x,mT+pH-(r.material?36:r.relevant?24:12),col,r.material?2.2:1.3);
+    if(r.material)s2+='<circle cx="'+x+'" cy="'+(mT+pH-38)+'" r="4" fill="rgba(232,161,58,.3)" stroke="'+C.asm+'" stroke-width="1.6" filter="url(#gw'+u+')"/>';});
+  s2+=sM(mL,mT+pH+16,new Date(tMin).toISOString().slice(0,10),'start',6.4,C.dim,600,'0')+
+      sM(mL+pW,mT+pH+16,new Date(tMax).toISOString().slice(0,10),'end',6.4,C.dim,600,'0');
+  s2+=sM(mL,H2-26,'TALL AMBER = A NEW MEASUREMENT OR BOUND. CYAN = CLEARED RELEVANCE. THE CURVE IS CUMULATIVE ARRIVAL.','start',6.2,C.dim,700,'.06em');
+  s2+=sM(mL,H2-12,'THIS IS THE ARRIVAL HISTORY OF THE ACTUAL RECORDS RETURNED FOR THIS QUESTION.','start',6.2,C.dim,650,'.06em');
+  return s2+'</svg>';
 }
 function questionsHTML(){
   return (QUESTIONS.length?'<table class="dtable"><tr><th>Question</th><th>Field</th><th>Tracked quantity</th><th>Instrument</th><th></th></tr>'+
