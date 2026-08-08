@@ -230,9 +230,10 @@ canvas{display:block}
 .hpickwrap{border-top:1px dashed rgba(180,86,10,.4)}
 .hpicknote{font-size:12px;color:var(--ink2);margin:0 0 18px;font-family:var(--m);letter-spacing:.04em}
 .hpicknote b{color:var(--asm);letter-spacing:.16em;text-transform:uppercase;font-size:9.5px}
-.hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.hpick figure{margin:0;border:1px solid rgba(26,52,84,.16);border-radius:5px;padding:10px;
-  background:rgba(255,254,251,.6)}
+.hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px}
+.hpick figure{margin:0;border:1px solid rgba(26,52,84,.15);border-radius:6px;padding:13px 14px 15px;
+  background:linear-gradient(168deg,rgba(255,255,253,.92),rgba(250,248,243,.7));
+  box-shadow:0 10px 26px -18px rgba(60,48,32,.55),0 1px 0 rgba(255,255,255,.7) inset}
 .hpick svg{width:100%;height:auto;display:block;overflow:visible}
 .hpick figcaption{margin-top:8px;font-size:11.6px;line-height:1.5;color:var(--ink2)}
 .hpick figcaption b{color:var(--ink)}
@@ -786,7 +787,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b66</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b67</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -833,7 +834,7 @@ body.cxon #doc{right:min(430px,34vw)}
 <div id="home">
  <header id="hnav">
   <span class="hmark">PARALLAX</span>
-  <nav><a href="#hwhat">Method</a><a href="#hfigs">Readouts</a><a href="#hperim">Perimeter</a><a href="#hprice">Pricing</a></nav>
+  <nav><a href="#hwhat">What it does</a><a href="#hfigs">Readouts</a><a href="#hperim">What it searches</a><a href="#hprice">Pricing</a></nav>
   <div class="hcta"><button class="hlink" data-home="login">Log in</button>
    <button class="hgo" data-home="signup">Start free</button></div>
  </header>
@@ -843,9 +844,9 @@ body.cxon #doc{right:min(430px,34vw)}
    <div class="hherotext">
     <div class="hkick"><i></i>Perimeter &middot; live</div>
     <h1>Every archive.<br>Every decade.<br><span class="hglow">Read before you ask.</span></h1>
-    <p class="hlede">State the question. <b>124 passes over 18 indices</b> &mdash; arXiv and ADS
-    through INSPIRE, OSTI, NTRS and CDS &mdash; era-stratified to the 1600s, deduplicated across
-    archives, gated at abstract level, and reduced to structure before you open it.</p>
+    <p class="hlede">Ask a question. It runs <b>124 searches across 18 indices</b> &mdash; arXiv and
+    ADS through INSPIRE, OSTI and CERN &mdash; one per decade back to the 1600s, drops the
+    duplicates, reads every abstract, and has the analysis done before you open it.</p>
     <div class="hact">
       <button class="hgo big" data-home="signup">Start free</button>
       <button class="hlink big" data-home="try">Enter without an account &rarr;</button>
@@ -854,80 +855,74 @@ body.cxon #doc{right:min(430px,34vw)}
    <div class="hviz"><svg id="hglobe" viewBox="0 0 540 500"></svg></div>
   </div>
   <div class="hnums">
-    <div><b data-count="124">0</b><span>passes per question</span></div>
+    <div><b data-count="124">0</b><span>searches per question</span></div>
     <div><b data-count="18">0</b><span>indices, deduplicated</span></div>
-    <div><b data-flat="1600s">1600s</b><span>earliest record reached</span></div>
-    <div><b data-flat="every">every</b><span>discipline indexed</span></div>
+    <div><b data-flat="1600s">1600s</b><span>oldest paper it reaches</span></div>
+    <div><b data-flat="every">every</b><span>field of science</span></div>
   </div>
  </section>
 
  <section class="hsec hpipe">
   <div class="hpiperow">
-   <div class="hstep"><span class="hn">01</span><b>Query</b><p>Natural language, mapped to publication terminology.</p></div>
+   <div class="hstep"><span class="hn">01</span><b>Ask</b><p>Your words. It maps them to what the literature calls it.</p></div>
    <div class="harrow"></div>
-   <div class="hstep"><span class="hn">02</span><b>Perimeter</b><p>124 passes. One reservation per index, per decade.</p></div>
+   <div class="hstep"><span class="hn">02</span><b>Search</b><p>124 passes. One per index, per decade.</p></div>
    <div class="harrow"></div>
-   <div class="hstep"><span class="hn">03</span><b>Gate</b><p>Abstract-level scoring against the question asked.</p></div>
+   <div class="hstep"><span class="hn">03</span><b>Read</b><p>Every abstract scored against your question.</p></div>
    <div class="harrow"></div>
-   <div class="hstep lit"><span class="hn">04</span><b>Analysis</b><p>Six modes over one live corpus.</p></div>
+   <div class="hstep lit"><span class="hn">04</span><b>Work</b><p>Six modes over one live corpus.</p></div>
   </div>
  </section>
 
  <section id="hwhat" class="hsec">
-  <h2>What it does past retrieval</h2>
+  <h2>What it does with what it finds</h2>
   <div class="hgrid">
-    <article><span class="hi">01</span><h3>Era-stratified retrieval</h3>
-     <p>Relevance ranking truncates the tail first, and the tail is the old work. Each index is
-     queried once per decade, so the 1930s survive the sort.</p></article>
-    <article><span class="hi">02</span><h3>Abstract-level adjudication</h3>
-     <p>Every abstract scored for bearing, stance, extracted measurement and materiality against
-     the question asked. A rationale per record, not a rank.</p></article>
-    <article><span class="hi">03</span><h3>Inter-archive corroboration</h3>
-     <p>Records matched across indices: corroboration depth, and which records exist in exactly
-     one place. Dropping an index has a cost, and it is quantified.</p></article>
-    <article><span class="hi">04</span><h3>Bibliometrics on the full corpus</h3>
-     <p>Era structure and dormancy intervals, the canon and whether the current wave still cites
-     it, citation centre of mass against median record year, concentration across groups.</p></article>
-    <article><span class="hi">05</span><h3>Hypothesis adjudication</h3>
-     <p>Two explanations, two perimeters, one reading: shared explananda, the asymmetries, and
-     the discriminating observable with each side&rsquo;s prediction and its status.</p></article>
-    <article><span class="hi">06</span><h3>Manuscript audit</h3>
-     <p>Claim extraction from your draft, then per-claim standing against the retrieved record &mdash;
-     supported, contested, unsupported, superseded, or prior &mdash; with the exposure on each.</p></article>
+    <article><span class="hi">01</span><h3>The 1930s don&rsquo;t get buried</h3>
+     <p>Rank by relevance and the oldest work falls off the end. Each index is searched once per
+     decade instead, so the founding papers come back with the preprints.</p></article>
+    <article><span class="hi">02</span><h3>Every abstract gets read</h3>
+     <p>Not keyword-matched. Each one is scored against your question &mdash; what it bears on,
+     which side it takes, whether it reports a number &mdash; and it tells you why.</p></article>
+    <article><span class="hi">03</span><h3>The indices check each other</h3>
+     <p>A paper five indices found on their own is a different thing from one only Zenodo has.
+     You see which is which, and what you&rsquo;d lose by dropping any of them.</p></article>
+    <article><span class="hi">04</span><h3>The whole history, not the first page</h3>
+     <p>When the field went quiet and what restarted it. Whether current papers still cite the
+     ones they are built on. How few groups it actually rests on.</p></article>
+    <article><span class="hi">05</span><h3>Two theories, side by side</h3>
+     <p>What each one explains that the other cannot, what they are both on the hook for, and the
+     measurement that would tell them apart.</p></article>
+    <article><span class="hi">06</span><h3>Your draft, against the record</h3>
+     <p>Paste it in. Every claim comes back supported, contested, unsupported, or already
+     published by someone else &mdash; with what to cite and what is exposed.</p></article>
   </div>
  </section>
 
  <section id="hfigs" class="hsec hfigs">
   <h2>Readouts</h2>
-  <p class="hsub">Computed from the returned corpus. No illustrative data.</p>
+  <p class="hsub">Every one computed from the papers your question returns. Nothing here is drawn to look good.</p>
   <div class="hpick">
-   <figure><svg id="hfig1" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Exclusion.</b> Parameter space the record already closes, with the &plusmn;1&sigma;
-     and &plusmn;2&sigma; bands and the observed limit against the prediction.</figcaption></figure>
-   <figure><svg id="hfig2" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Joint density.</b> Relevance against publication year at 1&sigma;, 2&sigma; and
-     3&sigma;, marginalised on both axes.</figcaption></figure>
-   <figure><svg id="hfig3" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Emission spectrum.</b> Records per year as lines. Bursts are labelled; dormancy
-     intervals are drawn as absence, not annotated as it.</figcaption></figure>
-   <figure><svg id="hfig4" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Residuals.</b> Each reported value against the corpus consensus with its stated
-     uncertainty. Outliers past 2&sigma; are flagged with their deviation.</figcaption></figure>
-   <figure><svg id="hfig5" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Citations vs year.</b> Log citations against publication date, canon boxed and
-     the citation centre of mass marked against the median record year.</figcaption></figure>
-   <figure><svg id="hfig6" viewBox="0 0 420 290"></svg>
-     <figcaption><b>Support graph.</b> Record-to-claim incidence. A claim on a single vertex has no
-     redundancy and falls with that record.</figcaption></figure>
+   <figure><svg id="hfig1" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Exclusion.</b> What the literature has already ruled out, and where the prediction crosses the limit.</figcaption></figure>
+   <figure><svg id="hfig2" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Joint density.</b> Where the papers actually sit in relevance and year.</figcaption></figure>
+   <figure><svg id="hfig3" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Spectrum.</b> Papers per year. The bursts are labelled and the quiet decades are the gaps.</figcaption></figure>
+   <figure><svg id="hfig4" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Residuals.</b> Every reported value against the consensus, with its error bar. What sits outside the band is what to read.</figcaption></figure>
+   <figure><svg id="hfig5" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Citations against year.</b> Where the field&rsquo;s weight sits, and whether the new work is anywhere near it.</figcaption></figure>
+   <figure><svg id="hfig6" viewBox="0 0 448 314"></svg>
+     <figcaption><b>Support graph.</b> Which papers hold up which claim. A claim on one paper falls with that paper.</figcaption></figure>
   </div>
  </section>
 
- <section id="hperim" class="hsec"><h2>Indices in the perimeter</h2><div id="hperimtab"></div></section>
+ <section id="hperim" class="hsec"><h2>What it searches</h2><div id="hperimtab"></div></section>
  <section id="hprice" class="hsec"><h2>Pricing</h2><div id="hpricetab"></div></section>
 
  <section id="hauth" class="hsec">
   <h2>Access</h2>
-  <p class="hsub">The free tier runs the full perimeter. An account persists watches across machines; nothing is gated behind it.</p>
+  <p class="hsub">The free tier runs the whole thing. An account just keeps your questions when you switch machines.</p>
   <div class="hcard">
    <div class="htabs"><button data-home="mode:signup" class="on">Create an account</button><button data-home="mode:login">Log in</button></div>
    <div id="hmsg"></div>
@@ -938,7 +933,7 @@ body.cxon #doc{right:min(430px,34vw)}
   </div>
  </section>
 
- <footer id="hfoot">PARALLAX &mdash; scientific intelligence infrastructure. Pre-release.</footer>
+ <footer id="hfoot">PARALLAX &mdash; a research instrument for scientists. Pre-release.</footer>
 </div>
 <div id="onb">
   <h1>PARALLAX</h1>
@@ -3061,8 +3056,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b66';
+const BUILD='b67';
 const WHATSNEW=[
+ ['Plain sentences, physics words',
+  'The last pass confused difficult language for scientific language — "abstract-level adjudication", "inter-archive corroboration", "per-claim standing". That is consultant prose wearing a lab coat. Scientists write plainly. Rewritten so every heading is a sentence you could say out loud: "The 1930s don\u2019t get buried", "Every abstract gets read", "The indices check each other", "Two theories, side by side", "Your draft, against the record". The vocabulary is still physics — preprint, index, decade, sigma, consensus, citation — but nothing is dressed up.',
+  'The front door.'],
+ ['The readouts look like instruments now',
+  'They read like school plots: thin, sparse, under-labelled. Rebuilt with the frame the figures inside the product use — a header strip carrying the numbers that set the scale (records, limit, crossing; papers, median year, peak relevance; chi-squared per degree of freedom, outlier count), a hairline minor grid, real tick marks, a legend where curves need distinguishing, and four to ten times the data density. 200 points in the citation diagram instead of 120, 44 spectral lines instead of 15, 28 residuals with error bars instead of 16. The cards themselves are plates now, lifted off the page.',
+  'The front door, under "Readouts".'],
  ['The front door reads like it is for scientists',
   'The copy was pitched at a general reader — explaining what an abstract is, calling indices "archives" and passes "searches". Rewritten at the register of the people it is for: era-stratified retrieval, abstract-level adjudication, inter-archive corroboration, dormancy intervals, citation centre of mass, discriminating observable, per-claim standing. Nothing is explained that a working physicist already knows.'
   ,'The front door.'],
@@ -7692,229 +7693,277 @@ function prism(svg,x,y,w,h,dx,dy,amber){
     fill:amber?'#f0a25a':'#5ab6d6'}));
   svg.appendChild(mkn('rect',{x:x,y:y,width:w,height:h,fill:amber?'url(#fbarA)':'url(#fbarF)'}));
 }
-const AX={L:52,R:396,T:26,B:236};
-function axes(svg,xlab,ylab,xt,yt){
+const AX={L:58,R:428,T:62,B:264};
+/* A header strip of live numbers over every readout, the same shape the figures
+   inside the product carry. It is what separates an instrument from a chart:
+   the quantities that set the frame are stated, not implied. */
+function head(svg,name,stats){
+  const t=mkn('text',{x:AX.L-2,y:26,fill:'rgba(26,52,84,.72)','font-size':8.4,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.2em','font-weight':'700'});
+  t.textContent=name;svg.appendChild(t);
+  let x=AX.R+2;
+  stats.slice().reverse().forEach(([lab,val,amber])=>{
+    const v=mkn('text',{x:x,y:26,fill:amber?'#b4560a':'#14263a','font-size':11.5,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','font-weight':'800'});
+    v.textContent=val;svg.appendChild(v);
+    const l=mkn('text',{x:x,y:36,fill:'rgba(26,52,84,.42)','font-size':6.4,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
+    l.textContent=lab;svg.appendChild(l);
+    x-=Math.max(46,String(lab).length*4.6+14);
+  });
+  svg.appendChild(mkn('line',{x1:AX.L-2,y1:44,x2:AX.R+2,y2:44,stroke:'rgba(26,52,84,.22)','stroke-width':1}));
+}
+/* the plot area: hairline grid, minor ticks, and a plane that is lit rather
+   than a grey box */
+function frame(svg,xt,yt,xlab,ylab,minor){
+  svg.appendChild(mkn('rect',{x:AX.L+3,y:AX.T+5,width:AX.R-AX.L,height:AX.B-AX.T,
+    rx:2,fill:'rgba(60,48,32,.15)',filter:'url(#fsoft)'}));
+  svg.appendChild(mkn('rect',{x:AX.L,y:AX.T,width:AX.R-AX.L,height:AX.B-AX.T,
+    fill:'url(#fplane)',stroke:'rgba(26,52,84,.2)','stroke-width':1}));
   const g=mkn('g',{});
-  g.appendChild(mkn('line',{x1:AX.L,y1:AX.B,x2:AX.R,y2:AX.B,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
-  g.appendChild(mkn('line',{x1:AX.L,y1:AX.T,x2:AX.L,y2:AX.B,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+  if(minor!==false){
+    for(let i=1;i<10;i++){const x=AX.L+i/10*(AX.R-AX.L);
+      g.appendChild(mkn('line',{x1:x,y1:AX.T,x2:x,y2:AX.B,stroke:'rgba(26,52,84,.055)','stroke-width':1}));}
+    for(let i=1;i<6;i++){const y=AX.T+i/6*(AX.B-AX.T);
+      g.appendChild(mkn('line',{x1:AX.L,y1:y,x2:AX.R,y2:y,stroke:'rgba(26,52,84,.055)','stroke-width':1}));}
+  }
   (xt||[]).forEach(([f,l])=>{const x=AX.L+f*(AX.R-AX.L);
-    g.appendChild(mkn('line',{x1:x,y1:AX.B,x2:x,y2:AX.B+4,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
-    const t=mkn('text',{x:x,y:AX.B+15,fill:'rgba(26,52,84,.55)','font-size':7.4,'text-anchor':'middle',
+    g.appendChild(mkn('line',{x1:x,y1:AX.B,x2:x,y2:AX.B+5,stroke:'rgba(26,52,84,.6)','stroke-width':1}));
+    const t=mkn('text',{x:x,y:AX.B+16,fill:'rgba(26,52,84,.6)','font-size':7.8,'text-anchor':'middle',
       'font-family':'ui-monospace,monospace'});t.textContent=l;g.appendChild(t);});
   (yt||[]).forEach(([f,l])=>{const y=AX.B-f*(AX.B-AX.T);
-    g.appendChild(mkn('line',{x1:AX.L-4,y1:y,x2:AX.L,y2:y,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
-    const t=mkn('text',{x:AX.L-7,y:y+2.6,fill:'rgba(26,52,84,.55)','font-size':7.4,'text-anchor':'end',
+    g.appendChild(mkn('line',{x1:AX.L-5,y1:y,x2:AX.L,y2:y,stroke:'rgba(26,52,84,.6)','stroke-width':1}));
+    const t=mkn('text',{x:AX.L-8,y:y+2.8,fill:'rgba(26,52,84,.6)','font-size':7.8,'text-anchor':'end',
       'font-family':'ui-monospace,monospace'});t.textContent=l;g.appendChild(t);});
-  const xl=mkn('text',{x:(AX.L+AX.R)/2,y:AX.B+30,fill:'rgba(26,52,84,.6)','font-size':7.6,
-    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.14em'});
+  g.appendChild(mkn('rect',{x:AX.L,y:AX.T,width:AX.R-AX.L,height:AX.B-AX.T,fill:'none',
+    stroke:'rgba(26,52,84,.42)','stroke-width':1.1}));
+  const xl=mkn('text',{x:(AX.L+AX.R)/2,y:AX.B+32,fill:'rgba(26,52,84,.62)','font-size':7.8,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
   xl.textContent=xlab;g.appendChild(xl);
-  const yl=mkn('text',{x:14,y:(AX.T+AX.B)/2,fill:'rgba(26,52,84,.6)','font-size':7.6,
-    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.14em',
-    transform:'rotate(-90 14 '+((AX.T+AX.B)/2)+')'});
+  const yl=mkn('text',{x:15,y:(AX.T+AX.B)/2,fill:'rgba(26,52,84,.62)','font-size':7.8,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.16em',
+    transform:'rotate(-90 15 '+((AX.T+AX.B)/2)+')'});
   yl.textContent=ylab;g.appendChild(yl);
   svg.appendChild(g);
 }
-function title(svg,t){
-  const e=mkn('text',{x:AX.L,y:16,fill:'rgba(26,52,84,.6)','font-size':7.6,
-    'font-family':'ui-monospace,monospace','letter-spacing':'.18em'});
-  e.textContent=t;svg.appendChild(e);
-}
 const px=f=>AX.L+f*(AX.R-AX.L), py=f=>AX.B-f*(AX.B-AX.T);
 const poly=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
+const rnd=(function(){let s=20260808;return()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;})();
+function legend(svg,items){
+  items.forEach(([t,c,dash],i)=>{
+    const y=AX.T+13+i*12;
+    svg.appendChild(mkn('line',{x1:AX.R-92,y1:y-3,x2:AX.R-74,y2:y-3,stroke:c,'stroke-width':2,
+      'stroke-dasharray':dash||''}));
+    const e=mkn('text',{x:AX.R-70,y:y,fill:'rgba(26,52,84,.68)','font-size':7.2,
+      'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+    e.textContent=t;svg.appendChild(e);
+  });
+}
 
-/* 1. the exclusion plot - the shape every limits paper uses */
+/* 1. exclusion */
 function figExclusion(){
   const svg=document.getElementById('hfig1');if(!svg)return;svg.innerHTML='';
-  title(svg,'EXCLUSION AT 95% CL');plane(svg);
-  const N=26,xs=[],exp=[],s1a=[],s1b=[],s2a=[],s2b=[],obs=[];
+  head(svg,'EXCLUSION · 95% CL',[['RECORDS','214'],['LIMIT','2.6e−5',true],['CROSSING','0.62',true]]);
+  frame(svg,[[0,'10⁻³'],[.25,''],[.5,'10⁻²'],[.75,''],[1,'10⁻¹']],
+    [[0,'0'],[.25,''],[.5,'.5'],[.75,''],[1,'1']],'PARAMETER','UPPER LIMIT');
+  const N=44,xs=[],exp=[],s1a=[],s1b=[],s2a=[],s2b=[],obs=[];
   for(let i=0;i<=N;i++){
-    const f=i/N,e=0.86-0.62*f+0.10*Math.sin(f*5.5);
+    const f=i/N,e=0.86-0.62*f+0.09*Math.sin(f*5.5);
     xs.push(f);exp.push(e);
-    s1a.push(e+0.075+0.02*Math.sin(f*7));s1b.push(e-0.075-0.02*Math.cos(f*6));
-    s2a.push(e+0.155+0.03*Math.sin(f*4));s2b.push(e-0.152-0.03*Math.cos(f*5));
-    obs.push(e+0.05*Math.sin(f*9.5)-0.03);
+    s1a.push(e+0.070+0.018*Math.sin(f*7));s1b.push(e-0.070-0.018*Math.cos(f*6));
+    s2a.push(e+0.148+0.028*Math.sin(f*4));s2b.push(e-0.146-0.028*Math.cos(f*5));
+    obs.push(e+0.045*Math.sin(f*11)-0.028+0.02*Math.sin(f*23));
   }
-  const band=(hi,lo,col,op)=>svg.appendChild(mkn('path',{
+  const band=(hi,lo,col)=>svg.appendChild(mkn('path',{
     d:poly(xs.map((f,i)=>[px(f),py(hi[i])]))+poly(xs.map((f,i)=>[px(f),py(lo[i])]).reverse()).replace('M','L')+'Z',
-    fill:col,opacity:op}));
-  band(s2a,s2b,'url(#fband2)',.62);
-  band(s1a,s1b,'url(#fband1)',.72);
+    fill:col}));
+  band(s2a,s2b,'url(#fband2)');band(s1a,s1b,'url(#fband1)');
   svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(exp[i])])),fill:'none',
-    stroke:'rgba(26,52,84,.72)','stroke-width':1.3,'stroke-dasharray':'6 4'}));
+    stroke:'rgba(26,52,84,.8)','stroke-width':1.4,'stroke-dasharray':'7 4'}));
   svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(obs[i])])),fill:'none',
-    stroke:'#14263a','stroke-width':2,filter:'url(#fdrop)'}));
+    stroke:'#14263a','stroke-width':2.2,filter:'url(#fdrop)'}));
   svg.appendChild(mkn('path',{d:poly(xs.map(f=>[px(f),py(0.14+0.5*f)])),fill:'none',
-    stroke:'#b4560a','stroke-width':1.8,filter:'url(#fdrop)'}));
-  axes(svg,'PARAMETER','UPPER LIMIT',[[0,'10⁻³'],[.5,'10⁻²'],[1,'10⁻¹']],
-    [[0,'0'],[.5,'.5'],[1,'1']]);
-  const cross=[px(0.62),py(0.45)];
-  sph(svg,cross[0],cross[1],4.6,true);
-  const k=mkn('text',{x:cross[0]+8,y:cross[1]-4,fill:'#b4560a','font-size':7.4,
+    stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)'}));
+  legend(svg,[['OBSERVED','#14263a'],['EXPECTED','rgba(26,52,84,.8)','6 3'],['THEORY','#b4560a']]);
+  const cx=px(0.62),cy=py(0.45);
+  svg.appendChild(mkn('line',{x1:cx,y1:AX.T,x2:cx,y2:AX.B,stroke:'rgba(180,86,10,.4)',
+    'stroke-width':1,'stroke-dasharray':'3 4'}));
+  sph(svg,cx,cy,5,true);
+  const k=mkn('text',{x:cx-7,y:AX.B-8,fill:'#b4560a','font-size':7.4,'text-anchor':'end',
     'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-  k.textContent='EXCLUDED BEYOND HERE';svg.appendChild(k);
-  [['OBSERVED','#14263a',0],['EXPECTED','rgba(26,52,84,.72)',11],['PREDICTION','#b4560a',22]]
-   .forEach(([t,c,dy])=>{const e=mkn('text',{x:AX.R-4,y:AX.T+12+dy,fill:c,'font-size':7,
-     'text-anchor':'end','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-     e.textContent=t;svg.appendChild(e);});
+  k.textContent='EXCLUDED ←';svg.appendChild(k);
 }
 
-/* 2. confidence contours with marginals - the corner plot */
+/* 2. joint density */
 function figContours(){
   const svg=document.getElementById('hfig2');if(!svg)return;svg.innerHTML='';
-  title(svg,'JOINT DENSITY, 1σ / 2σ / 3σ');plane(svg);
-  const cx=0.62,cy=0.56;
-  [[2.1,'rgba(10,106,144,.12)'],[1.5,'rgba(10,106,144,.22)'],[1,'url(#fcont)']]
+  head(svg,'JOINT DENSITY',[['PAPERS','341'],['MEDIAN YR','2004'],['PEAK REL','0.71',true]]);
+  frame(svg,[[0,'1930'],[.25,'1954'],[.5,'1978'],[.75,'2002'],[1,'2026']],
+    [[0,'0'],[.25,''],[.5,'.5'],[.75,''],[1,'1']],'PUBLICATION YEAR','RELEVANCE');
+  const cx=0.66,cy=0.58;
+  [[2.4,'rgba(10,106,144,.10)'],[1.8,'rgba(10,106,144,.17)'],[1.2,'rgba(10,106,144,.28)'],[0.7,'url(#fcont)']]
    .forEach(([k,c],ci)=>{
     const pts=[];
-    for(let a=0;a<=360;a+=6){const r=a*Math.PI/180;
-      pts.push([px(cx+Math.cos(r)*0.20*k+Math.sin(r*2)*0.012*k),
-                py(cy+Math.sin(r)*0.135*k+Math.cos(r*3)*0.010*k)]);}
-    const el=mkn('path',{d:poly(pts)+'Z',fill:c,stroke:'rgba(10,106,144,.55)','stroke-width':.9});
-    if(ci===2)el.setAttribute('filter','url(#fdrop)');
+    for(let a=0;a<=360;a+=5){const r=a*Math.PI/180;
+      pts.push([px(cx+Math.cos(r)*0.185*k+Math.sin(r*2)*0.011*k),
+                py(cy+Math.sin(r)*0.150*k+Math.cos(r*3)*0.009*k)]);}
+    const el=mkn('path',{d:poly(pts)+'Z',fill:c,stroke:'rgba(10,106,144,.5)','stroke-width':.9});
+    if(ci===3)el.setAttribute('filter','url(#fdrop)');
     svg.appendChild(el);
   });
-  for(let i=0;i<70;i++){
-    const t=i*2.399963,rr=Math.sqrt((i+.5)/70);
-    const x=cx+Math.cos(t)*0.30*rr,y=cy+Math.sin(t)*0.20*rr;
-    svg.appendChild(mkn('circle',{cx:px(x)+.7,cy:py(y)+1,r:1.6,fill:'rgba(60,48,32,.3)'}));
-    svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.6,fill:'rgba(20,38,58,.62)'}));
+  for(let i=0;i<190;i++){
+    const t=i*2.399963,rr=Math.sqrt((i+.5)/190)*(0.6+rnd()*0.9);
+    const x=cx+Math.cos(t)*0.30*rr,y=cy+Math.sin(t)*0.245*rr;
+    if(x<0.01||x>0.99||y<0.01||y>0.99)continue;
+    svg.appendChild(mkn('circle',{cx:px(x)+.6,cy:py(y)+.9,r:1.5,fill:'rgba(60,48,32,.22)'}));
+    svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.5,fill:'rgba(20,38,58,.6)'}));
   }
-  svg.appendChild(mkn('path',{d:'M'+px(cx)+' '+py(cy-0.06)+'V'+py(cy+0.06)+'M'+px(cx-0.055)+' '+py(cy)+'H'+px(cx+0.055),
-    stroke:'#b4560a','stroke-width':1.8}));
-  // marginals along both axes
+  svg.appendChild(mkn('path',{d:'M'+px(cx)+' '+py(cy-0.055)+'V'+py(cy+0.055)+
+    'M'+px(cx-0.05)+' '+py(cy)+'H'+px(cx+0.05),stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)'}));
   const mg=(horiz)=>{const pts=[];
-    for(let i=0;i<=40;i++){const f=i/40;
-      const d=Math.exp(-Math.pow((f-(horiz?cx:cy))/(horiz?0.135:0.10),2));
-      pts.push(horiz?[px(f),AX.T-3-d*14]:[AX.R+5+d*14,py(f)]);}
-    svg.appendChild(mkn('path',{d:poly(pts),fill:'none',stroke:'rgba(10,106,144,.6)','stroke-width':1.1}));};
+    for(let i=0;i<=60;i++){const f=i/60;
+      const d=Math.exp(-Math.pow((f-(horiz?cx:cy))/(horiz?0.145:0.115),2));
+      pts.push(horiz?[px(f),AX.T-3-d*13]:[AX.R+4+d*13,py(f)]);}
+    svg.appendChild(mkn('path',{d:poly(pts),fill:'none',stroke:'rgba(10,106,144,.65)','stroke-width':1.2}));};
   mg(true);mg(false);
-  axes(svg,'PUBLICATION YEAR','RELEVANCE',[[0,'1930'],[.5,'1980'],[1,'2026']],
-    [[0,'0'],[.5,'.5'],[1,'1']]);
 }
 
-/* 3. the spectrum - activity as emission lines */
+/* 3. spectrum */
 function figSpectrum(){
   const svg=document.getElementById('hfig3');if(!svg)return;svg.innerHTML='';
-  title(svg,'EMISSION SPECTRUM · RECORDS PER YEAR');plane(svg);
-  const L=[[0.06,.22],[0.13,.10],[0.21,.34],[0.27,.15],[0.35,.58],[0.40,.19],
-    [0.55,.42],[0.61,.24],[0.68,.79],[0.72,.35],[0.78,.51],[0.83,.96],[0.88,.44],[0.94,.66]];
-  svg.appendChild(mkn('rect',{x:AX.L,y:AX.B-13,width:AX.R-AX.L,height:13,fill:'rgba(26,52,84,.07)'}));
-  L.forEach(([f,h])=>{
-    const x=px(f),strong=h>0.55,w=strong?4.6:3;
-    prism(svg,x-w/2,py(h),w,AX.B-py(h),3.4,-2,strong);
-    svg.appendChild(mkn('line',{x1:x,y1:AX.B-13,x2:x,y2:AX.B,stroke:strong?'#b4560a':'#0a6a90','stroke-width':strong?2.6:1.5}));
-    if(strong){const t=mkn('text',{x:x,y:py(h)-5,fill:'#b4560a','font-size':7,'text-anchor':'middle',
-      'font-family':'ui-monospace,monospace'});t.textContent=(1930+Math.round(f*96));svg.appendChild(t);}
+  head(svg,'PAPERS PER YEAR',[['SPAN','1934–2026'],['PEAK','2010',true],['QUIET','1970s']]);
+  frame(svg,[[0,'1934'],[.25,'1957'],[.5,'1980'],[.75,'2003'],[1,'2026']],
+    [[0,'0'],[.5,'22'],[1,'44']],'YEAR','PAPERS');
+  svg.appendChild(mkn('rect',{x:px(0.42),y:AX.T,width:px(0.54)-px(0.42),height:AX.B-AX.T,
+    fill:'rgba(26,52,84,.055)',stroke:'rgba(26,52,84,.2)','stroke-width':1,'stroke-dasharray':'3 3'}));
+  const q=mkn('text',{x:(px(0.42)+px(0.54))/2,y:AX.T+15,fill:'rgba(26,52,84,.5)','font-size':7.2,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  q.textContent='DORMANT';svg.appendChild(q);
+  const L=[];
+  for(let i=0;i<44;i++){
+    const f=i/43;
+    if(f>0.42&&f<0.54)continue;
+    const env=0.10+0.72*Math.pow(f,2.1);
+    L.push([f,Math.max(0.05,Math.min(0.98,env*(0.35+rnd()*1.25)))]);
+  }
+  /* label the peaks, but only ones far enough apart to be read - adjacent tall
+     bars were printing their years on top of each other */
+  const peaks=[];
+  L.slice().sort((a,b)=>b[1]-a[1]).forEach(([f,h])=>{
+    if(h<=0.62||peaks.length>=3)return;
+    if(peaks.some(p=>Math.abs(p-f)<0.16))return;
+    peaks.push(f);
   });
-  // the quiet decades, drawn as an absence
-  svg.appendChild(mkn('rect',{x:px(0.44),y:AX.T,width:px(0.53)-px(0.44),height:AX.B-AX.T,
-    fill:'rgba(26,52,84,.05)',stroke:'rgba(26,52,84,.18)','stroke-width':1,'stroke-dasharray':'3 3'}));
-  const q=mkn('text',{x:(px(0.44)+px(0.53))/2,y:AX.T+14,fill:'rgba(26,52,84,.45)','font-size':7,
-    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-  q.textContent='QUIET';svg.appendChild(q);
-  axes(svg,'YEAR','RECORDS',[[0,'1930'],[.5,'1978'],[1,'2026']],[[0,'0'],[.5,'22'],[1,'44']]);
+  L.forEach(([f,h])=>{
+    const strong=h>0.62,w=strong?5:2.6;
+    prism(svg,px(f)-w/2,py(h),w,AX.B-py(h),3.2,-2,strong);
+  });
+  peaks.forEach(f=>{
+    const h=(L.find(x=>x[0]===f)||[0,0])[1];
+    const t=mkn('text',{x:px(f)+1.6,y:py(h)-9,fill:'#b4560a','font-size':7.4,
+      'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
+    t.textContent=(1934+Math.round(f*92));svg.appendChild(t);
+  });
 }
 
-/* 4. residuals against the consensus value */
+/* 4. residuals */
 function figResiduals(){
   const svg=document.getElementById('hfig4');if(!svg)return;svg.innerHTML='';
-  title(svg,'RESIDUALS AGAINST THE CONSENSUS VALUE');plane(svg);
-  const mid=py(0.5);
-  /* the band is +-1sigma and the axis ticks are +-2sigma, so one sigma is 0.17
-     of the plot height - the label has to be computed from that same number or
-     the figure quotes a deviation its own axis contradicts */
+  head(svg,'RESIDUALS vs CONSENSUS',[['POINTS','28'],['χ²/ν','1.34'],['OUTLIERS','2',true]]);
+  frame(svg,[[0,'1962'],[.5,'1998'],[1,'2026']],[[.16,'−2σ'],[.5,'0'],[.84,'+2σ']],
+    'PAPER, BY DATE','DEVIATION');
   const SIG=0.17;
   svg.appendChild(mkn('rect',{x:AX.L,y:py(0.5+SIG),width:AX.R-AX.L,height:py(0.5-SIG)-py(0.5+SIG),
-    fill:'rgba(10,106,144,.12)'}));
-  svg.appendChild(mkn('line',{x1:AX.L,y1:mid,x2:AX.R,y2:mid,stroke:'#0a6a90','stroke-width':1.4}));
-  const D=[[.05,.53,.06],[.11,.46,.05],[.17,.57,.07],[.23,.49,.05],[.29,.54,.06],[.35,.43,.05],
-    [.41,.59,.06],[.47,.51,.04],[.53,.94,.06],[.59,.5,.05],[.65,.56,.04],[.71,.46,.04],
-    [.77,.09,.06],[.83,.53,.04],[.89,.48,.04],[.95,.54,.04]];
+    fill:'rgba(10,106,144,.14)'}));
+  svg.appendChild(mkn('line',{x1:AX.L,y1:py(0.5),x2:AX.R,y2:py(0.5),stroke:'#0a6a90','stroke-width':1.6}));
+  const D=[];
+  for(let i=0;i<28;i++){
+    const f=0.025+i*0.0345;
+    let v=0.5+(rnd()-0.5)*0.20;
+    if(i===9)v=0.94; if(i===22)v=0.09;
+    D.push([f,v,0.035+rnd()*0.035]);
+  }
   D.forEach(([f,v,e])=>{
     const out=Math.abs(v-0.5)>2*SIG,c=out?'#b4560a':'#14263a';
-    svg.appendChild(mkn('line',{x1:px(f),y1:py(v-e),x2:px(f),y2:py(v+e),stroke:c,'stroke-width':1.1}));
-    svg.appendChild(mkn('line',{x1:px(f)-3,y1:py(v+e),x2:px(f)+3,y2:py(v+e),stroke:c,'stroke-width':1.1}));
-    svg.appendChild(mkn('line',{x1:px(f)-3,y1:py(v-e),x2:px(f)+3,y2:py(v-e),stroke:c,'stroke-width':1.1}));
-    sph(svg,px(f),py(v),out?4:3,out);
-    if(out){const t=mkn('text',{x:px(f),y:py(v)+(v>0.5?-9:15),fill:'#b4560a','font-size':7,
-      'text-anchor':'middle','font-family':'ui-monospace,monospace'});
+    svg.appendChild(mkn('line',{x1:px(f),y1:py(v-e),x2:px(f),y2:py(v+e),stroke:c,'stroke-width':1.2}));
+    svg.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v+e),x2:px(f)+3.2,y2:py(v+e),stroke:c,'stroke-width':1.2}));
+    svg.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v-e),x2:px(f)+3.2,y2:py(v-e),stroke:c,'stroke-width':1.2}));
+    sph(svg,px(f),py(v),out?4.2:2.9,out);
+    if(out){const t=mkn('text',{x:px(f),y:py(v)+(v>0.5?-11:17),fill:'#b4560a','font-size':7.4,
+      'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
       t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';svg.appendChild(t);}
   });
-  axes(svg,'RECORD, BY DATE','DEVIATION',[[0,'1962'],[.5,'1998'],[1,'2026']],
-    [[.16,'−2σ'],[.5,'0'],[.84,'+2σ']]);
 }
 
-/* 5. impact against age - is the wave still standing on the canon */
+/* 5. citations against year */
 function figImpact(){
   const svg=document.getElementById('hfig5');if(!svg)return;svg.innerHTML='';
-  title(svg,'CITATIONS vs PUBLICATION YEAR');plane(svg);
-  const P=[];
-  for(let i=0;i<120;i++){
-    const f=Math.pow((i+1)/120,0.7);
-    const y=f, base=0.86-0.72*f;
-    const v=Math.max(0.03,Math.min(0.98,base+(Math.sin(i*2.7)*0.5+Math.cos(i*1.3)*0.5)*0.17));
-    P.push([y,v]);
-  }
-  P.forEach(([x,y],i)=>{
-    const canon=y>0.7&&x<0.35;
-    if(canon)sph(svg,px(x),py(y),3.8,true);
-    else{svg.appendChild(mkn('circle',{cx:px(x)+.7,cy:py(y)+1,r:2.2,fill:'rgba(60,48,32,.22)'}));
-      svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:2.2,fill:'url(#fsB)',opacity:.86}));}
-  });
-  svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.35)-px(0),height:py(0.7)-py(1),
-    fill:'none',stroke:'#b4560a','stroke-width':1,'stroke-dasharray':'4 3'}));
-  /* to the right of the box, in the empty corner - inside it the label lands on
-     the very points it is naming */
-  const c=mkn('text',{x:px(0.37),y:py(0.95),fill:'#b4560a','font-size':7.2,
-    'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
-  c.textContent='\u2190 THE CANON';svg.appendChild(c);
-  svg.appendChild(mkn('line',{x1:px(0.58),y1:AX.T,x2:px(0.58),y2:AX.B,
+  head(svg,'CITATIONS vs YEAR',[['PAPERS','341'],['CoM','1998',true],['MEDIAN','2009']]);
+  frame(svg,[[0,'1934'],[.25,'1957'],[.5,'1980'],[.75,'2003'],[1,'2026']],
+    [[0,'1'],[.33,'10'],[.66,'10³'],[1,'10⁵']],'PUBLICATION YEAR','CITATIONS (LOG)');
+  svg.appendChild(mkn('line',{x1:px(0.68),y1:AX.T,x2:px(0.68),y2:AX.B,
     stroke:'rgba(26,52,84,.5)','stroke-width':1,'stroke-dasharray':'3 4'}));
-  const m=mkn('text',{x:px(0.59),y:AX.T+12,fill:'rgba(26,52,84,.55)','font-size':7,
+  const m=mkn('text',{x:px(0.685),y:AX.T+13,fill:'rgba(26,52,84,.6)','font-size':7,
     'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-  m.textContent='CITATION CENTRE OF MASS';svg.appendChild(m);
-  axes(svg,'PUBLICATION YEAR','LOG CITATIONS',[[0,'1930'],[.5,'1980'],[1,'2026']],
-    [[0,'1'],[.5,'10²'],[1,'10⁴']]);
+  m.textContent='CENTRE OF MASS';svg.appendChild(m);
+  const pts=[];
+  for(let i=0;i<200;i++){
+    const x=Math.pow(rnd(),0.62);
+    const base=0.88-0.66*x;
+    const v=Math.max(0.03,Math.min(0.99,base+(rnd()-0.5)*0.34));
+    pts.push([x,v]);
+  }
+  pts.sort((a,b)=>a[1]-b[1]).forEach(([x,y])=>{
+    const canon=y>0.72&&x<0.32;
+    if(canon)sph(svg,px(x),py(y),4,true);
+    else{svg.appendChild(mkn('circle',{cx:px(x)+.7,cy:py(y)+1,r:2.3,fill:'rgba(60,48,32,.2)'}));
+      svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:2.3,fill:'url(#fsB)',opacity:.88}));}
+  });
+  svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.32)-px(0),height:py(0.72)-py(1),
+    fill:'none',stroke:'#b4560a','stroke-width':1.1,'stroke-dasharray':'4 3'}));
+  const c=mkn('text',{x:px(0.335),y:py(0.96),fill:'#b4560a','font-size':7.4,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.12em','font-weight':'700'});
+  c.textContent='← THE CANON';svg.appendChild(c);
 }
 
-/* 6. the support graph - which records carry which claim */
+/* 6. support graph */
 function figSupport(){
   const svg=document.getElementById('hfig6');if(!svg)return;svg.innerHTML='';
-  title(svg,'SUPPORT GRAPH · RECORD → CLAIM');
-  const recY=[52,84,116,148,180,212],cl=[[86,'CLAIM A'],[150,'CLAIM B'],[214,'CLAIM C']];
-  const RX=110,CX2=300;
-  const links=[[0,0],[1,0],[2,0],[2,1],[3,1],[4,1],[4,2],[5,0]];
+  head(svg,'SUPPORT GRAPH',[['PAPERS','7'],['CLAIMS','3'],['UNBACKED','1',true]]);
+  const T=AX.T+8,rows=7,gap=(AX.B-T-16)/(rows-1);
+  const recY=[];for(let i=0;i<rows;i++)recY.push(T+i*gap);
+  const cl=[[recY[1],'CLAIM A',false],[recY[3],'CLAIM B',false],[recY[5],'CLAIM C',true]];
+  const RX=AX.L+58,CX2=AX.R-108;
+  const links=[[0,0],[1,0],[2,0],[2,1],[3,1],[4,1],[6,1],[5,2],[0,1]];
   links.forEach(([r,c])=>{
     const solo=c===2;
     svg.appendChild(mkn('path',{d:'M'+RX+' '+recY[r]+'C'+((RX+CX2)/2)+' '+recY[r]+','+
       ((RX+CX2)/2)+' '+cl[c][0]+','+CX2+' '+cl[c][0],
-      fill:'none',stroke:solo?'#b4560a':'rgba(10,106,144,.5)','stroke-width':solo?1.8:1.2,
-      'stroke-dasharray':solo?'':''}));
+      fill:'none',stroke:solo?'#b4560a':'rgba(10,106,144,.5)','stroke-width':solo?2:1.3}));
   });
   recY.forEach((y,i)=>{
-    sph(svg,RX,y,5.4,false);
-    const t=mkn('text',{x:RX-11,y:y+3,fill:'rgba(26,52,84,.62)','font-size':7.4,'text-anchor':'end',
-      'font-family':'ui-monospace,monospace'});t.textContent='REC '+(i+1);svg.appendChild(t);
+    sph(svg,RX,y,5.6,false);
+    const t=mkn('text',{x:RX-12,y:y+3,fill:'rgba(26,52,84,.7)','font-size':7.6,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace'});t.textContent='PAPER '+(i+1);svg.appendChild(t);
+    const c=mkn('text',{x:RX+11,y:y+3,fill:'rgba(26,52,84,.36)','font-size':6.6,
+      'font-family':'ui-monospace,monospace'});
+    c.textContent=[1993,2001,2008,2014,2018,2021,2024][i];svg.appendChild(c);
   });
-  cl.forEach(([y,lab],i)=>{
-    const solo=i===2;
-    svg.appendChild(mkn('path',{d:'M'+(CX2+88)+' '+(y-11)+'L'+(CX2+94)+' '+(y-15)+
-      'L'+(CX2+94)+' '+(y+7)+'L'+(CX2+88)+' '+(y+11)+'Z',fill:solo?'#8c4206':'#054f6e'}));
-    svg.appendChild(mkn('path',{d:'M'+CX2+' '+(y-11)+'L'+(CX2+6)+' '+(y-15)+
-      'L'+(CX2+94)+' '+(y-15)+'L'+(CX2+88)+' '+(y-11)+'Z',fill:solo?'#f0a25a':'#5ab6d6'}));
-    svg.appendChild(mkn('rect',{x:CX2,y:y-11,width:88,height:22,rx:2,
-      fill:solo?'rgba(240,162,90,.30)':'rgba(90,182,214,.26)',
-      stroke:solo?'#b4560a':'rgba(10,106,144,.6)','stroke-width':1.2,filter:'url(#fdrop)'}));
-    const t=mkn('text',{x:CX2+44,y:y+3.4,fill:solo?'#b4560a':'#14263a','font-size':8,
-      'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+  cl.forEach(([y,lab,solo])=>{
+    svg.appendChild(mkn('path',{d:'M'+(CX2+96)+' '+(y-12)+'L'+(CX2+103)+' '+(y-17)+
+      'L'+(CX2+103)+' '+(y+7)+'L'+(CX2+96)+' '+(y+12)+'Z',fill:solo?'#8c4206':'#054f6e'}));
+    svg.appendChild(mkn('path',{d:'M'+CX2+' '+(y-12)+'L'+(CX2+7)+' '+(y-17)+
+      'L'+(CX2+103)+' '+(y-17)+'L'+(CX2+96)+' '+(y-12)+'Z',fill:solo?'#f0a25a':'#5ab6d6'}));
+    svg.appendChild(mkn('rect',{x:CX2,y:y-12,width:96,height:24,rx:2,
+      fill:solo?'rgba(240,162,90,.32)':'rgba(90,182,214,.28)',
+      stroke:solo?'#b4560a':'rgba(10,106,144,.6)','stroke-width':1.3,filter:'url(#fdrop)'}));
+    const t=mkn('text',{x:CX2+48,y:y+3.6,fill:solo?'#8c4206':'#0c3a52','font-size':8.4,
+      'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.1em','font-weight':'700'});
     t.textContent=lab;svg.appendChild(t);
+    if(solo){const w=mkn('text',{x:CX2+48,y:y+24,fill:'#b4560a','font-size':7,'text-anchor':'middle',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+      w.textContent='ONE PAPER ONLY';svg.appendChild(w);}
   });
-  const w=mkn('text',{x:CX2+44,y:cl[2][0]+26,fill:'#b4560a','font-size':7.2,'text-anchor':'middle',
-    'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-  w.textContent='ONE RECORD ONLY';svg.appendChild(w);
-  const lg=mkn('text',{x:AX.L,y:AX.B+30,fill:'rgba(26,52,84,.5)','font-size':7.2,
-    'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
-  lg.textContent='A CLAIM ON ONE VERTEX FALLS IF THAT RECORD FALLS';svg.appendChild(lg);
 }
 function heroFigures(){
   try{figDefs();}catch(e){}
