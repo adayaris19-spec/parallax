@@ -1,4 +1,31 @@
-// PARALLAX ingest worker v7 — paste into the Supabase Edge Function named `ingest`.
+// PARALLAX ingest worker v9 — paste into the Supabase Edge Function named `ingest`.
+//
+// v9 is about the size of the perimeter. Eighteen passes is a reading list.
+//   * Eighteen archives across ~119 passes. Five new archives — OSTI (US
+//     national laboratories), NTRS (NASA technical reports), the CERN Document
+//     Server, DBLP (computer science) and PLOS — join the thirteen from v8.
+//   * The real gain is the HISTORICAL LADDER. A relevance sort stops wherever
+//     the index decides it stops, and what it drops is always the old work. So
+//     every archive that can filter by date now gets one reservation per era:
+//     pre-1930, then every decade to the 2020s. OpenAlex, Crossref, ADS,
+//     Semantic Scholar, Europe PMC, PubMed, INSPIRE and arXiv all run the
+//     ladder. That is what puts a 1934 paper and a preprint from this month in
+//     the same corpus instead of eleven versions of this year.
+//   * Each archive has its own politeness budget, so the sweep runs one queue
+//     per host rather than one flat fan-out, and a 55-second deadline means a
+//     slow index gets recorded as skipped instead of holding the sweep hostage.
+//
+// What changed in v8
+//   * Thirteen archives across nineteen passes, each pulling far more rows.
+//     PubMed, OpenAIRE and Zenodo joined the ten from v7.
+//   * The expensive part was never the fetching, it was the relevance gate: one
+//     Claude call per record. So the sweep now separates the two. EVERY record
+//     retrieved comes back in `corpus` with its year, citations, venue,
+//     institutions and open-access status - that is what the field analysis,
+//     the era structure, the canon, the concentration and the deep read run on,
+//     and none of it needs a model. Only the top slice is sent through the gate
+//     and comes back in `results`. Coverage went up roughly fivefold at the same
+//     cost per sweep.
 //
 // What changed in v7
 //   * The perimeter went from 3 archives to 10, and it reaches back to the
@@ -30,7 +57,7 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADS = Deno.env.get("ADS_TOKEN") ?? "";
 const ANT = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
-const WORKER_VERSION = 7;
+const WORKER_VERSION = 9;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -120,8 +147,14 @@ const rec = (o: Partial<Rec>): Rec => ({
   institutions: [], oa: null, concepts: [], ...o,
 });
 
-async function fromArxiv(q: string, rows: number, by: "relevance" | "submittedDate" = "relevance"): Promise<Rec[]> {
-  const xml = await getText(`https://export.arxiv.org/api/query?search_query=${encodeURIComponent(q)}` +
+/* Every window is a closed year range, inclusive. Passing one turns a pass into
+   a historical slice, which is how a 1930s paper and this month's preprint end
+   up on the same figure instead of the recent wave crowding the origins out. */
+type Win = [number, number] | undefined;
+
+async function fromArxiv(q: string, rows: number, by: "relevance" | "submittedDate" = "relevance", win?: Win): Promise<Rec[]> {
+  const w = win ? ` AND submittedDate:[${win[0]}01010000 TO ${win[1]}12312359]` : "";
+  const xml = await getText(`https://export.arxiv.org/api/query?search_query=${encodeURIComponent(q + w)}` +
     `&sortBy=${by}&sortOrder=descending&max_results=${rows}`);
   const out: Rec[] = [];
   for (const entry of xml.split("<entry>").slice(1)) {
@@ -139,11 +172,15 @@ async function fromArxiv(q: string, rows: number, by: "relevance" | "submittedDa
   return out;
 }
 
-async function fromOpenAlex(q: string, rows: number, sort: "relevance" | "cited" | "earliest"): Promise<Rec[]> {
+async function fromOpenAlex(q: string, rows: number, sort: "relevance" | "cited" | "earliest" | "recent", win?: Win, extra?: string): Promise<Rec[]> {
   const s = sort === "cited" ? "&sort=cited_by_count:desc"
-    : sort === "earliest" ? "&sort=publication_date:asc" : "";
+    : sort === "earliest" ? "&sort=publication_date:asc"
+    : sort === "recent" ? "&sort=publication_date:desc" : "";
+  const f: string[] = [];
+  if (win) f.push(`from_publication_date:${win[0]}-01-01`, `to_publication_date:${win[1]}-12-31`);
+  if (extra) f.push(extra);
   const j = await getJSON(`https://api.openalex.org/works?search=${encodeURIComponent(q)}` +
-    `&per-page=${rows}${s}&mailto=${encodeURIComponent(MAIL)}`);
+    `&per-page=${rows}${s}${f.length ? `&filter=${f.join(",")}` : ""}&mailto=${encodeURIComponent(MAIL)}`);
   return (j?.results ?? []).map((d: any) => rec({
     source: sort === "cited" ? "openalex-canon" : sort === "earliest" ? "openalex-origins" : "openalex",
     source_id: `oa:${String(d.id ?? "").split("/").pop()}`,
@@ -160,9 +197,13 @@ async function fromOpenAlex(q: string, rows: number, sort: "relevance" | "cited"
   })).filter((x: Rec) => x.title);
 }
 
-async function fromCrossref(q: string, rows: number): Promise<Rec[]> {
+async function fromCrossref(q: string, rows: number, sort: "relevance" | "cited" | "oldest" = "relevance", win?: Win, type = "journal-article"): Promise<Rec[]> {
+  const s = sort === "cited" ? "is-referenced-by-count&order=desc"
+    : sort === "oldest" ? "published&order=asc" : "relevance";
+  const f = [`type:${type}`];
+  if (win) f.push(`from-pub-date:${win[0]}-01-01`, `until-pub-date:${win[1]}-12-31`);
   const j = await getJSON(`https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(q)}` +
-    `&rows=${rows}&sort=relevance&filter=type:journal-article&mailto=${encodeURIComponent(MAIL)}`);
+    `&rows=${rows}&sort=${s}&filter=${f.join(",")}&mailto=${encodeURIComponent(MAIL)}`);
   return (j?.message?.items ?? []).map((d: any) => {
     const dp = d.issued?.["date-parts"]?.[0] ?? [];
     const iso = dp.length ? `${dp[0]}-${String(dp[1] ?? 1).padStart(2, "0")}-${String(dp[2] ?? 1).padStart(2, "0")}` : null;
@@ -177,9 +218,10 @@ async function fromCrossref(q: string, rows: number): Promise<Rec[]> {
   }).filter((x: Rec) => x.title);
 }
 
-async function fromSemanticScholar(q: string, rows: number): Promise<Rec[]> {
+async function fromSemanticScholar(q: string, rows: number, win?: Win, oaOnly = false): Promise<Rec[]> {
   const j = await getJSON(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(q)}` +
-    `&limit=${rows}&fields=title,abstract,year,citationCount,venue,externalIds,authors,publicationDate,openAccessPdf`);
+    `&limit=${rows}${win ? `&year=${win[0]}-${win[1]}` : ""}${oaOnly ? "&openAccessPdf=" : ""}` +
+    `&fields=title,abstract,year,citationCount,venue,externalIds,authors,publicationDate,openAccessPdf`);
   return (j?.data ?? []).map((d: any) => rec({
     source: "semanticscholar", source_id: `s2:${d.paperId ?? d.externalIds?.DOI ?? d.title}`,
     title: clean(d.title), abstract: clean(d.abstract).slice(0, 4000),
@@ -191,9 +233,10 @@ async function fromSemanticScholar(q: string, rows: number): Promise<Rec[]> {
   })).filter((x: Rec) => x.title);
 }
 
-async function fromInspire(q: string, rows: number): Promise<Rec[]> {
-  const j = await getJSON(`https://inspirehep.net/api/literature?q=${encodeURIComponent(q)}` +
-    `&size=${rows}&sort=mostcited&fields=titles,abstracts,earliest_date,citation_count,authors,publication_info,dois`);
+async function fromInspire(q: string, rows: number, sort = "mostcited", win?: Win): Promise<Rec[]> {
+  const w = win ? ` and de ${win[0]}->${win[1]}` : "";
+  const j = await getJSON(`https://inspirehep.net/api/literature?q=${encodeURIComponent(q + w)}` +
+    `&size=${rows}&sort=${sort}&fields=titles,abstracts,earliest_date,citation_count,authors,publication_info,dois`);
   return (j?.hits?.hits ?? []).map((h: any) => {
     const m = h.metadata ?? {};
     return rec({
@@ -208,9 +251,10 @@ async function fromInspire(q: string, rows: number): Promise<Rec[]> {
   }).filter((x: Rec) => x.title);
 }
 
-async function fromEuropePMC(q: string, rows: number): Promise<Rec[]> {
-  const j = await getJSON(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(q)}` +
-    `&format=json&pageSize=${rows}&resultType=core&sort=CITED%20desc`);
+async function fromEuropePMC(q: string, rows: number, sort = "CITED desc", win?: Win, src = ""): Promise<Rec[]> {
+  const w = (win ? ` AND (PUB_YEAR:[${win[0]} TO ${win[1]}])` : "") + (src ? ` AND (SRC:"${src}")` : "");
+  const j = await getJSON(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(q + w)}` +
+    `&format=json&pageSize=${rows}&resultType=core&sort=${encodeURIComponent(sort)}`);
   return (j?.resultList?.result ?? []).map((d: any) => rec({
     source: "europepmc", source_id: `epmc:${d.id ?? d.doi ?? d.title}`,
     title: clean(d.title), abstract: clean(d.abstractText).slice(0, 4000),
@@ -266,9 +310,10 @@ async function fromHAL(q: string, rows: number): Promise<Rec[]> {
   })).filter((x: Rec) => x.title);
 }
 
-async function fromADS(q: string, rows: number, by = "score desc"): Promise<Rec[]> {
+async function fromADS(q: string, rows: number, by = "score desc", win?: Win): Promise<Rec[]> {
   if (!ADS) return [];
-  const j = await getJSON(`https://api.adsabs.harvard.edu/v1/search/query?q=${encodeURIComponent(q)}` +
+  const w = win ? ` year:${win[0]}-${win[1]}` : "";
+  const j = await getJSON(`https://api.adsabs.harvard.edu/v1/search/query?q=${encodeURIComponent(q + w)}` +
     `&fl=bibcode,title,abstract,author,date,citation_count,pub,year&rows=${rows}&sort=${encodeURIComponent(by)}`,
     { Authorization: `Bearer ${ADS}` });
   return (j?.response?.docs ?? []).map((d: any) => rec({
@@ -278,6 +323,139 @@ async function fromADS(q: string, rows: number, by = "score desc"): Promise<Rec[
     year: d.year ? Number(d.year) : yearOf(d.date),
     citations: typeof d.citation_count === "number" ? d.citation_count : null,
     venue: clean(d.pub),
+  })).filter((x: Rec) => x.title);
+}
+
+async function fromPubMed(q: string, rows: number, win?: Win): Promise<Rec[]> {
+  const w = win ? `&datetype=pdat&mindate=${win[0]}&maxdate=${win[1]}` : "";
+  const se = await getJSON(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed` +
+    `&term=${encodeURIComponent(q)}&retmax=${rows}&retmode=json&sort=relevance${w}`);
+  const ids: string[] = se?.esearchresult?.idlist ?? [];
+  if (!ids.length) return [];
+  const su = await getJSON(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed` +
+    `&id=${ids.join(",")}&retmode=json`);
+  const r = su?.result ?? {};
+  return ids.map((id) => {
+    const d = r[id]; if (!d) return null;
+    return rec({
+      source: "pubmed", source_id: `pmid:${id}`, title: clean(d.title),
+      authors: (d.authors ?? []).slice(0, 8).map((a: any) => clean(a.name)).join(", "),
+      url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+      published_at: d.pubdate ? String(d.pubdate).slice(0, 10) : null, year: yearOf(d.pubdate),
+      venue: clean(d.fulljournalname || d.source),
+    });
+  }).filter(Boolean) as Rec[];
+}
+
+async function fromOpenAIRE(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://api.openaire.eu/search/publications?keywords=${encodeURIComponent(q)}` +
+    `&size=${rows}&format=json`);
+  const res = j?.response?.results?.result ?? [];
+  return (Array.isArray(res) ? res : [res]).map((it: any) => {
+    const m = it?.metadata?.["oaf:entity"]?.["oaf:result"];
+    if (!m) return null;
+    const t = m.title; const title = clean(Array.isArray(t) ? (t[0]?.content ?? t[0]) : (t?.content ?? t));
+    const d = String(m.dateofacceptance?.content ?? m.dateofacceptance ?? "");
+    const pid = m.pid; const doi = Array.isArray(pid) ? pid.find((x: any) => x?.["@classid"] === "doi")?.content
+      : (pid?.["@classid"] === "doi" ? pid.content : null);
+    return rec({
+      source: "openaire", source_id: `oaire:${doi ?? title.slice(0, 40)}`, title,
+      url: doi ? `https://doi.org/${doi}` : "https://explore.openaire.eu/",
+      published_at: d || null, year: yearOf(d), oa: true,
+      venue: clean(m.journal?.content ?? m.journal ?? "OpenAIRE"),
+    });
+  }).filter((x: any) => x && x.title) as Rec[];
+}
+
+async function fromZenodo(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://zenodo.org/api/records?q=${encodeURIComponent(q)}&size=${rows}&sort=mostrecent`);
+  return (j?.hits?.hits ?? []).map((d: any) => rec({
+    source: "zenodo", source_id: `zen:${d.id}`, title: clean(d.metadata?.title),
+    abstract: clean(d.metadata?.description).slice(0, 2000),
+    authors: (d.metadata?.creators ?? []).slice(0, 8).map((c: any) => clean(c.name)).join(", "),
+    url: d.links?.self_html ?? d.doi_url ?? "", published_at: d.metadata?.publication_date ?? null,
+    year: yearOf(d.metadata?.publication_date), venue: clean(d.metadata?.resource_type?.title) || "Zenodo", oa: true,
+  })).filter((x: Rec) => x.title);
+}
+
+/* Five archives that hold work the commercial indexes are thin on: national
+   laboratory reports, NASA's own technical literature, CERN's document server,
+   the computer-science bibliography, and PLOS's full-text corpus. All five are
+   coded defensively - an unexpected response shape yields zero records and a
+   line in the ledger, never a thrown sweep. */
+async function fromOSTI(q: string, rows: number, win?: Win): Promise<Rec[]> {
+  const w = win ? `&publication_date_start=01/01/${win[0]}&publication_date_end=12/31/${win[1]}` : "";
+  const j = await getJSON(`https://www.osti.gov/api/v1/records?q=${encodeURIComponent(q)}&rows=${rows}${w}`);
+  const arr = Array.isArray(j) ? j : (j?.records ?? []);
+  return arr.map((d: any) => rec({
+    source: "osti", source_id: `osti:${d.osti_id ?? d.id ?? d.doi}`, title: clean(d.title),
+    abstract: clean(d.description ?? d.abstract).slice(0, 4000),
+    authors: (Array.isArray(d.authors) ? d.authors : []).slice(0, 8).map((a: any) => clean(typeof a === "string" ? a : a?.name)).join(", "),
+    url: d.doi ? `https://doi.org/${d.doi}` : (d.links?.[0]?.href ?? `https://www.osti.gov/biblio/${d.osti_id}`),
+    published_at: d.publication_date ? String(d.publication_date).slice(0, 10) : null,
+    year: yearOf(d.publication_date), venue: clean(d.journal_name || d.research_org) || "US DOE report", oa: true,
+  })).filter((x: Rec) => x.title);
+}
+
+async function fromNTRS(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://ntrs.nasa.gov/api/citations/search?q=${encodeURIComponent(q)}&size=${rows}`);
+  return (j?.results ?? []).map((d: any) => {
+    const dt = d.publications?.[0]?.publicationDate ?? d.created ?? null;
+    return rec({
+      source: "ntrs", source_id: `ntrs:${d.id}`, title: clean(d.title),
+      abstract: clean(d.abstract).slice(0, 4000),
+      authors: (d.authorAffiliations ?? []).slice(0, 8).map((a: any) => clean(a?.meta?.author?.name)).filter(Boolean).join(", "),
+      url: `https://ntrs.nasa.gov/citations/${d.id}`,
+      published_at: dt ? String(dt).slice(0, 10) : null, year: yearOf(dt),
+      venue: "NASA technical report", oa: true,
+    });
+  }).filter((x: Rec) => x.title);
+}
+
+async function fromCDS(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://cds.cern.ch/api/records?q=${encodeURIComponent(q)}&size=${rows}`);
+  const hits = j?.hits?.hits ?? [];
+  return hits.map((h: any) => {
+    const m = h.metadata ?? h;
+    const t = typeof m.title === "string" ? m.title : (m.title?.title ?? m.titles?.[0]?.title ?? "");
+    const dt = m.publication_date ?? m.imprint?.date ?? null;
+    return rec({
+      source: "cds", source_id: `cds:${h.id ?? m.recid}`, title: clean(t),
+      abstract: clean(m.description ?? m.abstract?.summary ?? m.abstracts?.[0]?.value).slice(0, 4000),
+      authors: (m.creators ?? m.authors ?? []).slice(0, 8).map((a: any) => clean(a?.person_or_org?.name ?? a?.name ?? a?.full_name)).filter(Boolean).join(", "),
+      url: `https://cds.cern.ch/record/${h.id ?? m.recid}`,
+      published_at: dt ? String(dt).slice(0, 10) : null, year: yearOf(dt),
+      venue: "CERN Document Server", oa: true,
+    });
+  }).filter((x: Rec) => x.title);
+}
+
+async function fromDBLP(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://dblp.org/search/publ/api?q=${encodeURIComponent(q)}&format=json&h=${rows}`);
+  const hits = j?.result?.hits?.hit ?? [];
+  return (Array.isArray(hits) ? hits : [hits]).map((h: any) => {
+    const i = h?.info ?? {};
+    const au = i.authors?.author;
+    return rec({
+      source: "dblp", source_id: `dblp:${h.id ?? i.key ?? i.doi}`, title: clean(i.title),
+      authors: (Array.isArray(au) ? au : au ? [au] : []).slice(0, 8).map((a: any) => clean(a?.text ?? a)).join(", "),
+      url: i.doi ? `https://doi.org/${i.doi}` : (i.ee ?? i.url ?? ""),
+      published_at: i.year ? `${i.year}-01-01` : null, year: i.year ? Number(i.year) : null,
+      venue: clean(i.venue) || "computer science", oa: i.access === "open",
+    });
+  }).filter((x: Rec) => x.title);
+}
+
+async function fromPLOS(q: string, rows: number): Promise<Rec[]> {
+  const j = await getJSON(`https://api.plos.org/search?q=${encodeURIComponent(`everything:"${q}"`)}` +
+    `&rows=${rows}&wt=json&fl=id,title,abstract,author_display,publication_date,journal`);
+  return (j?.response?.docs ?? []).map((d: any) => rec({
+    source: "plos", source_id: `plos:${d.id}`, title: clean(Array.isArray(d.title) ? d.title[0] : d.title),
+    abstract: clean(Array.isArray(d.abstract) ? d.abstract[0] : d.abstract).slice(0, 4000),
+    authors: (d.author_display ?? []).slice(0, 8).map(clean).join(", "),
+    url: `https://doi.org/${d.id}`,
+    published_at: d.publication_date ? String(d.publication_date).slice(0, 10) : null,
+    year: yearOf(d.publication_date), venue: clean(Array.isArray(d.journal) ? d.journal[0] : d.journal) || "PLOS", oa: true,
   })).filter((x: Rec) => x.title);
 }
 
@@ -443,63 +621,170 @@ async function handle(req: Request): Promise<Response> {
     const arxB = grp(own);
     const free = plain(iTerms.length ? iTerms.slice(0, 5) : own);
     const freeOwn = own.join(" ");
-    const per = Math.max(6, Math.ceil(limit / 2));
+    const per = Math.max(20, Math.min(limit, 40));
+    const half = Math.ceil(per / 2), third = Math.ceil(per / 3);
+    const freeQ = free || freeOwn;
+    const adsQ = String(prof?.ads || freeQ);
+    const coreSrc = (Array.isArray(prof?.core) && prof.core.length ? prof.core
+      : iTerms.length ? iTerms : own) as any[];
+    const core = coreSrc.map((t) => String(t).replace(/["\\]/g, " ").trim())
+      .filter(Boolean).slice(0, 3);
 
-    // Ten archives, three of them historical passes, all at once. Any single
-    // failure is recorded in the ledger and the rest of the sweep continues.
-    const jobs: { name: string; note: string; run: () => Promise<Rec[]> }[] = [
-      { name: "arxiv", note: "preprints 1991-", run: () => fromArxiv(arxA, per) },
-      { name: "arxiv/your-words", note: "your exact words", run: () => fromArxiv(arxB, Math.ceil(per / 2)) },
-      { name: "openalex", note: "all disciplines, 1600s-", run: () => fromOpenAlex(free, per, "relevance") },
-      { name: "openalex/canon", note: "most-cited of all time", run: () => fromOpenAlex(free, Math.ceil(per / 2), "cited") },
-      { name: "openalex/origins", note: "earliest on record", run: () => fromOpenAlex(free, Math.ceil(per / 2), "earliest") },
-      { name: "crossref", note: "journals of record", run: () => fromCrossref(free || freeOwn, per) },
-      { name: "semanticscholar", note: "citation graph", run: () => fromSemanticScholar(free || freeOwn, per) },
-      { name: "inspire", note: "particle physics 1900s-", run: () => fromInspire(free || freeOwn, Math.ceil(per / 2)) },
-      { name: "europepmc", note: "life sciences 1781-", run: () => fromEuropePMC(free || freeOwn, Math.ceil(per / 2)) },
-      { name: "ads", note: "astronomy 1820s-", run: () => fromADS(String(prof?.ads || free || freeOwn), Math.ceil(per / 2)) },
-      { name: "doaj", note: "open-access journals", run: () => fromDOAJ(free || freeOwn, Math.ceil(per / 3)) },
-      { name: "datacite", note: "datasets & software", run: () => fromDatacite(free || freeOwn, Math.ceil(per / 3)) },
-      { name: "hal", note: "European repositories", run: () => fromHAL(free || freeOwn, Math.ceil(per / 3)) },
-    ];
+    /* The historical ladder. A relevance sort stops wherever the index decides
+       it stops, and what it drops is always the old work. So every era gets its
+       own reservation on every archive that can filter by date - that is what
+       puts a 1934 paper and a preprint from this month in the same corpus. */
+    const ERAS: Win[] = [[1665, 1929], [1930, 1939], [1940, 1949], [1950, 1959], [1960, 1969],
+      [1970, 1979], [1980, 1989], [1990, 1999], [2000, 2009], [2010, 2019], [2020, 2035]];
+    const eraName = (w: Win) => !w ? "" : w[0] === 1665 ? "pre-1930" : w[0] === 2020 ? "2020s" : `${w[0]}s`;
 
+    type Pass = { name: string; note: string; host: string; run: () => Promise<Rec[]> };
+    const jobs: Pass[] = [];
+    const P = (name: string, note: string, host: string, run: () => Promise<Rec[]>) =>
+      jobs.push({ name, note, host, run });
+
+    // arXiv — preprints from 1991, four windows plus the sorts
+    P("arxiv/relevance", "preprints, best match", "arxiv", () => fromArxiv(arxA, per));
+    P("arxiv/your-words", "your exact words", "arxiv", () => fromArxiv(arxB, half));
+    P("arxiv/newest", "this month's preprints", "arxiv", () => fromArxiv(arxA, half, "submittedDate"));
+    for (const w of ERAS.filter((w) => w![1] >= 1991)) {
+      P(`arxiv/${eraName(w)}`, `preprints of the ${eraName(w)}`, "arxiv", () => fromArxiv(arxA, third, "relevance", w));
+    }
+    core.forEach((t) => P(`arxiv/term:${t}`, `the term "${t}" on its own`, "arxiv", () => fromArxiv(grp([t]), third)));
+
+    // OpenAlex — 250M works across every discipline, the full ladder
+    P("openalex/relevance", "all disciplines, best match", "openalex", () => fromOpenAlex(free, per, "relevance"));
+    P("openalex/canon", "most-cited of all time", "openalex", () => fromOpenAlex(free, per, "cited"));
+    P("openalex/origins", "earliest on record", "openalex", () => fromOpenAlex(free, half, "earliest"));
+    P("openalex/recent", "the live edge", "openalex", () => fromOpenAlex(free, half, "recent"));
+    P("openalex/open-access", "free to read in full", "openalex", () => fromOpenAlex(free, half, "relevance", undefined, "is_oa:true"));
+    P("openalex/reviews", "review articles only", "openalex", () => fromOpenAlex(free, third, "cited", undefined, "type:review"));
+    for (const w of ERAS) P(`openalex/${eraName(w)}`, `the ${eraName(w)}, by citation`, "openalex", () => fromOpenAlex(free, third, "cited", w));
+    core.forEach((t) => P(`openalex/term:${t}`, `the term "${t}" on its own`, "openalex", () => fromOpenAlex(t, third, "cited")));
+
+    // Crossref — the journals of record, DOI by DOI
+    P("crossref/relevance", "journals of record", "crossref", () => fromCrossref(freeQ, per));
+    P("crossref/canon", "most-referenced articles", "crossref", () => fromCrossref(freeQ, half, "cited"));
+    P("crossref/origins", "oldest on file", "crossref", () => fromCrossref(freeQ, half, "oldest"));
+    P("crossref/your-words", "your exact words", "crossref", () => fromCrossref(freeOwn, third));
+    P("crossref/books", "monographs and chapters", "crossref", () => fromCrossref(freeQ, third, "cited", undefined, "book-chapter"));
+    P("crossref/proceedings", "conference proceedings", "crossref", () => fromCrossref(freeQ, third, "cited", undefined, "proceedings-article"));
+    for (const w of ERAS) P(`crossref/${eraName(w)}`, `journals of the ${eraName(w)}`, "crossref", () => fromCrossref(freeQ, third, "cited", w));
+
+    // NASA ADS — astronomy and physics back to the 1820s
+    P("ads/relevance", "astronomy, best match", "ads", () => fromADS(adsQ, per));
+    P("ads/canon", "most-cited in astronomy", "ads", () => fromADS(adsQ, half, "citation_count desc"));
+    P("ads/origins", "earliest in the archive", "ads", () => fromADS(adsQ, half, "date asc"));
+    P("ads/refereed", "refereed only", "ads", () => fromADS(`${adsQ} property:refereed`, third, "citation_count desc"));
+    for (const w of ERAS) P(`ads/${eraName(w)}`, `astronomy of the ${eraName(w)}`, "ads", () => fromADS(adsQ, third, "citation_count desc", w));
+
+    // Semantic Scholar — the citation graph
+    P("s2/relevance", "citation graph", "s2", () => fromSemanticScholar(freeQ, per));
+    P("s2/open-access", "with a free full text", "s2", () => fromSemanticScholar(freeQ, third, undefined, true));
+    P("s2/your-words", "your exact words", "s2", () => fromSemanticScholar(freeOwn, third));
+    for (const w of ERAS) P(`s2/${eraName(w)}`, `the ${eraName(w)} in the graph`, "s2", () => fromSemanticScholar(freeQ, third, w));
+
+    // Europe PMC — life sciences from 1781, preprints included
+    P("europepmc/cited", "life sciences, most cited", "epmc", () => fromEuropePMC(freeQ, half));
+    P("europepmc/relevance", "life sciences, best match", "epmc", () => fromEuropePMC(freeQ, third, "P_PDATE_D desc"));
+    P("europepmc/preprints", "biology preprints", "epmc", () => fromEuropePMC(freeQ, third, "CITED desc", undefined, "PPR"));
+    for (const w of ERAS) P(`europepmc/${eraName(w)}`, `life sciences of the ${eraName(w)}`, "epmc", () => fromEuropePMC(freeQ, third, "CITED desc", w));
+
+    // PubMed — biomedicine from 1781. NCBI throttles hard, so this host runs
+    // one pass at a time and takes the eras in coarser steps.
+    P("pubmed/relevance", "biomedicine, best match", "pubmed", () => fromPubMed(freeQ, half));
+    for (const w of [[1781, 1949], [1950, 1969], [1970, 1989], [1990, 1999], [2000, 2009], [2010, 2019], [2020, 2035]] as Win[]) {
+      P(`pubmed/${w![0]}-${w![1] > 2030 ? "now" : w![1]}`, `biomedicine ${w![0]}-${w![1] > 2030 ? "now" : w![1]}`, "pubmed", () => fromPubMed(freeQ, third, w));
+    }
+
+    // INSPIRE-HEP — particle physics from the 1900s
+    P("inspire/mostcited", "particle physics canon", "inspire", () => fromInspire(freeQ, half));
+    P("inspire/recent", "particle physics, newest", "inspire", () => fromInspire(freeQ, third, "mostrecent"));
+    for (const w of [[1900, 1969], [1970, 1989], [1990, 2009], [2010, 2035]] as Win[]) {
+      P(`inspire/${w![0]}-${w![1] > 2030 ? "now" : w![1]}`, `HEP ${w![0]}-${w![1] > 2030 ? "now" : w![1]}`, "inspire", () => fromInspire(freeQ, third, "mostcited", w));
+    }
+
+    // the specialist and repository archives
+    P("doaj/relevance", "open-access journals", "doaj", () => fromDOAJ(freeQ, half));
+    P("doaj/your-words", "your exact words", "doaj", () => fromDOAJ(freeOwn, third));
+    P("datacite/relevance", "datasets & software", "datacite", () => fromDatacite(freeQ, half));
+    P("datacite/your-words", "your exact words", "datacite", () => fromDatacite(freeOwn, third));
+    P("hal/relevance", "French national repository", "hal", () => fromHAL(freeQ, half));
+    P("hal/your-words", "your exact words", "hal", () => fromHAL(freeOwn, third));
+    P("openaire/relevance", "European open science", "openaire", () => fromOpenAIRE(freeQ, half));
+    P("openaire/your-words", "your exact words", "openaire", () => fromOpenAIRE(freeOwn, third));
+    P("zenodo/recent", "data, code, theses", "zenodo", () => fromZenodo(freeQ, third));
+    P("zenodo/your-words", "your exact words", "zenodo", () => fromZenodo(freeOwn, third));
+    P("osti/relevance", "US national laboratories", "osti", () => fromOSTI(freeQ, half));
+    P("osti/origins", "DOE reports, pre-1970", "osti", () => fromOSTI(freeQ, third, [1940, 1969]));
+    P("ntrs/relevance", "NASA technical reports", "ntrs", () => fromNTRS(freeQ, half));
+    P("ntrs/your-words", "your exact words", "ntrs", () => fromNTRS(freeOwn, third));
+    P("cds/relevance", "CERN document server", "cds", () => fromCDS(freeQ, half));
+    P("cds/your-words", "your exact words", "cds", () => fromCDS(freeOwn, third));
+    P("dblp/relevance", "computer science bibliography", "dblp", () => fromDBLP(freeQ, half));
+    P("dblp/your-words", "your exact words", "dblp", () => fromDBLP(freeOwn, third));
+    P("plos/relevance", "PLOS full text", "plos", () => fromPLOS(freeQ, half));
+    P("plos/your-words", "your exact words", "plos", () => fromPLOS(freeOwn, third));
+
+    /* Every pass is a separate reservation and every archive has its own
+       politeness budget, so the sweep runs one queue per host rather than one
+       flat fan-out. A pass that has not started by the deadline is recorded as
+       skipped - the sweep always returns, it is never held hostage by one slow
+       index. */
+    const HOSTCAP: Record<string, number> = {
+      pubmed: 1, s2: 1, inspire: 2, arxiv: 2, epmc: 3, crossref: 4, ads: 4, openalex: 6,
+    };
     const t0 = Date.now();
-    const settled = await Promise.allSettled(jobs.map(async (jb) => {
-      const s = Date.now();
-      const rows = await jb.run();
-      return { name: jb.name, note: jb.note, got: rows.length, ms: Date.now() - s, rows };
+    const deadline = t0 + 55000;
+    const archives: any[] = [];
+    const bag: Rec[] = [];
+    const byHost: Record<string, Pass[]> = {};
+    for (const jb of jobs) (byHost[jb.host] ??= []).push(jb);
+
+    await Promise.all(Object.keys(byHost).map(async (h) => {
+      const q = byHost[h];
+      const lanes = Math.min(HOSTCAP[h] ?? 2, q.length);
+      let i = 0;
+      await Promise.all(Array.from({ length: lanes }, async () => {
+        while (i < q.length) {
+          const jb = q[i++];
+          if (Date.now() > deadline) { archives.push({ name: jb.name, note: jb.note, got: 0, ms: 0, error: "skipped at the sweep deadline" }); continue; }
+          const s = Date.now();
+          try {
+            const rows = await jb.run();
+            archives.push({ name: jb.name, note: jb.note, got: rows.length, ms: Date.now() - s });
+            for (const r of rows) bag.push(r);
+          } catch (e) {
+            archives.push({ name: jb.name, note: jb.note, got: 0, ms: Date.now() - s, error: String((e as Error)?.message ?? e).slice(0, 120) });
+          }
+        }
+      }));
     }));
 
-    const archives: any[] = [];
     const found: Rec[] = [];
     const seen = new Set<string>();
     const seenTitle = new Set<string>();
-    settled.forEach((r, i) => {
-      if (r.status !== "fulfilled") {
-        archives.push({ name: jobs[i].name, note: jobs[i].note, got: 0, ms: 0, error: String((r as any).reason?.message ?? (r as any).reason).slice(0, 120) });
-        return;
-      }
-      archives.push({ name: r.value.name, note: r.value.note, got: r.value.got, ms: r.value.ms });
-      for (const rc of r.value.rows) {
-        const key = rc.source_id;
-        const tkey = rc.title.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 70);
-        if (!key || seen.has(key) || (tkey && seenTitle.has(tkey))) continue;
-        seen.add(key); if (tkey) seenTitle.add(tkey);
-        found.push(rc);
-      }
-    });
+    for (const rc of bag) {
+      const key = rc.source_id;
+      const tkey = rc.title.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 70);
+      if (!key || seen.has(key) || (tkey && seenTitle.has(tkey))) continue;
+      seen.add(key); if (tkey) seenTitle.add(tkey);
+      found.push(rc);
+    }
     const sweepMs = Date.now() - t0;
     const usedRungs = [
       `arXiv: ${arxA}`,
       arxB && arxB !== arxA ? `arXiv, your words: ${arxB}` : "",
-      `free text across 8 archives: ${free || freeOwn}`,
+      `free text across every archive: ${freeQ}`,
+      adsQ && adsQ !== freeQ ? `ADS: ${adsQ}` : "",
+      `${jobs.length} passes over ${Object.keys(byHost).length} archives, ${ERAS.length} historical windows deep`,
     ].filter(Boolean);
 
     // Keep the historical spread when trimming: never let the recent wave crowd
     // out the origins and the canon.
     const byYear = [...found].sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999));
     const byCites = [...found].sort((a, b) => (b.citations ?? -1) - (a.citations ?? -1));
-    const cap = Math.min(Math.max(limit, 18), 30);
+    const cap = Math.min(Math.max(limit, 28), 48);
     const keep: Rec[] = [];
     const inKeep = new Set<string>();
     const take = (arr: Rec[], n: number) => {
@@ -528,6 +813,16 @@ async function handle(req: Request): Promise<Response> {
     }));
     scored.sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0));
 
+    /* Everything retrieved travels back, stripped of abstracts. The gate is the
+       only expensive step, so it runs on `keep`; the era structure, the canon,
+       the venues, the institutions and the citation arithmetic run on all of it. */
+    const corpus = found.map((r) => ({
+      source: r.source, source_id: r.source_id, title: r.title, url: r.url,
+      published_at: r.published_at, year: r.year, citations: r.citations,
+      venue: r.venue, institutions: r.institutions, oa: r.oa, concepts: r.concepts,
+      authors: r.authors,
+    }));
+
     if (body.store && keep.length) {
       // the records table only has the original columns
       await sb("records?on_conflict=source_id", "POST", keep.map((r) => ({
@@ -550,7 +845,8 @@ async function handle(req: Request): Promise<Response> {
         tracked: watch.tracked, terms: iTerms, ads: prof.ads ?? "",
       } : null,
       query: usedRungs[0] ?? asked, rungs: usedRungs,
-      archives, sweepMs,
+      archives, sweepMs, corpus, retrieved: found.length,
+      passes: jobs.length, hosts: Object.keys(byHost).length, eras: ERAS.length,
       pulled: found.length, scored: scored.length,
       relevant: scored.filter((r) => r.relevant).length,
       material: scored.filter((r) => r.material).length,

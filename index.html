@@ -167,13 +167,6 @@ canvas{display:block}
 .abtn.warn{color:var(--bad);border-color:rgba(245,122,122,.45)}
 
 /* global reasoning bar — talk to the operating system from anywhere */
-#speak{position:absolute;left:20px;bottom:12px;width:min(560px,38vw);pointer-events:auto;z-index:12}
-#speak .srow{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:3px;
-  background:rgba(255,254,251,.94);border:1px solid var(--line2);border-left:3px solid var(--asm)}
-#speak .srow:focus-within{border-color:var(--asm)}
-#speak .sind i{display:block;width:7px;height:7px;border-radius:50%;background:var(--ev);box-shadow:0 0 8px rgba(10,106,144,.9);animation:bl 2.4s infinite}
-#speakIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:12.5px;color:var(--ink)}
-#speakIn::placeholder{color:#6d89a2}
 .askbar{display:flex;gap:11px;align-items:center;margin:0 0 9px;padding:12px 14px;
   background:rgba(255,254,251,.97);border:1.5px solid rgba(180,86,10,.42);border-left:4px solid var(--asm);
   border-radius:4px;box-shadow:0 2px 10px -4px rgba(120,80,30,.20);transition:border-color .16s,box-shadow .16s}
@@ -199,13 +192,7 @@ canvas{display:block}
 .stale{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0 0 10px;font-size:11.6px}
 .stale b{color:var(--ink)}
 .stale .old{color:var(--asm);font-weight:700}
-#speak .skey{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 /* the bar does two different jobs and must say which one Enter will do */
-#barMode{flex:none;background:none;border:0;border-bottom:1.5px solid var(--asm);border-radius:0;cursor:pointer;
-  font-family:var(--m);font-size:8px;letter-spacing:.16em;font-weight:800;color:var(--asm);padding:1px 3px 2px}
-#speakGo{flex:none;font-size:8.5px}
-#barMode[data-mode="reason"]{border-bottom-color:var(--hyp);color:var(--hyp)}
-#speak .sq{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .echo{background:rgba(252,250,246,.97);border:0;border-left:3px solid var(--clm);padding:7px 11px;font-size:10.3px;line-height:1.55;color:var(--ink2);
   box-shadow:0 6px 18px -8px rgba(60,48,32,.30);animation:fi .4s both}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -248,7 +235,7 @@ details.grp>.gb{padding-top:6px}
 #stext.wide{width:auto;right:40px;max-width:1240px}
 #stext.m{width:min(1180px,66vw)}
 #svis.m{left:calc(66vw + 44px);right:16px;top:90px;bottom:auto;height:auto;display:block}
-#svis.m .vin{max-width:none}
+#svis.m .vin{max-width:none;cursor:zoom-in}
 #svis.full{left:calc(min(560px,39vw) + 44px);right:0;top:34px;bottom:64px}
 #svis.full .vin{display:block;height:100%;max-width:none;transform:none!important}
 
@@ -444,11 +431,12 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .pcard .ph2{display:flex;justify-content:space-between;align-items:center;cursor:grab;margin-bottom:6px}
 .pcard .ph2 .pt{font-size:7.4px;letter-spacing:.2em;font-weight:800;color:var(--ink2);text-transform:uppercase}
 .pcard .ph2 .px2{cursor:pointer;color:var(--dim);font-size:13px;padding:0 3px}
-#speakLive{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.figpop.pri{background:rgba(180,86,10,.10);border:1px solid rgba(180,86,10,.45);border-radius:3px;
+  padding:4px 9px;color:var(--asm);top:-8px}
+.figpop.pri:hover{background:var(--asm);color:#fff;border-color:var(--asm)}
 .figpop{position:absolute;top:-4px;right:0;background:none;border:0;border-bottom:1px solid rgba(26,52,84,.35);
   cursor:pointer;font-size:7px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--dim);padding:2px 1px;z-index:2}
 .figpop:hover{color:var(--ev);border-color:var(--ev)}
-#speakLive:empty{display:none}
 .isec{border-bottom:1px solid var(--line);padding:8px 0}
 .isec>.sh{display:flex;justify-content:space-between;align-items:center;font-size:7.4px;letter-spacing:.24em;
   font-weight:800;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
@@ -634,7 +622,6 @@ body.cxon #doc{right:min(430px,34vw)}
 @media(max-width:900px){
   #findings,#activity,#telemetry,#chipsDock{display:none}
   #doc{right:0;padding:12px 12px 140px}
-  #speak{width:min(430px,88vw);bottom:112px}
   #brief{left:22px}
   #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto;left:50%}
   #ctl{left:50%}#hint{left:50%}
@@ -660,7 +647,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b57</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b58</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -670,17 +657,6 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="telemetry"></div>
   <div id="cards"></div>
   <div id="brief"></div>
-  <div id="speak">
-    <div class="sq" id="speakEcho"></div>
-    <div class="srow">
-      <span class="sind"><i></i></span>
-      <button id="barMode" data-mode="research" title="Enter opens a watch and researches it">RESEARCH</button>
-      <input id="speakIn" placeholder="Search any question — “is dark matter self-interacting?”" autocomplete="off" spellcheck="false">
-      <button class="mic" data-mic title="Dictate">&#9679;</button>
-      <button id="speakGo" class="abtn pri">Research it</button>
-    </div>
-    <div id="speakLive"></div>
-  </div>
   <div id="tip"></div>
   <button id="cxOpen" title="Ask the console (⌘K)">◈</button>
   <div id="gal"><div id="galBox"><div id="galHead"><span class="t">FIGURE PANEL</span><span class="w" id="galWatch"></span><button id="galX">close</button></div><div id="galGrid"></div></div></div>
@@ -2717,7 +2693,6 @@ function nav(mode){
   if(S.phase!=='live')return;
   tipEl.style.opacity=0;
   S.mode=mode;
-  try{setBarMode(mode==='reason'?'reason':'research');}catch(e){}
   clearMode();inspect(null);
   glSet(mode==='model'&&heroOf()==='blackhole');
   $('#brief').classList.remove('on');
@@ -2837,8 +2812,17 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b57';
+const BUILD='b58';
 const WHATSNEW=[
+ ['124 searches, 18 archives, back to the 1930s',
+  'The perimeter was 18 passes. It is now ~124, over 18 archives. OSTI (US national laboratories), NTRS (NASA technical reports), the CERN Document Server, DBLP and PLOS joined the thirteen. The real gain is the historical ladder: OpenAlex, Crossref, ADS, Semantic Scholar, Europe PMC, PubMed, INSPIRE and arXiv each get one reservation per era — pre-1930, then every decade to the 2020s — because a relevance sort always drops the old work first.',
+  'WATCH → Research return, and the console tab "which archives answered", which now rolls the passes up per archive and then lists every one.'],
+ ['The figure expands when you click it',
+  'A click on the admission volume opens the full panel — four related figures on one screen, not one small one. Dragging still moves the amber plane; only a click without a drag opens the panel.',
+  'Any station with a figure. The amber ⛶ button does the same thing.'],
+ ['The bottom-left bar is gone',
+  'The console replaced it. Reasoning verification moved into the console: type anything while in REASON, or prefix any line with "verify".',
+  'Bottom left of every screen \u2014 nothing there now.'],
  ['Stations open closed',
   'Every section now starts collapsed, as a bordered card carrying its title and its answer. A station opens as a short tiled menu on one screen instead of a wall you scroll. Open one and it spans the full width, so nothing gets sawn down the middle of the page.',
   'Everywhere. WATCH → Research return now opens as two cards rather than a page of table.'],
@@ -3543,60 +3527,16 @@ function analyzeThought(text){
     add('calc','CHECKED AGAINST MODEL','No structural defect detected. State: containment '+containN()+'/9 within ±'+sectorW()+'° · leading '+ranked()[0].n+' ('+(ranked()[0].s*100).toFixed(0)+'%) · claim '+(S.claimCollapsed?'collapsed':S.attached.size+'/9')+'.');
   return v;
 }
-const speakIn=$('#speakIn'),speakEcho=$('#speakEcho');
 /* ---------------------------------------------------------------------------
-   The bar at the bottom-left is the only text field on the screen, so it is
-   where everyone types their next question. It used to only feed the reasoning
-   verifier, which meant a typed topic was analysed as a sentence and never
-   researched - and the previous watch stayed on screen, looking like the answer.
-   It now defaults to RESEARCH and says so, and the toggle switches it to the
-   reasoning chamber deliberately rather than by accident.
+   The reasoning verifier used to own a bar in the bottom-left corner. The
+   console does the same job and more, so the bar is gone and this is what the
+   console calls when you are in the reasoning chamber, or when you prefix a
+   line with "verify".
    --------------------------------------------------------------------------- */
-const barModeBtn=$('#barMode');
-function barMode(){return barModeBtn?barModeBtn.dataset.mode:'research';}
-function setBarMode(m){
-  if(!barModeBtn)return;
-  barModeBtn.dataset.mode=m;
-  barModeBtn.textContent=m==='research'?'RESEARCH':'REASON';
-  const go=document.getElementById('speakGo');
-  if(go)go.textContent=m==='research'?'Research it':'Verify it';
-  barModeBtn.title=m==='research'
-    ?'Enter opens a watch on what you type and researches it against arXiv and NASA ADS'
-    :'Enter sends what you type to the reasoning verifier instead of researching it';
-  speakIn.placeholder=m==='research'
-    ?'Search any question — “is dark matter self-interacting?”'
-    :'Think out loud — “I am assuming the screen is static”';
-  const lv=$('#speakLive');if(lv)lv.innerHTML='';
-}
-if(barModeBtn)barModeBtn.addEventListener('click',()=>setBarMode(barMode()==='research'?'reason':'research'));
-const speakGo=$('#speakGo');
-if(speakGo)speakGo.addEventListener('click',()=>{
-  speakIn.focus();
-  speakIn.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
-});
-speakIn.addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  const text=speakIn.value.trim();
-  if(!text||S.phase!=='live')return;
-  speakIn.value='';
-  $('#speakLive').innerHTML='';
-  if(barMode()==='research'){
-    if(text.length<4){postEvent('too short to open a watch','warn');return;}
-    addQuestion(text);
-    return;
-  }
-  if(runQuery(text))return;
+function verifyThought(text){
+  if(!text)return null;
   const v=analyzeThought(text);
-  const card=document.createElement('div');
-  card.className='echo';
-  card.innerHTML='<div class="eq">“'+esc2(text)+'”</div>'+
-   '<div class="ev2">'+v.map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('')+'</div>'+
-   '<div class="vb">'+v[0].d+(v.length>1?' <b>+'+(v.length-1)+' more — see focus.</b>':'')+'</div>';
-  speakEcho.prepend(card);
-  $('#speakLive').innerHTML='';
   postEvent('reasoning verified — '+v.length+' structure'+(v.length>1?'s':'')+' flagged','hot');
-  while(speakEcho.children.length>2)speakEcho.lastChild.remove();
-  setTimeout(()=>{if(card.parentNode)card.remove();},14000);
   inspect('<div class="chips">'+v.map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('')+'</div>'+
    '<div class="rows">'+irow('You said','“'+esc2(text)+'”')+v.map(x2=>irow(x2.l.split(' ')[0],x2.d)).join('')+'</div>'+
    '<div class="acts"><button class="abtn sm" data-act="go:reason">Open reasoning chamber</button></div>');
@@ -3605,41 +3545,44 @@ speakIn.addEventListener('keydown',e=>{
     const sp={s:text,d:v.map(x2=>[x2.p==='bad'?'hyp':x2.p,x2.l+' — '+x2.d])};
     const lines=wrapText(sp.s,52);
     ctx.font='800 7.6px Inter';
-    const tags=sp.d.map(d=>[d[0],d[1],d[1].split('—')[0].trim().toUpperCase().slice(0,26),ctx.measureText(d[1].split('—')[0].trim().toUpperCase().slice(0,26)).width+16]);
+    const tags=sp.d.map(d=>[d[0],d[1],d[1].split('—')[0].trim().toUpperCase().slice(0,26),
+      ctx.measureText(d[1].split('—')[0].trim().toUpperCase().slice(0,26)).width+16]);
     const h2=Math.max(lines.length*15+16,tags.length*17+8);
     const wS=Math.min(440,SW*0.5);
     spawn({kind:'stmt',id:'th'+(S.thoughtN=(S.thoughtN||0)+1),mode:'reason',lines,tags,sp,i:100+S.thoughtN,drag:false,
       tx:Math.max(wS/2+16,stageW()*0.38),ty:SH*0.62,x:stageW()*0.38,y:SH*0.7,hitW:wS,hitH:h2,r:0});
     MODES_IMPL.reason.restack();
   }
-});
+  return v;
+}
 const __act=act;
 act=function(a){__act(a);try{postEventForAction(a);}catch(err){}};
 document.addEventListener('change',e=>{
   if(e.target&&e.target.id==='heatSl')postEvent('heating prior → ±'+sectorW()+'° — containment '+containN()+'/9 · ranking + claim recomputed','hot');
 });
-/* live-typing analysis: the reasoning layer works while you speak */
-let speakT=null;
-speakIn.addEventListener('input',()=>{
-  clearTimeout(speakT);
-  const txt=speakIn.value.trim();
-  const live=$('#speakLive');
-  if(txt.length<10){live.innerHTML='';return;}
-  speakT=setTimeout(()=>{
-    const tq=txt.toLowerCase();
-    if(barMode()==='research'){
-      live.innerHTML=chip('asm','↵ OPENS A WATCH')+chip('calc','arXiv + NASA ADS, scored on submit');
-      return;
-    }
-    const q=QUERIES.find(q2=>q2.k.test(tq));
-    if(q||/^(search|find|which|what|cross)/.test(tq)){
-      live.innerHTML=chip('clm','QUERY')+chip('calc',(q?q.label:'corpus search')+' — ↵ computes');
-      return;
-    }
-    const v=analyzeThought(txt);
-    live.innerHTML=v.slice(0,3).map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('');
-  },300);
-});
+/* live-typing hints, now in the console: it says what Enter will do before you
+   press it, and in the reasoning chamber it flags structure as you type */
+let cxT=null;
+if(typeof cxEl==='function'){
+  const ci=document.getElementById('cxIn');
+  if(ci)ci.addEventListener('input',()=>{
+    clearTimeout(cxT);
+    const h=document.getElementById('cxHints');
+    const txt=ci.value.trim();
+    if(txt.length<8){cxHints();return;}
+    cxT=setTimeout(()=>{
+      if(!h)return;
+      const hit=CXI.find(x=>x.k.test(txt));
+      if(hit){h.innerHTML='<span style="font-size:10px;color:'+TC.asm+';font-weight:700">↵ runs a command on this watch</span>';return;}
+      if(S.mode==='reason'){
+        const v=analyzeThought(txt);
+        h.innerHTML=v.slice(0,3).map(x2=>chip(x2.p==='bad'?'bad':x2.p,x2.l)).join('');
+        return;
+      }
+      h.innerHTML='<span style="font-size:10px;color:var(--dim)">↵ offers to open a watch on this</span>';
+    },280);
+  });
+}
 /* new commands for the engines */
 CMDS.push(
  ['Parallax, compare the literature behind my assumptions.','watch',()=>act('sub:watch:lit')],
@@ -4122,7 +4065,7 @@ function stationsBase(mode){
     html:askHTML(false)+'<h2 data-dg="type a question above and it becomes a watch">PARALLAX is not watching anything yet.</h2>'+
      '<p>This machine reads the scientific literature continuously, scores every record against a question you define, and surfaces only what changes an assumption, a boundary or a conclusion. It has no opinions of its own and no preloaded subject - you give it the question.</p>'+
      '<div data-lv="questions">'+questionsHTML()+'</div>'+
-     '<h2 data-dg="ten archives, 1800s to this morning">What the perimeter reaches</h2>'+
+     '<h2 data-dg="124 searches over 18 archives, the 1600s to this morning">What the perimeter reaches</h2>'+
      '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
      '<h2 data-dg="press \u2318K or the \u25c8 button on the right edge">What you can ask the console</h2>'+
      '<p>Once a watch has returned records, the console will run a field analysis, find where the question came from, '+
@@ -4362,7 +4305,7 @@ function renderDoc(){
   window.CURVIS=st.vis;
   const visInner=!st.vis?null:st.vis==='live'
    ?'<div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
-   :'<button class="figpop" data-galopen="1">&#9974; expand &mdash; '+galCount()+' figures</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
+   :'<button class="figpop pri" data-galopen="1">&#9974; expand \u2014 '+galCount()+' figures</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
   const menu=['evidence','literature','contradictions','assumptions','experiments','claim','data','method','activity','telemetry']
    .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
   const mcls=st.vsize==='l'?'':' m';
@@ -4497,6 +4440,9 @@ document.addEventListener('pointerup',()=>{
   if(!DRAGZ.on)return;
   DRAGZ.on=false;
   if(DRAGZ.moved)thrReport();
+  /* a press that never moved is a click, and a click on a figure this small
+     can only mean "let me see it properly" */
+  else galOpen(true);
 });
 document.addEventListener('pointermove',e=>{
   PARA.tx=clamp((e.clientX/innerWidth-0.5)*2,-1,1);
@@ -5070,7 +5016,7 @@ async function researchQuestion(q){
     const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
       method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:8,store:true})
+      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:40,store:true})
     });
     clearTimeout(timer);
     const raw=await r.text();
@@ -5467,13 +5413,18 @@ function resultsHTML(){
     'Try naming the object, effect or observable directly.</p>'+
     '<div class="acts"><button class="abtn" data-act="qres">Re-run research</button></div>';
   const thr=thrOf(),adm=rows.filter(r=>(r.relevance||0)>=thr);
+  const per=perimeterN();
   const age=Date.now()-(R.ts||0), old=age>30*60000;
   return workerStaleHTML()+'<div class="stale"><span>Watching <b>'+QQ.name+'</b></span>'+
    '<span'+(old?' class="old"':'')+'>researched '+agoStr(R.ts||Date.now())+'</span>'+
    '<button class="abtn sm" data-act="qres">Re-run this sweep</button>'+
    (QUESTIONS.length>1?'<button class="abtn sm" data-act="sub:watch:questions">Switch watch ('+QUESTIONS.length+' open)</button>':'')+'</div>'+
    (old?'<p style="font-size:11.4px;color:'+TC.asm+'">This is the stored return from the last sweep, not a live one. Ask a new question above, or re-run this one.</p>':'')+
-   prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
+   prof+'<p><b>'+per+'</b> records tracked across '+((R.archives||[]).filter(a=>a.got).length||1)+' archives this sweep - <b>'+
+   rows.length+'</b> read by the relevance gate - <b>'+R.relevant+'</b> cleared it - <b>'+R.material+'</b> material - '+
+   new Date(R.ts).toLocaleTimeString()+
+   (per>rows.length?'<br><span style="font-size:11px;color:var(--dim)">The other '+(per-rows.length)+
+     ' are counted, dated, attributed and weighed in the field analysis. Sending every abstract through the model would multiply the cost of a sweep without changing the shape of the field.</span>':'')+'</p>'+
    '<p style="font-size:11.4px"><b>Your admission plane sits at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
    ' records rise above it. Drag the figure up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
    '<h2 data-dg="'+rows.length+' records, '+adm.length+' above the plane">The records themselves</h2>'+
@@ -5487,7 +5438,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b57'],
+    ['Build running',BUILD],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5680,20 +5631,75 @@ function fieldAnalysisHTML(){
         :'Most of this literature is readable without a subscription.')+'</p>'
      :'');
 }
+/* What the perimeter is, before a single question has been asked. Eighteen
+   archives, each with the span it actually covers and the number of separate
+   reservations the sweep makes on it - a relevance pass, a canon pass, an
+   origins pass, and one pass per decade back to the 1930s. */
+const PERIM=[
+ ['OpenAlex','every discipline, 1600s to today, ~250M works with citations, venues and institutions',20],
+ ['Crossref','the journals of record, DOI by DOI, including books and proceedings',17],
+ ['NASA ADS','astronomy and physics from the 1820s, refereed and grey literature',15],
+ ['Semantic Scholar','the citation graph, with open full texts flagged',14],
+ ['Europe PMC','life sciences from 1781, biology preprints included',14],
+ ['arXiv','preprints from 1991, plus a pass on your exact words and one per core term',10],
+ ['PubMed','biomedicine from 1781',8],
+ ['INSPIRE-HEP','particle physics from the 1900s, sorted by citation',6],
+ ['OSTI','US national laboratory reports, including the pre-1970 record',2],
+ ['NTRS','NASA technical reports',2],
+ ['CERN CDS','the CERN document server',2],
+ ['DBLP','the computer science bibliography',2],
+ ['PLOS','PLOS full text',2],
+ ['DOAJ','open-access journals',2],
+ ['DataCite','datasets and software, cited as first-class records',2],
+ ['HAL','the French national repository',2],
+ ['OpenAIRE','European open science',2],
+ ['Zenodo','data, code and theses',2]];
+function perimeterSpecHTML(){
+  const tot=PERIM.reduce((a,x)=>a+x[2],0);
+  return '<p style="font-size:11.6px">Every question you open is run against <b>'+tot+' separate searches</b> across <b>'+
+   PERIM.length+' archives</b>, in parallel, in one sweep. They are not '+PERIM.length+' copies of the same query: each archive that can filter by date gets one reservation per era — pre-1930, then every decade to the 2020s — because a relevance sort stops wherever the index decides it stops, and what it drops is always the old work.</p>'+
+   '<table class="dtable"><tr><th>Archive</th><th>What it covers</th><th>Passes</th></tr>'+
+   PERIM.map(x=>'<tr><td><b>'+x[0]+'</b></td><td style="font-size:10.8px">'+x[1]+'</td>'+
+     barCell(x[2],tot,TC.calc)+'</tr>').join('')+'</table>'+
+   '<p style="font-size:11.4px;color:var(--dim)">Requires worker v9 in Supabase. Once a watch has run, this table is replaced by the real ledger: which pass answered, with how many records, in how many milliseconds, and the error if it did not.</p>';
+}
+/* The ledger is now ~124 passes over 18 archives, so it is presented as the
+   perimeter itself: a roll-up per archive first, then every individual pass
+   underneath it. You should be able to see at a glance that the 1930s were
+   actually searched, and then go and check which pass did it. */
 function archiveLedgerHTML(){
   const R=resultsOf(QQ&&QQ.id);
   const A=R&&R.archives;
-  if(!A||!A.length)return '<p style="color:var(--dim)">No archive ledger on this return. Redeploy <code>setup/ingest.ts</code> — worker v7 reports which archive answered and which did not.</p>';
+  if(!A||!A.length)return perimeterSpecHTML();
+  const fam={};
+  A.forEach(x=>{const k=String(x.name||'?').split('/')[0];
+    (fam[k]||(fam[k]={n:k,passes:[],got:0,ms:0,err:0})).passes.push(x);
+    fam[k].got+=(x.got||0); fam[k].ms=Math.max(fam[k].ms,x.ms||0); if(x.error)fam[k].err++;});
+  const fk=Object.keys(fam).sort((a,b)=>fam[b].got-fam[a].got);
   const tot=A.reduce((a,x)=>a+(x.got||0),0)||1;
-  return '<table class="dtable"><tr><th>Archive</th><th>Coverage</th><th>Records</th><th>Latency</th></tr>'+
+  const answered=A.filter(x=>x.got).length;
+  const eraHit=A.filter(x=>/\/(pre-1930|\d{4}s|\d{4}-)/.test(String(x.name||''))&&x.got).length;
+  const oldest=(corpusRows().map(r=>r.year).filter(Boolean).sort((a,b)=>a-b)[0])||null;
+
+  return '<p style="font-size:11.6px"><b>'+A.length+' passes</b> over <b>'+fk.length+' archives</b>'+
+   (R.sweepMs?', run in '+(R.sweepMs/1000).toFixed(1)+' s':'')+'. '+answered+' came back with records'+
+   (eraHit?'; '+eraHit+' of those were historical windows, which is why the corpus reaches '+
+     (oldest?'back to <b>'+oldest+'</b>':'past the recent wave'):'')+
+   '. An archive that returns nothing is not a failure — it means this question does not live there.</p>'+
+   '<table class="dtable"><tr><th>Archive</th><th>Passes</th><th>Records returned</th><th>Slowest</th></tr>'+
+   fk.map(k=>{const f=fam[k];
+     return '<tr><td><b>'+k+'</b><br><span style="font-size:10px;color:var(--dim)">'+
+       f.passes.length+' pass'+(f.passes.length===1?'':'es')+(f.err?' · '+f.err+' failed':'')+'</span></td>'+
+       '<td>'+f.passes.filter(p=>p.got).length+' of '+f.passes.length+' answered</td>'+
+       barCell(f.got,tot,(f.got?TC.ev:TC.dim))+'<td>'+f.ms+' ms</td></tr>';}).join('')+
+   '</table>'+
+   '<h2 data-dg="'+A.length+' passes, one row each">Every pass this sweep ran</h2>'+
+   '<table class="dtable"><tr><th>Pass</th><th>What it reserved</th><th>Records</th><th>Latency</th></tr>'+
    A.slice().sort((a,b)=>(b.got||0)-(a.got||0)).map(x=>'<tr>'+
     '<td><b>'+x.name+'</b></td><td style="font-size:10.6px">'+(x.note||'')+'</td>'+
     (x.error?'<td colspan="2" style="color:'+TC.bad+'">'+String(x.error).slice(0,70)+'</td>'
       :barCell(x.got||0,tot,(x.got?TC.ev:TC.dim))+'<td>'+(x.ms||0)+' ms</td>')+
-    '</tr>').join('')+'</table>'+
-   '<p style="font-size:11.4px">'+A.filter(x=>x.got).length+' of '+A.length+' archives answered'+
-   (R.sweepMs?' in '+(R.sweepMs/1000).toFixed(1)+' s, all in parallel':'')+
-   '. An archive that returns nothing is not a failure — it means this question does not live there.</p>';
+    '</tr>').join('')+'</table>';
 }
 
 /* ===========================================================================
@@ -5802,9 +5808,33 @@ function deepReadHTML(){
   }
   return out.join('');
 }
-function corpusRows(){
+/* Two populations, deliberately. scoredRows is what the relevance gate has
+   actually read - it carries relevance, stance, material and why, and drives the
+   admission volume and the record table. corpusRows is the whole perimeter,
+   every record any archive returned, four to five times larger, and it is what
+   the era structure, the canon, the concentration and the deep read run on -
+   none of which needs a model to have read the abstract. */
+function scoredRows(){
   const R=resultsOf(QQ&&QQ.id);
   return (R&&R.state==='done'&&R.results)?R.results:[];
+}
+function corpusRows(){
+  const R=resultsOf(QQ&&QQ.id);
+  if(!R||R.state!=='done')return [];
+  if(R.corpus&&R.corpus.length){
+    /* Match the gate's reading back onto the perimeter record it came from.
+       source_id is the real key, but some archives return records without one,
+       so fall back to the url and then the title rather than letting every
+       keyless record collide on undefined and overwrite the whole corpus. */
+    const key=x=>x&&(x.source_id||x.url||x.title)||'';
+    const by={};(R.results||[]).forEach(x=>{const k=key(x);if(k)by[k]=x;});
+    return R.corpus.map(c=>{const k=key(c);return k&&by[k]?Object.assign({},c,by[k]):c;});
+  }
+  return R.results||[];
+}
+function perimeterN(){
+  const R=resultsOf(QQ&&QQ.id);
+  return (R&&(R.retrieved||(R.corpus&&R.corpus.length)))||scoredRows().length;
 }
 function barCell(v,tot,col){
   const pc=tot?Math.round(v/tot*100):0;
@@ -5815,6 +5845,7 @@ function corpusCoverageHTML(){
   const rows=corpusRows();
   if(!rows.length)return '<p style="color:var(--dim)">No records retrieved on this watch yet, so there is no corpus to describe. Run the research and this ledger fills.</p>';
   const thr=thrOf(),tot=rows.length;
+  const sc=rows.filter(r=>r.relevance!=null).length;
   const adm=rows.filter(r=>(r.relevance||0)>=thr).length;
   const mat=rows.filter(r=>r.material).length;
   const withNum=rows.filter(r=>r.measurement&&r.measurement.parameter).length;
@@ -5826,24 +5857,28 @@ function corpusCoverageHTML(){
   const src={};rows.forEach(r=>{const k=r.source||'unknown';src[k]=(src[k]||0)+1;});
   const srcKeys=Object.keys(src).sort((a,b)=>src[b]-src[a]);
 
-  /* how strong it is */
+  /* How strong it is - measured only over what the gate actually read. The
+     unread remainder has no relevance, and counting it as zero would report a
+     diffuse retrieval whenever the perimeter is wide, which is backwards. */
+  const read=rows.filter(r=>r.relevance!=null),rtot=read.length||1;
   const bands=[[0.8,1.01,'0.80 - 1.00','direct bearing on the question',TC.ev],
                [0.6,0.8,'0.60 - 0.79','clearly relevant, not decisive',TC.ev],
                [0.4,0.6,'0.40 - 0.59','adjacent - context, not evidence',TC.calc],
                [0.2,0.4,'0.20 - 0.39','same field, different question',TC.dim],
                [0,0.2,'0.00 - 0.19','retrieved but off-target',TC.dim]];
   const bandRows=bands.map(b=>{
-    const n=rows.filter(r=>(r.relevance||0)>=b[0]&&(r.relevance||0)<b[1]).length;
+    const n=read.filter(r=>r.relevance>=b[0]&&r.relevance<b[1]).length;
     return '<tr><td><b>'+b[2]+'</b><br><span style="font-size:10px;color:var(--dim)">'+b[3]+'</span></td>'+
-      barCell(n,tot,b[4])+'<td>'+(b[0]>=thr?'<span style="color:'+TC.ev+'">admitted</span>':b[1]<=thr?'<span style="color:var(--dim)">held back</span>':'<b style="color:'+TC.asm+'">split by your line</b>')+'</td></tr>';
+      barCell(n,rtot,b[4])+'<td>'+(b[0]>=thr?'<span style="color:'+TC.ev+'">admitted</span>':b[1]<=thr?'<span style="color:var(--dim)">held back</span>':'<b style="color:'+TC.asm+'">split by your line</b>')+'</td></tr>';
   }).join('');
 
-  const rel=rows.map(r=>r.relevance||0).sort((a,b)=>a-b);
+  const rel=read.map(r=>r.relevance).sort((a,b)=>a-b);
   const med=rel.length?rel[Math.floor(rel.length/2)]:0;
   const mean=rel.length?rel.reduce((a,b)=>a+b,0)/rel.length:0;
 
   return '<table class="dtable"><tr><th>Coverage</th><th>Count</th><th>What it means</th></tr>'+
-   '<tr><td><b>Records retrieved</b></td>'+barCell(tot,tot,TC.calc)+'<td>everything the feed query returned this cycle</td></tr>'+
+   '<tr><td><b>Records retrieved</b></td>'+barCell(tot,tot,TC.calc)+'<td>everything the perimeter returned this sweep, across every archive</td></tr>'+
+   (sc<tot?'<tr><td><b>Read by the gate</b></td>'+barCell(sc,tot,TC.hyp)+'<td>abstracts actually scored; the rest are counted, dated and attributed but not read</td></tr>':'')+
    '<tr><td><b>Admitted at your line</b></td>'+barCell(adm,tot,TC.ev)+'<td>reaches your reading at '+(thr*100).toFixed(0)+'% relevance</td></tr>'+
    '<tr><td><b>Carry a measurement</b></td>'+barCell(withNum,tot,TC.asm)+'<td>a number with an uncertainty was extracted</td></tr>'+
    '<tr><td><b>Material</b></td>'+barCell(mat,tot,TC.asm)+'<td>changes an assumption, bound or conclusion</td></tr>'+
@@ -5859,9 +5894,9 @@ function corpusCoverageHTML(){
       '<td>'+a+' of '+src[k]+' <span style="color:var(--dim)">('+(src[k]?Math.round(a/src[k]*100):0)+'% yield)</span></td></tr>';}).join('')+
    '</table>'+
    (srcKeys.length===1?'<p style="font-size:11.4px;color:var(--dim)">One archive answered this query. A single-archive corpus inherits that archive\'s coverage bias — arXiv skews toward preprints and theory, ADS toward published observational work. Treat the absence of the other as unknown, not as absence of work.</p>':'')+
-   '<h2 data-dg="median '+(med*100).toFixed(0)+'%, mean '+(mean*100).toFixed(0)+'%">How strong the corpus is</h2>'+
+   '<h2 data-dg="median '+(med*100).toFixed(0)+'%, mean '+(mean*100).toFixed(0)+'% across '+read.length+' read">How strong the read corpus is</h2>'+
    '<table class="dtable"><tr><th>Relevance band</th><th>Records</th><th>Against your line</th></tr>'+bandRows+'</table>'+
-   '<p style="font-size:11.4px">Median relevance <b>'+(med*100).toFixed(0)+'%</b>, mean <b>'+(mean*100).toFixed(0)+'%</b>. '+
+   '<p style="font-size:11.4px">Across the <b>'+read.length+'</b> abstracts the gate read, median relevance <b>'+(med*100).toFixed(0)+'%</b>, mean <b>'+(mean*100).toFixed(0)+'%</b>. '+
    (mean>=0.55?'This is a well-targeted retrieval — the query is finding the question, not the field.'
     :mean>=0.35?'This is a mixed retrieval: the query is finding the field more reliably than the question. Naming the observable or the object directly will sharpen it.'
     :'This is a diffuse retrieval. Most of what came back is same-field, different-question. Rephrase the watch around a specific observable, object or effect.')+'</p>';
@@ -6128,14 +6163,15 @@ function dgCon(){const y=synOf();const c=(y&&y.contested)||[];
   return c.length?c.length+' contested point'+(c.length===1?'':'s'):'no explicit disagreement detected';}
 function dgRet(){const R=resultsOf(QQ&&QQ.id);if(!R||!R.results)return 'not researched yet';
   const t=R.results.length,a=R.results.filter(r=>(r.relevance||0)>=thrOf()).length;
-  return t+' records, '+a+' above your plane, '+R.results.filter(r=>r.material).length+' material';}
+  return perimeterN()+' tracked, '+t+' read, '+a+' above your plane, '+R.results.filter(r=>r.material).length+' material';}
 function dgQty(){const y=synOf();const q=(y&&y.quantities)||[];
   return q.length?q.length+' quantity'+(q.length===1?'':'ies')+' on the table':'no numerical bound extracted';}
 function dgField(){const F=(typeof fieldStats==='function')?fieldStats():null;
   return F?F.span[0]+'\u2013'+F.span[1]+', '+(F.span[1]-F.span[0])+' years'+(F.gaps.length?', quiet in the '+F.gaps[0]+'s':''):'no dated records';}
 function dgCov(){const rows=corpusRows();if(!rows.length)return 'nothing retrieved';
-  const src={};rows.forEach(r=>{const k=String(r.source||'').split('-')[0];src[k]=1;});
-  return rows.length+' records from '+Object.keys(src).length+' archives';}
+  const src={};rows.forEach(r=>{src[r.source||'unknown']=1;});
+  const sc=rows.filter(r=>r.relevance!=null).length;
+  return rows.length+' records from '+Object.keys(src).length+' archives, '+sc+' read by the gate';}
 function askHTML(sub){
   return '<div class="askbar">'+
     '<span class="asklbl">ASK</span>'+
@@ -6209,9 +6245,11 @@ function cxHints(){
   const h=cxEl('cxHints');if(!h)return;
   const set=noWatch()
     ?['research dark matter self-interaction','what can you do']
-    :['run a field analysis','where did this question come from',
-      'who owns this field','what is contested','what should I read first',
-      'what is missing','sweep it again','compare with '];
+    :(S.mode==='reason'
+      ?['verify ','what is contested','what is missing','run a field analysis']
+      :['run a field analysis','where did this question come from',
+        'who owns this field','what is contested','what should I read first',
+        'what is missing','which archives answered','sweep it again','compare with ']);
   h.innerHTML=set.map(t=>'<button data-cxq="'+t.replace(/"/g,'&quot;')+'">'+t+'</button>').join('');
 }
 /* a console result becomes a station in the mode it belongs to */
@@ -6331,8 +6369,8 @@ const CXI=[
       '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
       '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>',null);
     const R=resultsOf(QQ.id),A=(R&&R.archives)||[];
-    return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' archives</b> answered this question. Filed under WATCH.'
-      :'This return predates the archive ledger — re-run the sweep on worker v7 to see it.',go:['cx-arch','Open the perimeter']};
+    return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' passes</b> over <b>'+(new Set(A.map(x=>String(x.name||'?').split('/')[0]))).size+' archives</b> answered this question. Filed under WATCH.'
+      :'This return predates the archive ledger — re-run the sweep on worker v9 to see it.',go:['cx-arch','Open the perimeter']};
   }},
  {k:/\b(sweep|re-?run|refresh|search again|do it again|update|check again)/i,
   need:'watch',
@@ -6345,6 +6383,14 @@ const CXI=[
     addQuestion(m);
     return {say:'Opened a second watch on <b>'+m+'</b> and started its sweep. Both stay open; switch between them from the WATCH control and every figure re-derives.'};
   }},
+ {k:/^\s*(verify|check this|think out loud)\b/i,
+  run:(t)=>{
+    const txt=t.replace(/^\s*(verify|check this|think out loud)\b[:,]?\s*/i,'').trim();
+    if(txt.length<6)return {say:'Give me the sentence to verify.'};
+    const v=verifyThought(txt);
+    return {say:'<b>'+v.length+' structure'+(v.length>1?'s':'')+' flagged.</b><br>'+
+      v.map(x=>'<b>'+x.l+'</b> — '+x.d).join('<br>')};
+  }},
  {k:/\b(what can you do|help|commands?|how do i)/i,
   run:()=>({say:'I work on the watch that is open. Ask me to:<br>'+
     '<b>run a field analysis</b> — era structure, canon, dormancy, concentration<br>'+
@@ -6354,7 +6400,9 @@ const CXI=[
     '<b>what is contested</b> / <b>what is missing</b><br>'+
     '<b>which archives answered</b> — the perimeter ledger<br>'+
     '<b>sweep it again</b> · <b>compare with &lt;question&gt;</b><br>'+
-    'Anything else I treat as a new question and research it.'})},
+    '<b>verify &lt;sentence&gt;</b> — runs the reasoning checks on a claim you are about to make; '+
+    'in the reasoning chamber anything you type is verified without the prefix.<br>'+
+    'Anything else I offer to open as a new watch.'})},
 ];
 function cxRun(text){
   const t=String(text||'').trim();
@@ -6376,6 +6424,13 @@ function cxRun(text){
     try{out=hit.run(t);}catch(e){cxSay('That failed: '+String(e&&e.message||e),'a');return;}
     if(out&&out.say)cxSay(out.say+(out.go?cxLink(out.go[0],out.go[1]):''),'a');
     postEvent('console - '+t.slice(0,60),'hot');
+    return;
+  }
+  if(S.mode==='reason'){
+    const v=verifyThought(t);
+    cxSay('<b>'+v.length+' structure'+(v.length>1?'s':'')+' flagged.</b><br>'+
+      v.map(x=>'<b>'+x.l+'</b> — '+x.d).join('<br>')+
+      '<div class="go"><button class="abtn" data-cxnew="'+esc2(t).replace(/"/g,'&quot;')+'">Research it instead</button></div>','a');
     return;
   }
   /* Not a command I recognise. Guessing wrong here is expensive: an accidental
