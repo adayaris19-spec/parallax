@@ -75,7 +75,7 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADS = Deno.env.get("ADS_TOKEN") ?? "";
 const ANT = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
-const WORKER_VERSION = 10;
+const WORKER_VERSION = 11;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -614,9 +614,185 @@ Deno.serve(async (req) => {
   }
 });
 
+/* A small perimeter, for the jobs that run two or more of them in one request.
+   Eight passes over the archives that answer for every field, deduped, with its
+   own ledger. Cheap enough that an adjudication can afford one per side. */
+async function corePerimeter(free: string, adsQ: string, per: number, tag: string) {
+  const half = Math.ceil(per / 2), third = Math.ceil(per / 3);
+  const jobs: { name: string; run: () => Promise<Rec[]> }[] = [
+    { name: `${tag}/openalex`, run: () => fromOpenAlex(free, per, "relevance") },
+    { name: `${tag}/openalex-canon`, run: () => fromOpenAlex(free, half, "cited") },
+    { name: `${tag}/openalex-origins`, run: () => fromOpenAlex(free, third, "earliest") },
+    { name: `${tag}/arxiv`, run: () => fromArxiv(grp(qTerms(free)), half) },
+    { name: `${tag}/crossref`, run: () => fromCrossref(free, half, "cited") },
+    { name: `${tag}/ads`, run: () => fromADS(adsQ || free, half, "citation_count desc") },
+    { name: `${tag}/s2`, run: () => fromSemanticScholar(free, half) },
+    { name: `${tag}/inspire`, run: () => fromInspire(free, third) },
+  ];
+  const ledger: any[] = [];
+  const rows: Rec[] = [];
+  const seen = new Set<string>();
+  await Promise.all(jobs.map(async (jb) => {
+    const s = Date.now();
+    try {
+      const got = await jb.run();
+      ledger.push({ name: jb.name, note: tag, got: got.length, ms: Date.now() - s });
+      for (const r of got) {
+        const k = r.source_id || r.title;
+        if (!k || seen.has(k)) continue;
+        seen.add(k); rows.push(r);
+      }
+    } catch (e) {
+      ledger.push({ name: jb.name, note: tag, got: 0, ms: Date.now() - s, error: String((e as Error)?.message ?? e).slice(0, 110) });
+    }
+  }));
+  rows.sort((a, b) => (b.citations ?? -1) - (a.citations ?? -1));
+  return { rows, ledger };
+}
+
+const strip = (r: Rec) => ({
+  source: r.source, source_id: r.source_id, title: r.title, url: r.url,
+  published_at: r.published_at, year: r.year, citations: r.citations,
+  venue: r.venue, institutions: r.institutions, oa: r.oa, concepts: r.concepts, authors: r.authors,
+});
+const digestOf = (rows: Rec[], n: number) =>
+  rows.slice(0, n).map((r, i) =>
+    `[${i + 1}] ${r.year ?? "n/a"} | ${r.citations != null ? r.citations + " cites" : "cites n/a"} | ${r.title} | ${String(r.abstract || "").slice(0, 260)}`
+  ).join("\n");
+
+async function ask(prompt: string, maxTokens: number) {
+  if (!ANT) return null;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: maxTokens, messages: [{ role: "user", content: prompt }] }),
+  });
+  if (!r.ok) { console.log("ask", r.status, await r.text()); return null; }
+  const j = await r.json();
+  const m = (j.content?.[0]?.text ?? "").match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { return JSON.parse(m[0]); } catch { return null; }
+}
+
 async function handle(req: Request): Promise<Response> {
   let body: any = {};
   try { body = await req.json(); } catch { /* cron sends nothing */ }
+
+  // ---------- mode 3: adjudicate two competing explanations ----------
+  /* Not "search A, then search B". The point of putting two theories side by
+     side is to find the observation that separates them, and that is exactly
+     the thing a reader cannot do by scanning two reading lists: it needs both
+     corpora in view at once. So both perimeters run, both digests go into one
+     call, and what comes back is what each explains, what each cannot, what
+     they are both on the hook for, and the measurements that would settle it. */
+  if (body && body.mode === "adjudicate" && body.a && body.b) {
+    const A = String(body.a).slice(0, 200), B = String(body.b).slice(0, 200);
+    const ctx = String(body.question || "").slice(0, 300);
+    const per = Math.min(Math.max(Number(body.limit) || 18, 10), 30);
+    const t0 = Date.now();
+
+    const [pa, pb] = await Promise.all([
+      corePerimeter(A, A, per, "A"),
+      corePerimeter(B, B, per, "B"),
+    ]);
+
+    const adjudication = await ask(
+      `You are adjudicating between two competing explanations for a working scientist. ` +
+      `Be concrete and be willing to say one is in trouble. Never invent a measurement.\n\n` +
+      (ctx ? `CONTEXT QUESTION: ${ctx}\n` : "") +
+      `EXPLANATION A: ${A}\nLITERATURE ON A:\n${digestOf(pa.rows, 14)}\n\n` +
+      `EXPLANATION B: ${B}\nLITERATURE ON B:\n${digestOf(pb.rows, 14)}\n\n` +
+      `Return ONLY JSON:\n` +
+      `{"a":{"name":"short name","claim":"what it asserts, one sentence",` +
+      `"explains":["what it accounts for that the other does not"],` +
+      `"fails":["what it cannot account for, or what contradicts it"],` +
+      `"rests_on":["the assumptions it needs to be true"],` +
+      `"status":"established|contested|fringe|dormant","era":"when it was strongest"},\n` +
+      ` "b":{same shape},\n` +
+      ` "shared":["what BOTH must explain, and how each does"],\n` +
+      ` "discriminators":[{"test":"the observation or experiment that separates them",` +
+      `"predicts_a":"what A predicts for it","predicts_b":"what B predicts",` +
+      `"status":"done|underway|proposed|infeasible","note":"why it is or is not decisive"}],\n` +
+      ` "verdict":{"leaning":"a|b|neither","why":"2-3 sentences citing the records",` +
+      `"confidence":"high|moderate|low"},\n` +
+      ` "misframings":["ways this comparison is commonly posed that smuggle in a wrong assumption"]}\n\n` +
+      `Give 2-4 items in each list and 2-4 discriminators. "neither" is a legitimate verdict ` +
+      `and is the right one when the two are not actually rivals, or when nothing yet separates them.`,
+      2400,
+    );
+
+    return new Response(JSON.stringify({
+      mode: "adjudicate", worker: WORKER_VERSION, a: A, b: B, question: ctx,
+      adjudication, sweepMs: Date.now() - t0,
+      archives: pa.ledger.concat(pb.ledger),
+      corpusA: pa.rows.map(strip), corpusB: pb.rows.map(strip),
+      retrievedA: pa.rows.length, retrievedB: pb.rows.length,
+    }), { headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+
+  // ---------- mode 4: read the researcher's own work against the literature ----------
+  /* The claims come out of their text first, then the perimeter is built from
+     the terms those claims actually use - not from the whole manuscript, which
+     retrieves the field rather than the argument. Then every claim is put back
+     against what came back, and each one gets a standing: is this still true,
+     is it contested, has someone already done it, is nothing behind it. */
+  if (body && body.mode === "manuscript" && body.text) {
+    const text = String(body.text).slice(0, 24000);
+    const t0 = Date.now();
+
+    const read = await ask(
+      `Read this scientific text and extract the claims it makes. It may be an abstract, ` +
+      `a draft, a grant section, a set of notes, or a bare list of statements.\n\n` +
+      `TEXT:\n${text}\n\n` +
+      `Return ONLY JSON:\n` +
+      `{"title":"the working title or subject, <=14 words",` +
+      `"field":"short field name",` +
+      `"terms":["5-8 search terms the literature on this uses - TERMS, not a query, no AND/OR/parentheses"],` +
+      `"claims":[{"text":"the claim as asserted, one sentence","kind":"empirical|theoretical|methodological|interpretive",` +
+      `"load":"load-bearing|supporting|aside","quantity":"the measurable it rests on, or empty"}]}\n\n` +
+      `Extract 3-10 claims. "load-bearing" means the argument collapses without it.`,
+      1800,
+    );
+    if (!read || !Array.isArray(read.claims) || !read.claims.length) {
+      return new Response(JSON.stringify({
+        mode: "manuscript", worker: WORKER_VERSION,
+        error: "no claims could be read out of that text - it may be too short, or not making assertions",
+      }), { headers: { ...CORS, "Content-Type": "application/json" } });
+    }
+
+    const free = (Array.isArray(read.terms) && read.terms.length ? read.terms : qTerms(read.title || text))
+      .map(String).slice(0, 7).join(" ");
+    const per = Math.min(Math.max(Number(body.limit) || 22, 12), 34);
+    const p = await corePerimeter(free, free, per, "ms");
+
+    const audit = await ask(
+      `You are checking a researcher's own claims against what the literature actually holds. ` +
+      `Be useful and be blunt: it is more valuable to tell them a claim is already known, or ` +
+      `already contradicted, than to be polite. Never invent a record.\n\n` +
+      `THEIR SUBJECT: ${read.title ?? ""}\n` +
+      `THEIR CLAIMS:\n${(read.claims as any[]).map((c: any, i: number) => `(${i + 1}) ${c.text}`).join("\n")}\n\n` +
+      `THE LITERATURE:\n${digestOf(p.rows, 18)}\n\n` +
+      `Return ONLY JSON:\n` +
+      `{"claims":[{"i":1,"status":"supported|contested|unsupported|already-established|superseded",` +
+      `"why":"one sentence, citing record numbers","records":[1,4],` +
+      `"risk":"what breaks if this claim is wrong","action":"what to do about it - cite, soften, test, drop, or nothing"}],\n` +
+      ` "novelty":"2-3 sentences on what in this is actually new against the retrieved record, and what is not",\n` +
+      ` "missing":["work they should have cited and appear not to have"],\n` +
+      ` "strongest":"which claim stands best, and on what",\n` +
+      ` "weakest":"which claim is most exposed, and why",\n` +
+      ` "nextTest":"the single most decisive thing they could do next"}\n\n` +
+      `One entry per claim, in order. "already-established" means the literature already ` +
+      `contains it, which is a finding about their novelty, not about their correctness.`,
+      2600,
+    );
+
+    return new Response(JSON.stringify({
+      mode: "manuscript", worker: WORKER_VERSION,
+      title: read.title ?? "", field: read.field ?? "", terms: read.terms ?? [],
+      claims: read.claims, audit, sweepMs: Date.now() - t0,
+      archives: p.ledger, corpus: p.rows.map(strip), retrieved: p.rows.length,
+    }), { headers: { ...CORS, "Content-Type": "application/json" } });
+  }
 
   // ---------- mode 2: live on-demand research for one typed question ----------
   if (body && (body.q || body.question)) {
