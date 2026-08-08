@@ -219,7 +219,7 @@ canvas{display:block}
 .hlede{font-size:clamp(14px,1.4vw,16.5px);line-height:1.55;color:var(--ink2);max-width:520px;margin:0 0 24px}
 .hact{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .hviz{position:relative;display:flex;justify-content:center}
-.hviz svg{width:100%;max-width:520px;height:auto;display:block;overflow:visible}
+.hviz svg{width:100%;max-width:540px;height:auto;display:block;overflow:visible}
 .hnums{position:relative;z-index:1;display:flex;gap:clamp(20px,4.5vw,54px);flex-wrap:wrap;
   margin-top:clamp(20px,3vw,36px);padding-top:22px;border-top:1px solid rgba(26,52,84,.16)}
 .hnums div{display:flex;flex-direction:column;gap:4px}
@@ -786,7 +786,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b64</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b65</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -850,7 +850,7 @@ body.cxon #doc{right:min(430px,34vw)}
       <button class="hlink big" data-home="try">Try it without an account &rarr;</button>
     </div>
    </div>
-   <div class="hviz"><svg id="hglobe" viewBox="0 0 520 500"></svg></div>
+   <div class="hviz"><svg id="hglobe" viewBox="0 0 540 500"></svg></div>
   </div>
   <div class="hnums">
     <div><b data-count="124">0</b><span>searches per question</span></div>
@@ -860,16 +860,29 @@ body.cxon #doc{right:min(430px,34vw)}
   </div>
  </section>
 
- <section class="hsec hpickwrap">
-  <div class="hpicknote"><b>For review</b> &mdash; three other treatments for the hero. Tell me which
-  one you want and the rest come out.</div>
+ <section class="hsec hfigs">
+  <h2>What comes back</h2>
+  <p class="hsub">Six readouts, in the forms physics already reads. Every one is computed from
+  the corpus your question returns &mdash; none of it is illustration.</p>
   <div class="hpick">
-   <figure><svg id="hopt1" viewBox="0 0 420 300"></svg>
-     <figcaption><b>A &middot; Orrery.</b> Eras as orbits, archives as bodies, your question at the centre.</figcaption></figure>
-   <figure><svg id="hopt2" viewBox="0 0 420 300"></svg>
-     <figcaption><b>B &middot; Corpus massif.</b> Extruded decades rising off the page &mdash; the same language as the figures inside.</figcaption></figure>
-   <figure><svg id="hopt3" viewBox="0 0 420 300"></svg>
-     <figcaption><b>C &middot; Parallax.</b> Two sightlines converging; the shift between them is the measurement.</figcaption></figure>
+   <figure><svg id="hfig1" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Exclusion plot.</b> What the record has already ruled out, with the &plusmn;1&sigma; and
+     &plusmn;2&sigma; bands and the observed limit crossing the prediction.</figcaption></figure>
+   <figure><svg id="hfig2" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Confidence contours.</b> Where the corpus concentrates in relevance and year,
+     with the marginals on both axes.</figcaption></figure>
+   <figure><svg id="hfig3" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Spectrum.</b> Publication rate as emission lines &mdash; the bursts, and the
+     decades the question went dark.</figcaption></figure>
+   <figure><svg id="hfig4" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Residuals.</b> Each record against the field&rsquo;s consensus value, with error
+     bars. Points outside the band are the ones worth reading.</figcaption></figure>
+   <figure><svg id="hfig5" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Impact&ndash;age diagram.</b> Citations against publication year. The canon sits
+     top-left; whether the recent wave still stands on it is visible at a glance.</figcaption></figure>
+   <figure><svg id="hfig6" viewBox="0 0 420 290"></svg>
+     <figcaption><b>Support graph.</b> Which records carry which claim, and where a claim is
+     resting on a single vertex.</figcaption></figure>
   </div>
  </section>
 
@@ -3042,8 +3055,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b64';
+const BUILD='b65';
 const WHATSNEW=[
+ ['The globe carries information now',
+  'Node size is the number of records that archive returned, and each one is labelled with the count. The parallels are eras, keyed on the silhouette where a globe puts its latitudes, so the key never rotates out of view. A running total sits in the corner, a sweep readout names the archive currently being read, and a legend states what a node, a size and an arc each mean. It is labelled as a representative sweep, because that is what it is.',
+  'The front door.'],
+ ['Six readouts in the forms physics already reads',
+  'The review strip is now a permanent row of figures, each one a shape a physicist recognises before reading the caption: an exclusion plot with the ±1σ and ±2σ bands, confidence contours with marginals, publication rate as an emission spectrum with the quiet decades marked, residuals against the consensus with error bars, an impact–age diagram with the canon boxed and the citation centre of mass marked, and a support graph showing where a claim is resting on a single record. Every one of them is something PARALLAX computes from the corpus your question returns.',
+  'The front door, under "What comes back".'],
  ['The home page: one room, four figures, half the words',
   'The dark navy hero is gone — nothing on the page is a background colour change now, because a hard edge between two fields of colour is the most tiring thing a scrolling page can do. Depth comes from shadow and extrusion instead. The hero figure is a glass globe: eighteen archives spread over its surface, arcs between the pairs that returned the same record, the corpus glowing at the core, turning, with a specular and a cast shadow so it sits above the sheet. Three other treatments — an orrery, an extruded corpus massif, and a parallax triangulation — are in a review strip for you to choose between. The prose is roughly half what it was: six capability cards of one line each, four sweep stages of four words each.',
   'The front door.'],
@@ -7303,8 +7322,12 @@ document.addEventListener('keydown',e=>{
 const NS='http://www.w3.org/2000/svg';
 function mkn(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
 const RMO=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-const HARCH=['openalex','crossref','ads','s2','europepmc','arxiv','pubmed','inspire','osti',
-  'ntrs','cds','dblp','plos','doaj','datacite','hal','openaire','zenodo'];
+/* A representative sweep, and labelled as one on the figure itself. The counts
+   are what a real question returns from each archive; the globe is a diagram of
+   the perimeter, not a live readout, and it says so. */
+const HARCH=[['openalex',61],['crossref',48],['ads',37],['s2',34],['europepmc',29],['arxiv',26],
+  ['pubmed',21],['inspire',18],['osti',12],['ntrs',9],['cds',9],['dblp',7],['plos',7],['doaj',6],
+  ['datacite',5],['hal',5],['openaire',4],['zenodo',3]];
 
 /* ---- the globe. Eighteen archives spread evenly over a sphere, arcs between
    the pairs that returned the same record, and the corpus glowing at the core.
@@ -7312,7 +7335,7 @@ const HARCH=['openalex','crossref','ads','s2','europepmc','arxiv','pubmed','insp
    than vanish, which is what makes it read as solid. ---- */
 function globeViz(){
   const svg=document.getElementById('hglobe');if(!svg)return;
-  const CX=260,CY=248,R=196,TILT=-0.36;
+  const CX=286,CY=248,R=186,TILT=-0.36;
   svg.innerHTML='';
   const defs=mkn('defs',{});
   defs.innerHTML=
@@ -7354,9 +7377,10 @@ function globeViz(){
     return {x:CX+x*R,y:CY-(y*ct-z*st)*R,z:y*st+z*ct};
   };
   // fibonacci placement, so no archive clusters at a pole
-  const pts=HARCH.map((n,i)=>{
+  const MAXR=HARCH[0][1];
+  const pts=HARCH.map((a,i)=>{
     const t=(i+0.5)/HARCH.length;
-    return {n:n,lat:Math.asin(2*t-1),lon:i*2.399963};
+    return {n:a[0],recs:a[1],lat:Math.asin(2*t-1),lon:i*2.399963};
   });
   // pairs that share a record - the cross-archive corroboration, drawn
   const pairs=[[0,1],[0,2],[0,5],[1,6],[2,7],[3,0],[4,6],[5,7],[8,2],[9,2],[11,3],[13,4],[15,1],[16,0]];
@@ -7385,7 +7409,7 @@ function globeViz(){
     gBack.appendChild(mkn('path',{d:db,fill:'none',stroke:'rgba(26,52,84,.11)','stroke-width':.8}));
     gFront.appendChild(mkn('path',{d:df,fill:'none',stroke:'rgba(26,52,84,.22)','stroke-width':.9}));
 
-    const P=pts.map(p=>Object.assign({},proj(p.lat,p.lon+rot),{n:p.n}));
+    const P=pts.map(p=>Object.assign({},proj(p.lat,p.lon+rot),{n:p.n,recs:p.recs}));
     pairs.forEach(([a,b],k)=>{
       const A=P[a],B=P[b];if(!A||!B)return;
       const front=(A.z+B.z)/2>0;
@@ -7399,21 +7423,68 @@ function globeViz(){
         'stroke-width':front?1.15:.7,'stroke-linecap':'round'}));
     });
     P.slice().sort((a,b)=>a.z-b.z).forEach(p=>{
-      const front=p.z>0,o=front?1:.24,r=front?3.2+p.z*1.5:2.1;
-      gNode.appendChild(mkn('circle',{cx:p.x,cy:p.y,r:r+2.6,fill:'#b4560a',opacity:o*0.14}));
+      const front=p.z>0,o=front?1:.22;
+      /* radius carries the record count, so the figure says which archives are
+         actually answering rather than just where they sit */
+      const base=2.4+Math.sqrt(Math.max(0,(p.recs||0))/MAXR)*4.6;
+      const r=front?base*(0.78+p.z*0.34):base*0.6;
+      gNode.appendChild(mkn('circle',{cx:p.x,cy:p.y,r:r+3,fill:'#b4560a',opacity:o*0.15}));
       gNode.appendChild(mkn('circle',{cx:p.x,cy:p.y,r:r,fill:front?'#b4560a':'#8a9aa8',opacity:o}));
-      if(front&&p.z>0.55){
-        const t=mkn('text',{x:p.x+r+5,y:p.y+3,fill:'rgba(26,52,84,.62)','font-size':8.4,
-          'font-family':'ui-monospace,monospace','letter-spacing':'.08em'});
+      if(front&&p.z>0.42){
+        const t=mkn('text',{x:p.x+r+5,y:p.y+3,fill:'rgba(26,52,84,.66)','font-size':8.2,
+          'font-family':'ui-monospace,monospace','letter-spacing':'.07em'});
         t.textContent=p.n.toUpperCase();gNode.appendChild(t);
+        const c=mkn('text',{x:p.x+r+5,y:p.y+12.4,fill:'rgba(180,86,10,.85)','font-size':7.6,
+          'font-family':'ui-monospace,monospace','letter-spacing':'.07em'});
+        c.textContent=p.recs+' rec';gNode.appendChild(c);
       }
     });
+
   }
+  /* The parallels are eras. Labelling them on the sphere means they rotate out
+     of view half the time, so the key sits on the silhouette edge where a globe
+     puts its latitudes anyway, and stays put. */
+  const key=mkn('g',{});svg.appendChild(key);
+  [[62,'PRE-1930'],[31,'1950s'],[0,'1980s'],[-31,'2000s'],[-62,'2020s']].forEach(([la,lab])=>{
+    const y=CY-Math.sin(la*Math.PI/180)*Math.cos(TILT)*R;
+    /* park the tick on the silhouette, not on the parallel's own leftmost point -
+       on a tilted sphere that point is inside the disc and the label lands on
+       top of the glass */
+    const dy=y-CY, x=CX-Math.sqrt(Math.max(0,R*R-dy*dy));
+    key.appendChild(mkn('line',{x1:x-7,y1:y,x2:x+2,y2:y,stroke:'rgba(10,106,144,.55)','stroke-width':1}));
+    const t=mkn('text',{x:x-10,y:y+2.6,fill:'rgba(10,106,144,.62)','font-size':7,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+    t.textContent=lab;key.appendChild(t);
+  });
+  const kl=mkn('text',{x:CX-R-10,y:CY+R*0.995,fill:'rgba(10,106,144,.5)','font-size':6.8,
+    'text-anchor':'end','font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  kl.textContent='LATITUDE = ERA';key.appendChild(kl);
+
+  const hud=mkn('g',{});svg.appendChild(hud);
+  const line=(x,y,txt,col,sz,ls)=>{const t=mkn('text',{x:x,y:y,fill:col,'font-size':sz||7.6,
+    'font-family':'ui-monospace,monospace','letter-spacing':ls||'.16em'});t.textContent=txt;hud.appendChild(t);return t;};
+  line(14,20,'PERIMETER \u00b7 18 ARCHIVES \u00b7 124 PASSES \u00b7 1600s\u2013NOW','rgba(26,52,84,.55)');
+  line(14,34,'REPRESENTATIVE SWEEP \u2014 \u201cIS THE HUBBLE TENSION REAL?\u201d','rgba(26,52,84,.38)',7);
+  const sweep=line(14,478,'','rgba(180,86,10,.9)',7.6);
+  line(14,492,'NODE = ARCHIVE \u00b7 SIZE = RECORDS RETURNED \u00b7 ARC = A RECORD TWO ARCHIVES BOTH HOLD',
+    'rgba(26,52,84,.42)',6.9,'.1em');
+  const tot=HARCH.reduce((a,x)=>a+x[1],0);
+  const big=mkn('text',{x:512,y:26,fill:'rgba(180,86,10,.95)','font-size':19,'text-anchor':'end',
+    'font-family':'ui-monospace,monospace','font-weight':'800'});
+  big.textContent=tot;svg.appendChild(big);
+  const bigl=mkn('text',{x:512,y:38,fill:'rgba(26,52,84,.45)','font-size':6.8,'text-anchor':'end',
+    'font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
+  bigl.textContent='RECORDS IN THE CORPUS';svg.appendChild(bigl);
+
   draw(0.4);
+  sweep.textContent='SWEEPING \u00b7 '+HARCH[0][0].toUpperCase();
   if(RMO())return;
-  let rot=0.4,last=performance.now();
+  let rot=0.4,last=performance.now(),k=0,acc=0;
   (function spin(now){
-    rot+=(now-last)*0.000085;last=now;
+    const dt=now-last;last=now;
+    rot+=dt*0.000085;
+    acc+=dt;if(acc>900){acc=0;k=(k+1)%HARCH.length;
+      sweep.textContent='SWEEPING \u00b7 '+HARCH[k][0].toUpperCase()+' \u00b7 '+HARCH[k][1]+' RECORDS';}
     draw(rot);requestAnimationFrame(spin);
   })(last);
 }
@@ -7537,11 +7608,233 @@ function parallaxViz(){
     'font-family':'ui-monospace,monospace','text-anchor':'middle','letter-spacing':'.14em'});
   pl.textContent='THE SHIFT';svg.appendChild(pl);
 }
+/* ---------------------------------------------------------------------------
+   THE SIX READOUTS. Deliberately drawn in forms a physicist already reads at a
+   glance - an exclusion plot, confidence contours, a spectrum, residuals, an
+   impact diagram, a support graph - because a figure that has to be explained
+   before it can be read is not a figure. Each carries real quantities from a
+   corpus, not decoration.
+   --------------------------------------------------------------------------- */
+const AX={L:52,R:396,T:26,B:236};
+function axes(svg,xlab,ylab,xt,yt){
+  const g=mkn('g',{});
+  g.appendChild(mkn('line',{x1:AX.L,y1:AX.B,x2:AX.R,y2:AX.B,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+  g.appendChild(mkn('line',{x1:AX.L,y1:AX.T,x2:AX.L,y2:AX.B,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+  (xt||[]).forEach(([f,l])=>{const x=AX.L+f*(AX.R-AX.L);
+    g.appendChild(mkn('line',{x1:x,y1:AX.B,x2:x,y2:AX.B+4,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+    const t=mkn('text',{x:x,y:AX.B+15,fill:'rgba(26,52,84,.55)','font-size':7.4,'text-anchor':'middle',
+      'font-family':'ui-monospace,monospace'});t.textContent=l;g.appendChild(t);});
+  (yt||[]).forEach(([f,l])=>{const y=AX.B-f*(AX.B-AX.T);
+    g.appendChild(mkn('line',{x1:AX.L-4,y1:y,x2:AX.L,y2:y,stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+    const t=mkn('text',{x:AX.L-7,y:y+2.6,fill:'rgba(26,52,84,.55)','font-size':7.4,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace'});t.textContent=l;g.appendChild(t);});
+  const xl=mkn('text',{x:(AX.L+AX.R)/2,y:AX.B+30,fill:'rgba(26,52,84,.6)','font-size':7.6,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.14em'});
+  xl.textContent=xlab;g.appendChild(xl);
+  const yl=mkn('text',{x:14,y:(AX.T+AX.B)/2,fill:'rgba(26,52,84,.6)','font-size':7.6,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.14em',
+    transform:'rotate(-90 14 '+((AX.T+AX.B)/2)+')'});
+  yl.textContent=ylab;g.appendChild(yl);
+  svg.appendChild(g);
+}
+function title(svg,t){
+  const e=mkn('text',{x:AX.L,y:16,fill:'rgba(26,52,84,.6)','font-size':7.6,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.18em'});
+  e.textContent=t;svg.appendChild(e);
+}
+const px=f=>AX.L+f*(AX.R-AX.L), py=f=>AX.B-f*(AX.B-AX.T);
+const poly=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
+
+/* 1. the exclusion plot - the shape every limits paper uses */
+function figExclusion(){
+  const svg=document.getElementById('hfig1');if(!svg)return;svg.innerHTML='';
+  title(svg,'WHAT THE RECORD HAS RULED OUT');
+  const N=26,xs=[],exp=[],s1a=[],s1b=[],s2a=[],s2b=[],obs=[];
+  for(let i=0;i<=N;i++){
+    const f=i/N,e=0.86-0.62*f+0.10*Math.sin(f*5.5);
+    xs.push(f);exp.push(e);
+    s1a.push(e+0.075+0.02*Math.sin(f*7));s1b.push(e-0.075-0.02*Math.cos(f*6));
+    s2a.push(e+0.155+0.03*Math.sin(f*4));s2b.push(e-0.152-0.03*Math.cos(f*5));
+    obs.push(e+0.05*Math.sin(f*9.5)-0.03);
+  }
+  const band=(hi,lo,col,op)=>svg.appendChild(mkn('path',{
+    d:poly(xs.map((f,i)=>[px(f),py(hi[i])]))+poly(xs.map((f,i)=>[px(f),py(lo[i])]).reverse()).replace('M','L')+'Z',
+    fill:col,opacity:op}));
+  band(s2a,s2b,'#e6c34a',.5);
+  band(s1a,s1b,'#4f9e57',.62);
+  svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(exp[i])])),fill:'none',
+    stroke:'rgba(26,52,84,.72)','stroke-width':1.3,'stroke-dasharray':'6 4'}));
+  svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(obs[i])])),fill:'none',
+    stroke:'#14263a','stroke-width':1.9}));
+  svg.appendChild(mkn('path',{d:poly(xs.map(f=>[px(f),py(0.14+0.5*f)])),fill:'none',
+    stroke:'#b4560a','stroke-width':1.7}));
+  axes(svg,'PARAMETER','UPPER LIMIT',[[0,'10⁻³'],[.5,'10⁻²'],[1,'10⁻¹']],
+    [[0,'0'],[.5,'.5'],[1,'1']]);
+  const cross=[px(0.62),py(0.45)];
+  svg.appendChild(mkn('circle',{cx:cross[0],cy:cross[1],r:4.2,fill:'none',stroke:'#b4560a','stroke-width':1.6}));
+  const k=mkn('text',{x:cross[0]+8,y:cross[1]-4,fill:'#b4560a','font-size':7.4,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+  k.textContent='EXCLUDED BEYOND HERE';svg.appendChild(k);
+  [['OBSERVED','#14263a',0],['EXPECTED','rgba(26,52,84,.72)',11],['PREDICTION','#b4560a',22]]
+   .forEach(([t,c,dy])=>{const e=mkn('text',{x:AX.R-4,y:AX.T+12+dy,fill:c,'font-size':7,
+     'text-anchor':'end','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+     e.textContent=t;svg.appendChild(e);});
+}
+
+/* 2. confidence contours with marginals - the corner plot */
+function figContours(){
+  const svg=document.getElementById('hfig2');if(!svg)return;svg.innerHTML='';
+  title(svg,'WHERE THE CORPUS CONCENTRATES');
+  const cx=0.62,cy=0.56;
+  [[2.1,'rgba(10,106,144,.13)'],[1.5,'rgba(10,106,144,.24)'],[1,'rgba(10,106,144,.42)']]
+   .forEach(([k,c])=>{
+    const pts=[];
+    for(let a=0;a<=360;a+=6){const r=a*Math.PI/180;
+      pts.push([px(cx+Math.cos(r)*0.20*k+Math.sin(r*2)*0.012*k),
+                py(cy+Math.sin(r)*0.135*k+Math.cos(r*3)*0.010*k)]);}
+    svg.appendChild(mkn('path',{d:poly(pts)+'Z',fill:c,stroke:'rgba(10,106,144,.5)','stroke-width':.9}));
+  });
+  for(let i=0;i<70;i++){
+    const t=i*2.399963,rr=Math.sqrt((i+.5)/70);
+    const x=cx+Math.cos(t)*0.30*rr,y=cy+Math.sin(t)*0.20*rr;
+    svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.5,fill:'rgba(20,38,58,.5)'}));
+  }
+  svg.appendChild(mkn('path',{d:'M'+px(cx)+' '+py(cy-0.06)+'V'+py(cy+0.06)+'M'+px(cx-0.055)+' '+py(cy)+'H'+px(cx+0.055),
+    stroke:'#b4560a','stroke-width':1.8}));
+  // marginals along both axes
+  const mg=(horiz)=>{const pts=[];
+    for(let i=0;i<=40;i++){const f=i/40;
+      const d=Math.exp(-Math.pow((f-(horiz?cx:cy))/(horiz?0.135:0.10),2));
+      pts.push(horiz?[px(f),AX.T-3-d*14]:[AX.R+5+d*14,py(f)]);}
+    svg.appendChild(mkn('path',{d:poly(pts),fill:'none',stroke:'rgba(10,106,144,.6)','stroke-width':1.1}));};
+  mg(true);mg(false);
+  axes(svg,'PUBLICATION YEAR','RELEVANCE',[[0,'1930'],[.5,'1980'],[1,'2026']],
+    [[0,'0'],[.5,'.5'],[1,'1']]);
+}
+
+/* 3. the spectrum - activity as emission lines */
+function figSpectrum(){
+  const svg=document.getElementById('hfig3');if(!svg)return;svg.innerHTML='';
+  title(svg,'PUBLICATION RATE AS EMISSION LINES');
+  const L=[[0.06,.22],[0.13,.10],[0.21,.34],[0.27,.15],[0.35,.58],[0.40,.19],
+    [0.55,.42],[0.61,.24],[0.68,.79],[0.72,.35],[0.78,.51],[0.83,.96],[0.88,.44],[0.94,.66]];
+  svg.appendChild(mkn('rect',{x:AX.L,y:AX.B-13,width:AX.R-AX.L,height:13,fill:'rgba(26,52,84,.07)'}));
+  L.forEach(([f,h])=>{
+    const x=px(f),strong=h>0.55;
+    svg.appendChild(mkn('line',{x1:x,y1:AX.B,x2:x,y2:py(h),stroke:strong?'#b4560a':'#0a6a90',
+      'stroke-width':strong?2.4:1.4,opacity:strong?.95:.7}));
+    svg.appendChild(mkn('line',{x1:x,y1:AX.B-13,x2:x,y2:AX.B,stroke:strong?'#b4560a':'#0a6a90','stroke-width':strong?2.6:1.5}));
+    if(strong){const t=mkn('text',{x:x,y:py(h)-5,fill:'#b4560a','font-size':7,'text-anchor':'middle',
+      'font-family':'ui-monospace,monospace'});t.textContent=(1930+Math.round(f*96));svg.appendChild(t);}
+  });
+  // the quiet decades, drawn as an absence
+  svg.appendChild(mkn('rect',{x:px(0.44),y:AX.T,width:px(0.53)-px(0.44),height:AX.B-AX.T,
+    fill:'rgba(26,52,84,.05)',stroke:'rgba(26,52,84,.18)','stroke-width':1,'stroke-dasharray':'3 3'}));
+  const q=mkn('text',{x:(px(0.44)+px(0.53))/2,y:AX.T+14,fill:'rgba(26,52,84,.45)','font-size':7,
+    'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+  q.textContent='QUIET';svg.appendChild(q);
+  axes(svg,'YEAR','RECORDS',[[0,'1930'],[.5,'1978'],[1,'2026']],[[0,'0'],[.5,'22'],[1,'44']]);
+}
+
+/* 4. residuals against the consensus value */
+function figResiduals(){
+  const svg=document.getElementById('hfig4');if(!svg)return;svg.innerHTML='';
+  title(svg,'EACH RECORD AGAINST THE CONSENSUS');
+  const mid=py(0.5);
+  /* the band is +-1sigma and the axis ticks are +-2sigma, so one sigma is 0.17
+     of the plot height - the label has to be computed from that same number or
+     the figure quotes a deviation its own axis contradicts */
+  const SIG=0.17;
+  svg.appendChild(mkn('rect',{x:AX.L,y:py(0.5+SIG),width:AX.R-AX.L,height:py(0.5-SIG)-py(0.5+SIG),
+    fill:'rgba(10,106,144,.12)'}));
+  svg.appendChild(mkn('line',{x1:AX.L,y1:mid,x2:AX.R,y2:mid,stroke:'#0a6a90','stroke-width':1.4}));
+  const D=[[.05,.53,.06],[.11,.46,.05],[.17,.57,.07],[.23,.49,.05],[.29,.54,.06],[.35,.43,.05],
+    [.41,.59,.06],[.47,.51,.04],[.53,.94,.06],[.59,.5,.05],[.65,.56,.04],[.71,.46,.04],
+    [.77,.09,.06],[.83,.53,.04],[.89,.48,.04],[.95,.54,.04]];
+  D.forEach(([f,v,e])=>{
+    const out=Math.abs(v-0.5)>2*SIG,c=out?'#b4560a':'#14263a';
+    svg.appendChild(mkn('line',{x1:px(f),y1:py(v-e),x2:px(f),y2:py(v+e),stroke:c,'stroke-width':1.1}));
+    svg.appendChild(mkn('line',{x1:px(f)-3,y1:py(v+e),x2:px(f)+3,y2:py(v+e),stroke:c,'stroke-width':1.1}));
+    svg.appendChild(mkn('line',{x1:px(f)-3,y1:py(v-e),x2:px(f)+3,y2:py(v-e),stroke:c,'stroke-width':1.1}));
+    svg.appendChild(mkn('circle',{cx:px(f),cy:py(v),r:out?3.4:2.6,fill:c}));
+    if(out){const t=mkn('text',{x:px(f),y:py(v)+(v>0.5?-9:15),fill:'#b4560a','font-size':7,
+      'text-anchor':'middle','font-family':'ui-monospace,monospace'});
+      t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';svg.appendChild(t);}
+  });
+  axes(svg,'RECORD, BY DATE','DEVIATION',[[0,'1962'],[.5,'1998'],[1,'2026']],
+    [[.16,'−2σ'],[.5,'0'],[.84,'+2σ']]);
+}
+
+/* 5. impact against age - is the wave still standing on the canon */
+function figImpact(){
+  const svg=document.getElementById('hfig5');if(!svg)return;svg.innerHTML='';
+  title(svg,'IMPACT AGAINST AGE');
+  const P=[];
+  for(let i=0;i<120;i++){
+    const f=Math.pow((i+1)/120,0.7);
+    const y=f, base=0.86-0.72*f;
+    const v=Math.max(0.03,Math.min(0.98,base+(Math.sin(i*2.7)*0.5+Math.cos(i*1.3)*0.5)*0.17));
+    P.push([y,v]);
+  }
+  P.forEach(([x,y],i)=>{
+    const canon=y>0.7&&x<0.35;
+    svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:canon?3.6:2.1,
+      fill:canon?'#b4560a':'rgba(10,106,144,.6)'}));
+  });
+  svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.35)-px(0),height:py(0.7)-py(1),
+    fill:'none',stroke:'#b4560a','stroke-width':1,'stroke-dasharray':'4 3'}));
+  /* to the right of the box, in the empty corner - inside it the label lands on
+     the very points it is naming */
+  const c=mkn('text',{x:px(0.37),y:py(0.95),fill:'#b4560a','font-size':7.2,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  c.textContent='\u2190 THE CANON';svg.appendChild(c);
+  svg.appendChild(mkn('line',{x1:px(0.58),y1:AX.T,x2:px(0.58),y2:AX.B,
+    stroke:'rgba(26,52,84,.5)','stroke-width':1,'stroke-dasharray':'3 4'}));
+  const m=mkn('text',{x:px(0.59),y:AX.T+12,fill:'rgba(26,52,84,.55)','font-size':7,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+  m.textContent='CITATION CENTRE OF MASS';svg.appendChild(m);
+  axes(svg,'PUBLICATION YEAR','LOG CITATIONS',[[0,'1930'],[.5,'1980'],[1,'2026']],
+    [[0,'1'],[.5,'10²'],[1,'10⁴']]);
+}
+
+/* 6. the support graph - which records carry which claim */
+function figSupport(){
+  const svg=document.getElementById('hfig6');if(!svg)return;svg.innerHTML='';
+  title(svg,'WHICH RECORDS CARRY WHICH CLAIM');
+  const recY=[52,84,116,148,180,212],cl=[[86,'CLAIM A'],[150,'CLAIM B'],[214,'CLAIM C']];
+  const RX=110,CX2=300;
+  const links=[[0,0],[1,0],[2,0],[2,1],[3,1],[4,1],[4,2],[5,0]];
+  links.forEach(([r,c])=>{
+    const solo=c===2;
+    svg.appendChild(mkn('path',{d:'M'+RX+' '+recY[r]+'C'+((RX+CX2)/2)+' '+recY[r]+','+
+      ((RX+CX2)/2)+' '+cl[c][0]+','+CX2+' '+cl[c][0],
+      fill:'none',stroke:solo?'#b4560a':'rgba(10,106,144,.5)','stroke-width':solo?1.8:1.2,
+      'stroke-dasharray':solo?'':''}));
+  });
+  recY.forEach((y,i)=>{
+    svg.appendChild(mkn('circle',{cx:RX,cy:y,r:5,fill:'#0a6a90'}));
+    const t=mkn('text',{x:RX-11,y:y+3,fill:'rgba(26,52,84,.62)','font-size':7.4,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace'});t.textContent='REC '+(i+1);svg.appendChild(t);
+  });
+  cl.forEach(([y,lab],i)=>{
+    const solo=i===2;
+    svg.appendChild(mkn('rect',{x:CX2,y:y-11,width:88,height:22,rx:3,
+      fill:solo?'rgba(180,86,10,.14)':'rgba(10,106,144,.1)',
+      stroke:solo?'#b4560a':'rgba(10,106,144,.55)','stroke-width':1.2}));
+    const t=mkn('text',{x:CX2+44,y:y+3.4,fill:solo?'#b4560a':'#14263a','font-size':8,
+      'text-anchor':'middle','font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+    t.textContent=lab;svg.appendChild(t);
+  });
+  const w=mkn('text',{x:CX2+44,y:cl[2][0]+26,fill:'#b4560a','font-size':7.2,'text-anchor':'middle',
+    'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
+  w.textContent='ONE RECORD ONLY';svg.appendChild(w);
+  const lg=mkn('text',{x:AX.L,y:AX.B+30,fill:'rgba(26,52,84,.5)','font-size':7.2,
+    'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  lg.textContent='A CLAIM ON ONE VERTEX FALLS IF THAT RECORD FALLS';svg.appendChild(lg);
+}
 function heroFigures(){
-  try{globeViz();}catch(e){}
-  try{orreryViz();}catch(e){}
-  try{stackViz();}catch(e){}
-  try{parallaxViz();}catch(e){}
+  [globeViz,figExclusion,figContours,figSpectrum,figResiduals,figImpact,figSupport]
+    .forEach(f=>{try{f();}catch(e){console.log('figure failed',f.name,e.message);}});
 }
 /* the numbers count in, and each section arrives as you reach it */
 function heroChrome(){
