@@ -647,7 +647,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b58</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b59</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2812,8 +2812,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b58';
+const BUILD='b59';
 const WHATSNEW=[
+ ['The perimeter is sharded, so it actually returns',
+  'b58 asked one Edge Function invocation to run all 124 passes. The platform killed the isolate every time, and the error it returns carries no CORS header, which is why the page said only "Failed to fetch". The sweep is now split into 6 parallel calls: the first runs the 17 core passes and does the interpreting, the gate and the synthesis, and the other 5 each fetch a share of the historical ladder with no model calls at all. The page is readable as soon as the first one lands and grows as the rest arrive. A slice that fails costs coverage and says so in the ledger; it can no longer take the whole result down.',
+  'Every sweep. Needs worker v10 deployed in Supabase.'],
  ['124 searches, 18 archives, back to the 1930s',
   'The perimeter was 18 passes. It is now ~124, over 18 archives. OSTI (US national laboratories), NTRS (NASA technical reports), the CERN Document Server, DBLP and PLOS joined the thirteen. The real gain is the historical ladder: OpenAlex, Crossref, ADS, Semantic Scholar, Europe PMC, PubMed, INSPIRE and arXiv each get one reservation per era — pre-1930, then every decade to the 2020s — because a relevance sort always drops the old work first.',
   'WATCH → Research return, and the console tab "which archives answered", which now rolls the passes up per archive and then lists every one.'],
@@ -5004,19 +5007,19 @@ async function researchQuestion(q){
   RES.byQ[q.id]={state:'searching',t0:Date.now()};
   renderIntel();
   const started=Date.now();
-  setBanner('work','<b>RESEARCHING</b> - "'+q.name+'" - arXiv + NASA ADS + Crossref, then scoring every abstract... <b id="bsec">0s</b>');
+  setBanner('work','<b>RESEARCHING</b> - "'+q.name+'" - the core perimeter first, then '+(SLICES-1)+' more slices of the historical ladder... <b id="bsec">0s</b>');
   bannerTimer=setInterval(()=>{
     const el=document.getElementById('bsec');
     if(el)el.textContent=Math.round((Date.now()-started)/1000)+'s';
   },1000);
-  postEvent('researching - '+q.name+' - querying arXiv and ADS','hot');
+  postEvent('researching - '+q.name+' - 124 passes over 18 archives in '+SLICES+' slices','hot');
   try{
     const ctl=new AbortController();
     const timer=setTimeout(()=>ctl.abort(),120000);
     const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
       method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:40,store:true})
+      body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:40,store:true,slice:0,slices:SLICES})
     });
     clearTimeout(timer);
     const raw=await r.text();
@@ -5051,6 +5054,8 @@ async function researchQuestion(q){
     postEvent('research complete - '+j.pulled+' records - '+j.relevant+' relevant - '+j.material+' material','hot');
     setBanner('good','<b>DONE</b> - '+j.pulled+' records returned, '+j.relevant+' cleared relevance, '+j.material+' material. Results are below.');
     setTimeout(()=>setBanner(null),9000);
+    if(S.phase==='live')renderDoc();
+    ladderSlices(q,j);
   }catch(e){
     if(!RES.lastCall||RES.lastCall.q!==q.name)
       RES.lastCall={q:q.name,status:0,ok:false,ms:Date.now()-started,bytes:0,
@@ -5065,6 +5070,66 @@ async function researchQuestion(q){
   renderIntel();
   const nx=RES.queue.shift();
   if(nx)setTimeout(()=>researchQuestion(nx),80);
+}
+/* THE LADDER. Slice 0 has landed and the page is already readable; the rest of
+   the perimeter arrives behind it. Each ladder slice is retrieval only - no
+   model calls at all - so it is cheap enough that the platform will never kill
+   the isolate the way it did when all 124 passes ran in one invocation. Each
+   one that lands merges into the corpus and the ledger and the page grows. */
+const SLICES=6;
+async function ladderSlices(q,j0){
+  if(!j0||Number(j0.slices||0)<2)return;
+  const prof=j0.profile||null;
+  const n=Number(j0.slices)||SLICES;
+  const started=Date.now();
+  let landed=0;
+  const one=async(k)=>{
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),90000);
+    try{
+      const r=await fetch(SUPA_URL+'/functions/v1/ingest',{
+        method:'POST',signal:ctl.signal,
+        headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+        body:JSON.stringify({question:q.name,q:q.feedq,tracked:q.tracked,limit:40,
+          slice:k,slices:n,gate:false,profile:prof})
+      });
+      clearTimeout(timer);
+      const j=await r.json();
+      if(!r.ok||!j||j.error)throw new Error(j&&j.error?j.error:'HTTP '+r.status);
+      mergeSlice(q,j);
+    }catch(e){
+      /* a ladder slice that fails costs coverage, never the result. It says so
+         in the ledger and the sweep carries on. */
+      mergeSlice(q,{slice:k,archives:[{name:'slice '+k,note:'a share of the historical ladder',
+        got:0,ms:Date.now()-started,error:String(e&&e.message||e).slice(0,110)}],corpus:[],retrieved:0});
+    }
+    landed++;
+    if(landed===n-1&&S.phase==='live'){
+      const R=resultsOf(q.id);
+      if(R&&R.state==='done')setBanner('good','<b>PERIMETER COMPLETE</b> - '+
+        (R.retrieved||0)+' records from '+((R.archives||[]).length)+' passes. '+
+        (R.results||[]).length+' were read by the gate.'),setTimeout(()=>setBanner(null),8000);
+    }
+  };
+  const runs=[];for(let k=1;k<n;k++)runs.push(one(k));
+  await Promise.all(runs);
+}
+/* Merging is by source_id, so a record two archives both hold is counted once
+   and the perimeter number stays honest. */
+function mergeSlice(q,j){
+  const R=RES.byQ[q.id];
+  if(!R||R.state!=='done')return;
+  R.archives=(R.archives||[]).concat(j.archives||[]);
+  if(j.corpus&&j.corpus.length){
+    const have={};(R.corpus||[]).forEach(c=>{if(c&&c.source_id)have[c.source_id]=1;});
+    const add=j.corpus.filter(c=>c&&c.source_id&&!have[c.source_id]);
+    R.corpus=(R.corpus||[]).concat(add);
+    R.retrieved=R.corpus.length;
+    R.pulled=R.corpus.length;
+  }
+  R.sliceMs=Date.now();
+  saveState();
+  if(S.phase==='live'&&QQ&&QQ.id===q.id){refreshDoc();renderIntel();}
 }
 const LSKEY='parallax.v1';
 function saveState(){
@@ -5391,7 +5456,7 @@ function resultsHTML(){
   if(R.state==='interrupted')return '<p style="color:'+TC.asm+'"><b>This sweep was interrupted by a page reload.</b> Restarting it now — nothing was lost.</p>';
   if(R.state==='queued')return '<p style="color:'+TC.asm+'"><b>Queued.</b> Another sweep is still running; this question starts the moment it finishes. Nothing is lost.</p>';
   if(R.state==='searching')return '<p style="color:'+TC.ev+'"><b>Researching “'+QQ.name+'” — <span id="secs">0s</span></b><br>'+
-    'Translating the question, querying arXiv, NASA ADS and Crossref, then scoring every abstract. A first run can take up to a minute. '+
+    'Translating the question, then running 124 passes over 18 archives in '+SLICES+' parallel slices and scoring every abstract the gate reads. The core lands first and the historical ladder fills in behind it. '+
     'It keeps running if you switch stations; do not reload.</p>';
   if(R.state==='error')return '<p style="color:'+TC.bad+'"><b>Research failed:</b> '+R.err+'</p>'+
     (/Failed to fetch|NetworkError|load failed/i.test(R.err)
@@ -6178,7 +6243,7 @@ function askHTML(sub){
     '<input data-qin placeholder="Research any question - e.g. is the Hubble tension real?" autocomplete="off" spellcheck="false">'+
     '<button class="mic" data-mic title="Dictate">&#9679;</button>'+
     '<button class="abtn pri" data-act="qadd">Research it</button></div>'+
-    (sub===false?'':'<p class="askhint">Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs it against arXiv, NASA ADS and Crossref, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.</p>');
+    (sub===false?'':'<p class="askhint">Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs 124 separate searches across 18 archives back to the 1930s, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.</p>');
 }
 /* how old is what you are looking at - a restored watch must never pass for a fresh one */
 function agoStr(ts){
