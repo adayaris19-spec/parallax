@@ -778,7 +778,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b62</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b63</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3066,8 +3066,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b62';
+const BUILD='b63';
 const WHATSNEW=[
+ ['SCRIPT ERROR on every return visit — fixed',
+  'The front door runs at boot, and for a returning visitor it removes the onboarding and goes straight to the watches. The line that binds the onboarding button ran afterwards and found nothing there, which threw on every single return visit. The onboarding listeners now bind only if the onboarding still exists, and the front door opens last, after everything it might remove has been wired. The test that covered the returning visitor never checked for page errors; it does now, on every path.',
+  'Any reload after the first visit.'],
  ['The figure panel closes again',
   'The panel lives inside a layer that is pointer-events:none so the workspace underneath stays reachable — and it had never opted back in, so the backdrop and the CLOSE button silently ignored every click. Only Escape got you out, which is exactly why the tests never caught it. Fixed, and while in there: click any figure in the panel and it takes the whole panel; click off it and the grid comes back; click off that and the panel closes.',
   'Any figure. Click it to open, click out to close.'],
@@ -7569,20 +7572,7 @@ document.addEventListener('click',e=>{
   setBanner('work','<b>NOT SIGNED IN</b> - your watches live in this browser only. '+
     '<button class="abtn" data-act="signout" style="margin-left:8px">Open the front door</button>');
 });
-(function bootHome(){
-  const h=document.getElementById('home');if(!h)return;
-  try{
-    document.getElementById('hperimtab').innerHTML=perimeterSpecHTML();
-    document.getElementById('hpricetab').innerHTML=plansHTML();
-  }catch(e){}
-  hmode('signup');
-  renderWho();
-  try{heroViz();}catch(e){}
-  try{heroChrome();}catch(e){}
-  /* Signed in, or already through the door once - do not make them walk it again. */
-  let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
-  if(AUTH||been){h.remove();enterApp();}
-})();
+
 
 const CSEQ=[
  ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.15],
@@ -7590,7 +7580,10 @@ const CSEQ=[
  ['Attaching assumptions to their boundaries','heating prescription · foreground screen',0.55],
  ['Restoring scientific memory','412 reasoning states · rejection conditions live',0.78],
  ['Model live — autonomous watch armed','you are now operating the model directly',1]];
-$('#go').addEventListener('click',()=>{
+/* bootHome() may already have removed the onboarding - a returning visitor goes
+   straight to their watches and never sees it. Bind only if it is still here. */
+const GOBTN=$('#go');
+if(GOBTN)GOBTN.addEventListener('click',()=>{
   if(S.phase!=='onb')return;S.phase='construct';
   const onb=$('#onb');onb.style.opacity=0;onb.style.filter='blur(8px)';onb.style.pointerEvents='none';
   setTimeout(()=>onb.remove(),1200);
@@ -7613,7 +7606,23 @@ $('#go').addEventListener('click',()=>{
   }
   nx();
 });
-$('#ta').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#go').click();}});
+const TABOX=$('#ta');
+if(TABOX)TABOX.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const g=$('#go');if(g)g.click();}});
+
+(function bootHome(){
+  const h=document.getElementById('home');if(!h)return;
+  try{
+    document.getElementById('hperimtab').innerHTML=perimeterSpecHTML();
+    document.getElementById('hpricetab').innerHTML=plansHTML();
+  }catch(e){}
+  hmode('signup');
+  renderWho();
+  try{heroViz();}catch(e){}
+  try{heroChrome();}catch(e){}
+  /* Signed in, or already through the door once - do not make them walk it again. */
+  let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
+  if(AUTH||been){h.remove();enterApp();}
+})();
 </script>
 </body>
 </html>
