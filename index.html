@@ -171,6 +171,8 @@ canvas{display:block}
   background:rgba(255,254,251,.97);border:1.5px solid rgba(180,86,10,.42);border-left:4px solid var(--asm);
   border-radius:4px;box-shadow:0 2px 10px -4px rgba(120,80,30,.20);transition:border-color .16s,box-shadow .16s}
 .askbar:focus-within{border-color:var(--asm);box-shadow:0 3px 16px -4px rgba(180,86,10,.34)}
+.askbar.off{border-left-color:var(--dim);border-color:rgba(84,105,125,.34)}
+.askbar.off .asklbl{color:var(--dim)}
 .askbar .asklbl{font-family:var(--m);font-size:8.5px;letter-spacing:.24em;font-weight:800;color:var(--asm);flex:none}
 .askbar input{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:14.5px;color:var(--ink);padding:3px 0}
 .askbar input::placeholder{color:#8a8477}
@@ -647,7 +649,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b59</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b60</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2812,8 +2814,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b59';
+const BUILD='b60';
 const WHATSNEW=[
+ ['The preview stops pretending it can research',
+  'The artifact viewer applies a content policy that blocks every external request, so a sweep can never run there — and "RESEARCH FAILED - Failed to fetch" was the browser refusing to send the call, not your worker failing. The page knew this and let you press the button anyway. Now the ask bar says so, and asking hands the question to the live build with the sweep already starting, so it is one motion instead of a copy and a paste. Every other part of the preview still works on whatever is already stored.',
+  'The ASK bar, in the artifact preview only. On the live build nothing changes.'],
+ ['A failed call names its own cause',
+  '"Failed to fetch" is what a browser says when a request never became an HTTP exchange, and three unrelated faults land on it: a content policy refusing the connection, the Edge Function being killed mid-request (its error carries no CORS header, so the browser discards it), or the network dropping. The page now listens for policy violations and tells you which one it was, and what to check.',
+  'Any failed sweep, and the backend connection panel.'],
  ['The perimeter is sharded, so it actually returns',
   'b58 asked one Edge Function invocation to run all 124 passes. The platform killed the isolate every time, and the error it returns carries no CORS header, which is why the page said only "Failed to fetch". The sweep is now split into 6 parallel calls: the first runs the 17 core passes and does the interpreting, the gate and the synthesis, and the other 5 each fetch a share of the historical ladder with no model calls at all. The page is readable as soon as the first one lands and grows as the rest arrive. A slice that fails costs coverage and says so in the ledger; it can no longer take the whole result down.',
   'Every sweep. Needs worker v10 deployed in Supabase.'],
@@ -2961,8 +2969,22 @@ document.addEventListener('keydown',e=>{
   const v=el.value.trim();
   if(v.length<4){setBanner('bad','<b>TOO SHORT</b> - give it a few words to work with');return;}
   document.querySelectorAll('[data-qin]').forEach(x=>x.value='');
-  addQuestion(v);
+  askIt(v);
 });
+/* One door for every way of asking. In the artifact preview the research call
+   cannot leave the browser, so asking here must not fire a request that is
+   certain to fail - it hands the question to the deployed build instead, which
+   picks it up from ?q= and starts the sweep on arrival. */
+function askIt(v){
+  if(SANDBOXED){handOff(v);return;}
+  addQuestion(v);
+}
+function handOff(v){
+  const to=PAGES_URL+'?q='+encodeURIComponent(v);
+  setBanner('work','<b>THIS PREVIEW CANNOT REACH THE INTERNET</b> - opening the live build with your question: '+
+    '<a href="'+to+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">'+PAGES_URL.replace(/^https?:\/\//,'')+'</a>');
+  try{window.open(to,'_blank','noopener');}catch(e){}
+}
 function openPlans(){
   const o=$('#plansOv');if(!o)return;
   o.querySelector('[data-lv="plans"]').innerHTML=plansHTML();
@@ -3474,7 +3496,7 @@ act=function(a){
     if(!el){setBanner('bad','<b>INPUT NOT FOUND</b> - the question field is not on this station');return;}
     if(!el.value.trim()){setBanner('bad','<b>NOTHING TYPED</b> - type a question in the box first');el.focus();return;}
     const v=el.value.trim();els.forEach(x=>x.value='');
-    addQuestion(v);return;}
+    askIt(v);return;}
   if(p[0]==='qdel'){const i=QUESTIONS.findIndex(x=>x.id===p[1]);
     if(i>=0){QUESTIONS.splice(i,1);delete RES.byQ[p[1]];saveState();
       if(QQ.id===p[1])setQuestion(QUESTIONS.length?QUESTIONS[0].id:EMPTYQ.id);else renderIntel();}return;}
@@ -4641,6 +4663,42 @@ CMDS.push(
 /* ---------------- LIVE DATA LINK — Supabase ---------------- */
 const SUPA_URL='https://zfmjjazkmolvywvayjzj.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
+const PAGES_URL='https://adayaris19-spec.github.io/parallax/';
+/* "Failed to fetch" is the single least informative string a browser produces.
+   It is what you get when the request never became an HTTP exchange at all, and
+   three completely different faults land on it: the page's own Content Security
+   Policy refusing the connection before it leaves the browser, the Edge Function
+   being killed by the platform mid-request (the platform's error carries no CORS
+   header, so the browser discards it), and an ordinary network drop. Only the
+   first one announces itself, on a securitypolicyviolation event - so listen for
+   it, and then the failure can name itself instead of making you guess. */
+const CSPB=[];
+try{addEventListener('securitypolicyviolation',function(e){
+  CSPB.push({uri:String(e.blockedURI||'').slice(0,140),dir:String(e.effectiveDirective||e.violatedDirective||''),at:Date.now()});
+  if(CSPB.length>40)CSPB.shift();
+});}catch(e){}
+function cspBlocked(){
+  const host=SUPA_URL.replace(/^https?:\/\//,'').split('/')[0];
+  return CSPB.filter(x=>Date.now()-x.at<90000&&(x.uri.indexOf(host)>=0||/connect-src/.test(x.dir)));
+}
+function netDiag(e){
+  const m=String(e&&e.message||e);
+  if(/abort/i.test(m))
+    return 'the sweep ran past the 120 s limit and the browser gave up. The worker may still have finished; press RESEARCH IT again.';
+  if(SANDBOXED&&/failed to fetch|networkerror|load failed|network request failed/i.test(m))
+    return 'this preview cannot reach the internet. The artifact viewer applies a content policy that blocks every external request, so the call never left the browser and your worker never heard about it \u2014 nothing is wrong with the backend. Open the live build and ask there: '+PAGES_URL;
+  if(!/failed to fetch|networkerror|load failed|network request failed/i.test(m))return m;
+  const host=SUPA_URL.replace(/^https?:\/\//,'').split('/')[0];
+  const blocked=cspBlocked();
+  if(blocked.length)
+    return 'this page refused the connection before it ever left the browser. Its Content Security Policy does not allow '+
+      (blocked[0].dir||'connect-src')+' to '+host+', so no request was sent and your backend never heard about it. '+
+      'That is a property of where this page is hosted, not of your worker. Open the GitHub Pages copy instead: '+PAGES_URL;
+  return 'the browser could not reach '+host+' at all \u2014 no HTTP status came back, so there is nothing here from the worker to read. '+
+    'Three faults look like this. (1) This page is hosted somewhere that forbids the connection; open '+PAGES_URL+' and try the same question there. '+
+    '(2) The Edge Function was killed by the platform mid-request \u2014 its error carries no CORS header, so the browser discards it; the Supabase function log will show the invocation. '+
+    '(3) The network dropped. If the Supabase log has no line at all for this attempt, it is (1).';
+}
 const LIVE={on:false,recs:[],finds:[],total:0,relevant:0,material:0,err:null,ts:0};
 async function supaGet(path){
   const r=await fetch(SUPA_URL+'/rest/v1/'+path,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});
@@ -4948,8 +5006,8 @@ async function pingWorker(){
     RES.workerV=RES.ping.wv;
     postEvent('worker responded '+r.status+' in '+RES.ping.ms+' ms'+(RES.ping.v3?' - v3 code live':' - OLD CODE, redeploy needed'),RES.ping.v3?'hot':'warn');
   }catch(e){
-    RES.ping={ok:false,err:String(e&&e.message||e),ms:Date.now()-t0};
-    postEvent('worker unreachable - '+RES.ping.err,'warn');
+    RES.ping={ok:false,err:netDiag(e),raw:String(e&&e.message||e),ms:Date.now()-t0};
+    postEvent('worker unreachable - '+String(e&&e.message||e),'warn');
   }
   document.querySelectorAll('[data-lv="ping"]').forEach(el=>{el.innerHTML=pingHTML();});
   if(S.phase==='live')renderDoc();
@@ -5060,10 +5118,11 @@ async function researchQuestion(q){
     if(!RES.lastCall||RES.lastCall.q!==q.name)
       RES.lastCall={q:q.name,status:0,ok:false,ms:Date.now()-started,bytes:0,
         head:String(e&&e.message||e).slice(0,400),at:Date.now()};
-    RES.byQ[q.id]={state:'error',err:String(e&&e.message||e)};
+    const diag=netDiag(e);
+    RES.byQ[q.id]={state:'error',err:diag,raw:String(e&&e.message||e)};
     saveState();
     postEvent('research failed - '+String(e&&e.message||e),'warn');
-    setBanner('bad','<b>RESEARCH FAILED</b> - '+String(e&&e.message||e).slice(0,300));
+    setBanner('bad','<b>RESEARCH FAILED</b> - '+diag.slice(0,400));
   }
   RES.busy=false;RES.t0=0;
   if(S.phase==='live')renderDoc();
@@ -5130,6 +5189,21 @@ function mergeSlice(q,j){
   R.sliceMs=Date.now();
   saveState();
   if(S.phase==='live'&&QQ&&QQ.id===q.id){refreshDoc();renderIntel();}
+}
+/* The other half of the handoff: a question arriving in the URL becomes a watch
+   and starts researching immediately, so asking in the preview and answering in
+   the live build is one motion rather than a copy and a paste. */
+function askFromURL(){
+  if(SANDBOXED)return false;
+  let v='';
+  try{v=(new URLSearchParams(location.search)).get('q')||'';}catch(e){return false;}
+  v=String(v).trim().slice(0,300);
+  if(v.length<4)return false;
+  try{history.replaceState(null,'',location.pathname);}catch(e){}
+  const hit=QUESTIONS.find(x=>x.name.toLowerCase()===v.toLowerCase());
+  if(hit){setQuestion(hit.id);const R=resultsOf(hit.id);if(!R||R.state==='error')researchQuestion(hit);}
+  else addQuestion(v);
+  return true;
 }
 const LSKEY='parallax.v1';
 function saveState(){
@@ -6238,12 +6312,16 @@ function dgCov(){const rows=corpusRows();if(!rows.length)return 'nothing retriev
   const sc=rows.filter(r=>r.relevance!=null).length;
   return rows.length+' records from '+Object.keys(src).length+' archives, '+sc+' read by the gate';}
 function askHTML(sub){
-  return '<div class="askbar">'+
+  return '<div class="askbar'+(SANDBOXED?' off':'')+'">'+
     '<span class="asklbl">ASK</span>'+
-    '<input data-qin placeholder="Research any question - e.g. is the Hubble tension real?" autocomplete="off" spellcheck="false">'+
+    '<input data-qin placeholder="'+(SANDBOXED
+      ?'Type your question - it opens in the live build, which can reach the archives'
+      :'Research any question - e.g. is the Hubble tension real?')+'" autocomplete="off" spellcheck="false">'+
     '<button class="mic" data-mic title="Dictate">&#9679;</button>'+
-    '<button class="abtn pri" data-act="qadd">Research it</button></div>'+
-    (sub===false?'':'<p class="askhint">Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs 124 separate searches across 18 archives back to the 1930s, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.</p>');
+    '<button class="abtn pri" data-act="qadd">'+(SANDBOXED?'Ask in the live build \u2197':'Research it')+'</button></div>'+
+    (sub===false?'':'<p class="askhint">'+(SANDBOXED
+      ?'<b style="color:'+TC.asm+'">This preview cannot reach the internet.</b> The artifact viewer blocks every external request, so no sweep can run here \u2014 nothing is wrong with your worker. Type the question anyway and it opens in <a href="'+PAGES_URL+'" target="_blank" rel="noopener" style="color:'+TC.ev+'">the live build</a> with the sweep already starting. Everything else on this page \u2014 every station, figure and console command \u2014 works here on whatever is already stored.'
+      :'Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs 124 separate searches across 18 archives back to the 1930s, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.')+'</p>');
 }
 /* how old is what you are looking at - a restored watch must never pass for a fresh one */
 function agoStr(ts){
@@ -6547,7 +6625,7 @@ $('#go').addEventListener('click',()=>{
     if(i>=CSEQ.length){
       cons.style.opacity=0;cons.style.transition='opacity .8s';setTimeout(()=>cons.remove(),900);
       S.phase='live';$('#chrome').classList.add('on');
-      renderDock();try{loadState();}catch(e){}nav('watch');try{bootResume();}catch(e){}
+      renderDock();try{loadState();}catch(e){}nav('watch');try{bootResume();}catch(e){}try{askFromURL();}catch(e){}
       return;
     }
     const q=CSEQ[i];
