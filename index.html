@@ -437,6 +437,50 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 #brief .stats{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 #brief .bacts{display:flex;gap:6px;margin-top:11px}
 
+/* ---------------------------------------------------------------------------
+   The console. A standing side panel you talk to in plain language. It does not
+   answer in prose and leave you to act on it - when a request produces real
+   work, the result is filed as its own station in the mode it belongs to, and
+   the console tells you where it went.
+   --------------------------------------------------------------------------- */
+#cxOpen{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:58;pointer-events:auto;
+  width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);cursor:pointer;
+  background:rgba(255,254,251,.94);color:var(--asm);font-size:13px;line-height:1;
+  box-shadow:0 6px 18px -8px rgba(60,48,32,.35)}
+#cxOpen:hover{border-color:var(--asm);color:var(--ink)}
+#cxOpen.on{background:var(--asm);color:#fff;border-color:var(--asm)}
+#cx{position:fixed;right:0;top:78px;bottom:0;width:min(430px,34vw);z-index:57;display:none;pointer-events:auto;
+  flex-direction:column;background:rgba(252,250,246,.97);border-left:1px solid var(--line2);
+  box-shadow:-18px 0 44px -26px rgba(60,48,32,.40)}
+#cx.on{display:flex}
+body.cxon #cxOpen{right:calc(min(430px,34vw) + 14px)}
+#cxHead{display:flex;align-items:baseline;gap:9px;padding:11px 14px 8px;border-bottom:1px solid var(--line)}
+#cxHead .t{font-family:var(--m);font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--asm)}
+#cxHead .w{flex:1;font-family:var(--m);font-size:8px;letter-spacing:.1em;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cxX{background:none;border:0;cursor:pointer;font-family:var(--m);font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);font-weight:800}
+#cxX:hover{color:var(--ink)}
+#cxLog{flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 14px}
+#cxLog::-webkit-scrollbar{display:none}
+#cxLog .u{font-size:12px;font-weight:600;color:var(--ink);margin:14px 0 5px}
+#cxLog .u:before{content:'\203A  ';color:var(--asm);font-family:var(--m)}
+#cxLog .a{font-size:11.6px;line-height:1.62;color:var(--ink2);border-left:2px solid var(--line2);padding:2px 0 2px 10px}
+#cxLog .a b{color:var(--ink)}
+#cxLog .a .go{display:inline-block;margin-top:6px}
+#cxLog .w2{font-size:11px;color:var(--asm)}
+#cxRow{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--line)}
+#cxRow .p{font-family:var(--m);color:var(--asm);font-weight:800}
+#cxIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:12.5px;color:var(--ink)}
+#cxIn::placeholder{color:var(--dim)}
+#cxRow .k{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+#cxHints{padding:0 14px 12px;display:flex;flex-wrap:wrap;gap:5px}
+#cxHints button{background:none;border:0;border-bottom:1px solid var(--line2);cursor:pointer;
+  font-family:var(--m);font-size:8px;letter-spacing:.08em;color:var(--dim);padding:2px 1px;text-transform:uppercase}
+#cxHints button:hover{color:var(--asm);border-color:var(--asm)}
+body.cxon #doc{right:min(430px,34vw)}
+@media(max-width:900px){#cx{width:100vw}#cxOpen{top:auto;bottom:170px}body.cxon #doc{right:0}}
+
 /* plan & billing - a control-surface overlay, never a research station */
 #plansOv{position:fixed;inset:0;z-index:62;display:none;align-items:flex-start;justify-content:center;
   background:rgba(244,242,237,.82);backdrop-filter:blur(10px)}
@@ -525,7 +569,7 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
   <div id="dock"></div>
   <div id="strip"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b52</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b53</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -546,6 +590,12 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
     <div id="speakLive"></div>
   </div>
   <div id="tip"></div>
+  <button id="cxOpen" title="Ask the console (⌘K)">◈</button>
+  <div id="cx"><div id="cxHead"><span class="t">CONSOLE</span><span class="w" id="cxWatch"></span><button id="cxX">close</button></div>
+    <div id="cxLog"></div>
+    <div id="cxRow"><span class="p">&rsaquo;</span><input id="cxIn" placeholder="Run a field analysis on this" autocomplete="off" spellcheck="false"><span class="k">↵</span></div>
+    <div id="cxHints"></div>
+  </div>
 </div>
 
 <div id="plansOv"><div id="plansBox">
@@ -3732,6 +3782,8 @@ const LIVEBIND={
  qfigh:()=>hasSeries()?QN().figH:'Nothing to plot — and that is the honest answer.',
  qfigp:()=>hasSeries()?QN().figP:emptySeriesHTML(),
  corpus:()=>corpusCoverageHTML(),
+ field:()=>fieldAnalysisHTML(),
+ ledger:()=>archiveLedgerHTML(),
  rchecks:()=>reasonChecksHTML(),
  agree:()=>corpusAgreementHTML(),
  questions:()=>questionsHTML(),
@@ -3829,6 +3881,12 @@ function figLive(caption,dark){
 const VISTITLE={resfig:'Admission volume - drag it, the plane cuts the corpus',timeline:'Arrival terrain - one surface per archive',evpa:'EVPA vs prediction — live',lit:'Literature agreement — live',dep:'Causal structure — live',
   funnel:'Uncertainty propagation — live',sens:'Sensitivity — live',pareto:'Cost–yield frontier — live'};
 function stationsFor(mode){
+  const extra=CXTABS.filter(t=>t.mode===mode&&(!t.q||t.q===(QQ&&QQ.id)))
+    .map(t=>({id:t.id,label:t.label,sub:t.sub+' · from the console',vis:t.vis,html:t.html}));
+  const base=stationsBase(mode);
+  return extra.length?base.concat(extra):base;
+}
+function stationsBase(mode){
   if(noWatch())return [
    {id:'start',label:'Open your first watch',sub:'nothing is being tracked yet',vis:null,
     html:askHTML(false)+'<h2>PARALLAX is not watching anything yet.</h2>'+
@@ -4822,6 +4880,7 @@ function setQuestion(id){
   renderWatchBtn();
   saveState();
   if(S.phase==='live'){nav(S.mode);renderIntel();}
+  try{cxHead();cxHints();}catch(e){}
   postEvent('question switched - '+q.name+' - instruments re-derived','hot');
 }
 
@@ -5040,7 +5099,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b52'],
+    ['Build running','b53'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5119,6 +5178,135 @@ function deriveSyn(R){
    where it came from, how strong it is, how old it is, and how it splits.
    Nothing below is invented - every number is counted off the returned records.
    --------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   FIELD ANALYSIS. The worker now returns records that carry a year, a citation
+   count, a venue, institutions and open-access status, reaching back to the
+   nineteenth century instead of to 1991. That makes a class of reading possible
+   that a person cannot do by hand across a hundred years of literature:
+   where the question came from, when it went quiet, what revived it, whether
+   the current wave still cites its own canon, and how few groups it rests on.
+   Everything below is counted off the returned records. Nothing is invented.
+   =========================================================================== */
+function eraOf(y){
+  if(y==null)return null;
+  if(y<1950)return 'pre-1950';
+  if(y<1970)return '1950s-60s';
+  if(y<1990)return '1970s-80s';
+  if(y<2005)return '1990s-early 2000s';
+  if(y<2015)return '2005-2014';
+  return '2015-now';
+}
+const ERAS=['pre-1950','1950s-60s','1970s-80s','1990s-early 2000s','2005-2014','2015-now'];
+function fieldStats(){
+  const rows=corpusRows();
+  if(!rows.length)return null;
+  const yrs=rows.map(r=>r.year||(r.published_at?Number(String(r.published_at).slice(0,4)):null)).filter(Boolean);
+  if(!yrs.length)return null;
+  const cited=rows.filter(r=>typeof r.citations==='number');
+  const era={};ERAS.forEach(e=>era[e]={n:0,cites:0,top:null});
+  rows.forEach(r=>{
+    const y=r.year||(r.published_at?Number(String(r.published_at).slice(0,4)):null);
+    const e=eraOf(y);if(!e)return;
+    era[e].n++;era[e].cites+=(r.citations||0);
+    if(!era[e].top||(r.citations||0)>(era[e].top.citations||0))era[e].top=r;
+  });
+  const decades={};
+  yrs.forEach(y=>{const d=Math.floor(y/10)*10;decades[d]=(decades[d]||0)+1;});
+  const dkeys=Object.keys(decades).map(Number).sort((a,b)=>a-b);
+  /* a gap is a decade inside the span with nothing in it - the question went quiet */
+  const gaps=[];
+  for(let d=dkeys[0];d<dkeys[dkeys.length-1];d+=10)if(!decades[d])gaps.push(d);
+  const canon=cited.slice().sort((a,b)=>(b.citations||0)-(a.citations||0)).slice(0,5);
+  const oldest=rows.slice().sort((a,b)=>(a.year||9999)-(b.year||9999))[0];
+  const venues={},insts={};
+  rows.forEach(r=>{
+    if(r.venue)venues[r.venue]=(venues[r.venue]||0)+1;
+    (r.institutions||[]).forEach(i=>{insts[i]=(insts[i]||0)+1;});
+  });
+  const vk=Object.keys(venues).sort((a,b)=>venues[b]-venues[a]);
+  const ik=Object.keys(insts).sort((a,b)=>insts[b]-insts[a]);
+  const oaKnown=rows.filter(r=>r.oa!==null&&r.oa!==undefined);
+  const roles={};rows.forEach(r=>{if(r.role)roles[r.role]=(roles[r.role]||0)+1;});
+  /* citation centre of mass: the year the field's influence actually sits in */
+  let wsum=0,w=0;cited.forEach(r=>{const y=r.year;if(!y)return;wsum+=y*((r.citations||0)+1);w+=((r.citations||0)+1);});
+  return {rows,yrs,cited,era,decades,dkeys,gaps,canon,oldest,venues,vk,insts,ik,oaKnown,roles,
+    span:[Math.min(...yrs),Math.max(...yrs)],
+    com:w?Math.round(wsum/w):null,
+    medianYear:yrs.slice().sort((a,b)=>a-b)[Math.floor(yrs.length/2)]};
+}
+function fieldAnalysisHTML(){
+  const F=fieldStats();
+  if(!F)return '<p style="color:var(--dim)">No dated records on this watch yet. Field analysis needs the historical archives — run the research and this fills.</p>';
+  const tot=F.rows.length;
+  const eraRows=ERAS.filter(e=>F.era[e].n).map(e=>{
+    const E=F.era[e];
+    return '<tr><td><b>'+e+'</b></td>'+barCell(E.n,tot,TC.calc)+
+      '<td>'+(E.cites?E.cites.toLocaleString('en-US')+' citations':'—')+'</td>'+
+      '<td style="font-size:10.6px">'+(E.top?String(E.top.title).slice(0,64):'—')+'</td></tr>';
+  }).join('');
+  const spanTxt=F.span[0]+'–'+F.span[1];
+  const depth=F.span[1]-F.span[0];
+  return '<table class="dtable"><tr><th>Era</th><th>Records</th><th>Citations held</th><th>Most-cited of the era</th></tr>'+
+   eraRows+'</table>'+
+   '<p style="font-size:11.6px">This corpus spans <b>'+spanTxt+'</b> — <b>'+depth+' years</b>. '+
+   (F.com?'Its citation centre of mass sits in <b>'+F.com+'</b>, while the median record is from <b>'+F.medianYear+'</b>. '+
+     (F.com<F.medianYear-8
+       ?'The influence is older than the activity: people are publishing now but still standing on work from '+F.com+'. '
+       :F.com>F.medianYear+8
+         ?'The influence is newer than the activity: the recent wave has already displaced the older literature. '
+         :'Influence and activity sit together — a field working on its own current results. ')
+     :'')+
+   (F.gaps.length
+     ?'<b>The question went quiet in the '+F.gaps.map(g=>g+'s').join(', ')+'</b> — no record in this corpus from '+
+      (F.gaps.length>1?'those decades':'that decade')+'. A dormancy like that usually means the decisive measurement was out of reach, and the revival usually means an instrument arrived.'
+     :'No decade inside the span is empty: this question has been worked continuously.')+'</p>'+
+   (F.canon.length
+     ?'<h2 style="font-size:15px;margin-top:16px">The canon — what everything here rests on</h2>'+
+      '<table class="dtable"><tr><th>Work</th><th>Year</th><th>Citations</th><th>Where</th></tr>'+
+      F.canon.map(r=>'<tr><td><b><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+
+        String(r.title).slice(0,78)+'</a></b></td><td>'+(r.year||'—')+'</td>'+
+        '<td><b>'+(r.citations!=null?r.citations.toLocaleString('en-US'):'—')+'</b></td>'+
+        '<td style="font-size:10.6px">'+(r.venue||r.source)+'</td></tr>').join('')+'</table>'+
+      '<p style="font-size:11.4px">'+(F.oldest&&F.oldest.year&&F.oldest.year<1970
+        ?'The earliest record on file is <b>'+F.oldest.year+'</b> — “'+String(F.oldest.title).slice(0,70)+'”. A reading list that starts at the preprint era would have missed it entirely.'
+        :'These are the works the rest of the corpus is built on. Anything you write here has to survive them.')+'</p>'
+     :'')+
+   (F.ik.length
+     ?'<h2 style="font-size:15px;margin-top:16px">How concentrated the field is</h2>'+
+      '<table class="dtable"><tr><th>Institution</th><th>Records</th><th>Reading</th></tr>'+
+      F.ik.slice(0,6).map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(F.insts[k],tot,TC.hyp)+
+        '<td>'+(F.insts[k]/tot>0.3?'<span style="color:'+TC.bad+'">dominant — this may be one group\'s programme</span>':'one of several groups')+'</td></tr>').join('')+'</table>'
+     :'')+
+   (F.vk.length
+     ?'<h2 style="font-size:15px;margin-top:16px">Where it gets published</h2>'+
+      '<table class="dtable"><tr><th>Venue</th><th>Records</th><th></th></tr>'+
+      F.vk.slice(0,7).map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(F.venues[k],tot,TC.calc)+
+        '<td style="font-size:10.6px;color:var(--dim)">'+(/arXiv/i.test(k)?'not yet refereed':'refereed')+'</td></tr>').join('')+'</table>'
+     :'')+
+   (F.oaKnown.length
+     ?'<p style="font-size:11.4px"><b>Reachability:</b> '+F.oaKnown.filter(r=>r.oa).length+' of '+F.oaKnown.length+
+      ' records with a known status are open access. '+
+      (F.oaKnown.filter(r=>r.oa).length/F.oaKnown.length<0.5
+        ?'More than half of this literature sits behind a paywall — budget for that before you plan a review.'
+        :'Most of this literature is readable without a subscription.')+'</p>'
+     :'');
+}
+function archiveLedgerHTML(){
+  const R=resultsOf(QQ&&QQ.id);
+  const A=R&&R.archives;
+  if(!A||!A.length)return '<p style="color:var(--dim)">No archive ledger on this return. Redeploy <code>setup/ingest.ts</code> — worker v7 reports which archive answered and which did not.</p>';
+  const tot=A.reduce((a,x)=>a+(x.got||0),0)||1;
+  return '<table class="dtable"><tr><th>Archive</th><th>Coverage</th><th>Records</th><th>Latency</th></tr>'+
+   A.slice().sort((a,b)=>(b.got||0)-(a.got||0)).map(x=>'<tr>'+
+    '<td><b>'+x.name+'</b></td><td style="font-size:10.6px">'+(x.note||'')+'</td>'+
+    (x.error?'<td colspan="2" style="color:'+TC.bad+'">'+String(x.error).slice(0,70)+'</td>'
+      :barCell(x.got||0,tot,(x.got?TC.ev:TC.dim))+'<td>'+(x.ms||0)+' ms</td>')+
+    '</tr>').join('')+'</table>'+
+   '<p style="font-size:11.4px">'+A.filter(x=>x.got).length+' of '+A.length+' archives answered'+
+   (R.sweepMs?' in '+(R.sweepMs/1000).toFixed(1)+' s, all in parallel':'')+
+   '. An archive that returns nothing is not a failure — it means this question does not live there.</p>';
+}
 function corpusRows(){
   const R=resultsOf(QQ&&QQ.id);
   return (R&&R.state==='done'&&R.results)?R.results:[];
@@ -5477,6 +5665,237 @@ function questionsHTML(){
    '<p>Each question declares its own measured series, uncertainty, permitted band, controlling assumption, literature query and instrument set. Switching the question re-derives every figure, scale, axis label and readout on the spot.</p>'+
    (noWatch()?'':'<p style="font-size:11.4px"><b>Watching this question:</b> <code style="color:'+TC.ev+'">'+QQ.feedq+'</code> - scored against '+QQ.tracked.join(' · ')+'.</p>');
 }
+/* ===========================================================================
+   THE CONSOLE. Plain language in; real work out. Every intent below either
+   computes something from the corpus that is already here, or commissions a
+   sweep. Anything substantial is filed as its own station via CXTABS, so the
+   answer lands in the workspace instead of scrolling away in a chat log.
+   =========================================================================== */
+const CXTABS=[];          /* stations the console has created, newest first */
+let CXBUSY=false;
+function cxEl(id){return document.getElementById(id);}
+function cxOpen(on){
+  const c=cxEl('cx'),b=cxEl('cxOpen');if(!c)return;
+  const want=on===undefined?!c.classList.contains('on'):on;
+  c.classList.toggle('on',want);
+  if(b)b.classList.toggle('on',want);
+  document.body.classList.toggle('cxon',want);
+  cxHead();cxHints();
+  if(want)setTimeout(()=>{const i=cxEl('cxIn');if(i)i.focus();},40);
+  try{trackFig();}catch(e){}
+}
+function cxHead(){
+  const w=cxEl('cxWatch');if(!w)return;
+  w.textContent=noWatch()?'no watch open':String(QQ.name).toUpperCase();
+}
+function cxSay(html,cls){
+  const l=cxEl('cxLog');if(!l)return;
+  const d=document.createElement('div');d.className=cls||'a';d.innerHTML=html;
+  l.appendChild(d);l.scrollTop=l.scrollHeight;return d;
+}
+function cxHints(){
+  const h=cxEl('cxHints');if(!h)return;
+  const set=noWatch()
+    ?['research dark matter self-interaction','what can you do']
+    :['run a field analysis','where did this question come from',
+      'who owns this field','what is contested','what should I read first',
+      'what is missing','sweep it again','compare with '];
+  h.innerHTML=set.map(t=>'<button data-cxq="'+t.replace(/"/g,'&quot;')+'">'+t+'</button>').join('');
+}
+/* a console result becomes a station in the mode it belongs to */
+function cxFile(mode,id,label,sub,html,vis){
+  const i=CXTABS.findIndex(t=>t.id===id);
+  const t={mode:mode,id:id,label:label,sub:sub,html:html,vis:vis||null,at:Date.now(),q:QQ&&QQ.id};
+  if(i>=0)CXTABS[i]=t;else CXTABS.unshift(t);
+  while(CXTABS.length>8)CXTABS.pop();
+  if(S.mode===mode)renderDoc();
+  return t;
+}
+function cxGoto(id){
+  const t=CXTABS.find(x=>x.id===id);
+  if(!t){cxSay('That station is gone — it belonged to a different watch.','a');return;}
+  if(t.q&&QQ&&t.q!==QQ.id){
+    const w=QUESTIONS.find(x=>x.id===t.q);
+    if(w)setQuestion(w.id);
+  }
+  if(S.mode!==t.mode)nav(t.mode);
+  const sts=stationsFor(t.mode);
+  const ix=sts.findIndex(x=>x.id===id);
+  if(ix>=0)goStation(0,ix);
+}
+const cxLink=(id,label)=>'<div class="go"><button class="abtn pri" data-cxgo="'+id+'">'+label+'</button></div>';
+
+/* ---- what the console understands ---- */
+const CXI=[
+ {k:/\b(field analys|analy[sz]e (the )?field|run (a |an )?analysis|history of|historical|era\b|eras\b|decades?|how old|over time|dormant|dormancy|revival)/i,
+  need:'corpus',
+  run:()=>{
+    const F=fieldStats();
+    if(!F)return {say:'This watch has no dated records yet, so there is no field to analyse. Run the sweep first.'};
+    cxFile('analyze','cx-field','Field analysis','era structure · canon · concentration',
+      askHTML(false)+'<h2>How this question has behaved over its whole life.</h2>'+
+      '<div data-lv="field">'+fieldAnalysisHTML()+'</div>',(resultsOf(QQ.id)||{}).results?'timeline':null);
+    const gaps=F.gaps.length?' It went quiet in the '+F.gaps.map(g=>g+'s').join(', ')+'.':' No decade inside the span is empty.';
+    return {say:'Analysed <b>'+F.rows.length+' records spanning '+F.span[0]+'–'+F.span[1]+'</b> — '+
+      (F.span[1]-F.span[0])+' years.'+gaps+
+      (F.com?' The citation centre of mass sits in <b>'+F.com+'</b> against a median record year of '+F.medianYear+'.':'')+
+      ' Filed under ANALYZE.',go:['cx-field','Open the field analysis']};
+  }},
+ {k:/\b(where did .{0,24}come from|origin|origins|earliest|oldest|found(ing|ed)|who started|first paper|beginning|started out)/i,
+  need:'corpus',
+  run:()=>{
+    const F=fieldStats();
+    if(!F)return {say:'Nothing dated on this watch yet.'};
+    const early=F.rows.slice().sort((a,b)=>(a.year||9999)-(b.year||9999)).slice(0,5);
+    cxFile('memory','cx-origins','Origins','the earliest records on file',
+      askHTML(false)+'<h2>Where this question came from.</h2>'+
+      '<table class="dtable"><tr><th>Work</th><th>Year</th><th>Citations</th><th>Archive</th></tr>'+
+      early.map(r=>'<tr><td><b><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+
+        String(r.title).slice(0,80)+'</a></b><br><span style="font-size:10px;color:var(--dim)">'+(r.why||'')+'</span></td>'+
+        '<td>'+(r.year||'—')+'</td><td>'+(r.citations!=null?r.citations.toLocaleString('en-US'):'—')+'</td>'+
+        '<td>'+r.source+'</td></tr>').join('')+'</table>'+
+      '<div data-lv="field">'+fieldAnalysisHTML()+'</div>','timeline');
+    return {say:'The earliest record on file is <b>'+(early[0].year||'undated')+'</b> — “'+
+      String(early[0].title).slice(0,80)+'”. Five oldest filed under MEMORY.',go:['cx-origins','Open the origins']};
+  }},
+ {k:/\b(who owns|concentrat|institution|which group|dominan|who is working|who publishes|whose field|one group)/i,
+  need:'corpus',
+  run:()=>{
+    const F=fieldStats();
+    if(!F||!F.ik.length)return {say:'The archives that answered did not attach institutions to these records. OpenAlex does — if it returned nothing for this question, there is nothing to concentrate.'};
+    const top=F.ik[0],share=Math.round(F.insts[top]/F.rows.length*100);
+    cxFile('analyze','cx-conc','Who owns this field','institutions · venues · reachability',
+      askHTML(false)+'<h2>How concentrated this literature is.</h2>'+
+      '<div data-lv="field">'+fieldAnalysisHTML()+'</div>',null);
+    return {say:'<b>'+top+'</b> appears on '+share+'% of the records that carry an institution'+
+      (share>30?' — enough that you should treat this as one programme rather than a field consensus.':'.')+
+      ' Filed under ANALYZE.',go:['cx-conc','Open the concentration read']};
+  }},
+ {k:/\b(what should i read|reading (list|order)|start with|where do i start|brief me|catch me up|get up to speed|must.read)/i,
+  need:'corpus',
+  run:()=>{
+    const R=resultsOf(QQ.id),rows=(R&&R.results)||[];
+    const F=fieldStats();
+    const canon=(F&&F.canon)||[];
+    const sharp=rows.slice().sort((a,b)=>(b.relevance||0)-(a.relevance||0)).slice(0,5);
+    const mat=rows.filter(r=>r.material);
+    const sec=(t,list,note)=>list.length?'<h2 style="font-size:15px;margin-top:16px">'+t+'</h2>'+
+      '<p style="font-size:11.4px;color:var(--dim)">'+note+'</p>'+
+      '<table class="dtable"><tr><th>Work</th><th>Year</th><th>Why</th></tr>'+
+      list.map(r=>'<tr><td><b><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+
+        String(r.title).slice(0,78)+'</a></b></td><td>'+(r.year||'—')+'</td>'+
+        '<td style="font-size:10.8px">'+(r.why||'')+'</td></tr>').join('')+'</table>':'';
+    cxFile('claim','cx-read','Reading order','canon first, then the live edge',
+      askHTML(false)+'<h2>What to read, in the order that makes the rest legible.</h2>'+
+      sec('1 · The canon',canon,'Most-cited across the whole span. Everything later argues with these.')+
+      sec('2 · The live edge',sharp,'Highest relevance to your question as asked.')+
+      sec('3 · What actually moved',mat,'Records the gate flagged as carrying a new measurement or bound.'),null);
+    return {say:'Built a three-stage reading order: <b>'+canon.length+' canonical</b>, <b>'+sharp.length+
+      ' on the live edge</b>, <b>'+mat.length+' material</b>. Filed under CLAIM.',go:['cx-read','Open the reading order']};
+  }},
+ {k:/\b(contested|disagree|conflict|argument|controvers|who is right|both sides|objection)/i,
+  need:'corpus',
+  run:()=>{jumpStation('analyze','contested');
+    const rows=corpusRows(),con=rows.filter(r=>r.stance==='contests').length,sup=rows.filter(r=>r.stance==='supports').length;
+    return {say:con?'<b>'+con+' records contest</b> the leading reading against <b>'+sup+' that support it</b>. Opened the contested station.'
+      :'No admitted record contests the leading reading. Either the question has not attracted an opposing programme, or the retrieval is one-sided — lower the admission plane and look again.'};
+  }},
+ {k:/\b(what is missing|what'?s missing|gaps?|what do we not know|next test|decisive|what would settle|open problem)/i,
+  need:'corpus',
+  run:()=>{
+    const y=synOf();
+    if(!y)return {say:'No synthesis on this watch yet.'};
+    jumpStation('model','state');
+    return {say:(y.nextTest?'<b>Most decisive next step:</b> '+y.nextTest:'No decisive next step was extracted.')+
+      (y.gaps&&y.gaps.length?'<br><b>Missing:</b> '+y.gaps.join(' · '):'')};
+  }},
+ {k:/\b(coverage|archives?|databases?|sources?|perimeter|where did you look|what did you search)/i,
+  need:'corpus',
+  run:()=>{
+    cxFile('watch','cx-arch','Archive perimeter','what answered, what did not',
+      askHTML(false)+'<h2>Which archives this question actually lives in.</h2>'+
+      '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
+      '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+      '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>',null);
+    const R=resultsOf(QQ.id),A=(R&&R.archives)||[];
+    return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' archives</b> answered this question. Filed under WATCH.'
+      :'This return predates the archive ledger — re-run the sweep on worker v7 to see it.',go:['cx-arch','Open the perimeter']};
+  }},
+ {k:/\b(sweep|re-?run|refresh|search again|do it again|update|check again)/i,
+  need:'watch',
+  run:()=>{researchQuestion(QQ);return {say:'Sweeping <b>'+QQ.name+'</b> again across every archive. It will land on the research station.'};}},
+ {k:/^\s*(compare|versus|vs)\b|\bcompare (it |this )?with\b/i,
+  need:'watch',
+  run:(t)=>{
+    const m=t.replace(/^.*?\b(compare|versus|vs)\b\s*(it|this)?\s*(with|to|against)?\s*/i,'').trim();
+    if(m.length<3)return {say:'Name the other question — “compare with modified gravity”.'};
+    addQuestion(m);
+    return {say:'Opened a second watch on <b>'+m+'</b> and started its sweep. Both stay open; switch between them from the WATCH control and every figure re-derives.'};
+  }},
+ {k:/\b(what can you do|help|commands?|how do i)/i,
+  run:()=>({say:'I work on the watch that is open. Ask me to:<br>'+
+    '<b>run a field analysis</b> — era structure, canon, dormancy, concentration<br>'+
+    '<b>where did this question come from</b> — the earliest records on file<br>'+
+    '<b>who owns this field</b> — institutional and venue concentration<br>'+
+    '<b>what should I read first</b> — a three-stage reading order<br>'+
+    '<b>what is contested</b> / <b>what is missing</b><br>'+
+    '<b>which archives answered</b> — the perimeter ledger<br>'+
+    '<b>sweep it again</b> · <b>compare with &lt;question&gt;</b><br>'+
+    'Anything else I treat as a new question and research it.'})},
+];
+function cxRun(text){
+  const t=String(text||'').trim();
+  if(!t)return;
+  cxSay(esc2(t),'u');
+  if(CXBUSY){cxSay('A sweep is already running. This will follow it.','w2');}
+  const hit=CXI.find(i=>i.k.test(t));
+  if(hit){
+    if(hit.need==='watch'&&noWatch()){cxSay('No watch is open. Give me a question first and I will research it.','a');return;}
+    if(hit.need==='corpus'){
+      const R=resultsOf(QQ&&QQ.id);
+      if(noWatch()||!R||R.state!=='done'||!(R.results||[]).length){
+        cxSay('This watch has nothing returned yet, so there is nothing to analyse. Starting the sweep now — ask me again when it lands.','a');
+        if(!noWatch())researchQuestion(QQ);
+        return;
+      }
+    }
+    let out=null;
+    try{out=hit.run(t);}catch(e){cxSay('That failed: '+String(e&&e.message||e),'a');return;}
+    if(out&&out.say)cxSay(out.say+(out.go?cxLink(out.go[0],out.go[1]):''),'a');
+    postEvent('console - '+t.slice(0,60),'hot');
+    return;
+  }
+  /* Not a command I recognise. Guessing wrong here is expensive: an accidental
+     watch changes the active question and takes the console's own stations with
+     it. So ask, rather than assume. */
+  const looksLikeAsking=/^(what|why|how|who|when|where|which|is|are|do|does|can|could|should|tell|show|explain|give)\b/i.test(t);
+  cxSay((looksLikeAsking
+      ?'I do not have a command for that, and I do not want to open a watch by accident.'
+      :'I do not have a command for that.')+
+    ' Either research it as a new question, or see what I do understand.'+
+    '<div class="go"><button class="abtn pri" data-cxnew="'+esc2(t).replace(/"/g,'&quot;')+'">Research “'+
+    esc2(t).slice(0,44)+'” as a new watch</button> '+
+    '<button class="abtn" data-cxq="what can you do">Show me the commands</button></div>','a');
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#cxOpen')){cxOpen();return;}
+  if(e.target.closest('#cxX')){cxOpen(false);return;}
+  const q=e.target.closest('[data-cxq]');
+  if(q){const i=cxEl('cxIn');if(i){i.value=q.dataset.cxq;i.focus();}return;}
+  const g=e.target.closest('[data-cxgo]');
+  if(g){cxGoto(g.dataset.cxgo);return;}
+  const nw=e.target.closest('[data-cxnew]');
+  if(nw){const v=nw.dataset.cxnew;cxSay('Opening a watch on <b>'+esc2(v)+'</b> and sweeping every archive.','a');addQuestion(v);return;}
+});
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cxOpen();return;}
+  const el=e.target;
+  if(e.key==='Enter'&&el&&el.id==='cxIn'){
+    const v=el.value.trim();el.value='';
+    if(v)cxRun(v);
+  }
+});
+
 /* ------- boot ------- */
 const CSEQ=[
  ['Reconstructing the research problem','217 source families · 146 datasets normalized',0.15],
