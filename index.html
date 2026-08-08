@@ -191,7 +191,7 @@ canvas{display:block}
 @keyframes micp{0%,100%{box-shadow:0 0 0 0 rgba(180,86,10,.45)}70%{box-shadow:0 0 0 7px rgba(180,86,10,0)}}
 .askhint{font-size:11px;color:var(--dim);margin:0 0 12px}
 .askbar,.askhint,.sec>h2:first-child{column-span:all}
-.warnbox,.stale{column-span:all}
+.warnbox{column-span:all}
 .warnbox{border:1px solid rgba(180,86,10,.45);border-left:3px solid var(--asm);background:rgba(255,244,230,.72);
   border-radius:3px;padding:11px 13px;margin:0 0 12px;font-size:11.6px;line-height:1.6;color:var(--ink)}
 .warnbox b{color:var(--asm)}
@@ -338,12 +338,14 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
    only if you want the working. The digest on the right of the header is real
    - counts, percentages, the finding - never a label.
    --------------------------------------------------------------------------- */
-.gsec{border-top:1px solid var(--line);margin:0;break-inside:avoid}
-.gsec:first-of-type{border-top:0}
+.gsec{border:1px solid var(--line);border-radius:3px;margin:0 0 7px;break-inside:avoid;
+  background:rgba(255,254,251,.55);transition:border-color .14s,background .14s}
+.gsec:hover{border-color:rgba(180,86,10,.40)}
+.gsec[open]{background:rgba(255,254,251,.9);border-color:rgba(180,86,10,.34)}
 .gsec>summary{list-style:none;cursor:pointer;display:block;position:relative;
-  padding:8px 4px 8px 20px;border-left:2px solid transparent;transition:border-color .14s,background .14s}
+  padding:9px 12px 9px 28px;border-left:3px solid transparent;transition:border-color .14s,background .14s}
 .gsec>summary::-webkit-details-marker{display:none}
-.gsec>summary:hover{border-left-color:var(--asm);background:rgba(180,86,10,.035)}
+.gsec>summary:hover{border-left-color:var(--asm);background:rgba(180,86,10,.05)}
 .gsec[open]>summary{border-left-color:var(--asm)}
 /* the heading and its answer are ordinary sentence-case text, whatever the
    surrounding chrome does */
@@ -353,19 +355,25 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .gsec>summary .d{font-size:11px;color:var(--ink2);line-height:1.45;margin-top:2px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .gsec>summary .d b{color:var(--asm)}
-.gsec>summary .cv{position:absolute;left:4px;top:11px;font-family:var(--m);font-size:9px;
-  color:var(--dim);transition:transform .16s}
-.gsec[open]>summary .cv{transform:rotate(90deg);color:var(--asm)}
-.gsec>.gb{padding:0 2px 12px 20px}
+.gsec>summary .cv{position:absolute;left:9px;top:10px;width:13px;height:13px;line-height:13px;
+  text-align:center;border-radius:2px;font-family:var(--m);font-size:8px;font-weight:800;
+  color:var(--asm);background:rgba(180,86,10,.12);transition:transform .16s,background .16s}
+.gsec[open]>summary .cv{transform:rotate(90deg);background:var(--asm);color:#fff}
+.gsec>.gb{padding:2px 14px 14px 28px;border-top:1px solid var(--line)}
 .gsec>.gb>h2{display:none}
-.gbar{display:flex;gap:9px;align-items:center;margin:2px 0 6px;column-span:all}
+.gbar{display:flex;gap:12px;align-items:baseline;margin:4px 0 9px;column-span:all;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
 .gbar button{background:none;border:0;border-bottom:1px solid var(--line2);cursor:pointer;
   font-family:var(--m);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
   font-weight:800;padding:2px 1px}
 .gbar button:hover{color:var(--asm);border-color:var(--asm)}
-@media(min-width:1250px){#stext:not(.wide) .sec{columns:2;column-fill:balance}
+@media(min-width:1250px){
+  /* the collapsed headers tile two-up so the whole menu is on one screen;
+     an opened section spans both columns so nothing is ever sawn in half */
+  #stext:not(.wide) .sec{columns:2;column-fill:balance}
   #stext .sec>*{break-inside:avoid}
-  #stext .sec table{break-inside:auto}}
+  #stext .sec>.gsec[open]{column-span:all;break-inside:avoid}
+  #stext .sec table,#stext .sec .gb{break-inside:avoid}}
 .sec p{margin:6px 0;font-size:12.3px;line-height:1.75;color:var(--ink2)}
 .sec p b{color:var(--ink);font-weight:650}
 .sec .fig{border:0;background:none;padding:0;margin:12px 0;position:relative}
@@ -652,7 +660,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b56</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b57</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -2829,10 +2837,13 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b56';
+const BUILD='b57';
 const WHATSNEW=[
+ ['Stations open closed',
+  'Every section now starts collapsed, as a bordered card carrying its title and its answer. A station opens as a short tiled menu on one screen instead of a wall you scroll. Open one and it spans the full width, so nothing gets sawn down the middle of the page.',
+  'Everywhere. WATCH → Research return now opens as two cards rather than a page of table.'],
  ['This panel',
-  'The stamp in the corner is now a button. It names the build that is actually loaded and lists what that build changed, so "I am not seeing the changes" is answerable in one click without asking me.',
+  'The stamp in the corner is a button. It names the build that is actually loaded and lists what that build changed, so "I am not seeing the changes" is answerable in one click without asking me.',
   'The build stamp, top right.'],
  ['Sections collapse to their own answer',
   'Every heading in every station folds to one line carrying the finding, not a label - "2 camps, leading at 56% support", "1935-2026, 91 years, quiet in the 1960s". First open, the rest closed, with Expand all / Collapse all above them.',
@@ -4420,7 +4431,7 @@ function foldGroups(sec,stid,withBar){
   }
   groups.forEach((g,i)=>{
     const title=g.h.textContent.trim();
-    const open=state[title]!==undefined?state[title]:(withBar&&i===0);
+    const open=state[title]!==undefined?state[title]:(groups.length===1);
     const d=document.createElement('details');
     d.className='gsec';d.open=!!open;d.dataset.grp=title;
     const sum=document.createElement('summary');
@@ -5444,11 +5455,13 @@ function resultsHTML(){
     '<div class="acts"><button class="abtn" data-act="qres">Retry</button><button class="abtn" data-act="qping">Test the worker connection</button></div>'+
     '<h2 style="font-size:14px;margin-top:16px">Exactly what came back</h2>'+lastCallHTML();
   const rows=R.results||[];
-  const rungs=(R.rungs&&R.rungs.length)
+  const prof2=(R.rungs&&R.rungs.length)
     ?'<br><b>Searches actually run:</b> '+R.rungs.map(x=>'<code style="color:'+TC.ev+'">'+String(x).replace(/</g,'&lt;')+'</code>').join('<br>')
     :'<br><b>Query actually run:</b> <code style="color:'+TC.ev+'">'+String(R.query||'').replace(/</g,'&lt;')+'</code>';
-  const prof=R.profile?'<p style="font-size:11.4px"><b>Interpreted as:</b> '+(R.profile.field||'—')+
-    ' · tracking '+(R.profile.tracked||[]).join(' · ')+rungs+'</p>':'';
+  const prof=R.profile?'<h2 data-dg="'+String(R.profile.field||'—').replace(/"/g,'&quot;')+
+    ' \u00b7 '+((R.rungs||[]).length||1)+' searches run">How this question was searched</h2>'+
+    '<p style="font-size:11.4px"><b>Interpreted as:</b> '+(R.profile.field||'—')+
+    ' · tracking '+(R.profile.tracked||[]).join(' · ')+prof2+'</p>':'';
   if(!rows.length)return prof+'<p style="color:'+TC.asm+'"><b>No records returned.</b> The query ran but nothing came back — '+
     'either the phrasing does not map onto published work, or this topic sits outside arXiv and ADS coverage. '+
     'Try naming the object, effect or observable directly.</p>'+
@@ -5463,6 +5476,7 @@ function resultsHTML(){
    prof+'<p><b>'+R.pulled+'</b> records returned - <b>'+R.relevant+'</b> cleared the gate - <b>'+R.material+'</b> material - scored '+new Date(R.ts).toLocaleTimeString()+'</p>'+
    '<p style="font-size:11.4px"><b>Your admission plane sits at '+(thr*100).toFixed(0)+'%</b> — '+adm.length+' of '+rows.length+
    ' records rise above it. Drag the figure up to raise the plane, down to lower it; this table, the volume and the coverage ledger all re-filter as it moves.</p>'+
+   '<h2 data-dg="'+rows.length+' records, '+adm.length+' above the plane">The records themselves</h2>'+
    '<table class="dtable"><tr><th>Record</th><th>Src</th><th>Rel</th><th>Verdict</th></tr>'+
    rows.map((r,i)=>'<tr data-x="res:'+i+'"'+((r.relevance||0)>=thr?'':' style="opacity:.66"')+'><td><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+String(r.title||'').slice(0,120)+'</a>'+
      (r.why?'<br><span style="font-size:10px;color:var(--dim)">'+r.why+'</span>':'')+'</td>'+
@@ -5473,7 +5487,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b56'],
+    ['Build running','b57'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
