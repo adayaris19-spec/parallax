@@ -332,6 +332,37 @@ tr[data-x]:hover td:first-child{box-shadow:inset 2px 0 0 #2ec8f5}
 .sec h2.sub2,.sec>h2:not(:first-child){font-size:13.5px;margin-top:13px}
 /* the station is a two-column sheet on a wide screen: the eye travels less */
 #stext .sec{column-gap:26px}
+/* ---------------------------------------------------------------------------
+   Grouped sections. A station is a stack of questions, not a wall of prose:
+   each block collapses to one line that already carries its answer, and opens
+   only if you want the working. The digest on the right of the header is real
+   - counts, percentages, the finding - never a label.
+   --------------------------------------------------------------------------- */
+.gsec{border-top:1px solid var(--line);margin:0;break-inside:avoid}
+.gsec:first-of-type{border-top:0}
+.gsec>summary{list-style:none;cursor:pointer;display:block;position:relative;
+  padding:8px 4px 8px 20px;border-left:2px solid transparent;transition:border-color .14s,background .14s}
+.gsec>summary::-webkit-details-marker{display:none}
+.gsec>summary:hover{border-left-color:var(--asm);background:rgba(180,86,10,.035)}
+.gsec[open]>summary{border-left-color:var(--asm)}
+/* the heading and its answer are ordinary sentence-case text, whatever the
+   surrounding chrome does */
+.gsec>summary .t,.gsec>summary .d{text-transform:none!important;letter-spacing:normal!important;
+  font-variant:normal;display:block}
+.gsec>summary .t{font-size:13.5px;font-weight:650;color:var(--ink);line-height:1.32}
+.gsec>summary .d{font-size:11px;color:var(--ink2);line-height:1.45;margin-top:2px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gsec>summary .d b{color:var(--asm)}
+.gsec>summary .cv{position:absolute;left:4px;top:11px;font-family:var(--m);font-size:9px;
+  color:var(--dim);transition:transform .16s}
+.gsec[open]>summary .cv{transform:rotate(90deg);color:var(--asm)}
+.gsec>.gb{padding:0 2px 12px 20px}
+.gsec>.gb>h2{display:none}
+.gbar{display:flex;gap:9px;align-items:center;margin:2px 0 6px;column-span:all}
+.gbar button{background:none;border:0;border-bottom:1px solid var(--line2);cursor:pointer;
+  font-family:var(--m);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  font-weight:800;padding:2px 1px}
+.gbar button:hover{color:var(--asm);border-color:var(--asm)}
 @media(min-width:1250px){#stext:not(.wide) .sec{columns:2;column-fill:balance}
   #stext .sec>*{break-inside:avoid}
   #stext .sec table{break-inside:auto}}
@@ -494,6 +525,25 @@ body.cxon #cxOpen{right:calc(min(430px,34vw) + 14px)}
 body.cxon #doc{right:min(430px,34vw)}
 @media(max-width:900px){#cx{width:100vw}#cxOpen{top:auto;bottom:170px}body.cxon #doc{right:0}}
 
+/* the figure panel: small in the column, everything at once when opened */
+#gal{position:fixed;inset:0;z-index:64;display:none;background:rgba(244,242,237,.90);backdrop-filter:blur(12px)}
+#gal.on{display:block}
+#galBox{position:absolute;inset:3vh 3vw;display:flex;flex-direction:column}
+#galHead{display:flex;align-items:baseline;gap:12px;padding:0 2px 10px;border-bottom:1px solid var(--line2)}
+#galHead .t{font-family:var(--m);font-size:9px;letter-spacing:.26em;font-weight:800;color:var(--asm)}
+#galHead .w{flex:1;font-family:var(--m);font-size:9px;letter-spacing:.1em;color:var(--dim)}
+#galX{background:none;border:0;cursor:pointer;font-family:var(--m);font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);font-weight:800}
+#galX:hover{color:var(--ink)}
+#galGrid{flex:1;overflow-y:auto;scrollbar-width:none;padding:16px 2px 8px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:26px 30px;align-content:start}
+#galGrid::-webkit-scrollbar{display:none}
+#galGrid figure{margin:0}
+#galGrid svg{width:100%;height:auto;display:block}
+#galGrid figcaption{margin-top:6px;font-size:10.6px;line-height:1.55;color:var(--ink2)}
+#galGrid figcaption b{color:var(--ink)}
+@media(max-width:900px){#galGrid{grid-template-columns:1fr}}
+
 /* plan & billing - a control-surface overlay, never a research station */
 #plansOv{position:fixed;inset:0;z-index:62;display:none;align-items:flex-start;justify-content:center;
   background:rgba(244,242,237,.82);backdrop-filter:blur(10px)}
@@ -581,7 +631,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b54</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b55</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -604,6 +654,7 @@ body.cxon #doc{right:min(430px,34vw)}
   </div>
   <div id="tip"></div>
   <button id="cxOpen" title="Ask the console (⌘K)">◈</button>
+  <div id="gal"><div id="galBox"><div id="galHead"><span class="t">FIGURE PANEL</span><span class="w" id="galWatch"></span><button id="galX">close</button></div><div id="galGrid"></div></div></div>
   <div id="cx"><div id="cxHead"><span class="t">CONSOLE</span><span class="w" id="cxWatch"></span><button id="cxX">close</button></div>
     <div id="cxLog"></div>
     <div id="cxRow"><span class="p">&rsaquo;</span><input id="cxIn" placeholder="Run a field analysis on this" autocomplete="off" spellcheck="false"><button class="mic" data-mic title="Dictate">&#9679;</button><span class="k">↵</span></div>
@@ -2747,6 +2798,43 @@ apSug.addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&b.data
 ap.addEventListener('click',e=>{if(e.target===ap)closeAp();});
 $('#cmdHint').addEventListener('click',openAp);
 /* ---------------------------------------------------------------------------
+   The figure panel. In the column a figure has to stay small enough not to take
+   the page over, which means only one of them fits. Expanding shows every
+   figure that applies to this watch at once, because the readings only mean
+   something against each other.
+   --------------------------------------------------------------------------- */
+function galSet(){
+  const R=resultsOf(QQ&&QQ.id);
+  const has=R&&R.state==='done'&&(R.results||[]).length;
+  if(!has)return [];
+  const F=(typeof fieldStats==='function')?fieldStats():null;
+  const set=[
+    ['resfig','Admission volume','Date runs away to the right, archive is the depth axis, relevance is height. The amber slab is your admission plane; the back wall carries the marginal relevance distribution.'],
+    ['timeline','Arrival terrain','One extruded ribbon per archive. A tall riser is a record, a long tread is silence, and the depth axis shows which archive is actually driving the question.'],
+  ];
+  if(F&&F.dkeys&&F.dkeys.length>1)set.push(['era','The field by decade','Records published per decade against the citations those records now hold. A decade drawn as an empty box is one the question went quiet in.']);
+  if(F&&F.cited&&F.cited.length)set.push(['impact','Where impact sits','Log citations against publication year, with the citation centre of mass marked. It says whether the recent wave has displaced the canon or is still standing on it.']);
+  return set.filter(x=>{try{return !!LIVEBIND[x[0]]();}catch(e){return false;}});
+}
+function galCount(){try{return galSet().length||1;}catch(e){return 1;}}
+function galOpen(on){
+  const g=document.getElementById('gal');if(!g)return;
+  const want=on===undefined?!g.classList.contains('on'):on;
+  if(want){
+    const set=galSet();
+    document.getElementById('galWatch').textContent=noWatch()?'':String(QQ.name).toUpperCase();
+    document.getElementById('galGrid').innerHTML=set.length
+      ?set.map(x=>'<figure>'+LIVEBIND[x[0]]()+'<figcaption><b>'+x[1]+'.</b> '+x[2]+'</figcaption></figure>').join('')
+      :'<p style="color:var(--dim)">No figures yet — this watch has returned nothing to draw.</p>';
+  }
+  g.classList.toggle('on',want);
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-galopen]')){e.preventDefault();galOpen(true);return;}
+  if(e.target.id==='gal'||e.target.id==='galX'){galOpen(false);return;}
+});
+addEventListener('keydown',e=>{if(e.key==='Escape')galOpen(false);});
+/* ---------------------------------------------------------------------------
    Dictation. Press the dot next to any input and talk; the transcript lands in
    that input and Enter behaves exactly as if it had been typed. Falls back to
    saying so on browsers without the API rather than pretending to listen.
@@ -3840,6 +3928,8 @@ const LIVEBIND={
  results:()=>resultsHTML(),
  diag:()=>diagHTML(),
  resfig:()=>svgResults(),
+ era:()=>svgEra(),
+ impact:()=>svgImpact(),
  timeline:()=>svgTimeline(),
  synstate:()=>synStateHTML(),
  synfind:()=>synFindingsHTML(),
@@ -3882,6 +3972,7 @@ const LIVEBIND={
    return h2||'<p style="color:var(--dim)">No statements yet — speak below, or press “Next statement”.</p>';},
  reason:()=>'Statements analysed: <b>'+S.spoken+' / '+SPEECH.length+'</b>'+(S.thoughtN?' + '+S.thoughtN+' spoken via the bar':'')+' · defects on record: assumption without support, false dichotomy, omitted evidence · 1 reconnection to S-144.'};
 function refreshDoc(){
+  const __st=(stationsFor(S.mode)[S.st[S.mode]]||{}).id;
   document.querySelectorAll('[data-lv]').forEach(el=>{
     const k=el.dataset.lv,b=LIVEBIND[k];if(!b)return;
     const nw=b();
@@ -3892,6 +3983,7 @@ function refreshDoc(){
       el.innerHTML=nw;
       el.querySelectorAll('.kfd').forEach(d=>{if(open.has(d.dataset.kfd))d.classList.add('open');});
     }else el.innerHTML=nw;
+    el.dataset.folded='';try{foldGroups(el,__st,false);}catch(e){}
     el.__lv=nw;
     if(!first&&!RM){el.classList.remove('lvflash');void el.offsetWidth;el.classList.add('lvflash');}
   });
@@ -3945,9 +4037,9 @@ function stationsBase(mode){
   if(mode==='watch'&&!hasSeries())return [
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
-    html:askHTML()+'<h2>What this question actually returned.</h2>'+
+    html:askHTML()+'<h2 data-dg="'+dgRet()+'">What this question actually returned.</h2>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
-     '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+     '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
      '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'open, switch or drop a watch',vis:null,
     html:'<h2>Watches</h2>'+'<div data-lv="questions">'+questionsHTML()+'</div>'},
@@ -3979,10 +4071,10 @@ function stationsBase(mode){
      '<div class="acts"><button class="abtn" data-act="act:xmatch">Run the free cross-match</button><button class="abtn" data-act="sub:watch:lit">Literature agreement</button></div>'},
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
-    html:askHTML()+'<h2>What this question actually returned.</h2>'+
+    html:askHTML()+'<h2 data-dg="'+dgRet()+'">What this question actually returned.</h2>'+
      '<div data-lv="synstate">'+synStateHTML()+'</div>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
-     '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+     '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
      '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'switch the subject - everything re-derives',vis:null,
     html:'<h2>The mechanism is not about black holes.</h2>'+
@@ -4016,24 +4108,24 @@ function stationsBase(mode){
      {id:'state',label:'State of the question',sub:'establishes · findings · quantities · audit',vis:'timeline',
       html:askHTML(false)+'<h2>Where this question actually stands.</h2>'+
        '<div data-lv="synstate">'+synStateHTML()+'</div>'+
-       '<h2>What the returned literature establishes</h2>'+
+       '<h2 data-dg="'+dgFind()+'">What the returned literature establishes</h2>'+
        '<div data-lv="synfind">'+synFindingsHTML()+'</div>'+
-       '<h2>Quantities on the table</h2>'+
+       '<h2 data-dg="'+dgQty()+'">Quantities on the table</h2>'+
        '<div data-lv="synqty">'+synQuantHTML()+'</div>'+
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'+
-       '<h2>Audit of the corpus these rest on</h2>'+
+       '<h2 data-dg="'+dgCov()+'">Audit of the corpus these rest on</h2>'+
        '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'+
        '<div data-lv="deep">'+deepReadHTML()+'</div>'}];
     if(mode==='analyze')return [
      {id:'positions',label:'Explanations & disagreement',sub:'camps · stance · currency · corpus',vis:'resfig',
       cap:CXCAP,
-      html:askHTML(false)+'<h2>The explanations currently on the table.</h2>'+
+      html:askHTML(false)+'<h2 data-dg="'+dgPos()+'">The explanations currently on the table.</h2>'+
        '<div data-lv="synpos">'+synPositionsHTML()+'</div>'+
-       '<h2>Where the literature disagrees with itself</h2>'+
+       '<h2 data-dg="'+dgCon()+'">Where the literature disagrees with itself</h2>'+
        '<div data-lv="syncon">'+synContestedHTML()+'</div>'+
        '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
-       '<h2>Field analysis — the whole life of the question</h2>'+
+       '<h2 data-dg="'+dgField()+'">Field analysis — the whole life of the question</h2>'+
        '<div data-lv="field">'+fieldAnalysisHTML()+'</div>'+
        '<div data-lv="deep">'+deepReadHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'}];
@@ -4176,7 +4268,7 @@ function renderDoc(){
   window.CURVIS=st.vis;
   const visInner=!st.vis?null:st.vis==='live'
    ?'<div id="liveFig" class="dark"></div><div class="fcap">'+(st.cap||'')+'</div><div id="figCtl"></div>'
-   :'<button class="figpop" data-figpop="'+st.vis+'">⠿ float figure</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
+   :'<button class="figpop" data-galopen="1">&#9974; expand &mdash; '+galCount()+' figures</button><div data-lv="'+st.vis+'">'+LIVEBIND[st.vis]()+'</div><div class="fcap">'+(st.cap||VISTITLE[st.vis]||'')+'</div>';
   const menu=['evidence','literature','contradictions','assumptions','experiments','claim','data','method','activity','telemetry']
    .map(k=>'<button class="ichip" data-ipanel="'+k+'">'+k+'</button>').join('');
   const mcls=st.vsize==='l'?'':' m';
@@ -4185,7 +4277,90 @@ function renderDoc(){
    (visInner?'<div id="svis" class="'+(st.vsize==='l'?'full':'m')+'"><div class="vin vIn">'+visInner+'</div></div>':'')+
    '<div id="band"><button id="bandBtn">◈ panels</button><div id="bandMenu">'+menu+'</div></div>';
   buildCtl();renderBand();
+  groupSections(st.id);
 }
+/* ---------------------------------------------------------------------------
+   Fold the flat station into disclosures. Runs on the rendered DOM so every
+   station gets it without touching a single call site, and so a block added by
+   the console is grouped the same way as one that shipped with the product.
+   --------------------------------------------------------------------------- */
+S.grpOpen=S.grpOpen||{};
+function digestOf(nodes,title,head){
+  /* The header line has to answer the section, not label it. An author-supplied
+     digest wins; then the section's own opening sentence, which is written to be
+     the finding; only then a shape count, which says almost nothing. */
+  const trim=(t,n)=>{t=String(t).replace(/\s+/g,' ').trim();return t.length>n?t.slice(0,n-1).replace(/[ ,;:.]+$/,'')+'…':t;};
+  if(head&&head.dataset&&head.dataset.dg)return head.dataset.dg;
+  for(const n of nodes){
+    if(n.tagName!=='P'&&!(n.tagName==='DIV'&&n.firstElementChild&&n.firstElementChild.tagName==='P'))continue;
+    const par=n.tagName==='P'?n:n.firstElementChild;
+    const t=par.textContent.replace(/\s+/g,' ').trim();
+    if(t.length>18)return trim(t.split(/(?<=[.!?])\s/)[0]||t,104);
+  }
+  let rows=0,tables=0;
+  nodes.forEach(n=>{
+    if(n.tagName==='TABLE'){tables++;rows+=n.querySelectorAll('tr').length-1;}
+    else if(n.querySelectorAll)n.querySelectorAll('table').forEach(t=>{tables++;rows+=t.querySelectorAll('tr').length-1;});
+  });
+  if(rows)return rows+' row'+(rows===1?'':'s')+(tables>1?' in '+tables+' tables':'');
+  return trim(nodes.map(n=>n.textContent||'').join(' '),104);
+}
+function groupSections(stid){
+  const sec=document.querySelector('#stext .sec');
+  if(!sec)return;
+  foldGroups(sec,stid,true);
+  /* a live region can carry its own headings - fold inside it too, without
+     destroying the wrapper the binding writes into */
+  sec.querySelectorAll('[data-lv]').forEach(el=>foldGroups(el,stid,false));
+}
+function foldGroups(sec,stid,withBar){
+  if(!sec||sec.dataset.folded==='1')return;
+  const kids=[...sec.children];
+  const heads=kids.filter(k=>k.tagName==='H2');
+  if(heads.length<(withBar?2:1))return;
+  sec.dataset.folded='1';
+  const state=S.grpOpen[stid]||{};
+  const frag=document.createDocumentFragment();
+  let lead=[],groups=[],cur=null;
+  kids.forEach(k=>{
+    if(k.tagName==='H2'){cur={h:k,body:[]};groups.push(cur);}
+    else if(cur)cur.body.push(k);
+    else lead.push(k);
+  });
+  lead.forEach(n=>frag.appendChild(n));
+  if(withBar){
+    const bar=document.createElement('div');
+    bar.className='gbar';
+    bar.innerHTML='<button data-grpall="1">Expand all</button><button data-grpall="0">Collapse all</button>'+
+      '<span style="font-size:10px;color:var(--dim)">'+groups.length+' sections</span>';
+    frag.appendChild(bar);
+  }
+  groups.forEach((g,i)=>{
+    const title=g.h.textContent.trim();
+    const open=state[title]!==undefined?state[title]:(withBar&&i===0);
+    const d=document.createElement('details');
+    d.className='gsec';d.open=!!open;d.dataset.grp=title;
+    const sum=document.createElement('summary');
+    sum.innerHTML='<span class="t">'+title.replace(/</g,'&lt;')+'</span>'+
+      '<span class="d">'+digestOf(g.body,title,g.h)+'</span><span class="cv">&#9656;</span>';
+    d.appendChild(sum);
+    const body=document.createElement('div');
+    body.className='gb';
+    g.body.forEach(n=>body.appendChild(n));
+    d.appendChild(body);
+    d.addEventListener('toggle',()=>{
+      (S.grpOpen[stid]=S.grpOpen[stid]||{})[title]=d.open;
+    });
+    frag.appendChild(d);
+  });
+  sec.innerHTML='';sec.appendChild(frag);
+}
+document.addEventListener('click',e=>{
+  const ga=e.target.closest('[data-grpall]');
+  if(!ga)return;
+  const on=ga.dataset.grpall==='1';
+  document.querySelectorAll('#stext .gsec').forEach(d=>{d.open=on;});
+});
 document.addEventListener('click',e=>{
   const sp=e.target.closest('[data-stp]');
   if(sp){goStation(+sp.dataset.stp);return;}
@@ -4946,6 +5121,75 @@ function setQuestion(id){
    is the figure a physicist would draw beside this one: two clusters means the
    query is separating the question from the field, one smear means it is not.
    --------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   Two small figures that only make sense next to the others, which is why they
+   live in the expanded panel rather than the column: the shape of the field
+   over decades, and where impact actually accumulated.
+   --------------------------------------------------------------------------- */
+function svgEra(){
+  const F=fieldStats(); if(!F)return '';
+  const u2=++FID,W2=520,H2=300,mL=46,mT=52,pW=W2-mL-20,pH=H2-mT-58;
+  const ds=F.dkeys, mx=Math.max(...ds.map(d=>F.decades[d]));
+  const cw={};F.rows.forEach(r=>{const y=r.year;if(!y)return;const d=Math.floor(y/10)*10;cw[d]=(cw[d]||0)+(r.citations||0);});
+  const cmx=Math.max(1,...Object.values(cw));
+  let s2=svgO(W2,H2)+fDefs(u2);
+  s2=roHead(s2,'THE FIELD BY DECADE',[['SPAN',F.span[0]+'-'+F.span[1],C.ink],
+    ['DECADES',ds.length,C.calc],['QUIET',F.gaps.length,F.gaps.length?C.asm:C.dim]],250);
+  const span=(ds[ds.length-1]-ds[0])||10;
+  const X=d=>mL+((d-ds[0])/span)*pW;
+  const bw=Math.max(9,Math.min(34,pW/(span/10+1)-6));
+  for(let d=ds[0];d<=ds[ds.length-1];d+=10){
+    const n=F.decades[d]||0, h=n/mx*pH, x=X(d)-bw/2;
+    if(n){
+      s2+='<rect x="'+x+'" y="'+(mT+pH-h)+'" width="'+bw+'" height="'+h+'" fill="rgba(10,106,144,.30)" stroke="'+C.ev+'" stroke-width="0.9"/>';
+      const ch=(cw[d]||0)/cmx*pH;
+      s2+='<rect x="'+(x+bw*0.62)+'" y="'+(mT+pH-ch)+'" width="'+(bw*0.38)+'" height="'+ch+'" fill="rgba(180,86,10,.42)"/>';
+      s2+=sM(X(d),mT+pH-h-5,n,'middle',7,C.ev,750,'0');
+    } else {
+      s2+='<rect x="'+x+'" y="'+mT+'" width="'+bw+'" height="'+pH+'" fill="rgba(26,52,84,.04)"/>'+
+          sM(X(d),mT+pH/2,'quiet','middle',6.4,C.dim,700,'.1em');
+    }
+    s2+=sM(X(d),mT+pH+15,String(d).slice(2)+'s','middle',7,C.dim,650,'0');
+  }
+  s2+=sL(mL-6,mT+pH,mL+pW,mT+pH,'rgba(26,52,84,.35)',1.1);
+  s2+=sM(mL-6,H2-26,'BLUE = RECORDS PUBLISHED. AMBER = CITATIONS THOSE RECORDS NOW HOLD.','start',7.6,C.dim,700,'.04em');
+  s2+=sM(mL-6,H2-11,F.gaps.length?'THE QUIET DECADES ARE WHERE THE QUESTION WAS OUT OF REACH.'
+    :'NO QUIET DECADE - THIS QUESTION HAS BEEN WORKED CONTINUOUSLY.','start',7.6,F.gaps.length?C.asm:C.calc,750,'.04em');
+  return s2+'</svg>';
+}
+function svgImpact(){
+  const F=fieldStats(); if(!F||!F.cited.length)return '';
+  const u2=++FID,W2=520,H2=300,mL=52,mT=52,pW=W2-mL-22,pH=H2-mT-56;
+  const ys=F.cited.map(r=>r.year).filter(Boolean);
+  if(!ys.length)return '';
+  const y0=Math.min(...ys),y1=Math.max(...ys),sp=Math.max(1,y1-y0);
+  const cmax=Math.max(...F.cited.map(r=>r.citations||0),1);
+  const lg=v=>Math.log10(1+v)/Math.log10(1+cmax);
+  const X=y=>mL+((y-y0)/sp)*pW, Y=v=>mT+pH-lg(v)*pH;
+  let s2=svgO(W2,H2)+fDefs(u2);
+  s2=roHead(s2,'WHERE IMPACT SITS',[['CITED',F.cited.length,C.ink],
+    ['PEAK',cmax.toLocaleString('en-US'),C.asm],['CoM',F.com||'-',C.ev]],250);
+  [0,0.5,1].forEach(g=>{const v=Math.round(Math.pow(10,g*Math.log10(1+cmax))-1);
+    s2+=sL(mL,mT+pH-g*pH,mL+pW,mT+pH-g*pH,'rgba(26,52,84,.09)')+
+        sM(mL-7,mT+pH-g*pH+3,v.toLocaleString('en-US'),'end',7,C.dim,650,'0');});
+  if(F.com)s2+=sL(X(F.com),mT,X(F.com),mT+pH,C.ev,1.4,'5 3')+
+    sM(X(F.com),mT-6,'CITATION CENTRE OF MASS '+F.com,'middle',7,C.ev,800,'.05em');
+  F.cited.forEach(r=>{
+    if(!r.year)return;
+    const x=X(r.year),y=Y(r.citations||0);
+    s2+='<line x1="'+x+'" y1="'+(mT+pH)+'" x2="'+x+'" y2="'+y+'" stroke="rgba(26,52,84,.16)" stroke-width="0.8"/>'+
+        '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(r.material?5:3.4)+'" fill="'+(r.material?'rgba(180,86,10,.28)':'rgba(255,253,249,.95)')+'" stroke="'+(r.material?C.asm:C.ev)+'" stroke-width="1.4"/>';
+  });
+  s2+=sL(mL,mT+pH,mL+pW,mT+pH,'rgba(26,52,84,.35)',1.1)+
+      sM(mL,mT+pH+15,y0,'start',7,C.dim,650,'0')+sM(mL+pW,mT+pH+15,y1,'end',7,C.dim,650,'0')+
+      sM(mL+pW/2,mT+pH+15,'PUBLICATION YEAR','middle',7,C.dim,750,'.14em');
+  s2+=sM(mL,H2-26,'LOG CITATIONS. THE DASHED LINE IS WHERE THE FIELD\'S INFLUENCE ACTUALLY SITS.','start',7.6,C.dim,700,'.04em');
+  s2+=sM(mL,H2-11,(F.com&&F.medianYear&&F.com<F.medianYear-8)
+    ?'INFLUENCE IS OLDER THAN ACTIVITY - THE RECENT WAVE HAS NOT DISPLACED THE CANON.'
+    :'INFLUENCE AND ACTIVITY SIT TOGETHER.','start',7.6,C.calc,750,'.04em');
+  return s2+'</svg>';
+}
 function svgResults(){
   const R=resultsOf(QQ.id);
   if(!R||R.state!=='done'||!R.results||!R.results.length)return '';
@@ -5146,7 +5390,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b54'],
+    ['Build running','b55'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
@@ -5309,7 +5553,7 @@ function fieldAnalysisHTML(){
       (F.gaps.length>1?'those decades':'that decade')+'. A dormancy like that usually means the decisive measurement was out of reach, and the revival usually means an instrument arrived.'
      :'No decade inside the span is empty: this question has been worked continuously.')+'</p>'+
    (F.canon.length
-     ?'<h2 style="font-size:15px;margin-top:16px">The canon — what everything here rests on</h2>'+
+     ?'<h2 data-dg="'+F.canon.length+' works, earliest '+(F.oldest&&F.oldest.year||'—')+', top '+(F.canon[0].citations!=null?F.canon[0].citations.toLocaleString('en-US')+' citations':'—')+'">The canon — what everything here rests on</h2>'+
       '<table class="dtable"><tr><th>Work</th><th>Year</th><th>Citations</th><th>Where</th></tr>'+
       F.canon.map(r=>'<tr><td><b><a href="'+(r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+
         String(r.title).slice(0,78)+'</a></b></td><td>'+(r.year||'—')+'</td>'+
@@ -5320,13 +5564,13 @@ function fieldAnalysisHTML(){
         :'These are the works the rest of the corpus is built on. Anything you write here has to survive them.')+'</p>'
      :'')+
    (F.ik.length
-     ?'<h2 style="font-size:15px;margin-top:16px">How concentrated the field is</h2>'+
+     ?'<h2 data-dg="'+F.ik[0]+' on '+Math.round(F.insts[F.ik[0]]/tot*100)+'% of records">How concentrated the field is</h2>'+
       '<table class="dtable"><tr><th>Institution</th><th>Records</th><th>Reading</th></tr>'+
       F.ik.slice(0,6).map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(F.insts[k],tot,TC.hyp)+
         '<td>'+(F.insts[k]/tot>0.3?'<span style="color:'+TC.bad+'">dominant — this may be one group\'s programme</span>':'one of several groups')+'</td></tr>').join('')+'</table>'
      :'')+
    (F.vk.length
-     ?'<h2 style="font-size:15px;margin-top:16px">Where it gets published</h2>'+
+     ?'<h2 data-dg="'+F.vk.length+' venues, led by '+F.vk[0]+'">Where it gets published</h2>'+
       '<table class="dtable"><tr><th>Venue</th><th>Records</th><th></th></tr>'+
       F.vk.slice(0,7).map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(F.venues[k],tot,TC.calc)+
         '<td style="font-size:10.6px;color:var(--dim)">'+(/arXiv/i.test(k)?'not yet refereed':'refereed')+'</td></tr>').join('')+'</table>'
@@ -5406,7 +5650,11 @@ function deepReadHTML(){
   const acc=D.vThen?D.vNow/D.vThen:null;
   const out=[];
 
-  out.push('<h2>The deep read</h2>');
+  const dgBits=[];
+  if(D.cited.length)dgBits.push(Math.round(D.topShare*100)+'% of citations in the top '+D.topN);
+  if(D.vThen)dgBits.push('velocity '+(D.vNow/D.vThen).toFixed(1)+'\u00d7 the previous decade');
+  if(D.ak.length)dgBits.push(D.ak.length+' recurring names');
+  out.push('<h2 data-dg="'+dgBits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">The deep read</h2>');
   out.push('<table class="dtable"><tr><th>Measure</th><th>Value</th><th>What it means for you</th></tr>'+
    (D.cited.length?'<tr><td><b>Attention inequality</b></td><td><b>'+Math.round(D.topShare*100)+'%</b> in the top '+D.topN+'</td>'+
      '<td>'+(D.topShare>0.7
@@ -5430,19 +5678,19 @@ function deepReadHTML(){
    '</table>');
 
   if(D.rate.length){
-    out.push('<h2>Landing hardest right now</h2>'+
+    out.push('<h2 data-dg="'+String(D.rate[0].r.title).slice(0,44).replace(/"/g,'&quot;')+' \u2014 '+D.rate[0].v.toFixed(1)+' cites/yr">Landing hardest right now</h2>'+
      '<p style="font-size:11.2px;color:var(--dim)">Citations per year of age, so recent work is not punished for being young. This is the part of the literature that is actually moving.</p>'+
      '<table class="dtable"><tr><th>Work</th><th>Year</th><th>Cites/yr</th></tr>'+
      D.rate.slice(0,5).map(x=>'<tr><td><b><a href="'+(x.r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)">'+
        String(x.r.title).slice(0,72)+'</a></b></td><td>'+D.yr(x.r)+'</td><td><b>'+x.v.toFixed(1)+'</b></td></tr>').join('')+'</table>');
   }
   if(D.ak.length){
-    out.push('<h2>Who keeps appearing</h2><table class="dtable"><tr><th>Name</th><th>Records</th></tr>'+
+    out.push('<h2 data-dg="'+String(D.ak[0]).replace(/"/g,'&quot;')+' on '+D.auth[D.ak[0]]+' of '+tot+' records">Who keeps appearing</h2><table class="dtable"><tr><th>Name</th><th>Records</th></tr>'+
      D.ak.slice(0,6).map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(D.auth[k],tot,TC.hyp)+'</tr>').join('')+'</table>');
   }
   if(D.drift.length>1){
     const rising=D.drift.filter(x=>x.recent).slice(0,4), fading=D.drift.filter(x=>!x.recent).slice(0,4);
-    out.push('<h2>What it talks about now, and what it stopped talking about</h2>'+
+    out.push('<h2 data-dg="'+rising.length+' live \u00b7 '+fading.length+' gone quiet">What it talks about now, and what it stopped talking about</h2>'+
      '<table class="dtable"><tr><th>Topic</th><th>All time</th><th>Last 6 years</th><th></th></tr>'+
      rising.map(x=>'<tr><td><b>'+x.c+'</b></td><td>'+x.all+'</td><td><b>'+x.recent+'</b></td><td style="color:'+TC.ev+'">live</td></tr>').join('')+
      fading.map(x=>'<tr><td>'+x.c+'</td><td>'+x.all+'</td><td>0</td><td style="color:var(--dim)">gone quiet</td></tr>').join('')+
@@ -5451,7 +5699,7 @@ function deepReadHTML(){
       ' no record in the last six years. A thread that stops is either settled or abandoned — the literature rarely says which, and it is often where the opening is.</p>':''));
   }
   if(Object.keys(D.roles).length){
-    out.push('<h2>What each record is for</h2><table class="dtable"><tr><th>Role</th><th>Records</th></tr>'+
+    out.push('<h2 data-dg="'+Object.keys(D.roles).sort((a,b)=>D.roles[b]-D.roles[a]).slice(0,3).map(k=>D.roles[k]+' '+k).join(' \u00b7 ')+'">What each record is for</h2><table class="dtable"><tr><th>Role</th><th>Records</th></tr>'+
      Object.keys(D.roles).sort((a,b)=>D.roles[b]-D.roles[a])
       .map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(D.roles[k],tot,k==='founding'||k==='canonical'?TC.asm:TC.calc)+'</tr>').join('')+'</table>');
   }
@@ -5506,7 +5754,7 @@ function corpusCoverageHTML(){
    '<tr><td><b>Reasoned admission</b></td>'+barCell(withWhy,tot,TC.calc)+'<td>the gate recorded why, not just a score</td></tr>'+
    '<tr><td><b>Dated</b></td>'+barCell(dated,tot,TC.dim)+'<td>a submission date is on file for arrival analysis</td></tr>'+
    '</table>'+
-   '<h2 style="font-size:15px;margin-top:16px">Where this corpus came from</h2>'+
+   '<h2 data-dg="'+srcKeys.length+' archives, led by '+srcKeys[0]+'">Where this corpus came from</h2>'+
    '<table class="dtable"><tr><th>Archive</th><th>Records</th><th>Admitted at your line</th></tr>'+
    srcKeys.map(k=>{const sub=rows.filter(r=>(r.source||'unknown')===k);
      const a=sub.filter(r=>(r.relevance||0)>=thr).length;
@@ -5514,7 +5762,7 @@ function corpusCoverageHTML(){
       '<td>'+a+' of '+src[k]+' <span style="color:var(--dim)">('+(src[k]?Math.round(a/src[k]*100):0)+'% yield)</span></td></tr>';}).join('')+
    '</table>'+
    (srcKeys.length===1?'<p style="font-size:11.4px;color:var(--dim)">One archive answered this query. A single-archive corpus inherits that archive\'s coverage bias — arXiv skews toward preprints and theory, ADS toward published observational work. Treat the absence of the other as unknown, not as absence of work.</p>':'')+
-   '<h2 style="font-size:15px;margin-top:16px">How strong the corpus is</h2>'+
+   '<h2 data-dg="median '+(med*100).toFixed(0)+'%, mean '+(mean*100).toFixed(0)+'%">How strong the corpus is</h2>'+
    '<table class="dtable"><tr><th>Relevance band</th><th>Records</th><th>Against your line</th></tr>'+bandRows+'</table>'+
    '<p style="font-size:11.4px">Median relevance <b>'+(med*100).toFixed(0)+'%</b>, mean <b>'+(mean*100).toFixed(0)+'%</b>. '+
    (mean>=0.55?'This is a well-targeted retrieval — the query is finding the question, not the field.'
@@ -5548,7 +5796,7 @@ function corpusAgreementHTML(){
   const recentHalf=ts.filter(t=>t>=halfway).length;
   const accel=ts.length>3?(recentHalf/ts.length):null;
 
-  return '<h2 style="font-size:15px;margin-top:16px">How the admitted records line up</h2>'+
+  return '<h2 data-dg="'+sup+' support \u00b7 '+con+' contest \u00b7 '+neu+' neither">How the admitted records line up</h2>'+
    '<table class="dtable"><tr><th>Stance toward the leading reading</th><th>Records</th><th>Consequence</th></tr>'+
    '<tr><td><b>Supports</b></td>'+barCell(sup,base.length,TC.ev)+'<td>consistent with the reading the corpus favours</td></tr>'+
    '<tr><td><b>Contests</b></td>'+barCell(con,base.length,TC.bad)+'<td>each one is a live objection a referee can raise</td></tr>'+
@@ -5559,13 +5807,13 @@ function corpusAgreementHTML(){
     :con>0&&sup===0?'<b>Everything admitted is an objection.</b> The corpus is arguing against a position no admitted record actually defends — the supporting literature is either older than this retrieval, or outside the archives queried.'
     :con>0&&sup>0?'<b>The corpus is split '+sup+' to '+con+'.</b> A claim on this question has to survive the contesting side explicitly; treat each contesting record as a premise you must either adopt or refute in writing.'
     :'<b>No record took a side.</b> The gate found this literature descriptive rather than adversarial — usual for a question that is being mapped rather than settled.')+'</p>'+
-   (gk.length?'<h2 style="font-size:15px;margin-top:16px">Explanatory camps present in the corpus</h2>'+
+   (gk.length?'<h2 data-dg="'+gk.length+' camps, led by '+String(gk[0]).slice(0,40)+'">Explanatory camps present in the corpus</h2>'+
      '<table class="dtable"><tr><th>Camp</th><th>Records backing it</th><th>Share of the placed corpus</th></tr>'+
      gk.map(k=>'<tr><td><b>'+k+'</b></td>'+barCell(g[k],gtot,TC.hyp)+
        '<td>'+(gtot?Math.round(g[k]/gtot*100):0)+'% of '+gtot+' placed records</td></tr>').join('')+'</table>'+
      (gk.length===1?'<p style="font-size:11.4px;color:var(--dim)">One camp only. Either the field has converged, or the retrieval has not reached the competing programme — the second is more common on a first sweep.</p>':'')
     :'<p style="font-size:11.4px;color:var(--dim)">The gate could not place these records into competing explanatory camps. That happens when the corpus is methodological or observational rather than interpretive — there is work here, but no argument yet.</p>')+
-   '<h2 style="font-size:15px;margin-top:16px">How current this corpus is</h2>'+
+   '<h2 data-dg="'+y90+' in the last 90 days \u00b7 '+y12+' in 12 months">How current this corpus is</h2>'+
    '<table class="dtable"><tr><th>Window</th><th>Records</th><th>Reading</th></tr>'+
    '<tr><td><b>Last 90 days</b></td>'+barCell(y90,base.length,TC.ev)+'<td>'+(y90?'the question is live right now':'nothing this quarter — the question is dormant or slow-moving')+'</td></tr>'+
    '<tr><td><b>Last 12 months</b></td>'+barCell(y12,base.length,TC.ev)+'<td>'+(y12>=3?'an active programme is running':'sparse recent activity')+'</td></tr>'+
@@ -5775,6 +6023,22 @@ function svgTimeline(){
    a result had no visible way to ask the next question and simply kept looking
    at the last one. It is now the first thing on every research station.
    --------------------------------------------------------------------------- */
+function dgFind(){const y=synOf();const f=(y&&y.findings)||[];
+  return f.length?f.length+' finding'+(f.length===1?'':'s')+', '+(f.filter(x=>x.conf==='high').length)+' at high confidence':'nothing extracted yet';}
+function dgPos(){const y=synOf();const ps=(y&&y.positions)||[];
+  return ps.length?ps.length+' camps, leading at '+(ps[0].support||0)+'% support':'no competing camps extracted';}
+function dgCon(){const y=synOf();const c=(y&&y.contested)||[];
+  return c.length?c.length+' contested point'+(c.length===1?'':'s'):'no explicit disagreement detected';}
+function dgRet(){const R=resultsOf(QQ&&QQ.id);if(!R||!R.results)return 'not researched yet';
+  const t=R.results.length,a=R.results.filter(r=>(r.relevance||0)>=thrOf()).length;
+  return t+' records, '+a+' above your plane, '+R.results.filter(r=>r.material).length+' material';}
+function dgQty(){const y=synOf();const q=(y&&y.quantities)||[];
+  return q.length?q.length+' quantity'+(q.length===1?'':'ies')+' on the table':'no numerical bound extracted';}
+function dgField(){const F=(typeof fieldStats==='function')?fieldStats():null;
+  return F?F.span[0]+'\u2013'+F.span[1]+', '+(F.span[1]-F.span[0])+' years'+(F.gaps.length?', quiet in the '+F.gaps[0]+'s':''):'no dated records';}
+function dgCov(){const rows=corpusRows();if(!rows.length)return 'nothing retrieved';
+  const src={};rows.forEach(r=>{const k=String(r.source||'').split('-')[0];src[k]=1;});
+  return rows.length+' records from '+Object.keys(src).length+' archives';}
 function askHTML(sub){
   return '<div class="askbar">'+
     '<span class="asklbl">ASK</span>'+
@@ -5967,7 +6231,7 @@ const CXI=[
     cxFile('watch','cx-arch','Archive perimeter','what answered, what did not',
       askHTML(false)+'<h2>Which archives this question actually lives in.</h2>'+
       '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
-      '<h2 style="font-size:15px;margin-top:18px">Corpus coverage</h2>'+
+      '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
       '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>',null);
     const R=resultsOf(QQ.id),A=(R&&R.archives)||[];
     return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' archives</b> answered this question. Filed under WATCH.'
