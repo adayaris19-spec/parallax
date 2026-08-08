@@ -193,19 +193,64 @@ canvas{display:block}
   font-weight:700;text-transform:uppercase;color:var(--ev);cursor:pointer;padding:8px 4px;
   border-bottom:1px solid transparent}
 .hlink:hover{border-bottom-color:var(--ev)} .hlink.big{font-size:11.5px}
-.hhero{padding:clamp(46px,8vw,104px) clamp(18px,5vw,64px) 20px;max-width:1080px}
-.hhero h1{font-size:clamp(31px,5.1vw,58px);line-height:1.06;letter-spacing:-.022em;
-  font-weight:600;margin:0 0 20px}
-.hlede{font-size:clamp(14.5px,1.5vw,17.5px);line-height:1.55;color:var(--ink2);max-width:760px;margin:0 0 28px}
-.hact{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:44px}
-.hnums{display:flex;gap:clamp(22px,5vw,58px);flex-wrap:wrap;padding-top:26px;
-  border-top:1px solid rgba(84,105,125,.18)}
-.hnums div{display:flex;flex-direction:column;gap:3px}
-.hnums b{font-family:var(--m);font-size:clamp(22px,3vw,32px);font-weight:800;color:var(--asm);line-height:1}
-.hnums span{font-family:var(--m);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim)}
+/* The hero is the one dark room in the building. Everything the instrument does
+   is drawn there rather than described: eighteen archive lanes, eleven era
+   rungs, and pulses running the ladder while records accrete into a corpus. */
+.hhero{position:relative;overflow:hidden;background:#0b1622;color:#e6edf4;
+  padding:clamp(40px,6vw,84px) clamp(18px,5vw,64px) clamp(30px,4vw,48px)}
+.hgridbg{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(120,170,205,.075) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,170,205,.075) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(120% 100% at 30% 0%,#000 0%,transparent 78%)}
+.hhero::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 60% at 82% 34%,rgba(232,135,58,.16) 0%,transparent 62%),
+    radial-gradient(60% 70% at 6% 96%,rgba(77,184,221,.11) 0%,transparent 60%)}
+.hherorow{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(24px,4vw,56px);align-items:center;max-width:1280px}
+.hkick{display:inline-flex;align-items:center;gap:8px;font-family:var(--m);font-size:9.5px;
+  letter-spacing:.22em;text-transform:uppercase;color:#8fb6cd;margin-bottom:20px}
+.hkick i{width:6px;height:6px;border-radius:50%;background:#e8873a;
+  box-shadow:0 0 0 0 rgba(232,135,58,.75);animation:hpulse 2.4s infinite}
+@keyframes hpulse{70%{box-shadow:0 0 0 9px rgba(232,135,58,0)}100%{box-shadow:0 0 0 0 rgba(232,135,58,0)}}
+.hhero h1{font-size:clamp(30px,4.4vw,55px);line-height:1.04;letter-spacing:-.026em;
+  font-weight:600;margin:0 0 20px;color:#f2f6fa}
+.hglow{color:#e8873a;text-shadow:0 0 34px rgba(232,135,58,.45)}
+.hhero .hlede{font-size:clamp(13.6px,1.35vw,16px);line-height:1.6;color:#a8c0d2;max-width:600px;margin:0 0 26px}
+.hhero .hlede b{color:#e6edf4}
+.hact{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.hlink.lit{color:#7cc6e8}.hlink.lit:hover{border-bottom-color:#7cc6e8}
+.hviz{position:relative}
+.hviz svg{width:100%;height:auto;display:block;overflow:visible}
+.hvizcap{margin-top:10px;font-family:var(--m);font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:#7f9db2;text-align:right}
+.hvizcap b{color:#e8873a;font-size:12px}
+.hnums{position:relative;z-index:1;display:flex;gap:clamp(20px,4.5vw,54px);flex-wrap:wrap;
+  margin-top:clamp(28px,4vw,48px);padding-top:24px;border-top:1px solid rgba(140,180,210,.2)}
+.hnums div{display:flex;flex-direction:column;gap:4px}
+.hnums b{font-family:var(--m);font-size:clamp(22px,3vw,34px);font-weight:800;color:#e8873a;
+  line-height:1;font-variant-numeric:tabular-nums}
+.hnums span{font-family:var(--m);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:#7f9db2}
+/* the mechanism, as four stages rather than four paragraphs */
+.hpiperow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.hstep{flex:1 1 200px;min-width:196px;border:1px solid rgba(84,105,125,.22);border-top:3px solid var(--calc);
+  border-radius:4px;padding:15px 16px;background:rgba(255,254,251,.62)}
+.hstep.lit{border-top-color:var(--asm)}
+.hstep .hn{display:block;font-family:var(--m);font-size:9px;letter-spacing:.2em;color:var(--dim);margin-bottom:6px}
+.hstep b{display:block;font-size:13.4px;margin-bottom:6px}
+.hstep p{font-size:12.2px;line-height:1.52;color:var(--ink2);margin:0}
+.harrow{flex:0 0 26px;align-self:center;height:1px;background:linear-gradient(90deg,transparent,var(--dim),transparent);position:relative}
+.harrow::after{content:'';position:absolute;right:2px;top:-3px;border-left:5px solid var(--dim);
+  border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+/* sections arrive as you reach them */
+.hsec{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.hsec.seen{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.hsec{opacity:1;transform:none;transition:none}}
+@media(max-width:900px){.hherorow{grid-template-columns:1fr}.hviz{order:-1}.harrow{display:none}}
 .hsec{padding:clamp(34px,5vw,64px) clamp(18px,5vw,64px);max-width:1220px;
   border-top:1px solid rgba(84,105,125,.14)}
 .hsec>h2{font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-.012em;margin:0 0 26px}
+.hsub{font-size:13.4px;color:var(--ink2);margin:-16px 0 24px;max-width:640px}
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:22px}
 .hgrid article{border:1px solid rgba(84,105,125,.2);border-left:3px solid var(--asm);
   border-radius:4px;padding:17px 19px;background:rgba(255,254,251,.6)}
@@ -594,15 +639,29 @@ body.cxon #doc{right:min(430px,34vw)}
 @media(max-width:900px){#cx{width:100vw}#cxOpen{top:auto;bottom:170px}body.cxon #doc{right:0}}
 
 /* the figure panel: small in the column, everything at once when opened */
-#gal{position:fixed;inset:0;z-index:64;display:none;background:rgba(244,242,237,.90);backdrop-filter:blur(12px)}
-#gal.on{display:block}
+/* #gal lives inside #chrome, which is pointer-events:none so the workspace
+   underneath stays reachable. Children have to opt back in - without this the
+   backdrop and the close button silently ignore every click and the only way
+   out of the panel is the Escape key. */
+#gal{position:fixed;inset:0;z-index:64;display:none;pointer-events:none;
+  background:rgba(244,242,237,.90);backdrop-filter:blur(12px)}
+#gal.on{display:block;pointer-events:auto}
+/* click a figure in the panel and it takes the whole panel; click again, or
+   anywhere off it, and the grid comes back. */
+#galGrid figure{cursor:zoom-in;border:1px solid transparent;border-radius:4px;padding:6px;
+  transition:border-color .14s,background .14s}
+#galGrid figure:hover{border-color:rgba(180,86,10,.34);background:rgba(255,254,251,.5)}
+#galGrid.solo{grid-template-columns:1fr}
+#galGrid.solo figure{display:none}
+#galGrid.solo figure.on{display:block;cursor:zoom-out;max-width:1180px;margin:0 auto}
 #galBox{position:absolute;inset:3vh 3vw;display:flex;flex-direction:column}
 #galHead{display:flex;align-items:baseline;gap:12px;padding:0 2px 10px;border-bottom:1px solid var(--line2)}
 #galHead .t{font-family:var(--m);font-size:9px;letter-spacing:.26em;font-weight:800;color:var(--asm)}
 #galHead .w{flex:1;font-family:var(--m);font-size:9px;letter-spacing:.1em;color:var(--dim)}
-#galX{background:none;border:0;cursor:pointer;font-family:var(--m);font-size:9px;letter-spacing:.16em;
+#galX{background:rgba(180,86,10,.1);border:1px solid rgba(180,86,10,.4);border-radius:3px;padding:6px 13px;
+  cursor:pointer;font-family:var(--m);font-size:9px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);font-weight:800}
-#galX:hover{color:var(--ink)}
+#galX:hover{color:#fffdf8;background:var(--asm);border-color:var(--asm)}
 #galGrid{flex:1;overflow-y:auto;scrollbar-width:none;padding:16px 2px 8px;
   display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:26px 30px;align-content:start}
 #galGrid::-webkit-scrollbar{display:none}
@@ -719,7 +778,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b61</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b62</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -731,7 +790,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brief"></div>
   <div id="tip"></div>
   <button id="cxOpen" title="Ask the console (⌘K)">◈</button>
-  <div id="gal"><div id="galBox"><div id="galHead"><span class="t">FIGURE PANEL</span><span class="w" id="galWatch"></span><button id="galX">close</button></div><div id="galGrid"></div></div></div>
+  <div id="gal"><div id="galBox"><div id="galHead"><span class="t">FIGURE PANEL</span><span class="w" id="galWatch"></span><button id="galX">close &#10005;</button></div><div id="galGrid"></div></div></div>
   <div id="cx"><div id="cxHead"><span class="t">CONSOLE</span><span class="w" id="cxWatch"></span><button id="cxX">close</button></div>
     <div id="cxLog"></div>
     <div id="cxRow"><span class="p">&rsaquo;</span><input id="cxIn" placeholder="Run a field analysis on this" autocomplete="off" spellcheck="false"><button class="mic" data-mic title="Dictate">&#9679;</button><span class="k">↵</span></div>
@@ -778,25 +837,56 @@ body.cxon #doc{right:min(430px,34vw)}
  </header>
 
  <section class="hhero">
-  <h1>Every archive. Every decade.<br>Read for you, before you ask.</h1>
-  <p class="hlede">PARALLAX is a research instrument for scientists. Give it a question in plain
-  language and it runs <b>124 separate searches across 18 archives</b>, back to the 1600s, then
-  reads every abstract that comes back against the question you actually asked &mdash; and does the
-  analysis a person would have to do by hand across a century of literature, and so never does.</p>
-  <div class="hact">
-    <button class="hgo big" data-home="signup">Start free &mdash; no card</button>
-    <button class="hlink big" data-home="try">Try it without an account &rarr;</button>
+  <div class="hgridbg"></div>
+  <div class="hherorow">
+   <div class="hherotext">
+    <div class="hkick"><i></i>Scientific intelligence &mdash; live perimeter</div>
+    <h1>Every archive.<br>Every decade.<br><span class="hglow">Read before you ask.</span></h1>
+    <p class="hlede">Give it a question in plain language. It runs <b>124 separate searches
+    across 18 archives</b>, back to the 1600s, reads every abstract that comes back against the
+    question you actually asked, and does the analysis a person would have to do by hand across
+    a century of literature &mdash; and so never does.</p>
+    <div class="hact">
+      <button class="hgo big" data-home="signup">Start free &mdash; no card</button>
+      <button class="hlink big lit" data-home="try">Try it without an account &rarr;</button>
+    </div>
+   </div>
+   <div class="hviz"><svg id="hsvg" viewBox="0 0 620 460" preserveAspectRatio="xMidYMid meet"></svg>
+     <div class="hvizcap"><b id="hvizn">0</b> records admitted &middot; <span id="hvizs">sweeping</span></div>
+   </div>
   </div>
   <div class="hnums">
-    <div><b>124</b><span>searches per question</span></div>
-    <div><b>18</b><span>archives, one sweep</span></div>
-    <div><b>1600s</b><span>to this morning</span></div>
-    <div><b>every</b><span>field of science</span></div>
+    <div><b data-count="124">0</b><span>searches per question</span></div>
+    <div><b data-count="18">0</b><span>archives, one sweep</span></div>
+    <div><b data-flat="1600s">1600s</b><span>to this morning</span></div>
+    <div><b data-flat="every">every</b><span>field of science</span></div>
+  </div>
+ </section>
+
+ <section class="hsec hpipe">
+  <h2>The mechanism</h2>
+  <div class="hpiperow">
+   <div class="hstep"><span class="hn">01</span><b>Your question</b>
+     <p>Plain language. Translated into the terms the literature actually publishes under &mdash;
+     <i>parallel universes</i> becomes eternal inflation, the multiverse, many-worlds.</p></div>
+   <div class="harrow"></div>
+   <div class="hstep"><span class="hn">02</span><b>124 passes, 6 slices</b>
+     <p>Every archive that can filter by date gets one reservation per era. A relevance sort always
+     drops the old work first; the ladder is what stops that happening.</p></div>
+   <div class="harrow"></div>
+   <div class="hstep"><span class="hn">03</span><b>The gate reads it</b>
+     <p>Every abstract scored against your question &mdash; bearing, camp, measurement, materiality.
+     You get a reason, not a rank.</p></div>
+   <div class="harrow"></div>
+   <div class="hstep lit"><span class="hn">04</span><b>You operate on it</b>
+     <p>Era structure, canon, concentration, adjudication, your own draft checked against the
+     record. Six modes over one live corpus.</p></div>
   </div>
  </section>
 
  <section id="hwhat" class="hsec">
   <h2>What it actually does</h2>
+  <p class="hsub">Six capabilities, each one a thing you cannot get from a search box.</p>
   <div class="hgrid">
     <article><h3>It searches the way the record is shaped, not the way an index sorts</h3>
      <p>A relevance sort stops wherever the index decides it stops, and what it drops is always
@@ -832,18 +922,6 @@ body.cxon #doc{right:min(430px,34vw)}
      Answers do not scroll away in a chat log: each one is filed as its own station in the
      workspace, next to everything else you are holding.</p></article>
   </div>
- </section>
-
- <section class="hsec hsteps">
-  <h2>How it goes</h2>
-  <ol>
-   <li><b>Ask in your own words.</b> &ldquo;Is the Hubble tension real?&rdquo; PARALLAX translates it into
-   the terms the literature actually publishes under.</li>
-   <li><b>The perimeter runs.</b> 124 searches in six parallel slices. The core lands in about
-   twelve seconds and the historical ladder fills in behind it.</li>
-   <li><b>You operate on it.</b> Six modes, collapsible stations, expandable figures, and a watch
-   that keeps running whether or not the page is open.</li>
-  </ol>
  </section>
 
  <section id="hperim" class="hsec"><h2>The perimeter</h2><div id="hperimtab"></div></section>
@@ -2988,8 +3066,20 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b61';
+const BUILD='b62';
 const WHATSNEW=[
+ ['The figure panel closes again',
+  'The panel lives inside a layer that is pointer-events:none so the workspace underneath stays reachable — and it had never opted back in, so the backdrop and the CLOSE button silently ignored every click. Only Escape got you out, which is exactly why the tests never caught it. Fixed, and while in there: click any figure in the panel and it takes the whole panel; click off it and the grid comes back; click off that and the panel closes.',
+  'Any figure. Click it to open, click out to close.'],
+ ['What eighteen archives actually buy you',
+  'The perimeter used to show you a receipt — here are the archives, here is what each returned. Now it cross-checks them. Every record carries which archives found it INDEPENDENTLY, so the page can tell you: how many records more than one index returned and how many exactly one did (those are the ones a single-archive search would never have shown you); how many records each archive holds that nobody else returned, which is the only honest answer to what that archive is for; which archive is carrying the old work; and what share of each archive clears your relevance plane. Ending with the arithmetic: drop this archive and you lose these records.',
+  'WATCH → Research return, and the console tab "which archives answered". Needs worker v12.'],
+ ['A front door that looks like the instrument',
+  'The hero is now the mechanism, drawn and running: eighteen archive lanes, eleven era rungs from pre-1930 to the 2020s, passes firing down the ladder and lighting the eras they reserved while records accrete into the corpus column. Below it the four stages of a sweep as a schematic rather than four paragraphs.',
+  'The first thing you see.'],
+ ['One date, not two',
+  'Some copy said the perimeter reaches the 1930s and some said the 1600s. It is the 1600s — the ladder has a decade rung back to the 1930s and one window covering everything before that. Every mention now says so.',
+  'Everywhere.'],
  ['Adjudicate two theories',
   'Name two competing explanations and PARALLAX runs a separate perimeter for each, then reads them together: what each accounts for that the other cannot, what they are both on the hook for, and — the part a reading list can never give you — the specific observations that would separate them, with what each side predicts and whether the test has been done, is underway, or is not feasible. ANALYZE → Adjudicate two theories, or ask the console "compare eternal inflation versus a cyclic cosmology".',
   'ANALYZE → Adjudicate two theories. Needs worker v11.'],
@@ -3008,7 +3098,7 @@ const WHATSNEW=[
  ['The perimeter is sharded, so it actually returns',
   'b58 asked one Edge Function invocation to run all 124 passes. The platform killed the isolate every time, and the error it returns carries no CORS header, which is why the page said only "Failed to fetch". The sweep is now split into 6 parallel calls: the first runs the 17 core passes and does the interpreting, the gate and the synthesis, and the other 5 each fetch a share of the historical ladder with no model calls at all. The page is readable as soon as the first one lands and grows as the rest arrive. A slice that fails costs coverage and says so in the ledger; it can no longer take the whole result down.',
   'Every sweep. Needs worker v10 deployed in Supabase.'],
- ['124 searches, 18 archives, back to the 1930s',
+ ['124 searches, 18 archives, back to the 1600s',
   'The perimeter was 18 passes. It is now ~124, over 18 archives. OSTI (US national laboratories), NTRS (NASA technical reports), the CERN Document Server, DBLP and PLOS joined the thirteen. The real gain is the historical ladder: OpenAlex, Crossref, ADS, Semantic Scholar, Europe PMC, PubMed, INSPIRE and arXiv each get one reservation per era — pre-1930, then every decade to the 2020s — because a relevance sort always drops the old work first.',
   'WATCH → Research return, and the console tab "which archives answered", which now rolls the passes up per archive and then lists every one.'],
  ['The figure expands when you click it',
@@ -3093,13 +3183,35 @@ function galOpen(on){
       ?set.map(x=>'<figure>'+LIVEBIND[x[0]]()+'<figcaption><b>'+x[1]+'.</b> '+x[2]+'</figcaption></figure>').join('')
       :'<p style="color:var(--dim)">No figures yet — this watch has returned nothing to draw.</p>';
   }
+  if(!want)galSolo(null);
   g.classList.toggle('on',want);
+}
+function galSolo(fig){
+  const g=document.getElementById('galGrid');if(!g)return;
+  const cur=g.querySelector('figure.on');
+  if(!fig||cur===fig){g.classList.remove('solo');g.querySelectorAll('figure').forEach(f=>f.classList.remove('on'));return;}
+  g.querySelectorAll('figure').forEach(f=>f.classList.toggle('on',f===fig));
+  g.classList.add('solo');g.scrollTop=0;
 }
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-galopen]')){e.preventDefault();galOpen(true);return;}
-  if(e.target.id==='gal'||e.target.id==='galX'){galOpen(false);return;}
+  if(e.target.closest('#galX')){galOpen(false);return;}
+  const fig=e.target.closest('#galGrid figure');
+  if(fig){galSolo(fig);return;}
+  /* a click on the backdrop, or on the panel's own empty space, backs out one
+     level: out of a solo figure first, then out of the panel. */
+  if(e.target.id==='gal'||e.target.id==='galGrid'||e.target.id==='galBox'){
+    const g=document.getElementById('galGrid');
+    if(g&&g.classList.contains('solo')){galSolo(null);return;}
+    galOpen(false);return;
+  }
 });
-addEventListener('keydown',e=>{if(e.key==='Escape')galOpen(false);});
+addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const g=document.getElementById('galGrid');
+  if(g&&g.classList.contains('solo')){galSolo(null);return;}
+  galOpen(false);
+});
 /* ---------------------------------------------------------------------------
    Dictation. Press the dot next to any input and talk; the transcript lands in
    that input and Enter behaves exactly as if it had been typed. Falls back to
@@ -4173,6 +4285,7 @@ const LIVEBIND={
  field:()=>fieldAnalysisHTML(),
  deep:()=>deepReadHTML(),
  ledger:()=>archiveLedgerHTML(),
+ cross:()=>crossArchiveHTML(),
  adj:()=>adjudicateHTML(),
  mywork:()=>manuscriptHTML(),
  rchecks:()=>reasonChecksHTML(),
@@ -4290,6 +4403,8 @@ function stationsBase(mode){
      '<div data-lv="questions">'+questionsHTML()+'</div>'+
      '<h2 data-dg="124 searches over 18 archives, the 1600s to this morning">What the perimeter reaches</h2>'+
      '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
+     '<h2 data-dg="'+dgCross()+'">What running eighteen of them buys you</h2>'+
+     '<div data-lv="cross">'+crossArchiveHTML()+'</div>'+
      '<h2 data-dg="press \u2318K or the \u25c8 button on the right edge">What you can ask the console</h2>'+
      '<p>Once a watch has returned records, the console will run a field analysis, find where the question came from, '+
      'tell you who owns the field, build a reading order, and report which archives answered - filing each answer as its '+
@@ -4300,7 +4415,9 @@ function stationsBase(mode){
     html:askHTML()+'<h2 data-dg="'+dgRet()+'">What this question actually returned.</h2>'+
      '<div data-lv="results">'+resultsHTML()+'</div>'+
      '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
-     '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'},
+     '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>'+
+     '<h2 data-dg="'+dgCross()+'">What running eighteen archives buys you</h2>'+
+     '<div data-lv="cross">'+crossArchiveHTML()+'</div>'},
    {id:'questions',label:'Watched questions',sub:'open, switch or drop a watch',vis:null,
     html:'<h2>Watches</h2>'+'<div data-lv="questions">'+questionsHTML()+'</div>'},
    ];
@@ -6222,7 +6339,8 @@ function fieldAnalysisHTML(){
 /* What the perimeter is, before a single question has been asked. Eighteen
    archives, each with the span it actually covers and the number of separate
    reservations the sweep makes on it - a relevance pass, a canon pass, an
-   origins pass, and one pass per decade back to the 1930s. */
+   origins pass, then a decade rung back to the 1930s and one window covering
+   everything before that, which is what carries the corpus to the 1600s. */
 const PERIM=[
  ['OpenAlex','every discipline, 1600s to today, ~250M works with citations, venues and institutions',20],
  ['Crossref','the journals of record, DOI by DOI, including books and proceedings',17],
@@ -6251,9 +6369,126 @@ function perimeterSpecHTML(){
      barCell(x[2],tot,TC.calc)+'</tr>').join('')+'</table>'+
    '<p style="font-size:11.4px;color:var(--dim)">Requires worker v9 in Supabase. Once a watch has run, this table is replaced by the real ledger: which pass answered, with how many records, in how many milliseconds, and the error if it did not.</p>';
 }
+/* ===========================================================================
+   CROSS-ARCHIVE ANALYSIS. A list of eighteen archives is a receipt, not a
+   finding. What is worth knowing is what running eighteen of them BOUGHT you,
+   and that is four things you cannot see from any one of them:
+
+     CORROBORATION - how many independent archives returned the same work. Five
+     indexes finding a paper on their own is a different object from one only
+     Zenodo has, and it is the closest thing to a prior the record offers.
+     REPLACEABILITY - how many records each archive holds that NO other archive
+     returned. That number, not its total, is the answer to "what is this
+     archive here for", and it is the number that would disappear if it were
+     dropped from the perimeter.
+     ERA CARRIAGE - which archive is carrying the old work and which is only
+     carrying the recent wave. This is what the historical ladder actually buys.
+     PRECISION - what share of each archive's records clear your relevance
+     plane. A big archive with a low yield is retrieving the field, not the
+     question.
+   =========================================================================== */
+function crossArchive(){
+  const rows=corpusRows(); if(!rows.length)return null;
+  const thr=thrOf();
+  const arch={};
+  const touch=k=>arch[k]||(arch[k]={n:'',tot:0,only:0,corro:0,adm:0,scored:0,yrs:[],cites:0});
+  rows.forEach(r=>{
+    const home=r.source||'unknown';
+    const also=(r.also||[]).filter(x=>x&&x!==home);
+    const all=[home].concat(also);
+    const n=all.length;
+    all.forEach(k=>{const a=touch(k);a.n=k;a.tot++;
+      if(n===1)a.only++; else a.corro++;
+      if(r.year)a.yrs.push(r.year);
+      if(r.citations)a.cites+=r.citations;
+      if(r.relevance!=null){a.scored++;if(r.relevance>=thr)a.adm++;}});
+  });
+  const keys=Object.keys(arch).sort((a,b)=>arch[b].only-arch[a].only||arch[b].tot-arch[a].tot);
+  keys.forEach(k=>{const a=arch[k];a.yrs.sort((x,y)=>x-y);
+    a.med=a.yrs.length?a.yrs[Math.floor(a.yrs.length/2)]:null;
+    a.oldest=a.yrs[0]||null;
+    a.pre=a.yrs.filter(y=>y<1990).length;
+    a.yield=a.scored?a.adm/a.scored:null;});
+  /* how deep the agreement goes across the whole corpus */
+  const depth={};
+  rows.forEach(r=>{const n=1+((r.also||[]).filter(x=>x&&x!==r.source).length);
+    depth[n]=(depth[n]||0)+1;});
+  const multi=rows.filter(r=>(r.also||[]).filter(x=>x&&x!==r.source).length>0);
+  const single=rows.length-multi.length;
+  /* the records the widest agreement landed on - the field's common ground */
+  const consensus=rows.slice()
+    .map(r=>({r:r,n:1+((r.also||[]).filter(x=>x&&x!==r.source).length)}))
+    .filter(x=>x.n>1).sort((a,b)=>b.n-a.n||(b.r.citations||0)-(a.r.citations||0)).slice(0,6);
+  const irreplaceable=keys.filter(k=>arch[k].only>0).slice(0,6);
+  return {arch:arch,keys:keys,depth:depth,multi:multi.length,single:single,
+    consensus:consensus,irreplaceable:irreplaceable,total:rows.length,thr:thr};
+}
+function dgCross(){const X=crossArchive();
+  if(!X)return 'nothing retrieved';
+  const top=X.keys[0];
+  return X.multi+' of '+X.total+' corroborated · '+(top?top+' is least replaceable':'');}
+function crossArchiveHTML(){
+  const X=crossArchive();
+  if(!X)return '<p style="color:var(--dim)">Nothing has been retrieved on this watch, so there is nothing to cross-check. Run the research first.</p>';
+  const A=X.arch,K=X.keys;
+  const maxOnly=Math.max(1,...K.map(k=>A[k].only));
+  const dk=Object.keys(X.depth).map(Number).sort((a,b)=>a-b);
+  const anyAlso=K.some(k=>A[k].corro>0);
+  return '<p style="font-size:11.8px">Eighteen archives are not eighteen copies of one search. '+
+   (anyAlso
+    ?'<b>'+X.multi+'</b> of the <b>'+X.total+'</b> records here were returned independently by more than one archive, and <b>'+X.single+'</b> were returned by exactly one. Those '+X.single+' are the whole argument for a wide perimeter: every one of them is a record a single-index search would simply not have shown you.'
+    :'This return predates cross-archive tracking — re-run the sweep on worker v12 and every record will carry which archives found it independently.')+'</p>'+
+
+   '<h2 data-dg="'+K.filter(k=>A[k].only>0).length+' archives hold records nobody else returned">What each archive is actually here for</h2>'+
+   '<table class="dtable"><tr><th>Archive</th><th>Records only it returned</th><th>Corroborated by others</th><th>Reaches back to</th><th>Clears your plane</th></tr>'+
+   K.map(k=>{const a=A[k];
+     return '<tr><td><b>'+k+'</b><br><span style="font-size:10px;color:var(--dim)">'+a.tot+' records'+
+       (a.pre?' · '+a.pre+' pre-1990':'')+'</span></td>'+
+       '<td><b style="color:'+(a.only?TC.asm:TC.dim)+'">'+a.only+'</b>'+
+         '<span class="inbar"><i style="width:'+Math.round(a.only/maxOnly*100)+'%;background:'+(a.only?TC.asm:TC.dim)+'"></i></span>'+
+         '<br><span style="font-size:10px;color:var(--dim)">'+(a.only
+           ?'lost if this archive is dropped':'every record here is held elsewhere too')+'</span></td>'+
+       '<td>'+a.corro+' <span style="color:var(--dim)">('+(a.tot?Math.round(a.corro/a.tot*100):0)+'%)</span></td>'+
+       '<td>'+(a.oldest?'<b>'+a.oldest+'</b>'+(a.med?' <span style="color:var(--dim)">· median '+a.med+'</span>':''):'<span style="color:var(--dim)">undated</span>')+'</td>'+
+       '<td>'+(a.yield==null?'<span style="color:var(--dim)">not read</span>'
+         :'<b style="color:'+(a.yield>=0.5?TC.ok:a.yield>=0.25?TC.asm:TC.dim)+'">'+Math.round(a.yield*100)+'%</b>'+
+           ' <span style="color:var(--dim)">of '+a.scored+' read</span>')+'</td></tr>';}).join('')+
+   '</table>'+
+   '<p style="font-size:11.4px;color:var(--dim)">A high yield with a small count is a precise archive for this question. A large count with a low yield is retrieving the field rather than the question — useful for the era structure, not for your reading list.</p>'+
+
+   (anyAlso?
+   '<h2 data-dg="'+X.multi+' of '+X.total+' found more than once">How far the archives agree</h2>'+
+   '<table class="dtable"><tr><th>Independently returned by</th><th>Records</th><th>What that means</th></tr>'+
+   dk.map(n=>'<tr><td><b>'+n+' archive'+(n===1?'':'s')+'</b></td>'+
+     barCell(X.depth[n],X.total,n===1?TC.dim:n<3?TC.calc:TC.ev)+
+     '<td style="font-size:11px">'+(n===1
+       ?'held by one index only — invisible to a single-archive search'
+       :n===2?'two indexes found it on their own'
+       :'indexed independently '+n+' times over; this is the field’s common ground')+'</td></tr>').join('')+
+   '</table>'+
+   (X.consensus.length?'<h2 data-dg="the '+X.consensus.length+' most widely indexed">What every archive agrees is here</h2>'+
+     '<table class="dtable"><tr><th>Record</th><th>Found by</th><th>Citations</th></tr>'+
+     X.consensus.map(c=>'<tr><td><a href="'+esc(c.r.url||'#')+'" target="_blank" rel="noopener" style="color:var(--ink)"><b>'+
+       esc(String(c.r.title||'').slice(0,110))+'</b></a>'+(c.r.year?' <span style="color:var(--dim)">'+c.r.year+'</span>':'')+'</td>'+
+       '<td><b style="color:'+TC.ev+'">'+c.n+'</b> <span style="font-size:10px;color:var(--dim)">'+
+         esc([c.r.source].concat((c.r.also||[])).slice(0,5).join(' · '))+'</span></td>'+
+       '<td>'+(c.r.citations!=null?c.r.citations.toLocaleString('en-US'):'—')+'</td></tr>').join('')+
+     '</table>':'')
+   :'')+
+
+   '<h2 data-dg="drop one and this is what goes">If you cut the perimeter down</h2>'+
+   '<p style="font-size:11.8px">'+
+   (X.irreplaceable.length
+     ?'Dropping <b>'+X.irreplaceable[0]+'</b> alone would cost you <b>'+A[X.irreplaceable[0]].only+
+      ' records</b> that no other archive returned'+
+      (A[X.irreplaceable[0]].oldest?', the oldest from <b>'+A[X.irreplaceable[0]].oldest+'</b>':'')+'. '+
+      (X.irreplaceable.length>1?'After that: '+X.irreplaceable.slice(1).map(k=>'<b>'+k+'</b> ('+A[k].only+')').join(', ')+'. ':'')+
+      'That is the arithmetic behind running all of them rather than the two everyone uses.'
+     :'Every record on this question was returned by more than one archive, which is unusual — it means this question sits in well-indexed territory and a narrower perimeter would have found most of it.')+'</p>';
+}
 /* The ledger is now ~124 passes over 18 archives, so it is presented as the
    perimeter itself: a roll-up per archive first, then every individual pass
-   underneath it. You should be able to see at a glance that the 1930s were
+   underneath it. You should be able to see at a glance that the old decades were
    actually searched, and then go and check which pass did it. */
 function archiveLedgerHTML(){
   const R=resultsOf(QQ&&QQ.id);
@@ -6770,7 +7005,7 @@ function askHTML(sub){
     '<button class="abtn pri" data-act="qadd">'+(SANDBOXED?'Ask in the live build \u2197':'Research it')+'</button></div>'+
     (sub===false?'':'<p class="askhint">'+(SANDBOXED
       ?'<b style="color:'+TC.asm+'">This preview cannot reach the internet.</b> The artifact viewer blocks every external request, so no sweep can run here \u2014 nothing is wrong with your worker. Type the question anyway and it opens in <a href="'+PAGES_URL+'" target="_blank" rel="noopener" style="color:'+TC.ev+'">the live build</a> with the sweep already starting. Everything else on this page \u2014 every station, figure and console command \u2014 works here on whatever is already stored.'
-      :'Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs 124 separate searches across 18 archives back to the 1930s, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.')+'</p>');
+      :'Plain language, any field. PARALLAX translates it into the terms researchers publish under, runs 124 separate searches across 18 archives back to the 1600s, and scores every abstract that comes back. Each question becomes its own watch - switching between them re-derives every figure and readout.')+'</p>');
 }
 /* how old is what you are looking at - a restored watch must never pass for a fresh one */
 function agoStr(ts){
@@ -6956,13 +7191,16 @@ const CXI=[
   need:'corpus',
   run:()=>{
     cxFile('watch','cx-arch','Archive perimeter','what answered, what did not',
-      askHTML(false)+'<h2>Which archives this question actually lives in.</h2>'+
+      askHTML(false)+'<h2 data-dg="'+dgCross()+'">What running eighteen archives buys you.</h2>'+
+      '<div data-lv="cross">'+crossArchiveHTML()+'</div>'+
+      '<h2>Which archives this question actually lives in.</h2>'+
       '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
       '<h2 data-dg="'+dgCov()+'">Corpus coverage</h2>'+
       '<div data-lv="corpus">'+corpusCoverageHTML()+'</div>',null);
-    const R=resultsOf(QQ.id),A=(R&&R.archives)||[];
-    return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' passes</b> over <b>'+(new Set(A.map(x=>String(x.name||'?').split('/')[0]))).size+' archives</b> answered this question. Filed under WATCH.'
-      :'This return predates the archive ledger — re-run the sweep on worker v9 to see it.',go:['cx-arch','Open the perimeter']};
+    const R=resultsOf(QQ.id),A=(R&&R.archives)||[],X=crossArchive();
+    return {say:A.length?'<b>'+A.filter(x=>x.got).length+' of '+A.length+' passes</b> over <b>'+(new Set(A.map(x=>String(x.name||'?').split('/')[0]))).size+' archives</b> answered.'+
+      (X&&X.multi?' <b>'+X.multi+'</b> records were returned independently by more than one, and <b>'+X.single+'</b> by exactly one \u2014 those are the ones a single-index search would have missed.':'')+' Filed under WATCH.'
+      :'This return predates the archive ledger — re-run the sweep on worker v12 to see it.',go:['cx-arch','Open the perimeter']};
   }},
  {k:/\b(sweep|re-?run|refresh|search again|do it again|update|check again)/i,
   need:'watch',
@@ -7074,6 +7312,144 @@ document.addEventListener('keydown',e=>{
    product has to prove itself before it asks for an email. What an account
    buys is carrying your watches between machines.
    =========================================================================== */
+/* ---------------------------------------------------------------------------
+   THE HERO INSTRUMENT. Not decoration and not a stock animation: it is the
+   mechanism drawn to scale. Eighteen lanes, one per archive. Eleven rungs, one
+   per era, from pre-1930 on the left to the 2020s on the right. A pass fires
+   down a lane, lights the rungs it reserved, and whatever it finds accretes
+   into the corpus column on the right. The counter is the number of records
+   that have cleared the relevance plane so far.
+   --------------------------------------------------------------------------- */
+const HARCH=['openalex','crossref','ads','s2','europepmc','arxiv','pubmed','inspire','osti',
+  'ntrs','cds','dblp','plos','doaj','datacite','hal','openaire','zenodo'];
+const HERAS=['pre-1930','30s','40s','50s','60s','70s','80s','90s','00s','10s','20s'];
+function heroViz(){
+  const svg=document.getElementById('hsvg');if(!svg)return;
+  const W=620,H=460,L=118,R=486,T=30,B=396;
+  const lanes=HARCH.length, lh=(B-T)/(lanes-1);
+  const cw=(R-L)/(HERAS.length-1);
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const frag=document.createDocumentFragment();
+
+  // era rungs
+  HERAS.forEach((e,i)=>{
+    const x=L+i*cw;
+    frag.appendChild(mk('line',{x1:x,y1:T-8,x2:x,y2:B+8,stroke:'rgba(140,180,210,.13)','stroke-width':1}));
+    const tx=mk('text',{x:x,y:B+24,fill:'#6d8ba1','font-size':7.4,'font-family':'ui-monospace,monospace',
+      'text-anchor':'middle','letter-spacing':'.08em'});
+    tx.textContent=e.toUpperCase();frag.appendChild(tx);
+  });
+  const el=mk('text',{x:L,y:T-18,fill:'#6d8ba1','font-size':7.4,'font-family':'ui-monospace,monospace','letter-spacing':'.18em'});
+  el.textContent='ERA LADDER';frag.appendChild(el);
+
+  // one lane per archive
+  const rungs=[];
+  HARCH.forEach((a,i)=>{
+    const y=T+i*lh;
+    frag.appendChild(mk('line',{x1:L,y1:y,x2:R,y2:y,stroke:'rgba(140,180,210,.16)','stroke-width':1}));
+    const t=mk('text',{x:L-9,y:y+2.6,fill:'#7f9db2','font-size':7.2,'font-family':'ui-monospace,monospace',
+      'text-anchor':'end','letter-spacing':'.06em'});
+    t.textContent=a.toUpperCase();frag.appendChild(t);
+    HERAS.forEach((_,k)=>{
+      const c=mk('rect',{x:L+k*cw-1.7,y:y-1.7,width:3.4,height:3.4,fill:'#2a4358',rx:.6});
+      rungs.push({el:c,lane:i,era:k,lit:0});frag.appendChild(c);
+    });
+  });
+
+  // the question, and the corpus it feeds
+  frag.appendChild(mk('circle',{cx:56,cy:(T+B)/2,r:9,fill:'none',stroke:'#e8873a','stroke-width':1.4}));
+  frag.appendChild(mk('circle',{cx:56,cy:(T+B)/2,r:3.4,fill:'#e8873a'}));
+  const qt=mk('text',{x:56,y:(T+B)/2+26,fill:'#e8873a','font-size':7.4,'font-family':'ui-monospace,monospace',
+    'text-anchor':'middle','letter-spacing':'.16em'});
+  qt.textContent='QUESTION';frag.appendChild(qt);
+  const feed=mk('path',{d:'M65 '+((T+B)/2)+' C 92 '+((T+B)/2)+', 96 '+T+', '+L+' '+T,
+    fill:'none',stroke:'rgba(232,135,58,.3)','stroke-width':1});frag.appendChild(feed);
+  const feed2=mk('path',{d:'M65 '+((T+B)/2)+' C 92 '+((T+B)/2)+', 96 '+B+', '+L+' '+B,
+    fill:'none',stroke:'rgba(232,135,58,.3)','stroke-width':1});frag.appendChild(feed2);
+
+  const colX=R+26, colW=22;
+  frag.appendChild(mk('rect',{x:colX,y:T,width:colW,height:B-T,fill:'rgba(140,180,210,.06)',
+    stroke:'rgba(140,180,210,.2)','stroke-width':1,rx:2}));
+  const bar=mk('rect',{x:colX,y:B,width:colW,height:0,fill:'#4db8dd',opacity:.8,rx:2});frag.appendChild(bar);
+  const gate=mk('line',{x1:colX-6,y1:B,x2:colX+colW+6,y2:B,stroke:'#e8873a','stroke-width':1.6});frag.appendChild(gate);
+  const ct=mk('text',{x:colX+colW/2,y:B+24,fill:'#7f9db2','font-size':7.4,'font-family':'ui-monospace,monospace',
+    'text-anchor':'middle','letter-spacing':'.14em'});ct.textContent='CORPUS';frag.appendChild(ct);
+
+  const pulseG=mk('g',{});frag.appendChild(pulseG);
+  svg.innerHTML='';svg.appendChild(frag);
+
+  const nEl=document.getElementById('hvizn'), sEl=document.getElementById('hvizs');
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+    rungs.forEach(r=>{r.el.setAttribute('fill','#4db8dd');r.el.setAttribute('opacity',.7);});
+    bar.setAttribute('y',T+40);bar.setAttribute('height',B-T-40);
+    if(nEl)nEl.textContent='1,284';if(sEl)sEl.textContent='perimeter complete';
+    return;
+  }
+
+  let pulses=[],admitted=0,tick=0,order=[];
+  const reset=()=>{
+    rungs.forEach(r=>{r.lit=0;r.el.setAttribute('fill','#2a4358');r.el.setAttribute('opacity',1);});
+    admitted=0;pulses=[];pulseG.innerHTML='';
+    order=[];for(let i=0;i<lanes;i++)order.push(i);
+    /* deal the lanes the way the sweep does - six slices, not one at a time */
+    order.sort((a,b)=>(a%6)-(b%6)||a-b);
+    tick=0;
+  };
+  reset();
+  let last=performance.now(),acc=0,launched=0;
+  function frame(now){
+    const dt=Math.min(64,now-last);last=now;acc+=dt;
+    while(acc>78){
+      acc-=78;tick++;
+      if(launched<lanes*2){
+        const lane=order[launched%lanes];
+        const dot=mk('circle',{cx:L,cy:T+lane*lh,r:2.4,fill:'#e8873a'});
+        pulseG.appendChild(dot);
+        pulses.push({el:dot,lane:lane,x:L,v:2.6+Math.random()*2.4});
+        launched++;
+      }
+    }
+    pulses.forEach(p=>{
+      p.x+=p.v*(dt/16);
+      p.el.setAttribute('cx',p.x);
+      const k=Math.round((p.x-L)/cw);
+      if(k>=0&&k<HERAS.length){
+        const r=rungs[p.lane*HERAS.length+k];
+        if(r&&!r.lit){r.lit=1;r.el.setAttribute('fill','#4db8dd');
+          if(Math.random()<0.62){admitted+=1+Math.floor(Math.random()*11);}}
+      }
+      if(p.x>R){p.el.setAttribute('opacity',Math.max(0,1-(p.x-R)/34));}
+    });
+    pulses=pulses.filter(p=>{if(p.x>R+36){p.el.remove();return false;}return true;});
+    const h=Math.min(B-T,(admitted/1284)*(B-T));
+    bar.setAttribute('y',B-h);bar.setAttribute('height',h);
+    gate.setAttribute('y1',B-h);gate.setAttribute('y2',B-h);
+    if(nEl)nEl.textContent=admitted.toLocaleString('en-US');
+    const done=launched>=lanes*2&&!pulses.length;
+    if(sEl)sEl.textContent=done?'perimeter complete':'sweeping '+HERAS[Math.min(HERAS.length-1,Math.floor(tick/3)%HERAS.length)];
+    if(done){launched=0;setTimeout(()=>{reset();},2600);}
+    HRAF=requestAnimationFrame(frame);
+  }
+  let HRAF=requestAnimationFrame(frame);
+}
+/* the numbers count in, and each section arrives as you reach it */
+function heroChrome(){
+  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('#home [data-count]').forEach(el=>{
+    const to=Number(el.dataset.count)||0;
+    if(rm){el.textContent=to.toLocaleString('en-US');return;}
+    let v=0;const step=Math.max(1,Math.round(to/28));
+    const id=setInterval(()=>{v+=step;if(v>=to){v=to;clearInterval(id);}
+      el.textContent=v.toLocaleString('en-US');},34);
+  });
+  const secs=[...document.querySelectorAll('#home .hsec')];
+  if(rm||!('IntersectionObserver' in window)){secs.forEach(x=>x.classList.add('seen'));return;}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('seen');io.unobserve(e.target);}
+  }),{rootMargin:'0px 0px -8% 0px'});
+  secs.forEach(x=>io.observe(x));
+}
 const AKEY='parallax.auth', EKEY='parallax.entered';
 let AUTH=null;
 try{AUTH=JSON.parse(localStorage.getItem(AKEY)||'null');}catch(e){AUTH=null;}
@@ -7201,6 +7577,8 @@ document.addEventListener('click',e=>{
   }catch(e){}
   hmode('signup');
   renderWho();
+  try{heroViz();}catch(e){}
+  try{heroChrome();}catch(e){}
   /* Signed in, or already through the door once - do not make them walk it again. */
   let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
   if(AUTH||been){h.remove();enterApp();}

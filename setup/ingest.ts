@@ -25,8 +25,8 @@
 //     Server, DBLP (computer science) and PLOS — joined the thirteen from v8.
 //   * The HISTORICAL LADDER. A relevance sort stops wherever the index decides
 //     it stops, and what it drops is always the old work. So every archive that
-//     can filter by date gets one reservation per era: pre-1930, then every
-//     decade to the 2020s. OpenAlex, Crossref, ADS, Semantic Scholar, Europe
+//     can filter by date gets one reservation per era: one window for everything
+//     before 1930 - which reaches the 1600s - then every decade to the 2020s. OpenAlex, Crossref, ADS, Semantic Scholar, Europe
 //     PMC, PubMed, INSPIRE and arXiv all run the ladder. That is what puts a
 //     1934 paper and a preprint from this month in the same corpus.
 //   * Each archive has its own politeness budget, so the sweep runs one queue
@@ -75,7 +75,7 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADS = Deno.env.get("ADS_TOKEN") ?? "";
 const ANT = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
-const WORKER_VERSION = 11;
+const WORKER_VERSION = 12;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -158,6 +158,12 @@ type Rec = {
   authors: string; url: string; published_at: string | null;
   year: number | null; citations: number | null; venue: string;
   institutions: string[]; oa: boolean | null; concepts: string[];
+  /* Which OTHER archives independently returned this same record. Deduping
+     without recording this throws away the most useful thing a wide perimeter
+     knows: a paper five archives found on their own is a different object from
+     one only Zenodo has, and which archive holds records nobody else does is
+     the only honest answer to "what is this archive here for". */
+  also?: string[];
 };
 const rec = (o: Partial<Rec>): Rec => ({
   source: "", source_id: "", title: "", abstract: "", authors: "", url: "",
@@ -654,6 +660,7 @@ const strip = (r: Rec) => ({
   source: r.source, source_id: r.source_id, title: r.title, url: r.url,
   published_at: r.published_at, year: r.year, citations: r.citations,
   venue: r.venue, institutions: r.institutions, oa: r.oa, concepts: r.concepts, authors: r.authors,
+  also: r.also || [],
 });
 const digestOf = (rows: Rec[], n: number) =>
   rows.slice(0, n).map((r, i) =>
@@ -984,13 +991,21 @@ async function handle(req: Request): Promise<Response> {
     }));
 
     const found: Rec[] = [];
-    const seen = new Set<string>();
-    const seenTitle = new Set<string>();
+    const at = new Map<string, number>();
     for (const rc of bag) {
       const key = rc.source_id;
+      if (!key) continue;
       const tkey = rc.title.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 70);
-      if (!key || seen.has(key) || (tkey && seenTitle.has(tkey))) continue;
-      seen.add(key); if (tkey) seenTitle.add(tkey);
+      const hit = at.has(key) ? at.get(key)! : (tkey && at.has("t:" + tkey) ? at.get("t:" + tkey)! : -1);
+      if (hit >= 0) {
+        // a second archive found the same work - record the corroboration
+        const keep = found[hit];
+        if (rc.source !== keep.source && (keep.also ??= []).indexOf(rc.source) < 0) keep.also.push(rc.source);
+        if (keep.citations == null && rc.citations != null) keep.citations = rc.citations;
+        if (!keep.abstract && rc.abstract) keep.abstract = rc.abstract;
+        continue;
+      }
+      at.set(key, found.length); if (tkey) at.set("t:" + tkey, found.length);
       found.push(rc);
     }
     const sweepMs = Date.now() - t0;
@@ -1015,7 +1030,7 @@ async function handle(req: Request): Promise<Response> {
           source: r.source, source_id: r.source_id, title: r.title, url: r.url,
           published_at: r.published_at, year: r.year, citations: r.citations,
           venue: r.venue, institutions: r.institutions, oa: r.oa, concepts: r.concepts,
-          authors: r.authors,
+          authors: r.authors, also: r.also || [],
         })),
       }), { headers: { ...CORS, "Content-Type": "application/json" } });
     }
@@ -1060,7 +1075,7 @@ async function handle(req: Request): Promise<Response> {
       source: r.source, source_id: r.source_id, title: r.title, url: r.url,
       published_at: r.published_at, year: r.year, citations: r.citations,
       venue: r.venue, institutions: r.institutions, oa: r.oa, concepts: r.concepts,
-      authors: r.authors,
+      authors: r.authors, also: r.also || [],
     }));
 
     if (body.store && keep.length) {
