@@ -544,6 +544,27 @@ body.cxon #doc{right:min(430px,34vw)}
 #galGrid figcaption b{color:var(--ink)}
 @media(max-width:900px){#galGrid{grid-template-columns:1fr}}
 
+/* what shipped in this build, reachable from the stamp itself */
+#newOv{position:fixed;inset:0;z-index:66;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(244,242,237,.86);backdrop-filter:blur(11px)}
+#newOv.on{display:flex}
+#newBox{margin-top:7vh;width:min(760px,92vw);max-height:82vh;overflow-y:auto;scrollbar-width:none;
+  background:rgba(255,254,251,.97);border:1px solid var(--line2);border-radius:4px;padding:22px 26px 26px;
+  box-shadow:0 30px 70px -24px rgba(60,48,32,.30)}
+#newBox::-webkit-scrollbar{display:none}
+#newBox .lbl{font-size:8.5px;letter-spacing:.30em;text-transform:uppercase;color:var(--dim);font-weight:800}
+#newBox .lbl span{color:var(--asm)}
+#newX{float:right;background:none;border:0;cursor:pointer;font-family:var(--m);font-size:8px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:800}
+#newX:hover{color:var(--ink)}
+.nwi{border-top:1px solid var(--line);padding:11px 0 11px 12px;border-left:2px solid transparent}
+.nwi:first-of-type{border-top:0}
+.nwi h4{margin:0 0 3px;font-size:13.5px;font-weight:650;color:var(--ink)}
+.nwi p{margin:0 0 5px;font-size:11.6px;line-height:1.6;color:var(--ink2)}
+.nwi .wh{font-family:var(--m);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--asm);font-weight:800}
+#bld{cursor:pointer;border-bottom:1px dotted rgba(26,52,84,.35)}
+#bld:hover{color:var(--asm);border-color:var(--asm)}
+
 /* plan & billing - a control-surface overlay, never a research station */
 #plansOv{position:fixed;inset:0;z-index:62;display:none;align-items:flex-start;justify-content:center;
   background:rgba(244,242,237,.82);backdrop-filter:blur(10px)}
@@ -631,7 +652,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld">b55</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><span id="bld" title="What shipped in this build">b56</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -661,6 +682,12 @@ body.cxon #doc{right:min(430px,34vw)}
     <div id="cxHints"></div>
   </div>
 </div>
+
+<div id="newOv"><div id="newBox">
+    <button id="newX">close</button>
+    <div class="lbl">Build <span id="newB"></span> &middot; what shipped in it</div>
+    <div id="newBody"></div>
+</div></div>
 
 <div id="plansOv"><div id="plansBox">
   <button id="plansX">close</button>
@@ -2798,6 +2825,56 @@ apSug.addEventListener('click',e=>{const b=e.target.closest('.sug');if(b&&b.data
 ap.addEventListener('click',e=>{if(e.target===ap)closeAp();});
 $('#cmdHint').addEventListener('click',openAp);
 /* ---------------------------------------------------------------------------
+   "I am not seeing the changes" has to be answerable in one click, by the page
+   itself, without me. The stamp says which build is loaded; opening it says
+   what that build changed and exactly where to look for each item.
+   --------------------------------------------------------------------------- */
+const BUILD='b56';
+const WHATSNEW=[
+ ['This panel',
+  'The stamp in the corner is now a button. It names the build that is actually loaded and lists what that build changed, so "I am not seeing the changes" is answerable in one click without asking me.',
+  'The build stamp, top right.'],
+ ['Sections collapse to their own answer',
+  'Every heading in every station folds to one line carrying the finding, not a label - "2 camps, leading at 56% support", "1935-2026, 91 years, quiet in the 1960s". First open, the rest closed, with Expand all / Collapse all above them.',
+  'WATCH → Research return. You need a completed sweep: a station with nothing in it has nothing to fold.'],
+ ['The figure expands into a panel of four',
+  'The column keeps a single small figure. The control above it reads "expand - 4 figures" and opens the admission volume, the arrival terrain, the field by decade, and where impact sits, side by side with captions.',
+  'The control sits directly above the figure, top right.'],
+ ['Two new figures',
+  'The field by decade draws records published against the citations they now hold, with a dormant decade as an empty box. Where impact sits plots log citations against year with the citation centre of mass marked.',
+  'Inside the expanded panel only - they are written to be read next to the others.'],
+ ['The deep read',
+  'Attention inequality, velocity against the previous decade, citations per year of age, recurring authors, refereed share, archive corroboration, concept drift and the role mix.',
+  'ANALYZE → Explanations & disagreement, and MODEL → State of the question.'],
+ ['The console',
+  'Talk to it: run a field analysis, where did this question come from, who owns this field, what should I read first, which archives answered. Each answer is filed as its own station.',
+  'The ◈ button on the right edge, or ⌘K.'],
+ ['Dictation',
+  'A microphone on the ask bar, the bottom bar and the console. Press, talk, and it submits on silence. Chrome and Safari only.',
+  'The round dot beside every input.'],
+ ['Ten archives, back to the 1800s',
+  'OpenAlex, Semantic Scholar, INSPIRE-HEP, Europe PMC, DOAJ, DataCite and HAL joined arXiv, NASA ADS and Crossref, with separate passes for the canon and the origins.',
+  'Needs worker v7 deployed in Supabase. Ask the console "which archives answered" to see the ledger.'],
+ ['The simulated bars are gone',
+  'The top status strip and the bottom telemetry row reported nothing about the corpus on screen. Both deleted; the text column went from 39vw to 66vw and sets in two columns above 1250px wide.',
+  'Everywhere.'],
+];
+function openNew(){
+  const o=document.getElementById('newOv');if(!o)return;
+  document.getElementById('newB').textContent=BUILD;
+  document.getElementById('newBody').innerHTML=WHATSNEW.map(x=>
+    '<div class="nwi"><h4>'+x[0]+'</h4><p>'+x[1]+'</p><p class="wh">Where: '+x[2]+'</p></div>').join('')+
+    '<p style="font-size:11.4px;color:var(--dim);margin-top:14px">If the stamp in the corner does not read <b>'+BUILD+
+    '</b>, the browser served a cached copy: reload with <b>&#8984;&#8679;R</b>, or add <code>?v='+BUILD.slice(1)+
+    '</code> to the address.</p>';
+  o.classList.add('on');
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#bld')){openNew();return;}
+  if(e.target.id==='newOv'||e.target.id==='newX'){document.getElementById('newOv').classList.remove('on');return;}
+});
+addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.getElementById('newOv');if(o)o.classList.remove('on');}});
+/* ---------------------------------------------------------------------------
    The figure panel. In the column a figure has to stay small enough not to take
    the page over, which means only one of them fits. Expanding shows every
    figure that applies to this watch at once, because the readings only mean
@@ -4031,9 +4108,15 @@ const CXCAP='<b>Admission volume.</b> Date runs away to the right, archive is th
 function stationsBase(mode){
   if(noWatch())return [
    {id:'start',label:'Open your first watch',sub:'nothing is being tracked yet',vis:null,
-    html:askHTML(false)+'<h2>PARALLAX is not watching anything yet.</h2>'+
+    html:askHTML(false)+'<h2 data-dg="type a question above and it becomes a watch">PARALLAX is not watching anything yet.</h2>'+
      '<p>This machine reads the scientific literature continuously, scores every record against a question you define, and surfaces only what changes an assumption, a boundary or a conclusion. It has no opinions of its own and no preloaded subject - you give it the question.</p>'+
-     '<div data-lv="questions">'+questionsHTML()+'</div>'}];
+     '<div data-lv="questions">'+questionsHTML()+'</div>'+
+     '<h2 data-dg="ten archives, 1800s to this morning">What the perimeter reaches</h2>'+
+     '<div data-lv="ledger">'+archiveLedgerHTML()+'</div>'+
+     '<h2 data-dg="press \u2318K or the \u25c8 button on the right edge">What you can ask the console</h2>'+
+     '<p>Once a watch has returned records, the console will run a field analysis, find where the question came from, '+
+     'tell you who owns the field, build a reading order, and report which archives answered - filing each answer as its '+
+     'own station rather than a paragraph you have to act on yourself.</p>'}];
   if(mode==='watch'&&!hasSeries())return [
    {id:'research',label:'Research return',sub:'what the perimeter actually found',
     vis:(function(){const R=resultsOf(QQ.id);return (R&&R.state==='done'&&R.results&&R.results.length)?'resfig':null;})(),
@@ -5390,7 +5473,7 @@ function resultsHTML(){
 function diagHTML(){
   const R=resultsOf(QQ.id);
   const rows=[
-    ['Build running','b55'],
+    ['Build running','b56'],
     ['Active watch',QQ&&QQ.name?QQ.name:'none'],
     ['Watch researched',R?('yes - state: '+R.state):'<b style="color:'+TC.bad+'">no</b>'],
     ['Records returned',R&&R.results?R.results.length:0],
