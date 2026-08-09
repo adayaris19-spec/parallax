@@ -246,6 +246,8 @@ canvas{display:block}
 .hnums span{display:block;margin-top:7px;font-family:var(--m);font-size:9.5px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim)}
 /* the indices, running past, the way a rack readout does */
+@media(max-width:980px){.hherorow{grid-template-columns:1fr}.hviz{order:-1;margin-right:0}
+  .hviz svg{max-width:min(560px,86vw)}.hhero{min-height:0}}
 .hticker{position:relative;overflow:hidden;border-top:1px solid rgba(26,52,84,.14);
   border-bottom:1px solid rgba(26,52,84,.14);background:rgba(255,254,251,.5);
   padding:11px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
@@ -284,6 +286,24 @@ canvas{display:block}
 .hgrid p{font-size:13.2px;line-height:1.55}
 .hgrid h3{font-size:14.5px;font-weight:650;margin:0 0 9px;line-height:1.28}
 .hgrid p{font-size:12.8px;line-height:1.58;color:var(--ink2);margin:0}
+/* the mechanism, as four stages rather than four paragraphs */
+.hpiperow{display:flex;align-items:stretch;flex-wrap:wrap;gap:0}
+.hstep{flex:1 1 170px;min-width:160px;border:1px solid rgba(84,105,125,.18);
+  border-top:3px solid var(--calc);border-radius:6px;padding:18px 18px 20px;
+  background:linear-gradient(168deg,rgba(255,255,253,.94),rgba(250,248,243,.62));
+  box-shadow:0 12px 28px -24px rgba(60,48,32,.5);
+  transition:transform .26s cubic-bezier(.16,.9,.3,1),box-shadow .26s}
+.hstep:hover{transform:translateY(-4px);box-shadow:0 22px 42px -26px rgba(60,48,32,.6)}
+.hstep.lit{border-top-color:var(--asm)}
+.hstep .hn{display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.22em;
+  color:var(--dim);margin-bottom:9px;font-weight:700}
+.hstep b{display:block;font-size:clamp(15px,1.3vw,18px);font-weight:650;letter-spacing:-.012em;margin-bottom:7px}
+.hstep p{font-size:12.6px;line-height:1.48;color:var(--ink2);margin:0}
+.harrow{flex:0 0 30px;align-self:center;height:1px;position:relative;
+  background:linear-gradient(90deg,transparent,rgba(84,105,125,.7),transparent)}
+.harrow::after{content:'';position:absolute;right:3px;top:-3.5px;border-left:6px solid rgba(84,105,125,.7);
+  border-top:4px solid transparent;border-bottom:4px solid transparent}
+@media(max-width:900px){.harrow{display:none}.hstep{flex:1 1 100%}}
 /* the readouts: a row of plates, each lifted off the page */
 .hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:clamp(16px,1.8vw,26px)}
 .hpick figure{margin:0;border:1px solid rgba(26,52,84,.14);border-radius:7px;padding:15px 16px 17px;
@@ -821,7 +841,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b68</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b69</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3101,8 +3121,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b68';
+const BUILD='b69';
 const WHATSNEW=[
+ ['The four-stage strip is a strip again',
+  'It had collapsed to bare stacked text — "01Ask", "02Search" — with no cards, no row, no arrows. Cause: an edit that replaced a range of the stylesheet took the rules for it out with the range. The same edit had already done this once to the readout grid, which briefly rendered each figure 1212px wide. Restored, and there is now a check that fails if any class the front door uses has no rule behind it, if the strip stops being a row, if the grid stops being a grid, or if the type scale collapses. Neither of those breakages threw an error, so nothing was going to catch them except looking.',
+  'The front door, between the hero and the capabilities.'],
  ['The front door has a moment in it now',
   'It was competent and nothing arrested you. The fix was not more colour — it was scale, motion and shadow, all of it inside the same light room. The hero fills the screen: the headline at 64px, the globe at 700px bleeding past the right edge, the four numbers at 50px over amber rules, and a slow beam that crosses the page the way a light crosses a bench. A status chip counts the corpus in and then holds. Under it, the eighteen indices run past on a ticker with what each returned. Section headings went from 28px to 46px, cards lift and light an amber edge under the cursor, and everything arrives in a stagger as you reach it. The readouts draw themselves the first time they scroll into view — curves stroke on, error bars arrive in sequence, spectral lines grow from the axis — and never again, because anything that re-animates on every scroll is a toy. A closing line at the end says the thing the product is actually for.',
   'The front door. All of it respects prefers-reduced-motion.'],
