@@ -1,13 +1,14 @@
 # PARALLAX — Design Handoff
 
-**Build at time of writing:** `b73`
+**Build at time of writing:** `b74`
 **Scope:** the whole visual and interaction system of the product — front door and workspace.
 
 > This document was written against `b71` and then **run against the app**, twice. The conformance
 > defects it found were fixed and shipped as `b72`; the remaining items were completed in `b73`,
 > and running them surfaced three things the first draft had got wrong, which are corrected in
-> place and flagged. §11 records both passes. The rest of the document describes the app as it
-> now stands.
+> place and flagged. `b74` then fixed a set of narrow-width collisions found by rendering the app
+> at eight widths rather than reading the CSS. §11 records all three passes. The rest of the
+> document describes the app as it now stands.
 
 This document is written for whoever picks the design up next: a designer who needs the rules, or an
 engineer who needs to add a surface without breaking the language. It describes what is actually in
@@ -333,6 +334,15 @@ body text goes to 13px, and the dock, controls and panels button are held clear 
 of the five hidden surfaces were already `display:none` at every width — hiding them again on
 mobile changed nothing (see §2).
 
+**`b74` fixed the top strip, which was broken at more widths than mobile.** `#brand` and `#hud` are
+positioned into the same row independently and neither accounts for the other; below ~580px the
+readouts overprinted the wordmark. Below 560px they now take a line each (`#doc` starts at 84px);
+between 560–900px the mark shrinks and `#cmdHint`, `#qBtn b` and `#planBtn b` drop out. **`#liveBtn`
+keeps its value at every width** — `SIM` vs `LIVE` is the honesty label from §9.4 and must never be
+what gets dropped for space. The same collision existed on the *desktop* between 901–1150px, where
+the centred dock ran into both ends of the strip; that range now drops `.dk .d` and the same two HUD
+values. The dock carries the ticker's masked fade so its scroller reads as "more", not as damage.
+
 ---
 
 ## 5. Component inventory
@@ -557,7 +567,7 @@ What follows is what is genuinely still open, and it is mostly structural rather
 
 ---
 
-## 11. What this handoff changed (`b71` → `b73`)
+## 11. What this handoff changed (`b71` → `b74`)
 
 The document was run against the app twice. `b72` fixed the conformance defects — the app
 disagreeing with its own stated system. `b73` completed the rest, and in doing so proved three of
@@ -583,6 +593,23 @@ this document's own claims wrong; those are corrected in place above and called 
 | **Micro-label contrast re-taken.** `--dim` `#54697d` → `#4c6076`, 5.4:1 → 6.2:1. Sizes kept. | A decision, recorded, rather than an inheritance. |
 | **A typeface decision.** No webfont — stated, with reasons — and an explicitly enumerated fallback chain per platform. | Was an assumption; is now a choice. |
 | **Dead `#vitals` CSS removed; `v3.html` deleted.** | Fifteen rules styling an element that never existed; 178KB linked from nowhere. `v3.html` is recoverable at `git show cfbcdca:v3.html`. |
+
+### `b74` — collisions the CSS did not reveal
+
+Found by rendering the running app at 360 / 390 / 472 / 520 / 700 / 880 / 1000 / 1500px and testing
+every pair of chrome elements for overlap, rather than by reading the stylesheet. Reading it had
+missed all four.
+
+| Fix | Effect |
+|---|---|
+| **Wordmark and readouts overprinted below ~580px.** Two lines below 560px; shrink-and-drop between 560–900. | The mark was unreadable in any side panel or phone. `DATA`'s value is exempt from dropping — it is the honesty label. |
+| **The same collision on the desktop, 901–1150px** — the centred dock ran into both the mark and the readouts. Pre-existing, unrelated to the mobile work. | `.dk .d` and two HUD values drop in that range only. |
+| **`REASON` sliced off the dock** with no sign it scrolled. | Modes shrink so all six fit from ~470px; below that, the ticker's masked fade signals more. The console button also came down from mid-page to join the other controls. |
+| **The ask field pushed its own button off a 360px screen** — a flex child that was never told it may shrink below its text. | `min-width:0` on the input; the bar wraps. |
+
+**Verified:** at all eight widths — zero element-pair collisions, no horizontal overflow, and the
+build stamp reachable at every one of them. The dock still overflows its scroller below ~470px,
+which is intended: six modes do not fit a 360px phone, and it now says so.
 
 ### Three things this document had wrong
 

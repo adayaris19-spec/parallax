@@ -922,10 +922,39 @@ body.cxon #doc{right:min(430px,34vw)}
   .gsec>summary .t{font-size:14px}
 
   /* the bottom stack, from the floor up: dock, controls, activity, instruments */
-  #dock{top:auto;bottom:8px;max-width:96vw;overflow-x:auto;left:50%}
-  .dk{padding:7px 9px}.dk .d{display:none}
+  /* THE TOP STRIP. #brand and #hud are both absolutely positioned into the same
+     row and neither has ever known the other was there. Above about 580px they
+     happen to miss each other; below it the readouts print straight through the
+     wordmark, which is what a narrow panel or any phone actually shows. The mark
+     comes down a size, the readouts give up what a phone cannot use, and the row
+     is capped and allowed to scroll as a last resort rather than overlap.
+
+     What each readout gives up is chosen, not uniform. CMD goes entirely - it
+     advertises a keyboard shortcut on a device with no keyboard. WATCH and PLAN
+     keep their labels and drop their values, which the stations state anyway.
+     DATA keeps its value: SIM against LIVE is the one label that tells you
+     whether the numbers in front of you are real, and it is never dropped. */
+  #brand{top:14px;left:12px}
+  #brand .p{font-size:11px;letter-spacing:.30em}
+  #cmdHint{display:none}
+  #qBtn b,#planBtn b{display:none}
+  #hud{left:auto;right:10px;gap:12px;max-width:calc(100% - 120px);
+    overflow-x:auto;scrollbar-width:none}
+  #hud::-webkit-scrollbar{display:none}
+
+  /* the dock held six modes in a scroller and gave no sign it had more in it,
+     so REASON was simply sliced off at the edge. Same masked fade the archive
+     ticker uses on the front door. */
+  #dock{top:auto;bottom:8px;max-width:96vw;overflow-x:auto;left:50%;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+  #dock::-webkit-scrollbar{display:none}
+  .dk{padding:7px 7px}.dk .d{display:none}
   #ctl{left:50%;bottom:50px;max-width:94vw}
   #hint{left:50%;bottom:116px}
+  /* the console button sat stranded halfway up an empty page; it belongs with
+     the other controls, not floating in the middle of the room */
+  #cxOpen{top:auto;bottom:116px;right:10px}
   /* #band is one button - the way into the panels. It is not a status strip and
      is not dressed as one: renderBand() is deliberately empty because the
      telemetry that used to sit here was simulated, and simulated telemetry is
@@ -933,14 +962,51 @@ body.cxon #doc{right:min(430px,34vw)}
      and stay thumb-reachable. */
   #band{position:fixed;right:10px;left:auto;bottom:80px;height:26px;
     border-top:0;padding-top:0;background:none}
-  #bandMenu{bottom:112px;right:0}
+  /* clear of the console button, which sits above the band and paints over it */
+  #bandMenu{bottom:156px;right:0}
 
   #insp{width:min(330px,92vw);top:56px}
   #brief{left:22px;width:min(360px,92vw)}
 }
+/* Below about 560px the strip cannot hold the mark and the readouts on one
+   line however hard it is squeezed, and the honest answer is a second line
+   rather than a scroller that hides the build stamp - which is the one readout
+   whose entire job is to be checked. So the readouts drop to their own row and
+   the document starts lower. Nothing is hidden and nothing is unreachable. */
+@media(max-width:560px){
+  #brand{top:12px;left:12px}
+  #hud{top:38px;left:12px;right:12px;max-width:none;overflow:visible;
+    flex-wrap:wrap;justify-content:flex-start;gap:9px 12px}
+  #doc{top:84px}
+  #insp{top:88px}
+  /* a flex child will not shrink below the width of its own text unless it is
+     told it may; without this the ask field held the row open and pushed the
+     button off the edge of a small phone */
+  .askbar{flex-wrap:wrap}
+  .askbar input{min-width:0;flex:1 1 120px}
+  /* six modes at full size do not fit a phone; take the size down before
+     falling back to the scroller */
+  .dk{padding:7px 5px}
+  .dk .n{font-size:8.8px;letter-spacing:.17em}
+}
 @media(max-width:900px) and (max-height:680px){
   #band{bottom:72px}
   #doc{padding-bottom:128px}
+}
+/* ---------------------------------------------------------------------------
+   The desktop strip has its own collision, and it predates the small-screen
+   work: the dock is centred on the workspace at top:12 while the mark sits left
+   and the readouts sit right, and between roughly 900 and 1150px all three want
+   the same row. The dock ran into the wordmark on one side and the readouts on
+   the other. Above 900 the layout is still the desktop one, so the fix is to
+   take width out of both sides rather than restack: the dock loses the
+   descriptions under each mode name, and the readouts lose the two values that
+   are stated elsewhere in the station. DATA keeps its value here too.
+   --------------------------------------------------------------------------- */
+@media(min-width:901px) and (max-width:1150px){
+  .dk .d{display:none}
+  #qBtn b,#planBtn b{display:none}
+  #cmdHint{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.05s!important}
@@ -957,7 +1023,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b73</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b74</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3250,8 +3316,20 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b73';
+const BUILD='b74';
 const WHATSNEW=[
+ ['The wordmark and the readouts stop printing over each other',
+  'PARALLAX and the row of readouts beside it are positioned into the same strip independently, and neither has ever known the other was there. Above about 580px of width they happen to miss; below it the readouts run straight through the middle of the wordmark, which is what a narrow window, a side panel or any phone actually showed. Below 560px they now take a line each — nothing hidden, nothing scrolled out of reach. Between 560 and 900 the mark comes down a size and the readouts give up what a phone cannot use: CMD goes entirely, because it advertises a keyboard shortcut to a device with no keyboard, and WATCH and PLAN keep their labels but drop values the station states anyway. DATA keeps its value at every width — SIM against LIVE is the one readout that tells you whether the numbers in front of you are real, so it is never the thing that gets dropped.',
+  'Narrow the window under 900px, or open it on a phone.'],
+ ['The same collision on the desktop, which was older',
+  'Between roughly 900 and 1150px the mode dock is centred in a strip whose two ends are already occupied, so it ran into the wordmark on the left and the readouts on the right. This predates the small-screen work and had nothing to do with it. Width comes out of both sides instead of restacking: the dock drops the description under each mode name, and the readouts drop the two values stated elsewhere.',
+  'Any window between 900 and 1150px wide.'],
+ ['REASON was being sliced off the dock',
+  'Six modes do not fit across a phone, so the dock scrolls — but it gave no sign it had anything more in it, and the last mode simply ended at the edge of the screen looking like a rendering fault. The modes come down a size so all six fit from about 470px up, and below that the dock carries the same masked fade the archive ticker uses, so the edge reads as "there is more" rather than as damage. The console button has come down from the middle of the page to sit with the other controls.',
+  'The row of modes along the bottom on a small screen.'],
+ ['The ask field could push its own button off the screen',
+  'A flex child will not shrink below the width of its own text unless it is told it may. The question field was not told, so on a 360px screen it held the row open and the button that runs the search went off the edge.',
+  'The ASK bar on a small phone.'],
  ['A phone gets the instrument, not the wreckage of one',
   'The small screen had never been laid out — it was five display:none lines and nothing else, and it left the real problem untouched. The station kept its two-pane geometry all the way down, so the text held 66% of the width and the figure got a sliver about 250px wide, narrower still on a real phone: the instrument was least readable at exactly the width where reading is hardest. The station stacks now — the document scrolls, the text runs full width, and the figure sits under it at a height you can actually read, with the modes, the instrument controls and the panels button held clear of each other and of the thumb. Body text goes up to 13px, because a phone is held further from the eye than a monitor is.',
   'Any screen under 900px. Rotate a phone, or narrow the window.'],
