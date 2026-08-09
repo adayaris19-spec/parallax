@@ -236,7 +236,7 @@ canvas{display:block}
 .hact{display:flex;gap:18px;align-items:center;flex-wrap:wrap;
   opacity:0;animation:hrise .9s .42s cubic-bezier(.16,.9,.3,1) forwards}
 .hviz{position:relative;display:flex;justify-content:center;margin-right:clamp(-90px,-5vw,0px)}
-.hviz svg{width:100%;max-width:min(700px,52vw);height:auto;display:block;overflow:visible}
+.hviz svg{width:100%;max-width:min(720px,53vw);height:auto;display:block;overflow:visible}
 /* the numbers, at a size that reads across a room */
 .hnums{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   gap:clamp(14px,2.4vw,34px);margin-top:clamp(18px,2.4vw,34px);max-width:1420px;width:100%}
@@ -841,7 +841,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b69</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b70</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -907,7 +907,7 @@ body.cxon #doc{right:min(430px,34vw)}
       <button class="hlink big" data-home="try">Enter without an account &rarr;</button>
     </div>
    </div>
-   <div class="hviz"><svg id="hglobe" viewBox="0 0 540 500"></svg></div>
+   <div class="hviz"><svg id="hglobe" viewBox="0 0 580 520"></svg></div>
   </div>
   <div class="hnums">
     <div><b data-count="124">0</b><span>searches per question</span></div>
@@ -3121,8 +3121,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b69';
+const BUILD='b70';
 const WHATSNEW=[
+ ['One instrument language, on every figure in the product',
+  'Not a style pass. A shared vocabulary of chrome, applied to the four figures inside the workspace and the six on the front door alike: corner brackets framing the live area, a rangefinder tick rail down both edges, a slow scan crossing the plot, a reticle with a leader line on the one datum that matters — the admission plane you are dragging, the peak decade, the most-cited paper, the outlier past 2σ — and a plate number set vertically up the left margin the way a drawing carries one. Two pipelines draw these figures, one as strings and one in the DOM; both now call into the same helpers, so they cannot drift apart.',
+  'ANALYZE, MEMORY, WATCH — and the front door.'],
+ ['The globe reads as an instrument pointed at something',
+  'A bearing ring around the sphere: a fixed outer scale with a tick every five degrees, longer every fifteen and thirty, and an index mark that runs with the rotation. The era key moved off the glass — each parallel now has a leader out past the ring to a single label column, so nothing lands on the sphere or collides with the ring.',
+  'The front door.'],
  ['The four-stage strip is a strip again',
   'It had collapsed to bare stacked text — "01Ask", "02Search" — with no cards, no row, no arrows. Cause: an edit that replaced a range of the stylesheet took the rules for it out with the range. The same edit had already done this once to the readout grid, which briefly rendered each figure 1212px wide. Restored, and there is now a check that fails if any class the front door uses has no rule behind it, if the strip stops being a row, if the grid stops being a grid, or if the type scale collapses. Neither of those breakages threw an error, so nothing was going to catch them except looking.',
   'The front door, between the hero and the capabilities.'],
@@ -4019,7 +4025,11 @@ CMDS.push(
    Text carries the intelligence; every figure is embedded inside the text
    it explains. The live scene renders inside one contained figure per mode.
    ========================================================================== */
-function svgO(w,h){return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,system-ui">';}
+function svgO(w,h){
+  /* every string-built figure references the shared defs, so make sure they are
+     in the document before the first one is emitted */
+  try{pxDefs();}catch(e){}
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,system-ui">';}
 function sT(x,y,t,a,s2,c,w){return '<text x="'+x+'" y="'+y+'" text-anchor="'+(a||'start')+'" font-size="'+(s2||9)+'" fill="'+(c||C.ink2)+'" font-weight="'+(w||500)+'">'+t+'</text>';}
 function sL(x1,y1,x2,y2,c,w,d){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+c+'" stroke-width="'+(w||1)+'"'+(d?' stroke-dasharray="'+d+'"':'')+'/>';}
 let FID=0;
@@ -4041,6 +4051,83 @@ function fDefs(u){
 const pulse=()=>'';
 const dashflow=()=>'';
 const drawon=()=>'';
+/* ===========================================================================
+   INSTRUMENT CHROME. The vocabulary a control room actually uses, in the
+   daylight palette: corner brackets that frame the live area, a rangefinder
+   tick rail along both edges, a slow scan that crosses the plot, a reticle on
+   the datum that matters with a leader out to its label, and a plate number in
+   the corner. It is not decoration - every element is answering "where am I
+   looking, at what scale, and which point is the point".
+
+   One vocabulary, two pipelines: the in-product figures are built as strings,
+   the front-door figures are built in the DOM, and both call into this.
+   =========================================================================== */
+const HUDA='#b4560a', HUDI='rgba(26,52,84,';
+/* corner brackets - the frame of the live area */
+function hudBrackets(x,y,w,h,len,col){
+  const L=len||14,c=col||HUDA,o=1.4;
+  const g=(a,b,dx,dy)=>'<path d="M'+(a+dx*L)+' '+b+'H'+a+'V'+(b+dy*L)+'" fill="none" stroke="'+c+
+    '" stroke-width="'+o+'" stroke-linecap="square"/>';
+  return g(x,y,1,1)+g(x+w,y,-1,1)+g(x,y+h,1,-1)+g(x+w,y+h,-1,-1);
+}
+/* a rangefinder rail: minor ticks every step, a longer one every fifth */
+function hudRail(x,y,w,h,step,col){
+  const c=col||(HUDI+'.24)');let d='';
+  for(let i=0,px2=x;px2<=x+w+0.1;i++,px2=x+i*step){
+    const t=(i%5===0)?5:2.6;
+    d+='M'+px2.toFixed(1)+' '+(y+h)+'v'+t;
+  }
+  for(let i=0,py2=y;py2<=y+h+0.1;i++,py2=y+i*step){
+    const t=(i%5===0)?5:2.6;
+    d+='M'+x+' '+py2.toFixed(1)+'h'+(-t);
+  }
+  return '<path d="'+d+'" stroke="'+c+'" stroke-width="0.8" fill="none"/>';
+}
+/* the scan. A thin line with a soft leading edge, crossing on a long loop.
+   Suppressed entirely when the reader has asked for less motion. */
+function hudScan(u,x,y,w,h,secs){
+  if(RM)return '';
+  /* the clipPath has to be declared BEFORE the group that uses it - declared
+     inside, the clip silently fails and the trailing edge parks itself over
+     the plot as a static amber block */
+  return '<defs><clipPath id="hcl'+u+'"><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'"/></clipPath></defs>'+
+    '<g clip-path="url(#hcl'+u+')">'+
+    '<g transform="translate(-42,0)"><rect x="'+(x-38)+'" y="'+y+'" width="38" height="'+h+'" fill="url(#pxScan)"/>'+
+    '<rect x="'+x+'" y="'+y+'" width="1" height="'+h+'" fill="'+HUDA+'" opacity=".38"/>'+
+    '<animateTransform attributeName="transform" type="translate" from="-42 0" to="'+(w+44)+' 0" '+
+    'dur="'+(secs||7)+'s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.5 0 0.5 1"/></g></g>';
+}
+/* a reticle on the datum, with a leader out to a label that sits clear of it */
+function hudReticle(cx,cy,r,label,lx,ly,col,align){
+  const c=col||HUDA,R=r||9,an=align||'start';
+  let s2='<g><circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+c+'" stroke-width="1.1" stroke-dasharray="'+
+    (R*1.0).toFixed(1)+' '+(R*0.62).toFixed(1)+'"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+(R*1.85).toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="0.7" opacity=".38"/>'+
+    '<path d="M'+(cx-R*1.9)+' '+cy+'h'+(R*0.9)+'M'+(cx+R)+' '+cy+'h'+(R*0.9)+
+      'M'+cx+' '+(cy-R*1.9)+'v'+(R*0.9)+'M'+cx+' '+(cy+R)+'v'+(R*0.9)+'" stroke="'+c+'" stroke-width="1"/>';
+  if(label){
+    s2+='<path d="M'+(cx+R*1.1)+' '+(cy-R*1.1)+'L'+lx+' '+ly+'" stroke="'+c+'" stroke-width="0.8" opacity=".65" fill="none"/>'+
+      '<circle cx="'+lx+'" cy="'+ly+'" r="1.7" fill="'+c+'"/>'+
+      sM(lx+(an==='end'?-5:5),ly+2.6,label,an,7.2,c,800,'.12em');
+  }
+  return s2+'</g>';
+}
+/* the plate number, bottom-left, the way a figure in a report carries one */
+function hudPlate(x,y,id,rev,note){
+  /* set vertically up the left margin, the way a plate number sits on a
+     drawing - the bottom of a figure is already spoken for by its captions */
+  return '<g transform="translate('+x+','+y+') rotate(-90)">'+
+    sM(0,0,id+'  \u00b7  '+(rev||'REV A')+(note?'  \u00b7  '+note:''),'start',7,HUDI+'.4)',750,'.2em')+
+    '</g>';
+}
+/* everything at once, for a plot rectangle */
+function hudFrame(u,x,y,w,h,o){
+  o=o||{};
+  return hudRail(x,y,w,h,o.step||9)+
+    hudBrackets(x,y,w,h,o.len||15)+
+    hudScan(u,x,y,w,h,o.secs)+
+    (o.plate?hudPlate(x,y+h+(o.plateDy||30),o.plate,o.rev,o.note):'');
+}
 function roHead(s2,title,ro,x0){
   s2+=sM(52,16,title,'start',9.6,C.ink,800,'.16em');
   ro.forEach((r,i)=>{const x=x0+i*72;
@@ -5959,7 +6046,7 @@ function setQuestion(id){
    --------------------------------------------------------------------------- */
 function svgEra(){
   const F=fieldStats(); if(!F)return '';
-  const u2=++FID,W2=520,H2=300,mL=46,mT=52,pW=W2-mL-20,pH=H2-mT-58;
+  const u2=++FID,W2=520,H2=318,mL=46,mT=52,pW=W2-mL-20,pH=H2-mT-76;
   const ds=F.dkeys, mx=Math.max(...ds.map(d=>F.decades[d]));
   const cw={};F.rows.forEach(r=>{const y=r.year;if(!y)return;const d=Math.floor(y/10)*10;cw[d]=(cw[d]||0)+(r.citations||0);});
   const cmx=Math.max(1,...Object.values(cw));
@@ -5972,9 +6059,13 @@ function svgEra(){
   for(let d=ds[0];d<=ds[ds.length-1];d+=10){
     const n=F.decades[d]||0, h=n/mx*pH, x=X(d)-bw/2;
     if(n){
-      s2+='<rect x="'+x+'" y="'+(mT+pH-h)+'" width="'+bw+'" height="'+h+'" fill="rgba(10,106,144,.30)" stroke="'+C.ev+'" stroke-width="0.9"/>';
+      /* lit face, top cap and cast shadow - the same material as the globe */
+      s2+='<ellipse cx="'+(x+bw/2+4)+'" cy="'+(mT+pH+2.5)+'" rx="'+(bw*0.62)+'" ry="2.6" fill="rgba(48,40,28,.20)"/>';
+      s2+='<path d="M'+(x+bw)+' '+(mT+pH-h)+'l5 -3v'+h+'l-5 3Z" fill="#07536f" opacity=".92"/>';
+      s2+='<path d="M'+x+' '+(mT+pH-h)+'l5 -3h'+bw+'l-5 3Z" fill="#5fbcdc"/>';
+      s2+='<rect x="'+x+'" y="'+(mT+pH-h)+'" width="'+bw+'" height="'+h+'" fill="url(#pxBarB)" stroke="rgba(6,66,90,.5)" stroke-width="0.8"/>';
       const ch=(cw[d]||0)/cmx*pH;
-      s2+='<rect x="'+(x+bw*0.62)+'" y="'+(mT+pH-ch)+'" width="'+(bw*0.38)+'" height="'+ch+'" fill="rgba(180,86,10,.42)"/>';
+      s2+='<rect x="'+(x+bw*0.62)+'" y="'+(mT+pH-ch)+'" width="'+(bw*0.38)+'" height="'+ch+'" fill="url(#pxBarA)" opacity=".92"/>';
       s2+=sM(X(d),mT+pH-h-5,n,'middle',7,C.ev,750,'0');
     } else {
       s2+='<rect x="'+x+'" y="'+mT+'" width="'+bw+'" height="'+pH+'" fill="rgba(26,52,84,.04)"/>'+
@@ -5983,8 +6074,18 @@ function svgEra(){
     s2+=sM(X(d),mT+pH+15,String(d).slice(2)+'s','middle',7,C.dim,650,'0');
   }
   s2+=sL(mL-6,mT+pH,mL+pW,mT+pH,'rgba(26,52,84,.35)',1.1);
-  s2+=sM(mL-6,H2-26,'BLUE = RECORDS PUBLISHED. AMBER = CITATIONS THOSE RECORDS NOW HOLD.','start',7.6,C.dim,700,'.04em');
-  s2+=sM(mL-6,H2-11,F.gaps.length?'THE QUIET DECADES ARE WHERE THE QUESTION WAS OUT OF REACH.'
+  s2+=hudFrame(u2,mL-6,mT,pW+6,pH,{step:8,len:13,secs:9});
+  s2+=hudPlate(13,H2-96,'FIG.03','ERA',ds.length+' DECADES');
+  (function(){
+    let best=ds[0];ds.forEach(d=>{if((F.decades[d]||0)>(F.decades[best]||0))best=d;});
+    const n=F.decades[best]||0,h=n/mx*pH,bx=X(best),by=mT+pH-h;
+    /* the label goes back toward the middle of the plate, never off the right */
+    const right=bx>mL+pW*0.62;
+    s2+=hudReticle(bx,by,8,'PEAK '+best+'s \u00b7 '+n+' PAPERS',
+      right?bx-52:bx+52,Math.max(mT+14,by-26),null,right?'end':'start');
+  })();
+  s2+=sM(mL-6,H2-24,'BLUE = RECORDS PUBLISHED. AMBER = CITATIONS THOSE RECORDS NOW HOLD.','start',7.6,C.dim,700,'.04em');
+  s2+=sM(mL-6,H2-10,F.gaps.length?'THE QUIET DECADES ARE WHERE THE QUESTION WAS OUT OF REACH.'
     :'NO QUIET DECADE - THIS QUESTION HAS BEEN WORKED CONTINUOUSLY.','start',7.6,F.gaps.length?C.asm:C.calc,750,'.04em');
   return s2+'</svg>';
 }
@@ -6018,6 +6119,17 @@ function svgImpact(){
   s2+=sM(mL,H2-11,(F.com&&F.medianYear&&F.com<F.medianYear-8)
     ?'INFLUENCE IS OLDER THAN ACTIVITY - THE RECENT WAVE HAS NOT DISPLACED THE CANON.'
     :'INFLUENCE AND ACTIVITY SIT TOGETHER.','start',7.6,C.calc,750,'.04em');
+  s2+=hudFrame(u2,mL-8,mT-6,pW+10,pH+8,{step:9,len:14,secs:10});
+  s2+=hudPlate(15,H2-84,'FIG.04','IMPACT',F.cited.length+' CITED');
+  (function(){
+    const top=F.cited.slice().sort((a,b)=>(b.citations||0)-(a.citations||0))[0];
+    if(!top||!top.year)return;
+    const tx=X(top.year),ty=Y(top.citations||1),right=tx>mL+pW*0.6;
+    /* the centre-of-mass caption owns the top of this plot, so the leader goes
+       downward rather than up into it */
+    s2+=hudReticle(tx,ty,8,'MOST CITED \u00b7 '+(top.citations||0).toLocaleString('en-US'),
+      right?tx-50:tx+50,Math.min(mT+pH-16,ty+30),null,right?'end':'start');
+  })();
   return s2+'</svg>';
 }
 function svgResults(){
@@ -6158,6 +6270,13 @@ function svgResults(){
       sM(q[0]+13,q[1]+2.8,k.toUpperCase()+'  '+a2+'/'+sub.length+' ABOVE','start',7.6,a2?C.ev:C.dim,780,'.07em');
   });
   s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-15,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+  /* instrument chrome around the whole live area, and a reticle on the plane
+     where it meets the front edge - the one number the reader is dragging */
+  s2+=hudFrame(u2,26,36,W2-52,H2-104,{step:11,len:17,secs:11});
+  s2+=hudPlate(14,H2-118,'FIG.01','ADMIT',all.length+' RECORDS');
+  (function(){const q=P(0,0,thr+0.016);
+    s2+=hudReticle(q[0],q[1],9,'PLANE '+(thr*100).toFixed(0)+'% \u00b7 DRAG',
+      q[0]+70,q[1]-34);})();
 
   /* ---- what the solid is telling you ---- */
   const d=adm.length-gateAdm;
@@ -7050,6 +7169,8 @@ function svgTimeline(){
         sM(e[0]+13,e[1]+2.8,L.k.toUpperCase()+'  '+sub.length+' RECORDS','start',7.6,pal[1],780,'.07em');
   });
   s2+=sM(P(1,1,0)[0]+13,P(1,1,0)[1]-15,'ARCHIVE (DEPTH)','start',7.2,C.dim,800,'.14em');
+  s2+=hudFrame(u2,26,36,W2-52,H2-104,{step:11,len:17,secs:13});
+  s2+=hudPlate(14,H2-118,'FIG.02','ARRIVE',(rows?rows.length:0)+' RECORDS');
 
   const half=tMin+span/2, recent=ts.filter(t=>t>=half).length;
   const lead=lanes.map(k=>[k,rows.filter(r=>(r.source||'unknown')===k).length]).sort((a,b)=>b[1]-a[1])[0];
@@ -7419,7 +7540,7 @@ const HARCH=[['openalex',61],['crossref',48],['ads',37],['s2',34],['europepmc',2
    than vanish, which is what makes it read as solid. ---- */
 function globeViz(){
   const svg=document.getElementById('hglobe');if(!svg)return;
-  const CX=286,CY=248,R=186,TILT=-0.36;
+  const CX=316,CY=252,R=168,TILT=-0.36;
   svg.innerHTML='';
   const defs=mkn('defs',{});
   defs.innerHTML=
@@ -7529,34 +7650,62 @@ function globeViz(){
      of view half the time, so the key sits on the silhouette edge where a globe
      puts its latitudes anyway, and stays put. */
   const key=mkn('g',{});svg.appendChild(key);
+  /* The parallels are eras. Each one gets a leader from the silhouette out past
+     the bearing ring to a single label column, so nothing ever lands on the
+     glass or collides with the ring's ticks. */
+  const COL=CX-R-70;
   [[62,'PRE-1930'],[31,'1950s'],[0,'1980s'],[-31,'2000s'],[-62,'2020s']].forEach(([la,lab])=>{
     const y=CY-Math.sin(la*Math.PI/180)*Math.cos(TILT)*R;
-    /* park the tick on the silhouette, not on the parallel's own leftmost point -
-       on a tilted sphere that point is inside the disc and the label lands on
-       top of the glass */
     const dy=y-CY, x=CX-Math.sqrt(Math.max(0,R*R-dy*dy));
-    key.appendChild(mkn('line',{x1:x-7,y1:y,x2:x+2,y2:y,stroke:'rgba(10,106,144,.55)','stroke-width':1}));
-    const t=mkn('text',{x:x-10,y:y+2.6,fill:'rgba(10,106,144,.62)','font-size':7,'text-anchor':'end',
-      'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+    key.appendChild(mkn('path',{d:'M'+(x+2)+' '+y+'H'+(COL+6),fill:'none',
+      stroke:'rgba(10,106,144,.34)','stroke-width':.9}));
+    key.appendChild(mkn('circle',{cx:x+2,cy:y,r:1.8,fill:'rgba(10,106,144,.6)'}));
+    const t=mkn('text',{x:COL,y:y+2.6,fill:'rgba(10,106,144,.68)','font-size':7.4,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.12em','font-weight':'700'});
     t.textContent=lab;key.appendChild(t);
   });
-  const kl=mkn('text',{x:CX-R-10,y:CY+R*0.995,fill:'rgba(10,106,144,.5)','font-size':6.8,
-    'text-anchor':'end','font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  const kl=mkn('text',{x:COL,y:CY-R-30,fill:'rgba(10,106,144,.46)','font-size':6.8,
+    'text-anchor':'end','font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
   kl.textContent='LATITUDE = ERA';key.appendChild(kl);
+
+  /* a bearing ring around the sphere: a fixed outer scale with a tick every
+     ten degrees, and an index mark that runs with the rotation, so the figure
+     reads as an instrument pointed at something rather than a spinning ball */
+  const ring=mkn('g',{});svg.appendChild(ring);
+  (function(){
+    const RR=R+22;let d='';
+    for(let a2=0;a2<360;a2+=5){
+      const t=a2*Math.PI/180,len=(a2%30===0)?8:(a2%15===0)?5:2.6;
+      d+='M'+(CX+Math.cos(t)*RR).toFixed(1)+' '+(CY+Math.sin(t)*RR).toFixed(1)+
+         'L'+(CX+Math.cos(t)*(RR+len)).toFixed(1)+' '+(CY+Math.sin(t)*(RR+len)).toFixed(1);
+    }
+    ring.appendChild(mkn('path',{d:d,stroke:'rgba(26,52,84,.26)','stroke-width':.9,fill:'none'}));
+    ring.appendChild(mkn('circle',{cx:CX,cy:CY,r:RR,fill:'none',stroke:'rgba(26,52,84,.16)','stroke-width':1}));
+
+    const idx=mkn('g',{});ring.appendChild(idx);
+    idx.appendChild(mkn('path',{d:'M'+CX+' '+(CY-RR-13)+'l-5 -8h10Z',fill:HUDA,opacity:.85}));
+    if(!RMO()){
+      const an=document.createElementNS(NS,'animateTransform');
+      an.setAttribute('attributeName','transform');an.setAttribute('type','rotate');
+      an.setAttribute('from','0 '+CX+' '+CY);an.setAttribute('to','360 '+CX+' '+CY);
+      an.setAttribute('dur','74s');an.setAttribute('repeatCount','indefinite');
+      idx.appendChild(an);
+    }
+  })();
 
   const hud=mkn('g',{});svg.appendChild(hud);
   const line=(x,y,txt,col,sz,ls)=>{const t=mkn('text',{x:x,y:y,fill:col,'font-size':sz||7.6,
     'font-family':'ui-monospace,monospace','letter-spacing':ls||'.16em'});t.textContent=txt;hud.appendChild(t);return t;};
   line(14,20,'PERIMETER \u00b7 18 ARCHIVES \u00b7 124 PASSES \u00b7 1600s\u2013NOW','rgba(26,52,84,.55)');
   line(14,34,'REPRESENTATIVE SWEEP \u2014 \u201cIS THE HUBBLE TENSION REAL?\u201d','rgba(26,52,84,.38)',7);
-  const sweep=line(14,478,'','rgba(180,86,10,.9)',7.6);
-  line(14,492,'NODE = ARCHIVE \u00b7 SIZE = RECORDS RETURNED \u00b7 ARC = A RECORD TWO ARCHIVES BOTH HOLD',
+  const sweep=line(14,498,'','rgba(180,86,10,.9)',7.6);
+  line(14,512,'NODE = ARCHIVE \u00b7 SIZE = RECORDS RETURNED \u00b7 ARC = A RECORD TWO ARCHIVES BOTH HOLD',
     'rgba(26,52,84,.42)',6.9,'.1em');
   const tot=HARCH.reduce((a,x)=>a+x[1],0);
-  const big=mkn('text',{x:512,y:26,fill:'rgba(180,86,10,.95)','font-size':19,'text-anchor':'end',
+  const big=mkn('text',{x:552,y:26,fill:'rgba(180,86,10,.95)','font-size':19,'text-anchor':'end',
     'font-family':'ui-monospace,monospace','font-weight':'800'});
   big.textContent=tot;svg.appendChild(big);
-  const bigl=mkn('text',{x:512,y:38,fill:'rgba(26,52,84,.45)','font-size':6.8,'text-anchor':'end',
+  const bigl=mkn('text',{x:552,y:38,fill:'rgba(26,52,84,.45)','font-size':6.8,'text-anchor':'end',
     'font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
   bigl.textContent='RECORDS IN THE CORPUS';svg.appendChild(bigl);
 
@@ -7704,6 +7853,31 @@ function parallaxViz(){
    gives the strip the globe's material: a lit sphere, an extruded face, a soft
    ground shadow, a specular. */
 let FDEFS=false;
+/* One defs block for the whole document. Both pipelines reference these by
+   url(#...), so they must be injected once and never duplicated. */
+let PXD=false;
+function pxDefs(){
+  if(PXD)return;PXD=true;
+  const d=document.createElement('div');
+  d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
+  d.innerHTML='<svg width="0" height="0" aria-hidden="true"><defs>'+
+   '<linearGradient id="pxScan" x1="0" y1="0" x2="1" y2="0">'+
+     '<stop offset="0%" stop-color="#b4560a" stop-opacity="0"/>'+
+     '<stop offset="100%" stop-color="#b4560a" stop-opacity=".085"/></linearGradient>'+
+   '<linearGradient id="pxBarB" x1="0" y1="0" x2="0" y2="1">'+
+     '<stop offset="0%" stop-color="#3ba0c6" stop-opacity=".55"/>'+
+     '<stop offset="100%" stop-color="#0a6a90" stop-opacity=".34"/></linearGradient>'+
+   '<linearGradient id="pxBarA" x1="0" y1="0" x2="0" y2="1">'+
+     '<stop offset="0%" stop-color="#e08a34"/><stop offset="100%" stop-color="#a44d06"/></linearGradient>'+
+   '<filter id="pxGlow" x="-70%" y="-70%" width="240%" height="240%">'+
+     '<feGaussianBlur stdDeviation="2.6" result="b"/>'+
+     '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+   '<filter id="pxGlowHot" x="-90%" y="-90%" width="280%" height="280%">'+
+     '<feGaussianBlur stdDeviation="5" result="b"/>'+
+     '<feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+   '</defs></svg>';
+  document.body.appendChild(d);
+}
 function figDefs(){
   if(FDEFS)return;FDEFS=true;
   const h=document.getElementById('home');if(!h)return;
@@ -7817,6 +7991,22 @@ function frame(svg,xt,yt,xlab,ylab,minor){
     transform:'rotate(-90 15 '+((AX.T+AX.B)/2)+')'});
   yl.textContent=ylab;g.appendChild(yl);
   svg.appendChild(g);
+  /* the same instrument chrome the in-product figures carry, injected as
+     markup - one vocabulary, whichever pipeline drew the plot */
+  chrome(svg);
+}
+let CHN=0;
+function chrome(svg,o){
+  o=o||{};
+  const g=mkn('g',{});
+  g.innerHTML=hudFrame('h'+(++CHN),AX.L,AX.T,AX.R-AX.L,AX.B-AX.T,
+    {step:o.step||10,len:o.len||15,secs:o.secs||(8+CHN%5)});
+  svg.appendChild(g);
+}
+function reticle(svg,cx,cy,label,lx,ly,align){
+  const g=mkn('g',{});
+  g.innerHTML=hudReticle(cx,cy,8,label,lx,ly,null,align);
+  svg.appendChild(g);
 }
 const px=f=>AX.L+f*(AX.R-AX.L), py=f=>AX.B-f*(AX.B-AX.T);
 const poly=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
@@ -7861,9 +8051,7 @@ function figExclusion(){
   svg.appendChild(mkn('line',{x1:cx,y1:AX.T,x2:cx,y2:AX.B,stroke:'rgba(180,86,10,.4)',
     'stroke-width':1,'stroke-dasharray':'3 4'}));
   sph(svg,cx,cy,5,true);
-  const k=mkn('text',{x:cx-7,y:AX.B-8,fill:'#b4560a','font-size':7.4,'text-anchor':'end',
-    'font-family':'ui-monospace,monospace','letter-spacing':'.1em'});
-  k.textContent='EXCLUDED ←';svg.appendChild(k);
+
 }
 
 /* 2. joint density */
@@ -7900,6 +8088,7 @@ function figContours(){
       pts.push(horiz?[px(f),AX.T-3-d*13]:[AX.R+4+d*13,py(f)]);}
     svg.appendChild(mkn('path',{d:poly(pts),fill:'none',stroke:'rgba(10,106,144,.65)','stroke-width':1.2}));};
   mg(true);mg(false);
+  reticle(svg,px(cx),py(cy),'PEAK DENSITY',px(cx)+58,py(cy)-40);
 }
 
 /* 3. spectrum */
@@ -7932,6 +8121,8 @@ function figSpectrum(){
     const strong=h>0.62,w=strong?5:2.6;
     prism(svg,px(f)-w/2,py(h),w,AX.B-py(h),3.2,-2,strong);
   });
+  if(peaks.length){const pf=peaks[0],ph=(L.find(x=>x[0]===pf)||[0,0])[1];
+    reticle(svg,px(pf),py(ph),'PEAK YEAR',px(pf)-46,py(ph)+40,'end');}
   peaks.forEach(f=>{
     const h=(L.find(x=>x[0]===f)||[0,0])[1];
     const t=mkn('text',{x:px(f)+1.6,y:py(h)-9,fill:'#b4560a','font-size':7.4,
@@ -7970,6 +8161,8 @@ function figResiduals(){
       'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
       t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';gp.appendChild(t);}
   });
+  (function(){const w=D.reduce((a,b)=>Math.abs(b[1]-0.5)>Math.abs(a[1]-0.5)?b:a,D[0]);
+    reticle(svg,px(w[0]),py(w[1]),'OUTLIER',px(w[0])+52,py(w[1])+(w[1]>0.5?34:-34));})();
 }
 
 /* 5. citations against year */
@@ -7999,15 +8192,15 @@ function figImpact(){
   });
   svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.32)-px(0),height:py(0.72)-py(1),
     fill:'none',stroke:'#b4560a','stroke-width':1.1,'stroke-dasharray':'4 3'}));
-  const c=mkn('text',{x:px(0.335),y:py(0.96),fill:'#b4560a','font-size':7.4,
-    'font-family':'ui-monospace,monospace','letter-spacing':'.12em','font-weight':'700'});
-  c.textContent='← THE CANON';svg.appendChild(c);
+  reticle(svg,px(0.16),py(0.86),'THE CANON',px(0.16)+66,py(0.86)+46);
+
 }
 
 /* 6. support graph */
 function figSupport(){
   const svg=document.getElementById('hfig6');if(!svg)return;svg.innerHTML='';
   head(svg,'SUPPORT GRAPH',[['PAPERS','7'],['CLAIMS','3'],['UNBACKED','1',true]]);
+  chrome(svg,{step:11,secs:12});
   const T=AX.T+8,rows=7,gap=(AX.B-T-16)/(rows-1);
   const recY=[];for(let i=0;i<rows;i++)recY.push(T+i*gap);
   const cl=[[recY[1],'CLAIM A',false],[recY[3],'CLAIM B',false],[recY[5],'CLAIM C',true]];
@@ -8044,6 +8237,7 @@ function figSupport(){
   });
 }
 function heroFigures(){
+  try{pxDefs();}catch(e){}
   try{figDefs();}catch(e){}
   [globeViz,figExclusion,figContours,figSpectrum,figResiduals,figImpact,figSupport]
     .forEach(f=>{try{f();}catch(e){console.error('figure failed: '+f.name+' — '+e.message);}});
