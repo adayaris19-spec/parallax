@@ -193,78 +193,108 @@ canvas{display:block}
   font-weight:700;text-transform:uppercase;color:var(--ev);cursor:pointer;padding:8px 4px;
   border-bottom:1px solid transparent}
 .hlink:hover{border-bottom-color:var(--ev)} .hlink.big{font-size:11.5px}
-/* One room, start to finish. The dark slab is gone: nothing on this page is a
-   background colour change, because a hard edge between two fields of colour is
-   the most tiring thing a scrolling page can do. Depth comes from shadow, from
-   extrusion and from things that actually sit above the sheet. */
-.hhero{position:relative;overflow:hidden;padding:clamp(30px,4.5vw,64px) clamp(18px,5vw,64px) clamp(24px,3vw,40px)}
-.hhero::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background-image:linear-gradient(rgba(26,52,84,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(26,52,84,.045) 1px,transparent 1px);
-  background-size:46px 46px;
-  mask-image:radial-gradient(115% 95% at 68% 34%,#000 0%,transparent 76%)}
+/* One room, start to finish - but a room with a light source in it. No colour
+   slab anywhere; the drama is scale, motion and shadow. Two type sizes only,
+   enormous and small, because a page of mediums reads as nothing. */
+.hhero{position:relative;overflow:hidden;min-height:min(94vh,880px);display:flex;
+  flex-direction:column;justify-content:center;
+  padding:clamp(30px,4vw,54px) clamp(18px,5vw,64px) clamp(20px,2.5vw,34px)}
+.hhero::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background-image:linear-gradient(rgba(26,52,84,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(26,52,84,.05) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(120% 100% at 70% 40%,#000 0%,transparent 74%)}
 .hhero::after{content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(56% 62% at 74% 42%,rgba(232,146,58,.13) 0%,transparent 66%)}
+  background:radial-gradient(48% 58% at 76% 46%,rgba(232,146,58,.20) 0%,transparent 68%),
+    radial-gradient(40% 44% at 8% 88%,rgba(10,106,144,.09) 0%,transparent 66%)}
+/* a slow sweep across the room, the way a beam crosses a bench */
+.hbeam{position:absolute;top:0;bottom:0;width:44vw;pointer-events:none;z-index:0;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55) 42%,rgba(255,236,210,.42) 58%,transparent);
+  filter:blur(22px);animation:hsweep 13s cubic-bezier(.55,0,.45,1) infinite}
+@keyframes hsweep{0%{left:-50vw}60%{left:106vw}100%{left:106vw}}
 .hherorow{position:relative;z-index:1;display:grid;
-  grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
-  gap:clamp(20px,3.5vw,50px);align-items:center;max-width:1280px}
-.hkick{display:inline-flex;align-items:center;gap:8px;font-family:var(--m);font-size:9.5px;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:18px}
-.hkick i{width:6px;height:6px;border-radius:50%;background:var(--asm);
-  box-shadow:0 0 0 0 rgba(180,86,10,.6);animation:hpulse 2.4s infinite}
-@keyframes hpulse{70%{box-shadow:0 0 0 9px rgba(180,86,10,0)}100%{box-shadow:0 0 0 0 rgba(180,86,10,0)}}
-.hhero h1{font-size:clamp(30px,4vw,52px);line-height:1.03;letter-spacing:-.027em;
-  font-weight:600;margin:0 0 18px;color:var(--ink)}
+  grid-template-columns:minmax(0,1.16fr) minmax(0,1fr);
+  gap:clamp(14px,2vw,32px);align-items:center;max-width:1420px;width:100%}
+.hkick{display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:clamp(16px,2vw,26px);
+  border:1px solid rgba(26,52,84,.16);border-radius:99px;padding:7px 15px 7px 12px;
+  background:rgba(255,254,251,.7)}
+.hkick i{width:7px;height:7px;border-radius:50%;background:var(--asm);
+  box-shadow:0 0 0 0 rgba(180,86,10,.6);animation:hpulse 2.2s infinite}
+.hkick b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+@keyframes hpulse{70%{box-shadow:0 0 0 10px rgba(180,86,10,0)}100%{box-shadow:0 0 0 0 rgba(180,86,10,0)}}
+.hhero h1{font-size:clamp(32px,4.45vw,64px);line-height:1.0;letter-spacing:-.034em;
+  font-weight:650;margin:0 0 clamp(16px,2vw,26px);color:var(--ink)}
+.hhero h1 span.l{display:block;opacity:0;transform:translateY(22px);
+  animation:hrise .9s cubic-bezier(.16,.9,.3,1) forwards}
+.hhero h1 span.l:nth-child(2){animation-delay:.09s}
+.hhero h1 span.l:nth-child(3){animation-delay:.18s}
+@keyframes hrise{to{opacity:1;transform:none}}
 .hglow{color:var(--asm)}
-.hlede{font-size:clamp(14px,1.4vw,16.5px);line-height:1.55;color:var(--ink2);max-width:520px;margin:0 0 24px}
-.hact{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.hviz{position:relative;display:flex;justify-content:center}
-.hviz svg{width:100%;max-width:540px;height:auto;display:block;overflow:visible}
-.hnums{position:relative;z-index:1;display:flex;gap:clamp(20px,4.5vw,54px);flex-wrap:wrap;
-  margin-top:clamp(20px,3vw,36px);padding-top:22px;border-top:1px solid rgba(26,52,84,.16)}
-.hnums div{display:flex;flex-direction:column;gap:4px}
-.hnums b{font-family:var(--m);font-size:clamp(22px,3vw,34px);font-weight:800;color:var(--asm);
-  line-height:1;font-variant-numeric:tabular-nums}
-.hnums span{font-family:var(--m);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim)}
-/* the review strip - three other treatments, side by side */
-.hpickwrap{border-top:1px dashed rgba(180,86,10,.4)}
-.hpicknote{font-size:12px;color:var(--ink2);margin:0 0 18px;font-family:var(--m);letter-spacing:.04em}
-.hpicknote b{color:var(--asm);letter-spacing:.16em;text-transform:uppercase;font-size:9.5px}
-.hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px}
-.hpick figure{margin:0;border:1px solid rgba(26,52,84,.15);border-radius:6px;padding:13px 14px 15px;
-  background:linear-gradient(168deg,rgba(255,255,253,.92),rgba(250,248,243,.7));
-  box-shadow:0 10px 26px -18px rgba(60,48,32,.55),0 1px 0 rgba(255,255,255,.7) inset}
-.hpick svg{width:100%;height:auto;display:block;overflow:visible}
-.hpick figcaption{margin-top:8px;font-size:11.6px;line-height:1.5;color:var(--ink2)}
-.hpick figcaption b{color:var(--ink)}
-/* the sweep as four stages */
-.hpiperow{display:flex;align-items:stretch;flex-wrap:wrap}
-.hstep{flex:1 1 150px;min-width:146px;border:1px solid rgba(84,105,125,.2);border-top:3px solid var(--calc);
-  border-radius:4px;padding:13px 14px;background:rgba(255,254,251,.66)}
-.hstep.lit{border-top-color:var(--asm)}
-.hstep .hn{display:block;font-family:var(--m);font-size:9px;letter-spacing:.2em;color:var(--dim);margin-bottom:5px}
-.hstep b{display:block;font-size:14px;margin-bottom:4px}
-.hstep p{font-size:12.2px;line-height:1.45;color:var(--ink2);margin:0}
-.harrow{flex:0 0 24px;align-self:center;height:1px;background:linear-gradient(90deg,transparent,var(--dim),transparent);position:relative}
-.harrow::after{content:'';position:absolute;right:2px;top:-3px;border-left:5px solid var(--dim);
-  border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
-.hsec{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
-.hsec.seen{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.hsec{opacity:1;transform:none;transition:none}}
-@media(max-width:900px){.hherorow{grid-template-columns:1fr}.hviz{order:-1}.harrow{display:none}}
-.hsec{padding:clamp(34px,5vw,64px) clamp(18px,5vw,64px);max-width:1220px;
+.hlede{font-size:clamp(14.5px,1.28vw,17.5px);line-height:1.5;color:var(--ink2);max-width:540px;
+  margin:0 0 clamp(20px,2.4vw,30px);opacity:0;animation:hrise .9s .3s cubic-bezier(.16,.9,.3,1) forwards}
+.hact{display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  opacity:0;animation:hrise .9s .42s cubic-bezier(.16,.9,.3,1) forwards}
+.hviz{position:relative;display:flex;justify-content:center;margin-right:clamp(-90px,-5vw,0px)}
+.hviz svg{width:100%;max-width:min(700px,52vw);height:auto;display:block;overflow:visible}
+/* the numbers, at a size that reads across a room */
+.hnums{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:clamp(14px,2.4vw,34px);margin-top:clamp(18px,2.4vw,34px);max-width:1420px;width:100%}
+.hnums div{padding-top:14px;border-top:2px solid rgba(180,86,10,.34)}
+.hnums b{display:block;font-family:var(--m);font-size:clamp(30px,3.5vw,50px);font-weight:800;
+  color:var(--asm);line-height:.92;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.hnums span{display:block;margin-top:7px;font-family:var(--m);font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+/* the indices, running past, the way a rack readout does */
+.hticker{position:relative;overflow:hidden;border-top:1px solid rgba(26,52,84,.14);
+  border-bottom:1px solid rgba(26,52,84,.14);background:rgba(255,254,251,.5);
+  padding:11px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.htrack{display:flex;gap:34px;width:max-content;animation:hroll 42s linear infinite}
+.hticker:hover .htrack{animation-play-state:paused}
+@keyframes hroll{to{transform:translateX(-50%)}}
+.htk{display:inline-flex;align-items:baseline;gap:7px;font-family:var(--m);font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.htk b{color:var(--ink);font-size:12px;font-weight:800}
+.htk i{width:5px;height:5px;border-radius:50%;background:var(--asm);opacity:.65;font-style:normal}
+.hsec{padding:clamp(46px,6vw,92px) clamp(18px,5vw,64px);max-width:1420px;
   border-top:1px solid rgba(84,105,125,.14)}
-.hsec>h2{font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-.012em;margin:0 0 26px}
-.hsub{font-size:13.2px;color:var(--ink2);margin:-16px 0 22px;max-width:600px}
+.hsec>h2{font-size:clamp(26px,3.4vw,46px);font-weight:650;letter-spacing:-.028em;
+  line-height:1.02;margin:0 0 12px;max-width:15ch}
+.hsub{font-size:clamp(13.5px,1.15vw,15.5px);line-height:1.5;color:var(--ink2);
+  margin:0 0 clamp(26px,3vw,40px);max-width:620px}
+.hsec>h2+.hgrid,.hsec>h2+#hperimtab,.hsec>h2+#hpricetab{margin-top:clamp(26px,3vw,40px)}
 .hgrid article{position:relative}
-.hgrid .hi{font-family:var(--m);font-size:9px;letter-spacing:.2em;color:var(--asm);display:block;margin-bottom:6px}
+.hgrid .hi{font-family:var(--m);font-size:9.5px;letter-spacing:.22em;color:var(--asm);display:block;margin-bottom:12px;font-weight:700}
 .hgrid h3{font-size:14px}
 .hgrid p{font-size:12.4px}
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:22px}
-.hgrid article{border:1px solid rgba(84,105,125,.2);border-left:3px solid var(--asm);
-  border-radius:4px;padding:17px 19px;background:rgba(255,254,251,.6)}
+.hgrid{gap:clamp(16px,1.8vw,26px)}
+.hgrid article{position:relative;border:1px solid rgba(84,105,125,.18);
+  border-radius:6px;padding:22px 22px 24px;background:linear-gradient(168deg,rgba(255,255,253,.94),rgba(250,248,243,.62));
+  box-shadow:0 12px 28px -22px rgba(60,48,32,.5);overflow:hidden;
+  transition:transform .28s cubic-bezier(.16,.9,.3,1),box-shadow .28s,border-color .28s}
+.hgrid article::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--asm),rgba(180,86,10,.18));transform:scaleY(.35);
+  transform-origin:top;transition:transform .32s cubic-bezier(.16,.9,.3,1)}
+.hgrid article:hover{transform:translateY(-5px);border-color:rgba(180,86,10,.4);
+  box-shadow:0 22px 44px -26px rgba(60,48,32,.62)}
+.hgrid article:hover::before{transform:scaleY(1)}
+.hgrid h3{font-size:clamp(15px,1.25vw,17.5px);font-weight:650;letter-spacing:-.012em;margin:0 0 10px}
+.hgrid p{font-size:13.2px;line-height:1.55}
 .hgrid h3{font-size:14.5px;font-weight:650;margin:0 0 9px;line-height:1.28}
 .hgrid p{font-size:12.8px;line-height:1.58;color:var(--ink2);margin:0}
+/* the readouts: a row of plates, each lifted off the page */
+.hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:clamp(16px,1.8vw,26px)}
+.hpick figure{margin:0;border:1px solid rgba(26,52,84,.14);border-radius:7px;padding:15px 16px 17px;
+  background:linear-gradient(168deg,rgba(255,255,253,.95),rgba(250,248,243,.72));
+  box-shadow:0 14px 32px -22px rgba(60,48,32,.55),0 1px 0 rgba(255,255,255,.75) inset;
+  transition:transform .28s cubic-bezier(.16,.9,.3,1),box-shadow .28s,border-color .28s}
+.hpick figure:hover{transform:translateY(-4px);border-color:rgba(180,86,10,.32);
+  box-shadow:0 28px 52px -26px rgba(60,48,32,.6),0 1px 0 rgba(255,255,255,.75) inset}
+.hpick svg{width:100%;height:auto;display:block;overflow:visible}
+.hpick figcaption{margin-top:11px;font-size:12.4px;line-height:1.5;color:var(--ink2)}
+.hpick figcaption b{color:var(--ink)}
 .hsteps ol{margin:0;padding-left:20px;max-width:820px}
 .hsteps li{font-size:13.8px;line-height:1.62;color:var(--ink2);margin:0 0 12px}
 #hperimtab table,#hpricetab table{width:100%}
@@ -287,6 +317,10 @@ canvas{display:block}
   border-left:3px solid var(--dim);background:rgba(84,105,125,.07)}
 #hmsg.bad{border-left-color:var(--bad);background:rgba(179,56,42,.07);color:var(--bad)}
 #hmsg.good{border-left-color:var(--ok);background:rgba(18,133,90,.07);color:var(--ok)}
+.hclose{text-align:left}
+.hbig{font-size:clamp(24px,3.2vw,44px);line-height:1.06;letter-spacing:-.028em;font-weight:650;
+  color:var(--ink);margin:0 0 14px;max-width:20ch}
+.hclose .hact{opacity:1;animation:none;margin-top:8px}
 #hfoot{padding:26px clamp(18px,5vw,64px) 60px;font-family:var(--m);font-size:9.5px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
   border-top:1px solid rgba(84,105,125,.14)}
@@ -787,7 +821,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b67</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b68</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -840,10 +874,11 @@ body.cxon #doc{right:min(430px,34vw)}
  </header>
 
  <section class="hhero">
+  <div class="hbeam"></div>
   <div class="hherorow">
    <div class="hherotext">
-    <div class="hkick"><i></i>Perimeter &middot; live</div>
-    <h1>Every archive.<br>Every decade.<br><span class="hglow">Read before you ask.</span></h1>
+    <div class="hkick"><i></i><span id="hkickt">Perimeter live</span> &middot; <b id="hkickn">0</b> papers indexed this sweep</div>
+    <h1><span class="l">Every archive.</span><span class="l">Every decade.</span><span class="l hglow">Read before you ask.</span></h1>
     <p class="hlede">Ask a question. It runs <b>124 searches across 18 indices</b> &mdash; arXiv and
     ADS through INSPIRE, OSTI and CERN &mdash; one per decade back to the 1600s, drops the
     duplicates, reads every abstract, and has the analysis done before you open it.</p>
@@ -861,6 +896,8 @@ body.cxon #doc{right:min(430px,34vw)}
     <div><b data-flat="every">every</b><span>field of science</span></div>
   </div>
  </section>
+
+ <div class="hticker"><div class="htrack" id="htrack"></div></div>
 
  <section class="hsec hpipe">
   <div class="hpiperow">
@@ -931,6 +968,14 @@ body.cxon #doc{right:min(430px,34vw)}
    <button class="hgo big wide" data-home="submit">Create account</button>
    <p class="hfine"><button class="hlink" data-home="try">Enter without an account &rarr;</button></p>
   </div>
+ </section>
+
+ <section class="hsec hclose">
+  <p class="hbig">A question you ask on Monday is still being answered on Friday.</p>
+  <p class="hsub">The perimeter re-runs on a schedule. When something lands that changes an
+  assumption, a bound or a conclusion, it is waiting for you.</p>
+  <div class="hact"><button class="hgo big" data-home="signup">Start free</button>
+   <button class="hlink big" data-home="try">Enter without an account &rarr;</button></div>
  </section>
 
  <footer id="hfoot">PARALLAX &mdash; a research instrument for scientists. Pre-release.</footer>
@@ -3056,8 +3101,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b67';
+const BUILD='b68';
 const WHATSNEW=[
+ ['The front door has a moment in it now',
+  'It was competent and nothing arrested you. The fix was not more colour — it was scale, motion and shadow, all of it inside the same light room. The hero fills the screen: the headline at 64px, the globe at 700px bleeding past the right edge, the four numbers at 50px over amber rules, and a slow beam that crosses the page the way a light crosses a bench. A status chip counts the corpus in and then holds. Under it, the eighteen indices run past on a ticker with what each returned. Section headings went from 28px to 46px, cards lift and light an amber edge under the cursor, and everything arrives in a stagger as you reach it. The readouts draw themselves the first time they scroll into view — curves stroke on, error bars arrive in sequence, spectral lines grow from the axis — and never again, because anything that re-animates on every scroll is a toy. A closing line at the end says the thing the product is actually for.',
+  'The front door. All of it respects prefers-reduced-motion.'],
  ['Plain sentences, physics words',
   'The last pass confused difficult language for scientific language — "abstract-level adjudication", "inter-archive corroboration", "per-claim standing". That is consultant prose wearing a lab coat. Scientists write plainly. Rewritten so every heading is a sentence you could say out loud: "The 1930s don\u2019t get buried", "Every abstract gets read", "The indices check each other", "Two theories, side by side", "Your draft, against the record". The vocabulary is still physics — preprint, index, decade, sigma, consensus, citation — but nothing is dressed up.',
   'The front door.'],
@@ -7685,6 +7733,7 @@ function sph(svg,x,y,r,amber){
 }
 /* an extruded bar: front face, top face, right face, ground shadow */
 function prism(svg,x,y,w,h,dx,dy,amber){
+  const g=mkn('g',{'data-grow':'1'});const _sv=svg;svg=g;_sv.appendChild(g);
   svg.appendChild(mkn('ellipse',{cx:x+w/2+dx*0.6,cy:y+h+3,rx:w*0.72,ry:2.8,
     fill:'rgba(60,48,32,.34)',filter:'url(#ftight)'}));
   svg.appendChild(mkn('path',{d:'M'+(x+w)+' '+y+'L'+(x+w+dx)+' '+(y+dy)+'L'+(x+w+dx)+' '+(y+h+dy)+'L'+(x+w)+' '+(y+h)+'Z',
@@ -7779,11 +7828,11 @@ function figExclusion(){
     fill:col}));
   band(s2a,s2b,'url(#fband2)');band(s1a,s1b,'url(#fband1)');
   svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(exp[i])])),fill:'none',
-    stroke:'rgba(26,52,84,.8)','stroke-width':1.4,'stroke-dasharray':'7 4'}));
+    stroke:'rgba(26,52,84,.8)','stroke-width':1.4,'stroke-dasharray':'7 4','data-pop':'1'}));
   svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),py(obs[i])])),fill:'none',
-    stroke:'#14263a','stroke-width':2.2,filter:'url(#fdrop)'}));
+    stroke:'#14263a','stroke-width':2.2,filter:'url(#fdrop)','data-draw':'1'}));
   svg.appendChild(mkn('path',{d:poly(xs.map(f=>[px(f),py(0.14+0.5*f)])),fill:'none',
-    stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)'}));
+    stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)','data-draw':'1'}));
   legend(svg,[['OBSERVED','#14263a'],['EXPECTED','rgba(26,52,84,.8)','6 3'],['THEORY','#b4560a']]);
   const cx=px(0.62),cy=py(0.45);
   svg.appendChild(mkn('line',{x1:cx,y1:AX.T,x2:cx,y2:AX.B,stroke:'rgba(180,86,10,.4)',
@@ -7815,8 +7864,10 @@ function figContours(){
     const t=i*2.399963,rr=Math.sqrt((i+.5)/190)*(0.6+rnd()*0.9);
     const x=cx+Math.cos(t)*0.30*rr,y=cy+Math.sin(t)*0.245*rr;
     if(x<0.01||x>0.99||y<0.01||y>0.99)continue;
-    svg.appendChild(mkn('circle',{cx:px(x)+.6,cy:py(y)+.9,r:1.5,fill:'rgba(60,48,32,.22)'}));
-    svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.5,fill:'rgba(20,38,58,.6)'}));
+    const gp=mkn('g',{'data-pop':'1'});
+    gp.appendChild(mkn('circle',{cx:px(x)+.6,cy:py(y)+.9,r:1.5,fill:'rgba(60,48,32,.22)'}));
+    gp.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.5,fill:'rgba(20,38,58,.6)'}));
+    svg.appendChild(gp);
   }
   svg.appendChild(mkn('path',{d:'M'+px(cx)+' '+py(cy-0.055)+'V'+py(cy+0.055)+
     'M'+px(cx-0.05)+' '+py(cy)+'H'+px(cx+0.05),stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)'}));
@@ -7885,13 +7936,16 @@ function figResiduals(){
   }
   D.forEach(([f,v,e])=>{
     const out=Math.abs(v-0.5)>2*SIG,c=out?'#b4560a':'#14263a';
-    svg.appendChild(mkn('line',{x1:px(f),y1:py(v-e),x2:px(f),y2:py(v+e),stroke:c,'stroke-width':1.2}));
-    svg.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v+e),x2:px(f)+3.2,y2:py(v+e),stroke:c,'stroke-width':1.2}));
-    svg.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v-e),x2:px(f)+3.2,y2:py(v-e),stroke:c,'stroke-width':1.2}));
-    sph(svg,px(f),py(v),out?4.2:2.9,out);
+    /* one group per point so the whole error bar arrives together - and the
+       group is the parent, never a reassignment of svg, which is a const */
+    const gp=mkn('g',{'data-pop':'1'});svg.appendChild(gp);
+    gp.appendChild(mkn('line',{x1:px(f),y1:py(v-e),x2:px(f),y2:py(v+e),stroke:c,'stroke-width':1.2}));
+    gp.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v+e),x2:px(f)+3.2,y2:py(v+e),stroke:c,'stroke-width':1.2}));
+    gp.appendChild(mkn('line',{x1:px(f)-3.2,y1:py(v-e),x2:px(f)+3.2,y2:py(v-e),stroke:c,'stroke-width':1.2}));
+    sph(gp,px(f),py(v),out?4.2:2.9,out);
     if(out){const t=mkn('text',{x:px(f),y:py(v)+(v>0.5?-11:17),fill:'#b4560a','font-size':7.4,
       'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
-      t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';svg.appendChild(t);}
+      t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';gp.appendChild(t);}
   });
 }
 
@@ -7915,9 +7969,10 @@ function figImpact(){
   }
   pts.sort((a,b)=>a[1]-b[1]).forEach(([x,y])=>{
     const canon=y>0.72&&x<0.32;
-    if(canon)sph(svg,px(x),py(y),4,true);
-    else{svg.appendChild(mkn('circle',{cx:px(x)+.7,cy:py(y)+1,r:2.3,fill:'rgba(60,48,32,.2)'}));
-      svg.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:2.3,fill:'url(#fsB)',opacity:.88}));}
+    const gp=mkn('g',{'data-pop':'1'});svg.appendChild(gp);
+    if(canon)sph(gp,px(x),py(y),4,true);
+    else{gp.appendChild(mkn('circle',{cx:px(x)+.7,cy:py(y)+1,r:2.3,fill:'rgba(60,48,32,.2)'}));
+      gp.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:2.3,fill:'url(#fsB)',opacity:.88}));}
   });
   svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.32)-px(0),height:py(0.72)-py(1),
     fill:'none',stroke:'#b4560a','stroke-width':1.1,'stroke-dasharray':'4 3'}));
@@ -7939,7 +7994,7 @@ function figSupport(){
     const solo=c===2;
     svg.appendChild(mkn('path',{d:'M'+RX+' '+recY[r]+'C'+((RX+CX2)/2)+' '+recY[r]+','+
       ((RX+CX2)/2)+' '+cl[c][0]+','+CX2+' '+cl[c][0],
-      fill:'none',stroke:solo?'#b4560a':'rgba(10,106,144,.5)','stroke-width':solo?2:1.3}));
+      fill:'none',stroke:solo?'#b4560a':'rgba(10,106,144,.5)','stroke-width':solo?2:1.3,'data-draw':'1'}));
   });
   recY.forEach((y,i)=>{
     sph(svg,RX,y,5.6,false);
@@ -7968,7 +8023,48 @@ function figSupport(){
 function heroFigures(){
   try{figDefs();}catch(e){}
   [globeViz,figExclusion,figContours,figSpectrum,figResiduals,figImpact,figSupport]
-    .forEach(f=>{try{f();}catch(e){console.log('figure failed',f.name,e.message);}});
+    .forEach(f=>{try{f();}catch(e){console.error('figure failed: '+f.name+' — '+e.message);}});
+}
+/* the ticker: the eighteen indices running past with what they returned, twice
+   over so the loop is seamless */
+function heroTicker(){
+  const t=document.getElementById('htrack');if(!t)return;
+  const one=HARCH.map(([n,c])=>'<span class="htk"><i>●</i>'+n+'<b>'+c+'</b></span>').join('');
+  t.innerHTML=one+one;
+}
+/* the kicker counts the corpus in, then holds - a number that moves once is
+   more convincing than one that spins forever */
+function heroKick(){
+  const n=document.getElementById('hkickn'),k=document.getElementById('hkickt');
+  if(!n)return;
+  const tot=HARCH.reduce((a,x)=>a+x[1],0);
+  if(RMO()){n.textContent=tot.toLocaleString('en-US');return;}
+  let v=0;const step=Math.max(1,Math.round(tot/40));
+  const id=setInterval(()=>{v+=step;if(v>=tot){v=tot;clearInterval(id);
+      if(k)k.textContent='Perimeter complete';}
+    n.textContent=v.toLocaleString('en-US');},28);
+}
+/* Curves draw, marks arrive, bars grow - but only the first time a readout
+   scrolls into view. Anything that re-animates on every scroll is a toy. */
+function armFigures(){
+  const figs=[...document.querySelectorAll('.hpick figure')];
+  if(!figs.length)return;
+  figs.forEach(f=>{
+    f.querySelectorAll('svg path[data-draw]').forEach(pa=>{
+      try{pa.style.setProperty('--len',pa.getTotalLength().toFixed(0));}catch(e){}
+    });
+    let i=0;
+    f.querySelectorAll('svg [data-pop]').forEach(el=>{
+      el.style.setProperty('--d',(Math.min(i,70)*0.008).toFixed(3)+'s');i++;});
+    let j=0;
+    f.querySelectorAll('svg [data-grow]').forEach(el=>{
+      el.style.setProperty('--d',(Math.min(j,50)*0.014).toFixed(3)+'s');j++;});
+  });
+  if(RMO()||!('IntersectionObserver' in window)){figs.forEach(f=>f.classList.add('drawn'));return;}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('drawn');io.unobserve(e.target);}
+  }),{rootMargin:'0px 0px -12% 0px'});
+  figs.forEach(f=>io.observe(f));
 }
 /* the numbers count in, and each section arrives as you reach it */
 function heroChrome(){
@@ -8152,6 +8248,9 @@ if(TABOX)TABOX.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e
   hmode('signup');
   renderWho();
   try{heroFigures();}catch(e){}
+  try{heroTicker();}catch(e){}
+  try{heroKick();}catch(e){}
+  try{armFigures();}catch(e){}
   try{heroChrome();}catch(e){}
   /* Signed in, or already through the door once - do not make them walk it again. */
   let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
