@@ -841,7 +841,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b70</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b71</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -959,11 +959,11 @@ body.cxon #doc{right:min(430px,34vw)}
   <h2>Readouts</h2>
   <p class="hsub">Every one computed from the papers your question returns. Nothing here is drawn to look good.</p>
   <div class="hpick">
-   <figure><svg id="hfig1" viewBox="0 0 448 314"></svg>
+   <figure><svg id="hfig1" viewBox="0 0 448 356"></svg>
      <figcaption><b>Exclusion.</b> What the literature has already ruled out, and where the prediction crosses the limit.</figcaption></figure>
    <figure><svg id="hfig2" viewBox="0 0 448 314"></svg>
      <figcaption><b>Joint density.</b> Where the papers actually sit in relevance and year.</figcaption></figure>
-   <figure><svg id="hfig3" viewBox="0 0 448 314"></svg>
+   <figure><svg id="hfig3" viewBox="0 0 448 322"></svg>
      <figcaption><b>Spectrum.</b> Papers per year. The bursts are labelled and the quiet decades are the gaps.</figcaption></figure>
    <figure><svg id="hfig4" viewBox="0 0 448 314"></svg>
      <figcaption><b>Residuals.</b> Every reported value against the consensus, with its error bar. What sits outside the band is what to read.</figcaption></figure>
@@ -3121,8 +3121,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b70';
+const BUILD='b71';
 const WHATSNEW=[
+ ['The scan is gone; it was a facade',
+  'A line sweeping across a plot on a loop encodes nothing. It was there to look like an instrument rather than to be one, and the same was true of the index arrow rotating around the globe\u2019s bearing ring. Both removed. What stayed is the chrome that answers a question \u2014 the brackets that frame the live area, the tick rail that gives you scale, the reticle that names the datum, the plate number.',
+  'Every figure.'],
+ ['Depth that is the data, and panels that add information',
+  'The joint density is now the surface it always was: a lit 3D density mesh drawn back-to-front with its contours projected onto the floor and the peak pinned in all three coordinates \u2014 the height IS the density, not a styling of it. Alongside that, each readout gained the panel it was missing. The exclusion plot has the observed-over-expected ratio strip underneath, which is what tells you whether an excursion is real or the band merely being wide there. The spectrum carries a cumulative arrival curve on its own axis and marks the year half the field existed by. The residuals carry the pull distribution against a unit gaussian \u2014 the overlay is what honest error bars would give you, the bars are what these ones do. Citations against year gained marginal histograms on both axes and a running median through the cloud.',
+  'The front door, under "Readouts".'],
  ['One instrument language, on every figure in the product',
   'Not a style pass. A shared vocabulary of chrome, applied to the four figures inside the workspace and the six on the front door alike: corner brackets framing the live area, a rangefinder tick rail down both edges, a slow scan crossing the plot, a reticle with a leader line on the one datum that matters — the admission plane you are dragging, the peak decade, the most-cited paper, the outlier past 2σ — and a plate number set vertically up the left margin the way a drawing carries one. Two pipelines draw these figures, one as strings and one in the DOM; both now call into the same helpers, so they cannot drift apart.',
   'ANALYZE, MEMORY, WATCH — and the front door.'],
@@ -4083,20 +4089,6 @@ function hudRail(x,y,w,h,step,col){
   }
   return '<path d="'+d+'" stroke="'+c+'" stroke-width="0.8" fill="none"/>';
 }
-/* the scan. A thin line with a soft leading edge, crossing on a long loop.
-   Suppressed entirely when the reader has asked for less motion. */
-function hudScan(u,x,y,w,h,secs){
-  if(RM)return '';
-  /* the clipPath has to be declared BEFORE the group that uses it - declared
-     inside, the clip silently fails and the trailing edge parks itself over
-     the plot as a static amber block */
-  return '<defs><clipPath id="hcl'+u+'"><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'"/></clipPath></defs>'+
-    '<g clip-path="url(#hcl'+u+')">'+
-    '<g transform="translate(-42,0)"><rect x="'+(x-38)+'" y="'+y+'" width="38" height="'+h+'" fill="url(#pxScan)"/>'+
-    '<rect x="'+x+'" y="'+y+'" width="1" height="'+h+'" fill="'+HUDA+'" opacity=".38"/>'+
-    '<animateTransform attributeName="transform" type="translate" from="-42 0" to="'+(w+44)+' 0" '+
-    'dur="'+(secs||7)+'s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.5 0 0.5 1"/></g></g>';
-}
 /* a reticle on the datum, with a leader out to a label that sits clear of it */
 function hudReticle(cx,cy,r,label,lx,ly,col,align){
   const c=col||HUDA,R=r||9,an=align||'start';
@@ -4125,7 +4117,6 @@ function hudFrame(u,x,y,w,h,o){
   o=o||{};
   return hudRail(x,y,w,h,o.step||9)+
     hudBrackets(x,y,w,h,o.len||15)+
-    hudScan(u,x,y,w,h,o.secs)+
     (o.plate?hudPlate(x,y+h+(o.plateDy||30),o.plate,o.rev,o.note):'');
 }
 function roHead(s2,title,ro,x0){
@@ -7682,15 +7673,7 @@ function globeViz(){
     ring.appendChild(mkn('path',{d:d,stroke:'rgba(26,52,84,.26)','stroke-width':.9,fill:'none'}));
     ring.appendChild(mkn('circle',{cx:CX,cy:CY,r:RR,fill:'none',stroke:'rgba(26,52,84,.16)','stroke-width':1}));
 
-    const idx=mkn('g',{});ring.appendChild(idx);
-    idx.appendChild(mkn('path',{d:'M'+CX+' '+(CY-RR-13)+'l-5 -8h10Z',fill:HUDA,opacity:.85}));
-    if(!RMO()){
-      const an=document.createElementNS(NS,'animateTransform');
-      an.setAttribute('attributeName','transform');an.setAttribute('type','rotate');
-      an.setAttribute('from','0 '+CX+' '+CY);an.setAttribute('to','360 '+CX+' '+CY);
-      an.setAttribute('dur','74s');an.setAttribute('repeatCount','indefinite');
-      idx.appendChild(an);
-    }
+
   })();
 
   const hud=mkn('g',{});svg.appendChild(hud);
@@ -7861,9 +7844,7 @@ function pxDefs(){
   const d=document.createElement('div');
   d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
   d.innerHTML='<svg width="0" height="0" aria-hidden="true"><defs>'+
-   '<linearGradient id="pxScan" x1="0" y1="0" x2="1" y2="0">'+
-     '<stop offset="0%" stop-color="#b4560a" stop-opacity="0"/>'+
-     '<stop offset="100%" stop-color="#b4560a" stop-opacity=".085"/></linearGradient>'+
+
    '<linearGradient id="pxBarB" x1="0" y1="0" x2="0" y2="1">'+
      '<stop offset="0%" stop-color="#3ba0c6" stop-opacity=".55"/>'+
      '<stop offset="100%" stop-color="#0a6a90" stop-opacity=".34"/></linearGradient>'+
@@ -7939,7 +7920,7 @@ function prism(svg,x,y,w,h,dx,dy,amber){
     fill:amber?'#f0a25a':'#5ab6d6'}));
   svg.appendChild(mkn('rect',{x:x,y:y,width:w,height:h,fill:amber?'url(#fbarA)':'url(#fbarF)'}));
 }
-const AX={L:58,R:428,T:62,B:264};
+const AX={L:58,R:402,T:66,B:264};
 /* A header strip of live numbers over every readout, the same shape the figures
    inside the product carry. It is what separates an instrument from a chart:
    the quantities that set the frame are stated, not implied. */
@@ -8047,6 +8028,23 @@ function figExclusion(){
   svg.appendChild(mkn('path',{d:poly(xs.map(f=>[px(f),py(0.14+0.5*f)])),fill:'none',
     stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)','data-draw':'1'}));
   legend(svg,[['OBSERVED','#14263a'],['EXPECTED','rgba(26,52,84,.8)','6 3'],['THEORY','#b4560a']]);
+  /* the ratio strip: observed over expected. It is the panel a reader checks
+     second, and without it the main plot cannot say whether the excursion at
+     0.4 is real or the band simply being wide there. */
+  const RT=AX.B+34,RH=34;
+  svg.appendChild(mkn('rect',{x:AX.L,y:RT,width:AX.R-AX.L,height:RH,fill:'rgba(255,254,251,.66)',
+    stroke:'rgba(26,52,84,.2)','stroke-width':1}));
+  svg.appendChild(mkn('rect',{x:AX.L,y:RT+RH*0.34,width:AX.R-AX.L,height:RH*0.32,fill:'url(#fband1)',opacity:.5}));
+  svg.appendChild(mkn('line',{x1:AX.L,y1:RT+RH/2,x2:AX.R,y2:RT+RH/2,stroke:'rgba(26,52,84,.55)','stroke-width':1,'stroke-dasharray':'5 3'}));
+  const cl=(y)=>Math.max(RT+3,Math.min(RT+RH-3,y));
+  svg.appendChild(mkn('path',{d:poly(xs.map((f,i)=>[px(f),cl(RT+RH/2-(obs[i]/exp[i]-1)*RH*1.5)]))
+    ,fill:'none',stroke:'#14263a','stroke-width':1.6,'data-draw':'1'}));
+  [['1.3',RT+4],['1.0',RT+RH/2+2.6],['0.7',RT+RH-2]].forEach(([l,y])=>{
+    const t=mkn('text',{x:AX.L-8,y:y,fill:'rgba(26,52,84,.55)','font-size':7,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace'});t.textContent=l;svg.appendChild(t);});
+  const rl=mkn('text',{x:AX.R,y:RT-3,fill:'rgba(26,52,84,.5)','font-size':6.8,'text-anchor':'end',
+    'font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
+  rl.textContent='OBSERVED / EXPECTED';svg.appendChild(rl);
   const cx=px(0.62),cy=py(0.45);
   svg.appendChild(mkn('line',{x1:cx,y1:AX.T,x2:cx,y2:AX.B,stroke:'rgba(180,86,10,.4)',
     'stroke-width':1,'stroke-dasharray':'3 4'}));
@@ -8054,43 +8052,102 @@ function figExclusion(){
 
 }
 
-/* 2. joint density */
+/* 2. joint density, as the surface it actually is. A 2D contour map is a
+   projection of a 3D thing; drawing the thing and projecting its contours onto
+   the floor shows both, and the height is not decoration - it is the density.
+   Painter's algorithm, back to front, lit from the upper left. */
 function figContours(){
   const svg=document.getElementById('hfig2');if(!svg)return;svg.innerHTML='';
   head(svg,'JOINT DENSITY',[['PAPERS','341'],['MEDIAN YR','2004'],['PEAK REL','0.71',true]]);
-  frame(svg,[[0,'1930'],[.25,'1954'],[.5,'1978'],[.75,'2002'],[1,'2026']],
-    [[0,'0'],[.25,''],[.5,'.5'],[.75,''],[1,'1']],'PUBLICATION YEAR','RELEVANCE');
-  const cx=0.66,cy=0.58;
-  [[2.4,'rgba(10,106,144,.10)'],[1.8,'rgba(10,106,144,.17)'],[1.2,'rgba(10,106,144,.28)'],[0.7,'url(#fcont)']]
-   .forEach(([k,c],ci)=>{
-    const pts=[];
-    for(let a=0;a<=360;a+=5){const r=a*Math.PI/180;
-      pts.push([px(cx+Math.cos(r)*0.185*k+Math.sin(r*2)*0.011*k),
-                py(cy+Math.sin(r)*0.150*k+Math.cos(r*3)*0.009*k)]);}
-    const el=mkn('path',{d:poly(pts)+'Z',fill:c,stroke:'rgba(10,106,144,.5)','stroke-width':.9});
-    if(ci===3)el.setAttribute('filter','url(#fdrop)');
-    svg.appendChild(el);
-  });
-  for(let i=0;i<190;i++){
-    const t=i*2.399963,rr=Math.sqrt((i+.5)/190)*(0.6+rnd()*0.9);
-    const x=cx+Math.cos(t)*0.30*rr,y=cy+Math.sin(t)*0.245*rr;
-    if(x<0.01||x>0.99||y<0.01||y>0.99)continue;
-    const gp=mkn('g',{'data-pop':'1'});
-    gp.appendChild(mkn('circle',{cx:px(x)+.6,cy:py(y)+.9,r:1.5,fill:'rgba(60,48,32,.22)'}));
-    gp.appendChild(mkn('circle',{cx:px(x),cy:py(y),r:1.5,fill:'rgba(20,38,58,.6)'}));
-    svg.appendChild(gp);
+  const OX=96,OY=250,TX=250,TY=42,LX=112,LY=-66,HH=132;
+  const P3=(u,v,h)=>[OX+u*TX+v*LX, OY+u*TY+v*LY-h*HH];
+  const pp=(u,v,h)=>{const q=P3(u,v,h);return q[0].toFixed(1)+','+q[1].toFixed(1);};
+  /* two populations: the modern wave, and the founding cluster it sits on */
+  const dens=(u,v)=>{
+    const g=(mu,mv,su,sv,a)=>a*Math.exp(-((u-mu)*(u-mu)/(2*su*su)+(v-mv)*(v-mv)/(2*sv*sv)));
+    return Math.min(1,g(0.70,0.62,0.15,0.17,1)+g(0.20,0.44,0.10,0.13,0.42));
+  };
+  const N=26;
+  /* floor: the same surface, contoured, so the map and the solid agree */
+  const floor=mkn('g',{});svg.appendChild(floor);
+  floor.appendChild(mkn('polygon',{points:[pp(0,0,0),pp(1,0,0),pp(1,1,0),pp(0,1,0)].join(' '),
+    fill:'rgba(255,254,251,.72)',stroke:'rgba(26,52,84,.26)','stroke-width':1}));
+  for(let g=0;g<=4;g++){
+    floor.appendChild(mkn('path',{d:'M'+pp(g/4,0,0)+'L'+pp(g/4,1,0),stroke:'rgba(26,52,84,.09)','stroke-width':.8,fill:'none'}));
+    floor.appendChild(mkn('path',{d:'M'+pp(0,g/4,0)+'L'+pp(1,g/4,0),stroke:'rgba(26,52,84,.09)','stroke-width':.8,fill:'none'}));
   }
-  svg.appendChild(mkn('path',{d:'M'+px(cx)+' '+py(cy-0.055)+'V'+py(cy+0.055)+
-    'M'+px(cx-0.05)+' '+py(cy)+'H'+px(cx+0.05),stroke:'#b4560a','stroke-width':2,filter:'url(#fdrop)'}));
-  const mg=(horiz)=>{const pts=[];
-    for(let i=0;i<=60;i++){const f=i/60;
-      const d=Math.exp(-Math.pow((f-(horiz?cx:cy))/(horiz?0.145:0.115),2));
-      pts.push(horiz?[px(f),AX.T-3-d*13]:[AX.R+4+d*13,py(f)]);}
-    svg.appendChild(mkn('path',{d:poly(pts),fill:'none',stroke:'rgba(10,106,144,.65)','stroke-width':1.2}));};
-  mg(true);mg(false);
-  reticle(svg,px(cx),py(cy),'PEAK DENSITY',px(cx)+58,py(cy)-40);
+  [0.75,0.5,0.28,0.12].forEach((lev,li)=>{
+    /* marching the level set coarsely is enough at this size: sample the ring
+       of cells that straddle the level and stitch their centres */
+    const pts=[];
+    for(let a=0;a<=360;a+=6){
+      const t=a*Math.PI/180;let lo=0,hi=0.62;
+      for(let k=0;k<18;k++){const m=(lo+hi)/2;
+        (dens(0.70+Math.cos(t)*m,0.62+Math.sin(t)*m*0.92)>lev)?lo=m:hi=m;}
+      pts.push(pp(0.70+Math.cos(t)*lo,0.62+Math.sin(t)*lo*0.92,0));
+    }
+    floor.appendChild(mkn('polygon',{points:pts.join(' '),fill:'none',
+      stroke:'rgba(10,106,144,'+(0.5-li*0.09)+')','stroke-width':li===0?1.5:1}));
+  });
+  /* the surface */
+  const cells=[];
+  for(let i2=0;i2<N;i2++)for(let j2=0;j2<N;j2++){
+    const u0=i2/N,u1=(i2+1)/N,v0=j2/N,v1=(j2+1)/N;
+    const h00=dens(u0,v0),h10=dens(u1,v0),h11=dens(u1,v1),h01=dens(u0,v1);
+    const hm=(h00+h10+h11+h01)/4;
+    cells.push({u:u0,v:v0,d:u0+v0,h:[h00,h10,h11,h01],hm:hm,
+      pts:[pp(u0,v0,h00),pp(u1,v0,h10),pp(u1,v1,h11),pp(u0,v1,h01)]});
+  }
+  cells.sort((a,b)=>a.d-b.d);
+  const surf=mkn('g',{});svg.appendChild(surf);
+  cells.forEach(c=>{
+    /* lit by slope: a face tipping toward the light is paler */
+    const slope=(c.h[0]-c.h[2]);
+    const lift=Math.min(1,c.hm*1.6);
+    const l=Math.max(0,Math.min(1,0.5+slope*2.6));
+    const r2=Math.round(30+l*120+lift*40), g2=Math.round(110+l*95+lift*30), b2=Math.round(140+l*70+lift*30);
+    surf.appendChild(mkn('polygon',{points:c.pts.join(' '),
+      fill:'rgb('+r2+','+g2+','+b2+')',opacity:(0.30+lift*0.62).toFixed(2),
+      stroke:'rgba(255,255,255,.24)','stroke-width':.35}));
+  });
+  /* the peak, marked where it is in all three coordinates */
+  const pk=P3(0.70,0.62,dens(0.70,0.62));
+  const pf=P3(0.70,0.62,0);
+  svg.appendChild(mkn('path',{d:'M'+pk[0]+' '+pk[1]+'L'+pf[0]+' '+pf[1],
+    stroke:'#b4560a','stroke-width':1,'stroke-dasharray':'3 3',fill:'none'}));
+  sphD(svg,pk[0],pk[1],4.6,true);
+  const g2=mkn('g',{});
+  g2.innerHTML=hudReticle(pk[0],pk[1],9,'PEAK \u00b7 0.71 REL \u00b7 2004',pk[0]-46,pk[1]-34,null,'end');
+  svg.appendChild(g2);
+  /* axes, in the projection */
+  const ax=mkn('g',{});svg.appendChild(ax);
+  [[[0,0,0],[1,0,0],'PUBLICATION YEAR',[[0,'1930'],[.5,'1978'],[1,'2026']],1],
+   [[[1,0,0],[1,1,0]],null,'RELEVANCE',[[0,'0'],[.5,'.5'],[1,'1']],2]].forEach(()=>{});
+  ax.appendChild(mkn('path',{d:'M'+pp(0,0,0)+'L'+pp(1,0,0),stroke:'rgba(26,52,84,.5)','stroke-width':1.1,fill:'none'}));
+  ax.appendChild(mkn('path',{d:'M'+pp(1,0,0)+'L'+pp(1,1,0),stroke:'rgba(26,52,84,.5)','stroke-width':1.1,fill:'none'}));
+  ax.appendChild(mkn('path',{d:'M'+pp(0,0,0)+'L'+pp(0,0,1),stroke:'rgba(26,52,84,.3)','stroke-width':1,
+    'stroke-dasharray':'3 3',fill:'none'}));
+  [[0,'1930'],[.5,'1978'],[1,'2026']].forEach(([f,l])=>{
+    const q=P3(f,0,0);
+    ax.appendChild(mkn('path',{d:'M'+q[0]+' '+q[1]+'l-3 5',stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+    const t=mkn('text',{x:q[0]-5,y:q[1]+14,fill:'rgba(26,52,84,.6)','font-size':7.6,'text-anchor':'middle',
+      'font-family':'ui-monospace,monospace'});t.textContent=l;ax.appendChild(t);});
+  [[0,'0'],[.5,'.5'],[1,'1']].forEach(([f,l])=>{
+    const q=P3(1,f,0);
+    ax.appendChild(mkn('path',{d:'M'+q[0]+' '+q[1]+'l6 3',stroke:'rgba(26,52,84,.5)','stroke-width':1}));
+    const t=mkn('text',{x:q[0]+9,y:q[1]+6,fill:'rgba(26,52,84,.6)','font-size':7.6,
+      'font-family':'ui-monospace,monospace'});t.textContent=l;ax.appendChild(t);});
+  const lab=(x,y,txt,an)=>{const t=mkn('text',{x:x,y:y,fill:'rgba(26,52,84,.62)','font-size':7.6,
+    'text-anchor':an||'start','font-family':'ui-monospace,monospace','letter-spacing':'.16em'});
+    t.textContent=txt;svg.appendChild(t);};
+  lab(P3(0.5,0,0)[0]-14,P3(0.5,0,0)[1]+30,'PUBLICATION YEAR','middle');
+  lab(P3(1,0.5,0)[0]+16,P3(1,0.5,0)[1]+22,'RELEVANCE');
+  lab(P3(0,0,1)[0]-8,P3(0,0,1)[1]-6,'DENSITY','end');
+  const pl=mkn('g',{});pl.innerHTML=hudPlate(16,AX.B+8,'FIG.B','DENSITY','341 PAPERS');
+  svg.appendChild(pl);
 }
-
+/* the lit-sphere mark, in the DOM pipeline */
+function sphD(svg,x,y,r,amber){sph(svg,x,y,r,amber);}
 /* 3. spectrum */
 function figSpectrum(){
   const svg=document.getElementById('hfig3');if(!svg)return;svg.innerHTML='';
@@ -8114,7 +8171,7 @@ function figSpectrum(){
   const peaks=[];
   L.slice().sort((a,b)=>b[1]-a[1]).forEach(([f,h])=>{
     if(h<=0.62||peaks.length>=3)return;
-    if(peaks.some(p=>Math.abs(p-f)<0.16))return;
+    if(peaks.some(p=>Math.abs(p-f)<0.26))return;
     peaks.push(f);
   });
   L.forEach(([f,h])=>{
@@ -8122,13 +8179,30 @@ function figSpectrum(){
     prism(svg,px(f)-w/2,py(h),w,AX.B-py(h),3.2,-2,strong);
   });
   if(peaks.length){const pf=peaks[0],ph=(L.find(x=>x[0]===pf)||[0,0])[1];
-    reticle(svg,px(pf),py(ph),'PEAK YEAR',px(pf)-46,py(ph)+40,'end');}
-  peaks.forEach(f=>{
-    const h=(L.find(x=>x[0]===f)||[0,0])[1];
-    const t=mkn('text',{x:px(f)+1.6,y:py(h)-9,fill:'#b4560a','font-size':7.4,
-      'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
-    t.textContent=(1934+Math.round(f*92));svg.appendChild(t);
-  });
+    reticle(svg,px(pf),py(ph),'PEAK YEAR',px(pf)-58,py(ph)+52,'end');}
+
+  /* cumulative arrival on its own scale - it answers the question the bars
+     cannot, which is what fraction of the field existed by any given year */
+  let run=0;const tot=L.reduce((a,x)=>a+x[1],0)||1;
+  const cum=L.slice().sort((a,b)=>a[0]-b[0]).map(([f,h])=>{run+=h;return [px(f),py(run/tot)];});
+  svg.appendChild(mkn('path',{d:poly(cum),fill:'none',stroke:'#5a34a8','stroke-width':1.8,'data-draw':'1'}));
+  [[0.5,'50%'],[1,'100%']].forEach(([f,l])=>{
+    svg.appendChild(mkn('line',{x1:AX.R,y1:py(f),x2:AX.R+5,y2:py(f),stroke:'#5a34a8','stroke-width':1}));
+    const t=mkn('text',{x:AX.R+8,y:py(f)+(f===1?7:2.6),fill:'#5a34a8','font-size':6.8,
+      'font-family':'ui-monospace,monospace'});t.textContent=l;svg.appendChild(t);});
+  const cl2=mkn('text',{x:AX.R+8,y:AX.T-6,fill:'#5a34a8','font-size':6.6,'text-anchor':'end',
+    'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+  cl2.textContent='CUMULATIVE';svg.appendChild(cl2);
+  (function(){let r2=0,half=null;
+    L.slice().sort((a,b)=>a[0]-b[0]).forEach(([f,h])=>{r2+=h;if(half===null&&r2/tot>=0.5)half=f;});
+    if(half===null)return;
+    svg.appendChild(mkn('line',{x1:px(half),y1:AX.T,x2:px(half),y2:AX.B,stroke:'#5a34a8',
+      'stroke-width':1,'stroke-dasharray':'3 4',opacity:.7}));
+    const left=px(half)>(AX.L+AX.R)/2;
+    const t=mkn('text',{x:px(half)+(left?-5:5),y:AX.B-8,fill:'#5a34a8','font-size':7,
+      'text-anchor':left?'end':'start','font-family':'ui-monospace,monospace','letter-spacing':'.1em',
+      'font-weight':'700'});
+    t.textContent='50% BY '+(1934+Math.round(half*92));svg.appendChild(t);})();
 }
 
 /* 4. residuals */
@@ -8161,6 +8235,24 @@ function figResiduals(){
       'text-anchor':'middle','font-family':'ui-monospace,monospace','font-weight':'700'});
       t.textContent=(Math.abs(v-0.5)/SIG).toFixed(1)+'σ';gp.appendChild(t);}
   });
+  /* the pull distribution. If the error bars are honest it is a unit gaussian;
+     the overlay is what it should be, the bars are what it is. */
+  (function(){
+    const NB=14,h=new Array(NB).fill(0);
+    D.forEach(([f,v])=>{const z=(v-0.5)/SIG;
+      h[Math.max(0,Math.min(NB-1,Math.floor((z+3)/6*NB)))]++;});
+    const mx=Math.max(...h)||1,bh=(AX.B-AX.T)/NB;
+    h.forEach((n,i)=>{const y=AX.B-(i+1)*bh;
+      svg.appendChild(mkn('rect',{x:AX.R+4,y:y+0.5,width:(n/mx)*26,height:bh-1,
+        fill:'rgba(10,106,144,.42)'}));});
+    const g=[];
+    for(let i=0;i<=48;i++){const f=i/48,z=(f-0.5)*6;
+      g.push([AX.R+4+Math.exp(-z*z/2)*26,AX.B-f*(AX.B-AX.T)]);}
+    svg.appendChild(mkn('path',{d:poly(g),fill:'none',stroke:'#b4560a','stroke-width':1.2}));
+    const t=mkn('text',{x:AX.R+30,y:AX.T-4,fill:'rgba(26,52,84,.5)','font-size':6.6,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+    t.textContent='PULL vs N(0,1)';svg.appendChild(t);
+  })();
   (function(){const w=D.reduce((a,b)=>Math.abs(b[1]-0.5)>Math.abs(a[1]-0.5)?b:a,D[0]);
     reticle(svg,px(w[0]),py(w[1]),'OUTLIER',px(w[0])+52,py(w[1])+(w[1]>0.5?34:-34));})();
 }
@@ -8192,6 +8284,33 @@ function figImpact(){
   });
   svg.appendChild(mkn('rect',{x:px(0),y:py(1),width:px(0.32)-px(0),height:py(0.72)-py(1),
     fill:'none',stroke:'#b4560a','stroke-width':1.1,'stroke-dasharray':'4 3'}));
+  /* marginals: how the papers distribute on each axis alone. The scatter shows
+     the joint, these show what each axis is doing by itself, and the running
+     median shows the trend the eye keeps trying to draw through the cloud. */
+  (function(){
+    const NB=26,hx=new Array(NB).fill(0),hy=new Array(NB).fill(0);
+    pts.forEach(([x,y])=>{hx[Math.min(NB-1,Math.floor(x*NB))]++;hy[Math.min(NB-1,Math.floor(y*NB))]++;});
+    const mx=Math.max(...hx)||1,my=Math.max(...hy)||1;
+    hx.forEach((n,i)=>{const w=(AX.R-AX.L)/NB,x=AX.L+i*w;
+      svg.appendChild(mkn('rect',{x:x+0.5,y:AX.T-4-(n/mx)*22,width:w-1,height:(n/mx)*22,
+        fill:'rgba(10,106,144,.45)'}));});
+    hy.forEach((n,i)=>{const h=(AX.B-AX.T)/NB,y=AX.B-(i+1)*h;
+      svg.appendChild(mkn('rect',{x:AX.R+4,y:y+0.5,width:(n/my)*22,height:h-1,
+        fill:'rgba(10,106,144,.45)'}));});
+    /* running median of citations against year */
+    const B=13,med=[];
+    for(let i=0;i<B;i++){
+      const lo=i/B,hi=(i+1)/B;
+      const w=pts.filter(q=>q[0]>=lo&&q[0]<hi).map(q=>q[1]).sort((a,b)=>a-b);
+      if(w.length<3)continue;
+      med.push([px((lo+hi)/2),py(w[Math.floor(w.length/2)])]);
+    }
+    if(med.length>2)svg.appendChild(mkn('path',{d:poly(med),fill:'none',stroke:'#14263a',
+      'stroke-width':2,'stroke-linecap':'round','data-draw':'1'}));
+    const t=mkn('text',{x:AX.R-4,y:AX.B-8,fill:'#14263a','font-size':7,'text-anchor':'end',
+      'font-family':'ui-monospace,monospace','letter-spacing':'.12em'});
+    t.textContent='RUNNING MEDIAN';svg.appendChild(t);
+  })();
   reticle(svg,px(0.16),py(0.86),'THE CANON',px(0.16)+66,py(0.86)+46);
 
 }
