@@ -1,11 +1,13 @@
 # PARALLAX — Design Handoff
 
-**Build at time of writing:** `b72` (`index.html:3154`)
+**Build at time of writing:** `b73`
 **Scope:** the whole visual and interaction system of the product — front door and workspace.
 
-> This document was written against `b71` and then **run against the app**: the conformance defects
-> it found in §9 were fixed and shipped as `b72`. §11 records what changed. The rest of the document
-> describes the app as it now stands.
+> This document was written against `b71` and then **run against the app**, twice. The conformance
+> defects it found were fixed and shipped as `b72`; the remaining items were completed in `b73`,
+> and running them surfaced three things the first draft had got wrong, which are corrected in
+> place and flagged. §11 records both passes. The rest of the document describes the app as it
+> now stands.
 
 This document is written for whoever picks the design up next: a designer who needs the rules, or an
 engineer who needs to add a surface without breaking the language. It describes what is actually in
@@ -35,14 +37,13 @@ Two consequences shape everything visually:
 
 | Path | What it is |
 |---|---|
-| `index.html` | The entire product. 8,597 lines: 820 lines of CSS, ~7,580 of JS, no build step, no framework, no dependencies. |
-| `v3.html` | The previous generation ("Scientific Intelligence Platform"), kept as reference. **Not shipped, not maintained.** Its three-zone layout was replaced by the current one-workspace model. |
+| `index.html` | The entire product. ~8,790 lines: ~940 of CSS, ~7,700 of JS, no build step, no framework, no dependencies. |
 | `setup/ingest.ts` | Supabase Edge Function `ingest` (v10). The perimeter — sharded across parallel invocations. |
 | `setup/schema.sql` | Two tables (`records`, `findings`), public read via RLS. |
 | `robots.txt` | Pre-release; the page also carries `noindex,nofollow,noarchive` (`index.html:6`). |
 
-There is **no component library and no design tool file.** The CSS in `index.html:11–832` *is* the
-design system. Treat it as the source of truth and edit it in place.
+There is **no component library and no design tool file.** The `<style>` block at the top of
+`index.html` *is* the design system. Treat it as the source of truth and edit it in place.
 
 ---
 
@@ -76,8 +77,21 @@ this is enforced against the surrounding uppercase chrome with `!important`
 **Progressive disclosure, never a wall.** The inspector, the findings, the grouped sections and the
 console log all collapse to one line and open on demand.
 
-**The model never sleeps.** Vitals are always present (`index.html:96`); system activity is always
-streaming. The product should never look idle.
+**Nothing simulated is shown as if it were live.** This is the principle that actually governs the
+ambient surfaces, and it is stronger than it looks. `renderBand()` is deliberately empty — *"the
+simulated telemetry readouts are gone; the panels button is the only thing that lived on this bar
+and was real"* (`index.html:1831`). `#activity`, `#telemetry`, `#chipsDock` and `#findings` are
+`display:none` in the base stylesheet at every width for the same reason.
+
+> **Correction to the first draft of this document.** It stated a principle called *"the model never
+> sleeps — vitals are always present"*, citing the `#vitals` CSS block. That block styled an element
+> that has never existed in the markup, and its "always present" comment was stale. **There is no
+> always-on liveness readout in this product, by design.** The only thing feeding one would be
+> `AMBIENT` (`index.html:1856`), which invents record counts with `Math.random()`. That is demo
+> data — legitimate, and labelled `DATA: SIM` in the HUD — but it is not a live pulse, and putting it
+> on a permanent strip would be the same facade as the scanning line b71 deleted. The dead `#vitals`
+> rules were removed in `b73`. **Do not "restore" a liveness indicator without a real signal to feed
+> it.**
 
 ---
 
@@ -112,7 +126,7 @@ Status and neutrals:
 | `--bad` | `#c0392b` | conflict, breach, failure |
 | `--ink` | `#14263a` | primary text |
 | `--ink2` | `#2e4a66` | body text |
-| `--dim` | `#54697d` | micro-labels, axis text, captions |
+| `--dim` | `#4c6076` | micro-labels, axis text, captions. 6.2:1 against the room — raised from `#54697d` (5.4:1) in `b73` |
 | `--line` | `rgba(26,52,84,.16)` | hairline dividers |
 | `--line2` | `rgba(26,52,84,.30)` | container borders |
 | `--surf` | `rgba(255,253,249,.82)` | translucent panel fill |
@@ -139,12 +153,18 @@ candidate for reconciliation.
 Two families, no third:
 
 ```
---f: 'Inter', 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif
---m: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace
+--f: 'Inter','Inter var', system-ui, -apple-system, 'Segoe UI', Roboto,
+     'Helvetica Neue', Arial, sans-serif
+--m: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Mono', Consolas,
+     'Roboto Mono', Menlo, 'DejaVu Sans Mono', monospace
 ```
 
-Neither is self-hosted or loaded from a CDN — the page relies on local availability with a system
-fallback chain. That is a deliberate consequence of the no-build-step constraint.
+**No webfont, and that is now a stated decision rather than an omission** (`b73`). One file, no
+build step, no third-party request: a CDN font breaks all three, and an embedded one puts a quarter
+of a megabyte in front of first paint. So Inter is used where it exists and the chain names the
+closest equivalent on each platform explicitly, rather than leaning on `sans-serif` to mean
+something sensible. The tracked-out micro-labels are what degrade most without Inter, which is why
+the fallbacks are enumerated.
 
 **The mono is not for code.** It marks *machine-produced quantity*: readouts, counters, IDs, axis
 values, telemetry, plate numbers, the build stamp, timestamps. Anything a person wrote is Inter.
@@ -190,7 +210,7 @@ block rhythm    clamp(26px, 3vw, 40px)
 | `0` | instrument surface, part of the document | `.sec`, `#liveFig`, figures |
 | `2–3px` | a hard-edged sheet or control | `.gsec`, `.chip`, `#newBox`, `.hgo` |
 | `4–7px` | a card that sits on the page | `.hgrid article`, `.hpick figure` |
-| `9–14px` | a floating object above the page | `#insp`, `#vitals`, `.pcard`, `#bandMenu` |
+| `9–14px` | a floating object above the page | `#insp`, `.pcard`, `#bandMenu` |
 | `50%` / `99px` | a dot, a mic, a pill | `.mic`, `.hkick`, `#cxOpen` |
 
 **Elevation is one long soft shadow with a large negative spread**, never a stack. Two families:
@@ -305,8 +325,13 @@ Four breakpoints, all in `index.html`:
   goes single-column.
 - **`max-width:760px`** — front-door nav links hidden.
 
-Note that at ≤900px five ambient surfaces disappear rather than reflow. That is a deliberate
-simplification, but it means **mobile has never been designed, only degraded**. See §9.
+**`b73` rewrote the ≤900px case.** Before it, the mobile block was five `display:none` lines that
+left the real problem untouched: the station kept its two-pane geometry all the way down, so at
+390px the text held 66vw and the figure got a ~100px sliver. Now `#doc` becomes the scroller,
+`#ststep` / `#stext` / `#svis` fall into normal flow stacked, `#liveFig` takes `min(44vh,340px)`,
+body text goes to 13px, and the dock, controls and panels button are held clear of each other. Four
+of the five hidden surfaces were already `display:none` at every width — hiding them again on
+mobile changed nothing (see §2).
 
 ---
 
@@ -322,7 +347,7 @@ Grouped by role, with the line where each lives.
 | `#hud` | `77` | WATCH / PLAN / DATA / CMD / account / build stamp |
 | `#bld` | `84`, `755` | build stamp — **clickable**, opens the changelog |
 | `#banner` | `69` | full-width status; `.work` / `.good` / `.bad` |
-| `#vitals` | `96` | always-on model vitals; labelled bar rows |
+| `#band` | `493` | the bottom bar. One real control on it — the panels button. `renderBand()` is empty on purpose |
 | `#ctl` | `112` | per-mode instrument controls: `.cchip`, `.cslider` |
 | `#band` | `476` | one-glance status band |
 
@@ -480,41 +505,35 @@ same chrome.
 
 ## 9. Known gaps and risks
 
-Ordered by how likely they are to cost the next person time. **Five of the original eleven were
-conformance defects and are fixed in `b72` — see §11.** These are what remain.
+Everything the first draft listed has now been either fixed or deliberately settled — see §11.
+What follows is what is genuinely still open, and it is mostly structural rather than visual.
 
-1. **Mobile is degraded, not designed.** At ≤900px, vitals, findings, activity, telemetry and the
-   chips dock are `display:none`. A user on a phone loses the "the model never sleeps" principle
-   entirely. **This is the largest open design question and it is genuine design work, not a
-   repair** — it needs someone to decide what the instrument *is* on a small screen, not a
-   media query.
-2. **`#onb` is the last navy full-bleed surface** and contradicts "one room". Either bring it into
-   the daylight palette or document it as a deliberate threshold moment. Left alone in `b72`
-   because either answer is a design decision.
-3. **`#chrome` pointer-events.** Anything added inside it without `pointer-events:auto` will be
-   silently dead. Already caused one bug (`index.html:705`).
-4. **Micro-label contrast.** 7px at weight 800 in `--dim` (`#54697d`) on `#faf8f3` passes contrast
-   ratio but is below most legibility floors at that size. Deliberate — it is instrument chrome —
-   but it should be a conscious decision, re-taken, not inherited.
-5. **Fonts are not loaded.** Inter is assumed present. On a machine without it the whole system
-   falls to `system-ui` and the tracking-heavy micro-labels change character noticeably. Not fixed
-   because the only fixes are a webfont request to a third party or an embedded font file, and both
-   cut against the single-file, no-dependency constraint. **Someone should decide this deliberately.**
-6. **The scroll reveal is now absent rather than broken.** `b72` removed the two dead observers, and
-   kept the `data-draw` / `data-pop` / `data-grow` marks the figure builders emit. If a reveal is
-   wanted, the hooks are there and it is a CSS job. Note that the `b68` changelog entry still
-   describes readouts that "draw themselves the first time they scroll into view" — that has not
-   been true for some time, and the `b72` entry says so.
-7. **`v3.html` is dead weight** — 178KB of a superseded design shipped to the repo root. It is not
-   linked from anywhere. Decide whether it is reference or deletable. Not deleted here: that is
-   your call, not a defect.
-8. **Every id is global.** One file with a flat id namespace and a `FID` counter guarding SVG
-   collisions. It works, and the no-build-step constraint is a real product decision — but any new
-   figure must remember to namespace.
-9. **Focus ring coverage is by rule, not by audit.** `b72` adds a global `:focus-visible` ring plus
-   named overrides for the five fields that had switched their own outline off. Any *future* control
-   that sets `outline:0` on itself will out-specify the global rule and go dark again. There is no
-   lint for this.
+1. **`#chrome` is `pointer-events:none`.** Anything added inside it without `pointer-events:auto`
+   will be silently dead — no error, no visual clue, and clicks land on whatever is beneath. This
+   has already caused one shipped bug (`index.html:705`). It is a convention, not something a rule
+   can enforce, so it stays a risk.
+2. **Every id is global.** One file, a flat id namespace, and a `FID` counter to keep SVG defs from
+   colliding. It works, and the no-build-step constraint that produces it is a real product
+   decision — but a new figure that forgets `u=++FID` will quietly borrow another figure's
+   gradients.
+3. **Focus-ring coverage is by convention, not by audit.** The global `:focus-visible` rule plus
+   `:focus:not(:focus-visible){outline:none}` means no control needs to disable its own outline —
+   and `b73` removed the four that did. But a *future* control that sets `outline:0` on itself, or
+   an inline `style` that does, will out-specify the ring and go dark again. There is no lint.
+4. **The demo corpus is simulated, and the seam is one HUD label.** `AMBIENT` (`index.html:1856`)
+   invents record counts with `Math.random()` and increments `S.counters`, which the executive
+   briefing then reports as fact ("the perimeter read 2,143,208 records"). This is legitimate — the
+   worked example is a demo and the HUD says `DATA: SIM` — but the honesty of the whole product
+   rests on a user noticing one small label. **If you touch that area, make the seam louder, not
+   quieter.** Left alone here because changing it is a product call, not a design repair.
+5. **The reveal covers what the builders happen to mark.** `b73` restored the scroll reveal, but
+   only the elements carrying `data-draw` / `data-pop` / `data-grow` participate — a few curves and
+   groups per figure, not the whole plate. The `b68` changelog describes something more thorough
+   than what the marks actually cover. Either mark more, or keep the copy honest.
+6. **Micro-label size is now a taken decision, not an open one.** 7px chrome and 6px in-figure text
+   stay; `--dim` moved to 6.2:1 to carry them. Recorded here so the next person knows it was
+   weighed rather than inherited — and so that if they disagree, they are re-opening a decision
+   rather than fixing an oversight.
 
 ---
 
@@ -538,30 +557,63 @@ conformance defects and are fixed in `b72` — see §11.** These are what remain
 
 ---
 
-## 11. What this handoff changed (`b71` → `b72`)
+## 11. What this handoff changed (`b71` → `b73`)
 
-The document was run against the app. Five of the eleven gaps in §9 were conformance defects rather
-than design questions — the app disagreeing with its own stated system — and were fixed. The other
-six need a decision from you and were left alone, deliberately.
+The document was run against the app twice. `b72` fixed the conformance defects — the app
+disagreeing with its own stated system. `b73` completed the rest, and in doing so proved three of
+this document's own claims wrong; those are corrected in place above and called out below.
+
+### `b72` — conformance
 
 | Fix | Where | Effect |
 |---|---|---|
-| **One palette.** `C` now reads the `:root` custom properties at boot instead of being a second hand-written copy. `HUDA` derives from `C.asm`. | `index.html:1027`, `4101` | `calc`, `ink2` and `bad` were each a different colour in a figure than in the text beside it. Now identical. Verified: the resolved JS palette matches all ten custom properties exactly. |
-| **Focus ring.** Global `:focus-visible` in the accent at 2px/2px offset, `:focus:not(:focus-visible)` silenced, named overrides for the five fields that set `outline:0`, cyan on the two dark surfaces. Two generated inline `outline:0` styles removed. | `index.html:42–56`, `5890`, `7263` | Keyboard navigation is visible for the first time. Verified by real `Tab` presses: `solid 2px rgb(180,86,10)`. |
-| **Figures have accessible names.** `svgO` sets `role="img"`; `roHead` injects a `<title>` first child and a matching `aria-label` built from the title *and* its readouts. | `index.html:4064`, `4152` | All ten readout figures, from one insertion point. Verified: e.g. *"CAUSAL PROVENANCE. NODES 14. EDGES 16. UNMEASURED 2. ATTACK PATHS 2. VARIANCE 83% / 1 EDGE"*. |
-| **Dead scaffolding removed.** `pulse()`, `dashflow()`, `drawon()` and their five call sites; `armFigures()` and the `.seen` observer. | `index.html:4090`, `8433` | No visual change — that is the point. Removes a `getTotalLength()` sweep over every path in seven figures on every load, and three empty stubs that read like bugs. |
-| **Build stamp written from `BUILD`.** It was typed into the markup by hand. | `index.html:3280` | The stamp is how a user answers "am I on the new build" without help; a hand-typed copy goes stale the moment `BUILD` moves. |
+| **One palette.** `C` reads the `:root` custom properties at boot instead of being a second hand-written copy. `HUDA` derives from `C.asm`. | `1027`, `4101` | `calc`, `ink2` and `bad` were each a different colour in a figure than in the text beside it. Verified identical. |
+| **Focus ring.** Global `:focus-visible`, pointer focus silenced, dark-surface variant. | `42–56` | Keyboard navigation visible for the first time. |
+| **Figures have accessible names.** `svgO` sets `role="img"`; `roHead` injects a `<title>` and `aria-label` from the title *and* its readouts. | `4064`, `4152` | All ten readouts, one insertion point. |
+| **Dead scaffolding removed.** `pulse()`, `dashflow()`, `drawon()` and five call sites; `armFigures()` and the `.seen` observer. | `4090`, `8433` | No visual change. Removed a `getTotalLength()` sweep on every load. |
+| **Build stamp written from `BUILD`.** | `3280` | It was hand-typed, so it went stale the moment `BUILD` moved. |
 
-**Verification.** JS syntax-checked, then loaded in Chromium: no page errors and no `console.error`
-on the front door or through onboarding. Front door renders complete — hero, counters reaching
-124/18, six readouts, globe, 18-archive ticker, perimeter and pricing tables. Focus ring confirmed
-by keyboard. Figure names confirmed by calling the builders directly.
+### `b73` — completion
 
-**Not done, and why:** mobile (§9.1) and the `#onb` navy surface (§9.2) are design decisions, not
-repairs. The font question (§9.5) trades against the single-file constraint. `v3.html` (§9.7) is
-yours to keep or bin. None of these are blocked — they are just not mine to settle.
+| Fix | Effect |
+|---|---|
+| **The small screen, laid out.** `#doc` becomes the scroller; `#ststep` / `#stext` / `#svis` stack in normal flow; `#liveFig` gets `min(44vh,340px)`; body text to 13px; dock, controls and panels button held clear. | At 390px the text was 66vw and the figure a ~100px sliver. Verified: text now full width, document scrolls, no horizontal overflow. |
+| **The last dark surface, brought into the room.** `#onb` takes the off-white, the front door's grid wash, ink type and the amber button. | The only dark surface left is the graphite aperture the black hole sits in — which is what §2 always claimed. Verified: `h1` `rgb(20,38,58)`, button `rgb(180,86,10)`. |
+| **The scroll reveal, restored and guarded.** The CSS that reads `data-draw` / `data-pop` / `data-grow` is back, all of it behind `#home.reveal`, which the script adds *only* on the path where it will also observe. | Claimed since `b68`, not true since. Verified: nothing hidden after settle; under `prefers-reduced-motion` the class is never added and every figure is simply drawn. |
+| **Micro-label contrast re-taken.** `--dim` `#54697d` → `#4c6076`, 5.4:1 → 6.2:1. Sizes kept. | A decision, recorded, rather than an inheritance. |
+| **A typeface decision.** No webfont — stated, with reasons — and an explicitly enumerated fallback chain per platform. | Was an assumption; is now a choice. |
+| **Dead `#vitals` CSS removed; `v3.html` deleted.** | Fifteen rules styling an element that never existed; 178KB linked from nowhere. `v3.html` is recoverable at `git show cfbcdca:v3.html`. |
+
+### Three things this document had wrong
+
+Running it against the app is what exposed them. All three are corrected above.
+
+1. **"The model never sleeps — vitals are always present."** Stated as a principle in §2, cited to
+   the `#vitals` CSS. **There has never been a `#vitals` element.** The rules styled nothing and
+   their "always present" comment was stale. There is no always-on liveness readout, deliberately:
+   `renderBand()` is empty because the telemetry it held was simulated. The real principle is
+   *nothing simulated is shown as if it were live*.
+2. **"At ≤900px five ambient surfaces disappear."** Four of the five — `#findings`, `#activity`,
+   `#telemetry`, `#chipsDock` — are `display:none` in the **base** stylesheet at every width. The
+   fifth never existed. Mobile's problem was never the hidden panels; it was the two-pane layout
+   that survived all the way down.
+3. **The component inventory listed `#vitals` as a live component.** It was read from CSS without
+   checking the markup. Corrected to `#band`, which is what actually sits on the bottom edge —
+   carrying one real control.
+
+**Verification.** JS syntax-checked after every pass, then loaded in Chromium at 1600×1000 and
+390×844, with and without `prefers-reduced-motion`. No page errors and no `console.error` on any
+path. Front door renders complete — hero, counters reaching 124/18, six readouts, globe,
+18-archive ticker, perimeter and pricing tables. Focus ring confirmed by real `Tab` presses. Figure
+accessible names confirmed by calling the builders directly. Reveal confirmed to settle fully
+visible, and confirmed never to engage under reduced motion.
+
+**One thing verified only structurally:** the stacked `#svis` figure pane. It is rendered only when
+a station has a visual, which needs a watch with returned records, which needs the Supabase
+perimeter — unreachable offline. The rules are correct by inspection and the element is absent
+rather than misplaced in the offline runs. **Worth a look on a real phone against a live backend.**
 
 ---
 
-*Handoff prepared against `b71`; run against the app and updated to `b72`. If the build stamp in the
-top-right no longer reads `b72`, check `WHATSNEW` (`index.html:3155`) for what has moved since.*
+*Handoff prepared against `b71`, run against the app, and updated to `b73`. If the build stamp in
+the top-right no longer reads `b73`, open it — it lists what has moved since.*

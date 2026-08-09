@@ -17,12 +17,29 @@
    ============================================================ */
 :root{
   --ev:#0a6a90; --calc:#38536f; --asm:#b4560a; --hyp:#5a34a8; --clm:#1b2b3d;
-  --ink:#14263a; --ink2:#2e4a66; --dim:#54697d;
+  /* --dim carries the micro-labels, the axis values and the captions - the
+     smallest type in the product, at 7px in the chrome and 6px inside a figure.
+     It sat at 5.4:1 against the room, which passes AA and is still thin at that
+     size. Taken again deliberately: the colour goes to 6.2:1, and the sizes
+     stay. They are what makes this read as instrument chrome rather than as a
+     web page, and every one of them is a label on something the figure or the
+     row states again at full size. Nothing is only legible at 7px. */
+  --ink:#14263a; --ink2:#2e4a66; --dim:#4c6076;
   --line:rgba(26,52,84,.16); --line2:rgba(26,52,84,.30);
   --surf:rgba(255,253,249,.82);
   --ok:#12855a; --bad:#c0392b;
-  --f:'Inter','SF Pro Display','Helvetica Neue',system-ui,sans-serif;
-  --m:ui-monospace,'SF Mono','JetBrains Mono',Menlo,monospace;
+  /* --------------------------------------------------------------------------
+     No webfont, and that is a decision rather than an oversight. This product is
+     one file with no build step and no third-party request in it; a font from a
+     CDN would break both, and embedding one would put a quarter of a megabyte of
+     glyphs in front of the first paint. So Inter is used where it exists and the
+     stack below is tuned to fall to the closest thing each platform already has,
+     rather than to whatever "sans-serif" happens to mean. The tracking on the
+     small chrome labels is the part that suffers most without Inter, which is
+     why the fallbacks are named explicitly instead of leaning on system-ui.
+     -------------------------------------------------------------------------- */
+  --f:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,'DejaVu Sans Mono',monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;overflow:hidden}
@@ -47,16 +64,18 @@ button{font-family:var(--f)}
    border so it reads against both the off-white and the graphite aperture.
    :focus-visible only, so a mouse click never draws it.
 
-   The second block is not a duplicate: the fields that set outline:0 on
-   themselves out-specify a bare :focus-visible, so each has to be named to get
-   its ring back.
+   The five bare fields used to switch their own outline off, which out-specified
+   this and left them dark. Those declarations are gone: the rule below silences
+   the ring for pointer focus everywhere, so no control needs to do it itself,
+   and a control that tries will simply be reintroducing the bug.
    --------------------------------------------------------------------------- */
 :focus-visible{outline:2px solid var(--asm);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}
+/* an underlined field wants the ring a little further out, clear of its rule */
 .askbar input:focus-visible,.hcard input:focus-visible,#cxIn:focus-visible,
-#apIn:focus-visible,#field textarea:focus-visible{outline:2px solid var(--asm);outline-offset:3px}
-/* on the two dark surfaces the amber goes muddy; the ring turns to the cyan */
-#onb :focus-visible,#svis.gl :focus-visible{outline-color:#4fd8ff}
+#apIn:focus-visible,#field textarea:focus-visible{outline-offset:3px}
+/* the graphite aperture is the one surface the amber goes muddy on */
+#svis.gl :focus-visible{outline-color:#4fd8ff}
 canvas{display:block}
 #gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:transparent;pointer-events:none;
   filter:drop-shadow(0 0 40px rgba(70,205,255,.28))}
@@ -109,21 +128,19 @@ canvas{display:block}
 
 #qBtn b{color:var(--ev)}
 
-/* live model vitals — always present: the model never sleeps */
-#vitals{position:absolute;left:22px;bottom:18px;pointer-events:auto;display:flex;flex-direction:column;gap:7px;
-  background:rgba(250,246,240,.88);border:1px solid var(--line2);border-radius:10px;padding:12px 14px;
-  backdrop-filter:blur(10px);min-width:250px;box-shadow:0 8px 30px -16px rgba(10,30,60,.4)}
-#vitals .vh{display:flex;justify-content:space-between;align-items:center}
-#vitals .vh .t{font-size:8px;letter-spacing:.26em;font-weight:800;color:var(--ink2);text-transform:uppercase}
-#vitals .vh .live{display:flex;align-items:center;gap:5px;font-family:var(--m);font-size:7.5px;color:var(--ev)}
-#vitals .vh .live i{width:5px;height:5px;border-radius:50%;background:var(--ev);box-shadow:0 0 7px rgba(10,106,144,.9);animation:bl 2.8s infinite}
+/* A #vitals panel was specified here in fifteen rules - a standing card, bottom
+   left, carrying the live model bars. There has never been a #vitals element in
+   the markup and nothing builds one: vitals() is a one-line shim onto
+   renderIntel(), and the job the panel described is done by #band along the
+   bottom edge. So the rules styled nothing, which is why the comment above them
+   claimed the panel was "always present" while no one had ever seen it. Gone.
+   .vrow stays: the same row shape is used by the live intelligence panels. */
 @keyframes bl{0%,100%{opacity:.35}50%{opacity:1}}
 .vrow{display:flex;align-items:center;gap:8px}
 .vrow .k{width:86px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--dim)}
 .vrow .b{flex:1;height:4px;border-radius:2px;background:rgba(26,52,84,.12);overflow:hidden}
 .vrow .b i{display:block;height:100%;border-radius:2px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
 .vrow .v{font-family:var(--m);font-size:8.5px;color:var(--ink2);min-width:72px;text-align:right}
-#vitals .note{font-family:var(--m);font-size:7.5px;color:var(--dim);letter-spacing:.06em}
 
 /* per-mode instrument controls (bottom center) */
 #ctl{position:absolute;left:calc(50% - 80px);bottom:18px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;
@@ -332,6 +349,27 @@ canvas{display:block}
 .hpick svg{width:100%;height:auto;display:block;overflow:visible}
 .hpick figcaption{margin-top:11px;font-size:12.4px;line-height:1.5;color:var(--ink2)}
 .hpick figcaption b{color:var(--ink)}
+/* ---------------------------------------------------------------------------
+   The readouts arrive the first time you reach them, and never again - anything
+   that re-animates on every scroll is a toy. This is the half that was missing:
+   the builders have always marked their curves data-draw, their marks data-pop
+   and their bars data-grow, and armFigures has always measured them, but no
+   rule ever read any of it, so nothing happened.
+
+   Everything hangs off #home.reveal, and that class is added by the script only
+   on the path where it will also observe. Under prefers-reduced-motion, without
+   IntersectionObserver, or if the script never runs at all, the class is absent
+   and every figure is simply drawn. A reveal must never be the reason a page is
+   blank.
+   --------------------------------------------------------------------------- */
+#home.reveal .hpick figure svg [data-draw]{stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+#home.reveal .hpick figure.drawn svg [data-draw]{stroke-dashoffset:0;
+  transition:stroke-dashoffset 1.15s cubic-bezier(.16,.9,.3,1) var(--d,0s)}
+#home.reveal .hpick figure svg [data-pop]{opacity:0}
+#home.reveal .hpick figure.drawn svg [data-pop]{opacity:1;transition:opacity .55s ease var(--d,0s)}
+#home.reveal .hpick figure svg [data-grow]{transform:scaleY(.02);transform-box:fill-box;transform-origin:bottom}
+#home.reveal .hpick figure.drawn svg [data-grow]{transform:none;
+  transition:transform .8s cubic-bezier(.16,.9,.3,1) var(--d,0s);transform-box:fill-box;transform-origin:bottom}
 .hsteps ol{margin:0;padding-left:20px;max-width:820px}
 .hsteps li{font-size:13.8px;line-height:1.62;color:var(--ink2);margin:0 0 12px}
 #hperimtab table,#hpricetab table{width:100%}
@@ -346,7 +384,7 @@ canvas{display:block}
   text-transform:uppercase;color:var(--dim);margin:0 0 13px;font-weight:700}
 .hcard input{display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:10px 11px;
   font-family:var(--f);font-size:14px;color:var(--ink);background:none;
-  border:1px solid rgba(84,105,125,.32);border-radius:3px;outline:0}
+  border:1px solid rgba(84,105,125,.32);border-radius:3px}
 .hcard input:focus{border-color:var(--asm)}
 .hfine{font-size:11.4px;line-height:1.5;color:var(--dim);margin:14px 0 0}
 #hmsg:empty{display:none}
@@ -369,7 +407,7 @@ canvas{display:block}
 .askbar.off{border-left-color:var(--dim);border-color:rgba(84,105,125,.34)}
 .askbar.off .asklbl{color:var(--dim)}
 .askbar .asklbl{font-family:var(--m);font-size:8.5px;letter-spacing:.24em;font-weight:800;color:var(--asm);flex:none}
-.askbar input{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:14.5px;color:var(--ink);padding:3px 0}
+.askbar input{flex:1;background:none;border:0;font-family:var(--f);font-size:14.5px;color:var(--ink);padding:3px 0}
 .askbar input::placeholder{color:#8a8477}
 .askbar .abtn.pri{font-size:9px;padding:5px 11px;border:1px solid var(--asm);border-radius:3px;background:var(--asm);color:#fff}
 .askbar .abtn.pri:hover{background:#9c4a08;border-color:#9c4a08}
@@ -708,7 +746,7 @@ body.cxon #cxOpen{right:calc(min(430px,34vw) + 14px)}
 #cxLog .w2{font-size:11px;color:var(--asm)}
 #cxRow{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--line)}
 #cxRow .p{font-family:var(--m);color:var(--asm);font-weight:800}
-#cxIn{flex:1;background:none;border:0;outline:0;font-family:var(--f);font-size:12.5px;color:var(--ink)}
+#cxIn{flex:1;background:none;border:0;font-family:var(--f);font-size:12.5px;color:var(--ink)}
 #cxIn::placeholder{color:var(--dim)}
 #cxRow .k{font-family:var(--m);font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
 #cxHints{padding:0 14px 12px;display:flex;flex-wrap:wrap;gap:5px}
@@ -794,7 +832,7 @@ body.cxon #doc{right:min(430px,34vw)}
 #ap.on{display:flex}
 #apBox{margin-top:14vh;width:min(700px,90vw)}
 #apBox .lbl{font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink2);font-weight:800}
-#apIn{width:100%;margin-top:12px;background:transparent;border:0;outline:0;color:var(--ink);
+#apIn{width:100%;margin-top:12px;background:transparent;border:0;color:var(--ink);
   font-family:var(--f);font-weight:300;font-size:clamp(16px,2.2vw,22px);padding:0 0 12px}
 #apIn::placeholder{color:var(--dim)}
 #apRule{height:1px;background:linear-gradient(90deg,rgba(10,106,144,.9),rgba(26,52,84,.1))}
@@ -806,20 +844,36 @@ body.cxon #doc{right:min(430px,34vw)}
 .sug .where{margin-left:auto;font-family:var(--m);font-size:7.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
 
 /* onboarding + construction */
+/* One room, and this was the last place that was not it. The threshold used to
+   be a navy field with a cyan glow on the wordmark - a hard edge between two
+   colour worlds, crossed twice on the way in, which is the most tiring thing a
+   product can ask of an eye. It is the same off-white as everywhere else now,
+   with the same grid wash and the same amber. The moment is carried by scale
+   and by the beam, as it is on the front door. */
 #onb{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(120% 90% at 60% 25%,rgba(40,120,190,.35),rgba(6,18,38,0) 62%),linear-gradient(180deg,#071429 0%,#0d2547 50%,#11315c 100%);
+  background:
+    radial-gradient(118% 90% at 72% 12%, rgba(255,208,152,.16) 0%, rgba(255,208,152,0) 60%),
+    radial-gradient(88% 78% at 4% 100%, rgba(196,190,178,.20) 0%, rgba(196,190,178,0) 58%),
+    linear-gradient(168deg,#faf8f3 0%,#f4f3ef 46%,#edeeee 100%);
   transition:opacity 1.1s cubic-bezier(.2,.7,.2,1),filter 1.1s}
-#onb h1{font-size:clamp(34px,7vw,72px);font-weight:200;letter-spacing:.42em;margin:0 0 0 .42em;color:#eaf6ff;text-shadow:0 0 44px rgba(80,200,255,.55)}
-#onb .sub{margin-top:16px;font-size:13px;color:#a8c6de;text-align:center;padding:0 20px;max-width:600px;line-height:1.8}
+#onb::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background-image:linear-gradient(rgba(26,52,84,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(26,52,84,.05) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(120% 100% at 60% 34%,#000 0%,transparent 74%)}
+#onb>*{position:relative;z-index:1}
+#onb h1{font-size:clamp(34px,7vw,72px);font-weight:200;letter-spacing:.42em;margin:0 0 0 .42em;color:var(--ink)}
+#onb .sub{margin-top:16px;font-size:13px;color:var(--ink2);text-align:center;padding:0 20px;max-width:600px;line-height:1.8}
 #field{margin-top:46px;width:min(720px,86vw)}
 #field .q{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;font-weight:800}
-#field textarea{width:100%;height:68px;resize:none;background:transparent;border:0;outline:0;color:#f2f9ff;
+#field textarea{width:100%;height:68px;resize:none;background:transparent;border:0;color:var(--ink);
   font-family:var(--f);font-weight:300;font-size:clamp(14px,1.9vw,19px);line-height:1.6;padding:0 0 12px}
-#field textarea::placeholder{color:#6d89a2}
-#field .rule{height:1px;background:linear-gradient(90deg,rgba(150,200,240,.6),rgba(150,200,240,.08))}
-#go{margin-top:32px;background:#2f88c0;border:0;border-radius:8px;cursor:pointer;color:#eaf4fb;
-  font-size:10px;letter-spacing:.3em;text-transform:uppercase;padding:14px 28px;font-weight:800}
-#go:hover{background:#3ea0d8}
+#field textarea::placeholder{color:#8a8477}
+#field .rule{height:1px;background:linear-gradient(90deg,rgba(180,86,10,.6),rgba(180,86,10,.08))}
+#go{margin-top:32px;background:var(--asm);border:0;border-radius:3px;cursor:pointer;color:#fffdf8;
+  font-size:10px;letter-spacing:.3em;text-transform:uppercase;padding:14px 28px;font-weight:800;
+  transition:filter .15s,transform .1s}
+#go:hover{filter:brightness(1.1)} #go:active{transform:translateY(1px)}
 #cons{position:fixed;inset:0;z-index:75;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 #cons.on{display:flex}
 #cons .line{font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:#123049;font-weight:800;
@@ -830,18 +884,63 @@ body.cxon #doc{right:min(430px,34vw)}
 #cons .pb{margin-top:30px;width:min(400px,70vw);height:2px;background:rgba(26,52,84,.14);border-radius:1px;overflow:hidden}
 #cons .pb i{display:block;height:100%;background:var(--ev);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
 
+/* ---------------------------------------------------------------------------
+   THE SMALL SCREEN. This used to be five display:none declarations and nothing
+   else, and it left the real problem untouched: the station kept its two-pane
+   geometry all the way down. The text held 66vw and the figure got whatever was
+   left - about a 250px sliver at 900px and narrower below - so the instrument
+   was least readable at exactly the width where reading is hardest. The panels
+   those declarations switched off were, with one exception, already off at
+   every width, so hiding them again changed nothing.
+
+   So: the station stacks. #doc becomes the scroller and the three panes fall
+   into normal flow, text first, figure under it at a height you can actually
+   read. The bottom keeps the dock, the instrument controls and the panels
+   button clear of each other and of the thumb.
+   --------------------------------------------------------------------------- */
 @media(max-width:900px){
-  #findings,#activity,#telemetry,#chipsDock{display:none}
-  #doc{right:0;padding:12px 12px 140px}
-  #brief{left:22px}
-  #dock{top:auto;bottom:12px;max-width:96vw;overflow-x:auto;left:50%}
-  #ctl{left:50%}#hint{left:50%}
+  #findings,#chipsDock,#telemetry,#activity{display:none}
+
+  /* the document scrolls; the panes stack inside it */
+  #doc{right:0;top:64px;bottom:0;overflow-y:auto;overflow-x:hidden;pointer-events:auto;
+    -webkit-overflow-scrolling:touch;padding:10px 12px 156px}
+  #ststep,#stext,#svis,#stext.wide,#stext.m,#svis.m,#svis.full{
+    position:static;left:auto;right:auto;top:auto;bottom:auto;
+    width:auto;max-width:none;height:auto;overflow:visible;transform:none}
+  #ststep{margin-bottom:14px}
+  #ststep .row{flex-wrap:wrap}
+  #stext{margin-bottom:6px}
+  #svis{display:block;perspective:none;margin-bottom:8px}
+  #svis .vin,#svis.m .vin,#svis.full .vin{position:static;display:block;width:auto;max-width:none;
+    height:auto;transform:none!important;margin:0;padding:0;cursor:default}
+  #svis #liveFig,#svis.m #liveFig,#svis.full #liveFig{position:relative;inset:auto;
+    height:min(44vh,340px);min-height:0;flex:none;
+    -webkit-mask-image:none;mask-image:none}
+  #svis .fcap,#svis.full .fcap{position:static;transform:none;max-width:none;text-align:left;margin-top:8px}
+  #svis.full #figCtl{position:static;transform:none;margin-top:8px;justify-content:flex-start}
+  .sec p{font-size:13px}          /* a phone is held further from the eye than a monitor is */
+  .gsec>summary .t{font-size:14px}
+
+  /* the bottom stack, from the floor up: dock, controls, activity, instruments */
+  #dock{top:auto;bottom:8px;max-width:96vw;overflow-x:auto;left:50%}
   .dk{padding:7px 9px}.dk .d{display:none}
-  #ctl{bottom:74px;max-width:94vw}
-  #hint{bottom:120px}
-  #vitals{display:none}
+  #ctl{left:50%;bottom:50px;max-width:94vw}
+  #hint{left:50%;bottom:116px}
+  /* #band is one button - the way into the panels. It is not a status strip and
+     is not dressed as one: renderBand() is deliberately empty because the
+     telemetry that used to sit here was simulated, and simulated telemetry is
+     the facade this product keeps removing. It only has to clear the controls
+     and stay thumb-reachable. */
+  #band{position:fixed;right:10px;left:auto;bottom:80px;height:26px;
+    border-top:0;padding-top:0;background:none}
+  #bandMenu{bottom:112px;right:0}
+
   #insp{width:min(330px,92vw);top:56px}
-  #brief{width:min(360px,92vw)}
+  #brief{left:22px;width:min(360px,92vw)}
+}
+@media(max-width:900px) and (max-height:680px){
+  #band{bottom:72px}
+  #doc{padding-bottom:128px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.05s!important}
@@ -858,7 +957,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b72</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b73</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -3151,8 +3250,29 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b72';
+const BUILD='b73';
 const WHATSNEW=[
+ ['A phone gets the instrument, not the wreckage of one',
+  'The small screen had never been laid out — it was five display:none lines and nothing else, and it left the real problem untouched. The station kept its two-pane geometry all the way down, so the text held 66% of the width and the figure got a sliver about 250px wide, narrower still on a real phone: the instrument was least readable at exactly the width where reading is hardest. The station stacks now — the document scrolls, the text runs full width, and the figure sits under it at a height you can actually read, with the modes, the instrument controls and the panels button held clear of each other and of the thumb. Body text goes up to 13px, because a phone is held further from the eye than a monitor is.',
+  'Any screen under 900px. Rotate a phone, or narrow the window.'],
+ ['A panel that was specified but never existed',
+  'Fifteen rules described a standing vitals card in the bottom-left corner, under a comment saying it was always present because the model never sleeps. There has never been such an element in the markup and nothing has ever built one — the function that would have filled it is a one-line shim onto something else. So the rules styled nothing, which is why a panel documented as always present was one nobody had ever seen. Removed. Worth saying plainly, since the comment claimed otherwise: there is no always-on liveness readout in this product, and that is deliberate. The telemetry that used to sit on the bottom bar was simulated, and simulated telemetry is the same facade as a scanning line. What is left on that bar is the panels button, which is real.',
+  'Nothing visible changes. The bottom-left corner is where it would have been.'],
+ ['The last dark surface is gone',
+  'The threshold into the product was a navy field with a cyan glow on the wordmark — the one place left that was not the same room as everything else, and you crossed the edge twice on the way in. It is the off-white now, with the same faint grid the front door uses and the same amber on the button. The only dark surface left in the whole product is the sky the black hole occupies, which is a real aperture rather than a panel.',
+  'The screen after you enter, where it asks what you are working on.'],
+ ['The readouts draw themselves again',
+  'This was claimed several builds ago and had not been true since: the figure builders marked their curves, marks and bars for it, and the script measured them on every load, but the rule that would have animated any of it was gone — so the work happened and nothing moved. The rule is back, and it is guarded properly this time. Nothing is hidden until the page knows it is going to reveal it, so under reduced motion, without IntersectionObserver, or if the script fails outright, every figure is simply drawn. A reveal must never be the reason a page is blank.',
+  'The front door, under “Readouts”. Scroll down to them.'],
+ ['The smallest type, taken again',
+  'The micro-labels sat at 5.4:1 against the room — passing, and still thin at 7px. The colour goes to 6.2:1. The sizes stay, because they are what makes this read as instrument chrome rather than as a web page, and nothing in the product is legible only at 7px: every one of those labels names something the figure or the row beside it states again at full size.',
+  'Every axis value, caption and chrome label.'],
+ ['A typeface decision, instead of an assumption',
+  'Inter was named and never loaded, so on a machine without it the whole product fell to whatever “sans-serif” meant there — and the tracked-out chrome labels are what suffers most from that. There is still no webfont: this is one file with no build step and no third-party request in it, and a font from a CDN would break both while a embedded one would put a quarter of a megabyte in front of the first paint. Instead the fallback chain is now named explicitly, platform by platform, so the second choice is the closest thing each machine already has rather than an accident.',
+  'Everywhere. Most visible in the small uppercase labels.'],
+ ['v3.html is gone',
+  '178KB of a superseded design, shipped to the repository root and linked from nowhere. It is in the history if it is ever wanted.',
+  'Nothing in the product changes.'],
  ['You can see where the keyboard is',
   'Every control in here was already a real button or input, so tabbing through the product has always worked — there was simply no ring drawn when it landed, and on an off-white page the browser default is close to invisible. There is now one focus ring, in the amber, held clear of the control’s own border, and it appears only for the keyboard: clicking a button never draws it. On the two dark surfaces it turns to the cyan, because amber on graphite goes muddy. The five fields that had switched their own outline off — the ask bar, the console line, the command aperture, the onboarding field, the sign-in inputs — have it back.',
   'Press Tab anywhere, on the front door or in the workspace.'],
@@ -8447,17 +8567,37 @@ function heroKick(){
       if(k)k.textContent='Perimeter complete';}
     n.textContent=v.toLocaleString('en-US');},28);
 }
-/* armFigures() stood here. It measured every path in every readout, stamped a
-   --len and a staggered --d onto them, and flagged each figure .drawn as it
-   scrolled into view - and not one of those hooks was read by a stylesheet
-   rule, so the whole thing was a getTotalLength() over seven figures on every
-   load in exchange for nothing on screen. The .seen observer below it was the
-   same story. Both are gone.
+/* Curves draw, marks arrive, bars grow - but only the first time a readout
+   scrolls into view. Anything that re-animates on every scroll is a toy.
 
-   The data-draw / data-pop / data-grow attributes are still emitted by the
-   figure builders. They are the declarative half of this and they cost nothing;
-   whoever decides a scroll reveal belongs here has the hooks waiting. That is a
-   design decision, not a repair, so it is not being taken here. */
+   The order matters. Nothing is hidden until we know we are going to reveal it:
+   under reduced motion, or without IntersectionObserver, this returns before
+   #home gets .reveal and every figure stays drawn. Only thirteen elements
+   across the six readouts carry the marks, so this is a few curves and a few
+   groups arriving - not the whole plate assembling itself. */
+function armFigures(){
+  const figs=[...document.querySelectorAll('.hpick figure')];
+  if(!figs.length)return;
+  if(RMO()||!('IntersectionObserver' in window))return;
+  const home=document.getElementById('home');
+  if(!home)return;
+  figs.forEach(f=>{
+    f.querySelectorAll('svg [data-draw]').forEach(pa=>{
+      try{pa.style.setProperty('--len',pa.getTotalLength().toFixed(0));}catch(e){}
+    });
+    let i=0;
+    f.querySelectorAll('svg [data-pop]').forEach(el=>{
+      el.style.setProperty('--d',(Math.min(i,70)*0.010).toFixed(3)+'s');i++;});
+    let j=0;
+    f.querySelectorAll('svg [data-grow]').forEach(el=>{
+      el.style.setProperty('--d',(Math.min(j,50)*0.016).toFixed(3)+'s');j++;});
+  });
+  home.classList.add('reveal');
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('drawn');io.unobserve(e.target);}
+  }),{rootMargin:'0px 0px -12% 0px'});
+  figs.forEach(f=>io.observe(f));
+}
 /* the numbers count in */
 function heroChrome(){
   const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -8636,6 +8776,7 @@ if(TABOX)TABOX.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e
   try{heroFigures();}catch(e){}
   try{heroTicker();}catch(e){}
   try{heroKick();}catch(e){}
+  try{armFigures();}catch(e){}
   try{heroChrome();}catch(e){}
   /* Signed in, or already through the door once - do not make them walk it again. */
   let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
