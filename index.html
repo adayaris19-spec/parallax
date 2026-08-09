@@ -40,6 +40,23 @@ body{
   z-index:2}
 
 button{font-family:var(--f)}
+/* ---------------------------------------------------------------------------
+   Keyboard focus. Every control in here is already a real <button>, <input> or
+   <summary>, so tab order has always worked - what was missing was any way to
+   see where you were. One ring, in the accent, held clear of the control's own
+   border so it reads against both the off-white and the graphite aperture.
+   :focus-visible only, so a mouse click never draws it.
+
+   The second block is not a duplicate: the fields that set outline:0 on
+   themselves out-specify a bare :focus-visible, so each has to be named to get
+   its ring back.
+   --------------------------------------------------------------------------- */
+:focus-visible{outline:2px solid var(--asm);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+.askbar input:focus-visible,.hcard input:focus-visible,#cxIn:focus-visible,
+#apIn:focus-visible,#field textarea:focus-visible{outline:2px solid var(--asm);outline-offset:3px}
+/* on the two dark surfaces the amber goes muddy; the ring turns to the cyan */
+#onb :focus-visible,#svis.gl :focus-visible{outline-color:#4fd8ff}
 canvas{display:block}
 #gl{position:fixed;left:0;top:0;opacity:0;transition:opacity .6s;background:transparent;pointer-events:none;
   filter:drop-shadow(0 0 40px rgba(70,205,255,.28))}
@@ -841,7 +858,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <div id="brand"><span class="p">PARALLAX</span></div>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b71</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b72</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -1023,8 +1040,21 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TAU=Math.PI*2;
 /* One provenance palette, read against the bright room. There is no second,
-   dark-tuned palette any more: no figure sits on a navy panel. */
-const C={ev:'#0a6a90',calc:'#33587a',asm:'#b4560a',hyp:'#5a34a8',clm:'#1b2b3d',ok:'#12855a',bad:'#b3382a',dim:'#54697d',ink:'#14263a',ink2:'#33506d'};
+   dark-tuned palette any more: no figure sits on a navy panel.
+
+   It is also one palette in the literal sense now. This used to be a second
+   hand-written copy of the :root block above, and the two had drifted - calc,
+   ink2 and bad were each a different colour in a figure than in the text beside
+   it. The custom properties are the source; this reads them once at boot. The
+   literals are fallbacks only, for a browser that hands back an empty string. */
+const C=(function(){
+  const cs=getComputedStyle(document.documentElement);
+  const px=(n,fb)=>{try{return (cs.getPropertyValue(n)||'').trim()||fb;}catch(e){return fb;}};
+  return {ev:px('--ev','#0a6a90'),calc:px('--calc','#38536f'),asm:px('--asm','#b4560a'),
+    hyp:px('--hyp','#5a34a8'),clm:px('--clm','#1b2b3d'),ok:px('--ok','#12855a'),
+    bad:px('--bad','#c0392b'),dim:px('--dim','#54697d'),ink:px('--ink','#14263a'),
+    ink2:px('--ink2','#2e4a66')};
+})();
 /* TC is the same provenance code read against the bright room, not the dark projection.
    Text in the document must never be painted with a colour tuned for a hologram. */
 const TC=C;
@@ -3121,8 +3151,20 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b71';
+const BUILD='b72';
 const WHATSNEW=[
+ ['You can see where the keyboard is',
+  'Every control in here was already a real button or input, so tabbing through the product has always worked — there was simply no ring drawn when it landed, and on an off-white page the browser default is close to invisible. There is now one focus ring, in the amber, held clear of the control’s own border, and it appears only for the keyboard: clicking a button never draws it. On the two dark surfaces it turns to the cyan, because amber on graphite goes muddy. The five fields that had switched their own outline off — the ask bar, the console line, the command aperture, the onboarding field, the sign-in inputs — have it back.',
+  'Press Tab anywhere, on the front door or in the workspace.'],
+ ['A figure announces itself as a figure',
+  'A readout is forty text nodes in a trench coat, and to a screen reader that is exactly what it was: forty unrelated fragments, in drawing order, with no statement of what they belong to. Each plate is now one object with a name, and the name is not just the title — it carries the header readouts too, because "ADMISSION VOLUME" on its own says nothing and "ADMISSION VOLUME. RECORDS 812. ADMITTED 240." is the figure. All ten readouts, from one place: the header is the only spot where a figure states its own title, so that is where the name is attached.',
+  'Every readout figure in the workspace.'],
+ ['One palette, in the literal sense',
+  'The provenance colours were written down twice — once as the custom properties the text uses, once as a hand-copied object the figures use — and the two had quietly drifted apart. Calculated, secondary ink and the failure red were each a different colour in a figure than in the sentence next to it. The figures now read the custom properties at boot. There is one palette and one place to change it.',
+  'Anywhere a chip sits beside a figure — calculated navy, and the failure red, now match exactly.'],
+ ['Three empty stubs and two dead observers, removed',
+  'b71 deleted the looping figure motion and left the machinery behind: pulse(), dashflow() and drawon() survived as functions that returned an empty string, still called from five places. A stub that returns nothing reads like a bug rather than a decision, and the next person to find one fixes it back into existence. Gone, with their call sites. Two scroll-reveal observers went with them — one measured every path in every readout with getTotalLength() and stamped timing onto them, the other flagged each section as it came into view, and no stylesheet rule had read either hook since the motion was removed. That was real work on every load in exchange for nothing on screen. The declarative half stays: the figures still carry their data-draw, data-pop and data-grow marks, so whoever decides a reveal belongs here has the hooks waiting.',
+  'Nothing visible changed — that is the point. The front door loads with less work behind it.'],
  ['The scan is gone; it was a facade',
   'A line sweeping across a plot on a loop encodes nothing. It was there to look like an instrument rather than to be one, and the same was true of the index arrow rotating around the globe\u2019s bearing ring. Both removed. What stayed is the chrome that answers a question \u2014 the brackets that frame the live area, the tick rail that gives you scale, the reticle that names the datum, the plate number.',
   'Every figure.'],
@@ -3235,6 +3277,11 @@ const WHATSNEW=[
   'The top status strip and the bottom telemetry row reported nothing about the corpus on screen. Both deleted; the text column went from 39vw to 66vw and sets in two columns above 1250px wide.',
   'Everywhere.'],
 ];
+/* The stamp is the whole point of this mechanism - it is how someone answers
+   "am I even looking at the new build" without me. It was typed into the markup
+   by hand, which made it a second source of truth that goes stale the moment
+   BUILD moves. It is written from BUILD now. */
+(function(){const b=document.getElementById('bld');if(b)b.textContent=BUILD;})();
 function openNew(){
   const o=document.getElementById('newOv');if(!o)return;
   document.getElementById('newB').textContent=BUILD;
@@ -4035,7 +4082,10 @@ function svgO(w,h){
   /* every string-built figure references the shared defs, so make sure they are
      in the document before the first one is emitted */
   try{pxDefs();}catch(e){}
-  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,system-ui">';}
+  /* role="img" so the whole plate is announced as one object rather than as a
+     loose bag of forty <text> nodes. The name itself is attached by roHead,
+     which is the only place a figure states its own title. */
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" role="img" style="font-family:Inter,system-ui">';}
 function sT(x,y,t,a,s2,c,w){return '<text x="'+x+'" y="'+y+'" text-anchor="'+(a||'start')+'" font-size="'+(s2||9)+'" fill="'+(c||C.ink2)+'" font-weight="'+(w||500)+'">'+t+'</text>';}
 function sL(x1,y1,x2,y2,c,w,d){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+c+'" stroke-width="'+(w||1)+'"'+(d?' stroke-dasharray="'+d+'"':'')+'/>';}
 let FID=0;
@@ -4054,9 +4104,11 @@ function fDefs(u){
    '<marker id="arwB'+u+'" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#f57a7a"/></marker>'+
   '</defs>';
 }
-const pulse=()=>'';
-const dashflow=()=>'';
-const drawon=()=>'';
+/* pulse(), dashflow() and drawon() used to live here as ()=>'' stubs, left
+   behind when b71 deleted the looping figure motion. They emitted nothing, and
+   a stub that returns an empty string reads like a bug rather than a decision -
+   the next person to find one "fixes" it and the facade comes back. The call
+   sites are gone with them. */
 /* ===========================================================================
    INSTRUMENT CHROME. The vocabulary a control room actually uses, in the
    daylight palette: corner brackets that frame the live area, a rangefinder
@@ -4068,7 +4120,10 @@ const drawon=()=>'';
    One vocabulary, two pipelines: the in-product figures are built as strings,
    the front-door figures are built in the DOM, and both call into this.
    =========================================================================== */
-const HUDA='#b4560a', HUDI='rgba(26,52,84,';
+/* HUDA is the accent, and the accent is --asm - one value, not two. HUDI is the
+   ink base the --line/--line2 hairlines are mixed from; callers append their own
+   alpha, which is why it cannot simply be var(--line). */
+const HUDA=C.asm, HUDI='rgba(26,52,84,';
 /* corner brackets - the frame of the live area */
 function hudBrackets(x,y,w,h,len,col){
   const L=len||14,c=col||HUDA,o=1.4;
@@ -4120,6 +4175,16 @@ function hudFrame(u,x,y,w,h,o){
     (o.plate?hudPlate(x,y+h+(o.plateDy||30),o.plate,o.rev,o.note):'');
 }
 function roHead(s2,title,ro,x0){
+  /* Every readout figure passes its title through here and nowhere else, so this
+     is where the accessible name gets attached: a <title> child and a matching
+     aria-label on the root. The readouts go into the label too - "ADMISSION
+     VOLUME" alone tells a screen reader nothing, "ADMISSION VOLUME. RECORDS 812,
+     ADMITTED 240" is the figure. s2 at this point is still just the open tag
+     plus <defs>, so the insertion is cheap and the <title> lands first. */
+  const ae=x=>String(x==null?'':x).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const name=[title].concat((ro||[]).map(r=>r[0]+' '+r[1])).join('. ');
+  s2=s2.replace('role="img"','role="img" aria-label="'+ae(name)+'"')
+       .replace(/(<svg\b[^>]*>)/,'$1<title>'+ae(name)+'</title>');
   s2+=sM(52,16,title,'start',9.6,C.ink,800,'.16em');
   ro.forEach((r,i)=>{const x=x0+i*72;
     s2+=sM(x,10,r[0],'start',6.6,C.dim,750,'.13em')+sM(x,23,r[1],'start',10,r[2],790,'.02em');});
@@ -4149,7 +4214,7 @@ function svgEVPA(){
   if(exI>0){
     const cx=X(exI);
     s2+=sL(cx,mT+8,cx,mT+mainH,C.hyp,1,'3 4');
-    s2+='<circle cx="'+cx+'" cy="'+Y(Wd)+'" r="4.5" fill="none" stroke="'+C.hyp+'" stroke-width="1.4">'+pulse('r','4;10;4','3.2s')+pulse('opacity','.9;.12;.9','3.2s')+'</circle>';
+    s2+='<circle cx="'+cx+'" cy="'+Y(Wd)+'" r="4.5" fill="none" stroke="'+C.hyp+'" stroke-width="1.4"/>';
     s2+=sM(cx+7,mT+16,'BOUNDARY BREACH · EPOCH '+(exI+1),'start',6.6,C.hyp,800,'.1em')+
         sM(cx+7,mT+26,'never re-enters — residual grows every epoch','start',6,C.dim,600,'.04em');
   }
@@ -4163,8 +4228,8 @@ function svgEVPA(){
   const axx=X(5)+12,ayy=Y(EP_VAL[5])-14;
   s2+='<text x="'+axx+'" y="'+ayy+'" transform="rotate('+ang.toFixed(1)+' '+axx+' '+ayy+')" font-size="6.2" fill="'+C.ev+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">TREND +'+sl.toFixed(1)+QQ.q.unit+'/'+QQ.q.per.toUpperCase()+' MONOTONIC 9/9</text>';
   let path='';EP_VAL.forEach((v,i)=>{path+=(i?'L':'M')+X(i)+' '+Y(v)+' ';});
-  s2+='<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="2.6" opacity=".26" filter="url(#gs'+u+')"'+drawon(1500,'1.4s')+'></path>'+
-      '<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="1.1" opacity=".78"'+drawon(1500,'1.4s')+'></path>';
+  s2+='<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="2.6" opacity=".26" filter="url(#gs'+u+')"></path>'+
+      '<path d="'+path+'" fill="none" stroke="'+C.ev+'" stroke-width="1.1" opacity=".78"></path>';
   EP_VAL.forEach((v,i)=>{const px=X(i),e=EP_ERR[i]*alt,out=v>Wd;
     s2+='<g data-hl="ep:'+i+'">'+sL(px,Y(v-e),px,Y(v+e),C.ev,1.2)+sL(px-3,Y(v-e),px+3,Y(v-e),C.ev,1.2)+sL(px-3,Y(v+e),px+3,Y(v+e),C.ev,1.2)+
      '<circle cx="'+px+'" cy="'+Y(v)+'" r="3" fill="#fff" stroke="'+(out?C.hyp:C.ev)+'" stroke-width="1.8"'+(out?' filter="url(#gw'+u+')"':'')+'/></g>';});
@@ -4301,7 +4366,7 @@ function svgFunnel(){
       s2+=sM((x+xs[i+1])/2,yc-((st[i].w+st[i+1].w)/2)*66-12,'×'+amp.toFixed(1),'middle',7.2,C.hyp,800,'0');}
   });
   const dx=xs[3],dw=st[3].w*66;
-  s2+='<circle cx="'+dx+'" cy="'+yc+'" r="'+(dw+16)+'" fill="none" stroke="'+C.ev+'" stroke-width="1.2" stroke-dasharray="4 5">'+pulse('stroke-opacity','.85;.2;.85','3s')+'</circle>'+
+  s2+='<circle cx="'+dx+'" cy="'+yc+'" r="'+(dw+16)+'" fill="none" stroke="'+C.ev+'" stroke-width="1.2" stroke-dasharray="4 5"/>'+
       sM(dx,yc+dw+40,'DECISION POINT — EVERYTHING BELOW '+st[3].v.toUpperCase()+' DIES HERE','middle',6,C.ev,800,'.08em');
   s2+=sM(52,H2-8,'EACH STAGE INHERITS AND AMPLIFIES THE LAST · HOLD ALT ANYWHERE TO STRESS THE WHOLE CHAIN ×2 — THE BREACH SURVIVES','start',6,C.dim,650,'.08em');
   return s2+'</svg>';
@@ -4364,7 +4429,7 @@ function svgPareto(){
     s2+='<g data-hl="exp:'+p.id+'">';
     if(isB)s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(r+22)+'" fill="url(#haloE'+u+')"/>';
     s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+r+'" fill="'+(isB?'rgba(10,106,144,.18)':'rgba(30,58,92,.09)')+'" stroke="'+(ex?C.bad:isB?C.ev:C.calc)+'" stroke-width="'+(isB?2:1.1)+'"'+(ex||dm?' stroke-dasharray="3 3" opacity=".55"':'')+(isB?' filter="url(#gw'+u+')"':'')+'/>';
-    if(isB)s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(r+7)+'" fill="none" stroke="'+C.ev+'" stroke-width="1">'+pulse('r',(r+5)+';'+(r+13)+';'+(r+5),'3s')+pulse('opacity','.8;.1;.8','3s')+'</circle>';
+    if(isB)s2+='<circle cx="'+X(p.days)+'" cy="'+Y(p.p)+'" r="'+(r+7)+'" fill="none" stroke="'+C.ev+'" stroke-width="1"/>';
     s2+=sT(X(p.days),Y(p.p)-(r+6),p.n,'middle',7.8,isB?C.ev:C.ink2,700)+
         sM(X(p.days),Y(p.p)+(r+13),(p.p*100).toFixed(0)+'% · '+p.tel+'h TEL · '+p.days+'d','middle',5.8,ex?C.bad:C.dim,650,'.02em');
     if(ex)s2+=sM(X(p.days),Y(p.p)+(r+23),'EXCLUDED BY BUDGET','middle',5.4,C.bad,800,'.08em');
@@ -5854,7 +5919,8 @@ function msAskHTML(){
   return '<div style="margin-top:14px;border:1.5px solid rgba(180,86,10,.42);border-left:4px solid var(--asm);border-radius:4px;padding:12px 14px;background:rgba(255,254,251,.97)">'+
     '<div style="font-family:var(--m);font-size:8.5px;letter-spacing:.24em;font-weight:800;color:var(--asm);margin-bottom:7px">YOUR WORK</div>'+
     '<textarea data-mstext rows="6" placeholder="Paste an abstract, a draft section, a grant aim, or a list of claims. Or drop a .txt or .md file anywhere on this panel." '+
-    'style="width:100%;box-sizing:border-box;background:none;border:1px solid rgba(84,105,125,.3);border-radius:3px;outline:0;font-family:var(--f);font-size:13px;color:var(--ink);padding:8px;resize:vertical"></textarea>'+
+    /* no outline:0 here - an inline style would beat the :focus-visible ring */
+    'style="width:100%;box-sizing:border-box;background:none;border:1px solid rgba(84,105,125,.3);border-radius:3px;font-family:var(--f);font-size:13px;color:var(--ink);padding:8px;resize:vertical"></textarea>'+
     '<div class="acts" style="margin-top:8px"><button class="abtn pri" data-act="msrun">Read it against the literature</button>'+
     '<button class="abtn" data-act="msfile">Choose a .txt or .md file</button></div></div>';
 }
@@ -7227,7 +7293,8 @@ function questionsHTML(){
    '<div style="margin:14px 0 6px"><b>Open a watch on any question:</b></div>'+
    '<div style="display:flex;gap:8px;align-items:center;max-width:640px">'+
    '<input id="qIn" data-qin placeholder="e.g. is the Hubble tension resolved by early dark energy?" '+
-   'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(26,52,84,.45);outline:0;'+
+   /* no outline:0 here - an inline style would beat the :focus-visible ring */
+   'style="flex:1;background:none;border:0;border-bottom:1.5px solid rgba(26,52,84,.45);'+
    'font-family:var(--f);font-size:12.5px;color:var(--ink);padding:6px 2px" autocomplete="off">'+
    '<button class="abtn pri" data-act="qadd">Open watch</button></div>'+
    '<p style="font-size:11px;color:var(--dim)">Ask in plain language — “are parallel universes testable?”, “can we detect dark matter with quantum sensors?”. The question is sent to the intelligence gate, which translates it into the terms physicists actually publish under, runs it against arXiv and NASA ADS, and scores every abstract it gets back. No visual is invented for data that does not exist.</p>'+
@@ -8380,29 +8447,18 @@ function heroKick(){
       if(k)k.textContent='Perimeter complete';}
     n.textContent=v.toLocaleString('en-US');},28);
 }
-/* Curves draw, marks arrive, bars grow - but only the first time a readout
-   scrolls into view. Anything that re-animates on every scroll is a toy. */
-function armFigures(){
-  const figs=[...document.querySelectorAll('.hpick figure')];
-  if(!figs.length)return;
-  figs.forEach(f=>{
-    f.querySelectorAll('svg path[data-draw]').forEach(pa=>{
-      try{pa.style.setProperty('--len',pa.getTotalLength().toFixed(0));}catch(e){}
-    });
-    let i=0;
-    f.querySelectorAll('svg [data-pop]').forEach(el=>{
-      el.style.setProperty('--d',(Math.min(i,70)*0.008).toFixed(3)+'s');i++;});
-    let j=0;
-    f.querySelectorAll('svg [data-grow]').forEach(el=>{
-      el.style.setProperty('--d',(Math.min(j,50)*0.014).toFixed(3)+'s');j++;});
-  });
-  if(RMO()||!('IntersectionObserver' in window)){figs.forEach(f=>f.classList.add('drawn'));return;}
-  const io=new IntersectionObserver(es=>es.forEach(e=>{
-    if(e.isIntersecting){e.target.classList.add('drawn');io.unobserve(e.target);}
-  }),{rootMargin:'0px 0px -12% 0px'});
-  figs.forEach(f=>io.observe(f));
-}
-/* the numbers count in, and each section arrives as you reach it */
+/* armFigures() stood here. It measured every path in every readout, stamped a
+   --len and a staggered --d onto them, and flagged each figure .drawn as it
+   scrolled into view - and not one of those hooks was read by a stylesheet
+   rule, so the whole thing was a getTotalLength() over seven figures on every
+   load in exchange for nothing on screen. The .seen observer below it was the
+   same story. Both are gone.
+
+   The data-draw / data-pop / data-grow attributes are still emitted by the
+   figure builders. They are the declarative half of this and they cost nothing;
+   whoever decides a scroll reveal belongs here has the hooks waiting. That is a
+   design decision, not a repair, so it is not being taken here. */
+/* the numbers count in */
 function heroChrome(){
   const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('#home [data-count]').forEach(el=>{
@@ -8412,12 +8468,6 @@ function heroChrome(){
     const id=setInterval(()=>{v+=step;if(v>=to){v=to;clearInterval(id);}
       el.textContent=v.toLocaleString('en-US');},34);
   });
-  const secs=[...document.querySelectorAll('#home .hsec')];
-  if(rm||!('IntersectionObserver' in window)){secs.forEach(x=>x.classList.add('seen'));return;}
-  const io=new IntersectionObserver(es=>es.forEach(e=>{
-    if(e.isIntersecting){e.target.classList.add('seen');io.unobserve(e.target);}
-  }),{rootMargin:'0px 0px -8% 0px'});
-  secs.forEach(x=>io.observe(x));
 }
 const AKEY='parallax.auth', EKEY='parallax.entered';
 let AUTH=null;
@@ -8586,7 +8636,6 @@ if(TABOX)TABOX.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e
   try{heroFigures();}catch(e){}
   try{heroTicker();}catch(e){}
   try{heroKick();}catch(e){}
-  try{armFigures();}catch(e){}
   try{heroChrome();}catch(e){}
   /* Signed in, or already through the door once - do not make them walk it again. */
   let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}

@@ -1,7 +1,11 @@
 # PARALLAX — Design Handoff
 
-**Build at time of writing:** `b71` (`index.html:3124`)
+**Build at time of writing:** `b72` (`index.html:3154`)
 **Scope:** the whole visual and interaction system of the product — front door and workspace.
+
+> This document was written against `b71` and then **run against the app**: the conformance defects
+> it found in §9 were fixed and shipped as `b72`. §11 records what changed. The rest of the document
+> describes the app as it now stands.
 
 This document is written for whoever picks the design up next: a designer who needs the rules, or an
 engineer who needs to add a surface without breaking the language. It describes what is actually in
@@ -82,22 +86,23 @@ streaming. The product should never look idle.
 ### 3.1 Colour — the provenance system
 
 This is the spine of the whole design. **Five classes of epistemic status**, each with one colour,
-used identically in text chips, figure strokes, borders and node fills. It is defined twice — once
-as CSS custom properties (`index.html:18–26`) and once as a JS object for SVG (`index.html:1027`) —
-and the two are deliberately kept in sync.
+used identically in text chips, figure strokes, borders and node fills.
 
-| Class | Meaning | CSS var | Hex (CSS) | Hex (JS `C`) |
-|---|---|---|---|---|
-| Measured | Evidence; something was observed | `--ev` | `#0a6a90` | `#0a6a90` |
-| Calculated | Derived from measurement | `--calc` | `#38536f` | `#33587a` |
-| Assumed | A prior, unmeasured | `--asm` | `#b4560a` | `#b4560a` |
-| Proposed | Hypothesis, not yet supported | `--hyp` | `#5a34a8` | `#5a34a8` |
-| Claim | The user's own assertion | `--clm` | `#1b2b3d` | `#1b2b3d` |
+**There is one definition.** The CSS custom properties (`index.html:18–26`) are the source; the JS
+object the figures paint with reads them at boot via `getComputedStyle` (`index.html:1027`). The
+hex literals in that block are fallbacks for a browser that returns an empty string, nothing more.
+**To change a provenance colour, change `:root` and only `:root`.**
 
-> ⚠️ **Known drift:** `--calc` (`#38536f`) and `C.calc` (`#33587a`) differ, as do `--ink2` (`#2e4a66`)
-> vs `C.ink2` (`#33506d`) and `--bad` (`#c0392b`) vs `C.bad` (`#b3382a`). The intent is one palette;
-> these are small unintentional divergences. Reconcile before building anything that places a DOM
-> element flush against an SVG element of the same class.
+| Class | Meaning | CSS var | Hex |
+|---|---|---|---|
+| Measured | Evidence; something was observed | `--ev` | `#0a6a90` |
+| Calculated | Derived from measurement | `--calc` | `#38536f` |
+| Assumed | A prior, unmeasured | `--asm` | `#b4560a` |
+| Proposed | Hypothesis, not yet supported | `--hyp` | `#5a34a8` |
+| Claim | The user's own assertion | `--clm` | `#1b2b3d` |
+
+`HUDA`, the figure-chrome accent, is now `C.asm` rather than a third copy of the same hex
+(`index.html:4101`).
 
 Status and neutrals:
 
@@ -412,9 +417,14 @@ Five functions, one vocabulary, called by both pipelines (`index.html:4071–412
    wires it to the cross-highlight system (`svg.xdim [data-hl]`, `index.html:468`), which dims
    everything else to 28% and glows the match.
 8. **No looping motion that encodes nothing.** One-shot pulses on a genuine event are fine; a
-   perpetual sweep is not. Note that `drawon()` (`index.html:4059`) is now `()=>''` — a no-op stub
-   kept so call sites still parse. Path draw-on animation has been **removed**, not disabled. Do not
-   reintroduce it by "fixing" the stub.
+   perpetual sweep is not. The `pulse()` / `dashflow()` / `drawon()` stubs that used to stand in for
+   the deleted motion are gone as of `b72`, along with their call sites — a function returning `''`
+   invites someone to "fix" the facade back into existence.
+
+Figures also carry an accessible name, and it is attached in exactly one place: `roHead`
+(`index.html:4152`) injects a `<title>` and a matching `aria-label` onto the root from the title and
+readouts it is already given, and `svgO` sets `role="img"`. **A new figure gets this for free if it
+goes through `roHead`.** One that does not must set its own name.
 
 ### 6.3 The six front-door readouts
 
@@ -470,36 +480,41 @@ same chrome.
 
 ## 9. Known gaps and risks
 
-Ordered by how likely they are to cost the next person time.
+Ordered by how likely they are to cost the next person time. **Five of the original eleven were
+conformance defects and are fixed in `b72` — see §11.** These are what remain.
 
-1. **Token drift between CSS and JS palettes** (§3.1). Four colours differ. Reconcile into one
-   source before extending.
-2. **Mobile is degraded, not designed.** At ≤900px, vitals, findings, activity, telemetry and the
+1. **Mobile is degraded, not designed.** At ≤900px, vitals, findings, activity, telemetry and the
    chips dock are `display:none`. A user on a phone loses the "the model never sleeps" principle
-   entirely. This is the largest open design question.
-3. **`#onb` is the last navy full-bleed surface** and contradicts "one room". Either bring it into
-   the daylight palette or document it as a deliberate threshold moment.
-4. **`#chrome` pointer-events.** Anything added inside it without `pointer-events:auto` will be
+   entirely. **This is the largest open design question and it is genuine design work, not a
+   repair** — it needs someone to decide what the instrument *is* on a small screen, not a
+   media query.
+2. **`#onb` is the last navy full-bleed surface** and contradicts "one room". Either bring it into
+   the daylight palette or document it as a deliberate threshold moment. Left alone in `b72`
+   because either answer is a design decision.
+3. **`#chrome` pointer-events.** Anything added inside it without `pointer-events:auto` will be
    silently dead. Already caused one bug (`index.html:705`).
-5. **No focus-visible styling anywhere.** Every control is a `<button>` or `<input>`, so tab order
-   works, but the focus ring is the browser default against a low-contrast off-white. There is no
-   `:focus-visible` rule in the file. **This is the clearest accessibility gap.**
-6. **Micro-label contrast.** 7px at weight 800 in `--dim` (`#54697d`) on `#faf8f3` passes contrast
+4. **Micro-label contrast.** 7px at weight 800 in `--dim` (`#54697d`) on `#faf8f3` passes contrast
    ratio but is below most legibility floors at that size. Deliberate — it is instrument chrome —
    but it should be a conscious decision, re-taken, not inherited.
-7. **SVG figures carry no accessible text.** No `<title>`, `role="img"`, or `aria-label` on any
-   figure. The captions are the only textual equivalent, and they sit outside the SVG.
-8. **Fonts are not loaded.** Inter is assumed present. On a machine without it the whole system
-   falls to `system-ui` and the tracking-heavy micro-labels change character noticeably.
-9. **The front-door scroll reveal is wired but inert.** `heroChrome()` (`index.html:8405`) runs an
-    `IntersectionObserver` that adds `.seen` to every `.hsec` as it enters the viewport — and there
-    is no `.seen` rule in the stylesheet. Either style it or remove the observer; right now it is a
-    reveal animation that does nothing.
-10. **`v3.html` is dead weight** — 178KB of a superseded design shipped to the repo root. It is not
-   linked from anywhere. Decide whether it is reference or deletable.
-11. **Every id is global.** 8,597 lines in one file with a flat id namespace and a `FID` counter
-    guarding SVG collisions. It works, and the no-build-step constraint is a real product decision —
-    but any new figure must remember to namespace.
+5. **Fonts are not loaded.** Inter is assumed present. On a machine without it the whole system
+   falls to `system-ui` and the tracking-heavy micro-labels change character noticeably. Not fixed
+   because the only fixes are a webfont request to a third party or an embedded font file, and both
+   cut against the single-file, no-dependency constraint. **Someone should decide this deliberately.**
+6. **The scroll reveal is now absent rather than broken.** `b72` removed the two dead observers, and
+   kept the `data-draw` / `data-pop` / `data-grow` marks the figure builders emit. If a reveal is
+   wanted, the hooks are there and it is a CSS job. Note that the `b68` changelog entry still
+   describes readouts that "draw themselves the first time they scroll into view" — that has not
+   been true for some time, and the `b72` entry says so.
+7. **`v3.html` is dead weight** — 178KB of a superseded design shipped to the repo root. It is not
+   linked from anywhere. Decide whether it is reference or deletable. Not deleted here: that is
+   your call, not a defect.
+8. **Every id is global.** One file with a flat id namespace and a `FID` counter guarding SVG
+   collisions. It works, and the no-build-step constraint is a real product decision — but any new
+   figure must remember to namespace.
+9. **Focus ring coverage is by rule, not by audit.** `b72` adds a global `:focus-visible` ring plus
+   named overrides for the five fields that had switched their own outline off. Any *future* control
+   that sets `outline:0` on itself will out-specify the global rule and go dark again. There is no
+   lint for this.
 
 ---
 
@@ -518,9 +533,35 @@ Ordered by how likely they are to cost the next person time.
 - [ ] Collapses to one line that carries its answer.
 - [ ] New figure: `svgO()` first, `roHead()` with real readouts, `hudFrame()`, verdict line, `data-hl`
       hooks, no perpetual motion.
+- [ ] Keyboard-reachable, and does not set `outline:0` on itself (it would out-specify the ring).
 - [ ] Ships with a `WHATSNEW` entry whose third field says **where to look**.
 
 ---
 
-*Handoff prepared against build `b71`. If the build stamp in the top-right no longer reads `b71`,
-check `WHATSNEW` (`index.html:3125`) for what has moved since.*
+## 11. What this handoff changed (`b71` → `b72`)
+
+The document was run against the app. Five of the eleven gaps in §9 were conformance defects rather
+than design questions — the app disagreeing with its own stated system — and were fixed. The other
+six need a decision from you and were left alone, deliberately.
+
+| Fix | Where | Effect |
+|---|---|---|
+| **One palette.** `C` now reads the `:root` custom properties at boot instead of being a second hand-written copy. `HUDA` derives from `C.asm`. | `index.html:1027`, `4101` | `calc`, `ink2` and `bad` were each a different colour in a figure than in the text beside it. Now identical. Verified: the resolved JS palette matches all ten custom properties exactly. |
+| **Focus ring.** Global `:focus-visible` in the accent at 2px/2px offset, `:focus:not(:focus-visible)` silenced, named overrides for the five fields that set `outline:0`, cyan on the two dark surfaces. Two generated inline `outline:0` styles removed. | `index.html:42–56`, `5890`, `7263` | Keyboard navigation is visible for the first time. Verified by real `Tab` presses: `solid 2px rgb(180,86,10)`. |
+| **Figures have accessible names.** `svgO` sets `role="img"`; `roHead` injects a `<title>` first child and a matching `aria-label` built from the title *and* its readouts. | `index.html:4064`, `4152` | All ten readout figures, from one insertion point. Verified: e.g. *"CAUSAL PROVENANCE. NODES 14. EDGES 16. UNMEASURED 2. ATTACK PATHS 2. VARIANCE 83% / 1 EDGE"*. |
+| **Dead scaffolding removed.** `pulse()`, `dashflow()`, `drawon()` and their five call sites; `armFigures()` and the `.seen` observer. | `index.html:4090`, `8433` | No visual change — that is the point. Removes a `getTotalLength()` sweep over every path in seven figures on every load, and three empty stubs that read like bugs. |
+| **Build stamp written from `BUILD`.** It was typed into the markup by hand. | `index.html:3280` | The stamp is how a user answers "am I on the new build" without help; a hand-typed copy goes stale the moment `BUILD` moves. |
+
+**Verification.** JS syntax-checked, then loaded in Chromium: no page errors and no `console.error`
+on the front door or through onboarding. Front door renders complete — hero, counters reaching
+124/18, six readouts, globe, 18-archive ticker, perimeter and pricing tables. Focus ring confirmed
+by keyboard. Figure names confirmed by calling the builders directly.
+
+**Not done, and why:** mobile (§9.1) and the `#onb` navy surface (§9.2) are design decisions, not
+repairs. The font question (§9.5) trades against the single-file constraint. `v3.html` (§9.7) is
+yours to keep or bin. None of these are blocked — they are just not mine to settle.
+
+---
+
+*Handoff prepared against `b71`; run against the app and updated to `b72`. If the build stamp in the
+top-right no longer reads `b72`, check `WHATSNEW` (`index.html:3155`) for what has moved since.*
