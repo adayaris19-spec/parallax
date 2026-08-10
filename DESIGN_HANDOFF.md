@@ -1,6 +1,6 @@
 # PARALLAX — Design Handoff
 
-**Build at time of writing:** `b74`
+**Build at time of writing:** `b75`
 **Scope:** the whole visual and interaction system of the product — front door and workspace.
 
 > This document was written against `b71` and then **run against the app**, twice. The conformance
@@ -567,7 +567,7 @@ What follows is what is genuinely still open, and it is mostly structural rather
 
 ---
 
-## 11. What this handoff changed (`b71` → `b74`)
+## 11. What this handoff changed (`b71` → `b75`)
 
 The document was run against the app twice. `b72` fixed the conformance defects — the app
 disagreeing with its own stated system. `b73` completed the rest, and in doing so proved three of
@@ -610,6 +610,18 @@ missed all four.
 **Verified:** at all eight widths — zero element-pair collisions, no horizontal overflow, and the
 build stamp reachable at every one of them. The dock still overflows its scroller below ~470px,
 which is intended: six modes do not fit a 360px phone, and it now says so.
+
+### `b75` — the front page had no way back
+
+| Fix | Effect |
+|---|---|
+| **`#home` is stashed, not destroyed.** It was `remove()`d on entry and again at boot for a returning visitor, so the front page ceased to exist. It is now detached and held in `HOMEEL`, and `openHome()` re-attaches it. | No rebuild, no refetch, no state touched. Costs no layout while detached and its animations stop. |
+| **The wordmark is the route home** — `#brand` is now a real `<button>`, and `#onb h1` answers click, Enter and Space. | The onboarding screen has no chrome, so it had no route home at all. Both wordmarks now work. |
+| **Going home stopped signing you out.** The only working route was `data-act="signout"`, which clears `parallax.auth` + `parallax.entered` and reloads. New `home` action opens the door and leaves storage alone. | The `#who` tooltip promised "click to open the front door" while offering a sign-out. Both corrected. |
+
+`openHome()` had been in the file for several builds, could never have worked, and was called by nothing — the same dead-code class as `.seen`, `.drawn` and the `()=>''` stubs. **When a route is advertised in a tooltip, check that something still calls it.**
+
+**Verified** across all eight phases: first load → workspace → wordmark home → back in → reload → wordmark home from onboarding → through onboarding → wordmark home again. No page errors; `parallax.entered` and saved watches unchanged throughout.
 
 ### Three things this document had wrong
 
