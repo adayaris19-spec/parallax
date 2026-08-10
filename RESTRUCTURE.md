@@ -96,6 +96,7 @@ Same sharded-perimeter pattern, three additions:
 |---|---|---|
 | **P1 — shipped** | `/v2/` prototype: the three dossier views with real, hand-curated content | You can click through OBJECT · CLAIM · VALUE and every number on screen is true and typed |
 | **P1.5 — shipped** | The views are **assembled by code from an embedded seed graph** — five objects, a three-entry ledger, seven adopted values with figures drawn from series data, dossier watches stored in the browser, and the v1 front door recontextualized to the dossier identity | The screens are code over graph rows; swapping the seed for worker output changes no view code |
+| **P1.6 — shipped** | **The night pass**: V2 gets its own visual identity — the operations-console dark ground, the luminous instrument palette, the knowledge spectrum, the grading calendar, small-multiple value figures and evidence chains drawn as chains | V2 no longer reads as a restyled v1 page; every new visual is computed from the graph |
 | **P2** | Worker v11: SBDB adapter + typed claim extraction; schema-v2 live in Supabase | A Bennu query returns graph rows, not just papers |
 | **P3** | Dossiers assemble from the graph; watch gate fires on dossiers | Subscribe to Bennu; a new paper that moves a claim's standing notifies you |
 | **P4** | V1 modes absorbed: ANALYZE first, then CLAIM→LEDGER, MEMORY dissolves | The Sgr A* demo is reachable only as an archived worked example |
@@ -105,6 +106,42 @@ Same sharded-perimeter pattern, three additions:
 score the dossier against, publicly. CLAIM second because the public adjudication layer is the
 marketing engine and the prompt that started this strategy contained its demo. VALUE last because
 adopted values need graph mass to be trustworthy, and by P4 the graph has it.
+
+## V2 visual identity — the night pass
+
+V1 keeps its daylight-library face; V2 does not inherit it. The rationale is the product's own
+lineage: **v1 had exactly one dark surface — the aperture the black hole occupied. V2 is the
+product stepping through it.** Every object in this catalog is observed at night, and the screens
+that observe them are dark consoles; the luminous palette v1 retired when it went daylight (the
+cyan, the violet, the hot amber of its hologram era) is deliberately reclaimed.
+
+| Token | Night value | Note |
+|---|---|---|
+| Ground | `#05090f → #0a1424` + faint airglow + sparse static starfield | never pure black |
+| Panel | `rgba(14,24,39,.72)` on 1px `rgba(126,166,206,.14)` lines | |
+| Ink | `#dceafa` / `#a9bfd4` / dim `#6e88a0` | |
+| measured | `#3fd0ff` | also the **chrome accent** — every action moves a claim toward measured |
+| calculated | `#8fb4dc` | |
+| assumed | `#ffb454` | amber now means assumed and *nothing else* — the v1 double-duty ends |
+| proposed | `#b08af5` | |
+| claim | `#cfdce8` | pale, hollow — a human assertion |
+| ok / bad | `#3ecf95` / `#ff6b5e` | |
+
+Type: system stack at 850 weight for object names (the display voice), the mono chain at large
+sizes for readouts — big tabular numerals are the product's hero image. Micro-labels stay, one
+size up from v1 for dark-ground legibility. Single visual world, painted explicitly; no theme
+toggle, because a catalog of night objects in a light theme would be a costume.
+
+New visuals, all computed from the graph, none decorative:
+
+- **The knowledge spectrum** — per object, the claim census as a typed bar: how much of what we
+  "know" is measured versus assumed, at a glance.
+- **The grading calendar** — the decade on one axis: Ryugu 2020, Bennu 2023, then Apophis and
+  Psyche in 2029, with NOW marked. The thesis as a figure.
+- **Small-multiple value figures** — every value card carries its own measurement history.
+- **Evidence chains drawn as chains** — connected nodes from aliquot to replication, not
+  key-value prose.
+- **Verdict glyphs** — held ● broke ✕ exceeded ▲, so the scoreboard reads without color.
 
 ## 6. What has shipped (P1 → P1.5, honestly labelled)
 
