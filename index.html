@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>PARALLAX — Scientific Operating System</title>
+<title>PARALLAX — State-of-Knowledge Instrument</title>
 <style>
 /* ============================================================
    PARALLAX V4 — scientific operating system
@@ -1027,7 +1027,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <button id="brand" type="button" title="Back to the front page"><span class="p">PARALLAX</span></button>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b76</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b77</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -1087,10 +1087,11 @@ body.cxon #doc{right:min(430px,34vw)}
     <h1><span class="l">Every archive.</span><span class="l">Every decade.</span><span class="l hglow">Read before you ask.</span></h1>
     <p class="hlede">Ask a question. It runs <b>124 searches across 18 indices</b> &mdash; arXiv and
     ADS through INSPIRE, OSTI and CERN &mdash; one per decade back to the 1600s, drops the
-    duplicates, reads every abstract, and has the analysis done before you open it.</p>
+    duplicates, reads every abstract, and has the analysis done before you open it. What it learns is becoming <b>dossiers</b> &mdash; what is measured, what is merely assumed, and what would change it &mdash; on the objects, claims and numbers of your field.</p>
     <div class="hact">
       <button class="hgo big" data-home="signup">Start free</button>
       <button class="hlink big" data-home="try">Enter without an account &rarr;</button>
+      <a class="hlink big" href="v2/" style="text-decoration:none">See the dossiers &middot; V2 &rarr;</a>
     </div>
    </div>
    <div class="hviz"><svg id="hglobe" viewBox="0 0 580 520"></svg></div>
@@ -1114,6 +1115,27 @@ body.cxon #doc{right:min(430px,34vw)}
    <div class="hstep"><span class="hn">03</span><b>Read</b><p>Every abstract scored against your question.</p></div>
    <div class="harrow"></div>
    <div class="hstep lit"><span class="hn">04</span><b>Work</b><p>Six modes over one live corpus.</p></div>
+  </div>
+ </section>
+
+ <section id="hdoss" class="hsec">
+  <h2>It is becoming dossiers</h2>
+  <p class="hsub">V2 restructures the instrument around one typed claim graph &mdash; objects,
+  claims and values are three sightlines into it. The preview is live, with real content from the
+  sample-return record.</p>
+  <div class="hgrid">
+   <article><span class="hi">OBJECT</span><h3>101955 Bennu, graded</h3>
+    <p>A decade of predictions against 121.6&nbsp;g of returned ground truth &mdash; including the
+    assumption chain that broke.</p>
+    <p><a class="hlink" href="v2/#/object/bennu" style="text-decoration:none">Open the dossier &rarr;</a></p></article>
+   <article><span class="hi">CLAIM</span><h3>&ldquo;DNA in asteroids&rdquo;</h3>
+    <p>Not supported as heard. Four real claims underneath, with chains down to aliquot,
+    laboratory and paper.</p>
+    <p><a class="hlink" href="v2/#/ledger/dna" style="text-decoration:none">Open the ledger &rarr;</a></p></article>
+   <article><span class="hi">VALUE</span><h3>Bulk density of Bennu</h3>
+    <p>Analog band, Yarkovsky point, gravimetry point &mdash; uncertainty falling five-fold per
+    change of method.</p>
+    <p><a class="hlink" href="v2/#/value/bennu/bulk-density" style="text-decoration:none">Open the value &rarr;</a></p></article>
   </div>
  </section>
 
@@ -1188,11 +1210,10 @@ body.cxon #doc{right:min(430px,34vw)}
 </div>
 <div id="onb">
   <h1 role="button" tabindex="0" title="Back to the front page">PARALLAX</h1>
-  <div class="sub">A scientific operating system. You do not read about the physics here —
-  you manipulate the live research model directly, and every structure recomputes as you touch it.</div>
+  <div class="sub">A state-of-knowledge instrument. Tell it what you work on; it reads the record and keeps dossiers &mdash; what is measured, what is assumed, what would change &mdash; that recompute as evidence lands.</div>
   <div id="field">
     <div class="q">What are you working on?</div>
-    <textarea id="ta" spellcheck="false" placeholder="I study black-hole accretion, magnetic-field behaviour and polarisation variability around Sagittarius A*."></textarea>
+    <textarea id="ta" spellcheck="false" placeholder="I work on asteroid sample analysis — organics in Bennu and Ryugu, chirality, what survives the parent body."></textarea>
     <div class="rule"></div>
   </div>
   <button id="go">Construct live model</button>
@@ -3320,8 +3341,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b76';
+const BUILD='b77';
 const WHATSNEW=[
+ ['The dossiers run now, and the old context says so',
+  'V2 stopped being a mock: the object catalog, the claims ledger and the values registry are assembled by code from a typed claim graph \u2014 five objects, thirty-odd claims, seven adopted values, every one from the published record \u2014 with dossier watches you can set, stored in your browser until the worker starts firing them for real. Open a dossier by typing at it: Apophis, DNA, density. And this instrument\u2019s own framing caught up with the restructure \u2014 the front page now says what the product is becoming, the door into the dossiers is beside the door into the workspace, and the opening question stopped assuming everyone studies black holes.',
+  'The V2 link in the navigation, the dossier cards on the front page, and the opening question.'],
  ['PARALLAX is restructuring around dossiers',
   'The question stops being the unit of the product. V2 maintains dossiers \u2014 on objects, on claims, on numbers \u2014 over one typed claim graph, and the three strategy plays (the rock dossiers, the claims ledger, the living values) turn out to be three sightlines into that one graph. A static prototype of all three screens is live now: an object dossier for 101955 Bennu graded against the 121.6 grams that came back, the ledger entry for \u201cDNA in asteroids\u201d with the four real claims beneath it, and the bulk-density value history with its uncertainty falling five-fold per change of method. Every number on those screens is from the published record. The blueprint is RESTRUCTURE.md; the graph schema is setup/schema-v2.sql; this instrument keeps running unchanged while v2 grows beside it.',
   'Open /v2/ \u2014 there is a link in the front-page navigation.'],

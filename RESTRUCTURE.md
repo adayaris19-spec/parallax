@@ -94,7 +94,8 @@ Same sharded-perimeter pattern, three additions:
 
 | Phase | Ships | Exit criterion |
 |---|---|---|
-| **P1 — now** | `/v2/` prototype: the three dossier views with real, hand-curated content (this commit) | You can click through OBJECT · CLAIM · VALUE and every number on screen is true and typed |
+| **P1 — shipped** | `/v2/` prototype: the three dossier views with real, hand-curated content | You can click through OBJECT · CLAIM · VALUE and every number on screen is true and typed |
+| **P1.5 — shipped** | The views are **assembled by code from an embedded seed graph** — five objects, a three-entry ledger, seven adopted values with figures drawn from series data, dossier watches stored in the browser, and the v1 front door recontextualized to the dossier identity | The screens are code over graph rows; swapping the seed for worker output changes no view code |
 | **P2** | Worker v11: SBDB adapter + typed claim extraction; schema-v2 live in Supabase | A Bennu query returns graph rows, not just papers |
 | **P3** | Dossiers assemble from the graph; watch gate fires on dossiers | Subscribe to Bennu; a new paper that moves a claim's standing notifies you |
 | **P4** | V1 modes absorbed: ANALYZE first, then CLAIM→LEDGER, MEMORY dissolves | The Sgr A* demo is reachable only as an archived worked example |
@@ -105,7 +106,7 @@ score the dossier against, publicly. CLAIM second because the public adjudicatio
 marketing engine and the prompt that started this strategy contained its demo. VALUE last because
 adopted values need graph mass to be trustworthy, and by P4 the graph has it.
 
-## 6. What ships today (P1, honestly labelled)
+## 6. What has shipped (P1 → P1.5, honestly labelled)
 
 `/v2/index.html` — static, one file, the product's own design system:
 
@@ -121,9 +122,12 @@ adopted values need graph mass to be trustworthy, and by P4 the graph has it.
   the assumed analog band, the 2014 Yarkovsky determination, the 2019 spacecraft measurement,
   the adopted value — uncertainty shrinking by an order of magnitude per method change.
 
-Every number on those three screens is from the published record. What is *not* real yet is the
-plumbing: the prototype is hand-curated, and says so on the page. P2 replaces the hands with the
-worker.
+At P1.5 those screens stopped being markup: the catalog (Bennu, Ryugu, Apophis, Psyche, the
+lunar south pole), the ledger (the DNA garble, the Apophis impact scare dying properly, the
+$10-quintillion valuation) and the values registry are all rendered from a seed graph that
+mirrors `schema-v2.sql`, with hash-routed dossiers, an OPEN bar, and local watches. Every
+number is still from the published record, and the page still says which hands curated it.
+P2 replaces the seed with the worker.
 
 ## 7. Risks, named
 
