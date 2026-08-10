@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>PARALLAX V2 — State-of-Knowledge Instrument</title>
+<style>
+/* ============================================================================
+   PARALLAX V2 · P1 — the restructured product, first light.
+   One typed claim graph, three sightlines: OBJECT · CLAIM · VALUE.
+   Same room as v1 (see DESIGN_HANDOFF.md): the off-white, the amber, Inter for
+   prose, mono for anything a machine produced, provenance as the type system.
+   Static and hand-curated at P1 — every number is from the published record;
+   the worker starts assembling these screens from the live graph at P2.
+   ========================================================================== */
+:root{
+  --ev:#0a6a90; --calc:#38536f; --asm:#b4560a; --hyp:#5a34a8; --clm:#1b2b3d;
+  --ink:#14263a; --ink2:#2e4a66; --dim:#4c6076;
+  --line:rgba(26,52,84,.16); --line2:rgba(26,52,84,.30);
+  --ok:#12855a; --bad:#c0392b;
+  --f:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,'DejaVu Sans Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--f);color:var(--ink2);font-size:14.5px;line-height:1.66;
+  background:
+    radial-gradient(118% 90% at 72% 12%, rgba(255,208,152,.13) 0%, rgba(255,208,152,0) 60%),
+    radial-gradient(88% 78% at 4% 100%, rgba(196,190,178,.20) 0%, rgba(196,190,178,0) 58%),
+    linear-gradient(168deg,#faf8f3 0%,#f4f3ef 46%,#edeeee 100%);
+  background-attachment:fixed;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.30;
+  mix-blend-mode:multiply;background-image:radial-gradient(rgba(120,100,70,.10) .6px,transparent 1px);
+  background-size:3px 3px}
+:focus-visible{outline:2px solid var(--asm);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+
+.sheet{position:relative;z-index:1;max-width:1080px;margin:0 auto;
+  padding:clamp(22px,3.5vw,46px) clamp(16px,4vw,52px) 90px}
+
+.mast{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  padding-bottom:16px;border-bottom:1px solid var(--line2)}
+.mast .wm{font-family:var(--m);font-size:13px;letter-spacing:.34em;font-weight:800;color:var(--ink)}
+.mast .sub{font-family:var(--m);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.mast .stamp{margin-left:auto;font-family:var(--m);font-size:9px;letter-spacing:.16em;
+  color:var(--asm);border:1px solid rgba(180,86,10,.4);border-radius:3px;padding:3px 9px;
+  background:rgba(180,86,10,.07)}
+.mast a.back{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ev);text-decoration:none;border-bottom:1px solid rgba(10,106,144,.34)}
+.mast a.back:hover{border-bottom-color:var(--ev)}
+
+.lede{margin:18px 0 6px;max-width:72ch;font-size:15px}
+.lede b{color:var(--ink)}
+.hon{font-family:var(--m);font-size:10px;letter-spacing:.06em;color:var(--dim);
+  border-left:2px solid var(--asm);padding:4px 10px;margin:10px 0 0;max-width:78ch;line-height:1.7}
+
+/* the three sightlines */
+.tabs{display:flex;gap:2px;margin:26px 0 0;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.tab{background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
+  padding:10px 14px 11px;text-align:left;font-family:var(--f)}
+.tab .k{display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.22em;font-weight:800;
+  text-transform:uppercase;color:var(--ink2)}
+.tab .d{display:block;margin-top:2px;font-size:11px;color:var(--dim)}
+.tab:hover .k{color:var(--ink)}
+.tab[aria-selected="true"]{border-bottom-color:var(--asm)}
+.tab[aria-selected="true"] .k{color:#0e3a56}
+.panel{padding-top:26px}
+.panel[hidden]{display:none}
+
+/* readout header, the way roHead draws one */
+.ro{display:flex;gap:clamp(14px,3vw,34px);flex-wrap:wrap;align-items:baseline;
+  border:1px solid var(--line);border-radius:3px;background:rgba(255,254,251,.66);
+  padding:12px 16px;margin:0 0 18px}
+.ro .t{font-family:var(--m);font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--ink)}
+.ro div{min-width:0}
+.ro .k{display:block;font-family:var(--m);font-size:7.5px;letter-spacing:.14em;color:var(--dim);font-weight:750;text-transform:uppercase}
+.ro .v{display:block;font-family:var(--m);font-size:12.5px;font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums}
+
+h2{font-size:19px;line-height:1.2;letter-spacing:-.015em;font-weight:650;color:var(--ink);
+  margin:30px 0 10px;text-wrap:balance}
+h3{font-size:14.5px;font-weight:700;color:var(--ink);margin:22px 0 8px}
+p{margin:0 0 12px;max-width:72ch}
+p b{color:var(--ink);font-weight:650}
+code{font-family:var(--m);font-size:.88em;color:var(--calc);background:rgba(26,52,84,.055);
+  border-radius:2px;padding:1px 5px}
+
+/* provenance + status chips — the type system, worn on the sleeve */
+.chip{display:inline-flex;align-items:center;font-family:var(--m);font-size:7.5px;letter-spacing:.14em;
+  text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:3px;white-space:nowrap;
+  vertical-align:2px;font-weight:700}
+.chip.ev{color:var(--ev);border-color:rgba(10,106,144,.5);background:rgba(10,106,144,.06)}
+.chip.calc{color:var(--calc);border-color:rgba(30,58,92,.5);background:rgba(30,58,92,.06)}
+.chip.asm{color:var(--asm);border-color:rgba(180,86,10,.5);background:rgba(180,86,10,.07)}
+.chip.hyp{color:var(--hyp);border-color:rgba(90,52,168,.5);background:rgba(90,52,168,.06)}
+.chip.clm{color:var(--clm);border-color:rgba(32,54,80,.55);background:rgba(26,52,84,.08)}
+.chip.ok{color:var(--ok);border-color:rgba(18,133,90,.5);background:rgba(18,133,90,.06)}
+.chip.bad{color:var(--bad);border-color:rgba(192,57,43,.5);background:rgba(192,57,43,.06)}
+
+/* inventory rows: key · chip · fact */
+.inv{border:1px solid var(--line);border-radius:3px;background:rgba(255,254,251,.66);
+  padding:4px 0;margin:0 0 18px}
+.iv{display:flex;gap:12px;align-items:baseline;padding:8px 14px;border-bottom:1px solid var(--line)}
+.iv:last-child{border-bottom:0}
+.iv .c{flex:none;width:96px}
+.iv .b{flex:1;min-width:0;font-size:12.8px;line-height:1.55}
+.iv .b b{color:var(--ink)}
+.iv .src{display:block;font-family:var(--m);font-size:9px;letter-spacing:.04em;color:var(--dim);margin-top:2px}
+
+/* tables */
+.tw{overflow-x:auto;margin:0 0 18px;border:1px solid var(--line);border-radius:3px;
+  background:rgba(255,254,251,.66)}
+table{width:100%;border-collapse:collapse;font-size:12.6px;line-height:1.5}
+th{text-align:left;font-family:var(--m);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);font-weight:800;padding:9px 13px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td b{color:var(--ink)}
+td .n{font-family:var(--m);font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:rgba(180,86,10,.045)}
+
+/* a claim card in the ledger */
+.claim{border:1px solid var(--line);border-left:3px solid var(--line2);border-radius:0 3px 3px 0;
+  background:rgba(255,254,251,.66);padding:12px 16px;margin:0 0 12px}
+.claim.ok{border-left-color:var(--ok)} .claim.bad{border-left-color:var(--bad)}
+.claim.hyp{border-left-color:var(--hyp)}
+.claim .st{font-size:13.6px;font-weight:650;color:var(--ink);line-height:1.4}
+.claim .st .chip{margin-left:8px}
+.chain{margin-top:9px;display:flex;flex-direction:column;gap:4px}
+.cr{display:flex;gap:10px;font-size:11.6px;line-height:1.55}
+.cr .k{flex:none;width:96px;font-family:var(--m);font-size:7.4px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:800;color:var(--dim);padding-top:3px}
+.cr .v{color:var(--ink2)} .cr .v b{color:var(--ink)}
+
+/* the era ladder */
+.era{display:flex;gap:0;flex-wrap:wrap;margin:14px 0 18px;border:1px solid var(--line);
+  border-radius:3px;background:rgba(255,254,251,.66);overflow:hidden}
+.era div{flex:1 1 150px;padding:10px 13px;border-right:1px solid var(--line);min-width:140px}
+.era div:last-child{border-right:0}
+.era .y{font-family:var(--m);font-size:11px;font-weight:800;color:var(--asm)}
+.era .w{font-size:11.4px;line-height:1.5;color:var(--ink2);margin-top:2px}
+
+/* the value figure */
+.fig{border:1px solid var(--line);border-radius:3px;background:rgba(255,254,251,.72);
+  padding:14px 14px 10px;margin:0 0 6px;overflow-x:auto}
+.fig svg{display:block;width:100%;height:auto;min-width:520px}
+.fcap{font-size:11.6px;line-height:1.6;color:var(--dim);margin:0 0 18px;max-width:76ch}
+.fcap b{color:var(--ink2)}
+
+.foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--line2);
+  font-family:var(--m);font-size:9.5px;letter-spacing:.1em;color:var(--dim);line-height:2}
+.foot a{color:var(--ev);text-decoration:none;border-bottom:1px solid rgba(10,106,144,.34)}
+
+@media(max-width:720px){
+  body{font-size:14px}
+  .tab{padding:9px 10px 10px}
+  .tab .d{display:none}
+  .iv{flex-wrap:wrap} .iv .c{width:auto}
+  .cr .k{width:82px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05s!important}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<div class="mast">
+  <span class="wm">PARALLAX</span>
+  <span class="sub">State-of-knowledge instrument &middot; V2</span>
+  <a class="back" href="../">v1 &larr;</a>
+  <span class="stamp">V2 &middot; P1</span>
+</div>
+
+<p class="lede">The unit of the product changed. V1 answered questions about the literature.
+V2 maintains <b>dossiers</b> — on objects, on claims, on numbers — each one stating what is
+measured, what is merely inferred, which assumptions hold it up, and what would change it.
+One typed graph, three sightlines. This is the first light of each.</p>
+<p class="hon">P1 IS STATIC AND HAND-CURATED. EVERY NUMBER BELOW IS FROM THE PUBLISHED RECORD.
+THE WORKER STARTS ASSEMBLING THESE SCREENS FROM THE LIVE GRAPH AT P2 — SEE RESTRUCTURE.MD.</p>
+
+<div class="tabs" role="tablist" aria-label="Dossier sightlines">
+  <button class="tab" role="tab" id="t-obj" aria-controls="p-obj" aria-selected="true">
+    <span class="k">Object</span><span class="d">101955 Bennu</span></button>
+  <button class="tab" role="tab" id="t-clm" aria-controls="p-clm" aria-selected="false">
+    <span class="k">Claim</span><span class="d">&ldquo;DNA in asteroids&rdquo;</span></button>
+  <button class="tab" role="tab" id="t-val" aria-controls="p-val" aria-selected="false">
+    <span class="k">Value</span><span class="d">Bulk density of Bennu</span></button>
+</div>
+
+<!-- ======================================================================
+     OBJECT · 101955 BENNU
+     ====================================================================== -->
+<section class="panel" id="p-obj" role="tabpanel" aria-labelledby="t-obj">
+
+<div class="ro">
+  <span class="t">101955 BENNU</span>
+  <div><span class="k">Class</span><span class="v">B-type</span></div>
+  <div><span class="k">Mean diameter</span><span class="v">490.06 m</span></div>
+  <div><span class="k">Bulk density</span><span class="v">1.190 g/cm&sup3;</span></div>
+  <div><span class="k">Impact odds</span><span class="v">1 in 2,700</span></div>
+  <div><span class="k">Sample returned</span><span class="v">121.6 g</span></div>
+</div>
+
+<p>The one asteroid where the paperwork has been graded. Humanity spent a decade predicting this
+rock from telescopes and assumption chains, then went and collected <b>121.6 grams of the
+answer</b>. That makes Bennu the calibration object for every dossier that follows: the place
+where you can check whether the way we infer composition actually works.</p>
+
+<h2>What is known, by how it is known</h2>
+<div class="inv">
+  <div class="iv"><span class="c"><span class="chip ev">measured</span></span>
+    <span class="b"><b>Orbit</b> — radar and optical astrometry across three apparitions; among the
+    best-determined orbits of any small body.
+    <span class="src">Arecibo &middot; Goldstone &middot; optical surveys, 1999&ndash;2018</span></span></div>
+  <div class="iv"><span class="c"><span class="chip ev">measured</span></span>
+    <span class="b"><b>Shape and size</b> — mean diameter 490.06 &plusmn; 0.16 m from laser altimetry
+    in orbit.<span class="src">OSIRIS-REx OLA &middot; Barnouin et al. 2019</span></span></div>
+  <div class="iv"><span class="c"><span class="chip ev">measured</span></span>
+    <span class="b"><b>Bulk density</b> — 1.190 &plusmn; 0.013 g/cm&sup3; from the spacecraft-mapped
+    gravity field: a rubble pile, roughly half empty space.
+    <span class="src">Scheeres et al. 2019</span></span></div>
+  <div class="iv"><span class="c"><span class="chip ev">measured</span></span>
+    <span class="b"><b>Global hydrated clays</b> — the 2.7-&micro;m absorption everywhere on the
+    surface; water-bearing minerals confirmed on arrival.
+    <span class="src">OVIRS &middot; Hamilton et al. 2019</span></span></div>
+  <div class="iv"><span class="c"><span class="chip ev">measured</span></span>
+    <span class="b"><b>The sample inventory</b> — 33 amino acids, all five nucleobases, abundant
+    ammonia, eleven sodium-bearing evaporite minerals including trona.
+    <span class="src">Glavin et al. 2025 &middot; McCoy et al. 2025</span></span></div>
+  <div class="iv"><span class="c"><span class="chip calc">calculated</span></span>
+    <span class="b"><b>Mass before arrival</b> — from the Yarkovsky drift: sunlight re-radiated by
+    the spinning rock nudges the orbit; the nudge gives the mass.
+    <span class="src">Chesley et al. 2014</span></span></div>
+  <div class="iv"><span class="c"><span class="chip calc">calculated</span></span>
+    <span class="b"><b>Impact probability</b> — 0.037&nbsp;% cumulative for 2178&ndash;2290, the
+    single most-watched date 24 September 2182.
+    <span class="src">Farnocchia et al. 2021</span></span></div>
+  <div class="iv"><span class="c"><span class="chip asm">assumed</span></span>
+    <span class="b"><b>The meteorite analog</b> — every pre-arrival composition estimate rested on
+    &ldquo;B-type spectra look like CI/CM carbonaceous chondrites.&rdquo; The sample largely honoured
+    it — but it was an assumption for a decade, and for every unvisited rock it still is.
+    <span class="src">Clark et al. 2011</span></span></div>
+  <div class="iv"><span class="c"><span class="chip hyp">proposed</span></span>
+    <span class="b"><b>An ancient brine parent body</b> — the evaporite sequence reads as a salt
+    lake bed on the parent asteroid, wet within the first few million years of the solar system.
+    <span class="src">McCoy et al. 2025 — consistent, not yet unique</span></span></div>
+</div>
+
+<h2>The graded predictions</h2>
+<p>What the assumption chains said before arrival, against what the mission and the sample
+measured. This table is the product: for every rock we have not visited, it is the error bar on
+believing the chain.</p>
+<div class="tw"><table>
+<thead><tr><th>Predicted, pre-arrival</th><th>Resting on</th><th>Measured</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><span class="n">492 &plusmn; 20 m</span> diameter</td><td>ground radar shape model (2013)</td>
+  <td><span class="n">490.06 m</span> by laser altimetry</td><td><span class="chip ok">held &middot; 0.4%</span></td></tr>
+<tr><td><span class="n">1.26 &plusmn; 0.07 g/cm&sup3;</span> density</td><td>Yarkovsky-drift mass (2014)</td>
+  <td><span class="n">1.190 &plusmn; 0.013</span> by gravimetry</td><td><span class="chip ok">held &middot; 1.0&sigma;</span></td></tr>
+<tr><td>Hydrated minerals present</td><td>ground-based 3-&micro;m spectra</td>
+  <td>global phyllosilicates on arrival</td><td><span class="chip ok">held</span></td></tr>
+<tr><td>Smooth ponds of fine regolith</td><td>thermal inertia &rarr; grain-size chain</td>
+  <td>boulder-strewn surface; the sampling site had to be improvised</td><td><span class="chip bad">broke</span></td></tr>
+<tr><td>Trace organics expected</td><td>CI/CM analog</td>
+  <td>33 amino acids, all five nucleobases, brine salts</td><td><span class="chip ev">exceeded</span></td></tr>
+</tbody></table></div>
+<p><b>The chain that broke is the finding.</b> Thermal inertia was read through an assumption —
+smooth temperature response means fine grains — that fails on rubble piles. Every thermal-inertia
+grain-size estimate in the catalog inherits that exposure, and the dossier of every unvisited
+asteroid now says so.</p>
+
+<h2>What would de-risk it next</h2>
+<div class="inv">
+  <div class="iv"><span class="c"><span class="chip ev">observation</span></span>
+    <span class="b"><b>Cross-laboratory chirality replication</b> on pristine aliquots — the
+    abiotic verdict rests on racemic mixtures; an independent lab on an unopened sample settles it
+    beyond argument.</span></div>
+  <div class="iv"><span class="c"><span class="chip ev">observation</span></span>
+    <span class="b"><b>Apophis, April 2029</b> — an S-type passing inside the geostationary belt
+    with a spacecraft (OSIRIS-APEX) already en route: the comparison point for the whole silicate
+    side of the catalog.</span></div>
+  <div class="iv"><span class="c"><span class="chip ev">observation</span></span>
+    <span class="b"><b>Psyche, August 2029</b> — first arrival at a metal-class asteroid; the
+    end-member every &ldquo;metal-rich&rdquo; valuation chain is silently assuming.</span></div>
+</div>
+</section>
+
+<!-- ======================================================================
+     CLAIM · "DNA IN ASTEROIDS"
+     ====================================================================== -->
+<section class="panel" id="p-clm" role="tabpanel" aria-labelledby="t-clm" hidden>
+
+<div class="ro">
+  <span class="t">LEDGER ENTRY</span>
+  <div><span class="k">As heard</span><span class="v">&ldquo;DNA found in asteroid&rdquo;</span></div>
+  <div><span class="k">Standing</span><span class="v">not supported</span></div>
+  <div><span class="k">Real claims beneath</span><span class="v">4</span></div>
+  <div><span class="k">Question first asked</span><span class="v">1834</span></div>
+</div>
+
+<div class="claim bad">
+  <div class="st">&ldquo;Scientists found DNA in an asteroid.&rdquo;
+    <span class="chip bad">not supported</span><span class="chip clm">as heard</span></div>
+  <div class="chain">
+    <div class="cr"><span class="k">The record</span><span class="v">No nucleic-acid polymer — no DNA, no
+      RNA — has been detected in any extraterrestrial sample, from any mission, ever.</span></div>
+    <div class="cr"><span class="k">How it grew</span><span class="v">The finding was the
+      <b>nucleobases</b> — the five letters DNA and RNA are written in. &ldquo;The letters DNA is
+      written in&rdquo; became &ldquo;building blocks of DNA&rdquo; became &ldquo;DNA,&rdquo; in
+      under a week.</span></div>
+  </div>
+</div>
+
+<h2>What the record actually holds</h2>
+
+<div class="claim ok">
+  <div class="st">Bennu samples contain all five nucleobases.
+    <span class="chip ok">supported</span><span class="chip ev">measured</span></div>
+  <div class="chain">
+    <div class="cr"><span class="k">Aliquot</span><span class="v">OSIRIS-REx returned material, from the 121.6 g curated at NASA Johnson</span></div>
+    <div class="cr"><span class="k">Laboratory</span><span class="v">NASA Goddard astrobiology laboratory</span></div>
+    <div class="cr"><span class="k">Technique</span><span class="v">liquid chromatography &ndash; high-resolution mass spectrometry</span></div>
+    <div class="cr"><span class="k">Paper</span><span class="v">Glavin, Dworkin et al., <b>Nature Astronomy</b>, January 2025</span></div>
+    <div class="cr"><span class="k">Replication</span><span class="v">uracil in Ryugu (Oba et al. 2023, Hokkaido); nucleobases in the Murchison meteorite since the 1960s, shown extraterrestrial by carbon isotopes in 2008</span></div>
+  </div>
+</div>
+
+<div class="claim ok">
+  <div class="st">Fourteen of the twenty protein-building amino acids are present &mdash; 33 amino acids in all.
+    <span class="chip ok">supported</span><span class="chip ev">measured</span></div>
+  <div class="chain">
+    <div class="cr"><span class="k">Chain</span><span class="v">same aliquots, laboratory, technique and paper as above</span></div>
+    <div class="cr"><span class="k">Context</span><span class="v">amino acids in carbonaceous meteorites have been solid since Murchison fell in 1969 (Kvenvolden et al. 1970) — Bennu&rsquo;s are the first from a sample that never touched weather, ground or a museum drawer</span></div>
+  </div>
+</div>
+
+<div class="claim ok">
+  <div class="st">The chemistry is abiotic &mdash; no sign of life, past or present.
+    <span class="chip ok">supported</span><span class="chip calc">calculated</span></div>
+  <div class="chain">
+    <div class="cr"><span class="k">Basis</span><span class="v">the amino acids are <b>racemic</b> — equal left- and right-handed forms. Life picks a hand; rock chemistry does not. The nitrogen and ammonia enrichment points at cold outer-solar-system chemistry, not biology.</span></div>
+  </div>
+</div>
+
+<div class="claim hyp">
+  <div class="st">Life&rsquo;s ingredients arrived from space before life began.
+    <span class="chip hyp">proposed</span></div>
+  <div class="chain">
+    <div class="cr"><span class="k">Standing</span><span class="v">consistent with the record — asteroids demonstrably carry and deliver the inventory — but <b>not established by it</b>. This is the claim the headlines were reaching for; the honest label is <i>proposed</i>.</span></div>
+  </div>
+</div>
+
+<h2>The era ladder</h2>
+<p>The question is older than spectroscopy, and the answer changed this decade. A relevance sort
+buries all but the last column; the ladder is why the dossier holds all five.</p>
+<div class="era">
+  <div><span class="y">1834</span><span class="w">Berzelius distills fragments of the Alais stone,
+    finds carbon compounds, and asks the question.</span></div>
+  <div><span class="y">1970</span><span class="w">Murchison: extraterrestrial amino acids
+    established from a fresh fall.</span></div>
+  <div><span class="y">2008</span><span class="w">Carbon isotopes prove Murchison&rsquo;s
+    nucleobases formed off Earth.</span></div>
+  <div><span class="y">2023</span><span class="w">Uracil in Ryugu &mdash; first nucleobase from a
+    pristine returned sample.</span></div>
+  <div><span class="y">2025</span><span class="w">Bennu: all five bases, 14 protein amino acids,
+    an ancient brine. Racemic throughout.</span></div>
+</div>
+</section>
+
+<!-- ======================================================================
+     VALUE · BULK DENSITY OF BENNU
+     ====================================================================== -->
+<section class="panel" id="p-val" role="tabpanel" aria-labelledby="t-val" hidden>
+
+<div class="ro">
+  <span class="t">BULK DENSITY &middot; 101955 BENNU</span>
+  <div><span class="k">Adopted</span><span class="v">1.190 g/cm&sup3;</span></div>
+  <div><span class="k">Uncertainty</span><span class="v">&plusmn; 0.013</span></div>
+  <div><span class="k">Provenance</span><span class="v">measured &middot; 2019</span></div>
+  <div><span class="k">Determinations</span><span class="v">3 eras</span></div>
+</div>
+
+<p>A value dossier is the full history of a number, not its latest citation. Watch the
+uncertainty: it falls roughly <b>five-fold at every change of method</b> — analog guesswork to
+orbital physics to gravimetry — and each step is a different provenance class. This is what
+&ldquo;adopted value&rdquo; means when the working is shown.</p>
+
+<div class="fig">
+<svg viewBox="0 0 680 300" role="img" aria-label="Bulk density of Bennu against year. Assumed analog band 0.9 to 1.8 before 2014; Yarkovsky determination 1.26 plus or minus 0.07 in 2014; spacecraft gravimetry 1.190 plus or minus 0.013 in 2019, adopted." style="font-family:ui-monospace,Menlo,monospace">
+  <title>Bulk density of Bennu — measurement history</title>
+  <!-- grid -->
+  <g stroke="rgba(26,52,84,.08)"><line x1="56" y1="54"  x2="656" y2="54"/><line x1="56" y1="95"  x2="656" y2="95"/>
+  <line x1="56" y1="135" x2="656" y2="135"/><line x1="56" y1="175" x2="656" y2="175"/>
+  <line x1="56" y1="216" x2="656" y2="216"/><line x1="56" y1="256" x2="656" y2="256"/></g>
+  <!-- axes -->
+  <line x1="56" y1="256" x2="656" y2="256" stroke="#2e4a66" stroke-width="1.1"/>
+  <line x1="56" y1="34"  x2="56"  y2="256" stroke="#2e4a66" stroke-width="1.1"/>
+  <g font-size="8" fill="#4c6076">
+    <text x="48" y="259" text-anchor="end">0.8</text><text x="48" y="219" text-anchor="end">1.0</text>
+    <text x="48" y="178" text-anchor="end">1.2</text><text x="48" y="138" text-anchor="end">1.4</text>
+    <text x="48" y="98"  text-anchor="end">1.6</text><text x="48" y="57"  text-anchor="end">1.8</text>
+    <text x="56"  y="272" text-anchor="middle">2012</text><text x="206" y="272" text-anchor="middle">2014</text>
+    <text x="356" y="272" text-anchor="middle">2016</text><text x="506" y="272" text-anchor="middle">2018</text>
+    <text x="656" y="272" text-anchor="middle">2020</text>
+  </g>
+  <text x="20" y="145" transform="rotate(-90 20 145)" text-anchor="middle" font-size="7.5" fill="#4c6076" letter-spacing=".14em">G/CM&#179;</text>
+  <!-- assumed analog band, pre-2014 -->
+  <rect x="56" y="54" width="150" height="182" fill="rgba(180,86,10,.08)" stroke="rgba(180,86,10,.35)" stroke-dasharray="4 4"/>
+  <text x="66" y="48" font-size="7.2" fill="#b4560a" font-weight="750" letter-spacing=".1em">ASSUMED &middot; CI/CM ANALOG RANGE 0.9&#8211;1.8</text>
+  <!-- adopted line -->
+  <line x1="56" y1="177" x2="656" y2="177" stroke="#0a6a90" stroke-width="1" stroke-dasharray="6 4" opacity=".55"/>
+  <text x="652" y="171" text-anchor="end" font-size="7.2" fill="#0a6a90" font-weight="750" letter-spacing=".1em">ADOPTED 1.190</text>
+  <!-- 2014 Yarkovsky -->
+  <g><line x1="206" y1="149" x2="206" y2="177" stroke="#38536f" stroke-width="1.4"/>
+  <line x1="200" y1="149" x2="212" y2="149" stroke="#38536f" stroke-width="1.4"/>
+  <line x1="200" y1="177" x2="212" y2="177" stroke="#38536f" stroke-width="1.4"/>
+  <circle cx="206" cy="163" r="3.4" fill="#fff" stroke="#38536f" stroke-width="1.8"/>
+  <text x="216" y="158" font-size="7.4" fill="#38536f" font-weight="750">1.26 &#177; 0.07</text>
+  <text x="216" y="168" font-size="6.6" fill="#4c6076">CALCULATED &middot; YARKOVSKY DRIFT &middot; 2014</text></g>
+  <!-- 2019 gravimetry -->
+  <g><line x1="581" y1="174" x2="581" y2="180" stroke="#0a6a90" stroke-width="1.6"/>
+  <circle cx="581" cy="177" r="3.6" fill="#fff" stroke="#0a6a90" stroke-width="2"/>
+  <text x="573" y="196" text-anchor="end" font-size="7.4" fill="#0a6a90" font-weight="750">1.190 &#177; 0.013</text>
+  <text x="573" y="206" text-anchor="end" font-size="6.6" fill="#4c6076">MEASURED &middot; SPACECRAFT GRAVIMETRY &middot; 2019</text></g>
+  <!-- corner brackets, the instrument frame -->
+  <g fill="none" stroke="#b4560a" stroke-width="1.4" stroke-linecap="square">
+    <path d="M70 34H56V48"/><path d="M642 34H656V48"/><path d="M70 256H56V242"/><path d="M642 256H656V242"/>
+  </g>
+  <text x="56" y="292" font-size="6.6" fill="#4c6076" letter-spacing=".08em">UNCERTAINTY FELL ~5&#215; PER METHOD CHANGE &middot; ANALOG &#8594; ORBITAL PHYSICS &#8594; GRAVIMETRY &middot; EACH STEP A DIFFERENT PROVENANCE CLASS</text>
+</svg>
+</div>
+<p class="fcap"><b>The measurement history, drawn as an instrument.</b> The amber band is what
+&ldquo;density of a B-type&rdquo; meant when it rested on a meteorite analog. The navy point is
+orbital physics. The cyan point is a spacecraft weighing the rock with its own gravity — and is
+the adopted value.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Year</th><th>Value</th><th>Method</th><th>Provenance</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td class="n">&le;2013</td><td class="n">0.9 &ndash; 1.8</td><td>CI/CM meteorite analog</td>
+  <td><span class="chip asm">assumed</span></td><td>taxonomy literature</td></tr>
+<tr><td class="n">2014</td><td class="n">1.26 &plusmn; 0.07</td><td>mass from Yarkovsky drift</td>
+  <td><span class="chip calc">calculated</span></td><td>Chesley et al.</td></tr>
+<tr><td class="n">2019</td><td class="n"><b>1.190 &plusmn; 0.013</b></td><td>spacecraft gravity field</td>
+  <td><span class="chip ev">measured</span></td><td>Scheeres et al. &middot; <b>adopted</b></td></tr>
+</tbody></table></div>
+
+<h2>Also on file for this object</h2>
+<div class="tw"><table>
+<thead><tr><th>Parameter</th><th>Adopted</th><th>Provenance</th><th>Superseded</th></tr></thead>
+<tbody>
+<tr><td>Mean diameter</td><td class="n"><b>490.06 &plusmn; 0.16 m</b> (2019, altimetry)</td>
+  <td><span class="chip ev">measured</span></td><td class="n">492 &plusmn; 20 m (2013, radar)</td></tr>
+<tr><td>Cumulative impact probability</td><td class="n"><b>0.037&nbsp;%</b>, 2178&ndash;2290</td>
+  <td><span class="chip calc">calculated</span></td><td class="n">rises and falls with every apparition — a live number</td></tr>
+</tbody></table></div>
+
+<p><b>Subscribing to a value is the product.</b> When new radar, a new shape model or the next
+mission moves this number, the watch fires into whatever you are designing — that is what
+<code>LIVE</code> means in v2, and it needs no simulation, because a value that moved on new data
+is a real pulse.</p>
+</section>
+
+<div class="foot">
+  PARALLAX V2 &middot; P1 &mdash; the restructure blueprint is
+  <a href="https://github.com/adayaris19-spec/parallax/blob/main/RESTRUCTURE.md">RESTRUCTURE.md</a>;
+  the graph schema is <code>setup/schema-v2.sql</code>; the running v1 instrument is
+  <a href="../">one level up</a>.<br>
+  Sources on these screens: Barnouin 2019 &middot; Scheeres 2019 &middot; Hamilton 2019 &middot;
+  Chesley 2014 &middot; Nolan 2013 &middot; Farnocchia 2021 &middot; Glavin &amp; Dworkin 2025 &middot;
+  McCoy 2025 &middot; Oba 2023 &middot; Kvenvolden 1970 &middot; Martins 2008.
+</div>
+
+</div>
+<script>
+/* Three sightlines, one graph. Click or arrow between them. */
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  function pick(tab){
+    tabs.forEach(function(t){
+      var on=t===tab;
+      t.setAttribute('aria-selected',on?'true':'false');
+      document.getElementById(t.getAttribute('aria-controls')).hidden=!on;
+    });
+    tab.focus();
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){pick(t);});});
+  document.querySelector('.tabs').addEventListener('keydown',function(e){
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+    var i=tabs.findIndex(function(t){return t.getAttribute('aria-selected')==='true';});
+    pick(tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length]);
+    e.preventDefault();
+  });
+})();
+</script>
+</body>
+</html>

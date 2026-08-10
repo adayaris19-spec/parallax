@@ -1027,7 +1027,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <button id="brand" type="button" title="Back to the front page"><span class="p">PARALLAX</span></button>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b75</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b76</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -1074,7 +1074,7 @@ body.cxon #doc{right:min(430px,34vw)}
 <div id="home">
  <header id="hnav">
   <span class="hmark">PARALLAX</span>
-  <nav><a href="#hwhat">What it does</a><a href="#hfigs">Readouts</a><a href="#hperim">What it searches</a><a href="#hprice">Pricing</a></nav>
+  <nav><a href="v2/" style="color:var(--asm)">V2 preview</a><a href="#hwhat">What it does</a><a href="#hfigs">Readouts</a><a href="#hperim">What it searches</a><a href="#hprice">Pricing</a></nav>
   <div class="hcta"><button class="hlink" data-home="login">Log in</button>
    <button class="hgo" data-home="signup">Start free</button></div>
  </header>
@@ -3320,8 +3320,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b75';
+const BUILD='b76';
 const WHATSNEW=[
+ ['PARALLAX is restructuring around dossiers',
+  'The question stops being the unit of the product. V2 maintains dossiers \u2014 on objects, on claims, on numbers \u2014 over one typed claim graph, and the three strategy plays (the rock dossiers, the claims ledger, the living values) turn out to be three sightlines into that one graph. A static prototype of all three screens is live now: an object dossier for 101955 Bennu graded against the 121.6 grams that came back, the ledger entry for \u201cDNA in asteroids\u201d with the four real claims beneath it, and the bulk-density value history with its uncertainty falling five-fold per change of method. Every number on those screens is from the published record. The blueprint is RESTRUCTURE.md; the graph schema is setup/schema-v2.sql; this instrument keeps running unchanged while v2 grows beside it.',
+  'Open /v2/ \u2014 there is a link in the front-page navigation.'],
  ['The front page is reachable again',
   'Once you had been through the front door once, there was no way back to it. The page was not hidden on the way in, it was removed from the document, and removed again at boot for anyone returning \u2014 so the front page simply ceased to exist for you. The function that was supposed to bring it back has been in the file for several builds and could never have worked, because by the time anything called it there was nothing left to find. Nothing called it either. The only route that did work was the sign-out button, which clears your stored session and reloads the page: going home should not cost you your watches. The door is now kept rather than destroyed \u2014 taken out of the document so it costs no layout and its animations stop, but held so it can be put back exactly as it was built. The wordmark is the way back, from the workspace and from the opening question alike, by click or by keyboard. Your watches are untouched by it.',
   'Click PARALLAX, top left. From the opening question, click the big PARALLAX.'],
