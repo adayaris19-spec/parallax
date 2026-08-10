@@ -265,6 +265,9 @@ tr.lk:hover td:first-child{box-shadow:inset 2px 0 0 var(--ev)}
   font-family:var(--m);font-size:9.5px;letter-spacing:.1em;color:var(--dim);line-height:2}
 .foot a{color:var(--ev);text-decoration:none;border-bottom:1px solid rgba(63,208,255,.3)}
 
+/* the ghost disc: the object drawn only as well as it is known */
+.oc svg.gh{position:absolute;top:14px;right:14px;opacity:.9;pointer-events:none}
+.dh .top svg.gh{flex:none;margin:2px 4px 0 0}
 @media(max-width:720px){
   body{font-size:14px}
   #cmd{gap:10px}
@@ -292,14 +295,24 @@ tr.lk:hover td:first-child{box-shadow:inset 2px 0 0 var(--ev)}
   <div class="open"><span class="lb">OPEN</span>
     <input id="q" placeholder="An object, a claim, a parameter — Apophis, DNA, density" autocomplete="off" spellcheck="false"></div>
   <a class="v1l" href="../">v1 · daylight</a>
-  <span class="stamp">P1.6 · NIGHT</span>
+  <span class="stamp">P1.7 · DARK CATALOG</span>
 </header>
 <div class="wstrip" id="wstrip" hidden></div>
+
+<div class="stage" style="padding-bottom:0">
+<p class="lede">Maps of what humanity knows exist everywhere. <b>This is the other map.</b>
+PARALLAX keeps dossiers on things named but barely measured &mdash; every claim typed by how it
+is known, every object carrying a <b>touch index</b>, every date reality reports in held on a
+<b>docket</b>. The asteroid shelf is already graded; the dark shelves are where knowing runs out.</p>
+<p class="hon">P1.7: THE DARK CATALOG. TEN DOSSIERS ON THREE SHELVES, SEEDED BY HAND FROM THE
+PUBLISHED RECORD &mdash; THE WORKER STARTS FEEDING THE GRAPH AT P2. THE DISCS ARE DRAWN AT THE
+FIDELITY OF KNOWLEDGE: SHARP IS MEASURED, HAZE IS ASSUMED. NOTHING SIMULATED IS SHOWN AS LIVE.</p>
+</div>
 
 <main class="stage" id="view"></main>
 
 <div class="stage foot" style="padding-top:0">
-  PARALLAX V2 &middot; P1.6 &mdash; blueprint:
+  PARALLAX V2 &middot; P1.7 &mdash; blueprint:
   <a href="https://github.com/adayaris19-spec/parallax/blob/main/RESTRUCTURE.md">RESTRUCTURE.md</a>
   &middot; graph schema: <code>setup/schema-v2.sql</code> &middot; the v1 instrument is
   <a href="../">one level up</a>.<br>
@@ -307,7 +320,7 @@ tr.lk:hover td:first-child{box-shadow:inset 2px 0 0 var(--ev)}
   Nolan 2013 &middot; Farnocchia 2021 &middot; Glavin &amp; Dworkin 2025 &middot; McCoy 2025 &middot;
   Watanabe 2019 &middot; Naraoka 2023 &middot; Oba 2023 &middot; Yokoyama 2022 &middot; Brozovi&#263; 2018 &middot;
   Binzel 2009 &middot; Elkins-Tanton 2020 &middot; Shepard 2021 &middot; Colaprete 2010 &middot; Li 2018 &middot;
-  Kvenvolden 1970 &middot; Martins 2008.
+  Kvenvolden 1970 &middot; Martins 2008 &middot; Seabed 2030 &middot; Batygin &amp; Brown 2016 &middot; GNoME 2023 &middot; PDB / AlphaFold DB &middot; Kola Superdeep.
 </div>
 
 <script>
@@ -327,24 +340,48 @@ const EV={
  apex:'OSIRIS-APEX · en route', shepard21:'Shepard et al. 2021 · radar + adaptive optics',
  elkins20:'Elkins-Tanton et al. 2020 · JGR Planets', colaprete10:'Colaprete et al. 2010 · Science · LCROSS',
  li18:'Li et al. 2018 · PNAS · M³ spectra', shadowcam:'ShadowCam / Danuri · imaging the shadows now',
- kven70:'Kvenvolden et al. 1970 · Nature', martins08:'Martins et al. 2008 · carbon isotopes'
+ kven70:'Kvenvolden et al. 1970 · Nature', martins08:'Martins et al. 2008 · carbon isotopes',
+ kola:'Kola Superdeep Borehole · 12,262 m · 1970–1992', seismo:'global seismographic networks · travel-time inversion',
+ geonu:'KamLAND & Borexino · geoneutrino detection', llsvp:'Yuan et al. 2023 · Nature',
+ batygin16:'Batygin & Brown 2016 · The Astronomical Journal', brown21:'Brown & Batygin 2021 · orbital estimate',
+ ossos:'OSSOS survey 2017 · selection-bias analysis', rubinp9:'Vera Rubin Observatory · LSST',
+ seabed:'Seabed 2030 · GEBCO grid', fivedeeps:'Trieste 1960 · Five Deeps 2019 · crewed descents',
+ satgrav:'satellite altimetry · gravity-inferred bathymetry',
+ pdb:'Protein Data Bank · experimental structures', afdb:'AlphaFold DB 2022 · predicted structures',
+ darkprot:'dark-proteome surveys', gnome:'GNoME · DeepMind 2023 · Nature',
+ alab:'A-Lab, Berkeley 2023 · autonomous synthesis'
 };
 const OBJECTS=[
- {id:'bennu', kind:'asteroid', name:'101955 Bennu', cls:'B-type', truth:'sample returned · 121.6 g',
+ {id:'bennu', shelf:'graded', kind:'asteroid', name:'101955 Bennu', cls:'B-type', truth:'sample returned · 121.6 g',
   ros:[['Class','B-type'],['Mean diameter','490.06 m'],['Bulk density','1.190 g/cm³'],['Impact odds','1 in 2,700'],['Sample','121.6 g']],
   blurb:'The one asteroid where the paperwork has been graded: a decade of predictions, then 121.6 grams of the answer. The calibration object for every dossier that follows.'},
- {id:'ryugu', kind:'asteroid', name:'162173 Ryugu', cls:'Cb-type', truth:'sample returned · 5.4 g',
+ {id:'ryugu', shelf:'graded', kind:'asteroid', name:'162173 Ryugu', cls:'Cb-type', truth:'sample returned · 5.4 g',
   ros:[['Class','Cb-type'],['Mean diameter','≈ 900 m'],['Bulk density','1.19 g/cm³'],['Sample','5.4 g']],
   blurb:'The other graded rock. Hayabusa2 returned 5.4 grams in 2020, and the sample keeps agreeing with Bennu — two independent chains of custody converging on the same chemistry.'},
- {id:'apophis', kind:'asteroid', name:'99942 Apophis', cls:'S-type', truth:'flyby April 2029 · probe en route',
+ {id:'apophis', shelf:'docket', kind:'asteroid', name:'99942 Apophis', cls:'S-type', truth:'flyby April 2029 · probe en route',
   ros:[['Class','S-type'],['Mean diameter','≈ 340 m'],['Pass, 2029','≈ 32,000 km'],['Risk','none · ≥100 yr']],
   blurb:'The rock that taught the public what an impact probability is, and the next great grading event: on 13 April 2029 it passes inside the geostationary belt with OSIRIS-APEX arriving to watch.'},
- {id:'psyche', kind:'asteroid', name:'16 Psyche', cls:'M-type', truth:'arrival August 2029',
+ {id:'psyche', shelf:'docket', kind:'asteroid', name:'16 Psyche', cls:'M-type', truth:'arrival August 2029',
   ros:[['Class','M-type'],['Mean diameter','≈ 226 km'],['Bulk density','≈ 3.8 g/cm³'],['Arrival','2029']],
   blurb:'The most valued and least measured object in the catalog. Every headline number about it rests on a composition no instrument has confirmed — and a spacecraft is on the way to grade it.'},
- {id:'lsp', kind:'site', name:'Lunar south pole', cls:'site', truth:'landers arriving',
+ {id:'lsp', shelf:'untouched', kind:'site', name:'Lunar south pole', cls:'site', truth:'landers arriving',
   ros:[['Kind','site'],['Ground truth','1 point'],['Ice at that point','5.6 wt%'],['Programs pricing it','all of them']],
-  blurb:'An entire industrial architecture is being designed against a resource measured directly at exactly one point. The gap between that sentence and the roadmaps is the dossier.'}
+  blurb:'An entire industrial architecture is being designed against a resource measured directly at exactly one point. The gap between that sentence and the roadmaps is the dossier.'},
+ {id:'planet9', shelf:'untouched', kind:'predicted body', name:'Planet Nine', cls:'predicted planet', truth:'never observed',
+  ros:[['Status','predicted'],['Predicted mass','≈ 6 M⊕'],['Predicted distance','≈ 400 AU'],['Direct detections','0']],
+  blurb:'A planet inferred entirely from the pull it may exert on other things. The purest ghost in the catalog — every number about it is proposed, none is measured. Rubin will find it or kill it.'},
+ {id:'earthint', shelf:'untouched', kind:'site', name:'Earth’s interior', cls:'planetary interior', truth:'sampled to 0.19%',
+  ros:[['Deepest sample','12.26 km'],['Radius','6,371 km'],['Depth sampled','0.19%'],['Core reached','never']],
+  blurb:'We live on it and have touched almost none of it. The deepest hole ever drilled reached a fifth of one percent of the way down; everything below is read from earthquake echoes and meteorite analogies.'},
+ {id:'hadal', shelf:'untouched', kind:'site', name:'The deep seafloor', cls:'ocean floor', truth:'≈ 26% mapped well',
+  ros:[['Mapped at high res','≈ 26%'],['Deepest point','10.9 km'],['Crewed visits there','a handful']],
+  blurb:'Most of our own planet’s surface, and most of it never surveyed. The fraction properly mapped is a number that climbs every year — which makes it a value this instrument can watch.'},
+ {id:'proteome', shelf:'untouched', kind:'domain', name:'The dark proteome', cls:'molecular biology', truth:'functions unknown',
+  ros:[['Measured structures','≈ 220 k'],['Predicted','≈ 214 M'],['Ratio','≈ 1 : 1,000']],
+  blurb:'Machine models predicted the shape of essentially every known protein. For each one measured in a lab, a thousand exist only as predictions — and for a huge share, nobody knows what the protein does.'},
+ {id:'materials', shelf:'untouched', kind:'domain', name:'The unmade materials', cls:'materials space', truth:'unsynthesized',
+  ros:[['Predicted stable','381,000'],['Ever synthesized','≈ 41'],['Ratio','≈ 1 : 9,000']],
+  blurb:'An ML survey predicted hundreds of thousands of stable crystals that have never existed. Somewhere in the unmade pile may sit better batteries or superconductors — nobody has looked, because looking means making.'}
 ];
 const CLAIMS=[
  /* Bennu */
@@ -417,7 +454,55 @@ const CLAIMS=[
  {obj:'lsp', prov:'assumed', status:'open', ev:['shadowcam'],
   s:'<b>Grade and depth at any specific landing site</b> — assumed until a drill reaches it.'},
  {obj:'lsp', prov:'proposed', status:'open', ev:['li18'],
-  s:'<b>“Billions of tons of water.”</b> Every ISRU architecture prices this; it rests on the extrapolation above.'}
+  s:'<b>“Billions of tons of water.”</b> Every ISRU architecture prices this; it rests on the extrapolation above.'},
+ {obj:'planet9', prov:'calculated', status:'supported', ev:['batygin16'],
+  s:'<b>The most distant Kuiper-belt orbits cluster.</b> The statistic is computed from measured orbits of other bodies — nothing here is measured about the planet itself.'},
+ {obj:'planet9', prov:'calculated', status:'contested', ev:['ossos'],
+  s:'<b>The clustering is real rather than a survey artifact.</b> Independent surveys argue selection bias can produce it. Unresolved.'},
+ {obj:'planet9', prov:'proposed', status:'open', ev:['brown21'],
+  s:'<b>A planet of ≈ 6 Earth masses at ≈ 400 AU</b> would explain the clustering. It has never been seen at any wavelength.'},
+ {obj:'planet9', prov:'assumed', status:'open', ev:['rubinp9'],
+  s:'<b>“If it exists, we would not yet have seen it.”</b> Every non-detection is reconciled by assuming it sits far, faint and near aphelion.'},
+ {obj:'planet9', prov:'claim', status:'not supported', ev:['brown21'],
+  s:'<b>“Planet Nine has been found.”</b> A recurring headline. Confirmed detections: zero.'},
+ {obj:'earthint', prov:'measured', status:'supported', ev:['kola'],
+  s:'<b>The deepest hole ever drilled reached 12,262 m</b> — 0.19 % of the way to the centre. Everything below is inference.'},
+ {obj:'earthint', prov:'measured', status:'supported', ev:['geonu'],
+  s:'<b>Geoneutrinos are detected</b> — particles from radioactive decay deep inside the planet, the only messenger that leaves the interior unaltered.'},
+ {obj:'earthint', prov:'calculated', status:'supported', ev:['seismo'],
+  s:'<b>A liquid outer core and a solid inner core</b> — read from which earthquake waves arrive and which go missing. Never sampled.'},
+ {obj:'earthint', prov:'calculated', status:'supported', ev:['seismo'],
+  s:'<b>Core temperature ≈ 5,500 K</b> — anchored by iron-melting experiments at pressure, projected to depths no instrument reaches.'},
+ {obj:'earthint', prov:'assumed', status:'open', ev:['seismo'],
+  s:'<b>Core composition: iron–nickel plus unknown light elements</b> — the mix is assumed from meteorite analogs. The same analog logic the asteroid shelf grades.'},
+ {obj:'earthint', prov:'proposed', status:'open', ev:['llsvp'],
+  s:'<b>Two continent-sized structures at the mantle’s base may be buried remains of Theia</b> — the body whose impact made the Moon.'},
+ {obj:'hadal', prov:'measured', status:'supported', ev:['seabed'],
+  s:'<b>About 26 % of the seafloor is mapped at useful resolution</b> — and the number climbs every year.'},
+ {obj:'hadal', prov:'measured', status:'supported', ev:['fivedeeps'],
+  s:'<b>Humans have reached the deepest point</b> — a handful of descents since 1960.'},
+ {obj:'hadal', prov:'calculated', status:'supported', ev:['satgrav'],
+  s:'<b>The rest of the “map” is inferred from satellite gravity</b> — kilometres per pixel. A silhouette, not a survey.'},
+ {obj:'hadal', prov:'assumed', status:'open', ev:['seabed'],
+  s:'<b>Deep-sea species counts are assumed</b> — most of what lives below 6,000 m has never been described.'},
+ {obj:'hadal', prov:'proposed', status:'open', ev:['seabed'],
+  s:'<b>The largest reservoir of unknown biology on Earth</b> is proposed to live in the hadal zones and beneath the seafloor.'},
+ {obj:'proteome', prov:'measured', status:'supported', ev:['pdb'],
+  s:'<b>≈ 220,000 protein structures are experimentally determined.</b> The measured core of structural biology.'},
+ {obj:'proteome', prov:'calculated', status:'supported', ev:['afdb'],
+  s:'<b>≈ 214 million more are model predictions</b> — a thousand predicted for every one measured.'},
+ {obj:'proteome', prov:'assumed', status:'open', ev:['darkprot'],
+  s:'<b>Most function labels are copied from lookalikes</b> — homology annotation is an assumption chain, and it drifts.'},
+ {obj:'proteome', prov:'proposed', status:'open', ev:['darkprot'],
+  s:'<b>A large fraction of all proteins have no known function.</b> Named, sequenced, structure predicted — purpose unknown.'},
+ {obj:'materials', prov:'calculated', status:'supported', ev:['gnome'],
+  s:'<b>381,000 crystals predicted stable</b> by a machine-learning survey of materials space — an order of magnitude more than science had catalogued.'},
+ {obj:'materials', prov:'measured', status:'supported', ev:['alab'],
+  s:'<b>41 of them were synthesized in 17 days</b> by an autonomous laboratory — proof the debt can be paid down by machine.'},
+ {obj:'materials', prov:'assumed', status:'open', ev:['gnome'],
+  s:'<b>“Stable” means stable in a zero-kelvin calculation</b> — kinetics, synthesis routes and disorder are assumed away.'},
+ {obj:'materials', prov:'proposed', status:'open', ev:['gnome'],
+  s:'<b>Somewhere in the unmade pile</b>: better batteries, better magnets, perhaps superconductors. Unfalsifiable until made.'}
 ];
 const VALUES=[
  {obj:'bennu', param:'Bulk density', unit:'g/cm³',
@@ -447,7 +532,26 @@ const VALUES=[
    {year:2020, v:3.8, u:0.3, prov:'calc', label:'perturbations + occultation volume', ev:'elkins20', adopted:true}]},
  {obj:'lsp', param:'Water ice at Cabeus', unit:'wt%',
   note:'One ground-truth point for an entire economy. Every roadmap number is an extrapolation from this figure.',
-  series:[{year:2010, v:5.6, u:2.9, prov:'ev', label:'LCROSS impact plume', ev:'colaprete10', adopted:true}]}
+  series:[{year:2010, v:5.6, u:2.9, prov:'ev', label:'LCROSS impact plume', ev:'colaprete10', adopted:true}]},
+ {obj:'hadal', param:'Seafloor mapped at high resolution', unit:'%',
+  note:'A number this instrument can watch climb. The 2030 target is on the docket; the gap between the curve and 100 is the untouched majority of our own planet.',
+  series:[
+   {year:2017, v:6, u:null, prov:'ev', label:'Seabed 2030 baseline', ev:'seabed'},
+   {year:2020, v:19, u:null, prov:'ev', label:'GEBCO grid update', ev:'seabed'},
+   {year:2022, v:23.4, u:null, prov:'ev', label:'GEBCO grid update', ev:'seabed'},
+   {year:2024, v:26.1, u:null, prov:'ev', label:'GEBCO grid update', ev:'seabed', adopted:true}]},
+ {obj:'earthint', param:'Deepest direct sample', unit:'km',
+  note:'One number, unmoved since 1992 — the hardest frontier on the books. Everything below it is seismology and analogy.',
+  series:[{year:1992, v:12.262, u:null, prov:'ev', label:'Kola Superdeep, final depth', ev:'kola', adopted:true}]},
+ {obj:'planet9', param:'Predicted mass', unit:'M⊕',
+  note:'A value dossier with no measured point — every entry is proposed. This is what the purest ghost looks like in the registry.',
+  series:[{year:2021, v:6.2, u:2, prov:'hyp', label:'orbital-dynamics fit', ev:'brown21', adopted:true}]},
+ {obj:'proteome', param:'Experimentally determined structures', unit:'k',
+  note:'The measured core. The predicted shell around it is a thousand times larger.',
+  series:[{year:2024, v:220, u:null, prov:'ev', label:'Protein Data Bank holdings', ev:'pdb', adopted:true}]},
+ {obj:'materials', param:'Predicted-stable crystals synthesized', unit:'crystals',
+  note:'Out of 381,000 predicted. The ratio is the characterization debt of an entire field, in one number.',
+  series:[{year:2023, v:41, u:null, prov:'ev', label:'A-Lab, first campaign', ev:'alab', adopted:true}]}
 ];
 const GRADED={bennu:[
  ['<span class="n">492 ± 20 m</span> diameter','ground radar shape model (2013)','<span class="n">490.06 m</span> by laser altimetry','ok','held · 0.4%'],
@@ -470,7 +574,18 @@ const DERISK={
   ['Any drill reaching ice in a permanently shadowed region — one more ground-truth point doubles the entire measured dataset.'],
   ['ShadowCam mapping of exposed frost — turns “assumed distribution” into a target list.']],
  ryugu:[
-  ['Chirality cross-checks between the Bennu and Ryugu inventories — two pristine chains of custody testing one abiotic verdict.']]};
+  ['Chirality cross-checks between the Bennu and Ryugu inventories — two pristine chains of custody testing one abiotic verdict.']],
+ planet9:[
+  ['Rubin/LSST — within a few years it either finds the planet or carves away most of the orbits it could hide on.']],
+ earthint:[
+  ['More geoneutrino detectors — the only messenger that leaves the deep interior unaltered.'],
+  ['Ocean-bottom seismometer arrays — the mantle’s blind spots sit under the sea.']],
+ hadal:[
+  ['Autonomous survey fleets — mapping rate, not ship time, is the bottleneck Seabed 2030 has to break.']],
+ proteome:[
+  ['Function assays at scale — the structure debt is largely paid; the function debt has barely started.']],
+ materials:[
+  ['Autonomous synthesis labs — every A-Lab clone converts predicted to measured at machine rate.']]};
 const LEDGER=[
  {id:'dna', heard:'“Scientists found DNA in an asteroid.”', status:'not supported', cls:'bad',
   first:'1834', beneath:4,
@@ -542,6 +657,32 @@ const valuesOf=id=>VALUES.filter(v=>v.obj===id);
 const evLine=ids=>(ids||[]).map(k=>EV[k]||k).join(' · ');
 const nameSplit=n=>{const m=n.match(/^(\d+)\s+(.+)$/);return m?{pre:m[1],main:m[2]}:{pre:'',main:n};};
 let Q='';
+/* THE TOUCH INDEX. Of the claims we make about a thing, the share that rests on
+   measurement: measured counts 1, calculated counts half, everything else 0.
+   It is a census of the dossier, not of the object's volume — Earth's interior
+   scores ~50% because half our *claims* rest on measurement, while the planet
+   itself is 0.19% sampled. Both numbers are shown; they answer different
+   questions. */
+function touch(id){
+  const cs=claimsOf(id); if(!cs.length)return 0;
+  let m=0,c=0; cs.forEach(x=>{if(x.prov==='measured')m++;else if(x.prov==='calculated')c++;});
+  return (m+0.5*c)/cs.length;
+}
+const touchPct=id=>Math.round(touch(id)*100);
+/* THE GHOST DISC. Every object is drawn exactly as well as it is known: the
+   blur is (1 - touch index). Bennu renders sharp because we laser-mapped it;
+   Planet Nine renders as haze because it is haze. No artist's impressions,
+   ever — nothing on this instrument is drawn better than it is known. */
+function ghostSVG(id,sz){
+  const t=touch(id), blur=(sz*(0.012+(1-t)*0.105)).toFixed(1), pct=Math.round(t*100);
+  return '<svg class="gh" width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'" role="img"'+
+   ' aria-label="drawn as well as it is known — touch index '+pct+'%">'+
+   '<title>drawn as well as it is known · touch '+pct+'%</title>'+
+   '<defs><filter id="gh'+id+sz+'" x="-70%" y="-70%" width="240%" height="240%">'+
+   '<feGaussianBlur stdDeviation="'+blur+'"/></filter></defs>'+
+   '<circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+(sz*0.30).toFixed(1)+'" fill="#cfe3f5" opacity=".85" filter="url(#gh'+id+sz+')"/>'+
+   '<circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+(sz*0.44).toFixed(1)+'" fill="none" stroke="rgba(63,208,255,.25)" stroke-width="1"/></svg>';
+}
 
 const WKEY='parallax.v2.watches';
 function wGet(){try{return JSON.parse(localStorage.getItem(WKEY)||'[]');}catch(e){return [];}}
@@ -587,31 +728,37 @@ function specBar(id,withLegend){
   return '<div class="spec"><div class="sb">'+bar+'</div>'+
     (withLegend?'<div class="sl">'+leg+'</div>':'')+'</div>';
 }
-/* the grading calendar: when reality scored, and when it scores next */
+/* THE DOCKET. The calendar of ground truth across every shelf: each date is a
+   day reality reports in and standing verdicts get graded in public. */
 function calSVG(){
-  const W=980,H=126,x0=44,x1=W-24,t0=2019.4,t1=2030.9;
+  const W=980,H=126,x0=44,x1=W-24,t0=2019.4,t1=2035.6;
   const X=t=>x0+(t-t0)/(t1-t0)*(x1-x0), yL=66;
   const EVENTS=[
-   [2020.92,'RYUGU SAMPLE RETURNED','#3ecf95',1],
-   [2023.73,'BENNU SAMPLE RETURNED','#3ecf95',0],
-   [2029.28,'APOPHIS PASS · OSIRIS-APEX','#3fd0ff',1],
-   [2029.65,'PSYCHE ARRIVAL','#3fd0ff',0]];
+   [2020.92,'RYUGU RETURNED','#3ecf95',1],
+   [2023.73,'BENNU RETURNED','#3ecf95',0],
+   [2025.4,'RUBIN FIRST LIGHT','#3ecf95',1],
+   [2029.28,'APOPHIS PASS','#3fd0ff',0,'end'],
+   [2029.65,'PSYCHE ARRIVAL','#3fd0ff',1],
+   [2030.3,'EUROPA CLIPPER','#3fd0ff',0,'start'],
+   [2031.55,'JUICE AT JUPITER','#3fd0ff',1],
+   [2034.3,'DRAGONFLY ON TITAN','#3fd0ff',0]];
   const NOW=2026.6;
-  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ground-truth calendar: Ryugu returned 2020, Bennu returned 2023, Apophis pass and Psyche arrival 2029."><title>The grading calendar</title>';
-  s+='<line x1="'+x0+'" y1="'+yL+'" x2="'+x1+'" y2="'+yL+'" stroke="rgba(126,166,206,.35)" stroke-width="1.1"/>';
-  for(let yr=2020;yr<=2030;yr++){const x=X(yr);
-    s+='<line x1="'+x+'" y1="'+yL+'" x2="'+x+'" y2="'+(yL+(yr%2?4:7))+'" stroke="rgba(126,166,206,.35)"/>'+
+  let s2='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="The docket: dates when reality grades the record, 2020 to 2034."><title>The docket</title>';
+  s2+='<line x1="'+x0+'" y1="'+yL+'" x2="'+x1+'" y2="'+yL+'" stroke="rgba(126,166,206,.35)" stroke-width="1.1"/>';
+  for(let yr=2020;yr<=2035;yr++){const x=X(yr);
+    s2+='<line x1="'+x+'" y1="'+yL+'" x2="'+x+'" y2="'+(yL+(yr%2?4:7))+'" stroke="rgba(126,166,206,.35)"/>'+
        (yr%2===0?'<text x="'+x+'" y="'+(yL+20)+'" text-anchor="middle" font-size="8.5" fill="#6e88a0" font-family="ui-monospace,Menlo,monospace">'+yr+'</text>':'');}
-  s+='<line x1="'+X(NOW)+'" y1="'+(yL-34)+'" x2="'+X(NOW)+'" y2="'+(yL+10)+'" stroke="#ffb454" stroke-width="1" stroke-dasharray="3 3"/>'+
+  s2+='<line x1="'+X(NOW)+'" y1="'+(yL-34)+'" x2="'+X(NOW)+'" y2="'+(yL+10)+'" stroke="#ffb454" stroke-width="1" stroke-dasharray="3 3"/>'+
      '<text x="'+X(NOW)+'" y="'+(yL-40)+'" text-anchor="middle" font-size="7.5" fill="#ffb454" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".14em">NOW</text>';
   EVENTS.forEach(e=>{
     const x=X(e[0]),up=e[3],ty=up?yL-26:yL+38,ly=up?yL-20:yL+30;
-    s+='<line x1="'+x+'" y1="'+yL+'" x2="'+x+'" y2="'+ly+'" stroke="'+e[2]+'" stroke-width="1" opacity=".6"/>'+
+    const anc=e[4]||'middle',tx=anc==='end'?x-7:(anc==='start'?x+7:x);
+    s2+='<line x1="'+x+'" y1="'+yL+'" x2="'+x+'" y2="'+ly+'" stroke="'+e[2]+'" stroke-width="1" opacity=".6"/>'+
        '<circle cx="'+x+'" cy="'+yL+'" r="4.4" fill="#05090f" stroke="'+e[2]+'" stroke-width="1.8"/>'+
        '<circle cx="'+x+'" cy="'+yL+'" r="8.5" fill="none" stroke="'+e[2]+'" stroke-width=".8" opacity=".35"/>'+
-       '<text x="'+x+'" y="'+ty+'" text-anchor="middle" font-size="8" fill="'+e[2]+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".1em">'+e[1]+'</text>';});
-  s+='<text x="'+x0+'" y="'+(H-8)+'" font-size="7.5" fill="#6e88a0" font-family="ui-monospace,Menlo,monospace" letter-spacing=".1em">GREEN: ALREADY GRADED BY RETURNED SAMPLE · CYAN: GRADED NEXT · EVERY ARRIVAL SCORES THE ASSUMPTION CHAINS IN PUBLIC</text>';
-  return '<div class="cal">'+s+'</svg></div>';
+       '<text x="'+tx+'" y="'+ty+'" text-anchor="'+anc+'" font-size="8" fill="'+e[2]+'" font-weight="750" font-family="ui-monospace,Menlo,monospace" letter-spacing=".1em">'+e[1]+'</text>';});
+  s2+='<text x="'+x0+'" y="'+(H-8)+'" font-size="7.5" fill="#6e88a0" font-family="ui-monospace,Menlo,monospace" letter-spacing=".1em">GREEN: ALREADY GRADED · CYAN: GRADING SCHEDULED · EVERY DATE IS A DAY REALITY REPORTS IN AND STANDING VERDICTS GET SCORED</text>';
+  return '<div class="cal">'+s2+'</svg></div>';
 }
 /* the value figure, night-tuned; opts.mini for small multiples */
 function figSVG(val,opts){
@@ -624,7 +771,7 @@ function figSVG(val,opts){
   let y0=Math.min(...ys),y1=Math.max(...ys);const pad=(y1-y0)*0.12||y1*0.1;y0-=pad;y1+=pad;
   const xs=S.map(p=>p.year);let xa=Math.min(...xs)-1,xb=Math.max(...xs)+1;
   const X=yr=>mL+(yr-xa)/(xb-xa)*pw, Y=v=>mT+(y1-v)/(y1-y0)*ph;
-  const COL={ev:'#3fd0ff',calc:'#8fb4dc',asm:'#ffb454'};
+  const COL={ev:'#3fd0ff',calc:'#8fb4dc',asm:'#ffb454',hyp:'#b08af5'};
   let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+val.param+' — measurement history" style="font-family:ui-monospace,Menlo,monospace"><title>'+val.param+' — measurement history</title>';
   const nT=o.mini?2:5,step=(y1-y0)/nT;
   for(let i=0;i<=nT;i++){const v=y0+i*step,y=Y(v);
@@ -674,33 +821,51 @@ function truthChip(o){
 }
 function vObjects(){
   const q=Q.toLowerCase();
-  const rows=OBJECTS.filter(o=>!q||(o.name+' '+o.cls+' '+o.truth).toLowerCase().includes(q));
-  let h='<h2><b>The grading calendar</b> — when reality scores the chains</h2>'+calSVG();
-  h+='<h2><b>The catalog</b> — '+OBJECTS.length+' dossiers, each stating how known it is</h2>';
-  h+='<div class="grid">'+ (rows.map(o=>{
+  const match=o=>!q||(o.name+' '+o.cls+' '+o.truth+' '+o.kind).toLowerCase().includes(q);
+  const card=o=>{
     const n=nameSplit(o.name);
     return '<article class="oc" data-go="#/object/'+o.id+'" tabindex="0" role="link" aria-label="Open dossier: '+o.name+'">'+
+     ghostSVG(o.id,46)+
      (n.pre?'<span class="onum">'+n.pre+'</span>':'<span class="onum">&nbsp;</span>')+
      '<span class="onm">'+n.main+'</span>'+
      '<div class="ocl">'+(o.cls===o.kind?o.cls:o.cls+' · '+o.kind)+' &nbsp; '+truthChip(o)+'</div>'+
      specBar(o.id,false)+
      '<p>'+o.blurb+'</p>'+
-     '<div class="om">'+claimsOf(o.id).length+' claims · '+valuesOf(o.id).length+' values'+
+     '<div class="om">touch '+touchPct(o.id)+'% · '+claimsOf(o.id).length+' claims · '+valuesOf(o.id).length+' values'+
        (GRADED[o.id]?' · <span style="color:var(--ok)">scored ●</span>':'')+'</div></article>';
-  }).join('')||'<p class="empty">nothing matches — clear the OPEN box</p>')+'</div>';
+  };
+  let h='<h2><b>The docket</b> — when reality reports in</h2>'+calSVG();
+  h+='<p class="fcap"><b>Touch index</b> — of the claims we make about a thing, the share resting on '+
+     'measurement. The disc on every card is drawn at that fidelity: sharp is measured, haze is assumed. '+
+     'Nothing here is drawn better than it is known.</p>';
+  if(q){
+    const rows=OBJECTS.filter(match);
+    h+='<h2><b>Matches</b> — '+rows.length+'</h2><div class="grid">'+
+      (rows.map(card).join('')||'<p class="empty">nothing matches — clear the OPEN box</p>')+'</div>';
+    return h;
+  }
+  const SH=[
+   ['graded','Graded','reality has already scored these dossiers'],
+   ['docket','On the docket','grading is scheduled — the verdicts carry countdowns'],
+   ['untouched','The untouched','named, discussed, priced — and barely measured']];
+  SH.forEach(sh=>{
+    const rows=OBJECTS.filter(o=>o.shelf===sh[0]);
+    if(!rows.length)return;
+    h+='<h2><b>'+sh[1]+'</b> — '+sh[2]+'</h2><div class="grid">'+rows.map(card).join('')+'</div>';
+  });
   return h;
 }
 function vObject(id){
   const o=obj(id); if(!o)return vObjects();
   const route='#/object/'+id, n=nameSplit(o.name);
   let h='<a class="bk" href="#/objects">&larr; catalog</a>';
-  h+='<header class="dh"><div class="dhin"><div class="top"><div>'+
+  h+='<header class="dh"><div class="dhin"><div class="top">'+ghostSVG(id,84)+'<div>'+
      (n.pre?'<span class="onum">'+n.pre+'</span>':'')+
      '<h1>'+n.main.toUpperCase()+'</h1>'+
      '<div class="chline"><span class="chip clm">'+o.cls+'</span>'+truthChip(o)+'</div></div>'+
      '<div class="act">'+watchBtn(route,o.name)+'</div></div>'+
      '<p class="blurb">'+o.blurb+'</p>'+
-     '<div class="tiles">'+o.ros.map(r=>'<div class="tile"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>').join('')+'</div>'+
+     '<div class="tiles">'+'<div class="tile"><span class="k">Touch index</span><span class="v">'+touchPct(id)+'%</span></div>'+o.ros.map(r=>'<div class="tile"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>').join('')+'</div>'+
      specBar(id,true)+
      '</div></header>';
   if(GRADED[id]){

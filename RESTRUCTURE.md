@@ -97,6 +97,7 @@ Same sharded-perimeter pattern, three additions:
 | **P1 — shipped** | `/v2/` prototype: the three dossier views with real, hand-curated content | You can click through OBJECT · CLAIM · VALUE and every number on screen is true and typed |
 | **P1.5 — shipped** | The views are **assembled by code from an embedded seed graph** — five objects, a three-entry ledger, seven adopted values with figures drawn from series data, dossier watches stored in the browser, and the v1 front door recontextualized to the dossier identity | The screens are code over graph rows; swapping the seed for worker output changes no view code |
 | **P1.6 — shipped** | **The night pass**: V2 gets its own visual identity — the operations-console dark ground, the luminous instrument palette, the knowledge spectrum, the grading calendar, small-multiple value figures and evidence chains drawn as chains | V2 no longer reads as a restyled v1 page; every new visual is computed from the graph |
+| **P1.7 — shipped** | **The Dark Catalog**: the map inverts from what humanity knows to what it has not touched. Five new shelves beyond asteroids (Planet Nine, Earth's interior, the deep seafloor, the dark proteome, the unmade materials), the **Touch Index** on every dossier, the grading calendar generalized into the **Docket**, and **ghost discs** — every object drawn only as well as it is known | The catalog reads as three shelves — graded, on the docket, untouched — and every new mechanic is computed from the graph |
 | **P2** | Worker v11: SBDB adapter + typed claim extraction; schema-v2 live in Supabase | A Bennu query returns graph rows, not just papers |
 | **P3** | Dossiers assemble from the graph; watch gate fires on dossiers | Subscribe to Bennu; a new paper that moves a claim's standing notifies you |
 | **P4** | V1 modes absorbed: ANALYZE first, then CLAIM→LEDGER, MEMORY dissolves | The Sgr A* demo is reachable only as an archived worked example |
@@ -106,6 +107,37 @@ Same sharded-perimeter pattern, three additions:
 score the dossier against, publicly. CLAIM second because the public adjudication layer is the
 marketing engine and the prompt that started this strategy contained its demo. VALUE last because
 adopted values need graph mass to be trustworthy, and by P4 the graph has it.
+
+## The Dark Catalog — the idea, in plain terms
+
+Maps of what humanity knows exist everywhere — every encyclopedia, every search engine, every
+chatbot. **Nobody has ever made the map of what humanity doesn't know.** That is the product.
+
+Four simple pieces:
+
+1. **A dossier for everything named but barely measured.** Not just asteroids: a predicted planet
+   nobody has seen, the inside of our own planet (drilled to 0.19% of the way down), the seafloor
+   (~26% properly mapped), millions of proteins with no known function, hundreds of thousands of
+   predicted materials never synthesized. Each dossier says plainly: this is measured, this is
+   calculated, this is assumed, this is just proposed.
+2. **The Touch Index.** One number per dossier: of the claims we make about this thing, what share
+   rests on actual measurement? Nobody publishes that number, for anything. PARALLAX publishes it
+   for everything.
+3. **The Docket.** The calendar of days reality reports in — sample returns, flybys, arrivals,
+   survey milestones. Every verdict PARALLAX holds carries a countdown to the day it gets graded
+   in public. The asteroid shelf is the proof this works: Bennu already graded us.
+4. **Ghost rendering.** Every object is drawn exactly as well as it is known — Bennu sharp because
+   we laser-mapped it, Planet Nine as haze because it *is* haze. No artist's impressions, ever.
+
+Who pays: everyone whose job is **allocation** — telescope committees choosing follow-up targets,
+materials and pharma teams choosing what to synthesize out of an ML flood, funders drawing gap
+maps by hand, planetary defense triaging rocks. The asteroid shelf stays as shelf one and the
+calibration set, because it is the only shelf that grades itself in public on a known date.
+
+Why it cannot be a copycat: everyone else summarizes the known, racing over the same corpus. In a
+world where every answer about the known is instant, **the scarce asset is the map of where
+knowledge ends** — and it compounds, because every dossier, diagnosis and graded verdict makes the
+graph harder to rebuild from scratch.
 
 ## V2 visual identity — the night pass
 
