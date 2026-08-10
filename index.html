@@ -89,7 +89,9 @@ canvas{display:block}
 /* ------- chrome (kept minimal — the stage is the interface) ------- */
 #chrome{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity 1s}
 #chrome.on{opacity:1}
-#brand{position:absolute;top:16px;left:22px;pointer-events:auto}
+#brand{position:absolute;top:16px;left:22px;pointer-events:auto;
+  background:none;border:0;padding:0;cursor:pointer;font-family:var(--f)}
+#brand:hover .p{color:var(--asm)}
 #brand .p{font-size:13px;letter-spacing:.46em;font-weight:600;color:#14263a}
 
 #brand.dark .p{color:#e8f3fb;text-shadow:0 1px 10px rgba(0,0,0,.5)}
@@ -862,7 +864,9 @@ body.cxon #doc{right:min(430px,34vw)}
   background-size:52px 52px;
   mask-image:radial-gradient(120% 100% at 60% 34%,#000 0%,transparent 74%)}
 #onb>*{position:relative;z-index:1}
-#onb h1{font-size:clamp(34px,7vw,72px);font-weight:200;letter-spacing:.42em;margin:0 0 0 .42em;color:var(--ink)}
+#onb h1{font-size:clamp(34px,7vw,72px);font-weight:200;letter-spacing:.42em;margin:0 0 0 .42em;color:var(--ink);
+  background:none;border:0;padding:0;cursor:pointer;font-family:var(--f)}
+#onb h1:hover{color:var(--asm)}
 #onb .sub{margin-top:16px;font-size:13px;color:var(--ink2);text-align:center;padding:0 20px;max-width:600px;line-height:1.8}
 #field{margin-top:46px;width:min(720px,86vw)}
 #field .q{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;font-weight:800}
@@ -1020,10 +1024,10 @@ body.cxon #doc{right:min(430px,34vw)}
 <canvas id="stage"></canvas>
 
 <div id="chrome">
-  <div id="brand"><span class="p">PARALLAX</span></div>
+  <button id="brand" type="button" title="Back to the front page"><span class="p">PARALLAX</span></button>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b74</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b75</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -1183,7 +1187,7 @@ body.cxon #doc{right:min(430px,34vw)}
  <footer id="hfoot">PARALLAX &mdash; a research instrument for scientists. Pre-release.</footer>
 </div>
 <div id="onb">
-  <h1>PARALLAX</h1>
+  <h1 role="button" tabindex="0" title="Back to the front page">PARALLAX</h1>
   <div class="sub">A scientific operating system. You do not read about the physics here —
   you manipulate the live research model directly, and every structure recomputes as you touch it.</div>
   <div id="field">
@@ -3316,8 +3320,14 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b74';
+const BUILD='b75';
 const WHATSNEW=[
+ ['The front page is reachable again',
+  'Once you had been through the front door once, there was no way back to it. The page was not hidden on the way in, it was removed from the document, and removed again at boot for anyone returning \u2014 so the front page simply ceased to exist for you. The function that was supposed to bring it back has been in the file for several builds and could never have worked, because by the time anything called it there was nothing left to find. Nothing called it either. The only route that did work was the sign-out button, which clears your stored session and reloads the page: going home should not cost you your watches. The door is now kept rather than destroyed \u2014 taken out of the document so it costs no layout and its animations stop, but held so it can be put back exactly as it was built. The wordmark is the way back, from the workspace and from the opening question alike, by click or by keyboard. Your watches are untouched by it.',
+  'Click PARALLAX, top left. From the opening question, click the big PARALLAX.'],
+ ['The account button stopped promising something it could not do',
+  'Hovering GUEST said \u201cclick to open the front door\u201d, and clicking it offered a button that signed you out instead. The tooltip now says what that button is actually for, and the banner it raises offers a route to the front page that leaves your session alone.',
+  'Hover or click GUEST in the top right.'],
  ['The wordmark and the readouts stop printing over each other',
   'PARALLAX and the row of readouts beside it are positioned into the same strip independently, and neither has ever known the other was there. Above about 580px of width they happen to miss; below it the readouts run straight through the middle of the wordmark, which is what a narrow window, a side panel or any phone actually showed. Below 560px they now take a line each — nothing hidden, nothing scrolled out of reach. Between 560 and 900 the mark comes down a size and the readouts give up what a phone cannot use: CMD goes entirely, because it advertises a keyboard shortcut to a device with no keyboard, and WATCH and PLAN keep their labels but drop values the station states anyway. DATA keeps its value at every width — SIM against LIVE is the one readout that tells you whether the numbers in front of you are real, so it is never the thing that gets dropped.',
   'Narrow the window under 900px, or open it on a phone.'],
@@ -4127,6 +4137,8 @@ act=function(a){
   if(p[0]==='qdemo'){if(!QUESTIONS.find(x=>x.id==='sgra'))QUESTIONS.push(DEMOS[0]);setQuestion('sgra');jumpStation('watch','questions');return;}
   if(p[0]==='qping'){pingWorker();return;}
   if(p[0]==='signout'){signOut();return;}
+  /* going home is not signing out - it must not touch stored state */
+  if(p[0]==='home'){if(typeof openHome==='function')openHome();setBanner('');return;}
   if(p[0]==='adjrun'){
     const ea=document.querySelector('[data-adja]'),eb=document.querySelector('[data-adjb]');
     const va=ea?ea.value.trim():'',vb=eb?eb.value.trim():'';
@@ -8755,7 +8767,7 @@ function signOut(){
 function renderWho(){
   const el=document.getElementById('who');if(!el)return;
   el.innerHTML=AUTH?'<b title="'+esc(AUTH.email)+'">'+esc(String(AUTH.email).split('@')[0]).slice(0,14)+'</b>':'<b>GUEST</b>';
-  el.title=AUTH?AUTH.email+' — click to sign out':'not signed in — click to open the front door';
+  el.title=AUTH?AUTH.email+' — click to sign out':'not signed in — your watches live in this browser';
 }
 /* Leaving the front door. The onboarding question and the construction sequence
    still run for a first-time visitor - they are what explains the instrument -
@@ -8763,7 +8775,7 @@ function renderWho(){
 function enterApp(){
   const h=document.getElementById('home');
   try{localStorage.setItem(EKEY,'1');}catch(e){}
-  if(h){h.classList.add('gone');setTimeout(()=>h.remove(),560);}
+  if(h){h.classList.add('gone');setTimeout(()=>stashHome(),560);}
   renderWho();
   const seen=(function(){try{return !!localStorage.getItem(LSKEY);}catch(e){return false;}})();
   if(seen){
@@ -8775,9 +8787,33 @@ function enterApp(){
     renderWho();
   }
 }
+/* ---------------------------------------------------------------------------
+   GOING BACK TO THE FRONT PAGE. This function has been here for several builds
+   and could never once have worked: the front door is removed from the document
+   on the way in, and removed again at boot for anyone who has been through it,
+   so by the time there was any reason to call this there was nothing to find.
+   Nothing called it either. Meanwhile the account button's own tooltip has been
+   promising "click to open the front door", and the only thing that actually
+   got you back there was the sign-out path - which clears your stored session
+   and reloads the page. Going home should not cost you your watches.
+
+   So the door is now kept rather than destroyed: taken out of the document, so
+   it costs no layout and its animations stop, but held in a variable so it can
+   be put back exactly as it was built. The wordmark is the way back, which is
+   where everybody looks first.
+   --------------------------------------------------------------------------- */
+let HOMEEL=null;
+function stashHome(){
+  const h=document.getElementById('home');
+  if(h){HOMEEL=h;h.remove();}
+}
 function openHome(){
-  const h=document.getElementById('home');if(!h)return false;
-  h.classList.remove('gone');return true;
+  let h=document.getElementById('home');
+  if(!h&&HOMEEL){document.body.appendChild(HOMEEL);h=HOMEEL;}
+  if(!h)return false;
+  h.classList.remove('gone');
+  h.scrollTop=0;
+  return true;
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest?e.target.closest('[data-home]'):null;
@@ -8800,11 +8836,25 @@ document.addEventListener('keydown',e=>{
   const t=e.target;
   if(t&&t.id&&(t.id==='hemail'||t.id==='hpass')){e.preventDefault();hauth();}
 });
+/* The wordmark is the way back, from wherever you are: the chrome one once you
+   are in the workspace, the onboarding one before that. Keyboard too - the
+   first is a real button and the second answers Enter and Space. */
+document.addEventListener('click',e=>{
+  if(!e.target.closest)return;
+  if(!e.target.closest('#brand')&&!e.target.closest('#onb h1'))return;
+  openHome();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const t=e.target;if(!t||!t.closest)return;
+  if(!t.closest('#onb h1'))return;
+  e.preventDefault();openHome();
+});
 document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('#who'))return;
   if(AUTH){if(confirm('Sign out of '+AUTH.email+'? Your watches stay in this browser.'))signOut();return;}
   setBanner('work','<b>NOT SIGNED IN</b> - your watches live in this browser only. '+
-    '<button class="abtn" data-act="signout" style="margin-left:8px">Open the front door</button>');
+    '<button class="abtn" data-act="home" style="margin-left:8px">Open the front page</button>');
 });
 
 
@@ -8858,7 +8908,7 @@ if(TABOX)TABOX.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e
   try{heroChrome();}catch(e){}
   /* Signed in, or already through the door once - do not make them walk it again. */
   let been=false;try{been=!!localStorage.getItem(EKEY);}catch(e){}
-  if(AUTH||been){h.remove();enterApp();}
+  if(AUTH||been){HOMEEL=h;h.remove();enterApp();}
 })();
 </script>
 </body>
