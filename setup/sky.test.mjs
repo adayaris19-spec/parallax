@@ -136,7 +136,16 @@ t("a candidate that failed its check never becomes a claim",
 const earned = S.claimsFrom([], [{ ...unchecked, lit_count: 0, searched_as: "433 Eros" }]);
 t("a candidate with zero hits becomes a claim", earned.length === 1);
 t("the claim states the name it searched, not the catalogue key",
-  earned[0].title === "No paper measures 433 Eros");
+  earned[0].title === "Nothing has been written about 433 Eros");
+// A GWTC event arrives stamped with the catalogue that measured it. Printing
+// "no paper measures this" beside reference: GWTC contradicts the row it came
+// from; what the search establishes is that nothing NAMES it.
+const viaCat = S.claimsFrom([], [{
+  object: "GW250119_190238", quantity: "mass", source: "gwosc", value: 11.54,
+  unit: "msun", reference: "GWTC", lit_count: 0, searched_as: "GW250119_190238",
+}]);
+t("a claim does not contradict its own provenance", viaCat[0].statement.includes("on the authority of GWTC"));
+t("the claim says it was reported once and never taken up", viaCat[0].statement.includes("never taken up"));
 t("the claim carries the search as its receipt", earned[0].observed.lit_count === 0);
 
 // end to end ------------------------------------------------------------------

@@ -736,6 +736,47 @@ async function litCount(object: string): Promise<number | null> {
   } catch { return null; }
 }
 
+/* OpenAlex stores abstracts as a word -> positions map for licensing reasons.
+   Rebuilding the sentence is the price of reading them. */
+function deInvert(inv: Record<string, number[]> | null | undefined): string {
+  if (!inv) return "";
+  const words: string[] = [];
+  for (const w of Object.keys(inv)) for (const p of inv[w] ?? []) words[p] = w;
+  return clean(words.join(" ")).slice(0, 1600);
+}
+
+/* The literature for an object Parallax is actually holding.
+   ------------------------------------------------------------------
+   tension used to read whatever happened to be in `records`, which made the
+   whole mechanism depend on somebody having run the archive worker earlier,
+   with the right question, in the right words. Two eyes that only meet when a
+   human remembers to aim them are not an instrument.
+
+   So the papers are fetched for the objects in hand. Stored records are still
+   read and still preferred — they have been through the relevance gate — but
+   the sweep no longer needs them to exist. */
+async function papersFor(object: string, rows = 6): Promise<any[]> {
+  const q = searchName(object);
+  if (q.length < 3) return [];
+  try {
+    const j = await getJSON(
+      `https://api.openalex.org/works?filter=title_and_abstract.search:${encodeURIComponent(q)}` +
+      `&per-page=${rows}&sort=cited_by_count:desc&mailto=${encodeURIComponent(MAIL)}`,
+      {}, 10000,
+    );
+    return (j?.results ?? []).map((w: any) => ({
+      id: null,
+      source_id: clean(w.id),
+      title: clean(w.display_name),
+      abstract: deInvert(w.abstract_inverted_index),
+      published_at: clean(w.publication_date) || null,
+      year: num(w.publication_year),
+      url: clean(w.doi || w.id),
+      about: object,
+    })).filter((r: any) => r.title && r.abstract);
+  } catch { return []; }
+}
+
 async function verifiedOrphans(candidates: any[], max = 8) {
   const checked = await Promise.all(candidates.slice(0, max).map(async (o) => {
     const count = await litCount(o.object);
@@ -845,15 +886,30 @@ function claimsFrom(tensions: Tension[], orph: any[]) {
        the eight seconds it takes to run the same query. */
     if (o.lit_count !== 0) continue;
     const shown = searchName(o.object) || o.object;
+    /* The observation's own provenance is part of the claim, not a detail to
+       leave out. A gravitational wave event arrives stamped with the catalogue
+       that measured it, and "no paper measures this" printed beside
+       reference: GWTC is a claim contradicted by the row it was minted from.
+
+       What the search actually establishes is narrower and still worth saying:
+       nothing NAMES it. The measurement was published in a catalogue of
+       hundreds and then never taken up by anybody — which is the real shape of
+       an orphan, and is invisible to everyone precisely because the catalogue
+       entry makes it look attended to. */
+    const via = clean(o.reference);
     out.push(mint({
       kind: "orphan",
       object: o.object,
       quantity: o.quantity,
-      title: `No paper measures ${shown}`,
+      title: `Nothing has been written about ${shown}`,
       statement:
-        `${o.source} carries ${shown} (${fmt(o.value, o.unit)}), catalogued and unremarked. ` +
-        `A title and abstract search across OpenAlex — every field, every year — returns ` +
-        `nothing for it. Catalogued is not the same as understood.`,
+        `${o.source} carries ${shown} (${fmt(o.value, o.unit)})` +
+        (via ? `, on the authority of ${via}` : "") +
+        `. Beyond that, a title and abstract search across OpenAlex — every field, ` +
+        `every year — returns nothing that names it. ` +
+        (via
+          ? `It was reported once and never taken up.`
+          : `Catalogued is not the same as understood.`),
       observed: { ...o, searched_as: o.searched_as, lit_count: o.lit_count },
       kill:
         `A single paper that measures or models ${shown}. One hit refutes this claim ` +
@@ -955,13 +1011,23 @@ async function handle(req: Request): Promise<Response> {
 
     const cols = "select=id,title,abstract,published_at,relevance";
     const when = since ? `&published_at=gte.${since}` : "";
-    let stored = await sb(`records?${cols}${filter}${when}&limit=${Math.min(per, 60)}`) as any[];
-    let matched = Array.isArray(stored) ? stored.length : 0;
-    if (!matched) {
-      stored = await sb(`records?${cols}${when}&order=published_at.desc&limit=${Math.min(per, 60)}`) as any[];
-    }
+    const stored = await sb(`records?${cols}${filter}${when}&limit=${Math.min(per, 60)}`) as any[];
+    const matched = Array.isArray(stored) ? stored.length : 0;
 
-    const records = Array.isArray(stored) ? stored : [];
+    /* Fetched for the objects in hand, rather than hoping the corpus already
+       holds them. The stored records come first because they have been through
+       the relevance gate; the fetched ones fill the gap so a sweep is never
+       silent merely because nobody swept this subject before. */
+    const fetched = (await Promise.all(names.slice(0, 6).map((n) => papersFor(n)))).flat();
+    const seenPaper = new Set<string>();
+    const records = [...(Array.isArray(stored) ? stored : []), ...fetched]
+      .filter((r) => {
+        const k = String(r.source_id ?? r.id ?? r.title);
+        if (!k || seenPaper.has(k)) return false;
+        seenPaper.add(k);
+        return true;
+      })
+      .slice(0, 60);
     const reported = await extractFrom(records);
     if (reported.length && body.store !== false) {
       await sb("measurements", "POST", reported, "return=minimal");
@@ -984,6 +1050,8 @@ async function handle(req: Request): Promise<Response> {
         observations: sky.length,
         objects_seen: names.length,
         papers: records.length,
+        papers_from_corpus: matched,
+        papers_fetched: fetched.length,
         /* False here means the corpus contained nothing about anything observed
            this sweep, so what follows is a fallback comparison and a thin
            result is expected rather than a fault. */
