@@ -179,6 +179,68 @@ h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.015em}
 .kpis .k{font-family:var(--m);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
   line-height:1.32;margin-top:2px}
 
+.con{max-width:940px;margin:0 auto;padding:clamp(24px,4.5vw,58px) clamp(16px,3vw,28px) 40px}
+.con .eb{font-family:var(--m);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--acc);font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:9px}
+.con .eb i{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.con .eb i.live{animation:bl 1.1s infinite}
+.con h1{font-size:clamp(26px,3.6vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0 0 14px;
+  max-width:22ch}
+.con h1 em{font-style:normal;color:var(--acc)}
+.con .sub{font-size:clamp(14.5px,1.2vw,16.5px);line-height:1.55;color:var(--ink2);max-width:64ch;
+  margin:0 0 clamp(20px,2.6vw,30px)}
+.con .claimline{font-size:clamp(19px,2.2vw,27px);line-height:1.3;letter-spacing:-.02em;font-weight:650;
+  margin:0 0 18px;max-width:34ch;color:var(--ink)}
+.bigin{position:relative;margin-bottom:13px}
+.bigin textarea{width:100%;display:block;resize:none;min-height:96px;background:var(--card);
+  border:1.5px solid var(--line2);border-radius:9px;color:var(--ink);padding:16px 17px 16px 17px;
+  font-size:clamp(17px,1.7vw,21px);line-height:1.4;font-family:var(--f);
+  box-shadow:0 14px 34px -26px rgba(15,45,85,.55),inset 0 1px 0 rgba(255,255,255,.9)}
+.bigin textarea:focus{border-color:var(--acc);box-shadow:0 0 0 4px rgba(13,114,196,.13),
+  0 14px 34px -26px rgba(15,45,85,.55)}
+.bigin textarea::placeholder{color:#93aec7}
+.conrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:clamp(24px,3vw,34px)}
+.bigbtn{background:var(--acc);color:#fff;border:0;border-radius:7px;padding:14px 26px;cursor:pointer;
+  font-family:var(--m);font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  box-shadow:0 12px 26px -14px rgba(13,114,196,.75)}
+.bigbtn:hover{background:var(--acc2)}
+.bigbtn[disabled]{background:var(--line2);box-shadow:none;cursor:not-allowed}
+.conrow .hint{font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim)}
+.egs2{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:9px;
+  margin-bottom:clamp(26px,3.4vw,38px)}
+.egs2 button{text-align:left;background:linear-gradient(168deg,rgba(255,255,255,.9),rgba(240,246,252,.7));
+  border:1px solid var(--line2);border-radius:8px;padding:12px 14px;cursor:pointer;
+  transition:transform .2s cubic-bezier(.16,.9,.3,1),border-color .2s,box-shadow .2s}
+.egs2 button:hover{transform:translateY(-3px);border-color:var(--acc);
+  box-shadow:0 16px 30px -22px rgba(13,114,196,.6)}
+.egs2 .f{display:block;font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:6px}
+.egs2 .t{display:block;font-size:14px;line-height:1.38;color:var(--ink)}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;
+  margin-bottom:clamp(22px,2.8vw,30px)}
+.spec div{background:var(--card);padding:10px 13px}
+.spec .v{font-family:var(--m);font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--acc);
+  line-height:1.1}
+.spec .k{font-family:var(--m);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);margin-top:3px;line-height:1.3}
+.pipe{border:1px solid var(--line2);border-radius:8px;background:var(--card);overflow:hidden}
+.pipe .ph{padding:9px 14px;border-bottom:1px solid var(--line);background:var(--card2);
+  font-family:var(--m);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  display:flex;gap:10px;align-items:center}
+.pipe .ph b{color:var(--acc);margin-left:auto;font-variant-numeric:tabular-nums}
+.pipe .pb{padding:13px 14px}
+.stg{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:0 12px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--line)}
+.stg:last-child{border-bottom:0}
+.stg .dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line2);justify-self:center}
+.stg.on .dot{border-color:var(--acc);background:var(--acc);animation:bl 1.1s infinite}
+.stg.done .dot{border-color:var(--sup);background:var(--sup)}
+.stg .nm{font-size:14px;color:var(--dim)}
+.stg.on .nm,.stg.done .nm{color:var(--ink)}
+.stg .nm span{display:block;font-family:var(--m);font-size:10.5px;color:var(--dim);margin-top:2px}
+.stg .fig{font-family:var(--m);font-size:12px;color:var(--acc);font-variant-numeric:tabular-nums}
 .sec{padding:15px 20px 0}
 .card{background:var(--card);border:1px solid var(--line2);border-radius:6px;margin-bottom:12px}
 .card>.hd{padding:8px 13px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;
@@ -578,11 +640,22 @@ function setBusy(on){BUSY=on;$('#track').disabled=on;$('#fromText').disabled=on;
 function runClaim(c){
   if(BUSY)return Promise.resolve();
   setBusy(true);clearErr();FEED=[];
+  SW.phase=1;SW.t0=Date.now();SW.landed=0;SW.recs=0;
+  clearInterval(SW.timer);
+  SW.timer=setInterval(function(){
+    /* the elapsed clock only has to move the two numbers it owns */
+    var e=$('#doc .pipe .ph b'),f=$('#doc .stg.on .fig');
+    if(e)e.textContent=elapsed()+' s elapsed';
+    if(f&&SW.phase===1)f.textContent=elapsed()+' s';
+  },1000);
   status('go','Sweeping — '+c.text.slice(0,44));prog(.05);
+  if(SEL===c.id)paint();                       /* the panel must not lag the status bar */
   return post({question:c.text,limit:40,store:true,slice:0,slices:SLICES},135000)
   .then(function(j){
     if(!j.results)throw new Error('the worker returned no scored records — an old build may be deployed');
-    prog(1/SLICES);commit(c,j);FEED=arr(j.results).slice();
+    prog(1/SLICES);
+    SW.phase=2;SW.recs=num(j.retrieved)||arr(j.corpus).length;
+    commit(c,j);FEED=arr(j.results).slice();
     status('go','Reading the rest of the perimeter');
     if(SEL===c.id)paint();
     drawBoard();
@@ -592,14 +665,19 @@ function runClaim(c){
         limit:40,slice:k,slices:n,gate:false,profile:j.profile||null},95000)
       .then(function(s){mergeSlice(c,s);arr(s.corpus).forEach(function(r){FEED.unshift(r);});},
         function(){})
-      .then(function(){landed++;prog((landed+1)/n);
+      .then(function(){landed++;SW.landed=landed;
+        SW.recs=num(c.data&&c.data.retrieved)||SW.recs;
+        prog((landed+1)/n);
         if(SEL===c.id&&TAB==='evidence')renderTab();
         if(SEL===c.id)paintKpis();}));})(k);
     return Promise.all(runs).then(function(){save();if(SEL===c.id)paint();drawBoard();});
   })
   .catch(function(e){status('bad','Sweep failed');showErr(netDiag(e));})
-  .then(function(){setBusy(false);prog(0);
-    if(!$('#err').classList.contains('on'))status('ok','Ready');});
+  .then(function(){
+    setBusy(false);prog(0);SW.phase=3;clearInterval(SW.timer);
+    if(!$('#err').classList.contains('on'))status('ok','Ready');
+    if(SEL===c.id&&!c.data)paint();            /* a failed sweep must not leave a dead screen */
+  });
 }
 function mergeSlice(c,s){
   var d=c.data;if(!d)return;
@@ -634,6 +712,9 @@ function trackText(t,select){
 var COL={holding:'var(--sup)',contested:'var(--mix)',breaking:'var(--con)',unsettled:'var(--none)'};
 function drawBoard(){
   var B=$('#board');
+  /* with nothing tracked the board is a lone duplicate of the console's own
+     input; the console owns that job until there is something to show */
+  B.hidden=!DB.claims.length;
   $$('.bcard',B).forEach(function(n){n.remove();});
   DB.claims.forEach(function(c){
     var k=c.state||'unsettled',tot=(c.sup||0)+(c.con||0);
@@ -657,81 +738,112 @@ function select_(id){SEL=id;drawBoard();paint();
 
 /* ------------------------------------------------------------------ dossier */
 var TAB='breaks',VIEW=null,STAGE=true;
-/* With nothing selected the instrument used to render literally nothing: no
-   stage, no header, no rail, no document — a blank room, which is what you get
-   the first time you walk in. The empty state is part of the product, not an
-   afterthought, so it lives here and it is the thing that gets you started. */
-function emptyState(){
-  var egs=[['Extra spatial dimensions are detectable at LHC energies.','particle physics'],
-    ['Dark matter is cold and effectively collisionless.','cosmology'],
-    ['The organic molecules in returned asteroid samples are extraterrestrial in origin.',
-      'planetary science'],
-    ['The primordial lithium abundance disagrees with standard big bang nucleosynthesis.',
-      'nucleosynthesis']];
-  return '<div class="sec" style="padding-top:22px">'+
-    '<div class="card"><div class="bd" style="padding:20px 20px 22px">'+
-    '<h2 style="font-size:clamp(19px,2vw,25px);line-height:1.24;margin:0 0 9px;max-width:26ch">'+
-    'Nothing tracked yet. Start with a claim.</h2>'+
-    '<p class="muted" style="max-width:64ch;margin:0 0 16px">Not a question — a claim, stated flat, '+
-    'the way you would write it in an abstract. PARALLAX sweeps the archives, reads every abstract '+
-    'for and against it, and tells you whether it is still standing.</p>'+
-    '<div id="egGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px">'+
-    egs.map(function(e){
-      return '<button class="egc" data-eg="'+esc(e[0])+'" style="text-align:left;background:var(--card2);'+
-        'border:1px solid var(--line2);border-radius:6px;padding:12px 13px;cursor:pointer">'+
-        '<span style="display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.14em;'+
-        'text-transform:uppercase;color:var(--dim);margin-bottom:6px">'+esc(e[1])+'</span>'+
-        '<span style="display:block;font-size:14.2px;line-height:1.4;color:var(--ink)">'+esc(e[0])+
-        '</span></button>';}).join('')+'</div>'+
-    '<p class="small" style="margin:16px 0 0">A sweep takes 40&ndash;120 seconds. Everything you track '+
-    'stays on the board and can be re-checked whenever you like.</p>'+
-    '</div></div>'+
-    /* the company has two instruments and the instrument you are standing in
-       should say so, rather than presenting itself as the whole product */
-    '<div class="card"><div class="hd"><h3>PARALLAX runs two instruments</h3>'+
-    '<span>this is one of them</span></div><div class="bd">'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:11px">'+
-    '<div style="border:1px solid var(--accln);background:var(--accbg);border-radius:6px;padding:13px 14px">'+
-    '<div style="font-family:var(--m);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;'+
-    'color:var(--acc);margin-bottom:5px">Instrument one &middot; you are here</div>'+
-    '<b style="display:block;font-size:16px;margin-bottom:4px">The Record</b>'+
-    '<span style="font-size:13.4px;line-height:1.45;color:var(--ink2)">Pointed at everything humanity '+
-    'has written down. Tracks a claim and tells you what it is standing on.</span></div>'+
-    '<a href="../instrument/" style="border:1px solid var(--line2);background:var(--card2);'+
-    'border-radius:6px;padding:13px 14px;text-decoration:none;display:block">'+
-    '<div style="font-family:var(--m);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;'+
-    'color:var(--dim);margin-bottom:5px">Instrument two</div>'+
-    '<b style="display:block;font-size:16px;margin-bottom:4px;color:var(--ink)">The Sky &rarr;</b>'+
-    '<span style="font-size:13.4px;line-height:1.45;color:var(--ink2)">Pointed at the solar system. A '+
-    'live orbital model whose job is catching the moment the model and the sky disagree.</span></a>'+
-    '</div></div></div></div>';
+/* THE CONSOLE — the first thing you see, and the same thing you watch.
+   It has three states and they are the same screen: nothing tracked yet, a
+   claim armed but not swept, and a sweep running. Making the landing and the
+   progress view one object is also the fix for the bug where the status bar
+   said SWEEPING while the panel still said "not checked" — there is no longer
+   a second screen to fall out of step with. */
+var EGS=[['Particle physics','Extra spatial dimensions are detectable at LHC energies.'],
+  ['Cosmology','Dark matter is cold and effectively collisionless.'],
+  ['Planetary science','The organic molecules in returned asteroid samples are extraterrestrial in origin.'],
+  ['Nucleosynthesis','The primordial lithium abundance disagrees with standard big bang nucleosynthesis.']];
+var SW={phase:0,t0:0,landed:0,recs:0,timer:null};
+/* 0 idle · 1 core perimeter in flight · 2 ladder filling · 3 done */
+function elapsed(){return SW.t0?Math.round((Date.now()-SW.t0)/1000):0;}
+function stageRow(i,name,note,fig){
+  var cls=SW.phase>i?'done':(SW.phase===i?'on':'');
+  return '<div class="stg '+cls+'"><span class="dot"></span>'+
+    '<div class="nm">'+esc(name)+'<span>'+esc(note)+'</span></div>'+
+    '<div class="fig">'+(fig||'')+'</div></div>';
+}
+function pipeline(){
+  var running=SW.phase===1||SW.phase===2;
+  return '<div class="pipe"><div class="ph"><span>The sweep</span>'+
+    (running?'<b>'+elapsed()+' s elapsed</b>':'<b>'+(SW.phase===3?'complete':'idle')+'</b>')+'</div>'+
+    '<div class="pb">'+
+    stageRow(1,'Core perimeter, gate and synthesis',
+      'The archives are swept, every abstract returned is read for and against your claim, and the '+
+      'positions each paper backs are pulled out.',
+      SW.phase>1?'landed':(SW.phase===1?elapsed()+' s':'')) +
+    stageRow(2,'Historical ladder',
+      'The remaining era windows fill in behind the answer — retrieval only, so the page is already '+
+      'readable while they land.',
+      SW.phase>=2?(SW.landed+' of '+(SLICES-1)+' · '+fmt(SW.recs)+' records'):'')+
+    '</div></div>';
+}
+function consoleScreen(claim){
+  var armed=!!claim,h='<div class="con">';
+  h+='<p class="eb"><i class="'+(SW.phase===1||SW.phase===2?'live':'')+'"></i>'+
+    (SW.phase===1||SW.phase===2?'Sweeping now':'The Record · claim console')+'</p>';
+  if(!armed){
+    h+='<h1>State a claim. Find out <em>what it is standing on</em>.</h1>'+
+      '<p class="sub">Not a question — a claim, written flat, the way it would appear in an abstract. '+
+      'Every record the sweep returns is read twice: once for its stance toward your claim, once for '+
+      'the claim that paper itself makes.</p>'+
+      '<div class="bigin"><textarea id="conIn" rows="2" placeholder="Extra spatial dimensions are '+
+      'detectable at LHC energies."></textarea></div>'+
+      '<div class="conrow"><button class="bigbtn" id="conGo">Run the sweep</button>'+
+      '<span class="hint">40&ndash;120 s · runs live against the archives</span></div>'+
+      '<div class="egs2">'+EGS.map(function(e){
+        return '<button data-eg="'+esc(e[1])+'"><span class="f">'+esc(e[0])+'</span>'+
+          '<span class="t">'+esc(e[1])+'</span></button>';}).join('')+'</div>';
+  }else{
+    h+='<p class="claimline">'+esc(claim.text)+'</p>';
+    if(SW.phase===0)
+      h+='<div class="conrow"><button class="bigbtn recheck">Run the sweep</button>'+
+        '<span class="hint">nothing on file for this claim yet</span></div>';
+    else
+      h+='<p class="sub" style="margin-bottom:22px">Reading every abstract the perimeter returns. '+
+        'You can leave this running — the board keeps it.</p>';
+  }
+  h+='<div class="spec">'+
+    [['124','archive passes'],['18','archives'],['11','era windows'],['1665','earliest reachable'],
+     ['~100','claims harvested']].map(function(k){
+      return '<div><div class="v">'+k[0]+'</div><div class="k">'+k[1]+'</div></div>';}).join('')+
+    '</div>';
+  h+=pipeline();
+  if(!armed)
+    h+='<div class="pipe" style="margin-top:14px"><div class="ph"><span>PARALLAX runs two instruments</span>'+
+      '<b style="color:var(--dim)">this is one</b></div><div class="pb" style="display:grid;'+
+      'grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:11px">'+
+      '<div style="border:1px solid var(--accln);background:var(--accbg);border-radius:7px;padding:12px 13px">'+
+      '<div style="font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;'+
+      'color:var(--acc);margin-bottom:5px">Instrument one · you are here</div>'+
+      '<b style="display:block;font-size:15.5px;margin-bottom:3px">The Record</b>'+
+      '<span style="font-size:13px;line-height:1.45;color:var(--ink2)">Everything humanity has '+
+      'written down.</span></div>'+
+      '<a href="../instrument/" style="border:1px solid var(--line2);background:var(--card2);'+
+      'border-radius:7px;padding:12px 13px;text-decoration:none;display:block">'+
+      '<div style="font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;'+
+      'color:var(--dim);margin-bottom:5px">Instrument two</div>'+
+      '<b style="display:block;font-size:15.5px;margin-bottom:3px;color:var(--ink)">The Sky &rarr;</b>'+
+      '<span style="font-size:13px;line-height:1.45;color:var(--ink2)">A map of everything — and '+
+      'what is coming close to Earth this year.</span></a></div></div>';
+  return h+'</div>';
+}
+function wireConsole(){
+  var go=$('#conGo'),inp=$('#conIn');
+  if(go)go.addEventListener('click',function(){
+    var t=txt(inp&&inp.value);if(t.length<8){if(inp)inp.focus();return;}
+    trackText(t);});
+  if(inp)inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#conGo').click();}});
+  $$('#doc [data-eg]').forEach(function(b){
+    b.addEventListener('click',function(){trackText(b.dataset.eg);});});
+  $$('#doc .recheck').forEach(function(b){b.disabled=BUSY;
+    b.addEventListener('click',function(){var c=cur();if(c)runClaim(c);});});
 }
 function paint(){
   var c=cur();
-  $('#work').classList.toggle('solo',!c);
-  if(!c){
-    ['#stage','#dhead'].forEach(function(s){$(s).hidden=true;});
-    $('#rail').innerHTML='';
-    $('#doc').hidden=false;
-    $('#doc').innerHTML=emptyState();
-    $$('#doc .egc').forEach(function(b){
-      b.addEventListener('click',function(){trackText(b.dataset.eg);});});
-    return;
+  $('#work').classList.toggle('solo',!c||!c.data);
+  if(!c||!c.data){
+    ['#stage','#dhead'].forEach(function(x){$(x).hidden=true;});
+    $('#rail').innerHTML='';$('#doc').hidden=false;
+    $('#doc').innerHTML=consoleScreen(c||null);
+    wireConsole();return;
   }
   $('#dhead').hidden=false;$('#doc').hidden=false;
-  if(!c.data){
-    $('#stage').hidden=true;
-    $('#dhead').innerHTML='<p class="ct">'+esc(c.text)+'</p><div class="vrow">'+
-      '<span class="badge unsettled"><span class="dot"></span>'+
-      (BUSY?'Sweeping':'Not checked')+'</span>'+
-      (BUSY?'':'<button class="gh recheck">Run the first check</button>')+'</div>';
-    $('#rail').innerHTML='';
-    $('#doc').innerHTML='<div class="sec"><div class="card"><div class="bd"><p class="muted">'+
-      (BUSY?'Reading every abstract the perimeter returns — once for its stance toward this claim, '+
-        'once for the claim that paper itself backs. Forty to a hundred and twenty seconds.':
-        'Nothing on file for this claim yet.')+'</p></div></div></div>';
-    wire();return;
-  }
   var res=arr(c.data.results);
   VIEW={c:c,res:res,st:standingOf(res)};
   VIEW.op=oppositions(VIEW.st);VIEW.groups=harvest(res);
