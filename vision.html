@@ -1,0 +1,555 @@
+<title>PARALLAX — The Vision</title>
+<style>
+:root{
+  --ground:#E7EAE4;
+  --surface:#F2F4EF;
+  --surface-2:#DDE2DA;
+  --ink:#131A19;
+  --ink-2:#4E5955;
+  --ink-3:#79837E;
+  --rule:#C7CDC3;
+  --rule-soft:#D6DBD2;
+  --accent:#17495F;
+  --accent-soft:#3E7690;
+  --live:#A05715;
+  --kill:#8A2B2B;
+  --font-display:"Helvetica Neue",Helvetica,"Segoe UI",Roboto,system-ui,sans-serif;
+  --font-body:Charter,"Bitstream Charter","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --measure:34rem;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1110;
+    --surface:#141A19;
+    --surface-2:#1C2422;
+    --ink:#E3E8E2;
+    --ink-2:#98A39E;
+    --ink-3:#6C7873;
+    --rule:#28312E;
+    --rule-soft:#1E2624;
+    --accent:#79B6D3;
+    --accent-soft:#4E8AA6;
+    --live:#D2913F;
+    --kill:#C9686A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1110;
+  --surface:#141A19;
+  --surface-2:#1C2422;
+  --ink:#E3E8E2;
+  --ink-2:#98A39E;
+  --ink-3:#6C7873;
+  --rule:#28312E;
+  --rule-soft:#1E2624;
+  --accent:#79B6D3;
+  --accent-soft:#4E8AA6;
+  --live:#D2913F;
+  --kill:#C9686A;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:var(--ground)}
+
+.wrap{max-width:60rem;margin:0 auto;padding:0 1.5rem}
+
+/* ---------- hero ---------- */
+.hero{position:relative;border-bottom:1px solid var(--rule);overflow:hidden}
+#plate{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-inner{position:relative;padding:5.5rem 0 4rem;display:flex;flex-direction:column;gap:1.75rem}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+}
+h1{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(2.6rem,7vw,5rem);
+  line-height:.95;
+  letter-spacing:-.035em;
+  margin:0;
+  text-wrap:balance;
+}
+h1 em{font-style:normal;color:var(--accent);display:block}
+.deck{
+  font-size:clamp(1.05rem,2.2vw,1.3rem);
+  line-height:1.5;
+  max-width:38rem;
+  color:var(--ink-2);
+  margin:0;
+  text-wrap:pretty;
+}
+.baseline{
+  display:flex;flex-wrap:wrap;gap:0 2.5rem;
+  font-family:var(--font-mono);font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  padding-top:1rem;border-top:1px solid var(--rule-soft);
+}
+
+/* ---------- sections ---------- */
+section{border-bottom:1px solid var(--rule)}
+.grid{
+  display:grid;
+  grid-template-columns:9rem minmax(0,1fr);
+  gap:0 2.5rem;
+  padding:3.5rem 0;
+  align-items:start;
+}
+.rail{
+  position:sticky;top:1.5rem;
+  font-family:var(--font-mono);
+  font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);
+  display:flex;flex-direction:column;gap:.35rem;
+}
+.rail b{color:var(--accent);font-weight:500;letter-spacing:.18em}
+.col{display:flex;flex-direction:column;gap:1.15rem;min-width:0}
+h2{
+  font-family:var(--font-display);
+  font-weight:700;font-size:clamp(1.5rem,3.4vw,2.1rem);
+  letter-spacing:-.02em;line-height:1.1;margin:0;text-wrap:balance;
+}
+h3{
+  font-family:var(--font-display);
+  font-weight:650;font-size:1.02rem;letter-spacing:-.005em;
+  margin:0;color:var(--ink);
+}
+p{margin:0;max-width:var(--measure);text-wrap:pretty}
+.lede{font-size:1.15rem;line-height:1.55;color:var(--ink-2)}
+strong{font-weight:600;color:var(--ink)}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ---------- devices ---------- */
+.pull{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(1.25rem,2.8vw,1.7rem);
+  line-height:1.28;letter-spacing:-.018em;
+  color:var(--ink);
+  border-left:2px solid var(--accent);
+  padding:.15rem 0 .15rem 1.25rem;
+  max-width:32rem;margin:.5rem 0;
+  text-wrap:balance;
+}
+.note{font-size:.92rem;color:var(--ink-2);max-width:var(--measure)}
+
+.stack{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule-soft)}
+.row{
+  display:grid;grid-template-columns:1.5rem minmax(0,1fr);gap:0 1rem;
+  padding:1.1rem 0;border-bottom:1px solid var(--rule-soft);
+}
+.row .n{
+  font-family:var(--font-mono);font-size:.72rem;color:var(--ink-3);
+  padding-top:.28rem;font-variant-numeric:tabular-nums;
+}
+.row .b{display:flex;flex-direction:column;gap:.35rem}
+.row p{font-size:.96rem;color:var(--ink-2)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft)}
+.card{background:var(--surface);padding:1.25rem;display:flex;flex-direction:column;gap:.45rem}
+.card .k{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.card p{font-size:.93rem;color:var(--ink-2)}
+
+/* claim card */
+.claim{
+  background:var(--surface);border:1px solid var(--rule);
+  max-width:36rem;display:flex;flex-direction:column;
+}
+.claim-fig{border-bottom:1px solid var(--rule);background:var(--surface-2);padding:0;line-height:0}
+.claim-fig svg{width:100%;height:auto;display:block}
+.claim-body{padding:1.15rem 1.25rem;display:flex;flex-direction:column;gap:.7rem}
+.claim-id{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.14em;color:var(--ink-3)}
+.claim-t{font-family:var(--font-display);font-weight:700;font-size:1.18rem;letter-spacing:-.015em;line-height:1.2}
+.claim-body p{font-size:.94rem;color:var(--ink-2);max-width:none}
+.meta{display:flex;flex-wrap:wrap;gap:.4rem;padding-top:.2rem}
+.chip{
+  font-family:var(--font-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.28rem .5rem;border:1px solid var(--rule);color:var(--ink-2);
+}
+.chip.live{color:var(--live);border-color:var(--live)}
+.chip.kill{color:var(--kill);border-color:var(--kill)}
+.acts{display:flex;gap:1.1rem;border-top:1px solid var(--rule-soft);padding-top:.75rem;margin-top:.15rem}
+.acts span{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+
+/* trace */
+.trace{font-family:var(--font-mono);font-size:.8rem;display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);background:var(--surface);max-width:36rem;overflow-x:auto}
+.trace div{padding:.6rem .9rem;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);white-space:nowrap}
+.trace div:last-child{border-bottom:0}
+.trace div b{color:var(--ink);font-weight:600}
+.trace .deep{color:var(--kill)}
+
+/* two-eye diagram */
+figure{margin:0;display:flex;flex-direction:column;gap:.6rem;max-width:38rem}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+
+.gap{display:flex;flex-direction:column;gap:.5rem;border:1px solid var(--rule);background:var(--surface);padding:1.1rem 1.25rem;max-width:32rem}
+.gap .big{font-family:var(--font-display);font-weight:800;font-size:2.4rem;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.gap .big.small{color:var(--kill)}
+.gap span{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tw{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+th,td{text-align:left;padding:.7rem .9rem;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+tr:last-child td{border-bottom:0}
+td b{font-weight:600}
+
+footer{padding:3rem 0 4rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);display:flex;flex-direction:column;gap:.4rem}
+
+@media (max-width:720px){
+  .grid{grid-template-columns:1fr;gap:1.25rem;padding:2.75rem 0}
+  .rail{position:static;flex-direction:row;gap:.9rem}
+  .hero-inner{padding:4rem 0 3rem}
+}
+@media (prefers-reduced-motion:reduce){#plate{display:none}}
+</style>
+
+<div class="hero">
+  <canvas id="plate" aria-hidden="true"></canvas>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Working vision · v1 · August 2026</div>
+    <h1>Parallax<em>Depth needs two eyes.</em></h1>
+    <p class="deck">A machine that reads everything ever published and watches the universe live — and makes a claim wherever the two disagree.</p>
+    <div class="baseline">
+      <span>18 archives</span><span>124 passes</span><span>Back to the 1600s</span><span>Every field</span>
+    </div>
+  </div>
+</div>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Thesis</b><span>Why this exists</span></div>
+  <div class="col">
+    <h2>Science's error-correction loop runs at the speed of a human generation</h2>
+    <p class="lede">Not because anyone is lazy. Because the work required is beyond what any person, or any institution, can physically do — and until about two years ago, beyond what any machine could do either.</p>
+    <p>Three failures compound, quietly, in every field at once:</p>
+    <div class="stack">
+      <div class="row"><div class="n">i</div><div class="b">
+        <h3>Nothing downstream is ever recomputed</h3>
+        <p>Every result rests on prior results — a stellar radius, a cross-section, a rate constant, a calibration. When one of those moves, and they move constantly, nothing that depended on it is checked. There is no mechanism, and nobody's job is to build one. Results invalidated in 2019 are cited in 2026 as if nothing happened.</p>
+      </div></div>
+      <div class="row"><div class="n">ii</div><div class="b">
+        <h3>Forgotten is stored identically to refuted</h3>
+        <p>Papers are dropped for reasons unrelated to being wrong. The author died. Wrong journal, wrong language. The field moved. It was published before the instrument existed that could test it — untestable in 1974, trivially testable now, and nobody has connected the two. The literature records neglect and refutation as the same thing: silence.</p>
+      </div></div>
+      <div class="row"><div class="n">iii</div><div class="b">
+        <h3>The data has already outrun the reading</h3>
+        <p>Rubin alone will produce millions of alerts a night. Nobody will look at most of them. The unexplained observation that changes a field is, statistically, already sitting in a public archive, and has been for years.</p>
+      </div></div>
+    </div>
+    <p class="pull">Parallax shortens the distance between something being wrong and someone knowing.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Mechanism</b><span>The second eye</span></div>
+  <div class="col">
+    <h2>One vantage point gives you a picture. Two give you depth.</h2>
+    <p>Every tool in this space reads the literature and describes it. That is one eye, and one eye cannot measure distance. Parallax has two.</p>
+    <figure>
+      <svg viewBox="0 0 640 220" role="img" aria-label="Two vantage points — the published record and live observation — converging on a discrepancy that yields a claim.">
+        <g fill="none" stroke="currentColor" stroke-width="1" opacity=".28">
+          <line x1="70" y1="170" x2="570" y2="170"/>
+        </g>
+        <g stroke="var(--accent)" stroke-width="1.25" fill="none">
+          <line x1="70" y1="170" x2="330" y2="46"/>
+          <line x1="570" y1="170" x2="330" y2="46"/>
+        </g>
+        <circle cx="70" cy="170" r="5" fill="var(--accent)"/>
+        <circle cx="570" cy="170" r="5" fill="var(--accent)"/>
+        <circle cx="330" cy="46" r="8" fill="var(--live)"/>
+        <circle cx="330" cy="46" r="16" fill="none" stroke="var(--live)" stroke-width="1" opacity=".5"/>
+        <g font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.4" fill="currentColor" opacity=".72">
+          <text x="70" y="194">THE RECORD</text>
+          <text x="70" y="209" opacity=".6">18 archives · 1600s→now</text>
+          <text x="486" y="194">THE SKY</text>
+          <text x="452" y="209" opacity=".6">live alerts · archives · telemetry</text>
+          <text x="300" y="30" fill="var(--live)">DISCREPANCY</text>
+          <text x="286" y="163" opacity=".55">baseline</text>
+        </g>
+      </svg>
+      <figcaption>The claim is the thing neither eye contains alone</figcaption>
+    </figure>
+    <p><strong>The record</strong> is what you already built — 18 indices, 124 passes, one per decade back to the 1600s, so relevance ranking never buries the founding work. <strong>The sky</strong> is the live half: Rubin and ZTF alerts, TNS, GCN, LIGO/Virgo, Gaia, JPL Horizons, TESS, the Exoplanet Archive, the Planetary Data System — public, streaming, and largely unread.</p>
+    <p>Where the two disagree, there is something nobody has accounted for. That gap is not an opinion. It is a measurement, and it is the only thing Parallax is allowed to assert.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>The object</b><span>What a claim is</span></div>
+  <div class="col">
+    <h2>Every claim is born with a figure and a way to die</h2>
+    <p>Physics has no visual language for its open questions. Every unresolved problem in the universe currently looks like a grey plot with six-point axis labels. That is not an aesthetic complaint — it is why science cannot compete for attention, and why the frontier is unscrollable today.</p>
+    <div class="claim">
+      <div class="claim-fig">
+        <svg viewBox="0 0 560 190" role="img" aria-label="Predicted versus observed light curve; the observation stays bright where nine published models require it to fade.">
+          <g stroke="currentColor" opacity=".16" stroke-width="1">
+            <line x1="52" y1="150" x2="530" y2="150"/><line x1="52" y1="20" x2="52" y2="150"/>
+            <line x1="52" y1="110" x2="530" y2="110"/><line x1="52" y1="70" x2="530" y2="70"/>
+          </g>
+          <path d="M52 44 C 140 60, 200 96, 268 122 S 400 146, 530 152" fill="none" stroke="currentColor" opacity=".45" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <path d="M52 46 C 150 58, 220 70, 300 74 S 430 80, 530 88" fill="none" stroke="var(--live)" stroke-width="2"/>
+          <g fill="var(--live)">
+            <circle cx="120" cy="55" r="3"/><circle cx="196" cy="66" r="3"/><circle cx="278" cy="73" r="3"/>
+            <circle cx="360" cy="76" r="3"/><circle cx="444" cy="82" r="3"/><circle cx="516" cy="87" r="3"/>
+          </g>
+          <g font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.2" fill="currentColor" opacity=".6">
+            <text x="52" y="172">DAY 0</text><text x="480" y="172">DAY 240</text>
+            <text x="330" y="140" opacity=".8">nine published models</text>
+            <text x="360" y="60" fill="var(--live)">observed</text>
+          </g>
+        </svg>
+      </div>
+      <div class="claim-body">
+        <div class="claim-id">PARALLAX-2026-04417 · OPEN SINCE 2019</div>
+        <div class="claim-t">Nothing published explains this object</div>
+        <p>Detected 2019, catalogued, never followed up. Nine papers cover its class; none of their decay models produce a light curve that is still this bright at day 240. Either the classification is wrong or the class is wrong.</p>
+        <div class="meta">
+          <span class="chip kill">Kills it: a spectrum</span>
+          <span class="chip">40 min · 4-metre</span>
+          <span class="chip live">Archive may already hold it</span>
+          <span class="chip">0 positions taken</span>
+        </div>
+        <div class="acts"><span>Watch</span><span>Claim it</span><span>Trace</span><span>Refute</span></div>
+      </div>
+    </div>
+    <p class="note">Two rules keep this an instrument rather than a wallpaper app. <strong>The figure is computed, never illustrated</strong> — every pixel derived from the data, or it does not ship. And <strong>the figure is itself a prediction</strong>: it shows what you would see if the claim holds, which means reality can contradict the picture.</p>
+    <p class="pull">No claim ships without a stated condition that would kill it.</p>
+    <p>That single rule is the whole boundary between a provocative instrument and a forum for cranks. Speculation is welcome — about the bulk, about extra dimensions, about anything — provided it names the measurement that could end it. If nothing could disprove it, it is not a claim and it does not go on the frontier.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Surfaces</b><span>What you use</span></div>
+  <div class="col">
+    <h2>Six surfaces, one engine</h2>
+    <p>The machinery underneath — what rests on what, across the whole corpus — is never shown to anyone. Nobody sells a graph. Google is a link graph and you see a box; Git is a directed acyclic graph and you see "3 files changed". The structure is what makes the simple thing on screen possible.</p>
+    <div class="cards">
+      <div class="card"><div class="k">Frontier</div><h3>The universe's open business</h3><p>Unresolved questions and unexplained observations, each with a figure, a cost to check, and a way to die. Browsable. Collectable. Claimable.</p></div>
+      <div class="card"><div class="k">Watch</div><h3>The ones that are yours</h3><p>You pull a question off the frontier and it never closes. It keeps working and wakes you when reality moves under it.</p></div>
+      <div class="card"><div class="k">Commission</div><h3>Ask and walk away</h3><p>Hand it a question — the bulk and the brane, a nuclear cross-section, anything. It runs for hours. You come back to something standing.</p></div>
+      <div class="card"><div class="k">Trace</div><h3>Fall through any number</h3><p>Every value is tappable. It opens into what it rests on. Five taps down you land on one measurement from 1998 that was never repeated, holding everything above it.</p></div>
+      <div class="card"><div class="k">Bench</div><h3>Your draft against the record</h3><p>Paste in a paper or point at your own data. It comes back marked: supported, contested, already published, or standing on something fragile.</p></div>
+      <div class="card"><div class="k">Stake</div><h3>Go on record, dated</h3><p>Take a position. Claim a question so nobody duplicates you. Kill someone else's claim — the highest-status act on the platform.</p></div>
+    </div>
+    <p class="note">Frontier and Watch are the same surface at two zoom levels, and the core gesture of the entire product is moving a question from one to the other.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Trace</b><span>The demo</span></div>
+  <div class="col">
+    <h2>The interaction that makes a physicist send this to their group chat</h2>
+    <p>Nobody has ever been able to pull the thread on a number. Tap one and it falls open, over and over, until you hit the thing everything is standing on.</p>
+    <div class="trace" role="img" aria-label="A claim traced down through five dependencies to a single unrepeated 1998 measurement.">
+      <div><b>"This planet is rocky"</b> — Nat. Astron. 2023</div>
+      <div>└ rests on <b>density</b> = 5.4 ± 0.6 g/cm³</div>
+      <div>&nbsp;&nbsp;└ rests on <b>planet radius</b> — transit depth, TESS</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;└ rests on <b>stellar radius</b> — Gaia DR3 + model</div>
+      <div class="deep">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└ <b>REVISED +6% in DR4.</b> Density falls 17%.</div>
+      <div class="deep">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ The planet is not rocky. 23 papers cite it.</div>
+    </div>
+    <p>On screen that whole chain is one sentence: <strong>"Your planet stopped being rocky."</strong> The user never learns a technical term, never sees a diagram, and can verify every step in eight seconds. That last part matters more than credibility — a scientist does not have to trust Parallax if they can check it.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Loop</b><span>How it feels</span></div>
+  <div class="col">
+    <h2>The machine works while you are gone</h2>
+    <p>The product lives at two timescales that look opposed and are not. Ninety seconds between meetings, and three hours deep in a commissioned dossier. The short visit is only possible because of the long work that happened in the dark.</p>
+    <div class="stack">
+      <div class="row"><div class="n">01</div><div class="b"><h3>You ask</h3><p>A question, in your words. Private by default — a search history reveals what you are working on, and no serious researcher will use a tool that leaks it.</p></div></div>
+      <div class="row"><div class="n">02</div><div class="b"><h3>It works for hours</h3><p>The full perimeter, the whole history, the live data, the cross-checks. You are not waiting at a spinner. You have left.</p></div></div>
+      <div class="row"><div class="n">03</div><div class="b"><h3>You check in ninety seconds</h3><p>Something moved under you. Someone took a position against you. Here is the cheapest thing you could measure this year.</p></div></div>
+      <div class="row"><div class="n">04</div><div class="b"><h3>You go deep when it is real</h3><p>Three hours in the dossier, tracing numbers down to their origins, reading the 1962 paper nobody cites.</p></div></div>
+      <div class="row"><div class="n">05</div><div class="b"><h3>It becomes a Watch, and never closes</h3><p>Six weeks later a paper lands and the dossier rewrites itself — and tells you which paragraph changed, and why.</p></div></div>
+    </div>
+    <p class="pull">Every other product trades your time for its content. This one trades its time for your attention.</p>
+    <p>Which produces the idea the whole company rests on. Everywhere else, <strong>a query is disposable</strong> — you search, you get results, it is over; you ask a chatbot, it answers, it is gone; a research report starts dying the morning after it is written. In Parallax, asking a question creates a permanent object with a name that keeps working forever. After two years a researcher has sixty living questions, and leaving means killing all sixty. That is retention that nobody has to be manipulated into.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Ranking</b><span>Reach, not taste</span></div>
+  <div class="col">
+    <h2>Not "what will you read" — "what could you settle"</h2>
+    <p>Ranking by popularity is fatal: the loudest claim wins, which in science means the wildest one, and in four months the frontier is a tabloid. Ranking by taste is the social-media failure — it converges on comfort, and a researcher who only sees their own subfield never gets the cross-field connection, which is where breakthroughs actually come from.</p>
+    <p>So the signal is <strong>reach</strong>: what are you, specifically, in a position to go and settle this year? Your instruments, your methods, your collaborators, your access. And the profile needs no cold start — connect an ORCID or an arXiv ID and your entire published record is the profile, richer than a month of watching would produce.</p>
+    <div class="cards">
+      <div class="card"><div class="k">Lane 1</div><h3>Your field</h3><p>What you would have found in three months, today. This earns the daily open.</p></div>
+      <div class="card"><div class="k">Lane 2</div><h3>Your reach</h3><p>Outside your field, but you hold the method or the instrument. This is where the value is.</p></div>
+      <div class="card"><div class="k">Lane 3</div><h3>Your blind spot</h3><p>One thing, deliberately far away, no justification offered. You cannot push someone toward larger concepts from inside their own citation circle.</p></div>
+    </div>
+    <p class="pull">Anything that threatens your own published work is always ranked up. Never down. No matter what you click.</p>
+    <p>The feed may learn what interests you. It is never permitted to learn to protect you. Every other platform hides what upsets you; this one is required to lead with it — otherwise personalisation turns a research instrument into a confirmation machine, which would make scientists measurably worse at their jobs.</p>
+    <p class="note">And every card carries one editable line: <em>shown because you measured this in 2021</em>. No social platform shows its reasons, because transparency costs engagement. Here it is how trust is earned — and it is the safeguard against Parallax quietly becoming the thing that decides what science people see.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Position</b><span>You vs the field</span></div>
+  <div class="col">
+    <h2>What you think, against what the world believes</h2>
+    <p>Parallax can read your position out of your published work — no survey, no setup. Then it can show you things no researcher has ever been able to see about themselves.</p>
+    <div class="stack">
+      <div class="row"><div class="n">·</div><div class="b"><h3>Where you are in the minority — and whether the evidence is with you</h3><p>Being outnumbered and being wrong are different facts. Nobody separates them today.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>Where you are alone</h3><p>The best or the worst news of a career, and worth knowing either way.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>Where you contradict yourself</h3><p>Your 2019 position does not survive your own 2024 paper. Twenty years of drift is invisible from inside it.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>Where you were right first</h3><p>Timestamped, provable, and yours. Priority is the actual currency of science.</p></div></div>
+    </div>
+    <p>Aggregate every position and you get something that has never existed: <strong>a map of what a field actually believes</strong>, as distinct from what it publishes. Those two differ enormously, everyone knows it, and nobody has ever measured the gap.</p>
+    <p>With one guardrail — consensus is not truth, so belief is only ever shown against evidence. Which yields the single most provocative readout in the product:</p>
+    <div class="gap">
+      <span>Field confidence</span>
+      <div class="big">72%</div>
+      <span>Evidence base</span>
+      <div class="big small">1 measurement · 1998 · never repeated</div>
+    </div>
+    <p class="note">The distance between how sure a field is and how strong its evidence actually is. That number is what questions people.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Trust</b><span>Why believe it</span></div>
+  <div class="col">
+    <h2>The machine has to be checkable, scored, and able to say it does not know</h2>
+    <div class="stack">
+      <div class="row"><div class="n">01</div><div class="b"><h3>Receipts by default</h3><p>No assertion without its trace attached. Verifiability beats credibility, and it is the only form of trust that survives a confident machine being wrong once.</p></div></div>
+      <div class="row"><div class="n">02</div><div class="b"><h3>A public scorecard, including the losses</h3><p>Claims resolve — confirmed, refuted, still open — and the accuracy is on the site permanently. The first system in history willing to publish its own error rate. In two years that number cannot be faked or copied.</p></div></div>
+      <div class="row"><div class="n">03</div><div class="b"><h3>The right to say "I don't know"</h3><p>A machine that always has an answer is a machine that is guessing. Returning <em>the literature does not determine this</em> is what gives the confident answers meaning.</p></div></div>
+      <div class="row"><div class="n">04</div><div class="b"><h3>Depth as evidence</h3><p>It reaches to the 1600s and cites what it finds. Forgotten is not refuted — and being able to prove that distinction is the thing no competitor can shortcut, because it requires having read what nobody reads.</p></div></div>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Launch</b><span>Day one</span></div>
+  <div class="col">
+    <h2>Seed the frontier with the fights they are already in — and the evidence they have never seen</h2>
+    <p>Recognition buys the click. The Hubble tension, muon g−2, the impossibly early galaxies, the neutrino mass bound, twenty years of dark matter nulls. Thousands of people are emotionally invested in each.</p>
+    <p>But recognition does not buy the second visit, because on a famous argument they already know everything you would tell them. So pair it with the other half:</p>
+    <div class="claim" style="max-width:34rem">
+      <div class="claim-body">
+        <div class="claim-id">PARALLAX-2026-00019 · SEEDED</div>
+        <div class="claim-t">The Hubble tension, and the 1968 measurement neither side cites</div>
+        <p>Never refuted. Never repeated. Orphaned when the field switched methods. If it holds, one side of this argument carries a systematic nobody has looked for in fifty years.</p>
+        <div class="meta"><span class="chip kill">Kills it: one repeat measurement</span><span class="chip live">Instruments now exist</span></div>
+      </div>
+    </div>
+    <p class="note">The famous fight gets the click. The forgotten paper is what makes them tell someone. It is the only cold-start strategy for a science product that does not require already having users.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Business</b><span>Who pays</span></div>
+  <div class="col">
+    <h2>Individuals bring the network. Institutions pay the bills.</h2>
+    <div class="tw"><table>
+      <tr><th>Tier</th><th>What it is</th><th>Why it is priced that way</th></tr>
+      <tr><td><b>Watching</b></td><td>Free, forever</td><td>Watches are cheap to run and they are the network. Never charge for the thing that makes the map.</td></tr>
+      <tr><td><b>Commissioning</b></td><td>Metered</td><td>Hours of real compute per question. It maps to honest usage pricing, which is rare and worth protecting.</td></tr>
+      <tr><td><b>Monitor our output</b></td><td>Institutional</td><td>Every paper the institution has published, watched forever. Know before a referee, a journalist, or a competitor does. This prices like insurance because it is insurance.</td></tr>
+      <tr><td><b>Bring our own data</b></td><td>Institutional</td><td>Private telemetry and unpublished runs, held against the entire public record. This is the door to the agencies and the launch companies: they hold data nobody else has and no way to check it against everything ever published.</td></tr>
+      <tr><td><b>Fund better</b></td><td>Funders, TACs</td><td>Which proposals rest on values that have since moved, and which three in this round are the same experiment. Unanswerable today, and valuable to whoever writes the cheques.</td></tr>
+    </table></div>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Status</b><span>Built vs next</span></div>
+  <div class="col">
+    <h2>What exists, and what the next step is</h2>
+    <p>The record eye is largely built. Eighteen archives, a sharded perimeter across roughly 124 passes, the historical ladder that reserves one window per decade back past 1930 so relevance ranking never buries the founding work, a relevance gate that reads every abstract rather than matching keywords, and cross-index corroboration. That is a real instrument and it is the hard half of the ingest problem.</p>
+    <p>What is missing is everything that turns a reader into an instrument:</p>
+    <div class="stack">
+      <div class="row"><div class="n">01</div><div class="b"><h3>The second eye</h3><p>One live data stream landing in the same corpus. Transients are the natural first choice — public, enormous, streaming, and genuinely under-analysed.</p></div></div>
+      <div class="row"><div class="n">02</div><div class="b"><h3>Extraction of what rests on what</h3><p>The hard engineering, and the right hard problem. Pulling <em>this conclusion depends on that value, with this sensitivity</em> out of prose. Sloppy here and the whole thing is noise; correct here and everything else follows. Note that this was not buildable in 2019 — that is the window.</p></div></div>
+      <div class="row"><div class="n">03</div><div class="b"><h3>Claims as permanent, citable objects</h3><p>An ID that can appear in a reference list. That is how a website becomes infrastructure.</p></div></div>
+      <div class="row"><div class="n">04</div><div class="b"><h3>The computed figure</h3><p>One renderer per claim type. This is the shareable artefact and it is what makes the frontier scrollable.</p></div></div>
+      <div class="row"><div class="n">05</div><div class="b"><h3>Watch, and the diff</h3><p>Questions that stay open, and the paragraph-level change notice when reality moves.</p></div></div>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap grid">
+  <div class="rail"><b>Open</b><span>Unresolved</span></div>
+  <div class="col">
+    <h2>Still undecided</h2>
+    <div class="stack">
+      <div class="row"><div class="n">·</div><div class="b"><h3>Which domain takes the first frontier</h3><p>A scheduling decision, not a vision decision. It wants dense quantitative dependencies, open full text, and a live stream.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>What happens the first time it is spectacularly wrong</h3><p>It will be. The scorecard is the answer, but the voice and the correction ritual need designing before it happens, not after.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>Where the line sits on speculation</h3><p>The kill condition is the rule. But the bulk, extra dimensions, white holes — these are exactly the questions worth putting on a frontier and exactly the ones that can cost the product its credibility. The rule needs testing against real cases.</p></div></div>
+      <div class="row"><div class="n">·</div><div class="b"><h3>How positions stay honest at scale</h3><p>A public belief map is a new instrument and also a new social pressure. Making it visible may change what people are willing to say.</p></div></div>
+    </div>
+  </div>
+</div></section>
+
+<div class="wrap"><footer>
+  <div>Parallax — working vision, v1</div>
+  <div>Depth needs two eyes</div>
+</footer></div>
+
+<script>
+(function(){
+  var c=document.getElementById('plate');
+  if(!c||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var x=c.getContext('2d'),w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
+  var near=[],far=[],mx=0,my=0,tx=0,ty=0;
+
+  function seed(){
+    near=[];far=[];
+    var n=Math.round(w/26),f=Math.round(w/9);
+    for(var i=0;i<n;i++)near.push({x:Math.random(),y:Math.random(),r:Math.random()*1.5+0.9});
+    for(var j=0;j<f;j++)far.push({x:Math.random(),y:Math.random(),r:Math.random()*0.9+0.35});
+  }
+  function size(){
+    var p=c.parentNode.getBoundingClientRect();
+    w=p.width;h=p.height;
+    c.width=w*dpr;c.height=h*dpr;
+    x.setTransform(dpr,0,0,dpr,0,0);
+    seed();
+  }
+  function ink(){
+    return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#17495F';
+  }
+  function draw(){
+    tx+=(mx-tx)*0.05;ty+=(my-ty)*0.05;
+    x.clearRect(0,0,w,h);
+    var col=ink();
+    x.fillStyle=col;
+    x.globalAlpha=0.16;
+    for(var j=0;j<far.length;j++){
+      var f=far[j];
+      x.beginPath();x.arc(f.x*w+tx*7,f.y*h+ty*7,f.r,0,6.284);x.fill();
+    }
+    x.globalAlpha=0.34;
+    for(var i=0;i<near.length;i++){
+      var p=near[i];
+      x.beginPath();x.arc(p.x*w+tx*30,p.y*h+ty*30,p.r,0,6.284);x.fill();
+    }
+    x.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',size);
+  window.addEventListener('pointermove',function(e){
+    mx=(e.clientX/window.innerWidth-0.5)*2;
+    my=(e.clientY/window.innerHeight-0.5)*2;
+  },{passive:true});
+  size();draw();
+})();
+</script>
