@@ -8,307 +8,412 @@
 <title>PARALLAX — The Record</title>
 <style>
 /* ============================================================================
-   PARALLAX / THE RECORD — claim tracker.
+   PARALLAX / THE RECORD
 
-   You state a claim. It tells you whether the claim is still standing, what is
-   breaking it, what it quietly depends on, and what nobody has checked.
+   Structure and feel taken back to the original build: a front door you arrive
+   at rather than an empty panel — sticky nav, a hero with a light beam crossing
+   it, live numbers at a size that reads across a room, an index strip running
+   past, then the instrument itself behind a dark aperture with grain and a
+   vignette over the whole room.
 
-   THE PART THAT IS NOT A SEARCH ENGINE
-   ------------------------------------
-   The relevance gate returns, for every abstract it reads, a stance toward the
-   claim you gave it AND the position that record itself backs — "the claim this
-   paper argues for, twelve words or less". Across a full perimeter that is on
-   the order of a hundred distinct claims, harvested straight out of the
-   literature without anyone typing them.
+   The palette is the one thing that is not the original's: every amber is now
+   sky blue, the paper is a pale blue-grey, and the aperture is deep navy lit
+   blue rather than graphite lit cyan.
 
-   So the tracked claim is not only checked against records. It is cross-checked
-   against every claim the literature is making, and the interesting results are
-   the ones no reader would reach:
-
-     · positions the claim leans on that are themselves contested
-     · positions held by exactly one paper — a single point of failure
-     · positions that appear on BOTH sides, meaning the claim's own supporting
-       literature disagrees with itself
-     · era windows with nothing in them at all — the gaps
-     · your other tracked claims that share records with this one, so a claim
-       that breaks takes its neighbours with it
-
-   BOARD ON TOP, DOSSIER UNDERNEATH
-   --------------------------------
-   Every tracked claim is on the board with its live standing. Open one and the
-   dossier is the depth: what breaks it, the network, the gaps, where it is
-   heading, the hypothesis space, how it moved decade by decade, the evidence
-   feed, and an open box for anything else you want to ask about it.
-
-   Light sky throughout. No orange anywhere.
+   What it does is unchanged and is the part that works. Every abstract is read
+   twice — once for its stance toward your claim, once for the claim that paper
+   itself backs. A sweep harvests on the order of a hundred positions out of the
+   literature that nobody typed, and the tracked claim is held against all of
+   them. The findings that come out of that are the ones a reader cannot reach:
+   positions argued on both sides, positions held up by a single paper,
+   supporting ground that has been dead for fifteen years.
    ========================================================================== */
 
 :root{
-  --sky0:#f2f7fd; --sky1:#e7f0fa; --sky2:#d8e8f7; --sky3:#c9dff4;
-  --card:#fbfdff; --card2:#f1f7fd;
-  --line:#cfe0f1; --line2:#aecae6; --line3:#84a8cc;
-  --ink:#0d2033; --ink2:#2f4d6b; --dim:#5f809f;
+  --bg1:#eef3f9; --bg2:#e3ecf6; --bg3:#d7e4f1;
+  --card:#f9fcff; --card2:#f0f6fc; --sink:#e6eef7;
+  --line:#cbdcee; --line2:#a8c5e3; --line3:#7fa3c8;
+  --ink:#0d2135; --ink2:#2f4f70; --dim:#5f7d9c;
 
-  --acc:#0b6bb5; --acc2:#07548f; --accbg:#e4f0fb;
-  --sup:#15794f; --supbg:#e8f5ef;
-  --con:#c02d2d; --conbg:#fdeeee;
-  --mix:#6d4bc4; --mixbg:#efeafb;
-  --none:#5f7d99; --nonebg:#eef3f8;
+  --acc:#0d72c4; --acc2:#0a5896; --accbg:#e2f0fc; --accln:#9ccbee;
+  --stage1:#0b1c2e; --stage2:#061321; --glow:#4fb8f5;
+  --sup:#0f7a5f; --supbg:#e6f5f0; --supln:#9dd4c4;
+  --con:#bf3025; --conbg:#fdeeed; --conln:#e9b4b0;
+  --mix:#6a4bc4; --mixbg:#eeeafb; --mixln:#c3b5ea;
+  --none:#5c7791; --nonebg:#edf2f7;
 
-  --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue','Noto Sans',Arial,sans-serif;
-  --bar:50px; --boardh:132px;
+  --f:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,monospace;
+  --bar:48px;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{margin:0;height:100%}
 [hidden]{display:none!important}
-body{background:var(--sky1);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.55;
-  -webkit-font-smoothing:antialiased;overflow:hidden}
+body{background:var(--bg1);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
 button,input,textarea{font-family:inherit;font-size:inherit}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}
 .n{font-variant-numeric:tabular-nums}
 a{color:var(--acc)}
-h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.012em}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.015em}
 
-#app{display:grid;grid-template-rows:var(--bar) auto minmax(0,1fr);height:100dvh}
+/* grain and vignette over the whole room, as the original had */
+#grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.30;mix-blend-mode:multiply;
+  background-image:radial-gradient(rgba(60,90,130,.10) .6px,transparent 1px);background-size:3px 3px}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:59;
+  background:radial-gradient(130% 108% at 50% 42%,rgba(20,45,75,0) 56%,rgba(20,45,75,.15) 100%)}
 
-/* ------------------------------------------------------------------- chrome */
-#bar{display:flex;align-items:center;gap:13px;padding:0 16px;background:#0d2740;color:#dbeaf8;
+/* ==========================================================================
+   THE FRONT DOOR
+   ========================================================================== */
+#home{position:fixed;inset:0;z-index:50;overflow-y:auto;overflow-x:hidden;background:
+  linear-gradient(168deg,#f2f6fb 0%,#e9f0f8 46%,#e0e9f4 100%)}
+#home.gone{opacity:0;pointer-events:none;transition:opacity .45s}
+#hnav{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:22px;
+  padding:13px clamp(16px,5vw,60px);background:rgba(242,246,251,.93);backdrop-filter:blur(9px);
+  border-bottom:1px solid var(--line)}
+#hnav .hm{font-family:var(--m);font-size:13px;letter-spacing:.34em;font-weight:700;color:var(--ink)}
+#hnav nav{display:flex;gap:20px;margin-left:auto}
+#hnav nav a{font-size:12.5px;color:var(--ink2);text-decoration:none;border-bottom:1px solid transparent}
+#hnav nav a:hover{color:var(--acc);border-bottom-color:var(--acc)}
+.hgo{font-family:var(--m);font-size:10.5px;letter-spacing:.13em;font-weight:700;text-transform:uppercase;
+  background:var(--acc);color:#fff;border:0;border-radius:3px;padding:9px 15px;cursor:pointer;
+  transition:filter .15s,transform .1s}
+.hgo:hover{filter:brightness(1.1)} .hgo:active{transform:translateY(1px)}
+.hgo.big{font-size:12px;padding:13px 24px}
+.hlink{background:none;border:0;font-family:var(--m);font-size:10.5px;letter-spacing:.11em;font-weight:700;
+  text-transform:uppercase;color:var(--acc);cursor:pointer;padding:8px 4px;border-bottom:1px solid transparent}
+.hlink:hover{border-bottom-color:var(--acc)}
+
+.hhero{position:relative;overflow:hidden;min-height:min(92vh,860px);display:flex;flex-direction:column;
+  justify-content:center;padding:clamp(28px,4vw,52px) clamp(16px,5vw,60px) clamp(18px,2.4vw,32px)}
+.hhero::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background-image:linear-gradient(rgba(30,70,120,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(30,70,120,.055) 1px,transparent 1px);background-size:52px 52px;
+  -webkit-mask-image:radial-gradient(120% 100% at 70% 40%,#000 0%,transparent 74%);
+  mask-image:radial-gradient(120% 100% at 70% 40%,#000 0%,transparent 74%)}
+.hhero::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(48% 58% at 76% 46%,rgba(60,150,225,.20) 0%,transparent 68%),
+    radial-gradient(40% 44% at 8% 88%,rgba(20,80,140,.09) 0%,transparent 66%)}
+/* the beam that crosses the room, the way one crosses a bench */
+.hbeam{position:absolute;top:0;bottom:0;width:44vw;pointer-events:none;z-index:0;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.6) 42%,rgba(210,235,255,.5) 58%,transparent);
+  filter:blur(22px);animation:hsweep 13s cubic-bezier(.55,0,.45,1) infinite}
+@keyframes hsweep{0%{left:-50vw}60%{left:106vw}100%{left:106vw}}
+.hrow{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+  gap:clamp(14px,2vw,34px);align-items:center;max-width:1420px;width:100%}
+.hkick{display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:clamp(15px,2vw,25px);
+  border:1px solid var(--line2);border-radius:99px;padding:7px 15px 7px 12px;background:rgba(255,255,255,.72)}
+.hkick i{width:7px;height:7px;border-radius:50%;background:var(--acc);
+  box-shadow:0 0 0 0 rgba(13,114,196,.6);animation:hp 2.2s infinite}
+.hkick b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+@keyframes hp{70%{box-shadow:0 0 0 10px rgba(13,114,196,0)}100%{box-shadow:0 0 0 0 rgba(13,114,196,0)}}
+.hhero h1{font-size:clamp(31px,4.35vw,62px);line-height:1.01;letter-spacing:-.033em;font-weight:650;
+  margin:0 0 clamp(15px,2vw,25px);color:var(--ink)}
+.hhero h1 span.l{display:block;opacity:0;transform:translateY(22px);
+  animation:hr .9s cubic-bezier(.16,.9,.3,1) forwards}
+.hhero h1 span.l:nth-child(2){animation-delay:.09s}
+.hhero h1 span.l:nth-child(3){animation-delay:.18s}
+@keyframes hr{to{opacity:1;transform:none}}
+.hglow{color:var(--acc)}
+.hlede{font-size:clamp(14.5px,1.26vw,17.5px);line-height:1.5;color:var(--ink2);max-width:560px;
+  margin:0 0 clamp(19px,2.3vw,29px);opacity:0;animation:hr .9s .3s cubic-bezier(.16,.9,.3,1) forwards}
+.hact{display:flex;gap:18px;align-items:center;flex-wrap:wrap;opacity:0;
+  animation:hr .9s .42s cubic-bezier(.16,.9,.3,1) forwards}
+.hviz{position:relative;display:flex;justify-content:center;margin-right:clamp(-80px,-4vw,0px)}
+.hviz svg{width:100%;max-width:min(660px,50vw);height:auto;display:block;overflow:visible}
+.hnums{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:clamp(13px,2.3vw,32px);margin-top:clamp(17px,2.3vw,32px);max-width:1420px;width:100%}
+.hnums div{padding-top:13px;border-top:2px solid var(--accln)}
+.hnums b{display:block;font-family:var(--m);font-size:clamp(28px,3.4vw,48px);font-weight:800;
+  color:var(--acc);line-height:.92;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.hnums span{display:block;margin-top:7px;font-family:var(--m);font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--dim)}
+@media(max-width:980px){.hrow{grid-template-columns:1fr}.hviz{order:-1;margin-right:0}
+  .hviz svg{max-width:min(520px,86vw)}.hhero{min-height:0}}
+
+.hticker{position:relative;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.5);padding:11px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.htrack{display:flex;gap:34px;width:max-content;animation:hroll 46s linear infinite}
+.hticker:hover .htrack{animation-play-state:paused}
+@keyframes hroll{to{transform:translateX(-50%)}}
+.htk{display:inline-flex;align-items:baseline;gap:7px;font-family:var(--m);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.htk b{font-size:12px;font-weight:800}
+.htk i{width:5px;height:5px;border-radius:50%;font-style:normal}
+
+.hsec{padding:clamp(42px,5.6vw,86px) clamp(16px,5vw,60px);max-width:1420px;border-top:1px solid var(--line)}
+.hsec>h2{font-size:clamp(25px,3.3vw,44px);font-weight:650;letter-spacing:-.028em;line-height:1.03;
+  margin:0 0 12px;max-width:16ch}
+.hsub{font-size:clamp(13.5px,1.14vw,15.5px);line-height:1.5;color:var(--ink2);margin:0 0 clamp(24px,3vw,38px);
+  max-width:640px}
+.hpipe{display:flex;align-items:stretch;flex-wrap:wrap;gap:0}
+.hstep{flex:1 1 170px;min-width:160px;border:1px solid var(--line2);border-top:3px solid var(--line3);
+  border-radius:5px;padding:17px 17px 19px;background:linear-gradient(168deg,rgba(255,255,255,.95),rgba(241,247,253,.7));
+  box-shadow:0 12px 28px -24px rgba(20,50,85,.5);transition:transform .26s cubic-bezier(.16,.9,.3,1),box-shadow .26s}
+.hstep:hover{transform:translateY(-4px);box-shadow:0 22px 42px -26px rgba(20,50,85,.6)}
+.hstep.lit{border-top-color:var(--acc)}
+.hstep .hn{display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.2em;color:var(--dim);
+  margin-bottom:9px;font-weight:700}
+.hstep b{display:block;font-size:clamp(14.5px,1.25vw,17px);font-weight:650;margin-bottom:6px;letter-spacing:-.012em}
+.hstep p{font-size:12.6px;line-height:1.48;color:var(--ink2);margin:0}
+.harrow{flex:0 0 28px;align-self:center;height:1px;position:relative;
+  background:linear-gradient(90deg,transparent,var(--line3),transparent)}
+.harrow::after{content:'';position:absolute;right:3px;top:-3.5px;border-left:6px solid var(--line3);
+  border-top:4px solid transparent;border-bottom:4px solid transparent}
+@media(max-width:900px){.harrow{display:none}.hstep{flex:1 1 100%}}
+.hpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(15px,1.8vw,25px)}
+.hpick figure{margin:0;border:1px solid var(--line2);border-radius:6px;padding:15px 16px 17px;
+  background:linear-gradient(168deg,rgba(255,255,255,.96),rgba(240,246,252,.75));
+  box-shadow:0 14px 32px -22px rgba(20,50,85,.55);transition:transform .28s cubic-bezier(.16,.9,.3,1),box-shadow .28s}
+.hpick figure:hover{transform:translateY(-4px);box-shadow:0 28px 52px -26px rgba(20,50,85,.6)}
+.hpick svg{width:100%;height:auto;display:block;overflow:visible}
+.hpick figcaption{margin-top:11px;font-size:12.6px;line-height:1.5;color:var(--ink2)}
+.hpick figcaption b{color:var(--ink)}
+.hbig{font-size:clamp(23px,3.1vw,42px);line-height:1.07;letter-spacing:-.028em;font-weight:650;
+  margin:0 0 14px;max-width:21ch}
+#hfoot{padding:24px clamp(16px,5vw,60px) 56px;font-family:var(--m);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);border-top:1px solid var(--line);display:flex;gap:8px 26px;flex-wrap:wrap}
+#hfoot a{color:var(--ink2)}
+@media(max-width:760px){#hnav nav{display:none}}
+
+/* ==========================================================================
+   THE INSTRUMENT
+   ========================================================================== */
+#inst{display:grid;grid-template-rows:var(--bar) auto minmax(0,1fr);height:100dvh}
+#bar{display:flex;align-items:center;gap:13px;padding:0 15px;background:var(--stage1);color:#d5e6f5;
   position:relative;overflow:hidden}
-#bar .mk b{font-size:13px;letter-spacing:.34em;font-weight:600;color:#fff}
-#bar .mk{display:flex;align-items:center;gap:9px;flex:none}
-#bar .sl{font-size:11.5px;letter-spacing:.1em;color:#7fc4f5;border-left:1px solid #24455f;
-  padding-left:12px;flex:none;white-space:nowrap}
+#bar .mk{display:flex;align-items:center;gap:8px;flex:none;background:none;border:0;cursor:pointer;
+  color:inherit;padding:0}
+#bar .mk b{font-family:var(--m);font-size:12.5px;letter-spacing:.34em;font-weight:700;color:#fff}
+#bar .mk:hover b{color:var(--glow)}
+#bar .sl{font-family:var(--m);font-size:10px;letter-spacing:.2em;color:var(--glow);
+  border-left:1px solid #1d3a55;padding-left:12px;flex:none;white-space:nowrap;text-transform:uppercase}
 #bar .sp{margin-left:auto}
-#bar .st{display:flex;align-items:center;gap:8px;font-size:12px;color:#8fb0cc;flex:none;
-  max-width:44vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-#bar .st i{width:7px;height:7px;border-radius:50%;background:#3c5f7d;flex:none}
-#bar .st i.go{background:#4fb8f5;animation:pl 1.1s infinite}
-#bar .st i.ok{background:#2fbf87} #bar .st i.bad{background:#e8615b}
-@keyframes pl{0%,100%{opacity:.3}50%{opacity:1}}
-#bar a.out{color:#8fb0cc;font-size:12px;text-decoration:none;border-bottom:1px solid #24455f;flex:none}
-#bar a.out:hover{color:#fff;border-color:#4fb8f5}
-#prog{position:absolute;left:0;bottom:0;height:2px;width:0;background:#4fb8f5;transition:width .4s}
+#bar .st{display:flex;align-items:center;gap:8px;font-family:var(--m);font-size:10px;letter-spacing:.1em;
+  color:#7c9ab5;flex:none;max-width:40vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  text-transform:uppercase}
+#bar .st i{width:7px;height:7px;border-radius:50%;background:#31506b;flex:none}
+#bar .st i.go{background:var(--glow);animation:bl 1.1s infinite}
+#bar .st i.ok{background:#2ec48c} #bar .st i.bad{background:#e8635b}
+@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
+#bar a.out{color:#8aa8c2;font-family:var(--m);font-size:10px;letter-spacing:.13em;text-decoration:none;
+  border-bottom:1px solid #1d3a55;flex:none;text-transform:uppercase}
+#bar a.out:hover{color:#fff;border-color:var(--glow)}
+#prog{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--glow);transition:width .4s}
 
-/* ------------------------------------------------------------------- board */
-#board{background:var(--sky2);border-bottom:1px solid var(--line2);display:flex;
-  align-items:stretch;gap:0;overflow-x:auto;min-height:var(--boardh);scrollbar-width:thin}
-#board::-webkit-scrollbar{height:7px}
+/* board strip */
+#board{background:var(--bg2);border-bottom:1px solid var(--line2);display:flex;overflow-x:auto;
+  min-height:112px;scrollbar-width:thin}
+#board::-webkit-scrollbar{height:6px}
 #board::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
-.bnew{flex:none;width:252px;padding:11px 13px;border-right:1px solid var(--line2);
-  background:var(--sky1);display:flex;flex-direction:column;gap:7px}
-.bnew textarea{flex:1;resize:none;border:1px solid var(--line2);border-radius:5px;background:var(--card);
-  color:var(--ink);padding:7px 9px;font-size:13.5px;line-height:1.4;min-height:46px}
+.bnew{flex:none;width:236px;padding:9px 12px;border-right:1px solid var(--line2);background:var(--bg1);
+  display:flex;flex-direction:column;gap:6px}
+.bnew textarea{flex:1;resize:none;border:1px solid var(--line2);border-radius:4px;background:var(--card);
+  color:var(--ink);padding:6px 8px;font-size:13px;line-height:1.38;min-height:40px}
 .bnew textarea:focus{border-color:var(--acc)}
-.bnew textarea::placeholder{color:#8fa9c2}
-.bnew .row{display:flex;gap:6px}
-.pri{flex:1;background:var(--acc);color:#fff;border:0;border-radius:5px;padding:7px 10px;
-  cursor:pointer;font-weight:600;font-size:13px}
+.bnew textarea::placeholder{color:#8ba7c2}
+.bnew .row{display:flex;gap:5px}
+.pri{flex:1;background:var(--acc);color:#fff;border:0;border-radius:4px;padding:6px 9px;cursor:pointer;
+  font-weight:650;font-size:12.5px}
 .pri:hover{background:var(--acc2)} .pri[disabled]{background:var(--line2);cursor:not-allowed}
-.gh{background:var(--card);color:var(--ink2);border:1px solid var(--line2);border-radius:5px;
-  padding:7px 10px;cursor:pointer;font-size:12.5px}
+.gh{background:var(--card);color:var(--ink2);border:1px solid var(--line2);border-radius:4px;
+  padding:6px 9px;cursor:pointer;font-size:12px}
 .gh:hover{border-color:var(--acc);color:var(--acc)}
 .gh[disabled]{opacity:.5;cursor:not-allowed}
-.gh.sm{padding:4px 9px;font-size:12px}
-
-.bcard{flex:none;width:246px;padding:11px 13px 10px;border-right:1px solid var(--line2);
-  background:var(--sky1);cursor:pointer;text-align:left;border-top:0;border-bottom:0;border-left:0;
-  display:flex;flex-direction:column;position:relative}
+.bcard{flex:none;width:224px;padding:9px 12px 8px;border:0;border-right:1px solid var(--line2);
+  background:var(--bg1);cursor:pointer;text-align:left;display:flex;flex-direction:column;position:relative}
 .bcard:hover{background:var(--card2)}
 .bcard.on{background:var(--card);box-shadow:inset 0 3px 0 var(--acc)}
-.bcard .bt{font-size:13px;line-height:1.36;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;
-  -webkit-box-orient:vertical;overflow:hidden;margin-bottom:auto;padding-bottom:7px}
-.bcard .bs{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600}
-.bcard .bs .dot{width:8px;height:8px;border-radius:50%;flex:none}
-.bcard .bn{margin-left:auto;font-weight:400;color:var(--dim);font-size:11.5px}
-.bcard .bb{display:flex;height:4px;margin-top:7px;border-radius:2px;overflow:hidden;background:var(--line)}
+.bcard .bt{font-size:12.6px;line-height:1.34;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;margin-bottom:auto;padding-bottom:6px}
+.bcard .bs{display:flex;align-items:center;gap:6px;font-family:var(--m);font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase}
+.bcard .bs .dot{width:7px;height:7px;border-radius:50%;flex:none}
+.bcard .bn{margin-left:auto;font-weight:400;color:var(--dim);letter-spacing:.04em}
+.bcard .bb{display:flex;height:4px;margin-top:6px;border-radius:2px;overflow:hidden;background:var(--line)}
 .bcard .bb i{display:block;height:100%}
-.bcard .alert{position:absolute;top:8px;right:10px;font-size:10.5px;font-weight:700;
-  padding:1px 6px;border-radius:9px;background:var(--con);color:#fff}
+.bcard .alert{position:absolute;top:7px;right:9px;font-family:var(--m);font-size:9px;font-weight:800;
+  letter-spacing:.1em;padding:1px 6px;border-radius:9px;background:var(--con);color:#fff}
 .bcard .alert.up{background:var(--sup)}
-.bempty{flex:1;display:flex;align-items:center;padding:0 20px;color:var(--dim);font-size:13.5px;
-  min-width:260px}
 
-/* ----------------------------------------------------------------- dossier */
-#work{display:grid;grid-template-columns:196px minmax(0,1fr);min-height:0;min-width:0}
-#rail{background:var(--sky0);border-right:1px solid var(--line2);overflow-y:auto;min-width:0;
-  padding:10px 0 20px}
-#rail .rh{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
-  padding:6px 15px 8px;font-weight:600}
-#rail button{display:block;width:100%;text-align:left;background:none;border:0;padding:7px 15px;
-  cursor:pointer;font-size:13px;color:var(--ink2);border-left:3px solid transparent;line-height:1.35}
-#rail button:hover{background:var(--sky2);color:var(--ink)}
-#rail button.on{background:var(--accbg);border-left-color:var(--acc);color:var(--acc);font-weight:600}
-#rail button u{text-decoration:none;float:right;color:var(--dim);font-weight:400;font-size:12px}
+#work{display:grid;grid-template-columns:186px minmax(0,1fr);min-height:0;min-width:0}
+#rail{background:var(--bg1);border-right:1px solid var(--line2);overflow-y:auto;min-width:0;padding:9px 0 20px}
+#rail .rh{font-family:var(--m);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  padding:5px 14px 7px;font-weight:700}
+#rail button{display:block;width:100%;text-align:left;background:none;border:0;padding:6px 14px;
+  cursor:pointer;font-size:12.6px;color:var(--ink2);border-left:3px solid transparent;line-height:1.32}
+#rail button:hover{background:var(--bg2);color:var(--ink)}
+#rail button.on{background:var(--accbg);border-left-color:var(--acc);color:var(--acc);font-weight:650}
+#rail button u{text-decoration:none;float:right;color:var(--dim);font-weight:400;font-family:var(--m);font-size:11px}
 #rail button.on u{color:var(--acc)}
 #rail .warn{color:var(--con)}
+#panel{overflow-y:auto;min-height:0;min-width:0}
 
-#panel{overflow-y:auto;min-height:0;min-width:0;padding:0 0 60px}
-#dhead{position:sticky;top:0;z-index:5;background:var(--sky0);border-bottom:1px solid var(--line2);
-  padding:15px 22px 0}
-#dhead .ct{font-size:clamp(17px,1.75vw,21px);line-height:1.34;font-weight:650;margin:0 0 11px;
-  max-width:76ch;color:var(--ink)}
-.vrow{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:12px}
-.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid;border-radius:5px;
-  padding:5px 11px;font-weight:650;font-size:13.5px}
-.badge .dot{width:9px;height:9px;border-radius:50%}
-.badge.holding{color:var(--sup);border-color:#a8d5be;background:var(--supbg)}
+/* the aperture: a dark stage carrying the claim's own picture */
+#stage{position:relative;background:radial-gradient(58% 74% at 50% 46%,#12293f 0%,var(--stage1) 46%,var(--stage2) 100%);
+  border-bottom:1px solid var(--line2);overflow:hidden}
+#stage svg{display:block;width:100%;height:auto}
+#stage .cap{position:absolute;left:14px;bottom:9px;font-family:var(--m);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:#6f92b2}
+#stage .tog{position:absolute;right:12px;top:10px;background:rgba(255,255,255,.08);border:1px solid #24455f;
+  color:#9fc0da;border-radius:3px;padding:3px 8px;font-family:var(--m);font-size:9px;letter-spacing:.12em;
+  cursor:pointer;text-transform:uppercase}
+#stage .tog:hover{color:#fff;border-color:var(--glow)}
+
+#dhead{padding:13px 20px 0;background:var(--bg1);border-bottom:1px solid var(--line2)}
+#dhead .ct{font-size:clamp(16.5px,1.6vw,20px);line-height:1.32;font-weight:650;margin:0 0 9px;max-width:78ch}
+.vrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:7px;border:1px solid;border-radius:4px;padding:4px 10px;
+  font-family:var(--m);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.badge .dot{width:8px;height:8px;border-radius:50%}
+.badge.holding{color:var(--sup);border-color:var(--supln);background:var(--supbg)}
 .badge.holding .dot{background:var(--sup)}
-.badge.contested{color:var(--mix);border-color:#c6b6ea;background:var(--mixbg)}
+.badge.contested{color:var(--mix);border-color:var(--mixln);background:var(--mixbg)}
 .badge.contested .dot{background:var(--mix)}
-.badge.breaking{color:var(--con);border-color:#eab5b5;background:var(--conbg)}
+.badge.breaking{color:var(--con);border-color:var(--conln);background:var(--conbg)}
 .badge.breaking .dot{background:var(--con)}
 .badge.unsettled{color:var(--none);border-color:var(--line2);background:var(--nonebg)}
 .badge.unsettled .dot{background:var(--none)}
-.moved{font-size:12.5px;font-weight:650;color:var(--con)}
+.moved{font-family:var(--m);font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--con);
+  text-transform:uppercase}
 .moved.up{color:var(--sup)}
-.vrow .when{font-size:12px;color:var(--dim);margin-left:auto}
-.kpis{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px 6px 0 0;
+.vrow .when{font-family:var(--m);font-size:10px;letter-spacing:.08em;color:var(--dim);margin-left:auto;
+  text-transform:uppercase}
+.kpis{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px 5px 0 0;
   overflow:hidden;flex-wrap:wrap}
-.kpis div{flex:1 1 108px;background:var(--card);padding:8px 12px 9px}
+.kpis div{flex:1 1 104px;background:var(--card);padding:7px 11px 8px}
 .kpis div.hot{background:var(--conbg)}
-.kpis .v{font-size:18.5px;font-weight:700;line-height:1.15;letter-spacing:-.02em}
+.kpis .v{font-family:var(--m);font-size:18px;font-weight:800;line-height:1.12;letter-spacing:-.02em}
 .kpis div.hot .v{color:var(--con)}
-.kpis .k{font-size:11px;color:var(--dim);line-height:1.3;margin-top:1px}
+.kpis .k{font-family:var(--m);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  line-height:1.32;margin-top:2px}
 
-.sec{padding:18px 22px 0;scroll-margin-top:150px}
-.card{background:var(--card);border:1px solid var(--line2);border-radius:7px;margin-bottom:14px}
-.card>.hd{padding:10px 15px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;
-  gap:11px;flex-wrap:wrap;background:var(--card2);border-radius:6px 6px 0 0}
-.card>.hd h3{font-size:14px}
-.card>.hd span{font-size:12.5px;color:var(--dim);margin-left:auto}
-.card>.bd{padding:14px 15px}
+.sec{padding:15px 20px 0}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:6px;margin-bottom:12px}
+.card>.hd{padding:8px 13px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;
+  flex-wrap:wrap;background:var(--card2);border-radius:5px 5px 0 0}
+.card>.hd h3{font-family:var(--m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+.card>.hd span{font-size:12px;color:var(--dim);margin-left:auto}
+.card>.bd{padding:12px 13px}
 .card>.bd>*:last-child{margin-bottom:0}
-p{margin:0 0 .8em;max-width:82ch}
-.lede{font-size:15.8px;line-height:1.6}
-.muted{color:var(--ink2)} .small{font-size:12.8px;color:var(--dim)}
-.sech{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:650;
-  margin:0 0 9px}
+p{margin:0 0 .75em;max-width:84ch}
+.lede{font-size:15.4px;line-height:1.57}
+.muted{color:var(--ink2)} .small{font-size:12.4px;color:var(--dim)}
 
-/* oppositions */
-.opp{border:1px solid var(--line2);border-radius:7px;margin-bottom:12px;overflow:hidden;background:var(--card)}
-.opp .oh{padding:8px 13px;background:var(--card2);border-bottom:1px solid var(--line);display:flex;
-  align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;color:var(--dim)}
+.opp{border:1px solid var(--line2);border-radius:6px;margin-bottom:10px;overflow:hidden;background:var(--card)}
+.opp .oh{padding:7px 12px;background:var(--card2);border-bottom:1px solid var(--line);display:flex;
+  align-items:center;gap:8px;flex-wrap:wrap;font-size:12.2px;color:var(--dim)}
 .opp .oh b{color:var(--ink)}
-.opp .oh .flag{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:9px;
-  background:var(--con);color:#fff}
+.opp .oh .flag{margin-left:auto;font-family:var(--m);font-size:9px;font-weight:800;letter-spacing:.12em;
+  padding:2px 8px;border-radius:9px;background:var(--con);color:#fff;text-transform:uppercase}
 .opp .og{display:grid;grid-template-columns:1fr 1fr}
-.opp .og>div{padding:12px 13px}
+.opp .og>div{padding:11px 12px}
 .opp .og>div:first-child{border-right:1px solid var(--line);background:var(--supbg)}
 .opp .og>div:last-child{background:var(--conbg)}
-.opp .sk{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
-.opp .og>div:first-child .sk{color:var(--sup)}
-.opp .og>div:last-child .sk{color:var(--con)}
-.opp .ot{font-size:14.5px;line-height:1.4;margin:0 0 4px}
+.opp .sk{font-family:var(--m);font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  margin-bottom:5px}
+.opp .og>div:first-child .sk{color:var(--sup)} .opp .og>div:last-child .sk{color:var(--con)}
+.opp .ot{font-size:14.2px;line-height:1.38;margin:0 0 3px}
 .opp .ot a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
 .opp .ot a:hover{border-color:currentColor}
-.opp .om{font-size:11.8px;color:var(--dim);margin:0 0 6px}
-.opp .op{font-size:13.4px;line-height:1.45;color:var(--ink2);margin:0}
+.opp .om{font-family:var(--m);font-size:10.5px;color:var(--dim);margin:0 0 6px}
+.opp .op{font-size:13.1px;line-height:1.44;color:var(--ink2);margin:0}
 .opp .op b{color:var(--ink)}
-.meas{display:inline-block;margin-top:6px;font-size:12.8px;font-variant-numeric:tabular-nums;
-  border:1px solid var(--line2);border-radius:4px;padding:2px 8px;background:var(--card);color:var(--ink)}
+.meas{display:inline-block;margin-top:6px;font-family:var(--m);font-size:12px;font-variant-numeric:tabular-nums;
+  border:1px solid var(--line2);border-radius:3px;padding:2px 8px;background:var(--card);color:var(--ink)}
 
-/* claim network rows */
-.pos{border:1px solid var(--line);border-radius:6px;margin-bottom:9px;background:var(--card);
-  padding:11px 13px}
-.pos.risk{border-color:#eab5b5;background:var(--conbg)}
-.pos.solo{border-color:#c6b6ea;background:var(--mixbg)}
-.pos .pt{font-size:14.6px;line-height:1.4;margin:0 0 6px;color:var(--ink)}
-.pos .pm{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center}
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
-  border:1px solid var(--line2);border-radius:20px;padding:2px 9px;background:var(--card);color:var(--ink2)}
-.chip.s{color:var(--sup);border-color:#a8d5be;background:var(--supbg)}
-.chip.c{color:var(--con);border-color:#eab5b5;background:var(--conbg)}
-.chip.m{color:var(--mix);border-color:#c6b6ea;background:var(--mixbg)}
-.chip.a{color:var(--acc);border-color:#a9cdec;background:var(--accbg)}
-.pos .why{font-size:13px;color:var(--ink2);margin:7px 0 0}
+.pos{border:1px solid var(--line);border-radius:5px;margin-bottom:8px;background:var(--card);padding:10px 12px}
+.pos.risk{border-color:var(--conln);background:var(--conbg)}
+.pos.solo{border-color:var(--mixln);background:var(--mixbg)}
+.pos .pt{font-size:14.2px;line-height:1.38;margin:0 0 6px;color:var(--ink)}
+.pos .pm{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--m);font-size:10px;font-weight:700;
+  letter-spacing:.06em;border:1px solid var(--line2);border-radius:20px;padding:2px 8px;background:var(--card);
+  color:var(--ink2);text-transform:uppercase}
+.chip.s{color:var(--sup);border-color:var(--supln);background:var(--supbg)}
+.chip.c{color:var(--con);border-color:var(--conln);background:var(--conbg)}
+.chip.m{color:var(--mix);border-color:var(--mixln);background:var(--mixbg)}
+.chip.a{color:var(--acc);border-color:var(--accln);background:var(--accbg)}
+.pos .why{font-size:12.8px;color:var(--ink2);margin:6px 0 0}
 .pos .why b{color:var(--ink)}
 
-/* gaps */
-.gap{display:grid;grid-template-columns:30px 1fr;gap:0 11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.gap{display:grid;grid-template-columns:28px 1fr;gap:0 10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .gap:last-child{border-bottom:0}
-.gap .gi{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;background:var(--mixbg);color:var(--mix)}
+.gap .gi{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--m);font-size:11px;font-weight:800;background:var(--mixbg);color:var(--mix)}
 .gap.hot .gi{background:var(--conbg);color:var(--con)}
-.gap h4{font-size:14.4px;margin:0 0 3px}
-.gap p{font-size:13.4px;color:var(--ink2);margin:0}
+.gap h4{font-size:14px;margin:0 0 2px}
+.gap p{font-size:13px;color:var(--ink2);margin:0}
 
-/* bars / meters */
-.meter{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--line);margin:7px 0}
+.meter{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);margin:6px 0}
 .meter i{display:block;height:100%}
-.hyp{border-bottom:1px solid var(--line);padding:11px 0}
+.hyp{border-bottom:1px solid var(--line);padding:10px 0}
 .hyp:last-child{border-bottom:0}
 .hyp .ht{display:flex;align-items:baseline;gap:9px}
-.hyp .ht h4{font-size:14.6px}
-.hyp .ht .w{margin-left:auto;font-size:13px;font-weight:700;color:var(--acc);
+.hyp .ht h4{font-size:14.2px}
+.hyp .ht .w{margin-left:auto;font-family:var(--m);font-size:12.5px;font-weight:800;color:var(--acc);
   font-variant-numeric:tabular-nums}
-.hyp dl{margin:6px 0 0;font-size:13.4px}
-.hyp dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
-  font-weight:650;margin-top:8px}
+.hyp dl{margin:5px 0 0;font-size:13.1px}
+.hyp dt{font-family:var(--m);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);
+  font-weight:800;margin-top:7px}
 .hyp dd{margin:2px 0 0;color:var(--ink2)}
 
-/* evidence feed */
-.feed{max-height:none}
-.ev{display:grid;grid-template-columns:5px 50px minmax(0,1fr);gap:0 12px;padding:10px 0;
+.ev{display:grid;grid-template-columns:4px 46px minmax(0,1fr);gap:0 11px;padding:9px 0;
   border-bottom:1px solid var(--line);align-items:start}
 .ev:last-child{border-bottom:0}
-.ev .bar{width:4px;border-radius:2px;min-height:24px;height:100%}
-.ev .yr{font-size:12.8px;font-weight:650;color:var(--dim);padding-top:1px}
-.ev .t{font-size:14.4px;line-height:1.4;margin:0 0 3px}
+.ev .bar{width:4px;border-radius:2px;min-height:22px;height:100%}
+.ev .yr{font-family:var(--m);font-size:12px;font-weight:700;color:var(--dim);padding-top:1px}
+.ev .t{font-size:14px;line-height:1.38;margin:0 0 3px}
 .ev .t a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
 .ev .t a:hover{border-color:currentColor}
-.ev .m{font-size:11.8px;color:var(--dim);display:flex;flex-wrap:wrap;gap:2px 11px;margin-bottom:4px}
-.ev .w{font-size:13.2px;line-height:1.45;color:var(--ink2);margin:0}
-.ev.fresh{animation:in .5s ease both}
-@keyframes in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.filters button{background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:4px 11px;
-  cursor:pointer;font-size:12.5px;color:var(--ink2)}
-.filters button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
-.more{width:100%;background:var(--card2);border:1px solid var(--line2);border-radius:6px;padding:9px;
-  cursor:pointer;font-size:13px;color:var(--ink2);margin-top:11px}
+.ev .m{font-family:var(--m);font-size:10.4px;color:var(--dim);display:flex;flex-wrap:wrap;gap:2px 10px;
+  margin-bottom:4px}
+.ev .w{font-size:12.9px;line-height:1.44;color:var(--ink2);margin:0}
+.ev.fresh{animation:fi .5s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.filters button{background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:4px 10px;
+  cursor:pointer;font-family:var(--m);font-size:10.5px;letter-spacing:.07em;color:var(--ink2);text-transform:uppercase}
+.filters button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.more{width:100%;background:var(--card2);border:1px solid var(--line2);border-radius:5px;padding:8px;
+  cursor:pointer;font-family:var(--m);font-size:11px;letter-spacing:.1em;color:var(--ink2);margin-top:10px;
+  text-transform:uppercase}
 .more:hover{border-color:var(--acc);color:var(--acc)}
-
 .chart svg{display:block;width:100%;height:auto}
-.tbl{width:100%;border-collapse:collapse;font-size:13.4px}
-.tbl th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);
-  font-weight:650;padding:0 11px 6px 0;border-bottom:1px solid var(--line2)}
-.tbl td{padding:8px 11px 8px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-family:var(--m);font-size:9px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--dim);font-weight:800;padding:0 10px 6px 0;border-bottom:1px solid var(--line2)}
+.tbl td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
 .tbl tr:last-child td{border-bottom:0}
-.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+.tbl td.n{font-family:var(--m);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
 .wrapx{overflow-x:auto}
-ul.pl{margin:0;padding:0;list-style:none;max-width:82ch}
-ul.pl li{position:relative;padding-left:16px;margin-bottom:6px;color:var(--ink2)}
+ul.pl{margin:0;padding:0;list-style:none;max-width:84ch}
+ul.pl li{position:relative;padding-left:15px;margin-bottom:5px;color:var(--ink2)}
 ul.pl li:last-child{margin-bottom:0}
-ul.pl li::before{content:'';position:absolute;left:0;top:.64em;width:7px;height:2px;background:var(--line3)}
-
-/* ask box */
-.ask{display:flex;gap:8px;align-items:flex-start}
-.ask input{flex:1;border:1px solid var(--line2);border-radius:6px;padding:9px 11px;background:var(--card);
-  color:var(--ink)}
+ul.pl li::before{content:'';position:absolute;left:0;top:.66em;width:7px;height:2px;background:var(--line3)}
+.ask{display:flex;gap:7px;align-items:flex-start}
+.ask input{flex:1;border:1px solid var(--line2);border-radius:5px;padding:8px 10px;background:var(--card);color:var(--ink)}
 .ask input:focus{border-color:var(--acc)}
-.inq{border:1px solid var(--line);border-radius:6px;padding:12px 13px;margin-top:11px;background:var(--card2)}
-.inq .q{font-size:14px;font-weight:650;margin:0 0 7px;color:var(--ink)}
-.inq .a{font-size:14px;line-height:1.55;color:var(--ink2);margin:0}
-
-#blank{padding:40px 24px;overflow-y:auto}
-#blank .in{max-width:600px}
-#blank h1{font-size:25px;line-height:1.24;margin:0 0 12px}
-#blank p{font-size:15.5px;color:var(--ink2);margin:0 0 13px}
-#err{margin:14px 22px 0;background:var(--conbg);border:1px solid #eab5b5;border-left:3px solid var(--con);
-  border-radius:6px;padding:12px 14px;font-size:13.4px;color:#8c2222;display:none}
-#err.on{display:block}
-#err a{color:#8c2222}
+.inq{border:1px solid var(--line);border-radius:5px;padding:11px 12px;margin-top:10px;background:var(--card2)}
+.inq .q{font-size:13.8px;font-weight:650;margin:0 0 6px;color:var(--ink)}
+.inq .a{font-size:13.6px;line-height:1.52;color:var(--ink2);margin:0}
+#err{margin:12px 20px 0;background:var(--conbg);border:1px solid var(--conln);border-left:3px solid var(--con);
+  border-radius:5px;padding:11px 13px;font-size:13.2px;color:#8b2019;display:none}
+#err.on{display:block} #err a{color:#8b2019}
 
 @media(max-width:900px){
   #work{grid-template-columns:1fr}
-  #rail{border-right:0;border-bottom:1px solid var(--line2);display:flex;overflow-x:auto;padding:0;
-    max-height:44px}
+  #rail{border-right:0;border-bottom:1px solid var(--line2);display:flex;overflow-x:auto;padding:0;max-height:42px}
   #rail .rh{display:none}
-  #rail button{width:auto;white-space:nowrap;border-left:0;border-bottom:3px solid transparent;padding:11px 13px}
+  #rail button{width:auto;white-space:nowrap;border-left:0;border-bottom:3px solid transparent;padding:10px 12px}
   #rail button.on{border-left:0;border-bottom-color:var(--acc)}
   #rail button u{display:none}
-  #dhead,.sec{padding-left:14px;padding-right:14px}
+  #dhead,.sec{padding-left:13px;padding-right:13px}
   .opp .og{grid-template-columns:1fr}
   .opp .og>div:first-child{border-right:0;border-bottom:1px solid var(--line)}
   #bar .sl{display:none}
@@ -317,71 +422,133 @@ ul.pl li::before{content:'';position:absolute;left:0;top:.64em;width:7px;height:
 </style>
 </head>
 <body>
-<div id="app">
+<div id="grain"></div><div id="vig"></div>
 
-<div id="bar">
-  <span class="mk">
-    <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#4fb8f5" stroke-width="1.5"/>
-      <circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#9fd7ff" stroke-width="1.5"/>
-      <circle cx="12" cy="12" r="1.4" fill="#fff"/></svg>
-    <b>PARALLAX</b></span>
-  <span class="sl">The Record</span>
-  <span class="sp"></span>
-  <span class="st" id="stat"><i></i><span id="statText">Idle</span></span>
-  <a class="out" href="../">Both instruments</a>
-  <div id="prog"></div>
-</div>
+<!-- ====================== THE FRONT DOOR ====================== -->
+<div id="home">
+  <div id="hnav">
+    <span class="hm">PARALLAX</span>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#finds">What it finds</a>
+      <a href="../instrument/">The Sky</a>
+    </nav>
+    <button class="hgo" data-enter>Open the instrument</button>
+  </div>
 
-<div id="board">
-  <div class="bnew">
-    <textarea id="newClaim" rows="2" placeholder="Track a claim. Not a question — a claim."></textarea>
-    <div class="row">
-      <button class="pri" id="track">Track</button>
-      <button class="gh" id="fromText" title="Load a .txt or .md — every claim in it gets tracked">From text</button>
+  <div class="hhero">
+    <div class="hbeam"></div>
+    <div class="hrow">
+      <div>
+        <span class="hkick"><i></i>Live &middot; <b>18</b> archives &middot; <b>11</b> era windows &middot; back to <b>1665</b></span>
+        <h1><span class="l">Every claim is</span><span class="l">standing on something.</span>
+          <span class="l hglow">Some of it already fell.</span></h1>
+        <p class="hlede">PARALLAX reads the literature twice — once for what a paper says about
+        <em>your</em> claim, once for the claim <em>that paper</em> makes. A single sweep harvests
+        around a hundred positions nobody typed, then holds your claim against every one of them.</p>
+        <div class="hact">
+          <button class="hgo big" data-enter>Track a claim</button>
+          <button class="hlink" data-scroll="finds">See what it finds &rarr;</button>
+        </div>
+      </div>
+      <div class="hviz" id="hviz"></div>
+    </div>
+    <div class="hnums">
+      <div><b>124</b><span>passes per sweep</span></div>
+      <div><b>18</b><span>archives</span></div>
+      <div><b>~100</b><span>claims harvested per sweep</span></div>
+      <div><b>1665</b><span>earliest record reachable</span></div>
     </div>
   </div>
-  <div class="bempty" id="bempty">Nothing tracked yet. State a claim, or start with
-    <button class="gh sm" style="margin-left:8px"
-      data-eg="Extra spatial dimensions are detectable at LHC energies.">extra dimensions at the LHC</button>
-    <button class="gh sm" style="margin-left:6px"
-      data-eg="Dark matter is cold and effectively collisionless.">dark matter is collisionless</button>
+
+  <div class="hticker"><div class="htrack" id="htrack"></div></div>
+
+  <div class="hsec" id="how">
+    <h2>One instruction. Four things happen.</h2>
+    <p class="hsub">You state a claim — not a question. Everything after that runs on its own.</p>
+    <div class="hpipe">
+      <div class="hstep lit"><span class="hn">01</span><b>Sweep</b>
+        <p>124 passes across 18 archives, sampled once per era window rather than once overall,
+        so a founding paper comes back beside this year’s preprint.</p></div>
+      <div class="harrow"></div>
+      <div class="hstep"><span class="hn">02</span><b>Read twice</b>
+        <p>Every abstract gets a stance toward your claim — supports, contests, neither — and the
+        position that paper itself backs, in twelve words.</p></div>
+      <div class="harrow"></div>
+      <div class="hstep"><span class="hn">03</span><b>Cross-check</b>
+        <p>Those positions cluster into around a hundred distinct claims. Yours is held against
+        all of them, and every supporter against every contester.</p></div>
+      <div class="harrow"></div>
+      <div class="hstep"><span class="hn">04</span><b>Keep watching</b>
+        <p>The claim stays tracked. Re-check it and you get the difference: holding, contested,
+        breaking — and the date it turned.</p></div>
+    </div>
+  </div>
+
+  <div class="hsec" id="finds">
+    <h2>What a reading list cannot give you.</h2>
+    <p class="hsub">Forty abstracts is an afternoon. These three findings need the whole perimeter
+    held at once, which is the part that does not scale by hand.</p>
+    <div class="hpick" id="hpick"></div>
+  </div>
+
+  <div class="hsec">
+    <h2 class="hbig">State a claim. Find out what it’s really standing on.</h2>
+    <div class="hact" style="animation:none;opacity:1">
+      <button class="hgo big" data-enter>Open the instrument</button>
+      <button class="hlink" data-scroll="how">How it works &rarr;</button>
+    </div>
+  </div>
+
+  <div id="hfoot">
+    <span>PARALLAX &middot; The Record</span>
+    <a href="../">Both instruments</a>
+    <a href="../instrument/">The Sky</a>
   </div>
 </div>
 
-<div id="work">
-  <nav id="rail"></nav>
-  <div id="panel">
-    <div id="blank"><div class="in">
-      <h1>It doesn’t answer questions. It tells you whether a claim is still standing.</h1>
-      <p>Every abstract it retrieves is read twice: once for its stance toward <em>your</em> claim,
-      and once for the claim <em>that paper</em> is making. A full sweep harvests on the order of a
-      hundred claims out of the literature without anyone typing them.</p>
-      <p>Your claim is then cross-checked against all of them. What comes back is the part a reader
-      cannot reach: the positions your claim quietly leans on that are themselves contested, the
-      ones held up by a single paper, the ones that appear on <em>both</em> sides — and the decades
-      where nobody looked at all.</p>
-      <p class="small">Track a claim above to start.</p>
-    </div></div>
-    <div id="dhead" hidden></div>
-    <div id="err"></div>
-    <div id="doc" hidden></div>
+<!-- ====================== THE INSTRUMENT ====================== -->
+<div id="inst" hidden>
+  <div id="bar">
+    <button class="mk" id="backHome" title="Back to the front door">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#4fb8f5" stroke-width="1.5"/>
+        <circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#9fd7ff" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="1.4" fill="#fff"/></svg><b>PARALLAX</b></button>
+    <span class="sl">The Record</span>
+    <span class="sp"></span>
+    <span class="st" id="stat"><i></i><span id="statText">Idle</span></span>
+    <a class="out" href="../">Both instruments</a>
+    <div id="prog"></div>
   </div>
-</div>
+
+  <div id="board">
+    <div class="bnew">
+      <textarea id="newClaim" rows="2" placeholder="Track a claim. Not a question."></textarea>
+      <div class="row"><button class="pri" id="track">Track</button>
+        <button class="gh" id="fromText" title="Load a .txt or .md — every claim in it gets tracked">From text</button></div>
+    </div>
+  </div>
+
+  <div id="work">
+    <nav id="rail"></nav>
+    <div id="panel">
+      <div id="stage" hidden></div>
+      <div id="dhead" hidden></div>
+      <div id="err"></div>
+      <div id="doc" hidden></div>
+    </div>
+  </div>
 </div>
 
 <input type="file" id="filePick" accept=".txt,.md,text/plain,text/markdown" style="display:none">
 
 <script>
 'use strict';
-/* ===========================================================================
-   1. WIRE
-   =========================================================================== */
 var SUPA_URL='https://zfmjjazkmolvywvayjzj.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
 var PAGES_URL='https://adayaris19-spec.github.io/parallax/';
 var SLICES=6;
-
 var $=function(s,r){return (r||document).querySelector(s);};
 var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -392,6 +559,130 @@ function num(x){var n=Number(x);return isFinite(n)?n:null;}
 function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function pl(n,a,b){return fmt(n)+' '+(Number(n)===1?a:b);}
 
+/* ---------------------------------------------------------------- front door */
+var TICK=[['Extra dimensions at the LHC','breaking'],['Dark matter is collisionless','contested'],
+  ['Asteroid organics are extraterrestrial','holding'],['The lithium discrepancy is real','contested'],
+  ['Room-temperature superconductivity at ambient pressure','breaking'],
+  ['Fast radio bursts come from magnetars','holding'],['Proton radius puzzle is resolved','contested'],
+  ['Planet Nine exists beyond 400 AU','contested']];
+var TCOL={holding:'#0f7a5f',contested:'#6a4bc4',breaking:'#bf3025'};
+(function ticker(){
+  var one=TICK.map(function(t){
+    return '<span class="htk"><i style="background:'+TCOL[t[1]]+'"></i>'+esc(t[0])+
+      ' <b style="color:'+TCOL[t[1]]+'">'+t[1]+'</b></span>';}).join('');
+  $('#htrack').innerHTML=one+one;
+})();
+/* hero diagram: your claim in the middle, the harvested positions around it, and
+   the two that collide drawn as a line straight through */
+(function heroViz(){
+  var W=660,H=420,cx=W/2,cy=H/2,s='';
+  var ring=function(r,n,seed,col,op){
+    var o='';
+    for(var i=0;i<n;i++){
+      var a=(i/n)*Math.PI*2+seed, x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r*0.72;
+      var rad=2.4+((i*37)%5)*0.7;
+      o+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+
+        '" fill="'+col+'" opacity="'+op+'"/>';
+    }
+    return o;
+  };
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="196" fill="none" stroke="#c7dcef" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="140" fill="none" stroke="#d3e4f3" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="84" fill="none" stroke="#dceaf6" stroke-width="1"/>';
+  s+=ring(196,26,0.2,'#7fa3c8',.55)+ring(140,17,1.1,'#0d72c4',.5)+ring(84,10,2.3,'#0f7a5f',.55);
+  /* the collision */
+  var ax=cx-158,ay=cy-46,bx=cx+168,by=cy+38;
+  s+='<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="#bf3025" stroke-width="1.4" '+
+     'stroke-dasharray="5 4" opacity=".85"/>';
+  s+='<circle cx="'+ax+'" cy="'+ay+'" r="8" fill="#0f7a5f"/>'+
+     '<circle cx="'+bx+'" cy="'+by+'" r="8" fill="#bf3025"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="27" fill="#fff" stroke="#0d72c4" stroke-width="2"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="#0d72c4"/>';
+  s+='<text x="'+cx+'" y="'+(cy+52)+'" text-anchor="middle" font-family="ui-monospace,monospace" '+
+     'font-size="11" letter-spacing="2" fill="#2f4f70">YOUR CLAIM</text>';
+  s+='<text x="'+(ax-6)+'" y="'+(ay-14)+'" text-anchor="end" font-family="ui-monospace,monospace" '+
+     'font-size="10.5" letter-spacing="1.4" fill="#0f7a5f">SUPPORTS</text>';
+  s+='<text x="'+(bx+6)+'" y="'+(by+22)+'" font-family="ui-monospace,monospace" font-size="10.5" '+
+     'letter-spacing="1.4" fill="#bf3025">CONTESTS</text>';
+  /* the collision caption rides the line, clear of the centre node it would
+     otherwise print straight through */
+  s+='<text x="'+((ax+cx)/2-14)+'" y="'+((ay+cy)/2-10)+'" text-anchor="middle" '+
+     'font-family="ui-monospace,monospace" font-size="9.5" letter-spacing="1.4" fill="#bf3025" '+
+     'opacity=".9">CANNOT BOTH BE RIGHT</text>';
+  s+='<text x="12" y="18" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.6" '+
+     'fill="#5f7d9c">~100 POSITIONS HARVESTED FROM THE LITERATURE</text>';
+  $('#hviz').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Your claim at the '+
+    'centre, surrounded by positions harvested from the literature, with one supporting and one '+
+    'contesting record drawn in direct collision.">'+s+'</svg>';
+})();
+/* the three findings, each as a small plate */
+(function picks(){
+  var plate=function(title,cap,body){
+    return '<figure><svg viewBox="0 0 380 128">'+body+'</svg><figcaption><b>'+title+'</b> '+cap+
+      '</figcaption></figure>';};
+  var p1='';
+  p1+='<rect x="0" y="30" width="380" height="1" fill="#cbdcee"/>';
+  ['#0f7a5f','#0f7a5f','#bf3025','#0f7a5f','#bf3025'].forEach(function(c,i){
+    p1+='<circle cx="'+(38+i*76)+'" cy="30" r="7" fill="'+c+'"/>';});
+  p1+='<text x="0" y="18" font-family="ui-monospace,monospace" font-size="9.5" letter-spacing="1.4" '+
+      'fill="#5f7d9c">ONE POSITION, FIVE PAPERS</text>';
+  p1+='<path d="M38 44 L 190 96" stroke="#6a4bc4" stroke-width="1.4" stroke-dasharray="4 3"/>';
+  p1+='<path d="M190 44 L 342 96" stroke="#6a4bc4" stroke-width="1.4" stroke-dasharray="4 3"/>';
+  p1+='<rect x="118" y="96" width="144" height="24" rx="4" fill="#eeeafb" stroke="#c3b5ea"/>';
+  p1+='<text x="190" y="112" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" '+
+      'letter-spacing="1.2" fill="#6a4bc4">BOTH SIDES USE IT</text>';
+
+  var p2='';
+  p2+='<text x="0" y="16" font-family="ui-monospace,monospace" font-size="9.5" letter-spacing="1.4" '+
+      'fill="#5f7d9c">WHAT HOLDS THE CLAIM UP</text>';
+  [64,42,28,6].forEach(function(w,i){
+    p2+='<rect x="0" y="'+(30+i*24)+'" width="'+(w*4.4)+'" height="14" rx="3" fill="'+
+      (i===3?'#bf3025':'#0d72c4')+'" opacity="'+(i===3?1:.75-i*.12)+'"/>';
+    p2+='<text x="'+(w*4.4+9)+'" y="'+(41+i*24)+'" font-family="ui-monospace,monospace" font-size="10" '+
+      'fill="'+(i===3?'#bf3025':'#5f7d9c')+'">'+[12,8,5,1][i]+' paper'+(i===3?'':'s')+'</text>';});
+  p2+='<text x="140" y="121" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.2" '+
+      'fill="#bf3025">SINGLE POINT OF FAILURE</text>';
+
+  var p3='';
+  p3+='<text x="0" y="16" font-family="ui-monospace,monospace" font-size="9.5" letter-spacing="1.4" '+
+      'fill="#5f7d9c">SUPPORT ABOVE, CONTEST BELOW</text>';
+  var mid=76;
+  p3+='<line x1="0" y1="'+mid+'" x2="380" y2="'+mid+'" stroke="#a8c5e3"/>';
+  var S=[3,6,9,11,8,4,2,1,0,0,0],K=[0,0,0,1,2,3,5,7,9,11,12];
+  S.forEach(function(v,i){
+    var x=6+i*33.6;
+    if(v)p3+='<rect x="'+x+'" y="'+(mid-v*3.6)+'" width="26" height="'+(v*3.6)+'" fill="#0f7a5f"/>';
+    if(K[i])p3+='<rect x="'+x+'" y="'+mid+'" width="26" height="'+(K[i]*3.6)+'" fill="#bf3025"/>';
+  });
+  p3+='<text x="0" y="124" font-family="ui-monospace,monospace" font-size="9.5" fill="#5f7d9c">1930s</text>';
+  p3+='<text x="380" y="124" text-anchor="end" font-family="ui-monospace,monospace" font-size="9.5" '+
+      'fill="#5f7d9c">2020s</text>';
+  $('#hpick').innerHTML=
+    plate('Argued on both sides.','The same position used to support the claim in one paper and '+
+      'contest it in another — the claim’s own literature disagreeing with itself.',p1)+
+    plate('Single points of failure.','A position holding the claim up on exactly one paper. '+
+      'If it is wrong, everything resting on it goes with it.',p2)+
+    plate('The decade it turned.','Support and contest per era window, so you can see the year the '+
+      'weight crossed over instead of guessing at it.',p3);
+})();
+$$('[data-enter]').forEach(function(b){b.addEventListener('click',enter);});
+$$('[data-scroll]').forEach(function(b){b.addEventListener('click',function(){
+  var t=document.getElementById(b.dataset.scroll);
+  if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+function enter(){
+  $('#home').classList.add('gone');
+  setTimeout(function(){$('#home').hidden=true;},460);
+  $('#inst').hidden=false;
+  document.body.style.overflow='hidden';
+  if(!DB.claims.length)$('#newClaim').focus();
+}
+$('#backHome').addEventListener('click',function(){
+  $('#home').hidden=false;$('#home').classList.remove('gone');
+  $('#inst').hidden=true;document.body.style.overflow='';
+  window.scrollTo(0,0);
+});
+
+/* ---------------------------------------------------------------------- net */
 var CSPB=[];
 try{addEventListener('securitypolicyviolation',function(e){
   CSPB.push({uri:String(e.blockedURI||'').slice(0,140),
@@ -400,8 +691,8 @@ try{addEventListener('securitypolicyviolation',function(e){
 var SANDBOXED=(function(){try{return window.top!==window.self;}catch(e){return true;}})();
 function netDiag(e){
   var m=String(e&&e.message||e);
-  if(/abort/i.test(m))return 'The sweep ran past its limit and the browser dropped it. The worker '+
-    'may have finished anyway — re-check and it is usually faster.';
+  if(/abort/i.test(m))return 'The sweep ran past its limit and the browser dropped it. The worker may '+
+    'have finished anyway — re-check and it is usually faster.';
   if(!/failed to fetch|networkerror|load failed|network request failed/i.test(m))return esc(m);
   var host=SUPA_URL.replace(/^https?:\/\//,'').split('/')[0];
   var blocked=CSPB.filter(function(x){return Date.now()-x.at<9e4&&
@@ -415,132 +706,93 @@ function netDiag(e){
 var CTLS=[];
 function post(body,ms){
   var ctl=new AbortController();CTLS.push(ctl);
-  var timer=setTimeout(function(){ctl.abort();},ms||135000);
+  var t=setTimeout(function(){ctl.abort();},ms||135000);
   return fetch(SUPA_URL+'/functions/v1/ingest',{method:'POST',signal:ctl.signal,
     headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
     body:JSON.stringify(body)})
-  .then(function(r){clearTimeout(timer);return r.text().then(function(raw){
+  .then(function(r){clearTimeout(t);return r.text().then(function(raw){
     var j=null;try{j=JSON.parse(raw);}catch(e){}
     if(!r.ok)throw new Error('HTTP '+r.status+' — '+String(raw).slice(0,160));
     if(!j)throw new Error('the worker did not return JSON — '+String(raw).slice(0,160));
     if(j.error)throw new Error(j.error);
-    return j;});},function(e){clearTimeout(timer);throw e;});
+    return j;});},function(e){clearTimeout(t);throw e;});
 }
-function status(cls,text){$('#stat').firstElementChild.className=cls||'';
-  $('#statText').textContent=text;}
+function status(c,t){$('#stat').firstElementChild.className=c||'';$('#statText').textContent=t;}
 function prog(f){$('#prog').style.width=(f?Math.max(2,Math.min(100,f*100)):0)+'%';}
 function showErr(h){$('#err').innerHTML=h;$('#err').classList.add('on');}
 function clearErr(){$('#err').classList.remove('on');}
 
-/* ===========================================================================
-   2. ANALYSIS
-   Everything below is computed from what the gate returned. Nothing invents a
-   relationship that is not in the data.
-   =========================================================================== */
+/* ----------------------------------------------------------------- analysis */
 function stanceOf(r){return txt(r&&r.stance).toLowerCase();}
-function yearOf(r){
-  var y=num(r&&r.year);
+function yearOf(r){var y=num(r&&r.year);
   if(!y&&r&&r.published_at)y=num(String(r.published_at).slice(0,4));
-  return (y&&y>1400&&y<2100)?y:null;
-}
-function measOf(r){
-  var m=r&&r.measurement;if(!m)return null;
+  return (y&&y>1400&&y<2100)?y:null;}
+function measOf(r){var m=r&&r.measurement;if(!m)return null;
   if(typeof m==='string')return {parameter:'',value:m,sigma:''};
   if(!txt(m.parameter)&&!txt(m.value))return null;
-  return {parameter:txt(m.parameter),value:txt(m.value),sigma:txt(m.sigma)};
-}
-var STOP={the:1,a:1,an:1,of:1,in:1,to:1,is:1,are:1,and:1,or:1,for:1,at:1,on:1,by:1,with:1,
-  that:1,this:1,it:1,as:1,be:1,from:1,its:1,not:1,can:1,may:1,was:1,were:1};
-function words(s){
-  return txt(s).toLowerCase().replace(/[^a-z0-9\s-]/g,' ').split(/\s+/)
-    .filter(function(w){return w.length>2&&!STOP[w];});
-}
-function jac(a,b){
-  if(!a.length||!b.length)return 0;
+  return {parameter:txt(m.parameter),value:txt(m.value),sigma:txt(m.sigma)};}
+var STOP={the:1,a:1,an:1,of:1,in:1,to:1,is:1,are:1,and:1,or:1,for:1,at:1,on:1,by:1,with:1,that:1,
+  this:1,it:1,as:1,be:1,from:1,its:1,not:1,can:1,may:1,was:1,were:1};
+function words(s){return txt(s).toLowerCase().replace(/[^a-z0-9\s-]/g,' ').split(/\s+/)
+  .filter(function(w){return w.length>2&&!STOP[w];});}
+function jac(a,b){if(!a.length||!b.length)return 0;
   var sa={},n=0;a.forEach(function(w){sa[w]=1;});
-  b.forEach(function(w){if(sa[w]){n++;sa[w]=2;}});
-  return n/(a.length+b.length-n);
-}
-
-/* THE HARVEST. Every scored record names the position it backs. Cluster those
-   by word overlap and the corpus has handed over its own claim set — typically
-   scores of them — none of which anybody typed. */
+  b.forEach(function(w){if(sa[w]===1){n++;sa[w]=2;}});
+  return n/(a.length+b.length-n);}
 function harvest(res){
   var items=[];
-  res.forEach(function(r){
-    var p=txt(r.position);if(p.length<6)return;
-    items.push({r:r,p:p,w:words(p)});
-  });
-  var groups=[];
+  res.forEach(function(r){var p=txt(r.position);if(p.length<6)return;
+    items.push({r:r,p:p,w:words(p)});});
+  var g=[];
   items.forEach(function(it){
-    for(var i=0;i<groups.length;i++){
-      if(jac(it.w,groups[i].w)>=0.55){
-        groups[i].recs.push(it.r);
-        if(it.p.length<groups[i].text.length)groups[i].text=it.p;   /* shortest wording wins */
-        return;
-      }
-    }
-    groups.push({text:it.p,w:it.w,recs:[it.r]});
-  });
-  groups.forEach(function(g){
-    g.sup=g.recs.filter(function(r){return stanceOf(r)==='supports';}).length;
-    g.con=g.recs.filter(function(r){return stanceOf(r)==='contests';}).length;
-    g.cites=g.recs.reduce(function(n,r){return n+(num(r.citations)||0);},0);
-    g.years=g.recs.map(yearOf).filter(function(y){return y!=null;});
-    g.newest=g.years.length?Math.max.apply(null,g.years):null;
-    g.oldest=g.years.length?Math.min.apply(null,g.years):null;
-    g.material=g.recs.filter(function(r){return r.material;}).length;
-    /* how it relates to the tracked claim: a position whose records mostly
-       support the claim is something the claim leans on; one whose records
-       mostly contest it is a rival; one with both is contested ground the
-       claim is standing on without knowing it */
-    g.kind=g.sup&&g.con?'split':g.sup?'allied':g.con?'rival':'neutral';
-  });
-  groups.sort(function(a,b){return b.recs.length-a.recs.length||b.cites-a.cites;});
-  return groups;
+    for(var i=0;i<g.length;i++)if(jac(it.w,g[i].w)>=0.55){
+      g[i].recs.push(it.r);
+      if(it.p.length<g[i].text.length)g[i].text=it.p;
+      return;}
+    g.push({text:it.p,w:it.w,recs:[it.r]});});
+  g.forEach(function(x){
+    x.sup=x.recs.filter(function(r){return stanceOf(r)==='supports';}).length;
+    x.con=x.recs.filter(function(r){return stanceOf(r)==='contests';}).length;
+    x.cites=x.recs.reduce(function(n,r){return n+(num(r.citations)||0);},0);
+    var ys=x.recs.map(yearOf).filter(function(y){return y!=null;});
+    x.newest=ys.length?Math.max.apply(null,ys):null;
+    x.oldest=ys.length?Math.min.apply(null,ys):null;
+    x.material=x.recs.filter(function(r){return r.material;}).length;
+    x.kind=x.sup&&x.con?'split':x.sup?'allied':x.con?'rival':'neutral';});
+  g.sort(function(a,b){return b.recs.length-a.recs.length||b.cites-a.cites;});
+  return g;
 }
-
 function standingOf(res){
   var sup=res.filter(function(r){return stanceOf(r)==='supports';});
   var con=res.filter(function(r){return stanceOf(r)==='contests';});
-  var n=sup.length+con.length,share=n?con.length/n:0;
-  var Y=new Date().getFullYear();
-  var recentHard=con.filter(function(r){var y=yearOf(r);
-    return r.material&&y!=null&&(Y-y)<=6;}).length;
-  var k=n<4?'unsettled':(share>=0.45||recentHard>=3)?'breaking':
-        (share>=0.15||recentHard>=1)?'contested':'holding';
-  return {k:k,sup:sup,con:con,share:share,recentHard:recentHard,
+  var n=sup.length+con.length,share=n?con.length/n:0,Y=new Date().getFullYear();
+  var hard=con.filter(function(r){var y=yearOf(r);return r.material&&y!=null&&(Y-y)<=6;}).length;
+  var k=n<4?'unsettled':(share>=.45||hard>=3)?'breaking':(share>=.15||hard>=1)?'contested':'holding';
+  return {k:k,sup:sup,con:con,share:share,recentHard:hard,
     label:{holding:'Holding',contested:'Contested',breaking:'Breaking',
-      unsettled:'Not enough on the record'}[k]};
+      unsettled:'Thin record'}[k]};
 }
 var RANK={holding:0,contested:1,breaking:2,unsettled:-1};
-
 function oppositions(st){
   var pairs=[],direct=0;
-  st.sup.forEach(function(a){
-    var ma=measOf(a);
-    st.con.forEach(function(b){
-      var mb=measOf(b);
+  st.sup.forEach(function(a){var ma=measOf(a);
+    st.con.forEach(function(b){var mb=measOf(b);
       var same=!!(ma&&mb&&ma.parameter&&mb.parameter&&
         words(ma.parameter).join(' ')===words(mb.parameter).join(' '));
       if(same)direct++;
       pairs.push({a:a,b:b,ma:ma,mb:mb,same:same,
         score:(num(a.relevance)||0)+(num(b.relevance)||0)+(a.material?.6:0)+(b.material?.6:0)+
-          (same?3:0)+((ma&&mb)?.8:0)});
-    });
-  });
+          (same?3:0)+((ma&&mb)?.8:0)});});});
   pairs.sort(function(x,y){return y.score-x.score;});
-  var use={},spread=[],rest=[];
+  var use={},sp=[],rest=[];
   pairs.forEach(function(p){
     var ka='a'+p.a.source_id,kb='b'+p.b.source_id;
-    if((use[ka]||0)<2&&(use[kb]||0)<2){use[ka]=(use[ka]||0)+1;use[kb]=(use[kb]||0)+1;spread.push(p);}
-    else rest.push(p);
-  });
-  return {pairs:spread.concat(rest),total:st.sup.length*st.con.length,direct:direct};
+    if((use[ka]||0)<2&&(use[kb]||0)<2){use[ka]=(use[ka]||0)+1;use[kb]=(use[kb]||0)+1;sp.push(p);}
+    else rest.push(p);});
+  return {pairs:sp.concat(rest),total:st.sup.length*st.con.length,direct:direct};
 }
-
-var ERAS=[[1665,1929],[1930,1939],[1940,1949],[1950,1959],[1960,1969],[1970,1979],
-          [1980,1989],[1990,1999],[2000,2009],[2010,2019],[2020,2035]];
+var ERAS=[[1665,1929],[1930,1939],[1940,1949],[1950,1959],[1960,1969],[1970,1979],[1980,1989],
+  [1990,1999],[2000,2009],[2010,2019],[2020,2035]];
 function eraName(w){return w[0]===1665?'pre-1930':w[0]===2020?'2020s':String(w[0]).slice(2)+'s';}
 function byEra(res,corpus){
   return ERAS.map(function(w){
@@ -548,157 +800,109 @@ function byEra(res,corpus){
     var anyC=arr(corpus).filter(function(r){var y=yearOf(r);return y!=null&&y>=w[0]&&y<=w[1];}).length;
     return {w:w,name:eraName(w),any:anyC+inE.length,
       sup:inE.filter(function(r){return stanceOf(r)==='supports';}).length,
-      con:inE.filter(function(r){return stanceOf(r)==='contests';}).length};
-  });
+      con:inE.filter(function(r){return stanceOf(r)==='contests';}).length};});
 }
-
-/* GAPS. Each one is a hole in the record that the arithmetic can see and a
-   reader cannot, because seeing it means holding the whole perimeter at once. */
-function gapsOf(c,st,groups,eras){
-  var g=[],Y=new Date().getFullYear();
-  var solo=groups.filter(function(x){return x.recs.length===1&&x.kind==='allied';});
-  if(solo.length)g.push({hot:true,i:'1',
+function gapsOf(c,st,g,eras){
+  var out=[],Y=new Date().getFullYear();
+  var solo=g.filter(function(x){return x.recs.length===1&&x.kind==='allied';});
+  if(solo.length)out.push({hot:1,i:'1',
     h:pl(solo.length,'position holds this claim up on a single paper',
-        'positions hold this claim up on a single paper'),
-    p:'If any one of them is wrong, everything resting on it goes with it. '+
+      'positions hold this claim up on a single paper'),
+    p:'If any one of them is wrong, everything resting on it goes too. '+
       solo.slice(0,3).map(function(x){return '“'+x.text+'”';}).join('; ')+'.'});
-
-  var split=groups.filter(function(x){return x.kind==='split';});
-  if(split.length)g.push({hot:true,i:'2',
+  var split=g.filter(function(x){return x.kind==='split';});
+  if(split.length)out.push({hot:1,i:'2',
     h:pl(split.length,'position is argued by papers on both sides',
-        'positions are argued by papers on both sides'),
-    p:'The same position is used to support the claim in one paper and to contest it in another. '+
-      'That is the claim’s own literature disagreeing with itself: '+
+      'positions are argued by papers on both sides'),
+    p:'The same position supports the claim in one paper and contests it in another — the claim’s '+
+      'own literature disagreeing with itself: '+
       split.slice(0,2).map(function(x){return '“'+x.text+'”';}).join('; ')+'.'});
-
-  var dormant=groups.filter(function(x){
-    return x.kind==='allied'&&x.recs.length>=2&&x.newest!=null&&(Y-x.newest)>=15;});
-  if(dormant.length)g.push({hot:false,i:'3',
-    h:pl(dormant.length,'supporting position has not been revisited in 15 years',
-        'supporting positions have not been revisited in 15 years'),
-    p:'Nothing in the perimeter has tested them since. Load-bearing and unexamined: '+
-      dormant.slice(0,2).map(function(x){return '“'+x.text+'” (last '+x.newest+')';}).join('; ')+'.'});
-
+  var dorm=g.filter(function(x){return x.kind==='allied'&&x.recs.length>=2&&x.newest!=null&&
+    (Y-x.newest)>=15;});
+  if(dorm.length)out.push({hot:0,i:'3',
+    h:pl(dorm.length,'supporting position has not been revisited in 15 years',
+      'supporting positions have not been revisited in 15 years'),
+    p:'Nothing in the perimeter has tested them since — load-bearing and unexamined: '+
+      dorm.slice(0,2).map(function(x){return '“'+x.text+'” (last '+x.newest+')';}).join('; ')+'.'});
   var blank=eras.filter(function(e){return e.any===0;});
-  if(blank.length)g.push({hot:false,i:'4',
+  if(blank.length)out.push({hot:0,i:'4',
     h:pl(blank.length,'era window came back empty','era windows came back empty'),
-    p:'Nothing at all in the perimeter from '+blank.map(function(e){return e.name;}).join(', ')+
+    p:'Nothing at all from '+blank.map(function(e){return e.name;}).join(', ')+
       '. Either the question genuinely went quiet, or the archives do not index it for those years.'});
-
-  var newestSup=st.sup.map(yearOf).filter(function(y){return y!=null;});
-  var newestCon=st.con.map(yearOf).filter(function(y){return y!=null;});
-  if(newestSup.length){
-    var ns=Math.max.apply(null,newestSup);
-    if(Y-ns>=8)g.push({hot:true,i:'5',h:'Nothing has supported this claim since '+ns,
-      p:'Every supporting record in the perimeter is at least '+(Y-ns)+' years old'+
-        (newestCon.length&&Math.max.apply(null,newestCon)>ns?
-        ', while the contesting side has work as recent as '+Math.max.apply(null,newestCon)+'.':'.')});
-  }
-  var noMeas=st.sup.filter(function(r){return !measOf(r);}).length;
-  if(st.sup.length>=4&&noMeas===st.sup.length)g.push({hot:false,i:'6',
-    h:'No supporting record reports a measurement',
-    p:'Every paper on the supporting side argues the claim without putting a number on it. '+
-      'The contesting side has '+st.con.filter(function(r){return !!measOf(r);}).length+' that do.'});
-  return g;
+  var ns=st.sup.map(yearOf).filter(function(y){return y!=null;});
+  var nc=st.con.map(yearOf).filter(function(y){return y!=null;});
+  if(ns.length){var mx=Math.max.apply(null,ns);
+    if(Y-mx>=8)out.push({hot:1,i:'5',h:'Nothing has supported this claim since '+mx,
+      p:'Every supporting record is at least '+(Y-mx)+' years old'+
+        (nc.length&&Math.max.apply(null,nc)>mx?', while the contesting side has work as recent as '+
+          Math.max.apply(null,nc)+'.':'.')});}
+  return out;
 }
-
-/* NEIGHBOURS. Two tracked claims that share records rise and fall together —
-   so a claim that breaks is a warning about the ones next to it. */
 function neighbours(c){
   var mine={};arr(c.data&&c.data.results).forEach(function(r){
     if(r.source_id)mine[r.source_id]=stanceOf(r);});
   var out=[];
   DB.claims.forEach(function(o){
     if(o.id===c.id||!o.data)return;
-    var shared=0,agree=0;
+    var sh=0,ag=0;
     arr(o.data.results).forEach(function(r){
       if(!r.source_id||!(r.source_id in mine))return;
-      shared++;
-      if(stanceOf(r)===mine[r.source_id])agree++;
-    });
-    if(shared>=2)out.push({c:o,shared:shared,agree:agree});
-  });
+      sh++;if(stanceOf(r)===mine[r.source_id])ag++;});
+    if(sh>=2)out.push({c:o,shared:sh,agree:ag});});
   out.sort(function(a,b){return b.shared-a.shared;});
   return out;
 }
-
-/* WHERE IT IS HEADING. A direction read off the last three era windows, plus
-   the plainest fact about momentum: what the most recent work does to it. */
 function trajectory(st,eras){
-  var tail=eras.slice(-3);
-  var s=tail.reduce(function(n,e){return n+e.sup;},0);
-  var k=tail.reduce(function(n,e){return n+e.con;},0);
-  var early=eras.slice(0,-3);
-  var es=early.reduce(function(n,e){return n+e.sup;},0);
-  var ek=early.reduce(function(n,e){return n+e.con;},0);
-  var nowShare=(s+k)?k/(s+k):null, thenShare=(es+ek)?ek/(es+ek):null;
-  var dir='flat';
-  if(nowShare!=null&&thenShare!=null){
-    if(nowShare-thenShare>0.12)dir='worsening';
-    else if(thenShare-nowShare>0.12)dir='recovering';
-  }else if(nowShare!=null&&nowShare>=0.5)dir='worsening';
+  var tail=eras.slice(-3),early=eras.slice(0,-3);
+  var s=tail.reduce(function(n,e){return n+e.sup;},0),k=tail.reduce(function(n,e){return n+e.con;},0);
+  var es=early.reduce(function(n,e){return n+e.sup;},0),ek=early.reduce(function(n,e){return n+e.con;},0);
+  var now=(s+k)?k/(s+k):null,then=(es+ek)?ek/(es+ek):null,dir='flat';
+  if(now!=null&&then!=null){if(now-then>.12)dir='worsening';else if(then-now>.12)dir='recovering';}
+  else if(now!=null&&now>=.5)dir='worsening';
   var all=st.sup.concat(st.con).filter(function(r){return yearOf(r)!=null;})
     .sort(function(a,b){return yearOf(b)-yearOf(a);});
-  return {dir:dir,nowShare:nowShare,thenShare:thenShare,recent:all.slice(0,5),
+  return {dir:dir,nowShare:now,thenShare:then,recent:all.slice(0,5),
     lastSup:st.sup.map(yearOf).filter(Boolean).sort().pop()||null,
     lastCon:st.con.map(yearOf).filter(Boolean).sort().pop()||null};
 }
 
-/* ===========================================================================
-   3. STORE
-   =========================================================================== */
-var KEY='parallax.claims.v2',DB={claims:[]},SEL=null;
+/* -------------------------------------------------------------------- store */
+var KEY='parallax.claims.v3',DB={claims:[]},SEL=null;
 function load(){try{var d=JSON.parse(localStorage.getItem(KEY)||'null');
   if(d&&Array.isArray(d.claims))DB=d;}catch(e){}}
 function save(){
   for(var i=0;i<6;i++){
     try{localStorage.setItem(KEY,JSON.stringify(DB));return;}
-    catch(e){
-      var big=DB.claims.slice().sort(function(a,b){
-        return arr(b.data&&b.data.corpus).length-arr(a.data&&a.data.corpus).length;})[0];
+    catch(e){var big=DB.claims.slice().sort(function(a,b){
+      return arr(b.data&&b.data.corpus).length-arr(a.data&&a.data.corpus).length;})[0];
       if(big&&big.data&&arr(big.data.corpus).length>10)big.data.corpus=big.data.corpus.slice(0,10);
-      else if(DB.claims.length>1)DB.claims.pop();
-      else return;
-    }
-  }
+      else if(DB.claims.length>1)DB.claims.pop();else return;}}
 }
-function slim(j){
-  var s={};
+function slim(j){var s={};
   ['results','archives','synthesis','worker','sweepMs','retrieved','material','hosts','profile',
    'rungs','query'].forEach(function(k){if(j[k]!=null)s[k]=j[k];});
   s.corpus=arr(j.corpus).slice(0,80);
-  return JSON.parse(JSON.stringify(s));
-}
-function findClaim(t){
-  var k=txt(t).toLowerCase();
+  return JSON.parse(JSON.stringify(s));}
+function findClaim(t){var k=txt(t).toLowerCase();
   for(var i=0;i<DB.claims.length;i++)if(txt(DB.claims[i].text).toLowerCase()===k)return DB.claims[i];
-  return null;
-}
-function ago(ts){
-  if(!ts)return 'never';
-  var s=(Date.now()-ts)/1000;
+  return null;}
+function ago(ts){if(!ts)return 'never';var s=(Date.now()-ts)/1000;
   return s<90?'just now':s<5400?Math.round(s/60)+' min ago':
-    s<172800?Math.round(s/3600)+' h ago':Math.round(s/86400)+' d ago';
-}
+    s<172800?Math.round(s/3600)+' h ago':Math.round(s/86400)+' d ago';}
 function cur(){for(var i=0;i<DB.claims.length;i++)if(DB.claims[i].id===SEL)return DB.claims[i];return null;}
 
-/* ===========================================================================
-   4. SWEEP  (with the live feed the original had)
-   =========================================================================== */
+/* -------------------------------------------------------------------- sweep */
 var BUSY=false,FEED=[];
-function setBusy(on){
-  BUSY=on;$('#track').disabled=on;$('#fromText').disabled=on;
-  $$('.recheck,.askbtn').forEach(function(b){b.disabled=on;});
-}
+function setBusy(on){BUSY=on;$('#track').disabled=on;$('#fromText').disabled=on;
+  $$('.recheck,.askbtn').forEach(function(b){b.disabled=on;});}
 function runClaim(c){
   if(BUSY)return Promise.resolve();
   setBusy(true);clearErr();FEED=[];
-  status('go','Sweeping — “'+c.text.slice(0,46)+'”');prog(0.05);
+  status('go','Sweeping — '+c.text.slice(0,44));prog(.05);
   return post({question:c.text,limit:40,store:true,slice:0,slices:SLICES},135000)
   .then(function(j){
     if(!j.results)throw new Error('the worker returned no scored records — an old build may be deployed');
-    prog(1/SLICES);commit(c,j);
-    pushFeed(arr(j.results));
+    prog(1/SLICES);commit(c,j);FEED=arr(j.results).slice();
     status('go','Reading the rest of the perimeter');
     if(SEL===c.id)paint();
     drawBoard();
@@ -706,20 +910,16 @@ function runClaim(c){
     for(var k=1;k<n;k++)(function(k){
       runs.push(post({question:c.text,q:j.query,tracked:(j.profile&&j.profile.tracked)||undefined,
         limit:40,slice:k,slices:n,gate:false,profile:j.profile||null},95000)
-      .then(function(s){mergeSlice(c,s);pushFeed(arr(s.corpus));},function(){})
+      .then(function(s){mergeSlice(c,s);arr(s.corpus).forEach(function(r){FEED.unshift(r);});},
+        function(){})
       .then(function(){landed++;prog((landed+1)/n);
         if(SEL===c.id&&TAB==='evidence')renderTab();
-        if(SEL===c.id)paintKpis();}));
-    })(k);
+        if(SEL===c.id)paintKpis();}));})(k);
     return Promise.all(runs).then(function(){save();if(SEL===c.id)paint();drawBoard();});
   })
   .catch(function(e){status('bad','Sweep failed');showErr(netDiag(e));})
   .then(function(){setBusy(false);prog(0);
     if(!$('#err').classList.contains('on'))status('ok','Ready');});
-}
-function pushFeed(rs){
-  rs.forEach(function(r){FEED.unshift(r);});
-  if(FEED.length>500)FEED.length=500;
 }
 function mergeSlice(c,s){
   var d=c.data;if(!d)return;
@@ -729,8 +929,7 @@ function mergeSlice(c,s){
     var have={};arr(d.corpus).forEach(function(x){if(x&&x.source_id)have[x.source_id]=1;});
     var fresh=add.filter(function(x){return x&&x.source_id&&!have[x.source_id];});
     d.corpus=arr(d.corpus).concat(fresh).slice(0,400);
-    d.retrieved=(num(d.retrieved)||0)+fresh.length;
-  }
+    d.retrieved=(num(d.retrieved)||0)+fresh.length;}
 }
 function commit(c,j){
   var st=standingOf(arr(j.results)),prev=c.state||null;
@@ -743,30 +942,25 @@ function commit(c,j){
 }
 function trackText(t,select){
   t=txt(t);if(t.length<8)return null;
-  var ex=findClaim(t);
-  if(ex){if(select!==false)select_(ex.id);return ex;}
-  var c={id:'c'+Date.now()+Math.round(Math.random()*1e4),text:t,state:null,sup:0,con:0,
-    checked:0,history:[],data:null,moved:null,inq:[]};
+  var ex=findClaim(t);if(ex){if(select!==false)select_(ex.id);return ex;}
+  var c={id:'c'+Date.now()+Math.round(Math.random()*1e4),text:t,state:null,sup:0,con:0,checked:0,
+    history:[],data:null,moved:null,inq:[]};
   DB.claims.unshift(c);save();drawBoard();
   if(select!==false)select_(c.id);
   return c;
 }
 
-/* ===========================================================================
-   5. BOARD
-   =========================================================================== */
+/* -------------------------------------------------------------------- board */
 var COL={holding:'var(--sup)',contested:'var(--mix)',breaking:'var(--con)',unsettled:'var(--none)'};
 function drawBoard(){
   var B=$('#board');
   $$('.bcard',B).forEach(function(n){n.remove();});
-  $('#bempty').hidden=DB.claims.length>0;
   DB.claims.forEach(function(c){
     var k=c.state||'unsettled',tot=(c.sup||0)+(c.con||0);
     var lab={holding:'Holding',contested:'Contested',breaking:'Breaking',
-      unsettled:c.checked?'Thin record':'Not checked'}[k];
+      unsettled:c.checked?'Thin':'New'}[k];
     var b=document.createElement('button');
-    b.className='bcard'+(SEL===c.id?' on':'');
-    b.dataset.id=c.id;
+    b.className='bcard'+(SEL===c.id?' on':'');b.dataset.id=c.id;
     b.innerHTML='<div class="bt">'+esc(c.text)+'</div>'+
       (c.moved?'<span class="alert'+(RANK[c.moved.to]<RANK[c.moved.from]?' up':'')+'">moved</span>':'')+
       '<div class="bs"><span class="dot" style="background:'+COL[k]+'"></span>'+
@@ -778,28 +972,21 @@ function drawBoard(){
     B.appendChild(b);
   });
 }
-function select_(id){
-  SEL=id;drawBoard();
-  var c=cur();
-  $('#blank').hidden=!!c;
-  paint();
-  if(c&&!c.data&&!BUSY)runClaim(c);
-}
+function select_(id){SEL=id;drawBoard();paint();
+  var c=cur();if(c&&!c.data&&!BUSY)runClaim(c);}
 
-/* ===========================================================================
-   6. DOSSIER
-   =========================================================================== */
-var TAB='breaks',VIEW=null;
+/* ------------------------------------------------------------------ dossier */
+var TAB='breaks',VIEW=null,STAGE=true;
 function paint(){
   var c=cur();
-  if(!c){$('#dhead').hidden=true;$('#doc').hidden=true;$('#rail').innerHTML='';
-    $('#blank').hidden=false;return;}
-  $('#blank').hidden=true;$('#dhead').hidden=false;$('#doc').hidden=false;
-
+  if(!c){['#stage','#dhead','#doc'].forEach(function(s){$(s).hidden=true;});
+    $('#rail').innerHTML='';return;}
+  $('#dhead').hidden=false;$('#doc').hidden=false;
   if(!c.data){
+    $('#stage').hidden=true;
     $('#dhead').innerHTML='<p class="ct">'+esc(c.text)+'</p><div class="vrow">'+
       '<span class="badge unsettled"><span class="dot"></span>'+
-      (BUSY?'Sweeping the archives…':'Not checked yet')+'</span>'+
+      (BUSY?'Sweeping':'Not checked')+'</span>'+
       (BUSY?'':'<button class="gh recheck">Run the first check</button>')+'</div>';
     $('#rail').innerHTML='';
     $('#doc').innerHTML='<div class="sec"><div class="card"><div class="bd"><p class="muted">'+
@@ -808,67 +995,117 @@ function paint(){
         'Nothing on file for this claim yet.')+'</p></div></div></div>';
     wire();return;
   }
-
   var res=arr(c.data.results);
   VIEW={c:c,res:res,st:standingOf(res)};
-  VIEW.op=oppositions(VIEW.st);
-  VIEW.groups=harvest(res);
+  VIEW.op=oppositions(VIEW.st);VIEW.groups=harvest(res);
   VIEW.eras=byEra(res,arr(c.data.corpus));
   VIEW.gaps=gapsOf(c,VIEW.st,VIEW.groups,VIEW.eras);
-  VIEW.nb=neighbours(c);
-  VIEW.tj=trajectory(VIEW.st,VIEW.eras);
+  VIEW.nb=neighbours(c);VIEW.tj=trajectory(VIEW.st,VIEW.eras);
 
   var st=VIEW.st;
   var mv=c.moved?'<span class="moved'+(RANK[c.moved.to]<RANK[c.moved.from]?' up':'')+'">moved '+
     esc(c.moved.from)+' &rarr; '+esc(c.moved.to)+'</span>':'';
-  $('#dhead').innerHTML='<p class="ct">'+esc(c.text)+'</p>'+
-    '<div class="vrow"><span class="badge '+st.k+'"><span class="dot"></span>'+esc(st.label)+'</span>'+mv+
+  $('#dhead').innerHTML='<p class="ct">'+esc(c.text)+'</p><div class="vrow">'+
+    '<span class="badge '+st.k+'"><span class="dot"></span>'+esc(st.label)+'</span>'+mv+
     '<span class="when">checked '+esc(ago(c.checked))+'</span>'+
     '<button class="gh recheck">Re-check</button>'+
-    '<button class="gh" id="dropBtn">Stop tracking</button></div>'+
-    '<div class="kpis" id="kpis"></div>';
-  paintKpis();
+    '<button class="gh" id="dropBtn">Stop tracking</button></div><div class="kpis" id="kpis"></div>';
+  paintKpis();drawStage();
 
-  var risky=VIEW.groups.filter(function(g){return g.kind==='split'||
-    (g.kind==='allied'&&g.recs.length===1);}).length;
-  var tabs=[
-    ['breaks','Where it breaks',VIEW.op.direct||Math.min(VIEW.op.pairs.length,VIEW.op.total),0],
+  var tabs=[['breaks','Where it breaks',VIEW.op.direct||Math.min(VIEW.op.pairs.length,VIEW.op.total),0],
     ['network','Claim network',VIEW.groups.length,0],
     ['gaps','Gaps nobody checked',VIEW.gaps.length,VIEW.gaps.filter(function(g){return g.hot;}).length],
     ['next','Where it’s heading',null,0],
     ['hyp','Hypothesis space',arr(c.data.synthesis&&c.data.synthesis.positions).length,0],
-    ['time','Time evolution',null,0],
-    ['evidence','Evidence feed',res.length,0],
-    ['ask','Ask about it',arr(c.inq).length,0],
-    ['sweep','Provenance',arr(c.data.archives).length,0]];
+    ['time','Time evolution',null,0],['evidence','Evidence feed',res.length,0],
+    ['ask','Ask about it',arr(c.inq).length,0],['sweep','Provenance',arr(c.data.archives).length,0]];
   $('#rail').innerHTML='<div class="rh">Dossier</div>'+tabs.map(function(t){
     return '<button data-tab="'+t[0]+'"'+(TAB===t[0]?' class="on"':'')+'>'+
       (t[3]?'<span class="warn">'+esc(t[1])+'</span>':esc(t[1]))+
       (t[2]!=null?'<u>'+fmt(t[2])+'</u>':'')+'</button>';}).join('');
-  $$('#rail button').forEach(function(b){
-    b.addEventListener('click',function(){TAB=b.dataset.tab;paint();$('#panel').scrollTop=0;});});
+  $$('#rail button').forEach(function(b){b.addEventListener('click',function(){
+    TAB=b.dataset.tab;paint();$('#panel').scrollTop=0;});});
   renderTab();wire();
 }
 function paintKpis(){
   var K=$('#kpis');if(!K||!VIEW)return;
-  var c=VIEW.c,st=VIEW.st,op=VIEW.op,groups=VIEW.groups;
+  var c=VIEW.c,op=VIEW.op,g=VIEW.groups;
   var read=num(c.data.retrieved)||arr(c.data.corpus).length;
   var cell=function(v,k,hot){return '<div'+(hot?' class="hot"':'')+'><div class="v n">'+v+
     '</div><div class="k">'+esc(k)+'</div></div>';};
-  K.innerHTML=cell(fmt(read),'records retrieved')+
-    cell(fmt(VIEW.res.length),'read for stance on this claim')+
-    cell(fmt(groups.length),'claims harvested from the literature')+
-    cell(fmt(op.total),'support-vs-contest comparisons')+
-    cell(fmt(op.direct||0),'head-on measurement collisions',op.direct>0)+
-    cell(fmt(VIEW.gaps.filter(function(g){return g.hot;}).length),'gaps that put it at risk',
-      VIEW.gaps.some(function(g){return g.hot;}));
+  K.innerHTML=cell(fmt(read),'records')+cell(fmt(VIEW.res.length),'read for stance')+
+    cell(fmt(g.length),'claims harvested')+cell(fmt(op.total),'cross-checks')+
+    cell(fmt(op.direct||0),'head-on collisions',op.direct>0)+
+    cell(fmt(VIEW.gaps.filter(function(x){return x.hot;}).length),'gaps at risk',
+      VIEW.gaps.some(function(x){return x.hot;}));
+}
+/* THE APERTURE. Supporters on the left arc, contesters on the right, the claim
+   between them, and a line drawn for every pair that measures the same quantity
+   and disagrees. It is the dossier in one picture, and it is all real data. */
+function drawStage(){
+  var S=$('#stage');
+  if(!VIEW||!STAGE){S.hidden=true;return;}
+  S.hidden=false;
+  var st=VIEW.st,op=VIEW.op;
+  var W=Math.max(360,Math.round(S.clientWidth||900)),H=Math.min(258,Math.max(184,Math.round(W*0.23)));
+  var cx=W/2,cy=H/2+6,s='';
+  /* the two sides sit on facing arcs, opening away from the claim, so the
+     nodes spread instead of stacking into a column */
+  var place=function(list,dir){
+    var n=Math.min(list.length,28),out=[];
+    for(var i=0;i<n;i++){
+      var t=n===1?0.5:i/(n-1);
+      var a=-1.15+t*2.3;
+      /* minus cos, so each arc curves AROUND the claim rather than bulging
+         away from it — the two sides read as facing each other */
+      out.push({r:list[i],
+        x:cx+dir*(W*0.30-Math.cos(a)*W*0.105),
+        y:cy+Math.sin(a)*(H*0.40)});
+    }
+    return out;
+  };
+  var L=place(st.sup.slice().sort(function(a,b){return (num(b.relevance)||0)-(num(a.relevance)||0);}),-1);
+  var R=place(st.con.slice().sort(function(a,b){return (num(b.relevance)||0)-(num(a.relevance)||0);}),1);
+  var idx={};L.concat(R).forEach(function(p){idx[p.r.source_id]=p;});
+  /* every collision is a disagreement ABOUT the claim, so each one is drawn
+     bending through it rather than as a straight chord — which also stops
+     fourteen of them stacking into one flat band */
+  op.pairs.filter(function(p){return p.same;}).slice(0,16).forEach(function(p){
+    var a=idx[p.a.source_id],b=idx[p.b.source_id];
+    if(!a||!b)return;
+    s+='<path d="M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' Q '+cx.toFixed(1)+' '+
+      ((a.y+b.y)/2*0.35+cy*0.65).toFixed(1)+' '+b.x.toFixed(1)+' '+b.y.toFixed(1)+
+      '" fill="none" stroke="#ff6b5e" stroke-width=".9" opacity=".42"/>';
+  });
+  var node=function(p,col){
+    var rl=num(p.r.relevance)||0.4,rad=2.6+rl*4.4;
+    return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+col+
+      '" opacity="'+(0.45+rl*0.5)+'">'+
+      '<title>'+esc(String(p.r.title).slice(0,90))+(yearOf(p.r)?' · '+yearOf(p.r):'')+'</title></circle>'+
+      (p.r.material?'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(rad+3).toFixed(1)+
+        '" fill="none" stroke="'+col+'" stroke-width=".8" opacity=".55"/>':'');
+  };
+  L.forEach(function(p){s+=node(p,'#4fd0a0');});
+  R.forEach(function(p){s+=node(p,'#ff7a6e');});
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="rgba(79,184,245,.10)" stroke="#4fb8f5" stroke-width="1.3"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="#4fb8f5"/>';
+  s+='<text x="'+(cx-96)+'" y="18" text-anchor="end" font-family="ui-monospace,monospace" font-size="10" '+
+    'letter-spacing="1.6" fill="#4fd0a0">'+st.sup.length+' SUPPORT</text>';
+  s+='<text x="'+(cx+96)+'" y="18" font-family="ui-monospace,monospace" font-size="10" '+
+    'letter-spacing="1.6" fill="#ff7a6e">'+st.con.length+' CONTEST</text>';
+  S.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" '+
+    'aria-label="Supporting records left, contesting records right, lines drawn between pairs that '+
+    'measure the same quantity and disagree.">'+s+'</svg>'+
+    '<div class="cap">'+(op.direct?op.direct+' head-on collisions drawn':'no head-on collisions')+
+    ' · node size = relevance · ring = new measurement</div>'+
+    '<button class="tog" id="stageTog">Hide</button>';
+  $('#stageTog').addEventListener('click',function(){STAGE=false;drawStage();});
 }
 function wire(){
   $$('.recheck').forEach(function(b){b.disabled=BUSY;
     b.addEventListener('click',function(){var c=cur();if(c)runClaim(c);});});
   var d=$('#dropBtn');
-  if(d)d.addEventListener('click',function(){
-    var c=cur();if(!c)return;
+  if(d)d.addEventListener('click',function(){var c=cur();if(!c)return;
     DB.claims=DB.claims.filter(function(x){return x.id!==c.id;});
     SEL=null;save();drawBoard();paint();});
   $$('#doc .more').forEach(function(b){b.addEventListener('click',function(){
@@ -877,287 +1114,225 @@ function wire(){
     EVF=b.dataset.ev;renderTab();});});
   $$('#doc [data-goto]').forEach(function(b){b.addEventListener('click',function(){
     TAB=b.dataset.goto;paint();$('#panel').scrollTop=0;});});
-  var ab=$('#askBtn');
-  if(ab){ab.disabled=BUSY;ab.addEventListener('click',askIt);}
-  var ai=$('#askIn');
-  if(ai)ai.addEventListener('keydown',function(e){if(e.key==='Enter')askIt();});
+  var ab=$('#askBtn');if(ab){ab.disabled=BUSY;ab.addEventListener('click',askIt);}
+  var ai=$('#askIn');if(ai)ai.addEventListener('keydown',function(e){if(e.key==='Enter')askIt();});
 }
-function card(title,note,body){
-  return '<div class="card"><div class="hd"><h3>'+esc(title)+'</h3>'+
-    (note?'<span>'+esc(note)+'</span>':'')+'</div><div class="bd">'+body+'</div></div>';
-}
+function card(t,note,body){
+  return '<div class="card"><div class="hd"><h3>'+esc(t)+'</h3>'+
+    (note?'<span>'+esc(note)+'</span>':'')+'</div><div class="bd">'+body+'</div></div>';}
 function renderTab(){
   var V=VIEW;if(!V)return;
   var h=TAB==='breaks'?tBreaks(V):TAB==='network'?tNetwork(V):TAB==='gaps'?tGaps(V):
-        TAB==='next'?tNext(V):TAB==='hyp'?tHyp(V):TAB==='time'?tTime(V):
-        TAB==='evidence'?tEvidence(V):TAB==='ask'?tAsk(V):tSweep(V);
+    TAB==='next'?tNext(V):TAB==='hyp'?tHyp(V):TAB==='time'?tTime(V):TAB==='evidence'?tEvidence(V):
+    TAB==='ask'?tAsk(V):tSweep(V);
   $('#doc').innerHTML='<div class="sec">'+h+'</div>';
   if(TAB==='time')drawEra();
   wire();
 }
-
-/* ---------------------------------------------------------- where it breaks */
 function tBreaks(V){
   var st=V.st,op=V.op;
   if(!st.sup.length||!st.con.length)
     return card('Nothing collides yet',null,'<p class="muted">'+(st.con.length?
-      'Every record read either contests this claim or does not bear on it — there is nothing on '+
-      'the supporting side to hold them against.':
+      'Every record read either contests this claim or does not bear on it — nothing on the '+
+      'supporting side to hold them against.':
       'No record in the perimeter contests this claim. That is not the same as the claim being '+
-      'safe: it means nothing retrieved argues the other way.')+'</p>'+
-      '<p class="small">Supporting '+st.sup.length+' · contesting '+st.con.length+' · neither '+
+      'safe: it means nothing retrieved argues the other way.')+'</p><p class="small">Supporting '+
+      st.sup.length+' · contesting '+st.con.length+' · neither '+
       (V.res.length-st.sup.length-st.con.length)+'</p>');
   var show=op.pairs.slice(0,8),rest=op.pairs.slice(8,40);
-  return card('The arithmetic',null,
-    '<p class="lede">Holding '+pl(st.sup.length,'supporting record','supporting records')+
-    ' against '+pl(st.con.length,'contesting record','contesting records')+' is <b>'+fmt(op.total)+
-    '</b> comparisons. '+(op.direct?'<b>'+fmt(op.direct)+'</b> of them put a measurement of the same '+
-    'quantity on both sides — those cannot both be right.':
+  return card('The arithmetic',null,'<p class="lede">Holding '+
+    pl(st.sup.length,'supporting record','supporting records')+' against '+
+    pl(st.con.length,'contesting record','contesting records')+' is <b>'+fmt(op.total)+
+    '</b> comparisons. '+(op.direct?'<b>'+fmt(op.direct)+'</b> of them put a measurement of the '+
+    'same quantity on both sides — those cannot both be right.':
     'None measure the same quantity, so these are differences of interpretation rather than head-on '+
     'contradictions.')+'</p><p class="small">Ranked by the weight the gate put on each side. '+
-    'Showing '+show.length+'.</p>')+
-    show.map(oppCard).join('')+
+    'Showing '+show.length+'.</p>')+show.map(oppCard).join('')+
     (rest.length?'<div id="moreOpp" style="display:none">'+rest.map(oppCard).join('')+'</div>'+
       '<button class="more" data-target="moreOpp">Show '+rest.length+' more oppositions</button>':'');
 }
 function oppCard(p){
-  var side=function(r,m,kind){
-    var y=yearOf(r);
+  var side=function(r,m,kind){var y=yearOf(r);
     return '<div><div class="sk">'+(kind==='s'?'Supports the claim':'Contests it')+'</div>'+
       '<p class="ot">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title)+
-        '</a>':esc(r.title))+'</p>'+
-      '<p class="om">'+(y||'year unknown')+(r.venue?' · '+esc(String(r.venue).slice(0,42)):'')+
-        (num(r.citations)!=null?' · '+fmt(num(r.citations))+' cites':'')+'</p>'+
+        '</a>':esc(r.title))+'</p><p class="om">'+(y||'year unknown')+
+      (r.venue?' · '+esc(String(r.venue).slice(0,40)):'')+
+      (num(r.citations)!=null?' · '+fmt(num(r.citations))+' cites':'')+'</p>'+
       (txt(r.position)?'<p class="op"><b>Backs:</b> '+esc(r.position)+'</p>':'')+
       (txt(r.why)?'<p class="op">'+esc(r.why)+'</p>':'')+
       (m?'<span class="meas">'+esc([m.parameter,m.value].filter(Boolean).join(' = '))+
         (m.sigma?' ± '+esc(m.sigma):'')+'</span>':'')+'</div>';};
-  return '<div class="opp"><div class="oh">'+
-    (p.same?'Both report <b>'+esc(p.ma.parameter)+'</b> and disagree<span class="flag">direct contradiction</span>'
-      :'Opposite positions on the claim')+'</div>'+
-    '<div class="og">'+side(p.a,p.ma,'s')+side(p.b,p.mb,'c')+'</div></div>';
+  return '<div class="opp"><div class="oh">'+(p.same?
+    'Both report <b>'+esc(p.ma.parameter)+'</b> and disagree<span class="flag">direct contradiction</span>':
+    'Opposite positions on the claim')+'</div><div class="og">'+
+    side(p.a,p.ma,'s')+side(p.b,p.mb,'c')+'</div></div>';
 }
-
-/* ----------------------------------------------------------- claim network */
 function tNetwork(V){
   var G=V.groups;
-  if(!G.length)return card('No positions harvested',null,
-    '<p class="muted">The gate did not name a position for any record in this perimeter, so there '+
-    'is nothing to cross-check against yet. Re-check the claim.</p>');
+  if(!G.length)return card('No positions harvested',null,'<p class="muted">The gate did not name a '+
+    'position for any record in this perimeter. Re-check the claim.</p>');
   var allied=G.filter(function(g){return g.kind==='allied';});
   var rival=G.filter(function(g){return g.kind==='rival';});
   var split=G.filter(function(g){return g.kind==='split';});
   var solo=allied.filter(function(g){return g.recs.length===1;});
   var h=card('Cross-checked against '+pl(G.length,'claim','claims')+' from the literature',null,
-    '<p class="lede">Every record names the claim <em>it</em> backs. Clustering those gives '+
-    '<b>'+fmt(G.length)+'</b> distinct positions in this perimeter, none of them typed by anyone. '+
-    'Your claim was held against all of them.</p>'+
-    '<p class="small" style="margin:0">'+pl(allied.length,'travels with it','travel with it')+
-    ' · '+pl(rival.length,'stands against it','stand against it')+' · '+
+    '<p class="lede">Every record names the claim <em>it</em> backs. Clustering those gives <b>'+
+    fmt(G.length)+'</b> distinct positions in this perimeter, none typed by anyone. Your claim was '+
+    'held against all of them.</p><p class="small" style="margin:0">'+
+    pl(allied.length,'travels with it','travel with it')+' · '+
+    pl(rival.length,'stands against it','stand against it')+' · '+
     pl(split.length,'appears on both sides','appear on both sides')+
     (solo.length?' · <b style="color:var(--con)">'+pl(solo.length,'rests on one paper','rest on one paper')+
       '</b>':'')+'</p>');
-
-  if(split.length)
-    h+=card('Argued on both sides','the claim’s own literature disagreeing with itself',
-      split.slice(0,6).map(function(g){return posRow(g,'solo',
-        'Papers backing this position <b>support</b> the claim '+g.sup+' time'+(g.sup===1?'':'s')+
-        ' and <b>contest</b> it '+g.con+'. The position is not doing the work it looks like it is doing.');
-      }).join(''));
-
-  if(solo.length)
-    h+=card('Single points of failure','a position held up by exactly one paper',
-      solo.slice(0,6).map(function(g){return posRow(g,'risk',
-        'One record, '+(g.newest||'year unknown')+'. If it is wrong, everything leaning on it goes.');
-      }).join(''));
-
+  if(split.length)h+=card('Argued on both sides','the claim’s own literature disagreeing with itself',
+    split.slice(0,6).map(function(g){return posRow(g,'solo','Papers backing this position <b>support</b> '+
+      'the claim '+g.sup+' time'+(g.sup===1?'':'s')+' and <b>contest</b> it '+g.con+
+      '. It is not doing the work it looks like it is doing.');}).join(''));
+  if(solo.length)h+=card('Single points of failure','a position held up by exactly one paper',
+    solo.slice(0,6).map(function(g){return posRow(g,'risk','One record, '+(g.newest||'year unknown')+
+      '. If it is wrong, everything leaning on it goes.');}).join(''));
   var load=allied.filter(function(g){return g.recs.length>=3;});
-  if(load.length)
-    h+=card('What the claim leans on',pl(load.length,'load-bearing position','load-bearing positions'),
-      load.slice(0,8).map(function(g){return posRow(g,'',null);}).join(''));
-
-  if(rival.length)
-    h+=card('What stands against it',pl(rival.length,'rival position','rival positions'),
-      rival.slice(0,8).map(function(g){return posRow(g,'',null);}).join(''));
-
-  if(V.nb.length)
-    h+=card('Your other tracked claims that share this evidence',null,
-      '<p class="muted">These claims are built on some of the same records. If this one breaks, '+
-      'they are the next to look at.</p>'+
-      V.nb.slice(0,6).map(function(x){
-        var k=x.c.state||'unsettled';
-        return '<div class="pos"><p class="pt">'+esc(x.c.text)+'</p><div class="pm">'+
-          '<span class="chip" style="color:'+COL[k]+'">'+esc(k)+'</span>'+
-          '<span class="chip a">'+pl(x.shared,'shared record','shared records')+'</span>'+
-          '<span class="chip">'+x.agree+' of '+x.shared+' take the same side</span></div></div>';
-      }).join(''));
+  if(load.length)h+=card('What the claim leans on',
+    pl(load.length,'load-bearing position','load-bearing positions'),
+    load.slice(0,8).map(function(g){return posRow(g,'',null);}).join(''));
+  if(rival.length)h+=card('What stands against it',pl(rival.length,'rival position','rival positions'),
+    rival.slice(0,8).map(function(g){return posRow(g,'',null);}).join(''));
+  if(V.nb.length)h+=card('Your other tracked claims that share this evidence',null,
+    '<p class="muted">Built on some of the same records. If this one breaks, they are next to look at.</p>'+
+    V.nb.slice(0,6).map(function(x){var k=x.c.state||'unsettled';
+      return '<div class="pos"><p class="pt">'+esc(x.c.text)+'</p><div class="pm">'+
+        '<span class="chip" style="color:'+COL[k]+'">'+esc(k)+'</span>'+
+        '<span class="chip a">'+pl(x.shared,'shared record','shared records')+'</span>'+
+        '<span class="chip">'+x.agree+' of '+x.shared+' take the same side</span></div></div>';
+    }).join(''));
   return h;
 }
 function posRow(g,cls,why){
   return '<div class="pos'+(cls?' '+cls:'')+'"><p class="pt">“'+esc(g.text)+'”</p><div class="pm">'+
-    (g.sup?'<span class="chip s">'+g.sup+' support the claim</span>':'')+
-    (g.con?'<span class="chip c">'+g.con+' contest it</span>':'')+
+    (g.sup?'<span class="chip s">'+g.sup+' support</span>':'')+
+    (g.con?'<span class="chip c">'+g.con+' contest</span>':'')+
     '<span class="chip">'+pl(g.recs.length,'paper','papers')+'</span>'+
     (g.cites?'<span class="chip">'+fmt(g.cites)+' cites</span>':'')+
     (g.oldest!=null?'<span class="chip">'+g.oldest+(g.newest!==g.oldest?'–'+g.newest:'')+'</span>':'')+
-    (g.material?'<span class="chip m">'+g.material+' with a measurement</span>':'')+
-    '</div>'+(why?'<p class="why">'+why+'</p>':'')+'</div>';
+    (g.material?'<span class="chip m">'+g.material+' measured</span>':'')+'</div>'+
+    (why?'<p class="why">'+why+'</p>':'')+'</div>';
 }
-
-/* ------------------------------------------------------------------- gaps */
 function tGaps(V){
-  if(!V.gaps.length)return card('No structural gaps found',null,
-    '<p class="muted">Nothing in the perimeter is held up by a single paper, nothing is argued on '+
-    'both sides, no era window came back empty, and the supporting side has recent work. That is '+
-    'a healthier record than most claims have.</p>');
+  if(!V.gaps.length)return card('No structural gaps found',null,'<p class="muted">Nothing is held up '+
+    'by a single paper, nothing is argued on both sides, no era window came back empty, and the '+
+    'supporting side has recent work. That is a healthier record than most claims have.</p>');
   return card('What nobody has checked',pl(V.gaps.length,'gap','gaps'),
-    '<p class="muted" style="margin-bottom:12px">Each of these is a hole the arithmetic can see '+
-    'because it holds the whole perimeter at once. A reader working through the same papers one at '+
-    'a time would not.</p>'+
-    V.gaps.map(function(g){
-      return '<div class="gap'+(g.hot?' hot':'')+'"><div class="gi">'+g.i+'</div><div>'+
-        '<h4>'+g.h+'</h4><p>'+g.p+'</p></div></div>';}).join(''));
+    '<p class="muted" style="margin-bottom:11px">Each of these is a hole the arithmetic can see '+
+    'because it holds the whole perimeter at once. A reader going paper by paper would not.</p>'+
+    V.gaps.map(function(g){return '<div class="gap'+(g.hot?' hot':'')+'"><div class="gi">'+g.i+
+      '</div><div><h4>'+g.h+'</h4><p>'+g.p+'</p></div></div>';}).join(''));
 }
-
-/* --------------------------------------------------------- where it's going */
 function tNext(V){
   var t=V.tj,S=V.c.data.synthesis||{};
   var word={worsening:'losing ground',recovering:'recovering',flat:'holding steady'}[t.dir];
-  var h=card('Direction of travel',null,
-    '<p class="lede">On the last three era windows this claim is <b>'+word+'</b>.'+
-    (t.thenShare!=null&&t.nowShare!=null?
-      ' Contesting work was '+Math.round(t.thenShare*100)+'% of the scored record before that '+
-      'window and is '+Math.round(t.nowShare*100)+'% inside it.':'')+'</p>'+
-    (t.lastSup&&t.lastCon?'<p class="muted">Most recent supporting record: <b>'+t.lastSup+
-      '</b>. Most recent contesting record: <b>'+t.lastCon+'</b>.'+
-      (t.lastCon>t.lastSup?' The last word on this claim currently belongs to the other side.':'')+
-      '</p>':'')+
-    '<div class="meter"><i style="background:var(--sup);width:'+
-      Math.round((1-(t.nowShare||0))*100)+'%"></i><i style="background:var(--con);width:'+
-      Math.round((t.nowShare||0)*100)+'%"></i></div>'+
-    '<p class="small" style="margin:0">Support / contest split inside the most recent three windows.</p>');
-
-  if(t.recent.length)
-    h+=card('The five most recent records that take a side',null,
-      t.recent.map(evRow).join(''));
-
-  if(txt(S.nextTest))
-    h+=card('What would settle it',null,'<p class="lede">'+esc(S.nextTest)+'</p>');
-  if(arr(S.gaps).length)
-    h+=card('What the synthesis says is missing',null,
-      '<ul class="pl">'+arr(S.gaps).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>');
+  var h=card('Direction of travel',null,'<p class="lede">On the last three era windows this claim is '+
+    '<b>'+word+'</b>.'+(t.thenShare!=null&&t.nowShare!=null?' Contesting work was '+
+    Math.round(t.thenShare*100)+'% of the scored record before that window and is '+
+    Math.round(t.nowShare*100)+'% inside it.':'')+'</p>'+
+    (t.lastSup&&t.lastCon?'<p class="muted">Most recent supporting record <b>'+t.lastSup+
+      '</b>; most recent contesting record <b>'+t.lastCon+'</b>.'+
+      (t.lastCon>t.lastSup?' The last word currently belongs to the other side.':'')+'</p>':'')+
+    '<div class="meter"><i style="background:var(--sup);width:'+Math.round((1-(t.nowShare||0))*100)+
+    '%"></i><i style="background:var(--con);width:'+Math.round((t.nowShare||0)*100)+'%"></i></div>'+
+    '<p class="small" style="margin:0">Split inside the three most recent windows.</p>');
+  if(t.recent.length)h+=card('The five most recent records that take a side',null,
+    t.recent.map(function(r){return evRow(r);}).join(''));
+  if(txt(S.nextTest))h+=card('What would settle it',null,'<p class="lede">'+esc(S.nextTest)+'</p>');
+  if(arr(S.gaps).length)h+=card('What the synthesis says is missing',null,'<ul class="pl">'+
+    arr(S.gaps).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>');
   return h;
 }
-
-/* -------------------------------------------------------- hypothesis space */
 function tHyp(V){
-  var S=V.c.data.synthesis||{},P=arr(S.positions);
-  var h='';
+  var S=V.c.data.synthesis||{},P=arr(S.positions),h='';
   if(P.length){
     var tot=P.reduce(function(n,p){return n+Math.max(0,num(p.support)||0);},0)||1;
+    var cols=['var(--acc)','var(--mix)','var(--sup)','var(--none)'];
     h+=card('Competing explanations',pl(P.length,'in play','in play'),
-      '<div class="meter" style="height:14px;margin-bottom:14px">'+P.map(function(p,i){
-        var cols=[ 'var(--acc)','var(--mix)','var(--sup)','var(--none)'];
-        return '<i style="background:'+cols[i%4]+';width:'+
-          (100*Math.max(0,num(p.support)||0)/tot)+'%" title="'+esc(p.n)+'"></i>';}).join('')+'</div>'+
-      P.map(function(p){
-        return '<div class="hyp"><div class="ht"><h4>'+esc(p.n)+'</h4>'+
-          '<span class="w">'+(num(p.support)!=null?Math.round(num(p.support)):'—')+'</span></div>'+
-          (txt(p.d)?'<p class="muted" style="margin:5px 0 0;font-size:14px">'+esc(p.d)+'</p>':'')+
+      '<div class="meter" style="height:13px;margin-bottom:13px">'+P.map(function(p,i){
+        return '<i style="background:'+cols[i%4]+';width:'+(100*Math.max(0,num(p.support)||0)/tot)+
+          '%"></i>';}).join('')+'</div>'+P.map(function(p){
+        return '<div class="hyp"><div class="ht"><h4>'+esc(p.n)+'</h4><span class="w">'+
+          (num(p.support)!=null?Math.round(num(p.support)):'—')+'</span></div>'+
+          (txt(p.d)?'<p class="muted" style="margin:4px 0 0;font-size:13.6px">'+esc(p.d)+'</p>':'')+
           '<dl>'+(txt(p.ex)?'<dt>Accounts for</dt><dd>'+esc(p.ex)+'</dd>':'')+
           (txt(p.fx)?'<dt>Conflicts with</dt><dd>'+esc(p.fx)+'</dd>':'')+
           (txt(p.test)?'<dt>Settled by</dt><dd>'+esc(p.test)+'</dd>':'')+'</dl></div>';}).join(''));
   }
   var CO=arr(S.contested);
-  if(CO.length)
-    h+=card('Open disagreements',pl(CO.length,'point unresolved','points unresolved'),
-      CO.map(function(x,i){
-        return '<p class="lede" style="margin-bottom:7px">'+esc(x.point)+'</p>'+
-          '<div class="opp" style="margin-bottom:'+(i===CO.length-1?'0':'13px')+'"><div class="og">'+
-          '<div><div class="sk">One side</div><p class="op">'+esc(x.a)+'</p></div>'+
-          '<div><div class="sk">The other</div><p class="op">'+esc(x.b)+'</p></div></div></div>';
-      }).join(''));
+  if(CO.length)h+=card('Open disagreements',pl(CO.length,'point unresolved','points unresolved'),
+    CO.map(function(x,i){return '<p class="lede" style="margin-bottom:6px">'+esc(x.point)+'</p>'+
+      '<div class="opp" style="margin-bottom:'+(i===CO.length-1?'0':'12px')+'"><div class="og">'+
+      '<div><div class="sk">One side</div><p class="op">'+esc(x.a)+'</p></div>'+
+      '<div><div class="sk">The other</div><p class="op">'+esc(x.b)+'</p></div></div></div>';}).join(''));
   var Q=arr(S.quantities);
-  if(Q.length)
-    h+=card('The numbers it rests on',null,'<div class="wrapx"><table class="tbl"><thead><tr>'+
-      '<th>Quantity</th><th>Value or bound</th><th>Source</th></tr></thead><tbody>'+
-      Q.map(function(q){return '<tr><td><b>'+esc(q.name||q.sym||'')+'</b></td>'+
-        '<td class="n">'+esc(q.value||'')+'</td><td>'+esc(q.src||'')+'</td></tr>';}).join('')+
-      '</tbody></table></div>');
-  return h||card('No hypothesis space returned',null,
-    '<p class="muted">The synthesis step did not name competing explanations for this claim. '+
-    'The harvested positions in <button class="gh sm" data-goto="network">Claim network</button> '+
-    'are computed straight from the records and are unaffected.</p>');
+  if(Q.length)h+=card('The numbers it rests on',null,'<div class="wrapx"><table class="tbl"><thead>'+
+    '<tr><th>Quantity</th><th>Value or bound</th><th>Source</th></tr></thead><tbody>'+
+    Q.map(function(q){return '<tr><td><b>'+esc(q.name||q.sym||'')+'</b></td><td class="n">'+
+      esc(q.value||'')+'</td><td>'+esc(q.src||'')+'</td></tr>';}).join('')+'</tbody></table></div>');
+  return h||card('No hypothesis space returned',null,'<p class="muted">The synthesis did not name '+
+    'competing explanations. The harvested positions in <button class="gh" data-goto="network">'+
+    'Claim network</button> are computed from the records and are unaffected.</p>');
 }
-
-/* -------------------------------------------------------- time evolution -- */
 function tTime(V){
-  var S=V.c.data.synthesis||{};
-  var firstCon=null;
-  for(var i=0;i<V.eras.length;i++)if(V.eras[i].con>0){firstCon=V.eras[i];break;}
+  var S=V.c.data.synthesis||{},first=null;
+  for(var i=0;i<V.eras.length;i++)if(V.eras[i].con>0){first=V.eras[i];break;}
   var h=card('When it started taking fire','supporting above the line, contesting below',
-    '<div class="chart" id="eraChart"></div>'+
-    '<p class="small" style="margin-top:10px">'+(firstCon?
-      'The first record contesting this claim lands in the <b>'+esc(firstCon.name)+'</b> window.':
+    '<div class="chart" id="eraChart"></div><p class="small" style="margin-top:9px">'+
+    (first?'The first record contesting this claim lands in the <b>'+esc(first.name)+'</b> window.':
       'No window contains a contesting record.')+'</p>');
-  if(txt(S.arc))
-    h+=card('How the question got here',null,'<p class="lede">'+esc(S.arc)+'</p>');
-  if(txt(S.state))
-    h+=card('Where it stands now',null,'<p class="lede">'+
-      esc(String(S.state).replace(/\n/g,' '))+'</p>');
+  if(txt(S.arc))h+=card('How the question got here',null,'<p class="lede">'+esc(S.arc)+'</p>');
+  if(txt(S.state))h+=card('Where it stands now',null,'<p class="lede">'+
+    esc(String(S.state).replace(/\n/g,' '))+'</p>');
   var F=arr(S.findings);
-  if(F.length)
-    h+=card('What the record establishes',pl(F.length,'finding','findings'),
-      F.map(function(f,i){
-        return '<div class="hyp"><div class="ht"><h4>'+esc(f.t)+'</h4>'+
-          '<span class="w" style="color:var(--dim);font-size:12px">'+esc(txt(f.conf)||'')+'</span></div>'+
-          (txt(f.why)?'<p class="muted" style="margin:5px 0 0;font-size:14px">'+esc(f.why)+'</p>':'')+
-          '</div>';}).join(''));
+  if(F.length)h+=card('What the record establishes',pl(F.length,'finding','findings'),
+    F.map(function(f){return '<div class="hyp"><div class="ht"><h4>'+esc(f.t)+'</h4>'+
+      '<span class="w" style="color:var(--dim);font-size:11px">'+esc(txt(f.conf)||'')+'</span></div>'+
+      (txt(f.why)?'<p class="muted" style="margin:4px 0 0;font-size:13.6px">'+esc(f.why)+'</p>':'')+
+      '</div>';}).join(''));
   return h;
 }
 function drawEra(){
   var host=$('#eraChart');if(!host||!VIEW)return;
-  var e=VIEW.eras,W=Math.max(300,Math.round(host.clientWidth||620)),H=150;
-  var m={l:10,r:10,t:16,b:26},iw=W-m.l-m.r,half=(H-m.t-m.b)/2,mid=m.t+half;
+  var e=VIEW.eras,W=Math.max(300,Math.round(host.clientWidth||620)),H=148;
+  var m={l:10,r:10,t:15,b:25},iw=W-m.l-m.r,half=(H-m.t-m.b)/2,mid=m.t+half;
   var max=Math.max(1,Math.max.apply(null,e.map(function(x){return Math.max(x.sup,x.con);})));
-  var bw=iw/e.length,s='';
-  s+='<line x1="'+m.l+'" y1="'+mid+'" x2="'+(W-m.r)+'" y2="'+mid+'" stroke="#aecae6"/>';
+  var bw=iw/e.length,s='<line x1="'+m.l+'" y1="'+mid+'" x2="'+(W-m.r)+'" y2="'+mid+'" stroke="#a8c5e3"/>';
   e.forEach(function(x,i){
     var px=m.l+i*bw,hs=half*(x.sup/max),hc=half*(x.con/max);
     if(x.any===0)s+='<rect x="'+(px+1)+'" y="'+m.t+'" width="'+(bw-2)+'" height="'+(half*2)+
-      '" fill="#d8e8f7"><title>'+x.name+': nothing retrieved</title></rect>';
+      '" fill="#e3ecf6"><title>'+x.name+': nothing retrieved</title></rect>';
     if(hs>0)s+='<rect x="'+(px+2)+'" y="'+(mid-hs)+'" width="'+(bw-4)+'" height="'+hs+
-      '" fill="#15794f"><title>'+x.name+': '+x.sup+' supporting</title></rect>';
+      '" fill="#0f7a5f"><title>'+x.name+': '+x.sup+' supporting</title></rect>';
     if(hc>0)s+='<rect x="'+(px+2)+'" y="'+mid+'" width="'+(bw-4)+'" height="'+hc+
-      '" fill="#c02d2d"><title>'+x.name+': '+x.con+' contesting</title></rect>';
-    s+='<text x="'+(px+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10.5" fill="#5f809f">'+
-      x.name+'</text>';
-  });
-  s+='<text x="'+m.l+'" y="11" font-size="10.5" fill="#15794f">supports</text>';
-  s+='<text x="'+(W-m.r)+'" y="11" text-anchor="end" font-size="10.5" fill="#c02d2d">contests</text>';
+      '" fill="#bf3025"><title>'+x.name+': '+x.con+' contesting</title></rect>';
+    s+='<text x="'+(px+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="10" fill="#5f7d9c" '+
+      'font-family="ui-monospace,monospace">'+x.name+'</text>';});
+  s+='<text x="'+m.l+'" y="10" font-size="10" fill="#0f7a5f" font-family="ui-monospace,monospace">supports</text>';
+  s+='<text x="'+(W-m.r)+'" y="10" text-anchor="end" font-size="10" fill="#bf3025" '+
+    'font-family="ui-monospace,monospace">contests</text>';
   host.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img">'+s+'</svg>';
 }
-
-/* ------------------------------------------------------------- evidence -- */
 var EVF='contests';
 function tEvidence(V){
   var res=V.res,st=V.st;
   var neu=res.filter(function(r){var s=stanceOf(r);return s!=='supports'&&s!=='contests';});
-  var sets={contests:st.con,supports:st.sup,neither:neu,all:res,
-    live:FEED.length?FEED:res};
+  var sets={contests:st.con,supports:st.sup,neither:neu,all:res,live:FEED.length?FEED:res};
   var pick=(sets[EVF]||res).slice();
   if(EVF!=='live')pick.sort(function(a,b){return (num(b.relevance)||0)-(num(a.relevance)||0);});
   var first=pick.slice(0,25),rest=pick.slice(25,220);
-  var f=function(k,l,n){return '<button data-ev="'+k+'"'+(EVF===k?' class="on"':'')+'>'+l+' '+n+
-    '</button>';};
+  var f=function(k,l,n){return '<button data-ev="'+k+'"'+(EVF===k?' class="on"':'')+'>'+l+' '+n+'</button>';};
   return '<div class="filters">'+f('contests','Contesting',st.con.length)+
     f('supports','Supporting',st.sup.length)+f('neither','Neither',neu.length)+
-    f('all','Everything scored',res.length)+
-    (FEED.length?f('live','As it arrived',FEED.length):'')+'</div>'+
+    f('all','All scored',res.length)+(FEED.length?f('live','As it arrived',FEED.length):'')+'</div>'+
     card(BUSY?'Arriving now':'The record',BUSY?'the sweep is still running':null,
       pick.length?first.map(function(r,i){return evRow(r,BUSY&&EVF==='live'&&i<6);}).join('')+
-        (rest.length?'<div id="moreEv" style="display:none">'+rest.map(function(r){return evRow(r);}).join('')+
-          '</div><button class="more" data-target="moreEv">Show '+rest.length+' more</button>':'')
+      (rest.length?'<div id="moreEv" style="display:none">'+rest.map(function(r){return evRow(r);}).join('')+
+        '</div><button class="more" data-target="moreEv">Show '+rest.length+' more</button>':'')
       :'<p class="muted" style="margin:0">Nothing in this group.</p>');
 }
 function evRow(r,fresh){
@@ -1165,114 +1340,96 @@ function evRow(r,fresh){
   var col=s==='contests'?'var(--con)':s==='supports'?'var(--sup)':'var(--line2)';
   var m=measOf(r),b=[];
   if(r.source)b.push(esc(r.source));
-  if(r.venue)b.push(esc(String(r.venue).slice(0,40)));
+  if(r.venue)b.push(esc(String(r.venue).slice(0,38)));
   if(num(r.citations)!=null)b.push(fmt(num(r.citations))+' cites');
   if(r.role)b.push(esc(r.role));
-  if(num(r.relevance)!=null)b.push('relevance '+num(r.relevance).toFixed(2));
+  if(num(r.relevance)!=null)b.push('rel '+num(r.relevance).toFixed(2));
   if(r.material)b.push('new measurement');
   return '<div class="ev'+(fresh?' fresh':'')+'"><div class="bar" style="background:'+col+'"></div>'+
-    '<div class="yr n">'+(yearOf(r)||'—')+'</div><div>'+
-    '<p class="t">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title)+
-      '</a>':esc(r.title))+'</p>'+
-    '<div class="m">'+b.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>'+
+    '<div class="yr n">'+(yearOf(r)||'—')+'</div><div><p class="t">'+
+    (r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title)+'</a>':esc(r.title))+
+    '</p><div class="m">'+b.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>'+
     (txt(r.position)?'<p class="w"><b>Backs:</b> '+esc(r.position)+'</p>':'')+
     (txt(r.why)?'<p class="w">'+esc(r.why)+'</p>':'')+
     (m?'<span class="meas">'+esc([m.parameter,m.value].filter(Boolean).join(' = '))+
       (m.sigma?' ± '+esc(m.sigma):'')+'</span>':'')+'</div></div>';
 }
-
-/* ------------------------------------------------------------------ ask --- */
 function tAsk(V){
   var c=V.c;
-  return card('Ask anything about this claim',null,
-    '<p class="muted">A question here runs its own sweep of the archives and comes back with what '+
-    'the literature says. It is the same machinery as the claim check, pointed at your question.</p>'+
-    '<div class="ask"><input id="askIn" placeholder="e.g. what would a null result at 13.6 TeV mean for this?">'+
-    '<button class="pri askbtn" id="askBtn" style="flex:none;width:auto">Ask</button></div>')+
+  return card('Ask anything about this claim',null,'<p class="muted">A question here runs its own '+
+    'sweep and comes back with what the literature says — the same machinery, pointed at your '+
+    'question.</p><div class="ask"><input id="askIn" placeholder="e.g. what would a null result at '+
+    '13.6 TeV mean for this?"><button class="pri askbtn" id="askBtn" style="flex:none;width:auto">'+
+    'Ask</button></div>')+
     (arr(c.inq).length?arr(c.inq).slice().reverse().map(function(q){
       return '<div class="inq"><p class="q">'+esc(q.q)+'</p><p class="a">'+esc(q.a)+'</p>'+
-        (q.next?'<p class="a" style="margin-top:8px"><b>Decisive next step:</b> '+esc(q.next)+'</p>':'')+
-        '<p class="small" style="margin:8px 0 0">'+esc(ago(q.at))+' · '+
+        (q.next?'<p class="a" style="margin-top:7px"><b>Decisive next step:</b> '+esc(q.next)+'</p>':'')+
+        '<p class="small" style="margin:7px 0 0">'+esc(ago(q.at))+' · '+
         pl(q.n||0,'record read','records read')+'</p></div>';}).join(''):'');
 }
 function askIt(){
   var c=cur(),i=$('#askIn');if(!c||!i||BUSY)return;
   var q=txt(i.value);if(q.length<5)return;
-  i.value='';setBusy(true);clearErr();
-  status('go','Working on: '+q.slice(0,50));prog(0.4);
+  i.value='';setBusy(true);clearErr();status('go','Working on: '+q.slice(0,46));prog(.4);
   post({question:q,limit:24,slice:0,slices:1},130000)
-  .then(function(j){
-    var S=j.synthesis||{};
-    var a=txt(S.state)||txt(S.arc)||'The sweep returned records but no written answer.';
+  .then(function(j){var S=j.synthesis||{};
     c.inq=arr(c.inq);
-    c.inq.push({q:q,a:a,next:txt(S.nextTest),at:Date.now(),n:arr(j.results).length||j.retrieved||0});
+    c.inq.push({q:q,a:txt(S.state)||txt(S.arc)||'The sweep returned records but no written answer.',
+      next:txt(S.nextTest),at:Date.now(),n:arr(j.results).length||j.retrieved||0});
     if(c.inq.length>12)c.inq=c.inq.slice(-12);
     save();status('ok','Answered');
-    if(SEL===c.id){TAB='ask';paint();}
-  })
+    if(SEL===c.id){TAB='ask';paint();}})
   .catch(function(e){status('bad','That did not work');showErr(netDiag(e));})
   .then(function(){setBusy(false);prog(0);});
 }
-
-/* ------------------------------------------------------------- provenance - */
 function tSweep(V){
   var A=arr(V.c.data.archives),bad=A.filter(function(a){return a.error;});
   var got=A.reduce(function(n,a){return n+(num(a.got)||0);},0);
   return card('How this was gathered',pl(A.length,'pass','passes')+' · '+fmt(got)+' hits'+
     (bad.length?' · '+bad.length+' failed':''),
-    '<p class="muted">The perimeter is sampled once per era window rather than once overall, which '+
-    'is why a founding paper comes back next to this year’s preprint. A pass that failed is listed '+
-    'as a failed pass — a perimeter that quietly shrinks is worse than one that says it shrank.</p>'+
-    '<div class="wrapx"><table class="tbl"><thead><tr><th>Pass</th><th>Covers</th>'+
-    '<th>Hits</th><th>ms</th></tr></thead><tbody>'+A.map(function(a){
+    '<p class="muted">Sampled once per era window rather than once overall, which is why a founding '+
+    'paper comes back next to this year’s preprint. A failed pass is listed as a failed pass — a '+
+    'perimeter that quietly shrinks is worse than one that says it shrank.</p>'+
+    '<div class="wrapx"><table class="tbl"><thead><tr><th>Pass</th><th>Covers</th><th>Hits</th>'+
+    '<th>ms</th></tr></thead><tbody>'+A.map(function(a){
       return '<tr><td class="n">'+esc(a.name||'')+'</td><td>'+esc(a.note||'')+
         (a.error?'<br><span style="color:var(--con)">failed: '+esc(String(a.error).slice(0,100))+
-          '</span>':'')+'</td><td class="n">'+(a.got==null?'—':a.got)+'</td>'+
-        '<td class="n">'+(a.ms==null?'—':Math.round(a.ms))+'</td></tr>';}).join('')+
-    '</tbody></table></div>');
+          '</span>':'')+'</td><td class="n">'+(a.got==null?'—':a.got)+'</td><td class="n">'+
+        (a.ms==null?'—':Math.round(a.ms))+'</td></tr>';}).join('')+'</tbody></table></div>');
 }
 
-/* ===========================================================================
-   7. INPUT + BOOT
-   =========================================================================== */
+/* ------------------------------------------------------------------- input */
 $('#track').addEventListener('click',function(){
   var t=txt($('#newClaim').value);
   if(t.length<8){$('#newClaim').focus();return;}
-  $('#newClaim').value='';trackText(t);
-});
+  $('#newClaim').value='';trackText(t);});
 $('#newClaim').addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#track').click();}
-});
-$$('[data-eg]').forEach(function(b){
-  b.addEventListener('click',function(){trackText(b.dataset.eg);});});
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#track').click();}});
 $('#fromText').addEventListener('click',function(){$('#filePick').click();});
 $('#filePick').addEventListener('change',function(){
   var f=this.files&&this.files[0];this.value='';
-  if(f)f.text().then(function(t){extractClaims(t.slice(0,24000));});
-});
+  if(f)f.text().then(function(t){extractClaims(t.slice(0,24000));});});
 function extractClaims(text){
   if(BUSY||txt(text).length<40)return;
-  setBusy(true);clearErr();status('go','Reading your text for claims');prog(0.4);
+  setBusy(true);clearErr();status('go','Reading your text for claims');prog(.4);
   post({mode:'manuscript',text:text,limit:12},130000)
-  .then(function(j){
-    var cl=arr(j.claims);
+  .then(function(j){var cl=arr(j.claims);
     if(!cl.length)throw new Error('no claims could be read out of that text');
     cl.forEach(function(x,i){trackText(x.text,i===0);});
-    status('ok',pl(cl.length,'claim added','claims added'));
-  })
+    status('ok',pl(cl.length,'claim added','claims added'));})
   .catch(function(e){status('bad','Could not read that');showErr(netDiag(e));})
   .then(function(){setBusy(false);prog(0);});
 }
 var RSZ=null;
 addEventListener('resize',function(){clearTimeout(RSZ);RSZ=setTimeout(function(){
-  if(TAB==='time')drawEra();},150);});
+  if(TAB==='time')drawEra();
+  if(VIEW&&STAGE)drawStage();},150);});
 
 load();drawBoard();status('','Idle');
 (function(){
   var m=/[?&#]claim=([^&]+)/.exec(location.search+location.hash);
-  if(m){try{trackText(decodeURIComponent(m[1].replace(/\+/g,' ')));return;}catch(e){}}
-  if(DB.claims.length)select_(DB.claims[0].id);
-  else paint();
+  if(m){try{enter();trackText(decodeURIComponent(m[1].replace(/\+/g,' ')));return;}catch(e){}}
+  if(DB.claims.length){enter();select_(DB.claims[0].id);}
 })();
 </script>
 </body>
