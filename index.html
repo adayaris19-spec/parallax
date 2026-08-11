@@ -75,13 +75,14 @@ nav#top .lk a:hover{color:var(--acc);border-bottom-color:var(--acc)}
 .hero::after{content:'';position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(48% 58% at 78% 44%,rgba(60,150,225,.19) 0%,transparent 68%),
     radial-gradient(40% 44% at 6% 92%,rgba(20,80,140,.09) 0%,transparent 66%)}
+#orrery{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.85}
 .beam{position:absolute;top:0;bottom:0;width:44vw;pointer-events:none;z-index:0;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.6) 42%,rgba(210,235,255,.5) 58%,transparent);
   filter:blur(22px);animation:sweep 13s cubic-bezier(.55,0,.45,1) infinite}
 @keyframes sweep{0%{left:-50vw}60%{left:106vw}100%{left:106vw}}
 .hrow{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
   gap:clamp(14px,2vw,34px);align-items:center;max-width:1420px}
-.kick{display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;
+.kick{position:relative;z-index:1;display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;
   letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:clamp(15px,2vw,24px);
   border:1px solid var(--line2);border-radius:99px;padding:7px 15px 7px 12px;background:rgba(255,255,255,.72)}
 .kick i{width:7px;height:7px;border-radius:50%;background:var(--acc);
@@ -115,24 +116,31 @@ nav#top .lk a:hover{color:var(--acc);border-bottom-color:var(--acc)}
   background:rgba(255,255,255,.5);padding:11px 0;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.track{display:flex;gap:34px;width:max-content;animation:roll 46s linear infinite}
+.track{display:flex;gap:34px;width:max-content;animation:roll 46s linear infinite;padding-left:96px}
 .ticker:hover .track{animation-play-state:paused}
 @keyframes roll{to{transform:translateX(-50%)}}
 .tk{display:inline-flex;align-items:baseline;gap:7px;font-family:var(--m);font-size:10.5px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
 .tk b{font-size:12px;font-weight:800} .tk i{width:5px;height:5px;border-radius:50%;font-style:normal}
+.ticker .src{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;
+  padding:0 14px;background:linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,0));
+  z-index:2;font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--acc);font-weight:700;pointer-events:none}
 
 .sec{padding:clamp(42px,5.4vw,82px) clamp(16px,5vw,60px);max-width:1420px;border-top:1px solid var(--line)}
 .sec>h2{font-size:clamp(25px,3.2vw,43px);line-height:1.04;margin:0 0 12px;max-width:17ch}
 .sub{font-size:clamp(13.5px,1.14vw,15.5px);line-height:1.5;color:var(--ink2);margin:0 0 clamp(24px,3vw,38px);
   max-width:660px}
 .trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(15px,1.8vw,24px)}
-.inst{position:relative;display:flex;flex-direction:column;border:1px solid var(--line2);border-radius:8px;
-  padding:0;overflow:hidden;text-decoration:none;color:inherit;background:var(--card);
-  box-shadow:0 14px 32px -24px rgba(20,50,85,.55);
+.inst{position:relative;display:flex;flex-direction:column;border:1px solid rgba(168,197,227,.7);
+  border-radius:10px;padding:0;overflow:hidden;text-decoration:none;color:inherit;
+  background:linear-gradient(168deg,rgba(255,255,255,.82),rgba(233,243,252,.62));
+  backdrop-filter:blur(14px) saturate(1.2);
+  box-shadow:0 18px 44px -26px rgba(15,45,85,.5),inset 0 1px 0 rgba(255,255,255,.85);
   transition:transform .28s cubic-bezier(.16,.9,.3,1),box-shadow .28s,border-color .28s}
-.inst:hover{transform:translateY(-5px);border-color:var(--accln);
-  box-shadow:0 28px 52px -26px rgba(20,50,85,.62)}
+.inst:hover{transform:translateY(-6px);border-color:var(--acc);
+  box-shadow:0 34px 64px -28px rgba(13,114,196,.45),0 0 0 1px rgba(13,114,196,.25),
+    inset 0 1px 0 rgba(255,255,255,.9)}
 .inst .top{height:112px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
 .inst .top svg{position:absolute;inset:0;width:100%;height:100%}
 .inst .body{padding:16px 18px 20px;display:flex;flex-direction:column;flex:1}
@@ -195,6 +203,7 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
 </nav>
 
 <div class="hero">
+  <canvas id="orrery"></canvas>
   <div class="beam"></div>
   <div class="hrow">
     <div>
@@ -218,7 +227,7 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
   </div>
 </div>
 
-<div class="ticker"><div class="track" id="track"></div></div>
+<div class="ticker"><span class="src" id="tkSrc">Live</span><div class="track" id="track"></div></div>
 
 <div class="sec" id="instruments">
   <h2>Two instruments. One question.</h2>
@@ -265,8 +274,8 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
 </div>
 
 <div class="sec" id="how">
-  <h2>What all three are doing.</h2>
-  <p class="sub">Looking for the same failure from three directions: the place where what is written
+  <h2>What both are doing.</h2>
+  <p class="sub">Looking for the same failure from two directions: the place where what is written
   down, what is predicted, and what is measured stop agreeing with each other.</p>
   <div class="steps">
     <div class="step lit"><span class="sn">01</span><b>Sweep wide</b>
@@ -305,12 +314,92 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
     ['Bennu bulk density','on file','#0f7a5f'],
     ['Room-temperature superconductivity','breaking','#bf3025'],
     ['Planet Nine beyond 400 AU','contested','#6a4bc4']];
-  var one=TICK.map(function(t){
-    return '<span class="tk"><i style="background:'+t[2]+'"></i>'+t[0]+
-      ' <b style="color:'+t[2]+'">'+t[1]+'</b></span>';}).join('');
-  document.getElementById('track').innerHTML=one+one;
+  function paint(list){
+    var one=list.map(function(t){
+      return '<span class="tk"><i style="background:'+t[2]+'"></i>'+t[0]+
+        ' <b style="color:'+t[2]+'">'+t[1]+'</b></span>';}).join('');
+    document.getElementById('track').innerHTML=one+one;
+  }
+  paint(TICK);
+  /* THE STRIP IS LIVE. It asks JPL what is actually passing near Earth in the
+     next year and runs that instead of a written list. If JPL cannot be
+     reached the strip says so and keeps the standing list, rather than
+     pretending the written one is a feed. */
+  (function(){
+    var u='https://ssd-api.jpl.nasa.gov/cad.api?date-min=now&date-max=%2B365&dist-max=0.05'+
+      '&sort=date&limit=14&diameter=true&fullname=true';
+    var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},9000);
+    fetch(u,{signal:ctl.signal}).then(function(r){clearTimeout(to);return r.json();})
+    .then(function(j){
+      var f=j.fields||[],ix={};f.forEach(function(n,i){ix[n]=i;});
+      var rows=(j.data||[]).map(function(r){
+        var ld=Number(r[ix.dist])/0.00256955529;
+        return [String(r[ix.fullname]||r[ix.des]).replace(/^\((.*)\)$/,'$1'),
+          ld.toFixed(1)+' lunar distances · '+String(r[ix.cd]).slice(0,11),
+          ld<5?'#bf3025':ld<20?'#0d72c4':'#0f7a5f'];});
+      if(!rows.length)throw new Error('empty');
+      paint(rows);
+      document.getElementById('tkSrc').textContent='Live · JPL';
+      document.getElementById('tkSrc').title='Close approaches to Earth, from NASA/JPL CNEOS';
+    })
+    .catch(function(){
+      clearTimeout(to);
+      var t=document.getElementById('tkSrc');
+      t.textContent='JPL offline';t.style.color='#bf3025';
+      t.title='The close-approach feed could not be reached; showing the standing list.';
+    });
+  })();
 
-  /* the hero mark: three sightlines converging on one subject, which is the
+  /* A LIVE ORRERY BEHIND THE HERO. Real elements, real positions, turning at
+     about a month a second — so the front page is an instrument running, not a
+     picture of one. */
+  (function(){
+    var C=document.getElementById('orrery');if(!C)return;
+    var X=C.getContext('2d'),DP=Math.min(2,window.devicePixelRatio||1);
+    var RAD=Math.PI/180,J=2451545.0;
+    var EL=[[0.38709927,0.20563593,252.25032350,149472.67411175,77.45779628,'#8fa9c4'],
+            [0.72333566,0.00677672,181.97909950,58517.81538729,131.60246718,'#a8c0d8'],
+            [1.00000261,0.01671123,100.46457166,35999.37244981,102.93768193,'#0d72c4'],
+            [1.52371034,0.09339410,-4.55343205,19140.30268499,-23.94362959,'#c0714f'],
+            [5.20288700,0.04838624,34.39644051,3034.74612775,14.72847983,'#c79a67'],
+            [9.53667594,0.05386179,49.95424423,1222.49362201,92.59887831,'#bcae86'],
+            [19.18916464,0.04725744,313.23810451,428.48202785,170.95427630,'#7fb8c4'],
+            [30.06992276,0.00859048,-55.12002969,218.45945325,44.96476227,'#6f8ad0']];
+    function kep(M,e){var es=e*(180/Math.PI),E=M+es*Math.sin(M*RAD);
+      for(var i=0;i<8;i++){var d=(M-(E-es*Math.sin(E*RAD)))/(1-e*Math.cos(E*RAD));E+=d;
+        if(Math.abs(d)<1e-9)break;}return E;}
+    function fit(){var r=C.parentElement.getBoundingClientRect();
+      C.width=Math.round(r.width*DP);C.height=Math.round(r.height*DP);
+      C.style.width=r.width+'px';C.style.height=r.height+'px';}
+    var t0=Date.now();
+    function frame(){
+      fit();
+      var w=C.width/DP,h=C.height/DP;
+      X.setTransform(DP,0,0,DP,0,0);X.clearRect(0,0,w,h);
+      var cx=w*0.78,cy=h*0.46,px=Math.min(w,h)*0.017;
+      var days=(Date.now()-t0)/1000*30;                 /* a month a second */
+      var T=((Date.now()-946728000000)/86400000+days)/36525;
+      EL.forEach(function(p,i){
+        var a=p[0],e=p[1],rr=a*px;
+        X.beginPath();X.ellipse(cx,cy,rr,rr*0.62,0,0,Math.PI*2);
+        X.strokeStyle='rgba(13,114,196,'+(0.16-i*0.008).toFixed(3)+')';X.lineWidth=1;X.stroke();
+        var L=p[2]+p[3]*T,W=p[4],M=((L-W)%360+540)%360-180,E=kep(M,e);
+        var xo=a*(Math.cos(E*RAD)-e),yo=a*Math.sqrt(1-e*e)*Math.sin(E*RAD);
+        var wr=(W)*RAD,xx=xo*Math.cos(wr)-yo*Math.sin(wr),yy=xo*Math.sin(wr)+yo*Math.cos(wr);
+        var sx=cx+xx*px,sy=cy-yy*px*0.62;
+        X.beginPath();X.arc(sx,sy,Math.max(1.8,3.4-i*0.15),0,Math.PI*2);
+        X.fillStyle=p[5];X.globalAlpha=.85;X.fill();X.globalAlpha=1;
+      });
+      var g=X.createRadialGradient(cx,cy,0,cx,cy,px*3.2);
+      g.addColorStop(0,'rgba(255,214,140,.9)');g.addColorStop(1,'rgba(255,200,110,0)');
+      X.fillStyle=g;X.fillRect(cx-px*3.2,cy-px*3.2,px*6.4,px*6.4);
+      requestAnimationFrame(frame);
+    }
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(frame);
+    else {fit();}
+  })();
+
+  /* the hero mark: two sightlines converging on one subject, which is the
      whole idea the company is named after */
   (function(){
     var W=640,H=420,cx=W*0.56,cy=H/2,s='';
@@ -323,19 +412,13 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
         'font-size="10.5" letter-spacing="1.5" fill="'+col+'">'+
         ['THE RECORD','THE SKY'][i]+'</text>';
     });
-    for(var r=170;r>=60;r-=55)
-      s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#c7dcef"/>';
-    for(var i=0;i<44;i++){
-      var a=i*2.399,rr=32+Math.sqrt(i)*26;
-      s+='<circle cx="'+(cx+Math.cos(a)*rr).toFixed(1)+'" cy="'+(cy+Math.sin(a)*rr*0.74).toFixed(1)+
-        '" r="'+(1.8+(i%4)*0.7).toFixed(1)+'" fill="#7fa3c8" opacity="'+(0.5-i*0.006).toFixed(2)+'"/>';
-    }
-    s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#fff" stroke="#0d2135" stroke-width="1.8"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="rgba(255,255,255,.9)" stroke="#0d2135" '+
+      'stroke-width="1.8"/>';
     s+='<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="#0d2135"/>';
     s+='<text x="'+cx+'" y="'+(cy+50)+'" text-anchor="middle" font-family="ui-monospace,monospace" '+
       'font-size="10.5" letter-spacing="2" fill="#2f4f70">ONE SUBJECT</text>';
     document.getElementById('viz').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" '+
-      'aria-label="Three instruments sighting on one subject from different positions.">'+s+'</svg>';
+      'aria-label="Two instruments sighting on one subject from different positions.">'+s+'</svg>';
   })();
 
   /* each card wears a trace of its own instrument: the record as a support and

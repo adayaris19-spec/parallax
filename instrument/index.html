@@ -119,6 +119,36 @@ h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.015em}
 #tip.on{display:block}
 #tip .t2{font-family:var(--m);font-size:10px;color:var(--dim);margin-top:2px}
 
+#watch{position:absolute;inset:0;overflow-y:auto;padding:56px 18px 20px;z-index:3}
+#watch .wtabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+#watch .wtabs button{background:rgba(15,28,45,.86);border:1px solid var(--line2);color:var(--ink2);
+  border-radius:6px;padding:7px 13px;cursor:pointer;font-family:var(--m);font-size:10.5px;
+  letter-spacing:.11em;text-transform:uppercase}
+#watch .wtabs button.on{background:var(--acc);border-color:var(--acc);color:#04121e;font-weight:700}
+#watch .wtabs button:hover{color:#fff;border-color:var(--acc)}
+#watch .wtabs button.on:hover{color:#04121e}
+#watch h3{font-size:16px;margin:0 0 4px}
+#watch .lead{font-size:13.2px;color:var(--ink2);margin:0 0 13px;max-width:78ch;line-height:1.5}
+#watch .row{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:0 14px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:6px;background:rgba(15,28,45,.55);margin-bottom:7px;
+  align-items:center;cursor:pointer}
+#watch .row:hover{border-color:var(--acc);background:rgba(79,184,245,.08)}
+#watch .row .when{font-family:var(--m);font-size:12px;color:var(--acc);font-variant-numeric:tabular-nums}
+#watch .row .who{font-size:14px}
+#watch .row .who .sub{font-family:var(--m);font-size:10.5px;color:var(--dim);margin-top:2px}
+#watch .row .figs{font-family:var(--m);font-size:12px;text-align:right;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+#watch .row .figs b{color:var(--ink)} #watch .row .figs span{color:var(--dim);font-size:10.5px}
+#watch .row.hot{border-color:rgba(255,111,97,.5);background:rgba(255,111,97,.08)}
+#watch .row.hot .when{color:var(--red)}
+#watch .bar{height:5px;border-radius:3px;background:#16283d;overflow:hidden;margin-top:5px}
+#watch .bar i{display:block;height:100%;background:var(--acc)}
+#watch .note{font-family:var(--m);font-size:10.5px;color:var(--dim);letter-spacing:.05em;margin-top:12px}
+#watch .loc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#watch .loc input{width:96px;background:var(--panel);border:1px solid var(--line2);color:var(--ink);
+  border-radius:5px;padding:6px 9px;font-family:var(--m);font-size:12px}
+#watch .loc label{font-family:var(--m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim)}
 #insp{border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;min-width:0}
 #insp .none{padding:26px 20px;color:var(--dim)}
 #insp .none h2{font-size:17px;color:var(--ink);margin-bottom:9px}
@@ -200,9 +230,11 @@ h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.015em}
 <div id="main">
   <div id="stage">
     <canvas id="sky"></canvas>
+    <div id="watch" hidden></div>
     <div class="hud" id="views">
       <button data-view="solar" class="on">Solar system</button>
       <button data-view="sky">The sky</button>
+      <button data-view="watch">Watch</button>
     </div>
     <div class="hud" id="zoomer">
       <div class="row">
@@ -627,7 +659,7 @@ $$('#views button').forEach(function(b){
   b.addEventListener('click',function(){
     VIEW=b.dataset.view;
     $$('#views button').forEach(function(x){x.classList.toggle('on',x===b);});
-    legend();draw();
+    showView();
   });
 });
 $('#zin').addEventListener('click',function(){
@@ -636,6 +668,14 @@ $('#zout').addEventListener('click',function(){
   if(VIEW==='solar')SOL.au/=1.5;else SKY.z=Math.max(0.6,SKY.z/1.5);draw();});
 $('#zfit').addEventListener('click',function(){
   if(VIEW==='solar'){SOL.au=12;SOL.cx=0;SOL.cy=0;}else{SKY.ra=180;SKY.dec=0;SKY.z=1;}draw();});
+function showView(){
+  var w=VIEW==='watch';
+  $('#watch').hidden=!w;$('#sky').style.visibility=w?'hidden':'visible';
+  $('#zoomer').style.display=w?'none':'flex';$('#legend').style.display=w?'none':'block';
+  if(w){renderWatch();
+    if(WTAB==='cad'&&!WDATA.cad&&!WERR.cad)fetchCAD().then(renderWatch);
+  }else{legend();draw();}
+}
 function legend(){
   $('#legend').innerHTML=VIEW==='solar'
     ? '<b>Solar system · live positions</b>'+
@@ -791,14 +831,14 @@ function select(o){
   if(o.cls==='solar'&&o.body)goTo(o);
   if(o.cls==='sky'&&(o.star||o.deep)){
     VIEW='sky';$$('#views button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='sky');});
-    var c=o.star||o.deep;SKY.ra=c.ra;SKY.dec=c.dec;SKY.z=Math.max(SKY.z,4);legend();draw();
+    var c=o.star||o.deep;SKY.ra=c.ra;SKY.dec=c.dec;SKY.z=Math.max(SKY.z,4);showView();
   }
 }
 function goTo(o){
   VIEW='solar';$$('#views button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='solar');});
   var a=o.body.a||1;
   SOL.au=Math.max(0.02,Math.min(3000,(Math.min(W(),H())*0.36)/a));
-  SOL.cx=0;SOL.cy=0;legend();draw();
+  SOL.cx=0;SOL.cy=0;showView();
 }
 function inspect(o){
   var I=$('#insp'),h='';
@@ -910,6 +950,43 @@ function inspect(o){
       row('Distance',o.deep.dist,'meas')+'</dl>');
   }
 
+  /* WHERE TO LOOK — the same object, in your sky, this second */
+  var eq=raDecOf(o,jdNow());
+  if(eq){
+    if(OBS.lat==null){
+      h+=blk('Where to look','<p>Set a position and this becomes an altitude and a bearing you '+
+        'can act on.</p><div class="act"><button class="gh" id="locBtn">Use my location</button></div>');
+    }else{
+      var jd2=jdNow(),aa=altaz(eq.ra,eq.dec,OBS.lat,OBS.lon,jd2),rs=riseSet(eq.ra,eq.dec,OBS.lat,OBS.lon,jd2);
+      var when=rs.never?'Never rises from this latitude':
+        rs.always?'Circumpolar — never sets from this latitude':
+        ('Rises in '+((rs.up+24)%24).toFixed(1)+' h · transits in '+((rs.transit+24)%24).toFixed(1)+
+         ' h · sets in '+((rs.down+24)%24).toFixed(1)+' h');
+      h+=blk('Where to look right now','<dl class="kv">'+
+        row('Altitude',aa.alt.toFixed(1)+'°'+(aa.alt>0?' — above your horizon':' — below your horizon'),'calc')+
+        row('Bearing',aa.az.toFixed(1)+'° '+compass(aa.az),'calc')+
+        row('Right ascension',fmt(eq.ra,3)+'°','calc')+
+        row('Declination',fmt(eq.dec,3)+'°','calc')+
+        (eq.dist!=null&&o.body?row('Distance from Earth',fmt(eq.dist,4)+' AU','calc'):'')+
+        (eq.dist!=null&&o.body?row('Light travel from Earth',fmt(eq.dist*499.005/60,2)+' min','calc'):'')+
+        '</dl><p style="margin-top:9px">'+esc(when)+'</p>'+
+        '<p class="mini">Computed for '+OBS.lat.toFixed(3)+'°, '+OBS.lon.toFixed(3)+
+        '° from '+esc(OBS.src)+'.</p>');
+    }
+  }
+  /* REACHABILITY — the number that decides whether we can actually go */
+  if(o.body&&o.body.a){
+    var b2=o.body,dv=deltaV(b2.a,b2.e,b2.I);
+    var band=dv<7?'easier to reach than the Moon\u2019s surface':
+      dv<12?'reachable with current launchers':
+      dv<20?'hard — a dedicated mission':'out of reach for anything flying today';
+    h+=blk('How hard it is to get there','<dl class="kv">'+
+      row('Δv to rendezvous','~'+dv.toFixed(1)+' km/s','calc')+
+      row('Assessment',band,'calc')+'</dl>'+
+      '<p class="mini" style="margin-top:9px">Hohmann transfer plus a plane change, both orbits '+
+      'taken as circular, with a rough allowance for eccentricity. A first-order number for '+
+      'ranking what is accessible — not a mission design.</p>');
+  }
   /* the catalog idea, folded in: what is actually known, and what to read */
   h+='<div class="blk"><h3>What the literature says</h3>'+
     '<p>Sweep the archives for what has been published on this object — the same engine the Record '+
@@ -928,6 +1005,7 @@ function inspect(o){
   $$('#insp [data-goid]').forEach(function(a){
     a.addEventListener('click',function(e){e.preventDefault();select(findLocal(a.dataset.goid));});});
   var lb=$('#litBtn');if(lb)lb.addEventListener('click',function(){readLit(o,lb);});
+  var lo=$('#locBtn');if(lo)lo.addEventListener('click',askLocation);
   var cb=$('#copyBtn');
   if(cb)cb.addEventListener('click',function(){
     var lines=[o.name,o.kind];
@@ -970,6 +1048,230 @@ function readLit(o,btn){
       'engine — '+esc(String(e&&e.message||e)).slice(0,140)+'</div>';
     status('bad','Sweep failed');btn.textContent='Read the literature';btn.disabled=false;});
 }
+/* ===========================================================================
+   5b. WATCH — the part that is not a display.
+   Three things the map can do that a picture cannot: tell you what is coming,
+   tell you what is dangerous, and tell you what is over your head right now.
+   The first two are live feeds from JPL that change daily. The third is
+   computed here from your position and the clock.
+   =========================================================================== */
+var CAD='https://ssd-api.jpl.nasa.gov/cad.api';
+var SENTRY='https://ssd-api.jpl.nasa.gov/sentry.api';
+var LD=0.00256955529;                                  /* 1 lunar distance in AU */
+var WTAB='cad',WDATA={cad:null,sentry:null},WERR={};
+var OBS={lat:null,lon:null,src:'not set'};
+
+/* --- local astronomy: where is a thing in YOUR sky, right now --- */
+function gmst(jd){return ((280.46061837+360.98564736629*(jd-J2000))%360+360)%360;}
+function altaz(ra,dec,lat,lon,jd){
+  var lst=(gmst(jd)+lon+360)%360, ha=((lst-ra+540)%360)-180;
+  var sa=Math.sin(dec*RAD)*Math.sin(lat*RAD)+
+         Math.cos(dec*RAD)*Math.cos(lat*RAD)*Math.cos(ha*RAD);
+  var alt=Math.asin(Math.max(-1,Math.min(1,sa)))*DEG;
+  var y=-Math.sin(ha*RAD)*Math.cos(dec*RAD);
+  var x=Math.sin(dec*RAD)*Math.cos(lat*RAD)-Math.cos(dec*RAD)*Math.sin(lat*RAD)*Math.cos(ha*RAD);
+  var az=(Math.atan2(y,x)*DEG+360)%360;
+  return {alt:alt,az:az,ha:ha};
+}
+function riseSet(ra,dec,lat,lon,jd){
+  var c=-Math.tan(lat*RAD)*Math.tan(dec*RAD);
+  if(c>1)return {never:true};            /* never clears the horizon */
+  if(c<-1)return {always:true};          /* circumpolar */
+  var H=Math.acos(c)*DEG;                /* hour angle at the horizon, degrees */
+  var lst=(gmst(jd)+lon+360)%360;
+  var toH=function(d){return (((d)%360+360)%360)/15.0;};   /* deg of LST -> hours */
+  return {up:toH(ra-H-lst)*0.9972696,down:toH(ra+H-lst)*0.9972696,
+          transit:toH(ra-lst)*0.9972696,H:H};
+}
+function compass(az){
+  return ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
+    [Math.round(az/22.5)%16];
+}
+/* Where a solar-system body appears in the sky: heliocentric position minus
+   Earth's, converted from the ecliptic to equatorial coordinates. */
+var OBLQ=23.439281;
+function raDecOf(o,jd){
+  if(o.star)return {ra:o.star.ra,dec:o.star.dec,dist:o.star.ly*63241,unit:'AU'};
+  if(o.deep)return {ra:o.deep.ra,dec:o.deep.dec,dist:null};
+  if(o.sun){
+    var e0=posOf(findLocal('pl:earth'),jd);
+    return eqFrom({x:-e0.x,y:-e0.y,z:-e0.z});
+  }
+  if(!o.body)return null;
+  var p=posOf(o,jd),e=posOf(findLocal('pl:earth'),jd);
+  if(!p||!e)return null;
+  return eqFrom({x:p.x-e.x,y:p.y-e.y,z:p.z-e.z});
+}
+function eqFrom(g){
+  var eps=OBLQ*RAD;
+  var xe=g.x, ye=g.y*Math.cos(eps)-g.z*Math.sin(eps), ze=g.y*Math.sin(eps)+g.z*Math.cos(eps);
+  var r=Math.sqrt(xe*xe+ye*ye+ze*ze);
+  return {ra:(Math.atan2(ye,xe)*DEG+360)%360,dec:Math.asin(ze/r)*DEG,dist:r,unit:'AU'};
+}
+/* Δv to rendezvous, Hohmann plus a plane change, both orbits taken as circular.
+   A first-order accessibility number for ranking, not a mission design — which
+   is what the inspector says next to it. */
+function deltaV(a,e,inc){
+  var r1=1,r2=Math.max(0.1,a),mu=1;
+  var v1=Math.sqrt(mu/r1),v2=Math.sqrt(mu/r2);
+  var at=(r1+r2)/2;
+  var dv1=Math.abs(v1*(Math.sqrt(2*r2/(r1+r2))-1));
+  var dv2=Math.abs(v2*(1-Math.sqrt(2*r1/(r1+r2))));
+  var slow=Math.min(v1,v2);
+  var dvi=2*slow*Math.sin((inc||0)*RAD/2);
+  var dvE=(dv1+dv2+dvi)*29.7846;                       /* AU/yr-ish units -> km/s */
+  var ecc=Math.abs(e||0)*v2*29.7846*0.5;               /* crude allowance for eccentricity */
+  return dvE+ecc;
+}
+function fetchCAD(){
+  status('go','Asking JPL what is coming close');
+  return jget(CAD+'?date-min=now&date-max=%2B400&dist-max=0.05&sort=date&limit=60'+
+    '&diameter=true&fullname=true&nea=true',18000)
+  .then(function(t){var j=JSON.parse(t);
+    var f=j.fields||[],ix={};f.forEach(function(n,i){ix[n]=i;});
+    WDATA.cad=(j.data||[]).map(function(r){
+      return {name:r[ix.fullname]||r[ix.des],des:r[ix.des],
+        when:r[ix.cd],dist:Number(r[ix.dist]),vel:Number(r[ix.v_rel]),
+        dia:r[ix.diameter]==null?null:Number(r[ix.diameter])};});
+    delete WERR.cad;status('ok',WDATA.cad.length+' close approaches on the books');},
+    function(e){WERR.cad=String(e&&e.message||e);status('bad','JPL close-approach feed unreachable');});
+}
+function fetchSentry(){
+  status('go','Asking JPL for the impact-risk list');
+  return jget(SENTRY+'?all=0&limit=40',18000)
+  .then(function(t){var j=JSON.parse(t);
+    WDATA.sentry=(j.data||[]).map(function(r){
+      return {name:r.fullname||r.des,des:r.des,ip:Number(r.ip),ps:Number(r.ps),
+        ts:r.ts==null?null:Number(r.ts),diam:r.diameter==null?null:Number(r.diameter),
+        range:r.range,nimps:r.n_imp};});
+    delete WERR.sentry;status('ok',WDATA.sentry.length+' objects on the risk list');},
+    function(e){WERR.sentry=String(e&&e.message||e);status('bad','JPL Sentry feed unreachable');});
+}
+function setObs(lat,lon,src){OBS={lat:lat,lon:lon,src:src};if(VIEW==='watch')renderWatch();
+  if(SEL)inspect(SEL);}
+function askLocation(){
+  if(!navigator.geolocation){setObs(51.4779,-0.0015,'default — Greenwich');return;}
+  navigator.geolocation.getCurrentPosition(
+    function(p){setObs(p.coords.latitude,p.coords.longitude,'your device');},
+    function(){setObs(51.4779,-0.0015,'default — Greenwich, set it below');},{timeout:8000});
+}
+function renderWatch(){
+  var W=$('#watch'),h='';
+  h+='<div class="wtabs">'+
+    [['cad','Coming close'],['sentry','Impact risk'],['up','Up right now']].map(function(t){
+      return '<button data-wt="'+t[0]+'"'+(WTAB===t[0]?' class="on"':'')+'>'+t[1]+'</button>';}).join('')+
+    '</div>';
+  if(WTAB==='cad'){
+    h+='<h3>What is coming close</h3><p class="lead">Every known object passing within 0.05 AU of '+
+      'Earth in the next 400 days, straight from JPL’s close-approach database. This list changes '+
+      'as orbits are refined, which is the point of it.</p>';
+    if(WERR.cad)h+='<div class="row hot"><div class="when">error</div><div class="who">'+
+      'JPL’s close-approach feed could not be reached<div class="sub">'+esc(WERR.cad)+'</div></div>'+
+      '<div class="figs"><button class="hbtn" data-retry="cad">Retry</button></div></div>';
+    else if(!WDATA.cad)h+='<p class="note">Loading…</p>';
+    else if(!WDATA.cad.length)h+='<p class="note">Nothing within 0.05 AU in that window.</p>';
+    else WDATA.cad.forEach(function(r){
+      var ld=r.dist/LD, close=ld<5;
+      h+='<div class="row'+(close?' hot':'')+'" data-look="'+esc(r.des)+'">'+
+        '<div class="when">'+esc(String(r.when).slice(0,11))+'</div>'+
+        '<div class="who">'+esc(r.name)+
+          '<div class="sub">'+(r.dia?('~'+(r.dia*1000).toFixed(0)+' m across'):'size not measured')+
+          ' · '+r.vel.toFixed(1)+' km/s</div>'+
+          '<div class="bar"><i style="width:'+Math.max(2,Math.min(100,100-ld*4)).toFixed(0)+
+          '%;background:'+(close?'#ff6f61':'#4fb8f5')+'"></i></div></div>'+
+        '<div class="figs"><b>'+ld.toFixed(1)+'</b> <span>lunar distances</span><br>'+
+          '<span>'+(r.dist*149597870).toFixed(0)+' km</span></div></div>';
+    });
+    h+='<p class="note">1 lunar distance = 384,400 km. Anything inside 5 is marked.</p>';
+  }
+  if(WTAB==='sentry'){
+    h+='<h3>The impact-risk list</h3><p class="lead">Every object JPL’s Sentry system currently '+
+      'gives a non-zero chance of hitting Earth, ranked by Palermo scale — which compares the '+
+      'risk to the background rate for an object that size. Below −2 is noise; above 0 would be '+
+      'a serious matter, and nothing is there.</p>';
+    if(WERR.sentry)h+='<div class="row hot"><div class="when">error</div><div class="who">'+
+      'JPL’s Sentry feed could not be reached<div class="sub">'+esc(WERR.sentry)+'</div></div>'+
+      '<div class="figs"><button class="hbtn" data-retry="sentry">Retry</button></div></div>';
+    else if(!WDATA.sentry)h+='<p class="note">Loading…</p>';
+    else WDATA.sentry.slice().sort(function(a,b){return b.ps-a.ps;}).forEach(function(r){
+      var hot=r.ps>-2;
+      h+='<div class="row'+(hot?' hot':'')+'" data-look="'+esc(r.des)+'">'+
+        '<div class="when">PS '+(r.ps>0?'+':'')+r.ps.toFixed(2)+'</div>'+
+        '<div class="who">'+esc(r.name)+'<div class="sub">'+
+          (r.diam?('~'+(r.diam*1000).toFixed(0)+' m'):'size not measured')+
+          ' · '+(r.nimps==1?'1 possible impact':(r.nimps||'?')+' possible impacts')+' · '+esc(r.range||'')+'</div></div>'+
+        '<div class="figs"><b>1 in '+Math.round(1/r.ip).toLocaleString()+'</b> '+
+          '<span>chance</span><br><span>Torino '+(r.ts==null?'0':r.ts)+'</span></div></div>';
+    });
+    h+='<p class="note">Palermo scale: log of the risk relative to the background hazard. '+
+      'Torino: 0 means no concern.</p>';
+  }
+  if(WTAB==='up'){
+    h+='<h3>Up right now</h3>';
+    h+='<div class="loc"><label>Latitude</label><input id="latIn" value="'+
+      (OBS.lat==null?'':OBS.lat.toFixed(4))+'">'+
+      '<label>Longitude</label><input id="lonIn" value="'+(OBS.lon==null?'':OBS.lon.toFixed(4))+'">'+
+      '<button class="hbtn" id="useLoc">Use my location</button>'+
+      '<span class="note" style="margin:0">position from '+esc(OBS.src)+'</span></div>';
+    if(OBS.lat==null){h+='<p class="lead">Set a position and this becomes a list of everything on '+
+      'file that is above your horizon this second.</p>';}
+    else{
+      var jd=jdNow(),rows=[];
+      INDEX.forEach(function(o){
+        var c=raDecOf(o,jd);if(!c)return;
+        var aa=altaz(c.ra,c.dec,OBS.lat,OBS.lon,jd);
+        if(aa.alt>0)rows.push({o:o,alt:aa.alt,az:aa.az,d:c});
+      });
+      rows.sort(function(a,b){return b.alt-a.alt;});
+      h+='<p class="lead">'+rows.length+' of the '+INDEX.length+' objects on file are above your '+
+        'horizon right now, highest first. Altitude and bearing computed for this second.</p>';
+      rows.slice(0,60).forEach(function(r){
+        h+='<div class="row" data-goid="'+esc(r.o.id)+'">'+
+          '<div class="when">'+r.alt.toFixed(0)+'° up</div>'+
+          '<div class="who">'+esc(r.o.name)+'<div class="sub">'+esc(r.o.kind)+
+            ' · bearing '+r.az.toFixed(0)+'° '+compass(r.az)+'</div>'+
+            '<div class="bar"><i style="width:'+(r.alt/90*100).toFixed(0)+'%"></i></div></div>'+
+          '<div class="figs"><b>'+compass(r.az)+'</b> <span>look here</span></div></div>';
+      });
+      if(!rows.length)h+='<p class="note">Nothing on file is above your horizon. Try again in a few hours.</p>';
+    }
+  }
+  W.innerHTML=h;
+  $$('#watch [data-wt]').forEach(function(b){b.addEventListener('click',function(){
+    WTAB=b.dataset.wt;
+    if(WTAB==='cad'&&!WDATA.cad&&!WERR.cad)fetchCAD().then(renderWatch);
+    if(WTAB==='sentry'&&!WDATA.sentry&&!WERR.sentry)fetchSentry().then(renderWatch);
+    if(WTAB==='up'&&OBS.lat==null)askLocation();
+    renderWatch();});});
+  $$('#watch [data-retry]').forEach(function(b){b.addEventListener('click',function(e){
+    e.stopPropagation();
+    var k=b.dataset.retry;delete WERR[k];renderWatch();
+    (k==='cad'?fetchCAD():fetchSentry()).then(renderWatch);});});
+  $$('#watch [data-look]').forEach(function(b){b.addEventListener('click',function(){
+    lookUp(b.dataset.look);});});
+  $$('#watch [data-goid]').forEach(function(b){b.addEventListener('click',function(){
+    select(findLocal(b.dataset.goid));});});
+  var ul=$('#useLoc');if(ul)ul.addEventListener('click',askLocation);
+  ['latIn','lonIn'].forEach(function(id){
+    var el=$('#'+id);if(!el)return;
+    el.addEventListener('change',function(){
+      var la=Number($('#latIn').value),lo=Number($('#lonIn').value);
+      if(isFinite(la)&&isFinite(lo))setObs(la,lo,'entered by hand');});});
+}
+/* a row in a live feed is a designation; pull the full object and inspect it */
+function lookUp(des){
+  var local=localSearch(des)[0];
+  if(local){select(local);return;}
+  status('go','Fetching '+des);
+  jget(SBDB+'?sstr='+encodeURIComponent(des)+'&phys-par=1&full-prec=1')
+  .then(function(t){
+    var j=JSON.parse(t);
+    select({id:'live:sbdb:'+des,name:(j.object&&j.object.fullname)||des,
+      kind:(j.object&&j.object.kind_name)||'small body',src:'JPL SBDB',cls:'solar',
+      live:j,col:'#ff9b7a'});
+    status('ok','Ready');},
+    function(){status('bad','Could not fetch '+des);});
+}
 function blank(){
   $('#insp').innerHTML='<div class="none"><h2>Search anything in the universe.</h2>'+
     '<p>A planet, a moon, an asteroid, a comet, a star, an exoplanet, a nebula, a galaxy. '+
@@ -989,9 +1291,12 @@ function blank(){
 /* ===========================================================================
    6. BOOT
    =========================================================================== */
-legend();blank();resize();
+showView();blank();resize();
 status('ok','Ready · '+INDEX.length+' objects on file');
-setInterval(function(){if(VIEW==='solar')draw();},60000);   /* positions creep */
+setInterval(function(){
+  if(VIEW==='solar')draw();
+  if(VIEW==='watch'&&WTAB==='up')renderWatch();     /* the sky turns while you look at it */
+},60000);
 (function(){
   var m=/[?&#]go=([^&]+)/.exec(location.search+location.hash);
   if(m){try{var hit=localSearch(decodeURIComponent(m[1].replace(/\+/g,' ')))[0];
