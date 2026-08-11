@@ -8,237 +8,253 @@
 <title>PARALLAX — the solar system as one instrument</title>
 <style>
 /* ============================================================================
-   PARALLAX · THE INSTRUMENT — first prototype.
-   Designed from zero. Nothing carries over from v1 or v2: not the layout, not
-   the palette, not the components.
-
-   The subject is a tracking console, so the product is a tracking console:
-   a fixed viewport, a live display, readouts in the margins, and no page that
-   scrolls past you while the thing you are watching moves.
-
-   COLOUR CARRIES ONE MEANING. Everything that behaves as predicted is cool and
-   quiet. The single hot colour is reserved for DISAGREEMENT between model and
-   reality — because catching that disagreement is the entire purpose of the
-   machine. If the screen is calm, nothing is arguing with us.
+   PARALLAX · THE INSTRUMENT
+   Rebuilt for legibility. Three rules, applied everywhere:
+     1. ONE IDEA PER SCREEN. Four modes, each doing a single job. Nothing is
+        stacked into a sidebar next to something unrelated.
+     2. SANS FOR WORDS, MONO FOR NUMBERS. Monospace everywhere reads as a
+        terminal dump and destroys hierarchy. Here it marks quantity, nothing
+        else.
+     3. DUSK, NOT A CAVE. The ground is lifted well off black so text can sit
+        at real contrast. Only the plot stays deep, because that is the sky.
+   Colour still carries one meaning: cool = behaving as predicted, and the one
+   hot colour is reserved for DISAGREEMENT.
    ========================================================================== */
 :root{
   color-scheme:dark;
-  --bg:#04070e; --bg2:#070c16;
-  --panel:rgba(10,17,28,.78); --panel2:rgba(14,23,38,.9);
-  --line:rgba(122,158,200,.13); --line2:rgba(122,158,200,.26);
-  --ink:#d9e6f5; --ink2:#93a8bf; --dim:#5e7590;
-  --model:#4f86d6;      /* prediction */
-  --meas:#eaf3ff;       /* measurement */
-  --hot:#ff5a36;        /* DISAGREEMENT — the only hot colour in the product */
-  --ok:#35d0a0; --warn:#ffb454; --hyp:#a98bf0;
-  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,'DejaVu Sans Mono',monospace;
+  --bg:#141d29; --sky:#0c1420; --panel:#1b2634; --panel2:#212e3e;
+  --line:rgba(158,186,216,.16); --line2:rgba(158,186,216,.30);
+  --ink:#f2f7fc; --ink2:#c2d2e2; --dim:#8ba0b5;
+  --model:#5e9bea; --meas:#ffffff; --hot:#ff6b47;
+  --ok:#46d9a8; --warn:#ffc266; --hyp:#b79bf5;
+  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,monospace;
   --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink2);font-family:var(--m);
-  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
-#sky{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
-  background-image:radial-gradient(rgba(190,225,255,.16) .6px,transparent 1.1px),
-                   radial-gradient(rgba(190,225,255,.08) .5px,transparent 1px);
-  background-size:191px 173px,97px 89px;background-position:0 0,43px 29px}
-:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+body{margin:0;background:var(--bg);color:var(--ink2);font-family:var(--f);
+  font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden}
+:focus-visible{outline:2px solid var(--hot);outline-offset:2px;border-radius:3px}
 :focus:not(:focus-visible){outline:none}
-button{font-family:var(--m);color:inherit}
+button{font-family:var(--f);color:inherit}
+.n{font-family:var(--m);font-variant-numeric:tabular-nums}
 
-/* ---------------- command bar ---------------- */
-#bar{position:relative;z-index:5;display:flex;align-items:center;gap:clamp(8px,1.6vw,22px);
-  height:46px;padding:0 clamp(10px,2vw,20px);border-bottom:1px solid var(--line2);
-  background:rgba(4,7,14,.92);backdrop-filter:blur(12px)}
-#bar .wm{display:flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.3em;
-  font-weight:700;color:var(--ink);white-space:nowrap}
-#modes{display:flex;gap:1px}
-.mode{background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
-  padding:5px 11px;font-size:9.5px;letter-spacing:.2em;font-weight:700;color:var(--dim)}
-.mode:hover{color:var(--ink2)}
-.mode.on{color:var(--hot);border-bottom-color:var(--hot)}
-#clock{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:10px;
-  letter-spacing:.1em;color:var(--dim);white-space:nowrap}
-#clock b{color:var(--meas);font-weight:600}
-.tag{font-size:8.5px;letter-spacing:.16em;color:var(--hot);border:1px solid rgba(255,90,54,.45);
-  border-radius:2px;padding:2px 6px}
-#bar a{color:var(--dim);text-decoration:none;font-size:9px;letter-spacing:.14em;
-  border-bottom:1px solid var(--line2)}
+/* ---------- bar ---------- */
+#bar{display:flex;align-items:center;gap:clamp(10px,2vw,26px);height:54px;
+  padding:0 clamp(12px,2.4vw,24px);border-bottom:1px solid var(--line2);background:var(--panel)}
+#bar .wm{display:flex;align-items:center;gap:9px;font-family:var(--m);font-size:13px;
+  letter-spacing:.26em;font-weight:700;color:var(--ink);white-space:nowrap}
+#modes{display:flex;gap:2px}
+.mode{background:none;border:0;border-radius:4px;cursor:pointer;padding:7px 13px;
+  font-size:12.5px;font-weight:600;color:var(--dim);letter-spacing:.01em}
+.mode:hover{color:var(--ink);background:rgba(158,186,216,.07)}
+.mode.on{color:var(--ink);background:rgba(94,155,234,.18)}
+#right{margin-left:auto;display:flex;gap:14px;align-items:center}
+#resTag{font-family:var(--m);font-size:11px;letter-spacing:.06em;padding:4px 10px;
+  border:1px solid;border-radius:4px;white-space:nowrap}
+#bar a{color:var(--dim);text-decoration:none;font-size:12.5px}
 #bar a:hover{color:var(--ink2)}
+@media(max-width:700px){#bar{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
+  #right{width:100%;margin-left:0}.mode{padding:6px 10px;font-size:12px}}
 
-/* ---------------- stage ---------------- */
-#stage{position:relative;z-index:2;height:calc(100% - 46px)}
+/* ---------- stage ---------- */
+#stage{height:calc(100% - 54px);position:relative}
+@media(max-width:700px){#stage{height:calc(100% - 104px)}}
 .view{position:absolute;inset:0;display:none}
 .view.on{display:flex}
-.pane{overflow-y:auto;scrollbar-width:thin}
-h3{margin:0 0 8px;font-size:9px;letter-spacing:.24em;font-weight:700;color:var(--dim);
-  display:flex;align-items:center;gap:9px}
-h3::after{content:'';flex:1;height:1px;background:var(--line)}
-h3 b{color:var(--ink2)}
-.note{font-family:var(--f);font-size:11.5px;line-height:1.55;color:var(--ink2)}
-.note b{color:var(--ink)}
-.hon{font-size:8.8px;letter-spacing:.05em;color:var(--dim);line-height:1.65;
-  border-left:2px solid var(--hot);padding:5px 9px;margin:10px 0 0}
+.pane{overflow-y:auto}
+.wrap{max-width:960px;margin:0 auto;padding:clamp(18px,3vw,34px) clamp(16px,3vw,28px) 60px}
+h1{font-size:clamp(23px,3vw,32px);line-height:1.15;font-weight:650;color:var(--ink);
+  margin:0 0 10px;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 10px}
+p{margin:0 0 14px;max-width:66ch}
+p b{color:var(--ink);font-weight:600}
+.lead{font-size:16px;line-height:1.6;color:var(--ink2)}
+.fine{font-size:12px;line-height:1.55;color:var(--dim);max-width:70ch}
 
-/* FIELD */
+/* ---------- FIELD ---------- */
 #field{flex-direction:row}
-#plot{flex:1;position:relative;min-width:0}
+#plot{flex:1;position:relative;min-width:0;background:var(--sky)}
 #cv{display:block;width:100%;height:100%}
-#hud{position:absolute;left:14px;top:12px;pointer-events:none}
-#hud .l{font-size:8.5px;letter-spacing:.2em;color:var(--dim)}
-#hud .v{font-size:clamp(15px,2vw,21px);color:var(--meas);letter-spacing:-.01em}
-#ctrls{position:absolute;left:14px;right:14px;bottom:12px;display:flex;gap:10px;
+#hud{position:absolute;left:18px;top:16px;pointer-events:none}
+#hudN{font-size:clamp(19px,2.4vw,26px);font-weight:650;color:var(--ink);letter-spacing:-.01em}
+#hudD{font-family:var(--m);font-size:13px;color:var(--model);margin-top:2px}
+#ctrls{position:absolute;left:18px;right:18px;bottom:16px;display:flex;gap:10px;
   align-items:center;flex-wrap:wrap}
-#ctrls .grp{display:flex;gap:1px;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-#ctrls button{background:rgba(8,13,22,.85);border:0;cursor:pointer;padding:5px 9px;
-  font-size:9px;letter-spacing:.14em;color:var(--dim)}
-#ctrls button:hover{color:var(--ink)}
-#ctrls button.on{background:var(--model);color:#04070e;font-weight:700}
-#tscrub{flex:1;min-width:120px;accent-color:var(--hot)}
-#tlab{font-size:9.5px;color:var(--ink2);min-width:120px;letter-spacing:.08em}
-#side{width:min(360px,38vw);border-left:1px solid var(--line2);background:var(--panel);
-  padding:14px 15px 22px}
-@media(max-width:820px){
-  #field{flex-direction:column}
-  #plot{height:52%;flex:none}
-  #side{width:auto;border-left:0;border-top:1px solid var(--line2);flex:1}
-}
-.row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;
-  border-bottom:1px solid var(--line);font-size:11px}
-.row:last-child{border-bottom:0}
-.row .k{color:var(--dim);letter-spacing:.06em}
-.row .v{color:var(--meas);font-variant-numeric:tabular-nums}
-.objs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
-.ob{background:rgba(8,13,22,.7);border:1px solid var(--line);border-radius:2px;cursor:pointer;
-  padding:3px 7px;font-size:9px;letter-spacing:.1em;color:var(--ink2)}
-.ob:hover{border-color:var(--line2);color:var(--ink)}
-.ob.on{border-color:var(--hot);color:var(--hot)}
-.resfig{margin-top:6px;border:1px solid var(--line);border-radius:3px;background:rgba(6,10,18,.6);
-  padding:8px 6px 4px}
-.resfig svg{display:block;width:100%;height:auto}
+.seg{display:flex;gap:2px;background:rgba(20,29,41,.85);border:1px solid var(--line);
+  border-radius:5px;padding:2px}
+.seg button{background:none;border:0;border-radius:3px;cursor:pointer;padding:5px 11px;
+  font-size:12px;font-weight:600;color:var(--dim)}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--model);color:#0c1420}
+#tscrub{flex:1;min-width:130px;accent-color:var(--hot)}
+#tlab{font-family:var(--m);font-size:12.5px;color:var(--ink2);min-width:150px}
+#side{width:min(330px,36vw);border-left:1px solid var(--line2);background:var(--panel);
+  padding:20px 20px 30px}
+@media(max-width:820px){#field{flex-direction:column}#plot{height:56%;flex:none}
+  #side{width:auto;border-left:0;border-top:1px solid var(--line2);flex:1}}
+.big{font-family:var(--m);font-size:clamp(28px,3.4vw,38px);color:var(--meas);
+  line-height:1;letter-spacing:-.02em;margin:2px 0 2px}
+.bigu{font-size:13px;color:var(--dim);margin-bottom:16px}
+.rows{border-top:1px solid var(--line)}
+.rw{display:flex;justify-content:space-between;gap:12px;padding:8px 0;
+  border-bottom:1px solid var(--line);font-size:13px}
+.rw span:first-child{color:var(--dim)}
+.rw span:last-child{color:var(--ink);font-family:var(--m)}
+.grp{margin-top:18px}
+.grp h2{margin-bottom:6px}
+.olist{display:flex;flex-direction:column;gap:1px}
+.ob{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;
+  background:none;border:0;border-radius:4px;cursor:pointer;padding:6px 9px;text-align:left;
+  font-size:13.5px;color:var(--ink2)}
+.ob:hover{background:rgba(158,186,216,.08);color:var(--ink)}
+.ob.on{background:rgba(255,107,71,.16);color:var(--ink)}
+.ob .d{font-family:var(--m);font-size:11.5px;color:var(--dim)}
+.ob.on .d{color:var(--hot)}
 
-/* TRIALS */
+/* ---------- RESIDUAL ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+.tile{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:14px 16px}
+.tile .k{font-size:11.5px;color:var(--dim);letter-spacing:.06em}
+.tile .v{font-family:var(--m);font-size:clamp(21px,2.6vw,27px);color:var(--meas);
+  line-height:1.1;margin-top:5px;letter-spacing:-.01em}
+.tile.hot .v{color:var(--hot)}
+.figbox{border:1px solid var(--line);border-radius:6px;background:var(--sky);padding:14px 12px 8px}
+.figbox svg{display:block;width:100%;height:auto}
+.knob{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--line);
+  border-left:3px solid var(--hot);border-radius:0 6px 6px 0;background:var(--panel);
+  padding:14px 18px;margin:18px 0}
+.knob .lab{font-size:13.5px;color:var(--ink)}
+.knob input{flex:1;min-width:150px;accent-color:var(--hot)}
+.knob .val{font-family:var(--m);font-size:15px;color:var(--meas);min-width:96px;text-align:right}
+
+/* ---------- TRIALS ---------- */
 #trials{flex-direction:row}
-#tlist{width:min(320px,34vw);border-right:1px solid var(--line2);background:var(--panel);
-  padding:12px 12px 20px}
-#tdetail{flex:1;padding:clamp(14px,2.4vw,26px);min-width:0}
-@media(max-width:820px){
-  #trials{flex-direction:column}
-  #tlist{width:auto;border-right:0;border-bottom:1px solid var(--line2);max-height:38%}
-}
-.ti{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
-  border-left:2px solid transparent;padding:9px 10px;margin-bottom:2px;font-family:var(--m)}
-.ti:hover{background:rgba(79,134,214,.07)}
-.ti.on{border-left-color:var(--hot);background:rgba(255,90,54,.07)}
-.ti .c{font-family:var(--f);font-size:12.4px;line-height:1.35;color:var(--ink);display:block}
-.ti .s{font-size:8.5px;letter-spacing:.16em;margin-top:4px;display:block}
-.st-standing{color:var(--ok)} .st-contested{color:var(--warn)} .st-falling{color:var(--hot)}
-.st-dead{color:var(--hot)} .st-open{color:var(--hyp)}
-#tdetail .claim{font-family:var(--f);font-size:clamp(19px,2.6vw,29px);line-height:1.2;
-  font-weight:650;color:var(--ink);letter-spacing:-.015em;max-width:22ch;text-wrap:balance}
-.verd{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;padding:7px 13px;
-  border:1px solid;border-radius:3px;font-size:10px;letter-spacing:.2em;font-weight:700}
-.because{font-family:var(--m);font-size:11px;color:var(--ink2);margin-top:10px;max-width:60ch;
-  border-left:2px solid var(--line2);padding-left:10px}
-.because b{color:var(--meas)}
-.zone{margin-top:22px}
-.track{border:1px solid var(--line);border-radius:3px;background:rgba(6,10,18,.5);padding:8px 6px 4px}
-.track svg{display:block;width:100%;height:auto}
-.kill{border:1px solid rgba(255,90,54,.3);border-left:3px solid var(--hot);border-radius:0 3px 3px 0;
-  background:rgba(255,90,54,.05);padding:11px 14px;font-family:var(--f);font-size:12.5px;
-  line-height:1.5;color:var(--ink)}
-.kill .w{display:block;font-family:var(--m);font-size:8.5px;letter-spacing:.2em;color:var(--hot);margin-bottom:5px}
+#tlist{width:min(300px,33vw);border-right:1px solid var(--line2);background:var(--panel);
+  padding:14px 12px 24px}
+#tdetail{flex:1;min-width:0}
+@media(max-width:820px){#trials{flex-direction:column}
+  #tlist{width:auto;border-right:0;border-bottom:1px solid var(--line2);max-height:36%}}
+.ti{display:block;width:100%;text-align:left;background:none;border:0;border-radius:5px;
+  cursor:pointer;padding:10px 11px;margin-bottom:2px;font-family:var(--f)}
+.ti:hover{background:rgba(158,186,216,.08)}
+.ti.on{background:rgba(255,107,71,.14)}
+.ti .c{font-size:13.5px;line-height:1.35;color:var(--ink);display:block}
+.ti .s{font-size:11px;font-weight:700;letter-spacing:.1em;margin-top:5px;display:block}
+.st-standing{color:var(--ok)}.st-contested{color:var(--warn)}.st-falling{color:var(--hot)}
+.st-dead{color:var(--hot)}.st-open{color:var(--hyp)}
+.verd{display:inline-block;margin:0 0 14px;padding:7px 15px;border:1px solid;border-radius:5px;
+  font-size:12px;letter-spacing:.14em;font-weight:700}
+.because{font-size:15px;line-height:1.6;color:var(--ink2);max-width:62ch;
+  border-left:2px solid var(--line2);padding-left:14px;margin-bottom:22px}
+.because b{color:var(--ink);font-weight:600}
+.uses{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+.kill{border:1px solid rgba(255,107,71,.32);border-left:3px solid var(--hot);
+  border-radius:0 6px 6px 0;background:rgba(255,107,71,.07);padding:14px 18px;
+  font-size:14.5px;line-height:1.55;color:var(--ink);max-width:66ch}
+.kill .w{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--hot);margin-bottom:6px}
 
-/* DIALS */
-#dials{flex-direction:column;padding:clamp(14px,2.4vw,26px);overflow-y:auto}
-.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:4px}
-.dial{border:1px solid var(--line);border-radius:4px;background:var(--panel2);padding:13px 15px 11px}
-.dial.crit{border-color:rgba(255,90,54,.4)}
-.dial .dn{font-size:9.5px;letter-spacing:.16em;color:var(--ink2)}
-.dial .dv{font-size:clamp(19px,2.2vw,25px);color:var(--meas);letter-spacing:-.01em;
-  font-variant-numeric:tabular-nums;margin:5px 0 1px}
-.dial .du{font-size:10px;color:var(--dim)}
-.dial input[type=range]{width:100%;margin:9px 0 4px;accent-color:var(--hot)}
-.dial .meta{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.1em;color:var(--dim)}
-.dial .lev{height:3px;border-radius:2px;background:rgba(122,158,200,.14);margin-top:6px;overflow:hidden}
-.dial .lev i{display:block;height:100%;background:var(--hot)}
-.dial .dnote{font-family:var(--f);font-size:11px;line-height:1.45;color:var(--ink2);margin-top:8px}
-.pv{display:inline-block;font-size:8px;letter-spacing:.14em;padding:1px 5px;border:1px solid;border-radius:2px}
-.pv-measured{color:var(--meas);border-color:rgba(234,243,255,.35)}
-.pv-calculated{color:var(--model);border-color:rgba(79,134,214,.45)}
-.pv-assumed{color:var(--warn);border-color:rgba(255,180,84,.45)}
-.pv-proposed{color:var(--hyp);border-color:rgba(169,139,240,.45)}
-.reset{background:none;border:1px solid var(--line2);border-radius:2px;cursor:pointer;
-  padding:4px 10px;font-size:9px;letter-spacing:.14em;color:var(--dim)}
+/* ---------- DIALS ---------- */
+#dials{flex-direction:column}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:16px}
+.dial{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:16px 18px 14px}
+.dial.crit{border-color:rgba(255,107,71,.45);background:var(--panel2)}
+.dial .dn{font-size:13.5px;font-weight:600;color:var(--ink)}
+.dial .dv{font-family:var(--m);font-size:clamp(23px,2.6vw,28px);color:var(--meas);
+  letter-spacing:-.015em;margin:7px 0 1px;line-height:1}
+.dial .du{font-family:var(--m);font-size:12px;color:var(--dim)}
+.dial input[type=range]{width:100%;margin:12px 0 6px;accent-color:var(--hot)}
+.dial .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:var(--dim)}
+.dial .dnote{font-size:13px;line-height:1.5;color:var(--ink2);margin-top:11px}
+.pv{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 8px;
+  border:1px solid;border-radius:99px}
+.pv-measured{color:var(--meas);border-color:rgba(255,255,255,.35)}
+.pv-calculated{color:var(--model);border-color:rgba(94,155,234,.5)}
+.pv-assumed{color:var(--warn);border-color:rgba(255,194,102,.5)}
+.pv-proposed{color:var(--hyp);border-color:rgba(183,155,245,.5)}
+.reset{background:none;border:1px solid var(--line2);border-radius:5px;cursor:pointer;
+  padding:7px 14px;font-size:12.5px;color:var(--ink2)}
 .reset:hover{color:var(--hot);border-color:var(--hot)}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05s!important}}
 </style>
 </head>
 <body>
-<div id="sky"></div>
 
 <header id="bar">
-  <span class="wm"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#4f86d6" stroke-width="1.3"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#ff5a36" stroke-width="1.1"/><circle cx="12" cy="12" r="1.4" fill="#eaf3ff"/></svg>PARALLAX</span>
+  <span class="wm"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#5e9bea" stroke-width="1.4"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#ff6b47" stroke-width="1.2"/><circle cx="12" cy="12" r="1.5" fill="#fff"/></svg>PARALLAX</span>
   <nav id="modes" aria-label="Modes">
-    <button class="mode on" data-v="field">FIELD</button>
-    <button class="mode" data-v="trials">TRIALS</button>
-    <button class="mode" data-v="dials">DIALS</button>
+    <button class="mode on" data-v="field">Field</button>
+    <button class="mode" data-v="residual">Residual</button>
+    <button class="mode" data-v="trials">Trials</button>
+    <button class="mode" data-v="dials">Dials</button>
   </nav>
-  <div id="clock">
-    <span>UTC <b id="utc">—</b></span>
-    <span class="tag" id="resTag">RESIDUAL —</span>
-    <a href="../">archive</a>
-  </div>
+  <div id="right"><span id="resTag">—</span><a href="../">&larr; both instruments</a></div>
 </header>
 
 <main id="stage">
+
   <section class="view on" id="field">
     <div id="plot">
-      <canvas id="cv" aria-label="Live top-down view of the solar system, computed from orbital elements"></canvas>
-      <div id="hud"><div class="l" id="hudL">SOLAR SYSTEM · TOP-DOWN · ECLIPTIC</div><div class="v" id="hudV">—</div></div>
+      <canvas id="cv" aria-label="Top-down view of the solar system, positions computed from orbital elements"></canvas>
+      <div id="hud"><div id="hudN">—</div><div id="hudD">—</div></div>
       <div id="ctrls">
-        <div class="grp" id="zoomg">
-          <button data-z="2.2">INNER</button><button data-z="3.6" class="on">BELT</button><button data-z="32">OUTER</button>
-        </div>
-        <div class="grp"><button id="playb">▶ RUN</button><button id="nowb">NOW</button></div>
+        <div class="seg" id="zoomg"><button data-z="2.2">Inner</button><button data-z="3.6" class="on">Belt</button><button data-z="32">Outer</button></div>
+        <div class="seg"><button id="playb">▶ Run</button><button id="nowb">Now</button></div>
         <input id="tscrub" type="range" min="-18262" max="18262" value="0" step="1" aria-label="Time offset in days from now">
-        <span id="tlab">—</span>
+        <span id="tlab" class="n">—</span>
       </div>
     </div>
     <aside id="side" class="pane">
-      <h3><b>TRACKED</b> — click to select</h3>
-      <div class="objs" id="objs"></div>
-      <h3><b>READOUT</b> — live, computed</h3>
-      <div id="readout"></div>
-      <h3><b>THE RESIDUAL HUNT</b> — model vs reality</h3>
-      <p class="note">Every object is a sensor falling through the gravity of everything else.
-      When the model and the sky disagree, something is out there we have not accounted for.
-      <b>This is that computation, run live.</b></p>
-      <p class="note" style="margin-top:8px">Below: Uranus's position <b>with</b> Neptune pulling on it,
-      minus its position <b>without</b>. This anomaly is what revealed Neptune in 1846 — found by
-      calculation before anyone saw it.</p>
-      <div class="resfig" id="resfig"></div>
-      <p class="hon" id="resHon">—</p>
-      <p class="hon">POSITIONS COMPUTED LIVE FROM PUBLISHED ORBITAL ELEMENTS. PLANETS USE JPL MEAN
-      ELEMENTS — GOOD TO ABOUT AN ARCMINUTE BETWEEN 1800 AND 2050. SMALL-BODY ORBIT GEOMETRY IS
-      PUBLISHED; POSITION ALONG THE ORBIT IS APPROXIMATE. THIS IS A PROTOTYPE, NOT AN EPHEMERIS
-      SERVICE. NOTHING HERE IS SIMULATED DATA DRESSED AS REAL.</p>
+      <h2>Selected</h2>
+      <div id="selName" style="font-size:19px;font-weight:650;color:var(--ink)">—</div>
+      <div class="big" id="selBig">—</div>
+      <div class="bigu">AU from Earth &middot; right now</div>
+      <div class="rows" id="readout"></div>
+      <div class="grp"><h2>Planets</h2><div class="olist" id="olPl"></div></div>
+      <div class="grp"><h2>Small bodies</h2><div class="olist" id="olSb"></div></div>
+      <p class="fine" style="margin-top:20px">Positions are computed here, live, from published
+      orbital elements — not looked up. Planets are good to about an arcminute; small-body
+      orbits are published but position along the orbit is approximate.</p>
     </aside>
   </section>
 
+  <section class="view" id="residual"><div class="wrap pane" style="width:100%">
+    <h1>When the model and the sky disagree, something is out there.</h1>
+    <p class="lead">Every object is a sensor falling through the gravity of everything else. This
+    is the whole purpose of the instrument, proved on the case that founded it.</p>
+    <p>In 1781 Uranus was found. Within forty years its orbit refused to match prediction. The
+    disagreement was small — a couple of arcminutes — but it was real, and in 1846 a telescope was
+    pointed where the arithmetic said an unseen planet must be. <b>Neptune was there.</b></p>
+    <h2 style="margin-top:26px">Computed live, right now</h2>
+    <p>The instrument integrates the outer solar system twice — once with Neptune, once without —
+    and plots the gap between the two Uranuses.</p>
+    <div class="figbox" id="resfig"></div>
+    <div class="tiles" id="resTiles"></div>
+    <div class="knob">
+      <span class="lab">Neptune's mass</span>
+      <input type="range" id="nepKnob" aria-label="Neptune mass">
+      <span class="val" id="nepVal">—</span>
+    </div>
+    <p class="fine">Drag it to zero and the anomaly disappears — because in that universe there is
+    nothing out there to cause it. Four-planet N-body integration, velocity Verlet, 1690–2100 at
+    8-day steps, run twice on every change. The two runs are identical in the year 2000 and
+    diverge in both directions from there.</p>
+  </div></section>
+
   <section class="view" id="trials">
     <aside id="tlist" class="pane"></aside>
-    <div id="tdetail" class="pane"></div>
+    <div id="tdetail" class="pane"><div class="wrap" style="max-width:760px"></div></div>
   </section>
 
-  <section class="view" id="dials">
-    <h3><b>DIALS</b> — every number the instrument runs on</h3>
-    <p class="note" style="max-width:76ch">Move one and watch what breaks. Sorted by
-    <b>uncertainty × how much depends on it</b> — the top of this list is what humanity should
-    measure next, because everything else is standing on it.
-    <button class="reset" id="resetd" style="margin-left:10px">RESET ALL</button></p>
+  <section class="view" id="dials"><div class="wrap pane" style="width:100%;max-width:1100px">
+    <h1>Every number the instrument runs on.</h1>
+    <p class="lead">Move one and watch what breaks. Ranked by <b>how unsure we are</b> multiplied by
+    <b>how much depends on it</b> — so the top of this list is what to measure next.
+    <button class="reset" id="resetd" style="margin-left:8px">Reset all</button></p>
     <div class="dgrid" id="dgrid"></div>
-  </section>
+  </div></section>
+
 </main>
 
 <script>
@@ -411,10 +427,9 @@ const TRIALS=[
     const usd=kg*dial('metal_price');
     const q=usd/1e18;
     return {st:'falling', usd,
-      why:'The circulated figure is <b>$10 quintillion</b>. From the dials as they stand, the same '+
-      'arithmetic gives <b>$'+fmt(q,1)+' quintillion</b> — and sliding the price dial alone moves it across '+
-      '<b>two orders of magnitude</b>. That spread is the finding: three of the four inputs are assumed, '+
-      'not measured, and one of them is a density that already contradicts the composition being priced.'};
+      why:'Computed from the dials right now: <b>$'+fmt(q,1)+' quintillion</b>. Three of the four numbers '+
+      'feeding that figure are assumed, not measured — metal fraction, price, and a density that already '+
+      'contradicts the composition being priced.'};
   },
   kill:'Nothing settles the dollar figure, because it is not a measurement. What 2029 settles is the composition underneath it.',
   track:[[2016,60,'the figure enters circulation'],[2017,72,'repeated widely at mission announcement'],
@@ -462,40 +477,58 @@ const TRIALS=[
          [2020,2,'sample collected from an improvised site']]}
 ];
 /* ===========================================================================
-   RENDER
+   RENDER — four modes, one job each.
    =========================================================================== */
 const $=s=>document.querySelector(s);
 const jdNow=()=>Date.now()/86400000+2440587.5;
 let tOff=0, zoomAU=3.6, sel='bennu', playing=false, view='field', selTrial='uranus';
-const ALL=()=>PL.map(p=>({...p,type:'pl'})).concat(SB.map(b=>({...b,type:'sb'})));
+const ALLPL=()=>PL.map(p=>({...p,type:'pl'})), ALLSB=()=>SB.map(b=>({...b,type:'sb'}));
+const ALL=()=>ALLPL().concat(ALLSB());
 const objOf=k=>ALL().find(o=>o.k===k);
 const posOf=(o,jd)=>o.type==='pl'?planetPos(o,jd):bodyPos(o,jd);
 
-/* ---- the residual figure ---- */
+/* ---- residual engine hookup ---- */
 function computeRes(){
-  const f=dial('nep_m')/dmeta('nep_m').def;
-  RES=uranusResidual(f);
+  RES=uranusResidual(dial('nep_m')/dmeta('nep_m').def);
   RESPEAK=RES.reduce((m,p)=>Math.max(m,Math.abs(p.as)),0);
 }
 function resFig(){
   if(!RES)return '';
-  const W=340,H=132,mL=34,mR=8,mT=12,mB=20,pw=W-mL-mR,ph=H-mT-mB;
-  const y0=1690,y1=2100, peak=Math.max(RESPEAK,1);
-  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+ph/2-(v/peak)*(ph/2-3);
+  const W=760,H=250,mL=56,mR=18,mT=22,mB=34,pw=W-mL-mR,ph=H-mT-mB;
+  const y0=1690,y1=2100,peak=Math.max(RESPEAK,1);
+  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+ph/2-(v/peak)*(ph/2-6);
   let d='';
   RES.forEach((p,i)=>{d+=(i?'L':'M')+X(p.year).toFixed(1)+' '+Y(p.as).toFixed(1);});
-  const marks=[[1781,'URANUS FOUND'],[1846,'NEPTUNE FOUND']];
-  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Difference in Uranus position with and without Neptune, 1690 to 2100, peaking near '+
-    Math.round(RESPEAK)+' arcseconds"><title>The Uranus residual</title>';
-  s+='<line x1="'+mL+'" y1="'+Y(0)+'" x2="'+(W-mR)+'" y2="'+Y(0)+'" stroke="rgba(122,158,200,.3)"/>';
-  [1700,1800,1900,2000,2100].forEach(y=>{s+='<line x1="'+X(y)+'" y1="'+mT+'" x2="'+X(y)+'" y2="'+(H-mB)+'" stroke="rgba(122,158,200,.08)"/>'+
-    '<text x="'+X(y)+'" y="'+(H-7)+'" text-anchor="middle" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">'+y+'</text>';});
-  s+='<text x="4" y="'+(mT+8)+'" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">+'+Math.round(peak)+'"</text>'+
-     '<text x="4" y="'+(H-mB)+'" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">−'+Math.round(peak)+'"</text>';
-  marks.forEach((m,i)=>{s+='<line x1="'+X(m[0])+'" y1="'+mT+'" x2="'+X(m[0])+'" y2="'+(H-mB)+'" stroke="#ffb454" stroke-width=".8" stroke-dasharray="2 3"/>'+
-    '<text x="'+(X(m[0])+3)+'" y="'+(mT+8+i*10)+'" font-size="6.6" fill="#ffb454" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">'+m[1]+'</text>';});
-  s+='<path d="'+d+'" fill="none" stroke="#ff5a36" stroke-width="1.5"/>';
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Difference between Uranus with and without Neptune, 1690 to 2100, peaking near '+
+    Math.round(RESPEAK)+' arcseconds"><title>The Uranus anomaly</title>';
+  [1700,1750,1800,1850,1900,1950,2000,2050,2100].forEach(y=>{
+    s+='<line x1="'+X(y)+'" y1="'+mT+'" x2="'+X(y)+'" y2="'+(H-mB)+'" stroke="rgba(158,186,216,.08)"/>';
+    if(y%100===0)s+='<text x="'+X(y)+'" y="'+(H-13)+'" text-anchor="middle" font-size="12" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">'+y+'</text>';});
+  s+='<line x1="'+mL+'" y1="'+Y(0)+'" x2="'+(W-mR)+'" y2="'+Y(0)+'" stroke="rgba(158,186,216,.35)"/>';
+  s+='<text x="'+(mL-8)+'" y="'+(Y(peak)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">+'+Math.round(peak)+'″</text>'+
+     '<text x="'+(mL-8)+'" y="'+(Y(0)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">0</text>'+
+     '<text x="'+(mL-8)+'" y="'+(Y(-peak)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">−'+Math.round(peak)+'″</text>';
+  [[1781,'Uranus found',0],[1846,'Neptune found',1]].forEach(m=>{
+    s+='<line x1="'+X(m[0])+'" y1="'+mT+'" x2="'+X(m[0])+'" y2="'+(H-mB)+'" stroke="#ffc266" stroke-width="1" stroke-dasharray="3 3"/>'+
+       '<text x="'+(X(m[0])+5)+'" y="'+(mT+13+m[2]*15)+'" font-size="11.5" fill="#ffc266" font-family="system-ui,sans-serif">'+m[1]+'</text>';});
+  s+='<path d="'+d+'" fill="none" stroke="#ff6b47" stroke-width="2"/>';
   return s+'</svg>';
+}
+function renderResidual(){
+  $('#resfig').innerHTML=resFig();
+  const ratio=Math.max(1,Math.round(RESPEAK/5));
+  const tile=(k,v,hot)=>'<div class="tile'+(hot?' hot':'')+'"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+  $('#resTiles').innerHTML=
+    tile('Biggest disagreement', RESPEAK<1?'none':fmt(RESPEAK,0)+'″', RESPEAK>=1)+
+    tile('In arcminutes', RESPEAK<1?'—':fmt(RESPEAK/60,1)+'′')+
+    tile('What 1840s telescopes could see','≈ 5″')+
+    tile('Times above the noise', RESPEAK<1?'—':ratio+'×', RESPEAK>=1);
+  const m=dmeta('nep_m'), k=$('#nepKnob');
+  k.min=m.min;k.max=m.max;k.step=m.step;k.value=D.nep_m;
+  $('#nepVal').textContent=(D.nep_m/m.def*100).toFixed(0)+'% of real';
+  $('#resTag').textContent=RESPEAK<1?'No disagreement':'Disagreement '+fmt(RESPEAK,0)+'″';
+  $('#resTag').style.color=RESPEAK<1?'var(--ok)':'var(--hot)';
+  $('#resTag').style.borderColor=RESPEAK<1?'rgba(70,217,168,.5)':'rgba(255,107,71,.5)';
 }
 /* ---- canvas ---- */
 const cv=$('#cv'), ctx=cv.getContext('2d');
@@ -507,195 +540,173 @@ function sizeCv(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
 }
 function draw(){
-  const w=cv.width/DPR, h=cv.height/DPR;
-  ctx.clearRect(0,0,w,h);
-  const cx=w/2, cy=h/2, S=Math.min(w,h)*0.44/zoomAU;
-  const P=x=>cx+x*S, Q=y=>cy-y*S;
+  const w=cv.width/DPR,h=cv.height/DPR; ctx.clearRect(0,0,w,h);
+  const cx=w/2,cy=h/2,S=Math.min(w,h)*0.42/zoomAU, P=x=>cx+x*S, Q=y=>cy-y*S;
   const jd=jdNow()+tOff;
-  // range rings
-  ctx.save();
   [1,5,10,20,30].forEach(au=>{
-    if(au*S<8||au*S>Math.max(w,h))return;
-    ctx.beginPath(); ctx.arc(cx,cy,au*S,0,Math.PI*2);
-    ctx.strokeStyle='rgba(122,158,200,.09)'; ctx.lineWidth=1; ctx.stroke();
-    ctx.fillStyle='rgba(94,117,144,.75)'; ctx.font='9px ui-monospace,Menlo,monospace';
-    ctx.fillText(au+' AU', cx+au*S+4, cy-3);
+    if(au*S<10||au*S>Math.max(w,h))return;
+    ctx.beginPath();ctx.arc(cx,cy,au*S,0,Math.PI*2);
+    ctx.strokeStyle='rgba(158,186,216,.07)';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='rgba(139,160,181,.6)';ctx.font='11px ui-monospace,Menlo,monospace';
+    ctx.fillText(au+' AU',cx+au*S+5,cy-4);
   });
-  ctx.restore();
-  // orbits
   ALL().forEach(o=>{
-    const pts=orbitPath(o.type==='pl'?plEl(o,jd):o, o.type==='pl');
-    ctx.beginPath();
-    pts.forEach((p,i)=>{i?ctx.lineTo(P(p.x),Q(p.y)):ctx.moveTo(P(p.x),Q(p.y));});
-    ctx.strokeStyle = o.k===sel ? 'rgba(255,90,54,.55)' : 'rgba(79,134,214,.20)';
-    ctx.lineWidth = o.k===sel ? 1.3 : 0.8; ctx.stroke();
+    const pts=orbitPath(o.type==='pl'?plEl(o,jd):o,o.type==='pl');
+    ctx.beginPath();pts.forEach((p,i)=>{i?ctx.lineTo(P(p.x),Q(p.y)):ctx.moveTo(P(p.x),Q(p.y));});
+    ctx.strokeStyle=o.k===sel?'rgba(255,107,71,.6)':'rgba(94,155,234,.17)';
+    ctx.lineWidth=o.k===sel?1.5:0.9;ctx.stroke();
   });
-  // sun
-  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle='#fff3d0'; ctx.shadowColor='rgba(255,220,140,.9)'; ctx.shadowBlur=16; ctx.fill(); ctx.shadowBlur=0;
-  // bodies
+  ctx.beginPath();ctx.arc(cx,cy,4.5,0,Math.PI*2);
+  ctx.fillStyle='#fff6dd';ctx.shadowColor='rgba(255,225,150,.9)';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;
   ALL().forEach(o=>{
-    const p=posOf(o,jd), x=P(p.x), y=Q(p.y);
+    const p=posOf(o,jd),x=P(p.x),y=Q(p.y);
     if(x<-40||x>w+40||y<-40||y>h+40)return;
     const on=o.k===sel;
-    ctx.beginPath(); ctx.arc(x,y,on?o.rad+1.6:o.rad,0,Math.PI*2);
-    ctx.fillStyle=o.c; if(on){ctx.shadowColor=o.c;ctx.shadowBlur=14;} ctx.fill(); ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(x,y,on?o.rad+1.8:o.rad,0,Math.PI*2);
+    ctx.fillStyle=o.c;if(on){ctx.shadowColor=o.c;ctx.shadowBlur=16;}ctx.fill();ctx.shadowBlur=0;
     if(on){
-      ctx.beginPath(); ctx.arc(x,y,o.rad+8,0,Math.PI*2);
-      ctx.strokeStyle='#ff5a36'; ctx.lineWidth=1; ctx.stroke();
-      ctx.fillStyle='#eaf3ff'; ctx.font='10px ui-monospace,Menlo,monospace';
-      ctx.fillText(o.n.toUpperCase(), x+o.rad+12, y+3.5);
-    } else if(zoomAU<6 || o.type==='pl'){
-      ctx.fillStyle='rgba(147,168,191,.7)'; ctx.font='9px ui-monospace,Menlo,monospace';
-      ctx.fillText(o.n.split(' ').pop().toUpperCase(), x+o.rad+5, y+3);
+      ctx.beginPath();ctx.arc(x,y,o.rad+9,0,Math.PI*2);
+      ctx.strokeStyle='#ff6b47';ctx.lineWidth=1.3;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font='600 13px system-ui,sans-serif';
+      ctx.fillText(o.n,x+o.rad+14,y+4.5);
+    } else if(o.type==='pl'){                      /* only planets carry standing labels */
+      ctx.fillStyle='rgba(194,210,226,.62)';ctx.font='12px system-ui,sans-serif';
+      ctx.fillText(o.n,x+o.rad+6,y+4);
     }
   });
 }
-/* ---- readouts ---- */
+/* ---- field readouts ---- */
 function readout(){
-  const jd=jdNow()+tOff, o=objOf(sel), p=posOf(o,jd), e=planetPos(PL[2],jd);
-  const rSun=Math.hypot(p.x,p.y,p.z);
-  const rEarth=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
-  const a=o.type==='pl'?plEl(o,jd).a:o.a;
-  const per=Math.pow(a,1.5);
-  const lon=((Math.atan2(p.y,p.x)*DEG)+360)%360;
-  const row=(k,v)=>'<div class="row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
+  const jd=jdNow()+tOff,o=objOf(sel),p=posOf(o,jd),e=planetPos(PL[2],jd);
+  const rSun=Math.hypot(p.x,p.y,p.z), rEarth=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
+  const a=o.type==='pl'?plEl(o,jd).a:o.a, per=Math.pow(a,1.5);
+  $('#selName').textContent=o.n;
+  $('#selBig').textContent=fmt(rEarth,3);
+  const rw=(k,v)=>'<div class="rw"><span>'+k+'</span><span>'+v+'</span></div>';
   $('#readout').innerHTML=
-    row('OBJECT',o.n.toUpperCase())+
-    row('DISTANCE · SUN',fmt(rSun,4)+' AU')+
-    row('DISTANCE · EARTH',fmt(rEarth,4)+' AU')+
-    row('LIGHT TIME',fmt(rEarth*8.317,1)+' min')+
-    row('ECLIPTIC LON',fmt(lon,2)+'°')+
-    row('SEMI-MAJOR AXIS',fmt(a,4)+' AU')+
-    row('ORBITAL PERIOD',per<1?fmt(per*365.25,0)+' d':fmt(per,2)+' yr')+
-    row('POSITION CLASS',o.type==='pl'?'JPL MEAN ELEMENTS':'APPROXIMATE');
-  $('#hudV').textContent=o.n.toUpperCase()+'  ·  '+fmt(rEarth,3)+' AU FROM EARTH';
+    rw('From the Sun',fmt(rSun,3)+' AU')+
+    rw('Light travel time',fmt(rEarth*8.317,1)+' min')+
+    rw('Orbit size',fmt(a,3)+' AU')+
+    rw('Year length',per<1?fmt(per*365.25,0)+' days':fmt(per,1)+' years');
+  $('#hudN').textContent=o.n;
+  $('#hudD').textContent=fmt(rEarth,3)+' AU from Earth';
   const d=new Date((jd-2440587.5)*86400000);
-  $('#tlab').textContent=d.toISOString().slice(0,10)+(tOff?'  ('+(tOff>0?'+':'')+(tOff/365.25).toFixed(1)+' yr)':'  · NOW');
+  $('#tlab').textContent=d.toISOString().slice(0,10)+(tOff?'  ('+(tOff>0?'+':'')+(tOff/365.25).toFixed(1)+' yr)':'  · today');
 }
-function objChips(){
-  $('#objs').innerHTML=ALL().map(o=>'<button class="ob'+(o.k===sel?' on':'')+'" data-o="'+o.k+'">'+
-    o.n.toUpperCase()+'</button>').join('');
+function objList(){
+  const jd=jdNow()+tOff,e=planetPos(PL[2],jd);
+  const row=o=>{
+    const p=posOf(o,jd), d=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
+    return '<button class="ob'+(o.k===sel?' on':'')+'" data-o="'+o.k+'"><span>'+o.n+
+      '</span><span class="d">'+fmt(d,2)+' AU</span></button>';
+  };
+  $('#olPl').innerHTML=ALLPL().filter(o=>o.k!=='earth').map(row).join('');
+  $('#olSb').innerHTML=ALLSB().map(row).join('');
 }
 /* ---- trials ---- */
-function trialState(t){return t.test();}
 function trackFig(t){
-  const W=560,H=150,mL=30,mR=14,mT=14,mB=26,pw=W-mL-mR,ph=H-mT-mB;
-  const ys=t.track.map(p=>p[0]), y0=Math.min(...ys)-6, y1=Math.max(...ys)+6;
+  const W=680,H=190,mL=34,mR=16,mT=18,mB=34,pw=W-mL-mR,ph=H-mT-mB;
+  const ys=t.track.map(p=>p[0]),y0=Math.min(...ys)-6,y1=Math.max(...ys)+6;
   const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+(100-v)/100*ph;
-  let d='';
-  t.track.forEach((p,i)=>{d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);});
-  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Support for this claim over time, an editorial reading of the record"><title>Support over time</title>';
-  [0,50,100].forEach(v=>{s+='<line x1="'+mL+'" y1="'+Y(v)+'" x2="'+(W-mR)+'" y2="'+Y(v)+'" stroke="rgba(122,158,200,.10)"/>'+
-    '<text x="'+(mL-5)+'" y="'+(Y(v)+3)+'" text-anchor="end" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">'+v+'</text>';});
-  s+='<path d="'+d+'" fill="none" stroke="#4f86d6" stroke-width="1.6"/>';
-  let lastLab=-1e9, lastAnn=-1e9;
+  let d='';t.track.forEach((p,i)=>{d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);});
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="How support for this claim moved over time"><title>Support over time</title>';
+  [[100,'strong'],[50,''],[0,'dead']].forEach(g=>{
+    s+='<line x1="'+mL+'" y1="'+Y(g[0])+'" x2="'+(W-mR)+'" y2="'+Y(g[0])+'" stroke="rgba(158,186,216,.10)"/>'+
+       (g[1]?'<text x="'+(mL-6)+'" y="'+(Y(g[0])+4)+'" text-anchor="end" font-size="11" fill="#8ba0b5" font-family="system-ui,sans-serif">'+g[1]+'</text>':'');});
+  s+='<path d="'+d+'" fill="none" stroke="#5e9bea" stroke-width="2"/>';
+  let lastLab=-1e9,lastAnn=-1e9;
   t.track.forEach((p,i)=>{
-    const dead=p[1]<=10, c=dead?'#ff5a36':'#eaf3ff', x=X(p[0]);
-    s+='<circle cx="'+x+'" cy="'+Y(p[1])+'" r="3.4" fill="#04070e" stroke="'+c+'" stroke-width="1.7"/>';
-    if(x-lastLab>30){ lastLab=x;
-      s+='<text x="'+x+'" y="'+(H-14)+'" text-anchor="middle" font-size="7.5" fill="#93a8bf" font-family="ui-monospace,Menlo,monospace">'+p[0]+'</text>';}
-    if((i===t.track.length-1||dead) && x-lastAnn>150){ lastAnn=x;
-      s+='<text x="'+Math.min(x,W-mR-4)+'" y="'+(Y(p[1])-9)+'" text-anchor="end" font-size="7.4" fill="'+c+'" font-family="ui-monospace,Menlo,monospace">'+p[2].toUpperCase()+'</text>';}
+    const dead=p[1]<=10,c=dead?'#ff6b47':'#fff',x=X(p[0]);
+    s+='<circle cx="'+x+'" cy="'+Y(p[1])+'" r="4" fill="#0c1420" stroke="'+c+'" stroke-width="2"/>';
+    if(x-lastLab>44){lastLab=x;
+      s+='<text x="'+x+'" y="'+(H-14)+'" text-anchor="middle" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">'+p[0]+'</text>';}
+    if((i===t.track.length-1||dead)&&x-lastAnn>210){lastAnn=x;
+      s+='<text x="'+Math.min(x,W-mR-4)+'" y="'+(Y(p[1])-11)+'" text-anchor="end" font-size="11.5" fill="'+c+'" font-family="system-ui,sans-serif">'+p[2]+'</text>';}
   });
-  s+='<text x="'+mL+'" y="'+(H-2)+'" font-size="7" fill="#5e7590" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">SUPPORT OVER TIME · EDITORIAL READING OF THE PUBLISHED RECORD, NOT A MEASURED QUANTITY</text>';
+  s+='<text x="'+mL+'" y="'+(H-2)+'" font-size="10.5" fill="#8ba0b5" font-family="system-ui,sans-serif">Support over time — a reading of the published record, not a measured quantity</text>';
   return s+'</svg>';
 }
 function renderTrials(){
-  $('#tlist').innerHTML=TRIALS.map(t=>{
-    const r=trialState(t);
-    return '<button class="ti'+(t.id===selTrial?' on':'')+'" data-t="'+t.id+'">'+
-      '<span class="c">'+t.claim+'</span><span class="s st-'+r.st+'">'+r.st.toUpperCase()+'</span></button>';
-  }).join('');
-  const t=TRIALS.find(x=>x.id===selTrial), r=trialState(t);
+  $('#tlist').innerHTML=TRIALS.map(t=>{const r=t.test();
+    return '<button class="ti'+(t.id===selTrial?' on':'')+'" data-t="'+t.id+'"><span class="c">'+t.claim+
+      '</span><span class="s st-'+r.st+'">'+r.st.toUpperCase()+'</span></button>';}).join('');
+  const t=TRIALS.find(x=>x.id===selTrial),r=t.test();
   const col={standing:'var(--ok)',contested:'var(--warn)',falling:'var(--hot)',dead:'var(--hot)',open:'var(--hyp)'}[r.st];
   const used=t.uses.map(u=>{const m=dmeta(u);
-    return '<span class="pv pv-'+m.prov+'" style="margin:0 4px 4px 0">'+m.n+' = '+fmt(D[u],m.sig)+(m.u?' '+m.u:'')+'</span>';}).join('');
-  $('#tdetail').innerHTML=
-    '<h3><b>ON TRIAL</b></h3>'+
-    '<div class="claim">'+t.claim+'</div>'+
+    return '<span class="pv pv-'+m.prov+'">'+m.n+' = '+fmt(D[u],m.sig)+(m.u?' '+m.u:'')+'</span>';}).join('');
+  $('#tdetail').innerHTML='<div class="wrap" style="max-width:780px">'+
+    '<h2>On trial</h2><h1>'+t.claim+'</h1>'+
     '<div class="verd" style="color:'+col+';border-color:'+col+'">'+r.st.toUpperCase()+'</div>'+
     '<div class="because">'+r.why+'</div>'+
-    (used?'<div class="zone"><h3><b>READING FROM</b> — move these in DIALS and this verdict moves</h3>'+used+'</div>':'')+
-    '<div class="zone"><h3><b>THE TRACK</b> — how it moved</h3><div class="track">'+trackFig(t)+'</div></div>'+
-    '<div class="zone"><div class="kill"><span class="w">WHAT SETTLES IT</span>'+t.kill+'</div></div>';
+    (used?'<h2>Reading from these numbers — change them in Dials and this verdict moves</h2><div class="uses">'+used+'</div>':'')+
+    '<h2>How it moved</h2><div class="figbox" style="margin-bottom:22px">'+trackFig(t)+'</div>'+
+    '<div class="kill"><span class="w">What settles it</span>'+t.kill+'</div></div>';
 }
 /* ---- dials ---- */
-function leverage(id){
-  let n=TRIALS.filter(t=>t.uses.includes(id)).length;
-  if(id==='nep_m')n+=2;                     // also drives the live residual model
-  return n;
-}
+function leverage(id){return TRIALS.filter(t=>t.uses.includes(id)).length+(id==='nep_m'?2:0);}
 function priority(d){
   const rel=d.unc==null?0.9:Math.min(1,(d.unc/Math.max(1e-12,Math.abs(d.def)))*4);
   return rel*leverage(d.id);
 }
 function renderDials(){
-  const maxLev=Math.max(...DIALS.map(d=>leverage(d.id)),1);
   const sorted=[...DIALS].sort((a,b)=>priority(b)-priority(a));
+  const top=priority(sorted[0]);
   $('#dgrid').innerHTML=sorted.map(d=>{
-    const lev=leverage(d.id), crit=priority(d)>=priority(sorted[0])*0.66;
     const dep=TRIALS.filter(t=>t.uses.includes(d.id)).length;
-    return '<div class="dial'+(crit?' crit':'')+'">'+
-      '<div class="dn">'+d.n.toUpperCase()+'</div>'+
+    return '<div class="dial'+(priority(d)>=top*0.66?' crit':'')+'">'+
+      '<div class="dn">'+d.n+'</div>'+
       '<div class="dv" id="dv_'+d.id+'">'+fmt(D[d.id],d.sig)+'</div>'+
-      '<div class="du">'+(d.u||'dimensionless')+(d.unc!=null?'  ·  ±'+fmt(d.unc,d.sig):'  ·  no stated uncertainty')+'</div>'+
+      '<div class="du">'+(d.u||'a fraction')+(d.unc!=null?'  ±'+fmt(d.unc,d.sig):'  no stated uncertainty')+'</div>'+
       '<input type="range" min="'+d.min+'" max="'+d.max+'" step="'+d.step+'" value="'+D[d.id]+'" data-d="'+d.id+'" aria-label="'+d.n+'">'+
-      '<div class="meta"><span class="pv pv-'+d.prov+'">'+d.prov+'</span>'+
-        '<span>DEPENDS ON IT: '+dep+' trial'+(dep===1?'':'s')+(d.id==='nep_m'?' + the model':'')+'</span></div>'+
-      '<div class="lev"><i style="width:'+(lev/maxLev*100)+'%"></i></div>'+
+      '<div class="meta"><span class="pv pv-'+d.prov+'">'+d.prov+'</span><span>'+
+        (dep?dep+' trial'+(dep===1?'':'s'):'no trial')+(d.id==='nep_m'?' + the model':'')+' depends on it</span></div>'+
       '<div class="dnote">'+d.note+'</div></div>';
   }).join('');
 }
 /* ---- wiring ---- */
 let resTimer=null;
-function refreshResidual(){
-  computeRes();
-  $('#resfig').innerHTML=resFig();
-  $('#resTag').textContent='RESIDUAL '+(RESPEAK<1?'NONE':fmt(RESPEAK,0)+'″');
-  $('#resTag').style.color=RESPEAK<1?'var(--ok)':'var(--hot)';
-  $('#resTag').style.borderColor=RESPEAK<1?'rgba(53,208,160,.45)':'rgba(255,90,54,.45)';
-  $('#resHon').textContent='COMPUTED LIVE: '+RES.length+' SAMPLES FROM A '+
-    'FOUR-PLANET N-BODY INTEGRATION RUN TWICE, 1690–2100, 8-DAY STEPS. PEAK SEPARATION '+
-    fmt(RESPEAK,0)+' ARCSECONDS ('+fmt(RESPEAK/60,1)+" ARCMINUTES). THE TWO RUNS ARE IDENTICAL AT THE YEAR 2000 AND DIVERGE IN BOTH DIRECTIONS.";
-}
 function setView(v){
   view=v;
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  if(v==='field'){sizeCv();draw();readout();}
+  if(v==='field'){sizeCv();draw();readout();objList();}
+  if(v==='residual')renderResidual();
   if(v==='trials')renderTrials();
   if(v==='dials')renderDials();
 }
 document.addEventListener('click',e=>{
   const m=e.target.closest('.mode'); if(m){setView(m.dataset.v);return;}
-  const o=e.target.closest('[data-o]'); if(o){sel=o.dataset.o;objChips();draw();readout();return;}
+  const o=e.target.closest('[data-o]'); if(o){sel=o.dataset.o;objList();draw();readout();return;}
   const t=e.target.closest('[data-t]'); if(t){selTrial=t.dataset.t;renderTrials();return;}
   const z=e.target.closest('[data-z]'); if(z){zoomAU=+z.dataset.z;
     document.querySelectorAll('#zoomg button').forEach(b=>b.classList.toggle('on',b===z));draw();return;}
-  if(e.target.id==='nowb'){tOff=0;$('#tscrub').value=0;draw();readout();return;}
-  if(e.target.id==='playb'){playing=!playing;e.target.textContent=playing?'❚❚ HOLD':'▶ RUN';return;}
-  if(e.target.id==='resetd'){DIALS.forEach(d=>D[d.id]=d.def);renderDials();clearTimeout(resTimer);
-    resTimer=setTimeout(refreshResidual,60);return;}
+  if(e.target.id==='nowb'){tOff=0;$('#tscrub').value=0;draw();readout();objList();return;}
+  if(e.target.id==='playb'){playing=!playing;e.target.textContent=playing?'❚❚ Hold':'▶ Run';return;}
+  if(e.target.id==='resetd'){DIALS.forEach(d=>D[d.id]=d.def);renderDials();
+    clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},60);return;}
 });
-$('#tscrub').addEventListener('input',e=>{tOff=+e.target.value;playing=false;$('#playb').textContent='▶ RUN';draw();readout();});
+$('#tscrub').addEventListener('input',e=>{tOff=+e.target.value;playing=false;
+  $('#playb').textContent='▶ Run';draw();readout();objList();});
+$('#nepKnob').addEventListener('input',e=>{
+  D.nep_m=+e.target.value;
+  $('#nepVal').textContent=(D.nep_m/dmeta('nep_m').def*100).toFixed(0)+'% of real';
+  clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},140);
+});
 document.addEventListener('input',e=>{
   const d=e.target.closest('[data-d]'); if(!d)return;
-  const id=d.dataset.d, m=dmeta(id);
-  D[id]=+d.value;
+  const id=d.dataset.d,m=dmeta(id); D[id]=+d.value;
   const el=document.getElementById('dv_'+id); if(el)el.textContent=fmt(D[id],m.sig);
-  if(id==='nep_m'){clearTimeout(resTimer);resTimer=setTimeout(refreshResidual,140);}
+  if(id==='nep_m'){clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},140);}
 });
 addEventListener('resize',()=>{if(view==='field'){sizeCv();draw();}});
-setInterval(()=>{$('#utc').textContent=new Date().toISOString().slice(11,19);},1000);
-$('#utc').textContent=new Date().toISOString().slice(11,19);
 let last=0;
 function loop(ts){
-  if(playing&&ts-last>16){tOff+=2.5;if(tOff>18262)tOff=-18262;$('#tscrub').value=tOff;draw();readout();last=ts;}
+  if(playing&&ts-last>16){tOff+=2.5;if(tOff>18262)tOff=-18262;
+    $('#tscrub').value=tOff;draw();readout();last=ts;}
   requestAnimationFrame(loop);
 }
-objChips(); sizeCv(); refreshResidual(); draw(); readout(); renderTrials(); renderDials();
-requestAnimationFrame(loop);
+sizeCv(); computeRes(); renderResidual(); draw(); readout(); objList();
+renderTrials(); renderDials(); requestAnimationFrame(loop);
 </script>
 </body>
 </html>
