@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 3;
+const WORKER_VERSION = 4;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -598,7 +598,15 @@ async function extractFrom(records: any[]) {
     model_replied: false,
     items_returned: 0,
     kept: 0,
-    dropped: { no_object: 0, no_value: 0, unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0 },
+    dropped: {
+      bad_index: 0, no_object: 0, no_value: 0,
+      unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0,
+    },
+    /* When nothing at all survives, the first few items exactly as the model
+       returned them. Twenty items discarded under one counter says something is
+       wrong; it does not say what, and every round spent guessing at that is a
+       redeploy nobody needed. */
+    sample_items: [] as any[],
   };
   if (!records.length || !ANT) return { rows: [] as any[], diag };
   const digest = records.map((r, i) =>
@@ -656,7 +664,8 @@ async function extractFrom(records: any[]) {
   for (const m of out?.m ?? []) {
     const src = records[Number(m.i)];
     const value = num(m.value);
-    if (!src || !m.object) { diag.dropped.no_object++; continue; }
+    if (!src) { diag.dropped.bad_index++; continue; }
+    if (!m.object) { diag.dropped.no_object++; continue; }
     if (value === null) { diag.dropped.no_value++; continue; }
     const quantity = qname(clean(m.quantity));
     if (!quantity || !ALLOWED.has(quantity)) { diag.dropped.unknown_quantity++; continue; }
@@ -682,6 +691,7 @@ async function extractFrom(records: any[]) {
       confidence: Math.max(0, Math.min(1, Number(m.confidence) || 0)),
     });
   }
+  if (!rows.length) diag.sample_items = (out?.m ?? []).slice(0, 3);
   return { rows, diag };
 }
 
@@ -858,17 +868,25 @@ function pickTag(xml: string, tag: string): string {
   return m ? clean(m[1].replace(/<[^>]+>/g, " ")) : "";
 }
 
+const ARXIV = { calls: 0, failures: 0, empty: 0, last_error: "" };
+
 async function arxivPapersFor(object: string, rows = 6): Promise<any[]> {
   const q = searchName(object);
   if (q.length < 3) return [];
+  ARXIV.calls++;
   try {
     const xml = await (async () => {
       const ctl = new AbortController();
-      const t = setTimeout(() => ctl.abort(), 10000);
+      const t = setTimeout(() => ctl.abort(), 8000);
       try {
+        /* Unquoted. arXiv tokenises inside a quoted phrase and a designation
+           like Kepler-10 comes apart on the hyphen, so the quotes buy nothing
+           and cost matches. Eight seconds, because three sequential batches of
+           a ten second timeout is most of an Edge Function's budget spent
+           waiting for one index. */
         const r = await fetch(
           `https://export.arxiv.org/api/query?search_query=${
-            encodeURIComponent(`all:"${q}"`)}&sortBy=relevance&max_results=${rows}`,
+            encodeURIComponent(`all:${q}`)}&sortBy=relevance&max_results=${rows}`,
           { headers: UA, signal: ctl.signal });
         if (!r.ok) throw new Error("HTTP " + r.status);
         return await r.text();
@@ -888,8 +906,17 @@ async function arxivPapersFor(object: string, rows = 6): Promise<any[]> {
         url: `https://arxiv.org/abs/${id}`, about: object,
       });
     }
+    if (!out.length) ARXIV.empty++;
     return out;
-  } catch { return []; }
+  } catch (e) {
+    /* Counted and named. The previous version swallowed this and returned an
+       empty list, which is indistinguishable from an index that answered and
+       had nothing — the precise confusion this worker already fixed once for
+       OpenAlex and then reintroduced here. */
+    ARXIV.failures++;
+    ARXIV.last_error = String((e as Error)?.message ?? e).slice(0, 120);
+    return [];
+  }
 }
 
 async function papersFor(object: string, rows = 6): Promise<any[]> {
@@ -1105,6 +1132,24 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
+  // ---------- papers: can the indices be read at all, and what comes back ----------
+  /* A full sweep costs half a minute and touches six services to answer a
+     question about two of them. This asks only what the paper indices return
+     for one name, writes nothing, and hands back the first abstract from each
+     so the text a model would be reading can be seen rather than inferred. */
+  if (mode === "papers") {
+    const name = target || "Kepler-10";
+    const [ax, oa] = await Promise.all([arxivPapersFor(name, 5), papersFor(name, 5)]);
+    const first = (rs: any[]) => rs[0]
+      ? { title: rs[0].title, year: rs[0].year, abstract: String(rs[0].abstract).slice(0, 600) }
+      : null;
+    return json({
+      worker: WORKER_VERSION, mode, ms: Date.now() - t0, searched_as: searchName(name),
+      arxiv: { got: ax.length, ...ARXIV, sample: first(ax) },
+      openalex: { got: oa.length, failures: OA_FAILURES.count, sample: first(oa) },
+    });
+  }
+
   // ---------- sky: sweep the live sources and store what they said ----------
   if (mode === "sky") {
     const { rows, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
@@ -1203,6 +1248,7 @@ async function handle(req: Request): Promise<Response> {
         papers_from_corpus: matched,
         papers_fetched: fetched.length,
         papers_with_full_abstract: fetched.filter((r: any) => String(r.source_id).startsWith("arxiv:")).length,
+        arxiv: { ...ARXIV },
         /* Calls that failed twice. Any number above zero means part of this
            sweep's silence is the network, not the literature. */
         index_failures: OA_FAILURES.count,
@@ -1239,5 +1285,5 @@ async function handle(req: Request): Promise<Response> {
     return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, scorecard: board, claims: open });
   }
 
-  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "sky", "tension", "scorecard"] }, 400);
+  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "scorecard"] }, 400);
 }
