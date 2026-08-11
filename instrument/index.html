@@ -5,877 +5,998 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="color-scheme" content="dark">
-<title>PARALLAX — the solar system as one instrument</title>
+<title>PARALLAX — The Sky</title>
 <style>
 /* ============================================================================
-   PARALLAX · THE INSTRUMENT
-   Rebuilt for legibility. Three rules, applied everywhere:
-     1. ONE IDEA PER SCREEN. Four modes, each doing a single job. Nothing is
-        stacked into a sidebar next to something unrelated.
-     2. SANS FOR WORDS, MONO FOR NUMBERS. Monospace everywhere reads as a
-        terminal dump and destroys hierarchy. Here it marks quantity, nothing
-        else.
-     3. DUSK, NOT A CAVE. The ground is lifted well off black so text can sit
-        at real contrast. Only the plot stays deep, because that is the sky.
-   Colour still carries one meaning: cool = behaving as predicted, and the one
-   hot colour is reserved for DISAGREEMENT.
+   PARALLAX / THE SKY — a map of everything.
+
+   Google Maps, for space. Search a thing — a planet, an asteroid, a star, an
+   exoplanet, a galaxy — go to it, and inspect it.
+
+   TWO VIEWS, because space does not have one natural projection:
+     SOLAR SYSTEM   a top-down orbital plot, positions computed live from
+                    published elements, zoomable from Mercury out to Sedna.
+     THE SKY        the whole celestial sphere in RA/Dec, carrying stars,
+                    exoplanet hosts and deep sky.
+
+   WHERE THE DATA COMES FROM. A local index of about a hundred and forty
+   well-known objects ships in the page so the map is never empty and search is
+   instant. Anything not in it is resolved live against the real archives:
+
+     JPL Small-Body Database      any asteroid or comet, elements and physics
+     NASA Exoplanet Archive       any confirmed exoplanet and its host
+     CDS Sesame                   any named star, nebula, cluster or galaxy
+
+   Every value carries where it came from, and every field that is derived
+   rather than measured says so. A live source that cannot be reached says that
+   too, rather than quietly returning nothing.
    ========================================================================== */
 :root{
-  color-scheme:dark;
-  --bg:#141d29; --sky:#0c1420; --panel:#1b2634; --panel2:#212e3e;
-  --line:rgba(158,186,216,.16); --line2:rgba(158,186,216,.30);
-  --ink:#f2f7fc; --ink2:#c2d2e2; --dim:#8ba0b5;
-  --model:#5e9bea; --meas:#ffffff; --hot:#ff6b47;
-  --ok:#46d9a8; --warn:#ffc266; --hyp:#b79bf5;
+  --bg:#070d16; --bg2:#0b1523; --panel:#0f1c2d; --panel2:#132437; --sink:#0a1420;
+  --line:#1d3350; --line2:#2b4b70; --line3:#3f6a99;
+  --ink:#e9f2fb; --ink2:#b3c9de; --dim:#7793ad;
+  --acc:#4fb8f5; --acc2:#2f9de0; --accbg:rgba(79,184,245,.12);
+  --warm:#ff9b6a; --gold:#ffd27a; --green:#54d6a5; --violet:#a48cf0; --red:#ff6f61;
+  --f:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,monospace;
-  --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --bar:52px;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink2);font-family:var(--f);
-  font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden}
-:focus-visible{outline:2px solid var(--hot);outline-offset:2px;border-radius:3px}
+html,body{margin:0;height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14.5px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button,input{font-family:inherit;font-size:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}
-button{font-family:var(--f);color:inherit}
-.n{font-family:var(--m);font-variant-numeric:tabular-nums}
+a{color:var(--acc)}
+.n{font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.015em}
 
-/* ---------- bar ---------- */
-#bar{display:flex;align-items:center;gap:clamp(10px,2vw,26px);height:54px;
-  padding:0 clamp(12px,2.4vw,24px);border-bottom:1px solid var(--line2);background:var(--panel)}
-#bar .wm{display:flex;align-items:center;gap:9px;font-family:var(--m);font-size:13px;
-  letter-spacing:.26em;font-weight:700;color:var(--ink);white-space:nowrap}
-#modes{display:flex;gap:2px}
-.mode{background:none;border:0;border-radius:4px;cursor:pointer;padding:7px 13px;
-  font-size:12.5px;font-weight:600;color:var(--dim);letter-spacing:.01em}
-.mode:hover{color:var(--ink);background:rgba(158,186,216,.07)}
-.mode.on{color:var(--ink);background:rgba(94,155,234,.18)}
-#right{margin-left:auto;display:flex;gap:14px;align-items:center}
-#resTag{font-family:var(--m);font-size:11px;letter-spacing:.06em;padding:4px 10px;
-  border:1px solid;border-radius:4px;white-space:nowrap}
-#bar a{color:var(--dim);text-decoration:none;font-size:12.5px}
-#bar a:hover{color:var(--ink2)}
-@media(max-width:700px){#bar{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
-  #right{width:100%;margin-left:0}.mode{padding:6px 10px;font-size:12px}}
+#app{display:grid;grid-template-rows:var(--bar) minmax(0,1fr);height:100dvh}
+#bar{display:flex;align-items:center;gap:12px;padding:0 14px;background:#050a12;
+  border-bottom:1px solid var(--line);position:relative}
+#bar .mk{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;color:inherit}
+#bar .mk b{font-family:var(--m);font-size:12.5px;letter-spacing:.32em;font-weight:700;color:#fff}
+#bar .sl{font-family:var(--m);font-size:10px;letter-spacing:.18em;color:var(--acc);
+  border-left:1px solid var(--line2);padding-left:12px;flex:none;text-transform:uppercase;white-space:nowrap}
+#search{flex:1;max-width:520px;margin-left:14px;position:relative}
+#search input{width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+  color:var(--ink);padding:9px 12px 9px 34px;font-size:14px}
+#search input:focus{border-color:var(--acc);background:var(--panel2)}
+#search input::placeholder{color:var(--dim)}
+#search .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim);
+  pointer-events:none;font-size:13px}
+#sug{position:absolute;left:0;right:0;top:calc(100% + 5px);background:var(--panel);
+  border:1px solid var(--line2);border-radius:7px;max-height:52vh;overflow-y:auto;z-index:40;
+  box-shadow:0 22px 50px -18px #000;display:none}
+#sug.on{display:block}
+#sug button{display:block;width:100%;text-align:left;background:none;border:0;
+  border-bottom:1px solid var(--line);padding:9px 12px;cursor:pointer;color:var(--ink)}
+#sug button:last-child{border-bottom:0}
+#sug button:hover,#sug button.hot{background:var(--accbg)}
+#sug .nm{font-size:14px}
+#sug .mt{font-family:var(--m);font-size:10.5px;color:var(--dim);letter-spacing:.05em;margin-top:2px}
+#sug .grp{padding:6px 12px;font-family:var(--m);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);background:var(--sink);border-bottom:1px solid var(--line)}
+#bar .st{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--m);font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex:none;max-width:30vw;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#bar .st i{width:7px;height:7px;border-radius:50%;background:#2b4b70;flex:none}
+#bar .st i.go{background:var(--acc);animation:bl 1.1s infinite}
+#bar .st i.ok{background:var(--green)} #bar .st i.bad{background:var(--red)}
+@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
+#bar a.out{color:var(--dim);font-family:var(--m);font-size:10px;letter-spacing:.12em;
+  text-decoration:none;border-bottom:1px solid var(--line2);flex:none;text-transform:uppercase}
+#bar a.out:hover{color:#fff;border-color:var(--acc)}
 
-/* ---------- stage ---------- */
-#stage{height:calc(100% - 54px);position:relative}
-@media(max-width:700px){#stage{height:calc(100% - 104px)}}
-.view{position:absolute;inset:0;display:none}
-.view.on{display:flex}
-.pane{overflow-y:auto}
-.wrap{max-width:960px;margin:0 auto;padding:clamp(18px,3vw,34px) clamp(16px,3vw,28px) 60px}
-h1{font-size:clamp(23px,3vw,32px);line-height:1.15;font-weight:650;color:var(--ink);
-  margin:0 0 10px;letter-spacing:-.02em;text-wrap:balance}
-h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
-  margin:0 0 10px}
-p{margin:0 0 14px;max-width:66ch}
-p b{color:var(--ink);font-weight:600}
-.lead{font-size:16px;line-height:1.6;color:var(--ink2)}
-.fine{font-size:12px;line-height:1.55;color:var(--dim);max-width:70ch}
+#main{display:grid;grid-template-columns:minmax(0,1fr) 372px;min-height:0}
+#stage{position:relative;min-width:0;background:
+  radial-gradient(62% 78% at 50% 44%,#0d1b2c 0%,var(--bg2) 52%,var(--bg) 100%)}
+#sky{display:block;width:100%;height:100%;cursor:grab}
+#sky.drag{cursor:grabbing}
+.hud{position:absolute;display:flex;gap:6px;z-index:5}
+#views{top:12px;left:12px}
+#views button,#zoomer button,.hbtn{background:rgba(15,28,45,.86);border:1px solid var(--line2);
+  color:var(--ink2);border-radius:6px;padding:7px 12px;cursor:pointer;font-family:var(--m);
+  font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;backdrop-filter:blur(8px)}
+#views button:hover,#zoomer button:hover,.hbtn:hover{color:#fff;border-color:var(--acc)}
+#views button.on{background:var(--acc);border-color:var(--acc);color:#04121e;font-weight:700}
+#zoomer{bottom:14px;left:12px;flex-direction:column;align-items:flex-start}
+#zoomer .row{display:flex;gap:6px}
+#scaleTag{margin-top:7px;font-family:var(--m);font-size:10px;letter-spacing:.1em;color:var(--dim);
+  background:rgba(7,13,22,.8);padding:4px 8px;border-radius:4px;border:1px solid var(--line)}
+#legend{position:absolute;right:12px;bottom:14px;z-index:5;background:rgba(7,13,22,.82);
+  border:1px solid var(--line);border-radius:6px;padding:9px 11px;font-family:var(--m);font-size:9.5px;
+  letter-spacing:.08em;color:var(--dim);backdrop-filter:blur(8px);max-width:230px}
+#legend b{display:block;color:var(--ink2);margin-bottom:6px;letter-spacing:.15em;text-transform:uppercase;
+  font-size:9px}
+#legend span{display:inline-flex;align-items:center;gap:6px;margin:2px 9px 2px 0}
+#legend i{width:8px;height:8px;border-radius:50%}
+#tip{position:absolute;pointer-events:none;z-index:6;background:rgba(7,13,22,.94);
+  border:1px solid var(--line2);border-radius:5px;padding:6px 9px;font-size:12.5px;display:none;
+  white-space:nowrap;box-shadow:0 10px 26px -10px #000}
+#tip.on{display:block}
+#tip .t2{font-family:var(--m);font-size:10px;color:var(--dim);margin-top:2px}
 
-/* ---------- FIELD ---------- */
-#field{flex-direction:row}
-#plot{flex:1;position:relative;min-width:0;background:var(--sky)}
-#cv{display:block;width:100%;height:100%}
-#hud{position:absolute;left:18px;top:16px;pointer-events:none}
-#hudN{font-size:clamp(19px,2.4vw,26px);font-weight:650;color:var(--ink);letter-spacing:-.01em}
-#hudD{font-family:var(--m);font-size:13px;color:var(--model);margin-top:2px}
-#ctrls{position:absolute;left:18px;right:18px;bottom:16px;display:flex;gap:10px;
-  align-items:center;flex-wrap:wrap}
-.seg{display:flex;gap:2px;background:rgba(20,29,41,.85);border:1px solid var(--line);
-  border-radius:5px;padding:2px}
-.seg button{background:none;border:0;border-radius:3px;cursor:pointer;padding:5px 11px;
-  font-size:12px;font-weight:600;color:var(--dim)}
-.seg button:hover{color:var(--ink)}
-.seg button.on{background:var(--model);color:#0c1420}
-#tscrub{flex:1;min-width:130px;accent-color:var(--hot)}
-#tlab{font-family:var(--m);font-size:12.5px;color:var(--ink2);min-width:150px}
-#side{width:min(330px,36vw);border-left:1px solid var(--line2);background:var(--panel);
-  padding:20px 20px 30px}
-@media(max-width:820px){#field{flex-direction:column}#plot{height:56%;flex:none}
-  #side{width:auto;border-left:0;border-top:1px solid var(--line2);flex:1}}
-.big{font-family:var(--m);font-size:clamp(28px,3.4vw,38px);color:var(--meas);
-  line-height:1;letter-spacing:-.02em;margin:2px 0 2px}
-.bigu{font-size:13px;color:var(--dim);margin-bottom:16px}
-.rows{border-top:1px solid var(--line)}
-.rw{display:flex;justify-content:space-between;gap:12px;padding:8px 0;
-  border-bottom:1px solid var(--line);font-size:13px}
-.rw span:first-child{color:var(--dim)}
-.rw span:last-child{color:var(--ink);font-family:var(--m)}
-.grp{margin-top:18px}
-.grp h2{margin-bottom:6px}
-.olist{display:flex;flex-direction:column;gap:1px}
-.ob{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;
-  background:none;border:0;border-radius:4px;cursor:pointer;padding:6px 9px;text-align:left;
-  font-size:13.5px;color:var(--ink2)}
-.ob:hover{background:rgba(158,186,216,.08);color:var(--ink)}
-.ob.on{background:rgba(255,107,71,.16);color:var(--ink)}
-.ob .d{font-family:var(--m);font-size:11.5px;color:var(--dim)}
-.ob.on .d{color:var(--hot)}
+#insp{border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;min-width:0}
+#insp .none{padding:26px 20px;color:var(--dim)}
+#insp .none h2{font-size:17px;color:var(--ink);margin-bottom:9px}
+#insp .none p{font-size:13.5px;line-height:1.55;margin:0 0 12px}
+#insp .none .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+#insp .none .chips button{background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);
+  border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12.5px}
+#insp .none .chips button:hover{border-color:var(--acc);color:var(--acc)}
+.ihead{padding:15px 17px 13px;border-bottom:1px solid var(--line);background:
+  linear-gradient(180deg,var(--panel2),var(--panel))}
+.ihead .kind{font-family:var(--m);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  margin-bottom:7px}
+.ihead h2{font-size:clamp(19px,2.2vw,25px);line-height:1.16;margin:0 0 6px}
+.ihead .alt{font-family:var(--m);font-size:11px;color:var(--dim);letter-spacing:.04em}
+.ihead .src{margin-top:9px;display:inline-flex;align-items:center;gap:6px;font-family:var(--m);
+  font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);
+  border:1px solid var(--line2);border-radius:20px;padding:3px 9px}
+.blk{padding:13px 17px;border-bottom:1px solid var(--line)}
+.blk h3{font-family:var(--m);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 9px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline}
+.kv dt{font-size:12.4px;color:var(--dim);white-space:nowrap}
+.kv dd{margin:0;font-family:var(--m);font-size:13px;color:var(--ink);text-align:right;
+  font-variant-numeric:tabular-nums;word-break:break-word}
+.kv dd u{text-decoration:none;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  margin-left:7px;padding:1px 5px;border-radius:3px;border:1px solid}
+.kv dd u.meas{color:var(--green);border-color:rgba(84,214,165,.4)}
+.kv dd u.calc{color:var(--acc);border-color:rgba(79,184,245,.4)}
+.kv dd u.asm{color:var(--gold);border-color:rgba(255,210,122,.4)}
+.blk p{font-size:13.2px;line-height:1.55;color:var(--ink2);margin:0 0 .7em}
+.blk p:last-child{margin-bottom:0}
+.act{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.act button{background:var(--acc);border:0;color:#04121e;border-radius:5px;padding:8px 13px;
+  cursor:pointer;font-weight:650;font-size:13px}
+.act button:hover{background:var(--acc2)}
+.act button.gh{background:none;border:1px solid var(--line2);color:var(--ink2);font-weight:400}
+.act button.gh:hover{border-color:var(--acc);color:var(--acc)}
+.act button[disabled]{opacity:.5;cursor:not-allowed}
+.lit{border-left:2px solid var(--line2);padding-left:11px;margin-top:10px}
+.lit .li{padding:8px 0;border-bottom:1px solid var(--line)}
+.lit .li:last-child{border-bottom:0}
+.lit .li a{color:var(--ink);text-decoration:none;font-size:13.2px;line-height:1.4;
+  border-bottom:1px solid var(--line2)}
+.lit .li a:hover{color:var(--acc);border-color:var(--acc)}
+.lit .li .m{font-family:var(--m);font-size:10px;color:var(--dim);margin-top:3px}
+.lit .li .w{font-size:12.4px;color:var(--ink2);margin-top:4px;line-height:1.45}
+.warn{background:rgba(255,111,97,.08);border:1px solid rgba(255,111,97,.3);border-radius:5px;
+  padding:9px 11px;font-size:12.6px;color:#ffb4ad;line-height:1.5}
+.mini{font-family:var(--m);font-size:10.5px;color:var(--dim);letter-spacing:.05em}
 
-/* ---------- RESIDUAL ---------- */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
-.tile{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:14px 16px}
-.tile .k{font-size:11.5px;color:var(--dim);letter-spacing:.06em}
-.tile .v{font-family:var(--m);font-size:clamp(21px,2.6vw,27px);color:var(--meas);
-  line-height:1.1;margin-top:5px;letter-spacing:-.01em}
-.tile.hot .v{color:var(--hot)}
-.figbox{border:1px solid var(--line);border-radius:6px;background:var(--sky);padding:14px 12px 8px}
-.figbox svg{display:block;width:100%;height:auto}
-.knob{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--line);
-  border-left:3px solid var(--hot);border-radius:0 6px 6px 0;background:var(--panel);
-  padding:14px 18px;margin:18px 0}
-.knob .lab{font-size:13.5px;color:var(--ink)}
-.knob input{flex:1;min-width:150px;accent-color:var(--hot)}
-.knob .val{font-family:var(--m);font-size:15px;color:var(--meas);min-width:96px;text-align:right}
-
-/* ---------- TRIALS ---------- */
-#trials{flex-direction:row}
-#tlist{width:min(300px,33vw);border-right:1px solid var(--line2);background:var(--panel);
-  padding:14px 12px 24px}
-#tdetail{flex:1;min-width:0}
-@media(max-width:820px){#trials{flex-direction:column}
-  #tlist{width:auto;border-right:0;border-bottom:1px solid var(--line2);max-height:36%}}
-.ti{display:block;width:100%;text-align:left;background:none;border:0;border-radius:5px;
-  cursor:pointer;padding:10px 11px;margin-bottom:2px;font-family:var(--f)}
-.ti:hover{background:rgba(158,186,216,.08)}
-.ti.on{background:rgba(255,107,71,.14)}
-.ti .c{font-size:13.5px;line-height:1.35;color:var(--ink);display:block}
-.ti .s{font-size:11px;font-weight:700;letter-spacing:.1em;margin-top:5px;display:block}
-.st-standing{color:var(--ok)}.st-contested{color:var(--warn)}.st-falling{color:var(--hot)}
-.st-dead{color:var(--hot)}.st-open{color:var(--hyp)}
-.verd{display:inline-block;margin:0 0 14px;padding:7px 15px;border:1px solid;border-radius:5px;
-  font-size:12px;letter-spacing:.14em;font-weight:700}
-.because{font-size:15px;line-height:1.6;color:var(--ink2);max-width:62ch;
-  border-left:2px solid var(--line2);padding-left:14px;margin-bottom:22px}
-.because b{color:var(--ink);font-weight:600}
-.uses{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
-.kill{border:1px solid rgba(255,107,71,.32);border-left:3px solid var(--hot);
-  border-radius:0 6px 6px 0;background:rgba(255,107,71,.07);padding:14px 18px;
-  font-size:14.5px;line-height:1.55;color:var(--ink);max-width:66ch}
-.kill .w{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--hot);margin-bottom:6px}
-
-/* ---------- DIALS ---------- */
-#dials{flex-direction:column}
-.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:16px}
-.dial{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:16px 18px 14px}
-.dial.crit{border-color:rgba(255,107,71,.45);background:var(--panel2)}
-.dial .dn{font-size:13.5px;font-weight:600;color:var(--ink)}
-.dial .dv{font-family:var(--m);font-size:clamp(23px,2.6vw,28px);color:var(--meas);
-  letter-spacing:-.015em;margin:7px 0 1px;line-height:1}
-.dial .du{font-family:var(--m);font-size:12px;color:var(--dim)}
-.dial input[type=range]{width:100%;margin:12px 0 6px;accent-color:var(--hot)}
-.dial .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:var(--dim)}
-.dial .dnote{font-size:13px;line-height:1.5;color:var(--ink2);margin-top:11px}
-.pv{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 8px;
-  border:1px solid;border-radius:99px}
-.pv-measured{color:var(--meas);border-color:rgba(255,255,255,.35)}
-.pv-calculated{color:var(--model);border-color:rgba(94,155,234,.5)}
-.pv-assumed{color:var(--warn);border-color:rgba(255,194,102,.5)}
-.pv-proposed{color:var(--hyp);border-color:rgba(183,155,245,.5)}
-.reset{background:none;border:1px solid var(--line2);border-radius:5px;cursor:pointer;
-  padding:7px 14px;font-size:12.5px;color:var(--ink2)}
-.reset:hover{color:var(--hot);border-color:var(--hot)}
-@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05s!important}}
+@media(max-width:1040px){
+  #main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  #insp{border-left:0;border-top:1px solid var(--line);max-height:46vh}
+  #bar .sl{display:none} #bar .st{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<div id="app">
 
-<header id="bar">
-  <span class="wm"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#5e9bea" stroke-width="1.4"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#ff6b47" stroke-width="1.2"/><circle cx="12" cy="12" r="1.5" fill="#fff"/></svg>PARALLAX</span>
-  <nav id="modes" aria-label="Modes">
-    <button class="mode on" data-v="field">Field</button>
-    <button class="mode" data-v="residual">Hunt</button>
-    <button class="mode" data-v="trials">Trials</button>
-    <button class="mode" data-v="dials">Dials</button>
-  </nav>
-  <div id="right"><span id="resTag">—</span><a href="../">&larr; both instruments</a></div>
-</header>
+<div id="bar">
+  <a class="mk" href="../" title="PARALLAX">
+    <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#4fb8f5" stroke-width="1.5"/>
+      <circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#9fd7ff" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="1.4" fill="#fff"/></svg><b>PARALLAX</b></a>
+  <span class="sl">The Sky</span>
+  <div id="search">
+    <span class="ic">⌕</span>
+    <input id="q" type="text" autocomplete="off" spellcheck="false"
+      placeholder="Search anything — Bennu, Proxima Centauri, TRAPPIST-1e, Andromeda, Titan…">
+    <div id="sug"></div>
+  </div>
+  <span class="st" id="stat"><i></i><span id="statText">Ready</span></span>
+  <a class="out" href="../">Both instruments</a>
+</div>
 
-<main id="stage">
-
-  <section class="view on" id="field">
-    <div id="plot">
-      <canvas id="cv" aria-label="Top-down view of the solar system, positions computed from orbital elements"></canvas>
-      <div id="hud"><div id="hudN">—</div><div id="hudD">—</div></div>
-      <div id="ctrls">
-        <div class="seg" id="zoomg"><button data-z="2.2">Inner</button><button data-z="3.6" class="on">Belt</button><button data-z="32">Outer</button></div>
-        <div class="seg"><button id="playb">▶ Run</button><button id="nowb">Now</button></div>
-        <input id="tscrub" type="range" min="-18262" max="18262" value="0" step="1" aria-label="Time offset in days from now">
-        <span id="tlab" class="n">—</span>
+<div id="main">
+  <div id="stage">
+    <canvas id="sky"></canvas>
+    <div class="hud" id="views">
+      <button data-view="solar" class="on">Solar system</button>
+      <button data-view="sky">The sky</button>
+    </div>
+    <div class="hud" id="zoomer">
+      <div class="row">
+        <button id="zin">+</button><button id="zout">−</button><button id="zfit">Fit</button>
       </div>
+      <div id="scaleTag"></div>
     </div>
-    <aside id="side" class="pane">
-      <h2>Selected</h2>
-      <div id="selName" style="font-size:19px;font-weight:650;color:var(--ink)">—</div>
-      <div class="big" id="selBig">—</div>
-      <div class="bigu">AU from Earth &middot; right now</div>
-      <div class="rows" id="readout"></div>
-      <div class="grp"><h2>Planets</h2><div class="olist" id="olPl"></div></div>
-      <div class="grp"><h2>Small bodies</h2><div class="olist" id="olSb"></div></div>
-      <p class="fine" style="margin-top:20px">Positions are computed here, live, from published
-      orbital elements — not looked up. Planets are good to about an arcminute; small-body
-      orbits are published but position along the orbit is approximate.</p>
-    </aside>
-  </section>
+    <div id="legend"></div>
+    <div id="tip"></div>
+  </div>
+  <aside id="insp"></aside>
+</div>
 
-  <section class="view" id="residual"><div class="wrap pane" style="width:100%">
-    <h1>If something unseen is out there, which object tells us first?</h1>
-    <p class="lead">Every tracked object is a sensor falling freely through gravity. Put a
-    hypothetical unseen mass into the model, fly all nineteen of them forward twice &mdash; once
-    with it, once without &mdash; and measure how far each one gets dragged off course.</p>
-    <div class="knob">
-      <span class="lab">Unseen mass</span>
-      <input type="range" id="p9m" aria-label="Mass of the hypothetical unseen body">
-      <span class="val" id="p9mV">—</span>
-    </div>
-    <div class="knob">
-      <span class="lab">Its distance</span>
-      <input type="range" id="p9d" aria-label="Distance of the hypothetical unseen body">
-      <span class="val" id="p9dV">—</span>
-    </div>
-    <h2 style="margin-top:24px">Drift after 30 years &mdash; computed just now</h2>
-    <div id="huntTable"></div>
-    <p class="fine" id="huntNote">—</p>
-    <h2 style="margin-top:34px">The method, already proved once</h2>
-    <p>Uranus was found in 1781. Within forty years its orbit refused to match prediction. That
-    disagreement was the only evidence anyone had, and in 1846 a telescope was pointed where the
-    arithmetic said an unseen planet must be. <b>Neptune was there.</b> Here is that same
-    calculation, run live &mdash; with Neptune, and without.</p>
-    <div class="figbox" id="resfig"></div>
-    <div class="tiles" id="resTiles"></div>
-    <div class="knob">
-      <span class="lab">Neptune&rsquo;s mass</span>
-      <input type="range" id="nepKnob" aria-label="Neptune mass">
-      <span class="val" id="nepVal">—</span>
-    </div>
-    <p class="fine">Drag it to zero and the anomaly disappears &mdash; in that universe there is
-    nothing out there to cause it. Both searches use the same engine: velocity Verlet N-body,
-    4- and 8-day steps, re-run on every change. Nothing here is stored or simulated.</p>
-  </div></section>
-
-  <section class="view" id="trials">
-    <aside id="tlist" class="pane"></aside>
-    <div id="tdetail" class="pane"><div class="wrap" style="max-width:760px"></div></div>
-  </section>
-
-  <section class="view" id="dials"><div class="wrap pane" style="width:100%;max-width:1100px">
-    <h1>Every number the instrument runs on.</h1>
-    <p class="lead">Move one and watch what breaks. Ranked by <b>how unsure we are</b> multiplied by
-    <b>how much depends on it</b> — so the top of this list is what to measure next.
-    <button class="reset" id="resetd" style="margin-left:8px">Reset all</button></p>
-    <div class="dgrid" id="dgrid"></div>
-  </div></section>
-
-</main>
-
+</div>
 <script>
 'use strict';
 /* ===========================================================================
-   ORBITAL CORE — real Keplerian propagation. Verified against known positions:
-   Earth at J2000 lands within 0.0001 AU of its published coordinates.
+   1. CONSTANTS AND THE LOCAL INDEX
+   The index is a starter, not the map. It exists so the page is never empty
+   and so the common things resolve instantly; everything else is fetched.
    =========================================================================== */
-const RAD=Math.PI/180, DEG=180/Math.PI, J2000=2451545.0, GM_SUN=2.959122082855911e-4;
-const PL=[
- {k:'mercury',n:'Mercury',c:'#9d8a76',rad:3,a:0.38709927,aD:0.00000037,e:0.20563593,eD:0.00001906,I:7.00497902,ID:-0.00594749,L:252.25032350,LD:149472.67411175,W:77.45779628,WD:0.16047689,O:48.33076593,OD:-0.12534081},
- {k:'venus',n:'Venus',c:'#c9a978',rad:4.2,a:0.72333566,aD:0.00000390,e:0.00677672,eD:-0.00004107,I:3.39467605,ID:-0.00078890,L:181.97909950,LD:58517.81538729,W:131.60246718,WD:0.00268329,O:76.67984255,OD:-0.27769418},
- {k:'earth',n:'Earth',c:'#5ba7e8',rad:4.4,a:1.00000261,aD:0.00000562,e:0.01671123,eD:-0.00004392,I:-0.00001531,ID:-0.01294668,L:100.46457166,LD:35999.37244981,W:102.93768193,WD:0.32327364,O:0.0,OD:0.0},
- {k:'mars',n:'Mars',c:'#d0664a',rad:3.6,a:1.52371034,aD:0.00001847,e:0.09339410,eD:0.00007882,I:1.84969142,ID:-0.00813131,L:-4.55343205,LD:19140.30268499,W:-23.94362959,WD:0.44441088,O:49.55953891,OD:-0.29257343},
- {k:'jupiter',n:'Jupiter',c:'#d8a06a',rad:8,a:5.20288700,aD:-0.00011607,e:0.04838624,eD:-0.00013253,I:1.30439695,ID:-0.00183714,L:34.39644051,LD:3034.74612775,W:14.72847983,WD:0.21252668,O:100.47390909,OD:0.20469106},
- {k:'saturn',n:'Saturn',c:'#cbb98a',rad:7,a:9.53667594,aD:-0.00125060,e:0.05386179,eD:-0.00050991,I:2.48599187,ID:0.00193609,L:49.95424423,LD:1222.49362201,W:92.59887831,WD:-0.41897216,O:113.66242448,OD:-0.28867794},
- {k:'uranus',n:'Uranus',c:'#7fd4d8',rad:5.6,a:19.18916464,aD:-0.00196176,e:0.04725744,eD:-0.00004397,I:0.77263783,ID:-0.00242939,L:313.23810451,LD:428.48202785,W:170.95427630,WD:0.40805281,O:74.01692503,OD:0.04240589},
- {k:'neptune',n:'Neptune',c:'#5f7fe0',rad:5.4,a:30.06992276,aD:0.00026291,e:0.00859048,eD:0.00005105,I:1.77004347,ID:0.00035372,L:-55.12002969,LD:218.45945325,W:44.96476227,WD:-0.32241464,O:131.78422574,OD:-0.00508664}
+var RAD=Math.PI/180,DEG=180/Math.PI,J2000=2451545.0;
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function num(x){var n=Number(x);return isFinite(n)?n:null;}
+function txt(x){return String(x==null?'':x).trim();}
+function fmt(n,d){var v=num(n);if(v==null)return '—';
+  return v.toLocaleString(undefined,{maximumFractionDigits:d==null?3:d});}
+function status(c,t){$('#stat').firstElementChild.className=c||'';$('#statText').textContent=t;}
+
+/* Planets: Standish mean elements, valid 1800–2050. Verified against published
+   J2000 positions when this table was first built. */
+var PL=[
+ {k:'mercury',n:'Mercury',c:'#9d8a76',rad:3,a:0.38709927,aD:0.00000037,e:0.20563593,eD:0.00001906,I:7.00497902,ID:-0.00594749,L:252.25032350,LD:149472.67411175,W:77.45779628,WD:0.16047689,O:48.33076593,OD:-0.12534081,phys:{radius:'2439.7 km',mass:'3.301e23 kg',day:'58.65 d',moons:'0'}},
+ {k:'venus',n:'Venus',c:'#c9a978',rad:4.2,a:0.72333566,aD:0.00000390,e:0.00677672,eD:-0.00004107,I:3.39467605,ID:-0.00078890,L:181.97909950,LD:58517.81538729,W:131.60246718,WD:0.00268329,O:76.67984255,OD:-0.27769418,phys:{radius:'6051.8 km',mass:'4.867e24 kg',day:'243 d retrograde',moons:'0'}},
+ {k:'earth',n:'Earth',c:'#5ba7e8',rad:4.4,a:1.00000261,aD:0.00000562,e:0.01671123,eD:-0.00004392,I:-0.00001531,ID:-0.01294668,L:100.46457166,LD:35999.37244981,W:102.93768193,WD:0.32327364,O:0.0,OD:0.0,phys:{radius:'6371.0 km',mass:'5.972e24 kg',day:'23.934 h',moons:'1'}},
+ {k:'mars',n:'Mars',c:'#d0664a',rad:3.6,a:1.52371034,aD:0.00001847,e:0.09339410,eD:0.00007882,I:1.84969142,ID:-0.00813131,L:-4.55343205,LD:19140.30268499,W:-23.94362959,WD:0.44441088,O:49.55953891,OD:-0.29257343,phys:{radius:'3389.5 km',mass:'6.417e23 kg',day:'24.62 h',moons:'2'}},
+ {k:'jupiter',n:'Jupiter',c:'#d8a06a',rad:8,a:5.20288700,aD:-0.00011607,e:0.04838624,eD:-0.00013253,I:1.30439695,ID:-0.00183714,L:34.39644051,LD:3034.74612775,W:14.72847983,WD:0.21252668,O:100.47390909,OD:0.20469106,phys:{radius:'69911 km',mass:'1.898e27 kg',day:'9.93 h',moons:'95 known'}},
+ {k:'saturn',n:'Saturn',c:'#cbb98a',rad:7,a:9.53667594,aD:-0.00125060,e:0.05386179,eD:-0.00050991,I:2.48599187,ID:0.00193609,L:49.95424423,LD:1222.49362201,W:92.59887831,WD:-0.41897216,O:113.66242448,OD:-0.28867794,phys:{radius:'58232 km',mass:'5.683e26 kg',day:'10.7 h',moons:'146 known'}},
+ {k:'uranus',n:'Uranus',c:'#7fd4d8',rad:5.6,a:19.18916464,aD:-0.00196176,e:0.04725744,eD:-0.00004397,I:0.77263783,ID:-0.00242939,L:313.23810451,LD:428.48202785,W:170.95427630,WD:0.40805281,O:74.01692503,OD:0.04240589,phys:{radius:'25362 km',mass:'8.681e25 kg',day:'17.2 h retrograde',moons:'28 known'}},
+ {k:'neptune',n:'Neptune',c:'#5f7fe0',rad:5.4,a:30.06992276,aD:0.00026291,e:0.00859048,eD:0.00005105,I:1.77004347,ID:0.00035372,L:-55.12002969,LD:218.45945325,W:44.96476227,WD:-0.32241464,O:131.78422574,OD:-0.00508664,phys:{radius:'24622 km',mass:'1.024e26 kg',day:'16.1 h',moons:'16 known'}}
 ];
-const MASS={jupiter:9.5479194e-4,saturn:2.8588567e-4,uranus:4.3662440e-5,neptune:5.1513890e-5};
-/* Small bodies: orbit geometry from published elements. Mean anomaly at epoch is
-   approximate, so the orbit is right and the position along it is indicative. */
-const SB=[
- {k:'ceres',n:'1 Ceres',c:'#9fb3c8',rad:3.4,a:2.7675,e:0.0757,I:10.594,O:80.33,w:73.60,M:95.0,ep:2455562.5},
- {k:'vesta',n:'4 Vesta',c:'#b9a99a',rad:3.0,a:2.3617,e:0.0887,I:7.140,O:103.85,w:151.20,M:200.0,ep:2455562.5},
- {k:'psyche',n:'16 Psyche',c:'#e8c07a',rad:3.2,a:2.9210,e:0.1340,I:3.096,O:150.19,w:229.50,M:170.0,ep:2455562.5},
- {k:'eros',n:'433 Eros',c:'#a9bcd0',rad:2.6,a:1.4581,e:0.2227,I:10.829,O:304.33,w:178.80,M:320.0,ep:2455562.5},
- {k:'itokawa',n:'25143 Itokawa',c:'#a9bcd0',rad:2.4,a:1.3241,e:0.2801,I:1.622,O:69.08,w:162.80,M:100.0,ep:2455562.5},
- {k:'bennu',n:'101955 Bennu',c:'#ff9b7a',rad:2.6,a:1.126391,e:0.203745,I:6.035,O:2.061,w:66.223,M:101.70,ep:2455562.5},
- {k:'ryugu',n:'162173 Ryugu',c:'#ff9b7a',rad:2.6,a:1.189562,e:0.190349,I:5.884,O:251.619,w:211.436,M:161.4,ep:2455562.5},
- {k:'apophis',n:'99942 Apophis',c:'#ff5a36',rad:2.5,a:0.922438,e:0.191481,I:3.339,O:204.446,w:126.401,M:180.0,ep:2455562.5},
- {k:'pluto',n:'134340 Pluto',c:'#cbb6a2',rad:3.4,a:39.482,e:0.2488,I:17.16,O:110.30,w:113.76,M:14.53,ep:2451545.0},
- {k:'eris',n:'136199 Eris',c:'#d8dee6',rad:3.2,a:67.78,e:0.4358,I:44.04,O:35.95,w:151.60,M:204.0,ep:2451545.0},
- {k:'sedna',n:'90377 Sedna',c:'#e08a6a',rad:2.8,a:506.8,e:0.8496,I:11.93,O:144.25,w:311.30,M:358.0,ep:2451545.0}
+/* Small bodies: orbit geometry from published elements. Mean anomaly at epoch
+   is approximate for several, so the orbit is right and the position along it
+   is indicative — which is what the inspector says. */
+var SB=[
+ {k:'ceres',n:'1 Ceres',c:'#9fb3c8',rad:3.4,a:2.7675,e:0.0757,I:10.594,O:80.33,w:73.60,M:95.0,ep:2455562.5,phys:{radius:'473 km',mass:'9.38e20 kg',type:'dwarf planet'}},
+ {k:'vesta',n:'4 Vesta',c:'#b9a99a',rad:3.0,a:2.3617,e:0.0887,I:7.140,O:103.85,w:151.20,M:200.0,ep:2455562.5,phys:{radius:'262.7 km',mass:'2.59e20 kg',type:'V-type asteroid'}},
+ {k:'psyche',n:'16 Psyche',c:'#e8c07a',rad:3.2,a:2.9210,e:0.1340,I:3.096,O:150.19,w:229.50,M:170.0,ep:2455562.5,phys:{radius:'111 km',type:'M-type asteroid',note:'NASA Psyche mission target'}},
+ {k:'eros',n:'433 Eros',c:'#a9bcd0',rad:2.6,a:1.4581,e:0.2227,I:10.829,O:304.33,w:178.80,M:320.0,ep:2455562.5,phys:{radius:'8.42 km mean',type:'S-type NEA',note:'NEAR Shoemaker landed 2001'}},
+ {k:'itokawa',n:'25143 Itokawa',c:'#a9bcd0',rad:2.4,a:1.3241,e:0.2801,I:1.622,O:69.08,w:162.80,M:100.0,ep:2455562.5,phys:{radius:'0.165 km mean',type:'S-type NEA',note:'Hayabusa sample return 2010'}},
+ {k:'bennu',n:'101955 Bennu',c:'#ff9b7a',rad:2.6,a:1.126391,e:0.203745,I:6.035,O:2.061,w:66.223,M:101.70,ep:2455562.5,phys:{radius:'0.245 km mean',density:'1.19 g/cm3',type:'B-type NEA',note:'OSIRIS-REx sample returned 2023'}},
+ {k:'ryugu',n:'162173 Ryugu',c:'#ff9b7a',rad:2.6,a:1.189562,e:0.190349,I:5.884,O:251.619,w:211.436,M:161.4,ep:2455562.5,phys:{radius:'0.448 km mean',density:'1.19 g/cm3',type:'Cg-type NEA',note:'Hayabusa2 sample returned 2020'}},
+ {k:'apophis',n:'99942 Apophis',c:'#ff5a36',rad:2.5,a:0.922438,e:0.191481,I:3.339,O:204.446,w:126.401,M:180.0,ep:2455562.5,phys:{radius:'0.17 km',type:'S-type NEA',note:'Passes 31,600 km from Earth on 13 April 2029'}},
+ {k:'pluto',n:'134340 Pluto',c:'#cbb6a2',rad:3.4,a:39.482,e:0.2488,I:17.16,O:110.30,w:113.76,M:14.53,ep:2451545.0,phys:{radius:'1188.3 km',mass:'1.303e22 kg',type:'dwarf planet',moons:'5'}},
+ {k:'eris',n:'136199 Eris',c:'#d8dee6',rad:3.2,a:67.78,e:0.4358,I:44.04,O:35.95,w:151.60,M:204.0,ep:2451545.0,phys:{radius:'1163 km',mass:'1.65e22 kg',type:'dwarf planet'}},
+ {k:'sedna',n:'90377 Sedna',c:'#e08a6a',rad:2.8,a:506.8,e:0.8496,I:11.93,O:144.25,w:311.30,M:358.0,ep:2451545.0,phys:{radius:'~500 km',type:'detached TNO',note:'Perihelion 76 AU — never comes near the giants'}}
 ];
+/* Moons are listed for search and inspection; they are drawn at their parent. */
+var MOONS=[
+ ['Moon','earth','1737.4 km','7.342e22 kg','27.32 d'],['Io','jupiter','1821.6 km','8.93e22 kg','1.77 d'],
+ ['Europa','jupiter','1560.8 km','4.80e22 kg','3.55 d'],['Ganymede','jupiter','2634.1 km','1.482e23 kg','7.15 d'],
+ ['Callisto','jupiter','2410.3 km','1.076e23 kg','16.69 d'],['Titan','saturn','2574.7 km','1.345e23 kg','15.95 d'],
+ ['Enceladus','saturn','252.1 km','1.08e20 kg','1.37 d'],['Triton','neptune','1353.4 km','2.14e22 kg','5.88 d retrograde'],
+ ['Phobos','mars','11.27 km','1.06e16 kg','0.319 d'],['Deimos','mars','6.2 km','1.5e15 kg','1.26 d'],
+ ['Charon','pluto','606 km','1.586e21 kg','6.39 d']
+];
+/* Stars: RA/Dec in degrees (J2000), distance in light years, V magnitude. */
+var STARS=[
+ ['Sirius',101.287,-16.716,8.60,-1.46,'A1V'],['Canopus',95.988,-52.696,310,-0.74,'A9II'],
+ ['Rigil Kentaurus (α Cen A)',219.902,-60.834,4.37,-0.01,'G2V'],['Arcturus',213.915,19.182,36.7,-0.05,'K0III'],
+ ['Vega',279.234,38.784,25.0,0.03,'A0V'],['Capella',79.172,45.998,42.9,0.08,'G8III'],
+ ['Rigel',78.634,-8.202,860,0.13,'B8Ia'],['Procyon',114.825,5.225,11.46,0.34,'F5IV-V'],
+ ['Achernar',24.429,-57.237,139,0.46,'B6Vpe'],['Betelgeuse',88.793,7.407,548,0.50,'M1-2Ia'],
+ ['Hadar',210.956,-60.373,390,0.61,'B1III'],['Altair',297.696,8.868,16.73,0.76,'A7V'],
+ ['Acrux',186.650,-63.099,320,0.76,'B0.5IV'],['Aldebaran',68.980,16.509,65.3,0.85,'K5III'],
+ ['Antares',247.352,-26.432,550,1.09,'M1.5Iab'],['Spica',201.298,-11.161,250,0.97,'B1III-IV'],
+ ['Pollux',116.329,28.026,33.8,1.14,'K0III'],['Fomalhaut',344.413,-29.622,25.1,1.16,'A3V'],
+ ['Deneb',310.358,45.280,2600,1.25,'A2Ia'],['Mimosa',191.930,-59.689,280,1.25,'B0.5III'],
+ ['Regulus',152.093,11.967,79.3,1.40,'B8IVn'],['Adhara',104.656,-28.972,430,1.50,'B2II'],
+ ['Castor',113.650,31.888,51,1.58,'A1V'],['Shaula',263.402,-37.104,570,1.62,'B2IV'],
+ ['Bellatrix',81.283,6.350,250,1.64,'B2III'],['Elnath',81.573,28.608,134,1.65,'B7III'],
+ ['Alnilam',84.053,-1.202,2000,1.69,'B0Ia'],['Alnitak',85.190,-1.943,1260,1.77,'O9.5Ib'],
+ ['Alioth',193.507,55.960,82.6,1.77,'A1III-IVp'],['Dubhe',165.932,61.751,123,1.79,'K0III'],
+ ['Mirfak',51.081,49.861,510,1.79,'F5Ib'],['Wezen',107.098,-26.393,1600,1.83,'F8Ia'],
+ ['Kaus Australis',276.043,-34.385,143,1.85,'B9.5III'],['Alkaid',206.885,49.313,104,1.86,'B3V'],
+ ['Sargas',264.330,-42.998,270,1.86,'F1II'],['Avior',125.628,-59.510,630,1.86,'K3III'],
+ ['Menkalinan',89.882,44.947,81.1,1.90,'A1IV'],['Atria',252.166,-69.028,391,1.91,'K2Ib'],
+ ['Alhena',99.428,16.399,109,1.92,'A1IV'],['Peacock',306.412,-56.735,179,1.94,'B2IV'],
+ ['Polaris',37.955,89.264,433,1.98,'F7Ib'],['Mirzam',95.675,-17.956,490,1.98,'B1II-III'],
+ ['Alphard',141.897,-8.659,177,1.99,'K3II-III'],['Algieba',154.993,19.842,130,2.08,'K1III'],
+ ['Hamal',31.793,23.462,65.8,2.00,'K2III'],['Diphda',10.897,-17.987,96.3,2.04,'K0III'],
+ ['Nunki',283.816,-26.297,228,2.05,'B2.5V'],['Menkent',211.671,-36.370,58.8,2.06,'K0III'],
+ ['Alpheratz',2.097,29.091,97,2.06,'B8IVpMnHg'],['Mirach',17.433,35.621,197,2.05,'M0III'],
+ ['Proxima Centauri',217.429,-62.679,4.246,11.13,'M5.5Ve'],
+ ["Barnard's Star",269.452,4.693,5.96,9.51,'M4V'],['Wolf 359',164.120,7.014,7.86,13.54,'M6V'],
+ ['Lalande 21185',165.834,35.970,8.31,7.52,'M2V'],['Luyten 726-8',24.762,-17.950,8.73,12.10,'M5.5V'],
+ ['Ross 154',282.456,-23.836,9.71,10.44,'M3.5V'],['Epsilon Eridani',53.233,-9.458,10.48,3.73,'K2V'],
+ ['Tau Ceti',26.017,-15.937,11.91,3.50,'G8V'],['61 Cygni A',316.725,38.750,11.40,5.21,'K5V'],
+ ['Groombridge 34',4.595,44.023,11.62,8.08,'M1.5V'],['Epsilon Indi',330.840,-56.786,11.87,4.69,'K5V'],
+ ['Van Maanen 2',12.968,5.394,14.07,12.38,'DZ8'],['Gliese 581',229.865,-7.722,20.4,10.55,'M3V'],
+ ['TRAPPIST-1',346.622,-5.041,40.7,18.80,'M8V'],['Kepler-186',298.995,43.959,579,14.62,'M1V'],
+ ['51 Pegasi',344.367,20.769,50.9,5.49,'G2IV'],['HD 209458',330.795,18.884,159,7.65,'G0V'],
+ ['HD 189733',300.182,22.711,64.5,7.68,'K1.5V'],['55 Cancri',133.149,28.331,41.0,5.95,'K0IV-V'],
+ ['Kepler-452',294.797,44.278,1810,13.43,'G2V'],['Kepler-22',285.679,47.879,635,11.66,'G5V'],
+ ['LHS 1140',6.043,-15.271,48.9,14.18,'M4.5V'],['K2-18',172.560,7.588,124,13.50,'M2.5V'],
+ ['TOI-700',97.100,-65.578,101.4,13.15,'M2V'],['GJ 1214',258.831,4.960,47.5,14.71,'M4.5V'],
+ ['WASP-12',97.637,29.672,1410,11.69,'G0V'],['Sagittarius A*',266.417,-29.008,26670,null,'Sgr A*']
+];
+/* Confirmed exoplanets worth having offline. host, year, method, notes. */
+var EXO=[
+ ['Proxima Centauri b','Proxima Centauri',2016,'radial velocity','1.07 M⊕ minimum, in the habitable zone, 11.19 d'],
+ ['TRAPPIST-1e','TRAPPIST-1',2017,'transit','0.69 M⊕, rocky, habitable zone, 6.10 d'],
+ ['TRAPPIST-1d','TRAPPIST-1',2016,'transit','0.39 M⊕, inner habitable zone edge, 4.05 d'],
+ ['Kepler-186f','Kepler-186',2014,'transit','First Earth-size planet in a habitable zone, 130 d'],
+ ['51 Pegasi b','51 Pegasi',1995,'radial velocity','The first exoplanet found around a Sun-like star'],
+ ['HD 209458 b','HD 209458',1999,'transit','First transiting exoplanet; first atmosphere detected'],
+ ['HD 189733 b','HD 189733',2005,'transit','Deep blue; the best-studied hot Jupiter atmosphere'],
+ ['55 Cancri e','55 Cancri',2004,'radial velocity','Super-Earth, 0.74 d orbit, dayside above 2000 K'],
+ ['Kepler-452b','Kepler-452',2015,'transit','1.6 R⊕, 385 d orbit around a Sun-like star'],
+ ['Kepler-22b','Kepler-22',2011,'transit','2.4 R⊕, 290 d, first habitable-zone Kepler planet'],
+ ['LHS 1140 b','LHS 1140',2017,'transit','1.7 R⊕, dense, habitable zone of a quiet M dwarf'],
+ ['K2-18 b','K2-18',2015,'transit','2.6 R⊕, water vapour detected 2019, sub-Neptune'],
+ ['TOI-700 d','TOI-700',2020,'transit','1.07 R⊕, habitable zone, first found by TESS'],
+ ['GJ 1214 b','GJ 1214',2009,'transit','2.7 R⊕, the archetypal sub-Neptune with a thick envelope'],
+ ['WASP-12b','WASP-12',2008,'transit','Being tidally destroyed; orbit decaying measurably'],
+ ['Gliese 581 g','Gliese 581',2010,'radial velocity','Disputed — detection contested since 2014']
+];
+/* Deep sky: RA/Dec degrees, distance, kind. */
+var DEEP=[
+ ['Andromeda Galaxy (M31)',10.685,41.269,'2.54 Mly','spiral galaxy'],
+ ['Orion Nebula (M42)',83.822,-5.391,'1344 ly','H II region'],
+ ['Pleiades (M45)',56.750,24.117,'444 ly','open cluster'],
+ ['Hercules Cluster (M13)',250.423,36.460,'22200 ly','globular cluster'],
+ ['Crab Nebula (M1)',83.633,22.015,'6500 ly','supernova remnant'],
+ ['Whirlpool Galaxy (M51)',202.470,47.195,'23 Mly','spiral galaxy'],
+ ['Sombrero Galaxy (M104)',189.998,-11.623,'29.3 Mly','spiral galaxy'],
+ ['Messier 87',187.706,12.391,'53.5 Mly','elliptical galaxy — first black hole imaged'],
+ ['Large Magellanic Cloud',80.894,-69.756,'163000 ly','satellite galaxy'],
+ ['Small Magellanic Cloud',13.187,-72.829,'199000 ly','satellite galaxy'],
+ ['Omega Centauri',201.697,-47.480,'15800 ly','globular cluster'],
+ ['Eagle Nebula (M16)',274.700,-13.807,'7000 ly','H II region — Pillars of Creation'],
+ ['Ring Nebula (M57)',283.396,33.029,'2300 ly','planetary nebula'],
+ ['Helix Nebula',337.411,-20.837,'655 ly','planetary nebula'],
+ ['Triangulum Galaxy (M33)',23.462,30.660,'2.73 Mly','spiral galaxy'],
+ ['Carina Nebula',161.265,-59.867,'8500 ly','H II region'],
+ ['Tarantula Nebula',84.677,-69.101,'160000 ly','H II region in the LMC'],
+ ['Centaurus A',201.365,-43.019,'12 Mly','peculiar galaxy with an active nucleus']
+];
+
+/* ---- one flat index everything searchable lives in ---------------------- */
+var INDEX=[];
+function idx(o){INDEX.push(o);return o;}
+PL.forEach(function(p){idx({id:'pl:'+p.k,name:p.n,kind:'planet',cls:'solar',body:p,col:p.c});});
+SB.forEach(function(b){idx({id:'sb:'+b.k,name:b.n,kind:(b.phys&&b.phys.type)||'small body',
+  cls:'solar',body:b,col:b.c});});
+MOONS.forEach(function(m){idx({id:'mn:'+m[0],name:m[0],kind:'moon of '+m[1],cls:'moon',
+  moon:{name:m[0],parent:m[1],radius:m[2],mass:m[3],period:m[4]},col:'#cfd9e6'});});
+STARS.forEach(function(s){idx({id:'st:'+s[0],name:s[0],kind:s[5]==='Sgr A*'?'galactic centre':'star',
+  cls:'sky',star:{ra:s[1],dec:s[2],ly:s[3],mag:s[4],sp:s[5]},col:starCol(s[5])});});
+EXO.forEach(function(e){idx({id:'ex:'+e[0],name:e[0],kind:'exoplanet',cls:'sky',
+  exo:{host:e[1],year:e[2],method:e[3],note:e[4]},col:'#a48cf0'});});
+DEEP.forEach(function(d){idx({id:'dp:'+d[0],name:d[0],kind:d[4],cls:'sky',
+  deep:{ra:d[1],dec:d[2],dist:d[3],kind:d[4]},col:'#54d6a5'});});
+function starCol(sp){
+  var c=String(sp||'').charAt(0);
+  return {O:'#9ec4ff',B:'#bcd6ff',A:'#e6efff',F:'#fff5e6',G:'#ffe9a8',K:'#ffc887',M:'#ff9a72'}[c]||'#dfeaf7';
+}
+function findLocal(id){for(var i=0;i<INDEX.length;i++)if(INDEX[i].id===id)return INDEX[i];return null;}
+
+/* ===========================================================================
+   2. ORBITS
+   =========================================================================== */
+function jdNow(){return J2000+(Date.now()-946728000000)/86400000;}
 function solveKepler(M,e){
-  const es=e*DEG; let E=M+es*Math.sin(M*RAD);
-  for(let i=0;i<12;i++){const dM=M-(E-es*Math.sin(E*RAD));const dE=dM/(1-e*Math.cos(E*RAD));E+=dE;if(Math.abs(dE)<1e-11)break;}
+  var es=e*DEG,E=M+es*Math.sin(M*RAD);
+  for(var i=0;i<14;i++){
+    var dM=M-(E-es*Math.sin(E*RAD)),dE=dM/(1-e*Math.cos(E*RAD));
+    E+=dE;if(Math.abs(dE)<1e-11)break;}
   return E;
 }
-function orient(xp,yp,w,O,I){
-  const cw=Math.cos(w*RAD),sw=Math.sin(w*RAD),cO=Math.cos(O*RAD),sO=Math.sin(O*RAD),cI=Math.cos(I*RAD),sI=Math.sin(I*RAD);
-  return {x:(cw*cO-sw*sO*cI)*xp+(-sw*cO-cw*sO*cI)*yp,
-          y:(cw*sO+sw*cO*cI)*xp+(-sw*sO+cw*cO*cI)*yp,
-          z:(sw*sI)*xp+(cw*sI)*yp};
+function orbitXY(el,T){
+  var a=el.a+(el.aD||0)*T,e=el.e+(el.eD||0)*T,I=(el.I+(el.ID||0)*T);
+  var L=el.L+(el.LD||0)*T,W=el.W+(el.WD||0)*T,O=el.O+(el.OD||0)*T;
+  var w=W-O,M=((L-W)%360+540)%360-180;
+  return elXY(a,e,I,O,w,M);
 }
-function plEl(p,jd){const T=(jd-J2000)/36525;
-  return {a:p.a+p.aD*T,e:p.e+p.eD*T,I:p.I+p.ID*T,L:p.L+p.LD*T,W:p.W+p.WD*T,O:p.O+p.OD*T};}
-function planetPos(p,jd){
-  const el=plEl(p,jd), w=el.W-el.O; let M=el.L-el.W; M=((M%360)+540)%360-180;
-  const E=solveKepler(M,el.e);
-  return orient(el.a*(Math.cos(E*RAD)-el.e), el.a*Math.sqrt(1-el.e*el.e)*Math.sin(E*RAD), w, el.O, el.I);
+function elXY(a,e,I,O,w,M){
+  var E=solveKepler(((M%360)+540)%360-180,e);
+  var xp=a*(Math.cos(E*RAD)-e),yp=a*Math.sqrt(1-e*e)*Math.sin(E*RAD);
+  var cw=Math.cos(w*RAD),sw=Math.sin(w*RAD),cO=Math.cos(O*RAD),sO=Math.sin(O*RAD),
+      ci=Math.cos(I*RAD),si=Math.sin(I*RAD);
+  return {
+    x:(cw*cO-sw*sO*ci)*xp+(-sw*cO-cw*sO*ci)*yp,
+    y:(cw*sO+sw*cO*ci)*xp+(-sw*sO+cw*cO*ci)*yp,
+    z:(sw*si)*xp+(cw*si)*yp};
 }
-function planetState(p,jd){
-  const el=plEl(p,jd), w=el.W-el.O; let M=el.L-el.W; M=((M%360)+540)%360-180;
-  const E=solveKepler(M,el.e), cE=Math.cos(E*RAD), sE=Math.sin(E*RAD);
-  const n=Math.sqrt(GM_SUN/(el.a*el.a*el.a)), den=1-el.e*cE;
-  return {r:orient(el.a*(cE-el.e), el.a*Math.sqrt(1-el.e*el.e)*sE, w, el.O, el.I),
-          v:orient(-el.a*n*sE/den, el.a*n*Math.sqrt(1-el.e*el.e)*cE/den, w, el.O, el.I)};
+function sbXY(b,jd){
+  var n=0.9856076686/(b.a*Math.sqrt(b.a));            /* deg/day */
+  var M=b.M+n*(jd-b.ep);
+  return elXY(b.a,b.e,b.I,b.O,b.w,M);
 }
-function bodyPos(b,jd){
-  const n=0.9856076686/Math.sqrt(b.a*b.a*b.a);
-  let M=b.M+n*(jd-b.ep); M=((M%360)+540)%360-180;
-  const E=solveKepler(M,b.e);
-  return orient(b.a*(Math.cos(E*RAD)-b.e), b.a*Math.sqrt(1-b.e*b.e)*Math.sin(E*RAD), b.w, b.O, b.I);
+function posOf(o,jd){
+  var T=(jd-J2000)/36525;
+  if(o.cls!=='solar')return null;
+  return o.body.aD!=null?orbitXY(o.body,T):sbXY(o.body,jd);
 }
-function bodyState(b,jd){
-  const nDeg=0.9856076686/Math.sqrt(b.a*b.a*b.a);
-  let M=b.M+nDeg*(jd-b.ep); M=((M%360)+540)%360-180;
-  const E=solveKepler(M,b.e), cE=Math.cos(E*RAD), sE=Math.sin(E*RAD);
-  const n=Math.sqrt(GM_SUN/(b.a*b.a*b.a)), den=1-b.e*cE;
-  return {r:orient(b.a*(cE-b.e), b.a*Math.sqrt(1-b.e*b.e)*sE, b.w,b.O,b.I),
-          v:orient(-b.a*n*sE/den, b.a*n*Math.sqrt(1-b.e*b.e)*cE/den, b.w,b.O,b.I)};
-}
-/* ===========================================================================
-   THE HUNT — the instrument's actual job, run on demand.
-
-   Put a hypothetical unseen mass into the solar system, fly every tracked
-   object forward as a test particle twice — once with it, once without — and
-   measure how far each one is dragged off course. That is a search, not a
-   history lesson: it answers which object would betray the intruder first,
-   and whether the signal clears what our instruments can actually measure.
-   Exactly the reasoning that produced Neptune, pointed at an open question.
-   =========================================================================== */
-const M_EARTH=3.00348e-6;              /* Earth masses -> solar masses */
-const P9_THETA=2.60;                   /* where we assume it sits, in radians */
-function huntScan(years){
-  years=years||30;
-  const dt=4, jd0=jdNow(), jdEnd=jd0+years*365.25;
-  const giants=['jupiter','saturn','uranus','neptune'];
-  const targets=ALL();
-  const run=(withX)=>{
-    const B=[{m:1,r:{x:0,y:0,z:0},v:{x:0,y:0,z:0}}];
-    giants.forEach(k=>{const st=planetState(PL.find(q=>q.k===k),jd0);
-      B.push({m:MASS[k],r:{...st.r},v:{...st.v}});});
-    /* Balance momentum over the KNOWN bodies only, and do it before the
-       hypothetical arrives. Both runs must start from an identical solar
-       system, or the Sun sets off at a slightly different speed in one of
-       them and thirty years of that bookkeeping shows up as a fake signal —
-       it was reporting Earth 75,000 km off course. */
-    let px=0,py=0,pz=0;
-    for(let i=1;i<B.length;i++){px+=B[i].m*B[i].v.x;py+=B[i].m*B[i].v.y;pz+=B[i].m*B[i].v.z;}
-    B[0].v={x:-px,y:-py,z:-pz};
-    if(withX){
-      const R=dial('p9_dist'), m=dial('p9_m')*M_EARTH, vc=Math.sqrt(GM_SUN/R);
-      B.push({m,r:{x:R*Math.cos(P9_THETA),y:R*Math.sin(P9_THETA),z:0},
-                v:{x:-vc*Math.sin(P9_THETA),y:vc*Math.cos(P9_THETA),z:0}});
-    }
-    /* The giants are already in B; flying them again as test particles puts a
-       body exactly on top of itself and the force blows up. Only the rest fly. */
-    const T=targets.map(o=>{
-      const gi=giants.indexOf(o.k);
-      if(gi>=0)return {ref:gi+1};
-      const st=o.type==='pl'?planetState(o,jd0):bodyState(o,jd0);
-      return {r:{...st.r},v:{...st.v},a:{x:0,y:0,z:0}};
-    });
-    const N=B.length, ac=Array.from({length:N},()=>({x:0,y:0,z:0}));
-    const accel=()=>{
-      for(let i=0;i<N;i++){ac[i].x=ac[i].y=ac[i].z=0;}
-      for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
-        const dx=B[j].r.x-B[i].r.x,dy=B[j].r.y-B[i].r.y,dz=B[j].r.z-B[i].r.z;
-        const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),inv=1/(d2*d);
-        const gi=GM_SUN*B[j].m*inv, gj=GM_SUN*B[i].m*inv;
-        ac[i].x+=gi*dx;ac[i].y+=gi*dy;ac[i].z+=gi*dz;
-        ac[j].x-=gj*dx;ac[j].y-=gj*dy;ac[j].z-=gj*dz;
-      }
-      T.forEach(t=>{                                   /* test particles feel, never push */
-        if(t.ref!==undefined)return;
-        t.a.x=t.a.y=t.a.z=0;
-        for(let i=0;i<N;i++){
-          const dx=B[i].r.x-t.r.x,dy=B[i].r.y-t.r.y,dz=B[i].r.z-t.r.z;
-          const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),g=GM_SUN*B[i].m/(d2*d);
-          t.a.x+=g*dx;t.a.y+=g*dy;t.a.z+=g*dz;
-        }
-      });
-    };
-    accel();
-    for(let jd=jd0;jd<jdEnd;jd+=dt){
-      for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*dt/2;B[i].v.y+=ac[i].y*dt/2;B[i].v.z+=ac[i].z*dt/2;
-        B[i].r.x+=B[i].v.x*dt;B[i].r.y+=B[i].v.y*dt;B[i].r.z+=B[i].v.z*dt;}
-      T.forEach(t=>{if(t.ref!==undefined)return;
-        t.v.x+=t.a.x*dt/2;t.v.y+=t.a.y*dt/2;t.v.z+=t.a.z*dt/2;
-        t.r.x+=t.v.x*dt;t.r.y+=t.v.y*dt;t.r.z+=t.v.z*dt;});
-      accel();
-      for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*dt/2;B[i].v.y+=ac[i].y*dt/2;B[i].v.z+=ac[i].z*dt/2;}
-      T.forEach(t=>{if(t.ref!==undefined)return;
-        t.v.x+=t.a.x*dt/2;t.v.y+=t.a.y*dt/2;t.v.z+=t.a.z*dt/2;});
-    }
-    return {T,B,sun:B[0]};
-  };
-  const A=run(true), B2=run(false);
-  const AU_KM=149597870.7;
-  /* MEASURE RELATIVE TO THE SUN. Adding a distant mass shifts the whole system's
-     barycentre, so comparing raw inertial positions reports that bookkeeping
-     shift as if it were a perturbation — it put Earth 100,000 km off, which is
-     nonsense. What an astronomer actually measures is the heliocentric vector,
-     and taking the difference of those leaves only the real, differential pull.
-     It is also why the inner planets are hopeless detectors: they and the Sun
-     fall through a distant field together, so almost nothing is left over. */
-  const helio=(run,i)=>{const t=run.T[i], r=t.ref!==undefined?run.B[t.ref].r:t.r;
-    return {x:r.x-run.sun.r.x, y:r.y-run.sun.r.y, z:r.z-run.sun.r.z};};
-  const ei=targets.findIndex(o=>o.k==='earth');
-  const eA=helio(A,ei);
-  return targets.map((o,i)=>{
-    const a=helio(A,i), b=helio(B2,i);
-    const dAU=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
-    const rSun=Math.hypot(a.x,a.y,a.z);
-    const fromEarth=Math.max(0.3,Math.hypot(a.x-eA.x,a.y-eA.y,a.z-eA.z));
-    return {k:o.k,n:o.n,rSun,km:dAU*AU_KM,arcsec:(dAU/fromEarth)*206264.806};
-  }).sort((x,y)=>y.arcsec-x.arcsec);
-}
-function orbitPath(o,isPl){
-  const pts=[],N=192;
-  for(let i=0;i<=N;i++){
-    const E=i/N*360, e=isPl?o.e:o.e, a=isPl?o.a:o.a;
-    const xp=a*(Math.cos(E*RAD)-e), yp=a*Math.sqrt(1-e*e)*Math.sin(E*RAD);
-    const w=isPl?(o.W-o.O):o.w;
-    pts.push(orient(xp,yp,w,o.O,o.I));
+function orbitPath(o,steps){
+  var pts=[],b=o.body,i;
+  if(b.aD!=null){
+    var T=(jdNow()-J2000)/36525;
+    var a=b.a+b.aD*T,e=b.e+b.eD*T,I=b.I+b.ID*T,O=b.O+b.OD*T,w=(b.W+b.WD*T)-O;
+    for(i=0;i<=steps;i++)pts.push(elXY(a,e,I,O,w,i*360/steps));
+  }else{
+    for(i=0;i<=steps;i++)pts.push(elXY(b.a,b.e,b.I,b.O,b.w,i*360/steps));
   }
   return pts;
 }
-/* ---- the residual engine: real N-body, run twice ---- */
-function uranusResidual(nepFactor){
-  const dt=8, y0=1690, y1=2100, keys=['jupiter','saturn','uranus','neptune'];
-  const run=(fac)=>{
-    const B=[{m:1,r:{x:0,y:0,z:0},v:{x:0,y:0,z:0}}];
-    keys.forEach(k=>{const st=planetState(PL.find(q=>q.k===k),J2000);
-      B.push({m:k==='neptune'?MASS[k]*fac:MASS[k],r:{...st.r},v:{...st.v}});});
-    let px=0,py=0,pz=0;
-    for(let i=1;i<B.length;i++){px+=B[i].m*B[i].v.x;py+=B[i].m*B[i].v.y;pz+=B[i].m*B[i].v.z;}
-    B[0].v={x:-px,y:-py,z:-pz};
-    const N=B.length, ac=Array.from({length:N},()=>({x:0,y:0,z:0}));
-    const A=()=>{
-      for(let i=0;i<N;i++){ac[i].x=ac[i].y=ac[i].z=0;}
-      for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
-        const dx=B[j].r.x-B[i].r.x,dy=B[j].r.y-B[i].r.y,dz=B[j].r.z-B[i].r.z;
-        const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),inv=1/(d2*d);
-        const gi=GM_SUN*B[j].m*inv, gj=GM_SUN*B[i].m*inv;
-        ac[i].x+=gi*dx;ac[i].y+=gi*dy;ac[i].z+=gi*dz;
-        ac[j].x-=gj*dx;ac[j].y-=gj*dy;ac[j].z-=gj*dz;
-      }
-    };
-    const U=3, lon=new Map(), snap=B.map(b=>({m:b.m,r:{...b.r},v:{...b.v}}));
-    const march=(step,jdEnd)=>{
-      snap.forEach((b,i)=>{B[i].r={...b.r};B[i].v={...b.v};});
-      let jd=J2000; A();
-      const rec=()=>{const yr=2000+(jd-J2000)/365.25, key=Math.round(yr*4)/4;
-        if(!lon.has(key))lon.set(key,Math.atan2(B[U].r.y-B[0].r.y,B[U].r.x-B[0].r.x));};
-      rec();
-      while(step>0?jd<jdEnd:jd>jdEnd){
-        for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*step/2;B[i].v.y+=ac[i].y*step/2;B[i].v.z+=ac[i].z*step/2;
-          B[i].r.x+=B[i].v.x*step;B[i].r.y+=B[i].v.y*step;B[i].r.z+=B[i].v.z*step;}
-        A();
-        for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*step/2;B[i].v.y+=ac[i].y*step/2;B[i].v.z+=ac[i].z*step/2;}
-        jd+=step; rec();
-      }
-    };
-    march(dt,J2000+(y1-2000)*365.25); march(-dt,J2000+(y0-2000)*365.25);
-    return lon;
-  };
-  const a=run(nepFactor), b=run(0);
-  return [...a.keys()].filter(k=>b.has(k)).sort((x,y)=>x-y).map(y=>{
-    let d=a.get(y)-b.get(y);
-    while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
-    return {year:y,as:d*DEG*3600};
-  });
-}
-/* ===========================================================================
-   DIALS — the numbers the instrument runs on. Everything downstream reads these.
-   =========================================================================== */
-const DIALS=[
- {id:'nep_m',n:'Neptune mass',u:'M☉',v:5.151389e-5,def:5.151389e-5,min:0,max:1.03e-4,step:1e-7,
-  sig:6,unc:1e-9,prov:'measured',
-  note:'Drives the Uranus anomaly. Set it to zero and the disagreement that revealed Neptune disappears — watch the FIELD readout.'},
- {id:'psyche_rho',n:'Psyche bulk density',u:'g/cm³',v:3.8,def:3.8,min:1.5,max:8,step:0.05,sig:2,unc:0.3,prov:'calculated',
-  note:'Mass from how it tugs neighbouring bodies, volume from imaging. The whole "solid metal core" story rests here.'},
- {id:'iron_rho',n:'Iron density',u:'g/cm³',v:7.87,def:7.87,min:7.6,max:8.1,step:0.01,sig:2,unc:0.01,prov:'measured',
-  note:'A laboratory constant. Included because a trial is only as good as what it is compared against.'},
- {id:'psyche_d',n:'Psyche diameter',u:'km',v:226,def:226,min:190,max:260,step:1,sig:0,unc:5,prov:'calculated',
-  note:'From radar, adaptive optics and stellar occultations. Feeds both the density and the valuation.'},
- {id:'metal_price',n:'Metal price',u:'$/kg',v:5,def:5,min:0.05,max:20,step:0.05,sig:2,unc:null,prov:'assumed',
-  note:'Todays terrestrial price, applied to a body that would flood the market it is priced in. A pure assumption.'},
- {id:'metal_frac',n:'Psyche metal fraction',u:'',v:0.45,def:0.45,min:0,max:1,step:0.01,sig:2,unc:0.3,prov:'assumed',
-  note:'What share of the body is metal. Nobody has measured this. Every valuation multiplies by it.'},
- {id:'bennu_rho',n:'Bennu bulk density',u:'g/cm³',v:1.190,def:1.190,min:0.8,max:2.2,step:0.005,sig:3,unc:0.013,prov:'measured',
-  note:'A spacecraft weighed it with its own gravity field. One of the best-known numbers in the catalog.'},
- {id:'p9_m',n:'Planet Nine mass',u:'M⊕',v:6.2,def:6.2,min:0,max:15,step:0.1,sig:1,unc:2.0,prov:'proposed',
-  note:'A number attached to an object nobody has seen. Set it in Hunt and the instrument flies every tracked object twice to see who would feel it.'},
- {id:'p9_dist',n:'Planet Nine distance',u:'AU',v:400,def:400,min:150,max:1200,step:10,sig:0,unc:200,prov:'proposed',
-  note:'Where it would sit. The pull falls off hard with distance, so this dial decides whether the search is hopeful or hopeless.'}
-];
-const D={}; DIALS.forEach(d=>D[d.id]=d.v);
-const dial=id=>D[id];
-const dmeta=id=>DIALS.find(d=>d.id===id);
-/* ===========================================================================
-   TRIALS — a claim, converted into a prediction, checked against the instrument.
-   `test` reads the dials, so moving a dial can flip a verdict.
-   =========================================================================== */
-let RES=null, RESPEAK=0;
-const fmt=(x,n)=>Number(x).toLocaleString('en-US',{minimumFractionDigits:n,maximumFractionDigits:n});
-const TRIALS=[
- {id:'psyche-core', uses:['psyche_rho','iron_rho'],
-  claim:'16 Psyche is the exposed iron core of a dead protoplanet',
-  test(){
-    const f=dial('psyche_rho')/dial('iron_rho');
-    const st=f>0.80?'standing':(f>0.55?'contested':'falling');
-    return {st, why:'Measured bulk density is <b>'+fmt(dial('psyche_rho'),2)+' g/cm³</b> against <b>'+
-      fmt(dial('iron_rho'),2)+'</b> for solid iron — <b>'+(f*100).toFixed(0)+'%</b>. A bare metal core cannot be that light '+
-      'unless it is mostly empty space.'};
-  },
-  kill:'Orbit insertion at Psyche, August 2029. The spacecraft measures mass and composition directly — this trial closes that month.',
-  track:[[1852,35,'discovered; classed metallic on brightness'],[1965,55,'radar reads it as metal-rich'],
-         [1995,72,'“exposed core” becomes the standard story'],[2012,58,'first density estimates come in low'],
-         [2020,34,'density settles near 3.8 — far too light for iron'],[2024,28,'porous mixture fits better']]},
- {id:'psyche-value', uses:['psyche_d','psyche_rho','metal_frac','metal_price'],
-  claim:'16 Psyche is worth ten thousand quadrillion dollars',
-  test(){
-    const r=dial('psyche_d')*1000/2, vol=4/3*Math.PI*r*r*r;                 // m³
-    const kg=vol*dial('psyche_rho')*1000*dial('metal_frac');
-    const usd=kg*dial('metal_price');
-    const q=usd/1e18;
-    return {st:'falling', usd,
-      why:'Computed from the dials right now: <b>$'+fmt(q,1)+' quintillion</b>. Three of the four numbers '+
-      'feeding that figure are assumed, not measured — metal fraction, price, and a density that already '+
-      'contradicts the composition being priced.'};
-  },
-  kill:'Nothing settles the dollar figure, because it is not a measurement. What 2029 settles is the composition underneath it.',
-  track:[[2016,60,'the figure enters circulation'],[2017,72,'repeated widely at mission announcement'],
-         [2020,45,'density undercuts the metal assumption'],[2023,30,'agency distances itself from the number'],
-         [2024,22,'treated as illustrative, not a valuation']]},
- {id:'uranus', uses:['nep_m'],
-  claim:'Uranus’s motion is fully explained by the planets we can see',
-  test(){
-    const st=RESPEAK>60?'falling':(RESPEAK>5?'contested':'standing');
-    return {st, why:'The instrument just integrated the outer solar system twice — once with Neptune, once without. '+
-      'The paths differ by up to <b>'+fmt(RESPEAK,0)+' arcseconds</b> ('+fmt(RESPEAK/60,1)+' arcminutes). '+
-      'Telescopes of the 1840s measured positions to a few arcseconds, so this was roughly <b>'+
-      Math.max(1,Math.round(RESPEAK/5))+'× above their noise floor.</b> An unseen mass was the only explanation.'};
-  },
-  kill:'Already settled — by Galle, on 23 September 1846, pointing where the calculation said to look. This is the trial that proves the method works.',
-  track:[[1781,90,'Uranus discovered; assumed to obey known gravity'],[1821,55,'tables fail; the orbit will not fit'],
-         [1840,25,'residual is undeniable; an unseen planet is proposed'],[1846,2,'Neptune found — the claim dies'],
-         [2026,2,'still dead, and now recomputed live on this page']]},
- {id:'apophis', uses:[],
-  claim:'99942 Apophis will strike the Earth this century',
-  test(){return {st:'dead', why:'Killed by more measurement, not by argument. Radar in 2021 closed the last keyhole; '+
-    'Apophis left the risk list. On <b>13 April 2029</b> it passes about 32,000 km up — inside the belt where '+
-    'communications satellites sit — and it will be visible to the naked eye.'};},
-  kill:'Nothing left to settle. Kept on file because the next “2.7% chance” headline will need the comparison.',
-  track:[[2004,72,'peaks at 2.7% for 2029 — the highest ever recorded'],[2005,30,'archival images kill the 2029 impact'],
-         [2013,14,'the 2036 keyhole closes'],[2021,2,'radar closes 2068; removed from the risk list']]},
- {id:'planet9', uses:['p9_m'],
-  claim:'A ninth planet is shepherding the far Kuiper belt',
-  test(){
-    const st=dial('p9_m')<=0.05?'dead':'open';
-    return {st, why:'Nothing about this object has ever been measured — the mass on the dial is <b>'+
-      fmt(dial('p9_m'),1)+' M⊕</b>, inferred from the clustering of other bodies’ orbits. '+
-      'Independent surveys argue that clustering could be an artifact of where we happened to look.'};
-  },
-  kill:'The Rubin Observatory survey. Within a few years it either finds the planet or removes most of the orbits it could be hiding on.',
-  track:[[2016,58,'proposed from clustered orbits'],[2017,38,'survey-bias analysis pushes back'],
-         [2021,45,'refined mass and orbit estimates'],[2024,40,'still zero detections at any wavelength']]},
- {id:'bennu-regolith', uses:[],
-  claim:'Bennu’s surface is smooth, fine-grained regolith',
-  test(){return {st:'dead', why:'Held for years on a chain of reasoning — thermal behaviour implied fine grains. '+
-    'The spacecraft arrived in 2018 and found <b>boulders</b>. The sampling site had to be improvised in flight. '+
-    'The broken link was never the data; it was the assumption that thermal response means grain size.'};},
-  kill:'Settled on arrival. It matters now because every unvisited asteroid whose grain size was inferred the same way inherits the same exposure.',
-  track:[[2013,80,'thermal models imply a smooth, sandy surface'],[2018,5,'arrival: boulders everywhere'],
-         [2020,2,'sample collected from an improvised site']]}
-];
-/* ===========================================================================
-   RENDER — four modes, one job each.
-   =========================================================================== */
-const $=s=>document.querySelector(s);
-const jdNow=()=>Date.now()/86400000+2440587.5;
-let tOff=0, zoomAU=3.6, sel='bennu', playing=false, view='field', selTrial='uranus';
-const ALLPL=()=>PL.map(p=>({...p,type:'pl'})), ALLSB=()=>SB.map(b=>({...b,type:'sb'}));
-const ALL=()=>ALLPL().concat(ALLSB());
-const objOf=k=>ALL().find(o=>o.k===k);
-const posOf=(o,jd)=>o.type==='pl'?planetPos(o,jd):bodyPos(o,jd);
 
-/* ---- residual engine hookup ---- */
-function computeRes(){
-  RES=uranusResidual(dial('nep_m')/dmeta('nep_m').def);
-  RESPEAK=RES.reduce((m,p)=>Math.max(m,Math.abs(p.as)),0);
+/* ===========================================================================
+   3. THE MAP
+   =========================================================================== */
+var CV=$('#sky'),CX=CV.getContext('2d'),DPR=Math.min(2,window.devicePixelRatio||1);
+var VIEW='solar';
+var SOL={au:12,cx:0,cy:0};      /* pixels per AU, and centre offset in pixels */
+var SKY={ra:180,dec:0,z:1};     /* centre and zoom */
+var HOT=null,SEL=null,PICKS=[];
+
+function resize(){
+  var r=CV.parentElement.getBoundingClientRect();
+  CV.width=Math.round(r.width*DPR);CV.height=Math.round(r.height*DPR);
+  CV.style.width=r.width+'px';CV.style.height=r.height+'px';
+  draw();
 }
-function resFig(){
-  if(!RES)return '';
-  const W=760,H=250,mL=56,mR=18,mT=22,mB=34,pw=W-mL-mR,ph=H-mT-mB;
-  const y0=1690,y1=2100,peak=Math.max(RESPEAK,1);
-  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+ph/2-(v/peak)*(ph/2-6);
-  let d='';
-  RES.forEach((p,i)=>{d+=(i?'L':'M')+X(p.year).toFixed(1)+' '+Y(p.as).toFixed(1);});
-  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Difference between Uranus with and without Neptune, 1690 to 2100, peaking near '+
-    Math.round(RESPEAK)+' arcseconds"><title>The Uranus anomaly</title>';
-  [1700,1750,1800,1850,1900,1950,2000,2050,2100].forEach(y=>{
-    s+='<line x1="'+X(y)+'" y1="'+mT+'" x2="'+X(y)+'" y2="'+(H-mB)+'" stroke="rgba(158,186,216,.08)"/>';
-    if(y%100===0)s+='<text x="'+X(y)+'" y="'+(H-13)+'" text-anchor="middle" font-size="12" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">'+y+'</text>';});
-  s+='<line x1="'+mL+'" y1="'+Y(0)+'" x2="'+(W-mR)+'" y2="'+Y(0)+'" stroke="rgba(158,186,216,.35)"/>';
-  s+='<text x="'+(mL-8)+'" y="'+(Y(peak)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">+'+Math.round(peak)+'″</text>'+
-     '<text x="'+(mL-8)+'" y="'+(Y(0)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">0</text>'+
-     '<text x="'+(mL-8)+'" y="'+(Y(-peak)+4)+'" text-anchor="end" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">−'+Math.round(peak)+'″</text>';
-  [[1781,'Uranus found',0],[1846,'Neptune found',1]].forEach(m=>{
-    s+='<line x1="'+X(m[0])+'" y1="'+mT+'" x2="'+X(m[0])+'" y2="'+(H-mB)+'" stroke="#ffc266" stroke-width="1" stroke-dasharray="3 3"/>'+
-       '<text x="'+(X(m[0])+5)+'" y="'+(mT+13+m[2]*15)+'" font-size="11.5" fill="#ffc266" font-family="system-ui,sans-serif">'+m[1]+'</text>';});
-  s+='<path d="'+d+'" fill="none" stroke="#ff6b47" stroke-width="2"/>';
-  return s+'</svg>';
-}
-let HUNT=null;
-function renderHunt(){
-  const t0=performance.now();
-  HUNT=huntScan(30);
-  const ms=Math.round(performance.now()-t0);
-  /* A single observation resolves roughly 0.1″. But a *systematic* drift, fitted
-     across decades of observations, pulls out about 0.01″ — which is the line
-     that matters for a search like this. */
-  const LIM=0.01, MARG=0.001;
-  const felt=HUNT.filter(h=>h.arcsec>=LIM).length;
-  const verdict=h=>h.arcsec>=LIM?['orbit fit would catch it','var(--hot)']
-    :(h.arcsec>=MARG?['marginal','var(--warn)']:['hides','var(--dim)']);
-  $('#huntTable').innerHTML='<div class="figbox" style="padding:0;overflow-x:auto">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:13.5px">'+
-    '<tr><th style="text-align:left;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Object</th>'+
-    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">From the Sun</th>'+
-    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Dragged off course</th>'+
-    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">As an angle</th>'+
-    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Verdict</th></tr>'+
-    HUNT.slice(0,12).map(h=>{const v=verdict(h);
-      return '<tr><td style="padding:9px 14px;color:var(--ink);border-bottom:1px solid var(--line)">'+h.n+'</td>'+
-      '<td class="n" style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--line)">'+fmt(h.rSun,1)+' AU</td>'+
-      '<td class="n" style="padding:9px 14px;text-align:right;color:var(--ink);border-bottom:1px solid var(--line)">'+
-        (h.km>=10?fmt(h.km,0):(h.km>=0.01?fmt(h.km,2):'&lt;0.01'))+' km</td>'+
-      '<td class="n" style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--line)">'+
-        (h.arcsec>=0.001?fmt(h.arcsec,3)+'″':'&lt; 0.001″')+'</td>'+
-      '<td style="padding:9px 14px;text-align:right;color:'+v[1]+';border-bottom:1px solid var(--line)">'+v[0]+'</td></tr>';
-    }).join('')+'</table></div>';
-  $('#huntNote').innerHTML='Nineteen objects flown twice over 30 years, computed '+ms+'&thinsp;ms ago. '+
-    'A body of <b>'+fmt(dial('p9_m'),1)+' Earth masses at '+fmt(dial('p9_dist'),0)+' AU</b> would drag '+
-    (felt?'<b style="color:var(--hot)">'+felt+' of them</b> past 0.01″ — the drift an orbit fit can pull out of decades of observations. Those are the ones worth watching.'
-         :'<b>none of them</b> past 0.01″, the drift an orbit fit can pull out of decades of observations. At this mass and distance it hides.')+
-    ' <b>Notice who is at the top and who is nowhere:</b> the inner planets are useless as detectors, because they and the Sun fall through a distant field together and almost nothing is left over. Only the far objects keep a difference — which is exactly why real searches for a ninth planet watch the most distant bodies we know. Direction is fixed at one assumed longitude.';
-  const m=dmeta('p9_m'),d=dmeta('p9_dist');
-  const km=$('#p9m'),kd=$('#p9d');
-  km.min=m.min;km.max=m.max;km.step=m.step;km.value=D.p9_m;
-  kd.min=d.min;kd.max=d.max;kd.step=d.step;kd.value=D.p9_dist;
-  $('#p9mV').textContent=fmt(D.p9_m,1)+' M⊕';
-  $('#p9dV').textContent=fmt(D.p9_dist,0)+' AU';
-  $('#resTag').textContent=felt?felt+' would feel it':'nothing would feel it';
-  $('#resTag').style.color=felt?'var(--hot)':'var(--dim)';
-  $('#resTag').style.borderColor=felt?'rgba(255,107,71,.5)':'var(--line2)';
-}
-function renderResidual(){
-  $('#resfig').innerHTML=resFig();
-  const ratio=Math.max(1,Math.round(RESPEAK/5));
-  const tile=(k,v,hot)=>'<div class="tile'+(hot?' hot':'')+'"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-  $('#resTiles').innerHTML=
-    tile('Biggest disagreement', RESPEAK<1?'none':fmt(RESPEAK,0)+'″', RESPEAK>=1)+
-    tile('In arcminutes', RESPEAK<1?'—':fmt(RESPEAK/60,1)+'′')+
-    tile('What 1840s telescopes could see','≈ 5″')+
-    tile('Times above the noise', RESPEAK<1?'—':ratio+'×', RESPEAK>=1);
-  const m=dmeta('nep_m'), k=$('#nepKnob');
-  k.min=m.min;k.max=m.max;k.step=m.step;k.value=D.nep_m;
-  $('#nepVal').textContent=(D.nep_m/m.def*100).toFixed(0)+'% of real';
-}
-/* ---- canvas ---- */
-const cv=$('#cv'), ctx=cv.getContext('2d');
-let DPR=1;
-function sizeCv(){
-  const r=cv.parentElement.getBoundingClientRect();
-  DPR=Math.min(devicePixelRatio||1,2);
-  cv.width=Math.max(1,r.width*DPR); cv.height=Math.max(1,r.height*DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
+addEventListener('resize',resize);
+
+function W(){return CV.width/DPR;} function H(){return CV.height/DPR;}
+function solProj(p){return {x:W()/2+SOL.cx+p.x*SOL.au,y:H()/2+SOL.cy-p.y*SOL.au};}
+function skyProj(ra,dec){
+  var dra=((ra-SKY.ra+540)%360)-180;
+  return {x:W()/2-dra*(W()/360)*SKY.z,y:H()/2-(dec-SKY.dec)*(H()/180)*SKY.z};
 }
 function draw(){
-  const w=cv.width/DPR,h=cv.height/DPR; ctx.clearRect(0,0,w,h);
-  const cx=w/2,cy=h/2,S=Math.min(w,h)*0.42/zoomAU, P=x=>cx+x*S, Q=y=>cy-y*S;
-  const jd=jdNow()+tOff;
-  [1,5,10,20,30].forEach(au=>{
-    if(au*S<10||au*S>Math.max(w,h))return;
-    ctx.beginPath();ctx.arc(cx,cy,au*S,0,Math.PI*2);
-    ctx.strokeStyle='rgba(158,186,216,.07)';ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle='rgba(139,160,181,.6)';ctx.font='11px ui-monospace,Menlo,monospace';
-    ctx.fillText(au+' AU',cx+au*S+5,cy-4);
+  CX.setTransform(DPR,0,0,DPR,0,0);
+  CX.clearRect(0,0,W(),H());
+  PICKS=[];
+  if(VIEW==='solar')drawSolar();else drawSky();
+  drawScaleTag();
+}
+function starfield(){
+  /* a deterministic field so the room has depth without pretending to be data */
+  var s=1;CX.save();
+  for(var i=0;i<220;i++){
+    s=(s*16807)%2147483647;var x=(s/2147483647)*W();
+    s=(s*16807)%2147483647;var y=(s/2147483647)*H();
+    s=(s*16807)%2147483647;var a=0.05+(s/2147483647)*0.28;
+    CX.fillStyle='rgba(200,225,255,'+a.toFixed(2)+')';
+    CX.fillRect(x,y,1,1);
+  }
+  CX.restore();
+}
+function drawSolar(){
+  starfield();
+  var jd=jdNow();
+  /* range rings, labelled in AU */
+  CX.save();
+  var c=solProj({x:0,y:0});
+  [0.4,1,5.2,9.5,19.2,30.1,39.5,67.8,506].forEach(function(r){
+    var px=r*SOL.au;
+    if(px<14||px>Math.max(W(),H())*1.4)return;
+    CX.beginPath();CX.arc(c.x,c.y,px,0,Math.PI*2);
+    CX.strokeStyle='rgba(79,184,245,.10)';CX.lineWidth=1;CX.stroke();
+    CX.fillStyle='rgba(119,147,173,.75)';CX.font='10px ui-monospace,monospace';
+    CX.fillText(r+' AU',c.x+px+4,c.y-3);
   });
-  ALL().forEach(o=>{
-    const pts=orbitPath(o.type==='pl'?plEl(o,jd):o,o.type==='pl');
-    ctx.beginPath();pts.forEach((p,i)=>{i?ctx.lineTo(P(p.x),Q(p.y)):ctx.moveTo(P(p.x),Q(p.y));});
-    ctx.strokeStyle=o.k===sel?'rgba(255,107,71,.6)':'rgba(94,155,234,.17)';
-    ctx.lineWidth=o.k===sel?1.5:0.9;ctx.stroke();
+  CX.restore();
+  /* orbits then bodies, small bodies under planets */
+  var all=INDEX.filter(function(o){return o.cls==='solar';});
+  all.forEach(function(o){
+    var pts=orbitPath(o,180),first=true;
+    CX.beginPath();
+    pts.forEach(function(p){var q=solProj(p);if(first){CX.moveTo(q.x,q.y);first=false;}else CX.lineTo(q.x,q.y);});
+    CX.closePath();
+    CX.strokeStyle=SEL&&SEL.id===o.id?'rgba(79,184,245,.85)':'rgba(140,175,210,.20)';
+    CX.lineWidth=SEL&&SEL.id===o.id?1.6:1;CX.stroke();
   });
-  ctx.beginPath();ctx.arc(cx,cy,4.5,0,Math.PI*2);
-  ctx.fillStyle='#fff6dd';ctx.shadowColor='rgba(255,225,150,.9)';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;
-  ALL().forEach(o=>{
-    const p=posOf(o,jd),x=P(p.x),y=Q(p.y);
-    if(x<-40||x>w+40||y<-40||y>h+40)return;
-    const on=o.k===sel;
-    ctx.beginPath();ctx.arc(x,y,on?o.rad+1.8:o.rad,0,Math.PI*2);
-    ctx.fillStyle=o.c;if(on){ctx.shadowColor=o.c;ctx.shadowBlur=16;}ctx.fill();ctx.shadowBlur=0;
-    if(on){
-      ctx.beginPath();ctx.arc(x,y,o.rad+9,0,Math.PI*2);
-      ctx.strokeStyle='#ff6b47';ctx.lineWidth=1.3;ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font='600 13px system-ui,sans-serif';
-      ctx.fillText(o.n,x+o.rad+14,y+4.5);
-    } else if(o.type==='pl'){                      /* only planets carry standing labels */
-      ctx.fillStyle='rgba(194,210,226,.62)';ctx.font='12px system-ui,sans-serif';
-      ctx.fillText(o.n,x+o.rad+6,y+4);
+  /* the Sun */
+  CX.beginPath();CX.arc(c.x,c.y,6,0,Math.PI*2);
+  var g=CX.createRadialGradient(c.x,c.y,0,c.x,c.y,26);
+  g.addColorStop(0,'#fff6cf');g.addColorStop(.35,'rgba(255,208,110,.55)');g.addColorStop(1,'rgba(255,180,60,0)');
+  CX.fillStyle=g;CX.fillRect(c.x-26,c.y-26,52,52);
+  CX.beginPath();CX.arc(c.x,c.y,5,0,Math.PI*2);CX.fillStyle='#ffeaa0';CX.fill();
+  PICKS.push({x:c.x,y:c.y,r:9,o:{id:'sun',name:'The Sun',kind:'G2V star',cls:'solar',sun:true,col:'#ffeaa0'}});
+  all.forEach(function(o){
+    var p=posOf(o,jd);if(!p)return;
+    var q=solProj(p);
+    if(q.x<-40||q.x>W()+40||q.y<-40||q.y>H()+40)return;
+    var rad=o.body.rad||3;
+    CX.beginPath();CX.arc(q.x,q.y,rad,0,Math.PI*2);CX.fillStyle=o.col;CX.fill();
+    if(SEL&&SEL.id===o.id){
+      CX.beginPath();CX.arc(q.x,q.y,rad+7,0,Math.PI*2);
+      CX.strokeStyle='#4fb8f5';CX.lineWidth=1.6;CX.stroke();
     }
+    if(SOL.au>3||o.kind==='planet'){
+      CX.fillStyle='rgba(220,236,250,.8)';CX.font='11px '+"'Inter',system-ui,sans-serif";
+      CX.fillText(o.name.replace(/^\d+\s/,''),q.x+rad+5,q.y+4);
+    }
+    PICKS.push({x:q.x,y:q.y,r:Math.max(9,rad+5),o:o});
   });
 }
-/* ---- field readouts ---- */
-function readout(){
-  const jd=jdNow()+tOff,o=objOf(sel),p=posOf(o,jd),e=planetPos(PL[2],jd);
-  const rSun=Math.hypot(p.x,p.y,p.z), rEarth=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
-  const a=o.type==='pl'?plEl(o,jd).a:o.a, per=Math.pow(a,1.5);
-  $('#selName').textContent=o.n;
-  $('#selBig').textContent=fmt(rEarth,3);
-  const rw=(k,v)=>'<div class="rw"><span>'+k+'</span><span>'+v+'</span></div>';
-  $('#readout').innerHTML=
-    rw('From the Sun',fmt(rSun,3)+' AU')+
-    rw('Light travel time',fmt(rEarth*8.317,1)+' min')+
-    rw('Orbit size',fmt(a,3)+' AU')+
-    rw('Year length',per<1?fmt(per*365.25,0)+' days':fmt(per,1)+' years');
-  $('#hudN').textContent=o.n;
-  $('#hudD').textContent=fmt(rEarth,3)+' AU from Earth';
-  const d=new Date((jd-2440587.5)*86400000);
-  $('#tlab').textContent=d.toISOString().slice(0,10)+(tOff?'  ('+(tOff>0?'+':'')+(tOff/365.25).toFixed(1)+' yr)':'  · today');
-}
-function objList(){
-  const jd=jdNow()+tOff,e=planetPos(PL[2],jd);
-  const row=o=>{
-    const p=posOf(o,jd), d=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
-    return '<button class="ob'+(o.k===sel?' on':'')+'" data-o="'+o.k+'"><span>'+o.n+
-      '</span><span class="d">'+fmt(d,2)+' AU</span></button>';
-  };
-  $('#olPl').innerHTML=ALLPL().filter(o=>o.k!=='earth').map(row).join('');
-  $('#olSb').innerHTML=ALLSB().map(row).join('');
-}
-/* ---- trials ---- */
-function trackFig(t){
-  const W=680,H=190,mL=34,mR=16,mT=18,mB=34,pw=W-mL-mR,ph=H-mT-mB;
-  const ys=t.track.map(p=>p[0]),y0=Math.min(...ys)-6,y1=Math.max(...ys)+6;
-  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+(100-v)/100*ph;
-  let d='';t.track.forEach((p,i)=>{d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);});
-  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="How support for this claim moved over time"><title>Support over time</title>';
-  [[100,'strong'],[50,''],[0,'dead']].forEach(g=>{
-    s+='<line x1="'+mL+'" y1="'+Y(g[0])+'" x2="'+(W-mR)+'" y2="'+Y(g[0])+'" stroke="rgba(158,186,216,.10)"/>'+
-       (g[1]?'<text x="'+(mL-6)+'" y="'+(Y(g[0])+4)+'" text-anchor="end" font-size="11" fill="#8ba0b5" font-family="system-ui,sans-serif">'+g[1]+'</text>':'');});
-  s+='<path d="'+d+'" fill="none" stroke="#5e9bea" stroke-width="2"/>';
-  let lastLab=-1e9,lastAnn=-1e9;
-  t.track.forEach((p,i)=>{
-    const dead=p[1]<=10,c=dead?'#ff6b47':'#fff',x=X(p[0]);
-    s+='<circle cx="'+x+'" cy="'+Y(p[1])+'" r="4" fill="#0c1420" stroke="'+c+'" stroke-width="2"/>';
-    if(x-lastLab>44){lastLab=x;
-      s+='<text x="'+x+'" y="'+(H-14)+'" text-anchor="middle" font-size="11.5" fill="#8ba0b5" font-family="ui-monospace,Menlo,monospace">'+p[0]+'</text>';}
-    if((i===t.track.length-1||dead)&&x-lastAnn>210){lastAnn=x;
-      s+='<text x="'+Math.min(x,W-mR-4)+'" y="'+(Y(p[1])-11)+'" text-anchor="end" font-size="11.5" fill="'+c+'" font-family="system-ui,sans-serif">'+p[2]+'</text>';}
+function drawSky(){
+  starfield();
+  /* grid */
+  CX.save();CX.strokeStyle='rgba(79,184,245,.10)';CX.lineWidth=1;
+  CX.fillStyle='rgba(119,147,173,.7)';CX.font='10px ui-monospace,monospace';
+  for(var ra=0;ra<360;ra+=30){
+    var a=skyProj(ra,0);
+    if(a.x<-30||a.x>W()+30)continue;
+    CX.beginPath();CX.moveTo(a.x,0);CX.lineTo(a.x,H());CX.stroke();
+    CX.fillText((ra/15).toFixed(0)+'h',a.x+4,H()-8);
+  }
+  for(var d=-60;d<=60;d+=30){
+    var b=skyProj(SKY.ra,d);
+    if(b.y<0||b.y>H())continue;
+    CX.beginPath();CX.moveTo(0,b.y);CX.lineTo(W(),b.y);CX.stroke();
+    CX.fillText((d>0?'+':'')+d+'°',6,b.y-4);
+  }
+  CX.restore();
+  var hosts={};
+  INDEX.forEach(function(o){if(o.exo)hosts[o.exo.host]=true;});
+  INDEX.filter(function(o){return o.cls==='sky';}).forEach(function(o){
+    var ra,dec,r,col=o.col;
+    if(o.star){ra=o.star.ra;dec=o.star.dec;
+      r=o.star.mag==null?4:Math.max(1.6,5.2-o.star.mag*0.42);}
+    else if(o.deep){ra=o.deep.ra;dec=o.deep.dec;r=4.4;}
+    else return;
+    var q=skyProj(ra,dec);
+    if(q.x<-20||q.x>W()+20||q.y<-20||q.y>H()+20)return;
+    if(o.deep){
+      CX.beginPath();CX.ellipse(q.x,q.y,r+2.5,r,0,0,Math.PI*2);
+      CX.strokeStyle=col;CX.lineWidth=1.2;CX.stroke();
+      CX.fillStyle='rgba(84,214,165,.16)';CX.fill();
+    }else{
+      CX.beginPath();CX.arc(q.x,q.y,r,0,Math.PI*2);CX.fillStyle=col;CX.fill();
+      if(hosts[o.name]){
+        CX.beginPath();CX.arc(q.x,q.y,r+4.5,0,Math.PI*2);
+        CX.strokeStyle='rgba(164,140,240,.8)';CX.lineWidth=1.1;CX.stroke();
+      }
+    }
+    if(SEL&&SEL.id===o.id){
+      CX.beginPath();CX.arc(q.x,q.y,r+9,0,Math.PI*2);CX.strokeStyle='#4fb8f5';CX.lineWidth=1.6;CX.stroke();
+    }
+    if(SKY.z>1.5||(o.star&&o.star.mag!=null&&o.star.mag<2.1)||o.deep){
+      CX.fillStyle='rgba(220,236,250,.78)';CX.font='11px '+"'Inter',system-ui,sans-serif";
+      CX.fillText(o.name,q.x+r+5,q.y+4);
+    }
+    PICKS.push({x:q.x,y:q.y,r:Math.max(9,r+5),o:o});
   });
-  s+='<text x="'+mL+'" y="'+(H-2)+'" font-size="10.5" fill="#8ba0b5" font-family="system-ui,sans-serif">Support over time — a reading of the published record, not a measured quantity</text>';
-  return s+'</svg>';
 }
-function renderTrials(){
-  $('#tlist').innerHTML=TRIALS.map(t=>{const r=t.test();
-    return '<button class="ti'+(t.id===selTrial?' on':'')+'" data-t="'+t.id+'"><span class="c">'+t.claim+
-      '</span><span class="s st-'+r.st+'">'+r.st.toUpperCase()+'</span></button>';}).join('');
-  const t=TRIALS.find(x=>x.id===selTrial),r=t.test();
-  const col={standing:'var(--ok)',contested:'var(--warn)',falling:'var(--hot)',dead:'var(--hot)',open:'var(--hyp)'}[r.st];
-  const used=t.uses.map(u=>{const m=dmeta(u);
-    return '<span class="pv pv-'+m.prov+'">'+m.n+' = '+fmt(D[u],m.sig)+(m.u?' '+m.u:'')+'</span>';}).join('');
-  $('#tdetail').innerHTML='<div class="wrap" style="max-width:780px">'+
-    '<h2>On trial</h2><h1>'+t.claim+'</h1>'+
-    '<div class="verd" style="color:'+col+';border-color:'+col+'">'+r.st.toUpperCase()+'</div>'+
-    '<div class="because">'+r.why+'</div>'+
-    (used?'<h2>Reading from these numbers — change them in Dials and this verdict moves</h2><div class="uses">'+used+'</div>':'')+
-    '<h2>How it moved</h2><div class="figbox" style="margin-bottom:22px">'+trackFig(t)+'</div>'+
-    '<div class="kill"><span class="w">What settles it</span>'+t.kill+'</div></div>';
+function drawScaleTag(){
+  var t;
+  if(VIEW==='solar'){
+    var across=(W()/SOL.au);
+    t=across<3?'field '+across.toFixed(2)+' AU across':
+      across<200?'field '+across.toFixed(0)+' AU across':
+      'field '+(across/63241).toFixed(3)+' light years across';
+  }else{
+    t='field '+(360/SKY.z).toFixed(0)+'° of sky · '+INDEX.filter(function(o){return o.cls==='sky';}).length+' objects on file';
+  }
+  $('#scaleTag').textContent=t;
 }
-/* ---- dials ---- */
-function leverage(id){return TRIALS.filter(t=>t.uses.includes(id)).length+(id==='nep_m'?2:0);}
-function priority(d){
-  const rel=d.unc==null?0.9:Math.min(1,(d.unc/Math.max(1e-12,Math.abs(d.def)))*4);
-  return rel*leverage(d.id);
-}
-function renderDials(){
-  const sorted=[...DIALS].sort((a,b)=>priority(b)-priority(a));
-  const top=priority(sorted[0]);
-  $('#dgrid').innerHTML=sorted.map(d=>{
-    const dep=TRIALS.filter(t=>t.uses.includes(d.id)).length;
-    return '<div class="dial'+(priority(d)>=top*0.66?' crit':'')+'">'+
-      '<div class="dn">'+d.n+'</div>'+
-      '<div class="dv" id="dv_'+d.id+'">'+fmt(D[d.id],d.sig)+'</div>'+
-      '<div class="du">'+(d.u||'a fraction')+(d.unc!=null?'  ±'+fmt(d.unc,d.sig):'  no stated uncertainty')+'</div>'+
-      '<input type="range" min="'+d.min+'" max="'+d.max+'" step="'+d.step+'" value="'+D[d.id]+'" data-d="'+d.id+'" aria-label="'+d.n+'">'+
-      '<div class="meta"><span class="pv pv-'+d.prov+'">'+d.prov+'</span><span>'+
-        (dep?dep+' trial'+(dep===1?'':'s'):'no trial')+(d.id==='nep_m'?' + the model':'')+' depends on it</span></div>'+
-      '<div class="dnote">'+d.note+'</div></div>';
-  }).join('');
-}
-/* ---- wiring ---- */
-let resTimer=null;
-function setView(v){
-  view=v;
-  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
-  document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  if(v==='field'){sizeCv();draw();readout();objList();}
-  if(v==='residual'){renderHunt();renderResidual();}
-  if(v==='trials')renderTrials();
-  if(v==='dials')renderDials();
-}
-document.addEventListener('click',e=>{
-  const m=e.target.closest('.mode'); if(m){setView(m.dataset.v);return;}
-  const o=e.target.closest('[data-o]'); if(o){sel=o.dataset.o;objList();draw();readout();return;}
-  const t=e.target.closest('[data-t]'); if(t){selTrial=t.dataset.t;renderTrials();return;}
-  const z=e.target.closest('[data-z]'); if(z){zoomAU=+z.dataset.z;
-    document.querySelectorAll('#zoomg button').forEach(b=>b.classList.toggle('on',b===z));draw();return;}
-  if(e.target.id==='nowb'){tOff=0;$('#tscrub').value=0;draw();readout();objList();return;}
-  if(e.target.id==='playb'){playing=!playing;e.target.textContent=playing?'❚❚ Hold':'▶ Run';return;}
-  if(e.target.id==='resetd'){DIALS.forEach(d=>D[d.id]=d.def);renderDials();
-    clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},60);return;}
+/* pointer */
+var drag=null;
+CV.addEventListener('pointerdown',function(e){
+  drag={x:e.clientX,y:e.clientY,moved:false};CV.classList.add('drag');CV.setPointerCapture(e.pointerId);});
+CV.addEventListener('pointermove',function(e){
+  var r=CV.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(drag){
+    var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;
+    if(VIEW==='solar'){SOL.cx+=dx;SOL.cy+=dy;}
+    else{SKY.ra=((SKY.ra-dx/((W()/360)*SKY.z))%360+360)%360;
+      SKY.dec=Math.max(-89,Math.min(89,SKY.dec+dy/((H()/180)*SKY.z)));}
+    drag.x=e.clientX;drag.y=e.clientY;draw();return;
+  }
+  var hit=pick(mx,my);
+  if(hit!==HOT){HOT=hit;
+    var T=$('#tip');
+    if(hit){T.className='on';
+      T.innerHTML='<div>'+esc(hit.o.name)+'</div><div class="t2">'+esc(hit.o.kind)+'</div>';
+      T.style.left=Math.min(W()-200,mx+14)+'px';T.style.top=(my+14)+'px';
+    }else T.className='';
+  }else if(hit){
+    var T2=$('#tip');T2.style.left=Math.min(W()-200,mx+14)+'px';T2.style.top=(my+14)+'px';
+  }
 });
-$('#tscrub').addEventListener('input',e=>{tOff=+e.target.value;playing=false;
-  $('#playb').textContent='▶ Run';draw();readout();objList();});
-let huntTimer=null;
-function huntSoon(){clearTimeout(huntTimer);huntTimer=setTimeout(renderHunt,150);}
-$('#p9m').addEventListener('input',e=>{D.p9_m=+e.target.value;
-  $('#p9mV').textContent=fmt(D.p9_m,1)+' M⊕';huntSoon();});
-$('#p9d').addEventListener('input',e=>{D.p9_dist=+e.target.value;
-  $('#p9dV').textContent=fmt(D.p9_dist,0)+' AU';huntSoon();});
-$('#nepKnob').addEventListener('input',e=>{
-  D.nep_m=+e.target.value;
-  $('#nepVal').textContent=(D.nep_m/dmeta('nep_m').def*100).toFixed(0)+'% of real';
-  clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},140);
+CV.addEventListener('pointerup',function(e){
+  var wasDrag=drag&&drag.moved;drag=null;CV.classList.remove('drag');
+  if(wasDrag)return;
+  var r=CV.getBoundingClientRect(),hit=pick(e.clientX-r.left,e.clientY-r.top);
+  if(hit)select(hit.o);
 });
-document.addEventListener('input',e=>{
-  const d=e.target.closest('[data-d]'); if(!d)return;
-  const id=d.dataset.d,m=dmeta(id); D[id]=+d.value;
-  const el=document.getElementById('dv_'+id); if(el)el.textContent=fmt(D[id],m.sig);
-  if(id==='nep_m'){clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},140);}
-  if(id==='p9_m'||id==='p9_dist')huntSoon();
-});
-addEventListener('resize',()=>{if(view==='field'){sizeCv();draw();}});
-let last=0;
-function loop(ts){
-  if(playing&&ts-last>16){tOff+=2.5;if(tOff>18262)tOff=-18262;
-    $('#tscrub').value=tOff;draw();readout();last=ts;}
-  requestAnimationFrame(loop);
+CV.addEventListener('pointerleave',function(){$('#tip').className='';HOT=null;});
+CV.addEventListener('wheel',function(e){
+  e.preventDefault();
+  var k=e.deltaY<0?1.16:1/1.16;
+  if(VIEW==='solar')SOL.au=Math.max(0.01,Math.min(4000,SOL.au*k));
+  else SKY.z=Math.max(0.6,Math.min(60,SKY.z*k));
+  draw();
+},{passive:false});
+function pick(mx,my){
+  var best=null,bd=1e9;
+  for(var i=PICKS.length-1;i>=0;i--){
+    var p=PICKS[i],d=Math.hypot(p.x-mx,p.y-my);
+    if(d<=p.r&&d<bd){bd=d;best=p;}
+  }
+  return best;
 }
-sizeCv(); computeRes(); renderResidual(); draw(); readout(); objList();
-renderTrials(); renderDials(); requestAnimationFrame(loop);
+$$('#views button').forEach(function(b){
+  b.addEventListener('click',function(){
+    VIEW=b.dataset.view;
+    $$('#views button').forEach(function(x){x.classList.toggle('on',x===b);});
+    legend();draw();
+  });
+});
+$('#zin').addEventListener('click',function(){
+  if(VIEW==='solar')SOL.au*=1.5;else SKY.z=Math.min(60,SKY.z*1.5);draw();});
+$('#zout').addEventListener('click',function(){
+  if(VIEW==='solar')SOL.au/=1.5;else SKY.z=Math.max(0.6,SKY.z/1.5);draw();});
+$('#zfit').addEventListener('click',function(){
+  if(VIEW==='solar'){SOL.au=12;SOL.cx=0;SOL.cy=0;}else{SKY.ra=180;SKY.dec=0;SKY.z=1;}draw();});
+function legend(){
+  $('#legend').innerHTML=VIEW==='solar'
+    ? '<b>Solar system · live positions</b>'+
+      '<span><i style="background:#5ba7e8"></i>planet</span>'+
+      '<span><i style="background:#ff9b7a"></i>near-Earth</span>'+
+      '<span><i style="background:#cbb6a2"></i>trans-Neptunian</span>'+
+      '<div style="margin-top:6px">Positions computed for right now from published elements.</div>'
+    : '<b>The sky · RA / Dec</b>'+
+      '<span><i style="background:#bcd6ff"></i>hot star</span>'+
+      '<span><i style="background:#ffc887"></i>cool star</span>'+
+      '<span><i style="border:1.2px solid #a48cf0;background:none"></i>has planets</span>'+
+      '<span><i style="border:1.2px solid #54d6a5;background:none"></i>deep sky</span>'+
+      '<div style="margin-top:6px">Drag to pan, scroll to zoom, click anything to inspect.</div>';
+}
+
+/* ===========================================================================
+   4. SEARCH — local first, then the live archives
+   =========================================================================== */
+var SBDB='https://ssd-api.jpl.nasa.gov/sbdb.api';
+var EXOTAP='https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
+var SESAME='https://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/SNV';
+function jget(url,ms){
+  var ctl=new AbortController(),t=setTimeout(function(){ctl.abort();},ms||14000);
+  return fetch(url,{signal:ctl.signal})
+    .then(function(r){clearTimeout(t);
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.text();})
+    .catch(function(e){clearTimeout(t);throw e;});
+}
+function score(name,q){
+  var n=name.toLowerCase(),i=n.indexOf(q);
+  if(i<0)return -1;
+  return (i===0?100:40-i)+(n.length===q.length?50:0);
+}
+function localSearch(q){
+  q=q.toLowerCase().trim();if(!q)return [];
+  return INDEX.map(function(o){return {o:o,s:score(o.name,q)};})
+    .filter(function(x){return x.s>=0;})
+    .sort(function(a,b){return b.s-a.s;}).slice(0,12).map(function(x){return x.o;});
+}
+var SUGT=null,LIVE=[];
+$('#q').addEventListener('input',function(){
+  var v=$('#q').value;
+  clearTimeout(SUGT);
+  renderSug(localSearch(v),null);
+  if(txt(v).length>=3)SUGT=setTimeout(function(){liveSearch(txt(v));},420);
+});
+$('#q').addEventListener('keydown',function(e){
+  var btns=$$('#sug button[data-i]');
+  if(e.key==='Enter'){
+    var hot=$('#sug button.hot')||btns[0];
+    if(hot)hot.click();
+    return;
+  }
+  if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+  e.preventDefault();
+  var cur=btns.indexOf($('#sug button.hot'));
+  var nx=e.key==='ArrowDown'?Math.min(btns.length-1,cur+1):Math.max(0,cur-1);
+  btns.forEach(function(b,i){b.classList.toggle('hot',i===nx);});
+});
+document.addEventListener('click',function(e){
+  if(!$('#search').contains(e.target))$('#sug').classList.remove('on');});
+function renderSug(local,live){
+  var S=$('#sug'),h='',i=0;
+  if(local.length){
+    h+='<div class="grp">On file · instant</div>';
+    local.forEach(function(o){
+      h+='<button data-i="'+(i++)+'" data-id="'+esc(o.id)+'"><div class="nm">'+esc(o.name)+
+        '</div><div class="mt">'+esc(o.kind)+'</div></button>';});
+  }
+  if(live&&live.length){
+    h+='<div class="grp">From the archives · live</div>';
+    live.forEach(function(o,k){
+      h+='<button data-i="'+(i++)+'" data-live="'+k+'"><div class="nm">'+esc(o.name)+
+        '</div><div class="mt">'+esc(o.kind)+' · '+esc(o.src)+'</div></button>';});
+  }
+  if(!h)h='<div class="grp">Nothing on file — still asking the archives…</div>';
+  S.innerHTML=h;S.classList.add('on');
+  LIVE=live||LIVE;
+  $$('#sug button[data-i]').forEach(function(b){
+    b.addEventListener('click',function(){
+      $('#sug').classList.remove('on');
+      if(b.dataset.id)select(findLocal(b.dataset.id));
+      else select(LIVE[Number(b.dataset.live)]);
+    });
+  });
+}
+/* The three archives, asked in parallel. Each one that fails says so rather
+   than silently narrowing the result set. */
+function liveSearch(q){
+  status('go','Asking the archives for “'+q+'”');
+  var out=[],fails=[];
+  var pSB=jget(SBDB+'?sstr='+encodeURIComponent(q)+'&phys-par=1&full-prec=1')
+    .then(function(t){
+      var j=JSON.parse(t);
+      if(j&&j.object){
+        out.push({id:'live:sbdb:'+j.object.fullname,name:j.object.fullname||q,
+          kind:txt(j.object.kind_name)||'small body',src:'JPL SBDB',cls:'solar',live:j,col:'#ff9b7a'});
+      }else if(j&&j.list&&j.list.length){
+        j.list.slice(0,6).forEach(function(r){
+          out.push({id:'live:sbdb:'+r.pdes,name:r.name||r.pdes,kind:'small body',
+            src:'JPL SBDB',cls:'solar',lookup:r.pdes,col:'#ff9b7a'});});
+      }
+    },function(){fails.push('JPL Small-Body Database');});
+  var adql="select pl_name,hostname,disc_year,discoverymethod,pl_rade,pl_bmasse,pl_orbper,sy_dist,ra,dec "+
+    "from ps where upper(pl_name) like upper('%"+q.replace(/'/g,"''")+"%') and default_flag=1";
+  var pEX=jget(EXOTAP+'?query='+encodeURIComponent(adql)+'&format=json')
+    .then(function(t){
+      var rows=JSON.parse(t);
+      (rows||[]).slice(0,6).forEach(function(r){
+        out.push({id:'live:exo:'+r.pl_name,name:r.pl_name,kind:'exoplanet',src:'NASA Exoplanet Archive',
+          cls:'sky',exolive:r,col:'#a48cf0'});});
+    },function(){fails.push('NASA Exoplanet Archive');});
+  var pSE=jget(SESAME+'?'+encodeURIComponent(q))
+    .then(function(t){
+      var ra=/<jradeg>([-\d.]+)<\/jradeg>/i.exec(t),de=/<jdedeg>([-\d.]+)<\/jdedeg>/i.exec(t);
+      var ty=/<otype>([^<]+)<\/otype>/i.exec(t);
+      if(ra&&de)out.push({id:'live:sesame:'+q,name:q,kind:(ty&&ty[1])||'catalogued object',
+        src:'CDS Sesame',cls:'sky',
+        deep:{ra:Number(ra[1]),dec:Number(de[1]),dist:null,kind:(ty&&ty[1])||''},col:'#54d6a5'});
+    },function(){fails.push('CDS Sesame');});
+  Promise.allSettled([pSB,pEX,pSE]).then(function(){
+    if(txt($('#q').value)!==q)return;
+    renderSug(localSearch(q),out);
+    if(fails.length===3)status('bad','No archive could be reached');
+    else if(fails.length)status('ok',fails.length+' of 3 archives unreachable');
+    else status('ok',out.length?out.length+' live result'+(out.length===1?'':'s'):'Nothing live matched');
+    if(fails.length)LASTFAIL=fails;else LASTFAIL=null;
+  });
+}
+var LASTFAIL=null;
+
+/* ===========================================================================
+   5. THE INSPECTOR
+   =========================================================================== */
+function tag(t){return '<u class="'+t+'">'+({meas:'measured',calc:'derived',asm:'assumed'}[t])+'</u>';}
+function row(k,v,t){
+  if(v==null||v==='')return '';
+  return '<dt>'+esc(k)+'</dt><dd>'+esc(String(v))+(t?tag(t):'')+'</dd>';
+}
+function blk(title,body){return body?'<div class="blk"><h3>'+esc(title)+'</h3>'+body+'</div>':'';}
+function select(o){
+  if(!o)return;
+  SEL=o;$('#q').value='';draw();
+  if(o.lookup){                      /* a search-list hit needs a second call */
+    status('go','Fetching '+o.name);
+    jget(SBDB+'?sstr='+encodeURIComponent(o.lookup)+'&phys-par=1&full-prec=1')
+      .then(function(t){var j=JSON.parse(t);o.live=j;status('ok','Ready');inspect(o);},
+        function(){status('bad','Could not fetch that object');inspect(o);});
+    inspect(o);return;
+  }
+  inspect(o);
+  if(o.cls==='solar'&&o.body)goTo(o);
+  if(o.cls==='sky'&&(o.star||o.deep)){
+    VIEW='sky';$$('#views button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='sky');});
+    var c=o.star||o.deep;SKY.ra=c.ra;SKY.dec=c.dec;SKY.z=Math.max(SKY.z,4);legend();draw();
+  }
+}
+function goTo(o){
+  VIEW='solar';$$('#views button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='solar');});
+  var a=o.body.a||1;
+  SOL.au=Math.max(0.02,Math.min(3000,(Math.min(W(),H())*0.36)/a));
+  SOL.cx=0;SOL.cy=0;legend();draw();
+}
+function inspect(o){
+  var I=$('#insp'),h='';
+  h+='<div class="ihead"><div class="kind" style="color:'+(o.col||'#4fb8f5')+'">'+esc(o.kind)+'</div>'+
+    '<h2>'+esc(o.name)+'</h2>'+
+    (o.src?'<div class="src">Source · '+esc(o.src)+'</div>':
+      '<div class="src">Source · shipped with the page</div>')+'</div>';
+
+  if(o.sun){
+    h+=blk('Physical','<dl class="kv">'+row('Spectral type','G2V','meas')+
+      row('Radius','695,700 km','meas')+row('Mass','1.989e30 kg','calc')+
+      row('Surface temperature','5772 K','meas')+row('Age','4.6 Gyr','calc')+'</dl>');
+    h+=blk('Position','<p>The origin of this map. Everything else here is plotted relative to it.</p>');
+  }
+
+  if(o.body){
+    var jd=jdNow(),p=posOf(o,jd),b=o.body;
+    if(p){
+      var r=Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
+      h+=blk('Where it is right now','<dl class="kv">'+
+        row('Distance from the Sun',fmt(r,4)+' AU','calc')+
+        row('Ecliptic X / Y / Z',fmt(p.x,4)+', '+fmt(p.y,4)+', '+fmt(p.z,4)+' AU','calc')+
+        row('Light travel from the Sun',fmt(r*499.005/60,2)+' min','calc')+'</dl>'+
+        '<p class="mini" style="margin-top:9px">Computed for this moment from the elements below.'+
+        (b.aD==null?' Mean anomaly at epoch is approximate for this object, so the orbit is right and the position along it is indicative.':'')+'</p>');
+      h+=blk('Orbit','<dl class="kv">'+
+        row('Semi-major axis',fmt(b.a,6)+' AU','meas')+
+        row('Eccentricity',fmt(b.e,6),'meas')+
+        row('Inclination',fmt(b.I,4)+'°','meas')+
+        row('Period',fmt(Math.pow(b.a,1.5),4)+' yr','calc')+
+        row('Perihelion',fmt(b.a*(1-b.e),5)+' AU','calc')+
+        row('Aphelion',fmt(b.a*(1+b.e),5)+' AU','calc')+'</dl>');
+    }
+    if(b.phys){
+      var pr='';
+      Object.keys(b.phys).forEach(function(k){
+        if(k==='note')return;
+        pr+=row(k.charAt(0).toUpperCase()+k.slice(1),b.phys[k],'meas');});
+      h+=blk('Physical','<dl class="kv">'+pr+'</dl>'+
+        (b.phys.note?'<p style="margin-top:9px">'+esc(b.phys.note)+'</p>':''));
+    }
+  }
+  if(o.moon){
+    var m=o.moon;
+    h+=blk('Physical','<dl class="kv">'+row('Radius',m.radius,'meas')+row('Mass',m.mass,'meas')+
+      row('Orbital period',m.period,'meas')+row('Orbits',m.parent,'meas')+'</dl>'+
+      '<p class="mini" style="margin-top:9px">Moons are inspected here and drawn at their parent — '+
+      'at solar-system scale they sit inside the planet\'s own disc.</p>');
+  }
+  if(o.star){
+    var s=o.star;
+    h+=blk('Position and distance','<dl class="kv">'+
+      row('Right ascension',fmt(s.ra,4)+'° ('+fmt(s.ra/15,3)+'h)','meas')+
+      row('Declination',fmt(s.dec,4)+'°','meas')+
+      row('Distance',fmt(s.ly,2)+' light years','meas')+
+      row('Distance',fmt(s.ly*63241,0)+' AU','calc')+'</dl>');
+    h+=blk('The star','<dl class="kv">'+
+      row('Spectral type',s.sp,'meas')+
+      row('Apparent magnitude',s.mag==null?null:fmt(s.mag,2),'meas')+
+      (s.mag!=null&&s.ly?row('Absolute magnitude',
+        fmt(s.mag-5*(Math.log10(s.ly/3.26156)-1),2),'calc'):'')+'</dl>');
+    var hosted=INDEX.filter(function(x){return x.exo&&x.exo.host===o.name;});
+    if(hosted.length)h+=blk('Planets on file',hosted.map(function(x){
+      return '<div class="li" style="padding:7px 0;border-bottom:1px solid var(--line)">'+
+        '<a href="#" data-goid="'+esc(x.id)+'">'+esc(x.name)+'</a>'+
+        '<div class="m">'+esc(x.exo.note)+'</div></div>';}).join(''));
+  }
+  if(o.exo){
+    var e=o.exo;
+    h+=blk('Discovery','<dl class="kv">'+row('Host star',e.host,'meas')+
+      row('Discovered',e.year,'meas')+row('Method',e.method,'meas')+'</dl>'+
+      '<p style="margin-top:9px">'+esc(e.note)+'</p>');
+    var hs=INDEX.filter(function(x){return x.star&&x.name===e.host;})[0];
+    if(hs)h+=blk('Where to look','<p>Go to <a href="#" data-goid="'+esc(hs.id)+'">'+esc(hs.name)+
+      '</a> — RA '+fmt(hs.star.ra,3)+'°, Dec '+fmt(hs.star.dec,3)+'°, '+fmt(hs.star.ly,1)+' ly.</p>');
+  }
+  if(o.exolive){
+    var r2=o.exolive;
+    h+=blk('From the archive','<dl class="kv">'+
+      row('Host star',r2.hostname,'meas')+row('Discovered',r2.disc_year,'meas')+
+      row('Method',r2.discoverymethod,'meas')+
+      row('Radius',r2.pl_rade==null?null:fmt(r2.pl_rade,2)+' R⊕','meas')+
+      row('Mass',r2.pl_bmasse==null?null:fmt(r2.pl_bmasse,2)+' M⊕','meas')+
+      row('Orbital period',r2.pl_orbper==null?null:fmt(r2.pl_orbper,4)+' d','meas')+
+      row('System distance',r2.sy_dist==null?null:fmt(r2.sy_dist,2)+' pc','meas')+
+      row('RA / Dec',r2.ra==null?null:fmt(r2.ra,4)+'° / '+fmt(r2.dec,4)+'°','meas')+'</dl>');
+  }
+  if(o.live&&o.live.object){
+    var L=o.live,ob=L.object,el={};
+    ((L.orbit&&L.orbit.elements)||[]).forEach(function(x){el[x.name]=x;});
+    h+=blk('Identity','<dl class="kv">'+row('Full name',ob.fullname,'meas')+
+      row('Designation',ob.des,'meas')+row('Class',ob.orbit_class&&ob.orbit_class.name,'meas')+
+      (ob.neo?row('Near-Earth object','yes','meas'):'')+
+      (ob.pha?row('Potentially hazardous','yes','meas'):'')+'</dl>');
+    var eh='';
+    ['a','e','i','om','w','ma','per','q','ad'].forEach(function(k){
+      if(el[k])eh+=row(({a:'Semi-major axis',e:'Eccentricity',i:'Inclination',om:'Long. of node',
+        w:'Arg. of perihelion',ma:'Mean anomaly',per:'Period',q:'Perihelion',ad:'Aphelion'})[k],
+        el[k].value+(el[k].units?' '+el[k].units:''),'meas');});
+    h+=blk('Orbit — live from JPL',eh?'<dl class="kv">'+eh+'</dl>':'<p>No elements returned.</p>');
+    var ph='';
+    ((L.phys_par)||[]).slice(0,10).forEach(function(x){
+      ph+=row(x.title||x.name,x.value+(x.units?' '+x.units:''),'meas');});
+    if(ph)h+=blk('Physical — live from JPL','<dl class="kv">'+ph+'</dl>');
+  }
+  if(o.deep&&!o.star){
+    h+=blk('Position','<dl class="kv">'+row('Right ascension',fmt(o.deep.ra,4)+'°','meas')+
+      row('Declination',fmt(o.deep.dec,4)+'°','meas')+
+      row('Distance',o.deep.dist,'meas')+'</dl>');
+  }
+
+  /* the catalog idea, folded in: what is actually known, and what to read */
+  h+='<div class="blk"><h3>What the literature says</h3>'+
+    '<p>Sweep the archives for what has been published on this object — the same engine the Record '+
+    'runs, pointed at a thing instead of a claim.</p>'+
+    '<div class="act"><button id="litBtn">Read the literature</button>'+
+    '<button class="gh" id="copyBtn">Copy identity</button></div>'+
+    '<div id="litOut"></div></div>';
+
+  if(LASTFAIL&&LASTFAIL.length)
+    h+='<div class="blk"><div class="warn"><b>'+LASTFAIL.length+' archive'+
+      (LASTFAIL.length===1?'':'s')+' could not be reached</b><br>'+esc(LASTFAIL.join(', '))+
+      '. Results are from what is on file plus whatever did answer. This is usually the service '+
+      'itself, not your connection.</div></div>';
+
+  I.innerHTML=h;I.scrollTop=0;
+  $$('#insp [data-goid]').forEach(function(a){
+    a.addEventListener('click',function(e){e.preventDefault();select(findLocal(a.dataset.goid));});});
+  var lb=$('#litBtn');if(lb)lb.addEventListener('click',function(){readLit(o,lb);});
+  var cb=$('#copyBtn');
+  if(cb)cb.addEventListener('click',function(){
+    var lines=[o.name,o.kind];
+    if(o.star)lines.push('RA '+o.star.ra+' Dec '+o.star.dec+' · '+o.star.ly+' ly · '+o.star.sp);
+    if(o.body)lines.push('a='+o.body.a+' AU e='+o.body.e+' i='+o.body.I+'°');
+    navigator.clipboard&&navigator.clipboard.writeText(lines.join('\n'));
+    cb.textContent='Copied';setTimeout(function(){cb.textContent='Copy identity';},1400);});
+}
+/* the Record's sweep engine, pointed at an object */
+var SUPA='https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/ingest';
+var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
+function readLit(o,btn){
+  btn.disabled=true;btn.textContent='Sweeping…';
+  status('go','Reading the literature on '+o.name);
+  var q='What is known about '+o.name+(o.kind?' ('+o.kind+')':'');
+  fetch(SUPA,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY,
+    Authorization:'Bearer '+KEY},body:JSON.stringify({question:q,limit:20,slice:0,slices:1})})
+  .then(function(r){return r.text();})
+  .then(function(t){
+    var j=JSON.parse(t);
+    if(j.error)throw new Error(j.error);
+    var S=j.synthesis||{},rs=(j.results||[]).slice(0,8);
+    var h='<div class="lit">';
+    if(S.state)h+='<p style="margin:10px 0">'+esc(S.state)+'</p>';
+    rs.forEach(function(r){
+      h+='<div class="li">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+
+        esc(r.title)+'</a>':esc(r.title))+
+        '<div class="m">'+(r.year||'')+(r.venue?' · '+esc(String(r.venue).slice(0,40)):'')+
+        (r.citations!=null?' · '+r.citations+' cites':'')+'</div>'+
+        (r.why?'<div class="w">'+esc(r.why)+'</div>':'')+'</div>';});
+    if(S.nextTest)h+='<p style="margin-top:11px"><b>What would settle the open question:</b> '+
+      esc(S.nextTest)+'</p>';
+    h+='</div>';
+    $('#litOut').innerHTML=h;
+    status('ok',(j.retrieved||rs.length)+' records read');
+    btn.textContent='Read again';btn.disabled=false;
+  })
+  .catch(function(e){
+    $('#litOut').innerHTML='<div class="warn" style="margin-top:10px">Could not reach the sweep '+
+      'engine — '+esc(String(e&&e.message||e)).slice(0,140)+'</div>';
+    status('bad','Sweep failed');btn.textContent='Read the literature';btn.disabled=false;});
+}
+function blank(){
+  $('#insp').innerHTML='<div class="none"><h2>Search anything in the universe.</h2>'+
+    '<p>A planet, a moon, an asteroid, a comet, a star, an exoplanet, a nebula, a galaxy. '+
+    'About a hundred and forty objects ship with the page and resolve instantly; anything else '+
+    'is fetched live from JPL, the NASA Exoplanet Archive and CDS.</p>'+
+    '<p>Or just click anything on the map.</p>'+
+    '<div class="chips">'+
+    ['Bennu','Titan','Proxima Centauri','TRAPPIST-1e','Andromeda Galaxy (M31)','99942 Apophis',
+     'Betelgeuse','Orion Nebula (M42)'].map(function(n){
+      return '<button data-jump="'+esc(n)+'">'+esc(n)+'</button>';}).join('')+'</div></div>';
+  $$('#insp [data-jump]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var hit=localSearch(b.dataset.jump)[0];
+      if(hit)select(hit);});});
+}
+
+/* ===========================================================================
+   6. BOOT
+   =========================================================================== */
+legend();blank();resize();
+status('ok','Ready · '+INDEX.length+' objects on file');
+setInterval(function(){if(VIEW==='solar')draw();},60000);   /* positions creep */
+(function(){
+  var m=/[?&#]go=([^&]+)/.exec(location.search+location.hash);
+  if(m){try{var hit=localSearch(decodeURIComponent(m[1].replace(/\+/g,' ')))[0];
+    if(hit)select(hit);}catch(e){}}
+})();
 </script>
 </body>
 </html>
