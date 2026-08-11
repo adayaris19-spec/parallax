@@ -4,149 +4,392 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>PARALLAX — two instruments</title>
+<meta name="color-scheme" content="light">
+<title>PARALLAX — three instruments</title>
 <style>
 /* ============================================================================
-   PARALLAX — the front door to two separate instruments.
+   PARALLAX — the company front door.
 
-   The page is itself a parallax: two viewpoints on one subject, side by side.
-   Each half is painted in its own instrument's colour world — the record in
-   daylight, the sky at dusk — so you can see which room you are about to walk
-   into before you choose. The wordmark sits on the seam between them, because
-   that is where two sightlines meet.
+   This is the only landing page. Each instrument opens straight into its own
+   tool from here; none of them carries a second hero of its own.
+
+   Three instruments, and the page is honest about what each one is pointed at:
+
+     THE RECORD   everything humanity has written down. State a claim and it
+                  tells you what the claim is standing on.
+     THE SKY      the solar system itself, propagated live, watching for the
+                  moment the model and the sky disagree.
+     THE CATALOG  what is known about real objects — claims typed by how they
+                  are known, values on file, predictions graded when reality
+                  reports in.
+
+   Sky-blue room, one light beam crossing it, live numbers at a size that reads
+   across a bench, and an index strip running past. Each instrument card keeps
+   a trace of its own colour world so you can see which room you are about to
+   walk into.
    ========================================================================== */
 :root{
-  --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --bg1:#eef3f9; --bg2:#e3ecf6; --card:#fbfdff; --card2:#f1f7fd;
+  --line:#cbdcee; --line2:#a8c5e3; --line3:#7fa3c8;
+  --ink:#0d2135; --ink2:#2f4f70; --dim:#5f7d9c;
+  --acc:#0d72c4; --acc2:#0a5896; --accbg:#e2f0fc; --accln:#9ccbee;
+  --sup:#0f7a5f; --con:#bf3025; --mix:#6a4bc4;
+  --dusk:#141d29; --duskink:#ff8a5c;
+  --f:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,monospace;
-  --r-bg1:#faf8f3; --r-bg2:#efeee9; --r-ink:#14263a; --r-ink2:#42576e; --r-dim:#6a7c8d; --r-acc:#b4560a;
-  --s-bg1:#141d29; --s-bg2:#0c1420; --s-ink:#f2f7fc; --s-ink2:#c2d2e2; --s-dim:#8ba0b5; --s-acc:#ff6b47;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;font-family:var(--f);background:var(--s-bg2);color:var(--s-ink2);
-  -webkit-font-smoothing:antialiased;overflow-x:hidden}
-:focus-visible{outline:3px solid var(--s-acc);outline-offset:3px;border-radius:4px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:linear-gradient(168deg,#f2f6fb 0%,#e9f0f8 46%,#e0e9f4 100%);
+  color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100%}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.02em}
+a{color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
 :focus:not(:focus-visible){outline:none}
+#grain{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:.3;mix-blend-mode:multiply;
+  background-image:radial-gradient(rgba(60,90,130,.10) .6px,transparent 1px);background-size:3px 3px}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:8;
+  background:radial-gradient(130% 108% at 50% 42%,rgba(20,45,75,0) 56%,rgba(20,45,75,.15) 100%)}
 
-#split{display:grid;grid-template-columns:1fr 1fr;min-height:100%}
-.door{position:relative;display:flex;flex-direction:column;justify-content:center;
-  padding:clamp(30px,5vw,72px) clamp(22px,4.5vw,64px);text-decoration:none;transition:filter .3s ease}
-.door:hover{filter:brightness(1.06)}
+nav#top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:22px;
+  padding:13px clamp(16px,5vw,60px);background:rgba(242,246,251,.93);backdrop-filter:blur(9px);
+  border-bottom:1px solid var(--line)}
+nav#top .mk{display:flex;align-items:center;gap:9px}
+nav#top .mk b{font-family:var(--m);font-size:13px;letter-spacing:.34em;font-weight:700}
+nav#top .lk{display:flex;gap:20px;margin-left:auto}
+nav#top .lk a{font-size:12.5px;color:var(--ink2);text-decoration:none;border-bottom:1px solid transparent}
+nav#top .lk a:hover{color:var(--acc);border-bottom-color:var(--acc)}
+.go{display:inline-block;font-family:var(--m);font-size:10.5px;letter-spacing:.13em;font-weight:700;
+  text-transform:uppercase;background:var(--acc);color:#fff;border:0;border-radius:3px;
+  padding:9px 15px;cursor:pointer;text-decoration:none;transition:filter .15s,transform .1s}
+.go:hover{filter:brightness(1.1)} .go:active{transform:translateY(1px)}
+.go.big{font-size:12px;padding:13px 24px}
+.lnk{font-family:var(--m);font-size:10.5px;letter-spacing:.11em;font-weight:700;text-transform:uppercase;
+  color:var(--acc);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+.lnk:hover{border-bottom-color:var(--acc)}
 
-#record{background:linear-gradient(168deg,var(--r-bg1),var(--r-bg2));color:var(--r-ink2)}
-#record::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
-  background-image:linear-gradient(rgba(26,52,84,.05) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(26,52,84,.05) 1px,transparent 1px);
-  background-size:46px 46px;
-  -webkit-mask-image:radial-gradient(110% 90% at 30% 40%,#000,transparent 72%);
-  mask-image:radial-gradient(110% 90% at 30% 40%,#000,transparent 72%)}
-#sky{background:linear-gradient(196deg,var(--s-bg1),var(--s-bg2));color:var(--s-ink2)}
-#sky::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;
-  background-image:radial-gradient(rgba(200,228,255,.22) .7px,transparent 1.2px),
-                   radial-gradient(rgba(200,228,255,.12) .6px,transparent 1.1px);
-  background-size:151px 137px,89px 79px;background-position:0 0,37px 23px}
-.inner{position:relative;z-index:1;max-width:440px}
+.hero{position:relative;overflow:hidden;padding:clamp(30px,4.4vw,58px) clamp(16px,5vw,60px) clamp(20px,2.6vw,34px)}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background-image:linear-gradient(rgba(30,70,120,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(30,70,120,.055) 1px,transparent 1px);background-size:52px 52px;
+  -webkit-mask-image:radial-gradient(120% 100% at 70% 40%,#000 0%,transparent 74%);
+  mask-image:radial-gradient(120% 100% at 70% 40%,#000 0%,transparent 74%)}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(48% 58% at 78% 44%,rgba(60,150,225,.19) 0%,transparent 68%),
+    radial-gradient(40% 44% at 6% 92%,rgba(20,80,140,.09) 0%,transparent 66%)}
+.beam{position:absolute;top:0;bottom:0;width:44vw;pointer-events:none;z-index:0;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.6) 42%,rgba(210,235,255,.5) 58%,transparent);
+  filter:blur(22px);animation:sweep 13s cubic-bezier(.55,0,.45,1) infinite}
+@keyframes sweep{0%{left:-50vw}60%{left:106vw}100%{left:106vw}}
+.hrow{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  gap:clamp(14px,2vw,34px);align-items:center;max-width:1420px}
+.kick{display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:clamp(15px,2vw,24px);
+  border:1px solid var(--line2);border-radius:99px;padding:7px 15px 7px 12px;background:rgba(255,255,255,.72)}
+.kick i{width:7px;height:7px;border-radius:50%;background:var(--acc);
+  box-shadow:0 0 0 0 rgba(13,114,196,.6);animation:pulse 2.2s infinite}
+.kick b{color:var(--ink);font-weight:700}
+@keyframes pulse{70%{box-shadow:0 0 0 10px rgba(13,114,196,0)}100%{box-shadow:0 0 0 0 rgba(13,114,196,0)}}
+.hero h1{font-size:clamp(31px,4.3vw,61px);line-height:1.02;letter-spacing:-.033em;
+  margin:0 0 clamp(15px,2vw,24px)}
+.hero h1 span{display:block;opacity:0;transform:translateY(22px);
+  animation:rise .9s cubic-bezier(.16,.9,.3,1) forwards}
+.hero h1 span:nth-child(2){animation-delay:.09s}
+.hero h1 span:nth-child(3){animation-delay:.18s;color:var(--acc)}
+@keyframes rise{to{opacity:1;transform:none}}
+.lede{font-size:clamp(14.5px,1.26vw,17.5px);line-height:1.5;color:var(--ink2);max-width:560px;
+  margin:0 0 clamp(19px,2.3vw,28px);opacity:0;animation:rise .9s .3s cubic-bezier(.16,.9,.3,1) forwards}
+.acts{display:flex;gap:18px;align-items:center;flex-wrap:wrap;opacity:0;
+  animation:rise .9s .42s cubic-bezier(.16,.9,.3,1) forwards}
+.viz{position:relative;display:flex;justify-content:center;margin-right:clamp(-70px,-3.5vw,0px)}
+.viz svg{width:100%;max-width:min(640px,48vw);height:auto;display:block;overflow:visible}
+.nums{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));
+  gap:clamp(13px,2.3vw,32px);margin-top:clamp(18px,2.4vw,32px);max-width:1420px}
+.nums div{padding-top:13px;border-top:2px solid var(--accln)}
+.nums b{display:block;font-family:var(--m);font-size:clamp(27px,3.3vw,46px);font-weight:800;
+  color:var(--acc);line-height:.92;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.nums span{display:block;margin-top:7px;font-family:var(--m);font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--dim)}
+@media(max-width:980px){.hrow{grid-template-columns:1fr}.viz{order:-1;margin-right:0}
+  .viz svg{max-width:min(500px,86vw)}}
 
-.eyebrow{font-family:var(--m);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
-  font-weight:700;margin:0 0 14px}
-#record .eyebrow{color:var(--r-acc)}
-#sky .eyebrow{color:var(--s-acc)}
-h2{font-size:clamp(30px,4.2vw,50px);line-height:1.02;letter-spacing:-.03em;font-weight:680;
-  margin:0 0 16px;text-wrap:balance}
-#record h2{color:var(--r-ink)}
-#sky h2{color:var(--s-ink)}
-.what{font-size:clamp(15px,1.35vw,17.5px);line-height:1.55;margin:0 0 22px}
-#record .what{color:var(--r-ink2)}
-#sky .what{color:var(--s-ink2)}
-.what b{font-weight:650}
-#record .what b{color:var(--r-ink)}
-#sky .what b{color:var(--s-ink)}
-ul{list-style:none;margin:0 0 30px;padding:0;display:flex;flex-direction:column;gap:9px}
-li{position:relative;padding-left:20px;font-size:14.5px;line-height:1.5}
-li::before{content:'';position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:50%}
-#record li{color:var(--r-ink2)} #record li::before{background:var(--r-acc)}
-#sky li{color:var(--s-ink2)} #sky li::before{background:var(--s-acc)}
-.go{display:inline-flex;align-items:center;gap:10px;font-family:var(--m);font-size:13px;
-  letter-spacing:.1em;font-weight:700;text-transform:uppercase;border-radius:5px;
-  padding:14px 24px;transition:transform .15s ease}
-.door:hover .go{transform:translateX(4px)}
-#record .go{background:var(--r-acc);color:#fffdf8}
-#sky .go{background:var(--s-acc);color:#0c1420}
-.foot{font-family:var(--m);font-size:11.5px;letter-spacing:.05em;margin-top:26px}
-#record .foot{color:var(--r-dim)} #sky .foot{color:var(--s-dim)}
+.ticker{position:relative;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.5);padding:11px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.track{display:flex;gap:34px;width:max-content;animation:roll 46s linear infinite}
+.ticker:hover .track{animation-play-state:paused}
+@keyframes roll{to{transform:translateX(-50%)}}
+.tk{display:inline-flex;align-items:baseline;gap:7px;font-family:var(--m);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.tk b{font-size:12px;font-weight:800} .tk i{width:5px;height:5px;border-radius:50%;font-style:normal}
 
-#mark{position:fixed;left:50%;top:26px;transform:translateX(-50%);z-index:5;
-  display:flex;align-items:center;gap:10px;pointer-events:none;
-  background:rgba(12,20,32,.6);border:1px solid rgba(158,186,216,.28);
-  border-radius:99px;padding:9px 20px;backdrop-filter:blur(10px)}
-#mark .t{font-family:var(--m);font-size:13px;letter-spacing:.34em;font-weight:700;color:#fff}
-#tag{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:5;
-  font-family:var(--m);font-size:11.5px;letter-spacing:.05em;color:#8ba0b5;text-align:center;
-  background:rgba(12,20,32,.62);border:1px solid rgba(158,186,216,.18);border-radius:10px;
-  padding:9px 18px;backdrop-filter:blur(10px);max-width:min(92vw,640px);line-height:1.6}
-#tag a{color:#c2d2e2}
+.sec{padding:clamp(42px,5.4vw,82px) clamp(16px,5vw,60px);max-width:1420px;border-top:1px solid var(--line)}
+.sec>h2{font-size:clamp(25px,3.2vw,43px);line-height:1.04;margin:0 0 12px;max-width:17ch}
+.sub{font-size:clamp(13.5px,1.14vw,15.5px);line-height:1.5;color:var(--ink2);margin:0 0 clamp(24px,3vw,38px);
+  max-width:660px}
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(15px,1.8vw,24px)}
+.inst{position:relative;display:flex;flex-direction:column;border:1px solid var(--line2);border-radius:8px;
+  padding:0;overflow:hidden;text-decoration:none;color:inherit;background:var(--card);
+  box-shadow:0 14px 32px -24px rgba(20,50,85,.55);
+  transition:transform .28s cubic-bezier(.16,.9,.3,1),box-shadow .28s,border-color .28s}
+.inst:hover{transform:translateY(-5px);border-color:var(--accln);
+  box-shadow:0 28px 52px -26px rgba(20,50,85,.62)}
+.inst .top{height:112px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.inst .top svg{position:absolute;inset:0;width:100%;height:100%}
+.inst .body{padding:16px 18px 20px;display:flex;flex-direction:column;flex:1}
+.inst .no{font-family:var(--m);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px;font-weight:700}
+.inst h3{font-size:clamp(20px,2vw,26px);margin:0 0 8px;letter-spacing:-.025em}
+.inst p{font-size:13.6px;line-height:1.5;color:var(--ink2);margin:0 0 13px}
+.inst p b{color:var(--ink);font-weight:650}
+.inst ul{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:6px}
+.inst li{position:relative;padding-left:16px;font-size:12.8px;line-height:1.45;color:var(--ink2)}
+.inst li::before{content:'';position:absolute;left:0;top:.6em;width:7px;height:2px}
+.inst .open{margin-top:auto;font-family:var(--m);font-size:10.5px;letter-spacing:.13em;font-weight:700;
+  text-transform:uppercase;display:inline-flex;align-items:center;gap:7px}
+.inst.rec .no,.inst.rec .open{color:var(--acc)} .inst.rec li::before{background:var(--acc)}
+.inst.rec .top{background:linear-gradient(150deg,#e8f2fc,#d7e8f8)}
+.inst.sky .no,.inst.sky .open{color:var(--duskink)} .inst.sky li::before{background:var(--duskink)}
+.inst.sky .top{background:linear-gradient(150deg,#182636,var(--dusk))}
+.inst.cat .no,.inst.cat .open{color:var(--mix)} .inst.cat li::before{background:var(--mix)}
+.inst.cat .top{background:linear-gradient(150deg,#efeafb,#e2daf7)}
 
-@media(max-width:860px){
-  #split{grid-template-columns:1fr}
-  .door{padding:74px 22px 46px}
-  #record{padding-top:98px}
-  .inner{max-width:none}
-  #mark{top:14px}
-  #tag{position:static;transform:none;margin:0 auto 24px;display:block;width:max-content}
-}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.steps{display:flex;align-items:stretch;flex-wrap:wrap;gap:0}
+.step{flex:1 1 168px;min-width:158px;border:1px solid var(--line2);border-top:3px solid var(--line3);
+  border-radius:5px;padding:17px;background:linear-gradient(168deg,rgba(255,255,255,.95),rgba(241,247,253,.7));
+  box-shadow:0 12px 28px -24px rgba(20,50,85,.5)}
+.step.lit{border-top-color:var(--acc)}
+.step .sn{display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.2em;color:var(--dim);
+  margin-bottom:9px;font-weight:700}
+.step b{display:block;font-size:clamp(14.5px,1.25vw,17px);margin-bottom:6px;letter-spacing:-.012em}
+.step p{font-size:12.6px;line-height:1.48;color:var(--ink2);margin:0}
+.arrow{flex:0 0 26px;align-self:center;height:1px;position:relative;
+  background:linear-gradient(90deg,transparent,var(--line3),transparent)}
+.arrow::after{content:'';position:absolute;right:3px;top:-3.5px;border-left:6px solid var(--line3);
+  border-top:4px solid transparent;border-bottom:4px solid transparent}
+@media(max-width:900px){.arrow{display:none}.step{flex:1 1 100%}}
+
+footer{padding:24px clamp(16px,5vw,60px) 56px;font-family:var(--m);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);border-top:1px solid var(--line);display:flex;gap:8px 26px;
+  flex-wrap:wrap}
+footer a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line2)}
+footer a:hover{color:var(--acc);border-color:var(--acc)}
+@media(max-width:760px){nav#top .lk{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<div id="grain"></div><div id="vig"></div>
 
-<div id="mark">
-  <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#b4560a" stroke-width="1.4"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#5e9bea" stroke-width="1.4"/><circle cx="12" cy="12" r="1.5" fill="#fff"/></svg>
-  <span class="t">PARALLAX</span>
+<nav id="top">
+  <span class="mk">
+    <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#0d72c4" stroke-width="1.4"/>
+      <circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#7fa3c8" stroke-width="1.4"/>
+      <circle cx="12" cy="12" r="1.5" fill="#0d2135"/></svg>
+    <b>PARALLAX</b></span>
+  <span class="lk">
+    <a href="#instruments">Instruments</a>
+    <a href="#how">How it works</a>
+  </span>
+  <a class="go" href="read/">Open the record</a>
+</nav>
+
+<div class="hero">
+  <div class="beam"></div>
+  <div class="hrow">
+    <div>
+      <span class="kick"><i></i>Three instruments &middot; <b>18</b> archives &middot; back to <b>1665</b></span>
+      <h1><span>One subject.</span><span>Three sightlines.</span><span>That is the whole method.</span></h1>
+      <p class="lede">Three instruments pointed at the same problem from different places: everything
+      humanity has written down, the solar system as it actually moves, and what is known about real
+      objects. Each one is looking for the same thing — the moment the account and the evidence
+      stop agreeing.</p>
+      <div class="acts">
+        <a class="go big" href="read/">Track a claim</a>
+        <a class="lnk" href="#instruments">See all three &rarr;</a>
+      </div>
+    </div>
+    <div class="viz" id="viz"></div>
+  </div>
+  <div class="nums">
+    <div><b>124</b><span>archive passes per sweep</span></div>
+    <div><b>18</b><span>archives read</span></div>
+    <div><b>~100</b><span>claims harvested per sweep</span></div>
+    <div><b>19</b><span>bodies propagated live</span></div>
+  </div>
 </div>
 
-<div id="split">
+<div class="ticker"><div class="track" id="track"></div></div>
 
-  <a class="door" id="record" href="read/">
-    <div class="inner">
-      <p class="eyebrow">Instrument one</p>
-      <h2>The Record</h2>
-      <p class="what">It does not answer questions. You give it a <b>claim</b>, and it tells you
-      whether the claim is still standing. Every abstract is read twice &mdash; once for its stance
-      toward your claim, once for the claim <em>that paper</em> makes. A sweep harvests
-      <b>~100 claims out of the literature</b> that nobody typed.</p>
-      <ul>
-        <li>Your claim cross-checked against <b>all of them</b>, not just against records</li>
-        <li>The pairs that <b>cannot both be right</b>, with the numbers on each side</li>
-        <li>The gaps: positions held up by one paper, argued on both sides, or dead for 15 years</li>
-        <li>Holding &rarr; contested &rarr; breaking &mdash; tracked, with the date it turned</li>
-      </ul>
-      <span class="go">Track a claim &rarr;</span>
-      <p class="foot">Reads &middot; adjudicates &middot; keeps watching</p>
-    </div>
-  </a>
+<div class="sec" id="instruments">
+  <h2>Three instruments. One question.</h2>
+  <p class="sub">Each opens straight into its own tool. Nothing here is a demo — the record sweeps
+  live archives, the sky integrates real orbits in your browser, and the catalog grades its own
+  predictions when reality reports in.</p>
+  <div class="trio">
 
-  <a class="door" id="sky" href="instrument/">
-    <div class="inner">
-      <p class="eyebrow">Instrument two</p>
-      <h2>The Sky</h2>
-      <p class="what">Pointed at the solar system itself. A <b>live orbital model computed in your
-      browser</b> &mdash; sixteen bodies propagated from published elements &mdash; whose real job
-      is catching the moment the model and the sky disagree.</p>
-      <ul>
-        <li>Run time fifty years forward and watch everything move</li>
-        <li>The Neptune discovery, recomputed live by real N-body integration</li>
-        <li>Claims put on trial by turning them into predictions and checking</li>
-        <li>Every number it runs on, movable &mdash; see what breaks</li>
-      </ul>
-      <span class="go">Open the sky &rarr;</span>
-      <p class="foot">Predicts &middot; watches &middot; finds the disagreement</p>
-    </div>
-  </a>
+    <a class="inst rec" href="read/">
+      <div class="top" id="topRec"></div>
+      <div class="body">
+        <span class="no">Instrument one</span>
+        <h3>The Record</h3>
+        <p>Pointed at everything humanity has written down. State a <b>claim</b> — not a question —
+        and it tells you whether the claim is still standing.</p>
+        <ul>
+          <li>Every abstract read twice: for your claim, and for the claim it makes itself</li>
+          <li>~100 positions harvested per sweep, none of them typed by anyone</li>
+          <li>The pairs that cannot both be right, with the numbers on each side</li>
+          <li>Holding &rarr; contested &rarr; breaking, tracked, with the date it turned</li>
+        </ul>
+        <span class="open">Track a claim &rarr;</span>
+      </div>
+    </a>
 
+    <a class="inst sky" href="instrument/">
+      <div class="top" id="topSky"></div>
+      <div class="body">
+        <span class="no">Instrument two</span>
+        <h3>The Sky</h3>
+        <p>Pointed at the solar system itself. A <b>live orbital model computed in your browser</b>,
+        whose real job is catching the moment the model and the sky disagree.</p>
+        <ul>
+          <li>Nineteen bodies propagated from published elements</li>
+          <li>The Neptune discovery, recomputed by real N-body integration</li>
+          <li>Claims put on trial by turning them into predictions and checking</li>
+          <li>Every number it runs on, movable — see what breaks</li>
+        </ul>
+        <span class="open">Open the sky &rarr;</span>
+      </div>
+    </a>
+
+    <a class="inst cat" href="v2/">
+      <div class="top" id="topCat"></div>
+      <div class="body">
+        <span class="no">Instrument three</span>
+        <h3>The Catalog</h3>
+        <p>Pointed at real objects. A <b>map of what is actually known</b> about each one, with every
+        claim typed by <em>how</em> it is known and every prediction graded when reality reports in.</p>
+        <ul>
+          <li>Objects, claims, evidence and values as one connected graph</li>
+          <li>Claims typed by how they are known — measured, calculated, assumed</li>
+          <li>A docket of predictions, scored against ground truth as it lands</li>
+          <li>What would de-risk each object next</li>
+        </ul>
+        <span class="open">Open the catalog &rarr;</span>
+      </div>
+    </a>
+
+  </div>
 </div>
 
-<div id="tag">Two sightlines on one subject &mdash; which is what parallax means.
-<a href="v2/" style="margin-left:6px">the dark catalog &rarr;</a></div>
+<div class="sec" id="how">
+  <h2>What all three are doing.</h2>
+  <p class="sub">Looking for the same failure from three directions: the place where what is written
+  down, what is predicted, and what is measured stop agreeing with each other.</p>
+  <div class="steps">
+    <div class="step lit"><span class="sn">01</span><b>Sweep wide</b>
+      <p>124 passes across 18 archives, sampled once per era window rather than once overall, so a
+      founding paper comes back beside this year’s preprint.</p></div>
+    <div class="arrow"></div>
+    <div class="step"><span class="sn">02</span><b>Read for position</b>
+      <p>Every record gets a stance toward the claim in hand, and the claim it backs itself — which
+      is how a hundred positions come out of a sweep nobody typed.</p></div>
+    <div class="arrow"></div>
+    <div class="step"><span class="sn">03</span><b>Find the disagreement</b>
+      <p>Every supporter held against every contester; the pairs that measure the same quantity and
+      differ are the ones that cannot both be right.</p></div>
+    <div class="arrow"></div>
+    <div class="step"><span class="sn">04</span><b>Keep watching</b>
+      <p>Nothing is a one-off run. Claims stay tracked, orbits keep propagating, predictions stay on
+      the docket until reality reports in.</p></div>
+  </div>
+</div>
 
+<footer>
+  <span>PARALLAX</span>
+  <a href="read/">The Record</a>
+  <a href="instrument/">The Sky</a>
+  <a href="v2/">The Catalog</a>
+  <span>Two sightlines on one subject</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var TICK=[['Extra dimensions at the LHC','breaking','#bf3025'],
+    ['Dark matter is collisionless','contested','#6a4bc4'],
+    ['Asteroid organics are extraterrestrial','holding','#0f7a5f'],
+    ['Neptune / Uranus residual','open','#0d72c4'],
+    ['The lithium discrepancy is real','contested','#6a4bc4'],
+    ['Bennu bulk density','on file','#0f7a5f'],
+    ['Room-temperature superconductivity','breaking','#bf3025'],
+    ['Planet Nine beyond 400 AU','contested','#6a4bc4']];
+  var one=TICK.map(function(t){
+    return '<span class="tk"><i style="background:'+t[2]+'"></i>'+t[0]+
+      ' <b style="color:'+t[2]+'">'+t[1]+'</b></span>';}).join('');
+  document.getElementById('track').innerHTML=one+one;
+
+  /* the hero mark: three sightlines converging on one subject, which is the
+     whole idea the company is named after */
+  (function(){
+    var W=640,H=420,cx=W*0.56,cy=H/2,s='';
+    [[70,cy-150],[54,cy+8],[86,cy+168]].forEach(function(p,i){
+      var col=['#0d72c4','#ff8a5c','#6a4bc4'][i];
+      s+='<line x1="'+p[0]+'" y1="'+p[1]+'" x2="'+cx+'" y2="'+cy+'" stroke="'+col+
+        '" stroke-width="1.2" stroke-dasharray="6 5" opacity=".65"/>';
+      s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="'+col+'"/>';
+      s+='<text x="'+(p[0]-16)+'" y="'+(p[1]+4)+'" text-anchor="end" font-family="ui-monospace,monospace" '+
+        'font-size="10.5" letter-spacing="1.5" fill="'+col+'">'+
+        ['THE RECORD','THE SKY','THE CATALOG'][i]+'</text>';
+    });
+    for(var r=170;r>=60;r-=55)
+      s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#c7dcef"/>';
+    for(var i=0;i<44;i++){
+      var a=i*2.399,rr=32+Math.sqrt(i)*26;
+      s+='<circle cx="'+(cx+Math.cos(a)*rr).toFixed(1)+'" cy="'+(cy+Math.sin(a)*rr*0.74).toFixed(1)+
+        '" r="'+(1.8+(i%4)*0.7).toFixed(1)+'" fill="#7fa3c8" opacity="'+(0.5-i*0.006).toFixed(2)+'"/>';
+    }
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#fff" stroke="#0d2135" stroke-width="1.8"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="#0d2135"/>';
+    s+='<text x="'+cx+'" y="'+(cy+50)+'" text-anchor="middle" font-family="ui-monospace,monospace" '+
+      'font-size="10.5" letter-spacing="2" fill="#2f4f70">ONE SUBJECT</text>';
+    document.getElementById('viz').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" '+
+      'aria-label="Three instruments sighting on one subject from different positions.">'+s+'</svg>';
+  })();
+
+  /* each card wears a trace of its own instrument: the record as a support and
+     contest split, the sky as orbits, the catalog as a graded docket */
+  function svg(w,h,inner){return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" '+
+    'aria-hidden="true">'+inner+'</svg>';}
+  var s1='',mid=56;
+  var S=[2,4,7,9,7,4,2,1,0,0],K=[0,0,0,1,2,4,6,8,9,10];
+  for(var i=0;i<10;i++){
+    var x=8+i*36;
+    if(S[i])s1+='<rect x="'+x+'" y="'+(mid-S[i]*4.4)+'" width="26" height="'+(S[i]*4.4)+'" fill="#0f7a5f" opacity=".8"/>';
+    if(K[i])s1+='<rect x="'+x+'" y="'+mid+'" width="26" height="'+(K[i]*4.4)+'" fill="#bf3025" opacity=".8"/>';
+  }
+  s1+='<line x1="0" y1="'+mid+'" x2="380" y2="'+mid+'" stroke="#a8c5e3"/>';
+  document.getElementById('topRec').innerHTML=svg(380,112,s1);
+
+  var s2='';
+  for(var k=1;k<=4;k++)
+    s2+='<ellipse cx="190" cy="56" rx="'+(k*40)+'" ry="'+(k*15)+'" fill="none" stroke="#3d5f80" stroke-width="1"/>';
+  s2+='<circle cx="190" cy="56" r="6" fill="#ff8a5c"/>';
+  [[230,62],[110,50],[298,68],[64,44]].forEach(function(p,i){
+    s2+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(3.4-i*0.4)+'" fill="#9fd7ff"/>';});
+  document.getElementById('topSky').innerHTML=svg(380,112,s2);
+
+  var s3='';
+  ['#0f7a5f','#0d72c4','#6a4bc4','#bf3025'].forEach(function(c,i){
+    var y=18+i*24;
+    s3+='<rect x="14" y="'+y+'" width="'+(120+i*52)+'" height="11" rx="3" fill="'+c+'" opacity=".72"/>';
+    s3+='<circle cx="'+(146+i*52)+'" cy="'+(y+5.5)+'" r="4.5" fill="'+c+'"/>';});
+  s3+='<line x1="14" y1="8" x2="366" y2="8" stroke="#c3b5ea"/>';
+  document.getElementById('topCat').innerHTML=svg(380,112,s3);
+})();
+</script>
 </body>
 </html>
