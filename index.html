@@ -360,13 +360,6 @@ footer a:hover{color:var(--acc);border-color:var(--acc)}
     s2+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(3.4-i*0.4)+'" fill="#9fd7ff"/>';});
   document.getElementById('topSky').innerHTML=svg(380,112,s2);
 
-  var s3='';
-  ['#0f7a5f','#0d72c4','#6a4bc4','#bf3025'].forEach(function(c,i){
-    var y=18+i*24;
-    s3+='<rect x="14" y="'+y+'" width="'+(120+i*52)+'" height="11" rx="3" fill="'+c+'" opacity=".72"/>';
-    s3+='<circle cx="'+(146+i*52)+'" cy="'+(y+5.5)+'" r="4.5" fill="'+c+'"/>';});
-  s3+='<line x1="14" y1="8" x2="366" y2="8" stroke="#c3b5ea"/>';
-  document.getElementById('topCat').innerHTML=svg(380,112,s3);
 })();
 </script>
 </body>
