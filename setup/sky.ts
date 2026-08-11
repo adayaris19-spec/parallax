@@ -593,7 +593,7 @@ async function extractFrom(records: any[]) {
     model_replied: false,
     items_returned: 0,
     kept: 0,
-    dropped: { no_object: 0, no_value: 0, unknown_quantity: 0, no_unit_match: 0 },
+    dropped: { no_object: 0, no_value: 0, unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0 },
   };
   if (!records.length || !ANT) return { rows: [] as any[], diag };
   const digest = records.map((r, i) =>
@@ -604,17 +604,44 @@ async function extractFrom(records: any[]) {
     `Extract every quantitative measurement stated in these abstracts.\n\n` +
     `Rules:\n` +
     `- Only values the text actually states. Never infer, never convert, never round.\n` +
+    `- A value you cannot find written in the text is not a measurement. Omit it.\n` +
     `- "object" is the named thing measured (e.g. "Kepler-10 b", "GW150914"). Skip if unnamed.\n` +
     `- "quantity" is one of: radius, mass, density, period, distance, chirp-mass,\n` +
     `  stellar-radius, stellar-mass, equilibrium-temperature, albedo, diameter, parallax.\n` +
     `  Skip anything that is not one of these.\n` +
     `- "err" is the stated uncertainty, symmetric, in the same unit. null if the text gives none.\n` +
-    `- "quote" is the exact sentence the number came from, verbatim.\n` +
+    `- "quote" is the exact sentence the number came from, copied verbatim from the\n` +
+    `  text above. It MUST contain the digits of the value. If you cannot produce a\n` +
+    `  sentence containing the number, do not report the measurement at all.\n` +
+    `- "i" is the bracketed index of the abstract it came from. Required.\n` +
     `- "confidence" 0..1 is how sure you are you read it correctly.\n\n` +
     `Return JSON only: {"m":[{"i":<index>,"object":"","quantity":"","value":0,"err":null,` +
     `"unit":"","quote":"","confidence":0.0}]}\n\n${digest}`,
     3000,
   );
+
+  /* THE RECEIPT HAS TO CONTAIN THE NUMBER.
+     The first real tension this worker produced came with the quote
+     "For Kepler-10c ( ) we measure mass and density" — a sentence offering no
+     evidence for the 19.2 it was cited in support of. The value may well have
+     been read correctly, but nothing in the reply could establish that, and a
+     published claim resting on a number nobody can trace is the exact failure
+     this whole design is meant to rule out.
+
+     So a stated value must appear, as digits, in the text the model was shown.
+     This cannot catch a misread number that happens to occur elsewhere in the
+     abstract, but it does catch a number that was never there at all, which is
+     the failure that matters. Numbers absent from the source are dropped and
+     counted, never quietly kept at lower confidence. */
+  const inText = (hay: string, v: number): boolean => {
+    const h = String(hay).replace(/[\s,]/g, "");
+    const forms = new Set<string>([String(v), String(Number(v.toPrecision(6)))]);
+    const dp = (String(v).split(".")[1] ?? "").length;
+    if (dp) forms.add(v.toFixed(dp));
+    if (Number.isInteger(v)) { forms.add(v.toFixed(1)); forms.add(String(Math.trunc(v))); }
+    for (const f of forms) if (f.length > 1 && h.includes(f)) return true;
+    return false;
+  };
 
   diag.model_replied = !!out;
   diag.items_returned = (out?.m ?? []).length;
@@ -631,6 +658,8 @@ async function extractFrom(records: any[]) {
     const unit = clean(m.unit);
     const n = normalise(value, num(m.err), unit);
     if (n.unit_si === null) { diag.dropped.no_unit_match++; continue; }
+    const source_text = `${src.title ?? ""} ${src.abstract ?? ""}`;
+    if (!inText(source_text, value)) { diag.dropped.value_not_in_text++; continue; }
     diag.kept++;
     rows.push({
       record_id: src.id ?? null,
@@ -640,6 +669,11 @@ async function extractFrom(records: any[]) {
       ...n,
       year: src.year ?? num(String(src.published_at ?? "").slice(0, 4)),
       quote: clean(m.quote).slice(0, 500),
+      /* Whether the sentence handed back as evidence actually shows the number.
+         False does not invalidate the value — it survived the check against the
+         full text above — but it means the quote is not the receipt it looks
+         like, and a reader deserves to be told which they are holding. */
+      quote_shows_value: inText(clean(m.quote), value),
       confidence: Math.max(0, Math.min(1, Number(m.confidence) || 0)),
     });
   }
@@ -720,6 +754,7 @@ function reconcile(observations: Obs[], reported: any[]) {
       reported: {
         record_id: r.record_id, year: r.year, value: r.value, err: r.err, unit: r.unit,
         value_si: r.value_si, err_si: r.err_si, quote: r.quote, confidence: r.confidence,
+        quote_shows_value: r.quote_shows_value,
       },
       sigma: Number(sigma.toFixed(2)),
       ratio: m.value_si ? Number((r.value_si / m.value_si).toFixed(3)) : 0,
