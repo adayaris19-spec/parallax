@@ -185,7 +185,7 @@ p b{color:var(--ink);font-weight:600}
   <span class="wm"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#5e9bea" stroke-width="1.4"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#ff6b47" stroke-width="1.2"/><circle cx="12" cy="12" r="1.5" fill="#fff"/></svg>PARALLAX</span>
   <nav id="modes" aria-label="Modes">
     <button class="mode on" data-v="field">Field</button>
-    <button class="mode" data-v="residual">Residual</button>
+    <button class="mode" data-v="residual">Hunt</button>
     <button class="mode" data-v="trials">Trials</button>
     <button class="mode" data-v="dials">Dials</button>
   </nav>
@@ -220,26 +220,38 @@ p b{color:var(--ink);font-weight:600}
   </section>
 
   <section class="view" id="residual"><div class="wrap pane" style="width:100%">
-    <h1>When the model and the sky disagree, something is out there.</h1>
-    <p class="lead">Every object is a sensor falling through the gravity of everything else. This
-    is the whole purpose of the instrument, proved on the case that founded it.</p>
-    <p>In 1781 Uranus was found. Within forty years its orbit refused to match prediction. The
-    disagreement was small — a couple of arcminutes — but it was real, and in 1846 a telescope was
-    pointed where the arithmetic said an unseen planet must be. <b>Neptune was there.</b></p>
-    <h2 style="margin-top:26px">Computed live, right now</h2>
-    <p>The instrument integrates the outer solar system twice — once with Neptune, once without —
-    and plots the gap between the two Uranuses.</p>
+    <h1>If something unseen is out there, which object tells us first?</h1>
+    <p class="lead">Every tracked object is a sensor falling freely through gravity. Put a
+    hypothetical unseen mass into the model, fly all nineteen of them forward twice &mdash; once
+    with it, once without &mdash; and measure how far each one gets dragged off course.</p>
+    <div class="knob">
+      <span class="lab">Unseen mass</span>
+      <input type="range" id="p9m" aria-label="Mass of the hypothetical unseen body">
+      <span class="val" id="p9mV">—</span>
+    </div>
+    <div class="knob">
+      <span class="lab">Its distance</span>
+      <input type="range" id="p9d" aria-label="Distance of the hypothetical unseen body">
+      <span class="val" id="p9dV">—</span>
+    </div>
+    <h2 style="margin-top:24px">Drift after 30 years &mdash; computed just now</h2>
+    <div id="huntTable"></div>
+    <p class="fine" id="huntNote">—</p>
+    <h2 style="margin-top:34px">The method, already proved once</h2>
+    <p>Uranus was found in 1781. Within forty years its orbit refused to match prediction. That
+    disagreement was the only evidence anyone had, and in 1846 a telescope was pointed where the
+    arithmetic said an unseen planet must be. <b>Neptune was there.</b> Here is that same
+    calculation, run live &mdash; with Neptune, and without.</p>
     <div class="figbox" id="resfig"></div>
     <div class="tiles" id="resTiles"></div>
     <div class="knob">
-      <span class="lab">Neptune's mass</span>
+      <span class="lab">Neptune&rsquo;s mass</span>
       <input type="range" id="nepKnob" aria-label="Neptune mass">
       <span class="val" id="nepVal">—</span>
     </div>
-    <p class="fine">Drag it to zero and the anomaly disappears — because in that universe there is
-    nothing out there to cause it. Four-planet N-body integration, velocity Verlet, 1690–2100 at
-    8-day steps, run twice on every change. The two runs are identical in the year 2000 and
-    diverge in both directions from there.</p>
+    <p class="fine">Drag it to zero and the anomaly disappears &mdash; in that universe there is
+    nothing out there to cause it. Both searches use the same engine: velocity Verlet N-body,
+    4- and 8-day steps, re-run on every change. Nothing here is stored or simulated.</p>
   </div></section>
 
   <section class="view" id="trials">
@@ -285,7 +297,10 @@ const SB=[
  {k:'itokawa',n:'25143 Itokawa',c:'#a9bcd0',rad:2.4,a:1.3241,e:0.2801,I:1.622,O:69.08,w:162.80,M:100.0,ep:2455562.5},
  {k:'bennu',n:'101955 Bennu',c:'#ff9b7a',rad:2.6,a:1.126391,e:0.203745,I:6.035,O:2.061,w:66.223,M:101.70,ep:2455562.5},
  {k:'ryugu',n:'162173 Ryugu',c:'#ff9b7a',rad:2.6,a:1.189562,e:0.190349,I:5.884,O:251.619,w:211.436,M:161.4,ep:2455562.5},
- {k:'apophis',n:'99942 Apophis',c:'#ff5a36',rad:2.5,a:0.922438,e:0.191481,I:3.339,O:204.446,w:126.401,M:180.0,ep:2455562.5}
+ {k:'apophis',n:'99942 Apophis',c:'#ff5a36',rad:2.5,a:0.922438,e:0.191481,I:3.339,O:204.446,w:126.401,M:180.0,ep:2455562.5},
+ {k:'pluto',n:'134340 Pluto',c:'#cbb6a2',rad:3.4,a:39.482,e:0.2488,I:17.16,O:110.30,w:113.76,M:14.53,ep:2451545.0},
+ {k:'eris',n:'136199 Eris',c:'#d8dee6',rad:3.2,a:67.78,e:0.4358,I:44.04,O:35.95,w:151.60,M:204.0,ep:2451545.0},
+ {k:'sedna',n:'90377 Sedna',c:'#e08a6a',rad:2.8,a:506.8,e:0.8496,I:11.93,O:144.25,w:311.30,M:358.0,ep:2451545.0}
 ];
 function solveKepler(M,e){
   const es=e*DEG; let E=M+es*Math.sin(M*RAD);
@@ -317,6 +332,111 @@ function bodyPos(b,jd){
   let M=b.M+n*(jd-b.ep); M=((M%360)+540)%360-180;
   const E=solveKepler(M,b.e);
   return orient(b.a*(Math.cos(E*RAD)-b.e), b.a*Math.sqrt(1-b.e*b.e)*Math.sin(E*RAD), b.w, b.O, b.I);
+}
+function bodyState(b,jd){
+  const nDeg=0.9856076686/Math.sqrt(b.a*b.a*b.a);
+  let M=b.M+nDeg*(jd-b.ep); M=((M%360)+540)%360-180;
+  const E=solveKepler(M,b.e), cE=Math.cos(E*RAD), sE=Math.sin(E*RAD);
+  const n=Math.sqrt(GM_SUN/(b.a*b.a*b.a)), den=1-b.e*cE;
+  return {r:orient(b.a*(cE-b.e), b.a*Math.sqrt(1-b.e*b.e)*sE, b.w,b.O,b.I),
+          v:orient(-b.a*n*sE/den, b.a*n*Math.sqrt(1-b.e*b.e)*cE/den, b.w,b.O,b.I)};
+}
+/* ===========================================================================
+   THE HUNT — the instrument's actual job, run on demand.
+
+   Put a hypothetical unseen mass into the solar system, fly every tracked
+   object forward as a test particle twice — once with it, once without — and
+   measure how far each one is dragged off course. That is a search, not a
+   history lesson: it answers which object would betray the intruder first,
+   and whether the signal clears what our instruments can actually measure.
+   Exactly the reasoning that produced Neptune, pointed at an open question.
+   =========================================================================== */
+const M_EARTH=3.00348e-6;              /* Earth masses -> solar masses */
+const P9_THETA=2.60;                   /* where we assume it sits, in radians */
+function huntScan(years){
+  years=years||30;
+  const dt=4, jd0=jdNow(), jdEnd=jd0+years*365.25;
+  const giants=['jupiter','saturn','uranus','neptune'];
+  const targets=ALL();
+  const run=(withX)=>{
+    const B=[{m:1,r:{x:0,y:0,z:0},v:{x:0,y:0,z:0}}];
+    giants.forEach(k=>{const st=planetState(PL.find(q=>q.k===k),jd0);
+      B.push({m:MASS[k],r:{...st.r},v:{...st.v}});});
+    /* Balance momentum over the KNOWN bodies only, and do it before the
+       hypothetical arrives. Both runs must start from an identical solar
+       system, or the Sun sets off at a slightly different speed in one of
+       them and thirty years of that bookkeeping shows up as a fake signal —
+       it was reporting Earth 75,000 km off course. */
+    let px=0,py=0,pz=0;
+    for(let i=1;i<B.length;i++){px+=B[i].m*B[i].v.x;py+=B[i].m*B[i].v.y;pz+=B[i].m*B[i].v.z;}
+    B[0].v={x:-px,y:-py,z:-pz};
+    if(withX){
+      const R=dial('p9_dist'), m=dial('p9_m')*M_EARTH, vc=Math.sqrt(GM_SUN/R);
+      B.push({m,r:{x:R*Math.cos(P9_THETA),y:R*Math.sin(P9_THETA),z:0},
+                v:{x:-vc*Math.sin(P9_THETA),y:vc*Math.cos(P9_THETA),z:0}});
+    }
+    /* The giants are already in B; flying them again as test particles puts a
+       body exactly on top of itself and the force blows up. Only the rest fly. */
+    const T=targets.map(o=>{
+      const gi=giants.indexOf(o.k);
+      if(gi>=0)return {ref:gi+1};
+      const st=o.type==='pl'?planetState(o,jd0):bodyState(o,jd0);
+      return {r:{...st.r},v:{...st.v},a:{x:0,y:0,z:0}};
+    });
+    const N=B.length, ac=Array.from({length:N},()=>({x:0,y:0,z:0}));
+    const accel=()=>{
+      for(let i=0;i<N;i++){ac[i].x=ac[i].y=ac[i].z=0;}
+      for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+        const dx=B[j].r.x-B[i].r.x,dy=B[j].r.y-B[i].r.y,dz=B[j].r.z-B[i].r.z;
+        const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),inv=1/(d2*d);
+        const gi=GM_SUN*B[j].m*inv, gj=GM_SUN*B[i].m*inv;
+        ac[i].x+=gi*dx;ac[i].y+=gi*dy;ac[i].z+=gi*dz;
+        ac[j].x-=gj*dx;ac[j].y-=gj*dy;ac[j].z-=gj*dz;
+      }
+      T.forEach(t=>{                                   /* test particles feel, never push */
+        if(t.ref!==undefined)return;
+        t.a.x=t.a.y=t.a.z=0;
+        for(let i=0;i<N;i++){
+          const dx=B[i].r.x-t.r.x,dy=B[i].r.y-t.r.y,dz=B[i].r.z-t.r.z;
+          const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),g=GM_SUN*B[i].m/(d2*d);
+          t.a.x+=g*dx;t.a.y+=g*dy;t.a.z+=g*dz;
+        }
+      });
+    };
+    accel();
+    for(let jd=jd0;jd<jdEnd;jd+=dt){
+      for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*dt/2;B[i].v.y+=ac[i].y*dt/2;B[i].v.z+=ac[i].z*dt/2;
+        B[i].r.x+=B[i].v.x*dt;B[i].r.y+=B[i].v.y*dt;B[i].r.z+=B[i].v.z*dt;}
+      T.forEach(t=>{if(t.ref!==undefined)return;
+        t.v.x+=t.a.x*dt/2;t.v.y+=t.a.y*dt/2;t.v.z+=t.a.z*dt/2;
+        t.r.x+=t.v.x*dt;t.r.y+=t.v.y*dt;t.r.z+=t.v.z*dt;});
+      accel();
+      for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*dt/2;B[i].v.y+=ac[i].y*dt/2;B[i].v.z+=ac[i].z*dt/2;}
+      T.forEach(t=>{if(t.ref!==undefined)return;
+        t.v.x+=t.a.x*dt/2;t.v.y+=t.a.y*dt/2;t.v.z+=t.a.z*dt/2;});
+    }
+    return {T,B,sun:B[0]};
+  };
+  const A=run(true), B2=run(false);
+  const AU_KM=149597870.7;
+  /* MEASURE RELATIVE TO THE SUN. Adding a distant mass shifts the whole system's
+     barycentre, so comparing raw inertial positions reports that bookkeeping
+     shift as if it were a perturbation — it put Earth 100,000 km off, which is
+     nonsense. What an astronomer actually measures is the heliocentric vector,
+     and taking the difference of those leaves only the real, differential pull.
+     It is also why the inner planets are hopeless detectors: they and the Sun
+     fall through a distant field together, so almost nothing is left over. */
+  const helio=(run,i)=>{const t=run.T[i], r=t.ref!==undefined?run.B[t.ref].r:t.r;
+    return {x:r.x-run.sun.r.x, y:r.y-run.sun.r.y, z:r.z-run.sun.r.z};};
+  const ei=targets.findIndex(o=>o.k==='earth');
+  const eA=helio(A,ei);
+  return targets.map((o,i)=>{
+    const a=helio(A,i), b=helio(B2,i);
+    const dAU=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
+    const rSun=Math.hypot(a.x,a.y,a.z);
+    const fromEarth=Math.max(0.3,Math.hypot(a.x-eA.x,a.y-eA.y,a.z-eA.z));
+    return {k:o.k,n:o.n,rSun,km:dAU*AU_KM,arcsec:(dAU/fromEarth)*206264.806};
+  }).sort((x,y)=>y.arcsec-x.arcsec);
 }
 function orbitPath(o,isPl){
   const pts=[],N=192;
@@ -394,7 +514,9 @@ const DIALS=[
  {id:'bennu_rho',n:'Bennu bulk density',u:'g/cm³',v:1.190,def:1.190,min:0.8,max:2.2,step:0.005,sig:3,unc:0.013,prov:'measured',
   note:'A spacecraft weighed it with its own gravity field. One of the best-known numbers in the catalog.'},
  {id:'p9_m',n:'Planet Nine mass',u:'M⊕',v:6.2,def:6.2,min:0,max:15,step:0.1,sig:1,unc:2.0,prov:'proposed',
-  note:'A number attached to an object nobody has seen. It exists only to explain a clustering that is itself contested.'}
+  note:'A number attached to an object nobody has seen. Set it in Hunt and the instrument flies every tracked object twice to see who would feel it.'},
+ {id:'p9_dist',n:'Planet Nine distance',u:'AU',v:400,def:400,min:150,max:1200,step:10,sig:0,unc:200,prov:'proposed',
+  note:'Where it would sit. The pull falls off hard with distance, so this dial decides whether the search is hopeful or hopeless.'}
 ];
 const D={}; DIALS.forEach(d=>D[d.id]=d.v);
 const dial=id=>D[id];
@@ -514,6 +636,49 @@ function resFig(){
   s+='<path d="'+d+'" fill="none" stroke="#ff6b47" stroke-width="2"/>';
   return s+'</svg>';
 }
+let HUNT=null;
+function renderHunt(){
+  const t0=performance.now();
+  HUNT=huntScan(30);
+  const ms=Math.round(performance.now()-t0);
+  /* A single observation resolves roughly 0.1″. But a *systematic* drift, fitted
+     across decades of observations, pulls out about 0.01″ — which is the line
+     that matters for a search like this. */
+  const LIM=0.01, MARG=0.001;
+  const felt=HUNT.filter(h=>h.arcsec>=LIM).length;
+  const verdict=h=>h.arcsec>=LIM?['orbit fit would catch it','var(--hot)']
+    :(h.arcsec>=MARG?['marginal','var(--warn)']:['hides','var(--dim)']);
+  $('#huntTable').innerHTML='<div class="figbox" style="padding:0;overflow-x:auto">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13.5px">'+
+    '<tr><th style="text-align:left;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Object</th>'+
+    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">From the Sun</th>'+
+    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Dragged off course</th>'+
+    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">As an angle</th>'+
+    '<th style="text-align:right;padding:10px 14px;color:var(--dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Verdict</th></tr>'+
+    HUNT.slice(0,12).map(h=>{const v=verdict(h);
+      return '<tr><td style="padding:9px 14px;color:var(--ink);border-bottom:1px solid var(--line)">'+h.n+'</td>'+
+      '<td class="n" style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--line)">'+fmt(h.rSun,1)+' AU</td>'+
+      '<td class="n" style="padding:9px 14px;text-align:right;color:var(--ink);border-bottom:1px solid var(--line)">'+
+        (h.km>=10?fmt(h.km,0):(h.km>=0.01?fmt(h.km,2):'&lt;0.01'))+' km</td>'+
+      '<td class="n" style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--line)">'+
+        (h.arcsec>=0.001?fmt(h.arcsec,3)+'″':'&lt; 0.001″')+'</td>'+
+      '<td style="padding:9px 14px;text-align:right;color:'+v[1]+';border-bottom:1px solid var(--line)">'+v[0]+'</td></tr>';
+    }).join('')+'</table></div>';
+  $('#huntNote').innerHTML='Nineteen objects flown twice over 30 years, computed '+ms+'&thinsp;ms ago. '+
+    'A body of <b>'+fmt(dial('p9_m'),1)+' Earth masses at '+fmt(dial('p9_dist'),0)+' AU</b> would drag '+
+    (felt?'<b style="color:var(--hot)">'+felt+' of them</b> past 0.01″ — the drift an orbit fit can pull out of decades of observations. Those are the ones worth watching.'
+         :'<b>none of them</b> past 0.01″, the drift an orbit fit can pull out of decades of observations. At this mass and distance it hides.')+
+    ' <b>Notice who is at the top and who is nowhere:</b> the inner planets are useless as detectors, because they and the Sun fall through a distant field together and almost nothing is left over. Only the far objects keep a difference — which is exactly why real searches for a ninth planet watch the most distant bodies we know. Direction is fixed at one assumed longitude.';
+  const m=dmeta('p9_m'),d=dmeta('p9_dist');
+  const km=$('#p9m'),kd=$('#p9d');
+  km.min=m.min;km.max=m.max;km.step=m.step;km.value=D.p9_m;
+  kd.min=d.min;kd.max=d.max;kd.step=d.step;kd.value=D.p9_dist;
+  $('#p9mV').textContent=fmt(D.p9_m,1)+' M⊕';
+  $('#p9dV').textContent=fmt(D.p9_dist,0)+' AU';
+  $('#resTag').textContent=felt?felt+' would feel it':'nothing would feel it';
+  $('#resTag').style.color=felt?'var(--hot)':'var(--dim)';
+  $('#resTag').style.borderColor=felt?'rgba(255,107,71,.5)':'var(--line2)';
+}
 function renderResidual(){
   $('#resfig').innerHTML=resFig();
   const ratio=Math.max(1,Math.round(RESPEAK/5));
@@ -526,9 +691,6 @@ function renderResidual(){
   const m=dmeta('nep_m'), k=$('#nepKnob');
   k.min=m.min;k.max=m.max;k.step=m.step;k.value=D.nep_m;
   $('#nepVal').textContent=(D.nep_m/m.def*100).toFixed(0)+'% of real';
-  $('#resTag').textContent=RESPEAK<1?'No disagreement':'Disagreement '+fmt(RESPEAK,0)+'″';
-  $('#resTag').style.color=RESPEAK<1?'var(--ok)':'var(--hot)';
-  $('#resTag').style.borderColor=RESPEAK<1?'rgba(70,217,168,.5)':'rgba(255,107,71,.5)';
 }
 /* ---- canvas ---- */
 const cv=$('#cv'), ctx=cv.getContext('2d');
@@ -670,7 +832,7 @@ function setView(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
   document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   if(v==='field'){sizeCv();draw();readout();objList();}
-  if(v==='residual')renderResidual();
+  if(v==='residual'){renderHunt();renderResidual();}
   if(v==='trials')renderTrials();
   if(v==='dials')renderDials();
 }
@@ -687,6 +849,12 @@ document.addEventListener('click',e=>{
 });
 $('#tscrub').addEventListener('input',e=>{tOff=+e.target.value;playing=false;
   $('#playb').textContent='▶ Run';draw();readout();objList();});
+let huntTimer=null;
+function huntSoon(){clearTimeout(huntTimer);huntTimer=setTimeout(renderHunt,150);}
+$('#p9m').addEventListener('input',e=>{D.p9_m=+e.target.value;
+  $('#p9mV').textContent=fmt(D.p9_m,1)+' M⊕';huntSoon();});
+$('#p9d').addEventListener('input',e=>{D.p9_dist=+e.target.value;
+  $('#p9dV').textContent=fmt(D.p9_dist,0)+' AU';huntSoon();});
 $('#nepKnob').addEventListener('input',e=>{
   D.nep_m=+e.target.value;
   $('#nepVal').textContent=(D.nep_m/dmeta('nep_m').def*100).toFixed(0)+'% of real';
@@ -697,6 +865,7 @@ document.addEventListener('input',e=>{
   const id=d.dataset.d,m=dmeta(id); D[id]=+d.value;
   const el=document.getElementById('dv_'+id); if(el)el.textContent=fmt(D[id],m.sig);
   if(id==='nep_m'){clearTimeout(resTimer);resTimer=setTimeout(()=>{computeRes();renderResidual();},140);}
+  if(id==='p9_m'||id==='p9_dist')huntSoon();
 });
 addEventListener('resize',()=>{if(view==='field'){sizeCv();draw();}});
 let last=0;

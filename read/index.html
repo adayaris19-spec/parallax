@@ -3169,13 +3169,27 @@ function inspectStmt(o){
 /* ============================================================================
    Part 6: dock · per-mode instrument controls · actions · commands · boot
    ========================================================================== */
+/* ---------------------------------------------------------------------------
+   FOUR MODES, NOT SIX. Two were doing work the others already did.
+
+   REASON held a single station, the reasoning chamber, which also existed
+   inside CLAIM and which the console does from anywhere. It was a tab that
+   repeated itself twice over. The station stays where it belongs, in CLAIM.
+
+   MEMORY held three: literature arrival, which is the corpus coverage WATCH
+   already reports; scientific memory; and a single worked comparison. Its one
+   irreplaceable view - how the corpus arrived over time - is the arrival
+   terrain figure, which WATCH already carries.
+
+   What is left is four modes that each answer a different question: what came
+   back, what is it, what competes, and what can I claim.
+   --------------------------------------------------------------------------- */
 const MODEDEFS=[
- ['watch','Watch','evidence stream'],
- ['model','Model','live black hole'],
- ['analyze','Analyze','hypothesis space'],
- ['memory','Memory','time evolution'],
- ['claim','Claim','living claim'],
- ['reason','Reason','think out loud']];
+ ['watch','Research','what came back'],
+ ['model','System','the live model'],
+ ['analyze','Analyze','competing explanations'],
+ ['claim','Claim','what you can assert']];
+const RETIRED={reason:'claim',memory:'watch'};
 function renderDock(){
   $('#dock').innerHTML=MODEDEFS.map(m=>'<button class="dk'+(S.mode===m[0]?' on':'')+'" data-go="'+m[0]+'">'+
    '<div class="n">'+m[1]+(m[0]==='watch'?'<span class="badge">4</span>':'')+'</div><div class="d">'+m[2]+'</div></button>').join('');
@@ -3220,6 +3234,8 @@ function buildCtl(){
 }
 function nav(mode){
   if(S.phase!=='live')return;
+  if(RETIRED[mode])mode=RETIRED[mode];              /* absorbed modes redirect */
+  if(!MODEDEFS.some(m=>m[0]===mode))mode='watch';
   tipEl.style.opacity=0;
   S.mode=mode;
   clearMode();inspect(null);
@@ -4945,15 +4961,6 @@ function stationsBase(mode){
        '<td style="color:'+(hot?C.bad:C.dim)+(hot?';font-weight:700':'')+'">'+(inb?'within bound':t.toFixed(1)+'σ'+(hot?' ⚠':''))+'</td></tr>';}).join('')+'</table>'+
      '<p>Agreement: R_high estimates mutually consistent (≤1.3σ) · interferometric m_L cluster 4.0–4.4 % · pre-D21 RM stability cluster. Citation structure: W20 inherits B18; E22 inherits M16 — the stability cluster is <b>two measurements, not three</b>, and D21 stands alone against it.</p>'+
      '<div class="acts"><button class="abtn" data-act="asm:screen">Release the screen assumption</button><button class="abtn" data-act="sub:model:graph">See what inherits it</button></div>'}];
-  if(mode==='reason')return [
-   {id:'chamber',label:'Reasoning chamber',sub:'speak, and the system verifies',vis:'live',vsize:'l',
-    cap:'<b>Live instrument.</b> Statements stack with verification tags; threads arc to the evidence anchors.',
-    html:'<h2>Speak, and the system verifies — while you type.</h2>'+
-     '<p>Use the bar at the bottom-left from any mode. Detected live: assumptions without support, false dichotomies, overconfidence, omitted evidence, reconnections to reasoning you already rejected, reviewer risk, and the missing test that would settle the sentence.</p>'+
-     '<p data-lv="reason">'+LIVEBIND.reason()+'</p>'+
-     '<div class="acts"><button class="abtn" data-act="rsn:next">Next statement</button><button class="abtn" data-act="rsn:map">Argument map</button></div>'+
-     '<div data-lv="transcript">'+LIVEBIND.transcript()+'</div>'+
-     '<div data-lv="rchecks">'+reasonChecksHTML()+'</div>'}];
   if(!hasSeries()&&hasSyn()){
     if(mode==='model')return [
      {id:'state',label:'State of the question',sub:'establishes · findings · quantities · audit',vis:'timeline',
@@ -4981,13 +4988,6 @@ function stationsBase(mode){
        '<div data-lv="deep">'+deepReadHTML()+'</div>'+
        '<div data-lv="syngaps">'+synGapsHTML()+'</div>'},
      ADJSTATION()];
-    if(mode==='memory')return [
-     {id:'arrival',label:'Literature arrival',sub:'real submission dates',vis:'timeline',
-      html:askHTML(false)+'<h2>How this question accumulated evidence.</h2>'+
-       '<p>Every mark is a record this watch actually returned, placed at its real submission date. '+
-       'Tall amber marks report a new measurement or bound; the curve is cumulative arrival.</p>'+
-       '<div data-lv="agree">'+corpusAgreementHTML()+'</div>'+
-       '<div data-lv="results">'+resultsHTML()+'</div>'}];
     if(mode==='claim')return [
      {id:'standing',label:'What can be claimed',sub:'supported vs contested',vis:null,
       html:askHTML(false)+'<h2>What this literature will and will not support.</h2>'+
@@ -5065,27 +5065,6 @@ function stationsBase(mode){
     html:'<h2>117 adjacent-domain families scanned · 32 mappings tested · one admitted.</h2>'+
      '<p><b>Admitted:</b> laboratory reconnection → R(βi), residual 0.11, prior-widening only. <b>Near-miss:</b> solar-wind cascade (0.38 — no surviving observable). <b>Rejected:</b> MRI fluid analogue (no regime overlap); materials percolation (0.61). Rejections are kept, with reasons.</p>'+
      '<p>A connection may widen a prior; it may never transfer a value.</p>'}];
-  if(mode==='memory')return [
-   {id:'history',label:'Scientific memory',sub:'time-resolved states',vis:'live',vsize:'l',
-    cap:'<b>Live instrument.</b> Drag NOW through research time.<span class="capline" data-lv="memstate">'+LIVEBIND.memstate()+'</span>',
-    html:'<h2>Every belief is stored with its evidence context — and one expiry condition has fired.</h2>'+
-     '<p data-lv="memstate">'+LIVEBIND.memstate()+'</p>'+
-     '<div class="acts"><button class="abtn" data-act="mem:replay">Replay the evolution</button><button class="abtn" data-act="act:react">Reactivate eligible branch</button></div>'+
-     '<table class="dtable"><tr><th>Expiry predicate</th><th>State</th><th>Condition</th></tr>'+
-     [['S-144 rejection','<b style="color:'+TC.hyp+'">EXPIRED — fired at S-044</b>','reopen when a direct R(βi) measurement exists'],
-      ['S-201 rejection','armed — not met','reopen if the EHT core shift moves &gt; 2σ'],
-      ['S-097 adoption','<b style="color:'+TC.asm+'">no predicate — silent</b>','never re-tested since adoption · flagged eroding']]
-     .map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
-     '<div>'+memHTML()+'</div>'},
-   {id:'compare',label:'S-144 vs now',sub:'what changed is evidence',vis:null,
-    html:'<h2>The S-144 rejection was correct then, and is obsolete now.</h2>'+
-     '<table class="dtable"><tr><th>Dimension</th><th>S-144</th><th>S-000</th></tr>'+
-     [['Polarisation','6 epochs · no drift','9 epochs · 41°±6° monotonic'],
-      ['Heating constraint','none — unfalsifiable','lab R = 7.9±1.6 (unreplicated)'],
-      ['Control sightline','single check','flat to 3 % · replicated ×2'],
-      ['Branch status','rejected','eligible — condition expired'],
-      ['Containment','9/9 inside ±14°','3/9 — exits at epoch 4']].map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
-     '<div class="acts"><button class="abtn" data-act="act:compare144">Full comparison card</button></div>'}];
   if(mode==='claim')return [
    {id:'claim',label:'Working claim',sub:'v3 · conditional · live',vis:'live',vsize:'l',
     cap:'<b>Live instrument.</b> Drag components into the core to attach, out to detach — detaching the observation collapses the claim.<span class="capline" data-lv="claimline">'+LIVEBIND.claimline()+'</span>',
