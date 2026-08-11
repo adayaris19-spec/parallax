@@ -91,6 +91,21 @@ async function getJSON(url: string, headers: Record<string, string> = {}, ms = 1
   } finally { clearTimeout(t); }
 }
 
+async function postJSON(url: string, payload: unknown, ms = 12000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { ...UA, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: ctl.signal,
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
 /* Virtual Observatory services all speak TAP, and TAP replies in one of two
    JSON dialects depending on the server's mood: an array of objects, or a
    column list plus an array of positional rows. Normalising both here means an
@@ -141,6 +156,8 @@ const UNITS: Record<string, [number, string]> = {
   yr: [3.15576e7, "s"], year: [3.15576e7, "s"], years: [3.15576e7, "s"],
   // velocity -> m/s
   "m/s": [1, "m/s"], "km/s": [1e3, "m/s"],
+  // angle on the sky -> milliarcseconds
+  mas: [1, "mas"], arcsec: [1e3, "mas"], as: [1e3, "mas"],
   // dimensionless / already canonical
   k: [1, "K"], deg: [1, "deg"], mag: [1, "mag"], "": [1, ""],
 };
@@ -149,9 +166,14 @@ function normalise(value: number | null, err: number | null, unit: string) {
   const key = String(unit ?? "").toLowerCase().replace(/\s+/g, "").replace(/[⊕]/g, "earth");
   const hit = UNITS[key];
   if (!hit || value === null) return { value_si: null, err_si: null, unit_si: null };
+  /* Rounded for the same reason the symmetrised error bar is: converting
+     0.029 Earth radii to metres yields 184964.90000000002, and that figure
+     was on its way onto a published plot. Twelve significant figures is orders
+     of magnitude beyond any measurement here, so no sigma can move. */
+  const tidy = (n: number) => Number(n.toPrecision(12));
   return {
-    value_si: value * hit[0],
-    err_si: err === null ? null : Math.abs(err) * hit[0],
+    value_si: tidy(value * hit[0]),
+    err_si: err === null ? null : tidy(Math.abs(err) * hit[0]),
     unit_si: hit[1],
   };
 }
@@ -346,7 +368,11 @@ async function fromALeRCE(target: string, rows: number): Promise<Obs[]> {
   const q = target
     ? `https://api.alerce.online/ztf/v1/objects?oid=${encodeURIComponent(target)}&count=false`
     : `https://api.alerce.online/ztf/v1/objects?page_size=${Math.min(rows, 50)}&count=false`;
-  const j = await getJSON(q, {}, 12000);
+  /* Six seconds, not twelve. This source is one of five and the only one that
+     has ever hung; a sweep that spends half its wall clock waiting on the
+     member most likely to be down has its budget backwards. If ALeRCE is up it
+     answers well inside this, and if it is not, Fink covers the same ground. */
+  const j = await getJSON(q, {}, 6000);
   const items = j?.items ?? (Array.isArray(j) ? j : []);
   const out: Obs[] = [];
   for (const it of items.slice(0, rows)) {
@@ -360,6 +386,47 @@ async function fromALeRCE(target: string, rows: number): Promise<Obs[]> {
       reference: clean(it.class_name ?? it.classifier ?? "ZTF alert stream"),
       url: `https://alerce.online/object/${encodeURIComponent(name)}`,
       meta: { first_mjd: num(it.firstmjd), last_mjd: num(it.lastmjd), probability: num(it.probability) },
+    }));
+  }
+  return out;
+}
+
+/* Fink, the other public broker over the same ZTF stream. It is here because
+   the alert stream is the only thing feeding orphan detection, and a frontier
+   whose supply of unexplained objects depends on one service that has already
+   gone down once is not a frontier. Two brokers reading the same telescope also
+   cross-check each other: an object one carries and the other does not is worth
+   a second look at the broker, not at the sky.
+
+   The API moved hosts, and which one answers depends on when you ask, so both
+   are tried in turn rather than picking one and being wrong later. */
+async function fromFink(target: string, rows: number): Promise<Obs[]> {
+  const payload = target
+    ? { objectId: target, columns: "i:objectId,i:ra,i:dec,i:ndethist,i:jd,d:classification" }
+    : { class: "allclasses", n: String(Math.min(rows, 50)), columns: "i:objectId,i:ra,i:dec,i:ndethist,i:jd,d:classification" };
+
+  let j: any = null;
+  let last = "";
+  for (const host of ["https://api.fink-portal.org", "https://fink-portal.org"]) {
+    try {
+      j = await postJSON(`${host}/api/v1/${target ? "objects" : "latests"}`, payload, 8000);
+      break;
+    } catch (e) { last = String((e as Error)?.message ?? e); }
+  }
+  if (!j) throw new Error(last || "no host answered");
+
+  const items = Array.isArray(j) ? j : (j.items ?? []);
+  const out: Obs[] = [];
+  for (const it of items.slice(0, rows)) {
+    const name = clean(it["i:objectId"] ?? it.objectId);
+    if (!name) continue;
+    out.push(obs({
+      source: "fink", source_id: `ztf:${name}`, object: name,
+      quantity: "detections", value: num(it["i:ndethist"] ?? it.ndethist), err: null, unit: "",
+      ra: num(it["i:ra"] ?? it.ra), dec: num(it["i:dec"] ?? it.dec),
+      reference: clean(it["d:classification"] ?? "ZTF alert stream (Fink)"),
+      url: `https://fink-portal.org/${encodeURIComponent(name)}`,
+      meta: { jd: num(it["i:jd"] ?? it.jd) },
     }));
   }
   return out;
@@ -392,7 +459,11 @@ async function fromSimbad(target: string, rows: number): Promise<Obs[]> {
     if (!name || p === null) continue;
     out.push(obs({
       source: "simbad", source_id: `simbad:${name}`, object: name,
-      quantity: "parallax", value: p, err: num(r.plx_err), unit: "",
+      /* Stated as mas rather than left blank. A parallax carried as
+         dimensionless would share a canonical unit with every other unitless
+         quantity in the table, and the only thing standing between it and a
+         nonsense comparison would be the quantity name matching. */
+      quantity: "parallax", value: p, err: num(r.plx_err), unit: "mas",
       ra: num(r.ra), dec: num(r.dec), reference: "SIMBAD basic",
       url: `https://simbad.cds.unistra.fr/simbad/sim-id?Ident=${encodeURIComponent(name)}`,
     }));
@@ -409,6 +480,7 @@ const SOURCES: { name: string; run: (t: string, n: number) => Promise<Obs[]>; pr
   { name: "gwosc", run: fromGWOSC },
   { name: "sbdb", run: fromSBDB },
   { name: "alerce", run: fromALeRCE },
+  { name: "fink", run: fromFink },
   { name: "simbad", run: fromSimbad, probe: "Vega" },
 ];
 

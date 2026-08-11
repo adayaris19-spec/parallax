@@ -47,6 +47,10 @@ t("g/cm3 converts to kg/m3", S.normalise(5.4, 0.6, "g/cm3").value_si === 5400);
 t("an unknown unit refuses to convert", S.normalise(3, 1, "furlongs").value_si === null);
 t("a missing value refuses to convert", S.normalise(null, 1, "km").value_si === null);
 t("a negative error bar is taken as a magnitude", S.normalise(1, -0.2, "km").err_si === 200);
+// 0.029 Earth radii in metres is 184964.90000000002 before rounding, and that
+// number was on its way onto a published figure
+t("conversion noise is not published as precision", S.normalise(8.594, 0.029, "rearth").err_si === 184964.9);
+t("milliarcseconds are a dimension, not a blank", S.normalise(130.23, 0.36, "mas").unit_si === "mas");
 
 // TAP dialects ----------------------------------------------------------------
 t("TAP row-of-objects is read", S.tapRows([{ a: 1 }]).length === 1);
