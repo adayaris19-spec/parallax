@@ -240,8 +240,14 @@ const sym = (hi: unknown, lo: unknown): number | null => {
    is the natural first source for the second eye: it is already shaped like
    what a claim needs. */
 async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]> {
+  /* A leading wildcard cannot use an index, so '%KEPLER-10%' scans the whole
+     Planetary Systems table and the request dies at its own deadline — which is
+     what happened the first time a target was passed. Anchoring the pattern
+     lets the match start from the front, and default_flag pins it to one row
+     per planet instead of every published parameter set for it. */
+  const t = target.toUpperCase().replace(/['%_]/g, "");
   const where = target
-    ? `where upper(pl_name) like '%${target.toUpperCase().replace(/'/g, "")}%'`
+    ? `where default_flag = 1 and (upper(pl_name) like '${t}%' or upper(hostname) like '${t}%')`
     : `where pl_dens is not null and default_flag = 1`;
   const q = `select top ${rows} pl_name,hostname,pl_rade,pl_radeerr1,pl_radeerr2,` +
     `pl_bmasse,pl_bmasseerr1,pl_bmasseerr2,pl_dens,pl_denserr1,pl_denserr2,` +
@@ -249,7 +255,7 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
     `ra,dec,disc_year,pl_refname from ps ${where}`;
   const j = await getJSON(
     `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${encodeURIComponent(q)}&format=json`,
-    {}, 25000,
+    {}, 15000,
   );
   const out: Obs[] = [];
   for (const r of tapRows(j)) {
@@ -575,8 +581,21 @@ async function ask(prompt: string, maxTokens: number) {
    or in tension with anything. It is asked what the paper said, and to hand
    back the sentence it said it in, so the answer can be checked against the
    text without trusting the reader. */
-async function extractFrom(records: any[]): Promise<any[]> {
-  if (!records.length) return [];
+async function extractFrom(records: any[]) {
+  /* Every reason a paper's numbers fail to become a comparison, counted. A bare
+     "measurements: 0" is indistinguishable between no API key, a model that
+     returned nothing, and values that were read and then dropped — three
+     different faults with three different fixes, and a sweep that cannot tell
+     them apart cannot be debugged from its own output. */
+  const diag = {
+    model_configured: !!ANT,
+    papers_in: records.length,
+    model_replied: false,
+    items_returned: 0,
+    kept: 0,
+    dropped: { no_object: 0, no_value: 0, unknown_quantity: 0, no_unit_match: 0 },
+  };
+  if (!records.length || !ANT) return { rows: [] as any[], diag };
   const digest = records.map((r, i) =>
     `[${i}] (${r.year ?? r.published_at?.slice(0, 4) ?? "n/a"}) ${clean(r.title)}\n${clean(r.abstract).slice(0, 900)}`
   ).join("\n\n");
@@ -597,17 +616,26 @@ async function extractFrom(records: any[]): Promise<any[]> {
     3000,
   );
 
+  diag.model_replied = !!out;
+  diag.items_returned = (out?.m ?? []).length;
+
   const rows: any[] = [];
+  const ALLOWED = new Set(Object.values(QMAP));
   for (const m of out?.m ?? []) {
     const src = records[Number(m.i)];
     const value = num(m.value);
-    if (!src || value === null || !m.object || !m.quantity) continue;
+    if (!src || !m.object) { diag.dropped.no_object++; continue; }
+    if (value === null) { diag.dropped.no_value++; continue; }
+    const quantity = qname(clean(m.quantity));
+    if (!quantity || !ALLOWED.has(quantity)) { diag.dropped.unknown_quantity++; continue; }
     const unit = clean(m.unit);
     const n = normalise(value, num(m.err), unit);
+    if (n.unit_si === null) { diag.dropped.no_unit_match++; continue; }
+    diag.kept++;
     rows.push({
       record_id: src.id ?? null,
       object: clean(m.object),
-      quantity: qname(clean(m.quantity)),
+      quantity,
       value, err: num(m.err), unit,
       ...n,
       year: src.year ?? num(String(src.published_at ?? "").slice(0, 4)),
@@ -615,7 +643,7 @@ async function extractFrom(records: any[]): Promise<any[]> {
       confidence: Math.max(0, Math.min(1, Number(m.confidence) || 0)),
     });
   }
-  return rows;
+  return { rows, diag };
 }
 
 // ---------------------------------------------------------------------------
@@ -637,7 +665,11 @@ function claimId(kind: string, object: string, quantity: string, year: number): 
   return `PARALLAX-${year}-${String(h % 100000).padStart(5, "0")}`;
 }
 
-const key = (o: string, q: string) => `${o.toLowerCase().replace(/\s+/g, " ").trim()}|${q}`;
+/* Papers write "Kepler-10b"; the archive writes "Kepler-10 b". Whitespace is
+   the single most common reason two records of one object fail to meet, so it
+   is removed entirely rather than merely collapsed. Hyphens and digits stay —
+   they are the parts that actually distinguish one designation from another. */
+const key = (o: string, q: string) => `${o.toLowerCase().replace(/\s+/g, "")}|${q}`;
 
 type Tension = {
   object: string; quantity: string; unit: string;
@@ -1028,7 +1060,7 @@ async function handle(req: Request): Promise<Response> {
         return true;
       })
       .slice(0, 60);
-    const reported = await extractFrom(records);
+    const { rows: reported, diag: extraction } = await extractFrom(records);
     if (reported.length && body.store !== false) {
       await sb("measurements", "POST", reported, "return=minimal");
     }
@@ -1058,6 +1090,8 @@ async function handle(req: Request): Promise<Response> {
         papers_matched_objects: matched > 0,
         measurements: reported.length,
       },
+      /* Where the reading went, if it went nowhere. */
+      extraction,
       /* Published in the response for the same reason the scorecard publishes
          losses: a sweep that compared four things and claimed one tension is a
          different object from one that compared four thousand, and hiding the
