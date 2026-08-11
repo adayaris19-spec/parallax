@@ -242,6 +242,10 @@ h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.015em}
 .bcard .alert.up{background:var(--sup)}
 
 #work{display:grid;grid-template-columns:186px minmax(0,1fr);min-height:0;min-width:0}
+/* with no claim open there is no dossier to index, so the rail would just be a
+   blank column down the side of the starting screen */
+#work.solo{grid-template-columns:minmax(0,1fr)}
+#work.solo #rail{display:none}
 #rail{background:var(--bg1);border-right:1px solid var(--line2);overflow-y:auto;min-width:0;padding:9px 0 20px}
 #rail .rh{font-family:var(--m);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
   padding:5px 14px 7px;font-weight:700}
@@ -431,7 +435,7 @@ ul.pl li::before{content:'';position:absolute;left:0;top:.66em;width:7px;height:
     <nav>
       <a href="#how">How it works</a>
       <a href="#finds">What it finds</a>
-      <a href="../instrument/">The Sky</a>
+      <a href="#both">Both instruments</a>
     </nav>
     <button class="hgo" data-enter>Open the instrument</button>
   </div>
@@ -490,6 +494,37 @@ ul.pl li::before{content:'';position:absolute;left:0;top:.66em;width:7px;height:
     <p class="hsub">Forty abstracts is an afternoon. These three findings need the whole perimeter
     held at once, which is the part that does not scale by hand.</p>
     <div class="hpick" id="hpick"></div>
+  </div>
+
+  <div class="hsec" id="both">
+    <h2>PARALLAX runs two instruments.</h2>
+    <p class="hsub">Two sightlines on one subject — which is what parallax means. One is pointed at
+    the written record, the other at the sky itself. They are separate products and they share a
+    front door.</p>
+    <div class="hpick">
+      <figure style="border-color:var(--accln);background:linear-gradient(168deg,#eef6fd,#e4f0fb)">
+        <span class="hn" style="display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.2em;
+          text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:8px">Instrument one
+          &middot; you are here</span>
+        <b style="display:block;font-size:clamp(19px,2vw,25px);letter-spacing:-.02em;margin-bottom:7px">The Record</b>
+        <figcaption style="margin-top:0">Pointed at everything humanity has written down. State a claim
+        and it tells you what the claim is standing on, what is breaking it, and what nobody has
+        checked. <b>124 passes, 18 archives, back to 1665.</b></figcaption>
+      </figure>
+      <figure>
+        <span class="hn" style="display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.2em;
+          text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:8px">Instrument two</span>
+        <b style="display:block;font-size:clamp(19px,2vw,25px);letter-spacing:-.02em;margin-bottom:7px">The Sky</b>
+        <figcaption style="margin-top:0">Pointed at the solar system itself. A live orbital model
+        computed in your browser, whose real job is catching the moment the model and the sky
+        disagree. <b>The Neptune discovery, recomputed.</b><br>
+        <a href="../instrument/" style="display:inline-block;margin-top:9px;font-family:var(--m);
+          font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700">Open the sky &rarr;</a>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="hsub" style="margin:22px 0 0">Both live behind
+    <a href="../">the front door</a>.</p>
   </div>
 
   <div class="hsec">
@@ -674,6 +709,7 @@ function enter(){
   setTimeout(function(){$('#home').hidden=true;},460);
   $('#inst').hidden=false;
   document.body.style.overflow='hidden';
+  paint();                                  /* never walk into a blank room */
   if(!DB.claims.length)$('#newClaim').focus();
 }
 $('#backHome').addEventListener('click',function(){
@@ -977,10 +1013,67 @@ function select_(id){SEL=id;drawBoard();paint();
 
 /* ------------------------------------------------------------------ dossier */
 var TAB='breaks',VIEW=null,STAGE=true;
+/* With nothing selected the instrument used to render literally nothing: no
+   stage, no header, no rail, no document — a blank room, which is what you get
+   the first time you walk in. The empty state is part of the product, not an
+   afterthought, so it lives here and it is the thing that gets you started. */
+function emptyState(){
+  var egs=[['Extra spatial dimensions are detectable at LHC energies.','particle physics'],
+    ['Dark matter is cold and effectively collisionless.','cosmology'],
+    ['The organic molecules in returned asteroid samples are extraterrestrial in origin.',
+      'planetary science'],
+    ['The primordial lithium abundance disagrees with standard big bang nucleosynthesis.',
+      'nucleosynthesis']];
+  return '<div class="sec" style="padding-top:22px">'+
+    '<div class="card"><div class="bd" style="padding:20px 20px 22px">'+
+    '<h2 style="font-size:clamp(19px,2vw,25px);line-height:1.24;margin:0 0 9px;max-width:26ch">'+
+    'Nothing tracked yet. Start with a claim.</h2>'+
+    '<p class="muted" style="max-width:64ch;margin:0 0 16px">Not a question — a claim, stated flat, '+
+    'the way you would write it in an abstract. PARALLAX sweeps the archives, reads every abstract '+
+    'for and against it, and tells you whether it is still standing.</p>'+
+    '<div id="egGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px">'+
+    egs.map(function(e){
+      return '<button class="egc" data-eg="'+esc(e[0])+'" style="text-align:left;background:var(--card2);'+
+        'border:1px solid var(--line2);border-radius:6px;padding:12px 13px;cursor:pointer">'+
+        '<span style="display:block;font-family:var(--m);font-size:9.5px;letter-spacing:.14em;'+
+        'text-transform:uppercase;color:var(--dim);margin-bottom:6px">'+esc(e[1])+'</span>'+
+        '<span style="display:block;font-size:14.2px;line-height:1.4;color:var(--ink)">'+esc(e[0])+
+        '</span></button>';}).join('')+'</div>'+
+    '<p class="small" style="margin:16px 0 0">A sweep takes 40&ndash;120 seconds. Everything you track '+
+    'stays on the board and can be re-checked whenever you like.</p>'+
+    '</div></div>'+
+    /* the company has two instruments and the instrument you are standing in
+       should say so, rather than presenting itself as the whole product */
+    '<div class="card"><div class="hd"><h3>PARALLAX runs two instruments</h3>'+
+    '<span>this is one of them</span></div><div class="bd">'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:11px">'+
+    '<div style="border:1px solid var(--accln);background:var(--accbg);border-radius:6px;padding:13px 14px">'+
+    '<div style="font-family:var(--m);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;'+
+    'color:var(--acc);margin-bottom:5px">Instrument one &middot; you are here</div>'+
+    '<b style="display:block;font-size:16px;margin-bottom:4px">The Record</b>'+
+    '<span style="font-size:13.4px;line-height:1.45;color:var(--ink2)">Pointed at everything humanity '+
+    'has written down. Tracks a claim and tells you what it is standing on.</span></div>'+
+    '<a href="../instrument/" style="border:1px solid var(--line2);background:var(--card2);'+
+    'border-radius:6px;padding:13px 14px;text-decoration:none;display:block">'+
+    '<div style="font-family:var(--m);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;'+
+    'color:var(--dim);margin-bottom:5px">Instrument two</div>'+
+    '<b style="display:block;font-size:16px;margin-bottom:4px;color:var(--ink)">The Sky &rarr;</b>'+
+    '<span style="font-size:13.4px;line-height:1.45;color:var(--ink2)">Pointed at the solar system. A '+
+    'live orbital model whose job is catching the moment the model and the sky disagree.</span></a>'+
+    '</div></div></div></div>';
+}
 function paint(){
   var c=cur();
-  if(!c){['#stage','#dhead','#doc'].forEach(function(s){$(s).hidden=true;});
-    $('#rail').innerHTML='';return;}
+  $('#work').classList.toggle('solo',!c);
+  if(!c){
+    ['#stage','#dhead'].forEach(function(s){$(s).hidden=true;});
+    $('#rail').innerHTML='';
+    $('#doc').hidden=false;
+    $('#doc').innerHTML=emptyState();
+    $$('#doc .egc').forEach(function(b){
+      b.addEventListener('click',function(){trackText(b.dataset.eg);});});
+    return;
+  }
   $('#dhead').hidden=false;$('#doc').hidden=false;
   if(!c.data){
     $('#stage').hidden=true;
