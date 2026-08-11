@@ -47,7 +47,12 @@ const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANT = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
-const WORKER_VERSION = 1;
+/* Bumped on every change that alters what a sweep returns. The reply carries
+   it, so "is the deployed function the code I just pasted" is answered by
+   reading one number rather than by inferring it from which fields happen to be
+   present — which is how a run that tested nothing got mistaken for a run that
+   tested something. */
+const WORKER_VERSION = 2;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -792,15 +797,11 @@ function searchName(object: string): string {
 async function litCount(object: string): Promise<number | null> {
   const q = searchName(object);
   if (q.length < 3) return null;
-  try {
-    const j = await getJSON(
-      `https://api.openalex.org/works?filter=title_and_abstract.search:${
-        encodeURIComponent(q)}&per-page=1&mailto=${encodeURIComponent(MAIL)}`,
-      {}, 8000,
-    );
-    const n = num(j?.meta?.count);
-    return n === null ? null : n;
-  } catch { return null; }
+  const j = await oaGet(
+    `https://api.openalex.org/works?filter=title_and_abstract.search:${
+      encodeURIComponent(q)}&per-page=1&mailto=${encodeURIComponent(MAIL)}`, 8000);
+  const n = num(j?.meta?.count);
+  return n === null ? null : n;
 }
 
 /* OpenAlex stores abstracts as a word -> positions map for licensing reasons.
@@ -822,14 +823,31 @@ function deInvert(inv: Record<string, number[]> | null | undefined): string {
    So the papers are fetched for the objects in hand. Stored records are still
    read and still preferred — they have been through the relevance gate — but
    the sweep no longer needs them to exist. */
+/* One retry, and a pause before it. Every sweep asks OpenAlex once per orphan
+   candidate and once per object it wants papers for, and firing all of those at
+   once is what turned nineteen fetched papers into five between two otherwise
+   identical runs. A single failed call is indistinguishable from a subject
+   nobody has written about, which makes a transient refusal look like a
+   finding. */
+const OA_FAILURES = { count: 0 };
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function oaGet(url: string, ms = 10000): Promise<any | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try { return await getJSON(url, {}, ms); }
+    catch { if (attempt === 0) await pause(600); }
+  }
+  OA_FAILURES.count++;
+  return null;
+}
+
 async function papersFor(object: string, rows = 6): Promise<any[]> {
   const q = searchName(object);
   if (q.length < 3) return [];
-  try {
-    const j = await getJSON(
+  {
+    const j = await oaGet(
       `https://api.openalex.org/works?filter=title_and_abstract.search:${encodeURIComponent(q)}` +
       `&per-page=${rows}&sort=cited_by_count:desc&mailto=${encodeURIComponent(MAIL)}`,
-      {}, 10000,
     );
     return (j?.results ?? []).map((w: any) => ({
       id: null,
@@ -841,7 +859,7 @@ async function papersFor(object: string, rows = 6): Promise<any[]> {
       url: clean(w.doi || w.id),
       about: object,
     })).filter((r: any) => r.title && r.abstract);
-  } catch { return []; }
+  }
 }
 
 async function verifiedOrphans(candidates: any[], max = 8) {
@@ -1085,7 +1103,15 @@ async function handle(req: Request): Promise<Response> {
        holds them. The stored records come first because they have been through
        the relevance gate; the fetched ones fill the gap so a sweep is never
        silent merely because nobody swept this subject before. */
-    const fetched = (await Promise.all(names.slice(0, 6).map((n) => papersFor(n)))).flat();
+    /* Two at a time, not six. The index is a free public service and a sweep
+       that bursts a dozen requests at it gets refused, which reads downstream as
+       a literature with nothing to say. */
+    const fetched: any[] = [];
+    const wanted = names.slice(0, 6);
+    for (let i = 0; i < wanted.length; i += 2) {
+      const batch = await Promise.all(wanted.slice(i, i + 2).map((n) => papersFor(n)));
+      fetched.push(...batch.flat());
+    }
     const seenPaper = new Set<string>();
     const records = [...(Array.isArray(stored) ? stored : []), ...fetched]
       .filter((r) => {
@@ -1119,6 +1145,9 @@ async function handle(req: Request): Promise<Response> {
         papers: records.length,
         papers_from_corpus: matched,
         papers_fetched: fetched.length,
+        /* Calls that failed twice. Any number above zero means part of this
+           sweep's silence is the network, not the literature. */
+        index_failures: OA_FAILURES.count,
         /* False here means the corpus contained nothing about anything observed
            this sweep, so what follows is a fallback comparison and a thin
            result is expected rather than a fault. */
