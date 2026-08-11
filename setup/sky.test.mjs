@@ -58,6 +58,9 @@ t("a junk TAP reply yields no rows rather than throwing", S.tapRows(null).length
 t("asymmetric error bars average", S.sym(0.4, -0.3) === 0.35);
 t("a one-sided error bar is used as-is", S.sym(0.4, null) === 0.4);
 t("no error bar stays absent", S.sym(null, null) === null);
+// the archive states +0.029/-0.029; binary floating point averages that to
+// 0.028999999999999998, and that number would be printed inside a claim
+t("floating point noise is not published as precision", S.sym(0.029, -0.029) === 0.029);
 
 // claim identity --------------------------------------------------------------
 const idA = S.claimId("tension", "Kepler-10 b", "density", 2026);

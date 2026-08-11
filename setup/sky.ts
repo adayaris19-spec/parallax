@@ -203,7 +203,14 @@ function obs(o: Partial<Obs> & { source: string; source_id: string; object: stri
 const sym = (hi: unknown, lo: unknown): number | null => {
   const a = num(hi), b = num(lo);
   if (a === null && b === null) return null;
-  return (Math.abs(a ?? b!) + Math.abs(b ?? a!)) / 2;
+  const m = (Math.abs(a ?? b!) + Math.abs(b ?? a!)) / 2;
+  /* Averaging +0.029/-0.029 in binary floating point yields
+     0.028999999999999998, and that number goes on to be printed inside a
+     published claim and drawn on its figure. Twelve significant figures is far
+     beyond any real measurement precision, so this cannot change a comparison
+     — it only stops the arithmetic's own noise from being displayed as though
+     it were part of the measurement. */
+  return Number(m.toPrecision(12));
 };
 
 /* NASA Exoplanet Archive. The single richest machine-readable table of measured
@@ -331,10 +338,15 @@ async function fromSBDB(target: string, rows: number): Promise<Obs[]> {
    by anybody. It carries no error bars, so nothing here can produce a tension
    claim — it feeds the other kind. */
 async function fromALeRCE(target: string, rows: number): Promise<Obs[]> {
+  /* `count=false` is not an optimisation, it is the difference between a reply
+     and a timeout. Asked for a total, this API counts the whole object table
+     before returning a page of twenty; the first deploy aborted at 20s on
+     exactly that. Sorting the full table by date is the same trap, so the
+     untargeted call takes the natural order and pages instead. */
   const q = target
-    ? `https://api.alerce.online/ztf/v1/objects?oid=${encodeURIComponent(target)}`
-    : `https://api.alerce.online/ztf/v1/objects?page_size=${rows}&order_by=lastmjd&order_mode=DESC`;
-  const j = await getJSON(q, {}, 20000);
+    ? `https://api.alerce.online/ztf/v1/objects?oid=${encodeURIComponent(target)}&count=false`
+    : `https://api.alerce.online/ztf/v1/objects?page_size=${Math.min(rows, 50)}&count=false`;
+  const j = await getJSON(q, {}, 12000);
   const items = j?.items ?? (Array.isArray(j) ? j : []);
   const out: Obs[] = [];
   for (const it of items.slice(0, rows)) {
@@ -357,9 +369,18 @@ async function fromALeRCE(target: string, rows: number): Promise<Obs[]> {
    authority: it is how an object that four archives call four different things
    is recognised as one object. */
 async function fromSimbad(target: string, rows: number): Promise<Obs[]> {
-  if (!target) return [];
-  const adql = `select top ${rows} main_id, ra, dec, plx_value, plx_err ` +
-    `from basic where main_id = '${target.replace(/'/g, "''")}'`;
+  /* Thrown rather than returned empty, because those are different facts and a
+     ledger that renders them identically is lying. A source that answered and
+     had nothing is a source that works; this one was never asked. */
+  if (!target) throw new Error("needs a target");
+  /* Matched through `ident`, not on `main_id`. SIMBAD's main identifier for
+     Vega is "* alf Lyr", so a query keyed on the name a person would actually
+     type finds nothing — and resolving exactly that mismatch is the entire
+     reason this source is in the perimeter. The alias table is the naming
+     authority; `basic` is only where the numbers live. */
+  const adql = `select top ${rows} b.main_id, b.ra, b.dec, b.plx_value, b.plx_err ` +
+    `from basic b join ident i on b.oid = i.oidref ` +
+    `where i.id = '${target.replace(/'/g, "''")}'`;
   const j = await getJSON(
     `https://simbad.cds.unistra.fr/simbad/sim-tap/sync?request=doQuery&lang=adql&format=json&query=${encodeURIComponent(adql)}`,
     {}, 20000,
@@ -379,24 +400,29 @@ async function fromSimbad(target: string, rows: number): Promise<Obs[]> {
   return out;
 }
 
-const SOURCES: { name: string; run: (t: string, n: number) => Promise<Obs[]> }[] = [
+/* `probe` is what a source needs to be asked in order to demonstrate that it
+   works. Most answer a bulk request and need nothing; the ones that only speak
+   about a named object need a name, and without one a health check reports them
+   as broken when they are merely unasked. */
+const SOURCES: { name: string; run: (t: string, n: number) => Promise<Obs[]>; probe?: string }[] = [
   { name: "exoplanet-archive", run: fromExoplanetArchive },
   { name: "gwosc", run: fromGWOSC },
   { name: "sbdb", run: fromSBDB },
   { name: "alerce", run: fromALeRCE },
-  { name: "simbad", run: fromSimbad },
+  { name: "simbad", run: fromSimbad, probe: "Vega" },
 ];
 
 /* One pass over every live source. A slow service is recorded as skipped rather
    than being allowed to hold the sweep hostage, because the caller is a browser
    and a browser that waits forever reports "failed to fetch" with nothing to
    debug — the failure mode this codebase has already been bitten by once. */
-async function skyPerimeter(target: string, per: number, deadlineMs = 26000) {
+async function skyPerimeter(target: string, per: number, deadlineMs = 26000, useProbeTargets = false) {
   const ledger: any[] = [];
   const rows: Obs[] = [];
   const started = Date.now();
   await Promise.all(SOURCES.map(async (s) => {
     const t0 = Date.now();
+    const ask = target || (useProbeTargets ? s.probe ?? "" : "");
     /* The deadline timer has to be cancelled when the source wins the race.
        Left running, it rejects a promise that nothing is listening to any more,
        and an unhandled rejection in this runtime is not a warning — it can take
@@ -405,7 +431,7 @@ async function skyPerimeter(target: string, per: number, deadlineMs = 26000) {
     let timer: number | undefined;
     try {
       const got = await Promise.race([
-        s.run(target, per),
+        s.run(ask, per),
         new Promise<Obs[]>((_, rej) => {
           timer = setTimeout(() => rej(new Error("deadline")),
             Math.max(1000, deadlineMs - (Date.now() - started)));
@@ -710,14 +736,18 @@ async function handle(req: Request): Promise<Response> {
      row per source and writes nothing, so a source whose response shape has
      moved shows up as a zero here rather than as silence in a claim sweep. */
   if (mode === "probe") {
-    const { rows, ledger } = await skyPerimeter(target, 5);
+    const { rows, ledger } = await skyPerimeter(target, 5, 26000, true);
     const sample: Record<string, unknown> = {};
     for (const r of rows) if (!sample[r.source]) sample[r.source] = r;
     return json({
       worker: WORKER_VERSION, mode, ms: Date.now() - t0,
       ledger, total: rows.length, sample,
       healthy: ledger.filter((l: any) => l.got > 0).map((l: any) => l.name),
-      silent: ledger.filter((l: any) => !l.got).map((l: any) => l.name),
+      /* Answered, but had nothing to say. A real state, and not the same as
+         being broken — reporting the two together is how a working source gets
+         chased for a fault it does not have. */
+      empty: ledger.filter((l: any) => !l.got && !l.error).map((l: any) => l.name),
+      broken: ledger.filter((l: any) => l.error).map((l: any) => ({ name: l.name, error: l.error })),
     });
   }
 
@@ -737,11 +767,37 @@ async function handle(req: Request): Promise<Response> {
      is pure arithmetic and costs nothing. */
   if (mode === "tension") {
     const since = String(body.since ?? "").slice(0, 10);
-    const [{ rows: sky, ledger }, stored] = await Promise.all([
-      skyPerimeter(target, per),
-      sb(`records?select=id,title,abstract,published_at,relevance&order=published_at.desc&limit=${
-        Math.min(per, 60)}${since ? `&published_at=gte.${since}` : ""}`) as Promise<any[]>,
-    ]);
+    const { rows: sky, ledger } = await skyPerimeter(target, per);
+
+    /* The papers are fetched AFTER the sky sweep, and chosen by what the sky
+       actually returned. Reading the most recent sixty records instead — which
+       is what this did first — pairs an arbitrary slice of the literature
+       against an arbitrary slice of the archives, and the intersection of two
+       unrelated samples is reliably empty. A tension needs both eyes pointed at
+       the same object.
+
+       If nothing in the corpus names any observed object, it falls back to the
+       recent slice: the sweep then reports a large no_counterpart count, which
+       is the honest signal that the corpus and the sky are not yet looking at
+       the same things. */
+    const names = [...new Set(sky.map((o) => o.object))]
+      .filter((n) => n && n.length > 3)
+      .slice(0, 12);
+    const safe = (n: string) => n.replace(/["(),*\\]/g, " ").trim();
+    const filter = names.length
+      ? "&or=(" + names.flatMap((n) => [
+          `title.ilike."*${safe(n)}*"`,
+          `abstract.ilike."*${safe(n)}*"`,
+        ]).join(",") + ")"
+      : "";
+
+    const cols = "select=id,title,abstract,published_at,relevance";
+    const when = since ? `&published_at=gte.${since}` : "";
+    let stored = await sb(`records?${cols}${filter}${when}&limit=${Math.min(per, 60)}`) as any[];
+    let matched = Array.isArray(stored) ? stored.length : 0;
+    if (!matched) {
+      stored = await sb(`records?${cols}${when}&order=published_at.desc&limit=${Math.min(per, 60)}`) as any[];
+    }
 
     const records = Array.isArray(stored) ? stored : [];
     const reported = await extractFrom(records);
@@ -762,7 +818,16 @@ async function handle(req: Request): Promise<Response> {
     return json({
       worker: WORKER_VERSION, mode, ms: Date.now() - t0,
       ledger,
-      read: { observations: sky.length, papers: records.length, measurements: reported.length },
+      read: {
+        observations: sky.length,
+        objects_seen: names.length,
+        papers: records.length,
+        /* False here means the corpus contained nothing about anything observed
+           this sweep, so what follows is a fallback comparison and a thin
+           result is expected rather than a fault. */
+        papers_matched_objects: matched > 0,
+        measurements: reported.length,
+      },
       /* Published in the response for the same reason the scorecard publishes
          losses: a sweep that compared four things and claimed one tension is a
          different object from one that compared four thousand, and hiding the
