@@ -397,16 +397,26 @@ async function skyPerimeter(target: string, per: number, deadlineMs = 26000) {
   const started = Date.now();
   await Promise.all(SOURCES.map(async (s) => {
     const t0 = Date.now();
+    /* The deadline timer has to be cancelled when the source wins the race.
+       Left running, it rejects a promise that nothing is listening to any more,
+       and an unhandled rejection in this runtime is not a warning — it can take
+       the isolate down. Sources normally do beat the deadline, so the leak
+       would fire on essentially every sweep rather than in some rare corner. */
+    let timer: number | undefined;
     try {
       const got = await Promise.race([
         s.run(target, per),
-        new Promise<Obs[]>((_, rej) =>
-          setTimeout(() => rej(new Error("deadline")), Math.max(1000, deadlineMs - (Date.now() - started)))),
+        new Promise<Obs[]>((_, rej) => {
+          timer = setTimeout(() => rej(new Error("deadline")),
+            Math.max(1000, deadlineMs - (Date.now() - started)));
+        }),
       ]);
       ledger.push({ name: s.name, got: got.length, ms: Date.now() - t0 });
       rows.push(...got);
     } catch (e) {
       ledger.push({ name: s.name, got: 0, ms: Date.now() - t0, error: String((e as Error)?.message ?? e).slice(0, 110) });
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
     }
   }));
   return { rows, ledger };
