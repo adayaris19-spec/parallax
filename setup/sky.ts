@@ -474,25 +474,48 @@ async function fromSimbad(target: string, rows: number): Promise<Obs[]> {
 /* `probe` is what a source needs to be asked in order to demonstrate that it
    works. Most answer a bulk request and need nothing; the ones that only speak
    about a named object need a name, and without one a health check reports them
-   as broken when they are merely unasked. */
-const SOURCES: { name: string; run: (t: string, n: number) => Promise<Obs[]>; probe?: string }[] = [
+   as broken when they are merely unasked.
+
+   `optional` sources are not swept by default. Both ZTF brokers hang from this
+   runtime — two independent services, different countries, different hosting,
+   one GET and one POST, timing out identically while four other observatories
+   answer in under two seconds. That pattern is the network path, not the
+   adapters, and it is not worth a sweep's wall clock to keep discovering.
+
+   Nothing is lost by holding them back. Neither broker publishes an error bar,
+   so neither can ever produce a tension; they only ever fed orphan detection,
+   and orphans come just as well from sources that work. Most numbered small
+   bodies in SBDB have never had a paper written about them, which is precisely
+   the definition. Pass {"all": true} to sweep them anyway. */
+const SOURCES: {
+  name: string;
+  run: (t: string, n: number) => Promise<Obs[]>;
+  probe?: string;
+  optional?: boolean;
+}[] = [
   { name: "exoplanet-archive", run: fromExoplanetArchive },
   { name: "gwosc", run: fromGWOSC },
   { name: "sbdb", run: fromSBDB },
-  { name: "alerce", run: fromALeRCE },
-  { name: "fink", run: fromFink },
   { name: "simbad", run: fromSimbad, probe: "Vega" },
+  { name: "alerce", run: fromALeRCE, optional: true },
+  { name: "fink", run: fromFink, optional: true },
 ];
 
 /* One pass over every live source. A slow service is recorded as skipped rather
    than being allowed to hold the sweep hostage, because the caller is a browser
    and a browser that waits forever reports "failed to fetch" with nothing to
    debug — the failure mode this codebase has already been bitten by once. */
-async function skyPerimeter(target: string, per: number, deadlineMs = 26000, useProbeTargets = false) {
+async function skyPerimeter(
+  target: string, per: number, deadlineMs = 26000, useProbeTargets = false, all = false,
+) {
   const ledger: any[] = [];
   const rows: Obs[] = [];
   const started = Date.now();
-  await Promise.all(SOURCES.map(async (s) => {
+  const live = SOURCES.filter((s) => all || !s.optional);
+  for (const s of SOURCES) {
+    if (!live.includes(s)) ledger.push({ name: s.name, got: 0, ms: 0, skipped: "optional" });
+  }
+  await Promise.all(live.map(async (s) => {
     const t0 = Date.now();
     const ask = target || (useProbeTargets ? s.probe ?? "" : "");
     /* The deadline timer has to be cancelled when the source wins the race.
@@ -808,7 +831,7 @@ async function handle(req: Request): Promise<Response> {
      row per source and writes nothing, so a source whose response shape has
      moved shows up as a zero here rather than as silence in a claim sweep. */
   if (mode === "probe") {
-    const { rows, ledger } = await skyPerimeter(target, 5, 26000, true);
+    const { rows, ledger } = await skyPerimeter(target, 5, 26000, true, body.all === true);
     const sample: Record<string, unknown> = {};
     for (const r of rows) if (!sample[r.source]) sample[r.source] = r;
     return json({
@@ -818,14 +841,15 @@ async function handle(req: Request): Promise<Response> {
       /* Answered, but had nothing to say. A real state, and not the same as
          being broken — reporting the two together is how a working source gets
          chased for a fault it does not have. */
-      empty: ledger.filter((l: any) => !l.got && !l.error).map((l: any) => l.name),
+      empty: ledger.filter((l: any) => !l.got && !l.error && !l.skipped).map((l: any) => l.name),
       broken: ledger.filter((l: any) => l.error).map((l: any) => ({ name: l.name, error: l.error })),
+      not_swept: ledger.filter((l: any) => l.skipped).map((l: any) => l.name),
     });
   }
 
   // ---------- sky: sweep the live sources and store what they said ----------
   if (mode === "sky") {
-    const { rows, ledger } = await skyPerimeter(target, per);
+    const { rows, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
     if (rows.length && body.store !== false) {
       await sb("observations?on_conflict=source,source_id,quantity", "POST", rows,
         "resolution=merge-duplicates,return=minimal");
@@ -839,7 +863,7 @@ async function handle(req: Request): Promise<Response> {
      is pure arithmetic and costs nothing. */
   if (mode === "tension") {
     const since = String(body.since ?? "").slice(0, 10);
-    const { rows: sky, ledger } = await skyPerimeter(target, per);
+    const { rows: sky, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
 
     /* The papers are fetched AFTER the sky sweep, and chosen by what the sky
        actually returned. Reading the most recent sixty records instead — which
