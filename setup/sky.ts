@@ -535,7 +535,12 @@ async function skyPerimeter(
       ledger.push({ name: s.name, got: got.length, ms: Date.now() - t0 });
       rows.push(...got);
     } catch (e) {
-      ledger.push({ name: s.name, got: 0, ms: Date.now() - t0, error: String((e as Error)?.message ?? e).slice(0, 110) });
+      const msg = String((e as Error)?.message ?? e).slice(0, 110);
+      /* A source that only answers about a named object, asked about nothing,
+         is not a fault — it is unasked. Logged as skipped so a real sweep's
+         ledger is not carrying a permanent red line that means nothing. */
+      if (msg === "needs a target") ledger.push({ name: s.name, got: 0, ms: 0, skipped: "needs a target" });
+      else ledger.push({ name: s.name, got: 0, ms: Date.now() - t0, error: msg });
     } finally {
       if (timer !== undefined) clearTimeout(timer);
     }
@@ -692,9 +697,63 @@ function reconcile(observations: Obs[], reported: any[]) {
   return { tensions, skipped };
 }
 
-/* The other kind of claim, and the one that needs no literature value at all:
-   something was observed, catalogued, and never written about. Forgotten is not
-   the same as refuted, and neither is unexamined. */
+/* Catalogues name objects in a way papers never do. SBDB calls it
+   "433 Eros (A898 PA)"; the literature calls it "433 Eros", or just "Eros". The
+   provisional designation in brackets is an archival key, and searching the
+   literature for it returns nothing no matter how famous the object is — which
+   is a fast route to announcing that nothing has been written about the
+   asteroid NASA landed a spacecraft on. */
+function searchName(object: string): string {
+  return clean(String(object).replace(/\([^)]*\)/g, " ")).slice(0, 80);
+}
+
+/* Absence has to be earned.
+   ------------------------------------------------------------------
+   The first version of this called an object an orphan when it was missing
+   from the handful of papers a sweep happened to read. That is a statement
+   about the sweep, not about the literature: run against a corpus of black
+   hole papers, it concluded that nothing had ever been written about 433 Eros,
+   which NEAR Shoemaker orbited for a year and then landed on.
+
+   So before Parallax says nothing explains an object, it goes and looks. One
+   query per candidate against an index that covers every field, and the count
+   comes back with the claim as its receipt.
+
+   It fails CLOSED. If the check itself errors, no claim is minted — the one
+   thing worse than missing an orphan is announcing an absence you could not
+   verify. */
+async function litCount(object: string): Promise<number | null> {
+  const q = searchName(object);
+  if (q.length < 3) return null;
+  try {
+    const j = await getJSON(
+      `https://api.openalex.org/works?filter=title_and_abstract.search:${
+        encodeURIComponent(q)}&per-page=1&mailto=${encodeURIComponent(MAIL)}`,
+      {}, 8000,
+    );
+    const n = num(j?.meta?.count);
+    return n === null ? null : n;
+  } catch { return null; }
+}
+
+async function verifiedOrphans(candidates: any[], max = 8) {
+  const checked = await Promise.all(candidates.slice(0, max).map(async (o) => {
+    const count = await litCount(o.object);
+    return { ...o, searched_as: searchName(o.object), lit_count: count };
+  }));
+  return {
+    orphans: checked.filter((o) => o.lit_count === 0),
+    /* Everything the check rejected, kept in the reply. A sweep that proposed
+       ten absences and could stand behind none of them is the single most
+       useful thing it can report about itself. */
+    rejected: checked.filter((o) => o.lit_count !== 0)
+      .map((o) => ({ object: o.object, searched_as: o.searched_as, lit_count: o.lit_count })),
+  };
+}
+
+/* The candidate list. Something observed, catalogued, and — pending the check
+   above — never written about. Forgotten is not the same as refuted, and
+   neither is unexamined. */
 function orphans(observations: Obs[], reported: any[]) {
   const written = new Set(reported.map((r) => key(String(r.object ?? ""), String(r.quantity ?? ""))));
   const objects = new Set(reported.map((r) => String(r.object ?? "").toLowerCase().trim()));
@@ -780,21 +839,28 @@ function claimsFrom(tensions: Tension[], orph: any[]) {
   }
 
   for (const o of orph) {
+    /* Only an object that survived an actual literature search reaches here, so
+       the claim can say so and name the search it survived. An absence stated
+       without its search is an assertion; stated with one, it is checkable in
+       the eight seconds it takes to run the same query. */
+    if (o.lit_count !== 0) continue;
+    const shown = searchName(o.object) || o.object;
     out.push(mint({
       kind: "orphan",
       object: o.object,
       quantity: o.quantity,
-      title: `Nothing published explains ${o.object}`,
+      title: `No paper measures ${shown}`,
       statement:
-        `${o.source} carries ${o.object} (${fmt(o.value, o.unit)}), catalogued and ` +
-        `unremarked: no paper in the corpus this sweep returned states a measured ` +
-        `quantity for it. Catalogued is not the same as understood.`,
-      observed: o,
+        `${o.source} carries ${shown} (${fmt(o.value, o.unit)}), catalogued and unremarked. ` +
+        `A title and abstract search across OpenAlex — every field, every year — returns ` +
+        `nothing for it. Catalogued is not the same as understood.`,
+      observed: { ...o, searched_as: o.searched_as, lit_count: o.lit_count },
       kill:
-        `A single paper that measures or models ${o.object}. If one exists and this sweep ` +
-        `missed it, this claim is wrong and the perimeter has a gap worth knowing about.`,
+        `A single paper that measures or models ${shown}. One hit refutes this claim ` +
+        `outright, and says the search behind it was too narrow — which is worth knowing ` +
+        `about the perimeter regardless.`,
       cost: "Archival — the data is already public.",
-      figure: { type: "position", ra: o.ra, dec: o.dec, label: o.object, meta: o.meta },
+      figure: { type: "position", ra: o.ra, dec: o.dec, label: shown, meta: o.meta },
     }));
   }
 
@@ -902,8 +968,8 @@ async function handle(req: Request): Promise<Response> {
     }
 
     const { tensions, skipped } = reconcile(sky, reported);
-    const orph = orphans(sky, reported);
-    const claims = claimsFrom(tensions, orph.slice(0, 10));
+    const { orphans: orph, rejected } = await verifiedOrphans(orphans(sky, reported));
+    const claims = claimsFrom(tensions, orph);
 
     if (claims.length && body.store !== false) {
       await sb("claims?on_conflict=claim_id", "POST",
@@ -930,7 +996,12 @@ async function handle(req: Request): Promise<Response> {
          denominator is how a frontier starts looking more certain than it is. */
       skipped,
       tensions,
-      orphans: orph.slice(0, 10),
+      orphans: orph,
+      /* Candidates the literature check threw out, with the hit count that
+         threw them. This is the sweep grading its own first guess, and it
+         belongs in the reply for the same reason the scorecard publishes
+         losses. */
+      rejected_orphans: rejected,
       claims,
     });
   }

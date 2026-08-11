@@ -21,7 +21,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const tmp = join(here, ".sky.undertest.ts");
 writeFileSync(tmp,
   readFileSync(join(here, "sky.ts"), "utf8") +
-  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs };\n");
+  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs, searchName };\n");
 
 globalThis.Deno = { env: { get: () => "test" }, serve: () => {} };
 const S = await import("./.sky.undertest.ts");
@@ -118,10 +118,31 @@ const orph = S.orphans(
   [R("P9", "density", 5, 0.1, "g/cm3")]);
 t("an observed object nobody wrote about is an orphan", orph.length === 1 && orph[0].object === "ZTF18x");
 
+// absence has to be earned ---------------------------------------------------
+// SBDB calls it "433 Eros (A898 PA)"; no paper ever has. Searching the
+// literature for the provisional designation is how a machine announces that
+// nothing was written about the asteroid NEAR Shoemaker landed on.
+t("catalogue designations are stripped before searching", S.searchName("433 Eros (A898 PA)") === "433 Eros");
+t("a plain name is left alone", S.searchName("Kepler-1513 b") === "Kepler-1513 b");
+t("a name that is only a designation is refused as too short", S.searchName("(1968 AA)").length < 3);
+
+const unchecked = { object: "433 Eros (A898 PA)", quantity: "diameter", source: "sbdb", value: 16.84, unit: "km" };
+t("an unverified candidate never becomes a claim",
+  S.claimsFrom([], [unchecked]).length === 0);
+t("a candidate the literature knows never becomes a claim",
+  S.claimsFrom([], [{ ...unchecked, lit_count: 412 }]).length === 0);
+t("a candidate that failed its check never becomes a claim",
+  S.claimsFrom([], [{ ...unchecked, lit_count: null }]).length === 0);
+const earned = S.claimsFrom([], [{ ...unchecked, lit_count: 0, searched_as: "433 Eros" }]);
+t("a candidate with zero hits becomes a claim", earned.length === 1);
+t("the claim states the name it searched, not the catalogue key",
+  earned[0].title === "No paper measures 433 Eros");
+t("the claim carries the search as its receipt", earned[0].observed.lit_count === 0);
+
 // end to end ------------------------------------------------------------------
 const claims = S.claimsFrom(
   S.reconcile([O("P1", "density", 5.4, 0.2, "g/cm3")], [R("P1", "density", 4.0, 0.2, "g/cm3")]).tensions,
-  orph);
+  orph.map((o) => ({ ...o, lit_count: 0, searched_as: o.object })));
 t("both kinds of claim are minted", claims.length === 2);
 t("every claim states what would kill it", claims.every((c) => c.kill && c.kill.length > 10));
 t("every claim carries a citable id", claims.every((c) => /^PARALLAX-\d{4}-\d{5}$/.test(c.claim_id)));
