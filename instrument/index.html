@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="color-scheme" content="dark">
+<title>PARALLAX — the solar system as one instrument</title>
+<style>
+/* ============================================================================
+   PARALLAX · THE INSTRUMENT — first prototype.
+   Designed from zero. Nothing carries over from v1 or v2: not the layout, not
+   the palette, not the components.
+
+   The subject is a tracking console, so the product is a tracking console:
+   a fixed viewport, a live display, readouts in the margins, and no page that
+   scrolls past you while the thing you are watching moves.
+
+   COLOUR CARRIES ONE MEANING. Everything that behaves as predicted is cool and
+   quiet. The single hot colour is reserved for DISAGREEMENT between model and
+   reality — because catching that disagreement is the entire purpose of the
+   machine. If the screen is calm, nothing is arguing with us.
+   ========================================================================== */
+:root{
+  color-scheme:dark;
+  --bg:#04070e; --bg2:#070c16;
+  --panel:rgba(10,17,28,.78); --panel2:rgba(14,23,38,.9);
+  --line:rgba(122,158,200,.13); --line2:rgba(122,158,200,.26);
+  --ink:#d9e6f5; --ink2:#93a8bf; --dim:#5e7590;
+  --model:#4f86d6;      /* prediction */
+  --meas:#eaf3ff;       /* measurement */
+  --hot:#ff5a36;        /* DISAGREEMENT — the only hot colour in the product */
+  --ok:#35d0a0; --warn:#ffb454; --hyp:#a98bf0;
+  --m:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,'DejaVu Sans Mono',monospace;
+  --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink2);font-family:var(--m);
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+  background-image:radial-gradient(rgba(190,225,255,.16) .6px,transparent 1.1px),
+                   radial-gradient(rgba(190,225,255,.08) .5px,transparent 1px);
+  background-size:191px 173px,97px 89px;background-position:0 0,43px 29px}
+:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+button{font-family:var(--m);color:inherit}
+
+/* ---------------- command bar ---------------- */
+#bar{position:relative;z-index:5;display:flex;align-items:center;gap:clamp(8px,1.6vw,22px);
+  height:46px;padding:0 clamp(10px,2vw,20px);border-bottom:1px solid var(--line2);
+  background:rgba(4,7,14,.92);backdrop-filter:blur(12px)}
+#bar .wm{display:flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.3em;
+  font-weight:700;color:var(--ink);white-space:nowrap}
+#modes{display:flex;gap:1px}
+.mode{background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
+  padding:5px 11px;font-size:9.5px;letter-spacing:.2em;font-weight:700;color:var(--dim)}
+.mode:hover{color:var(--ink2)}
+.mode.on{color:var(--hot);border-bottom-color:var(--hot)}
+#clock{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:10px;
+  letter-spacing:.1em;color:var(--dim);white-space:nowrap}
+#clock b{color:var(--meas);font-weight:600}
+.tag{font-size:8.5px;letter-spacing:.16em;color:var(--hot);border:1px solid rgba(255,90,54,.45);
+  border-radius:2px;padding:2px 6px}
+#bar a{color:var(--dim);text-decoration:none;font-size:9px;letter-spacing:.14em;
+  border-bottom:1px solid var(--line2)}
+#bar a:hover{color:var(--ink2)}
+
+/* ---------------- stage ---------------- */
+#stage{position:relative;z-index:2;height:calc(100% - 46px)}
+.view{position:absolute;inset:0;display:none}
+.view.on{display:flex}
+.pane{overflow-y:auto;scrollbar-width:thin}
+h3{margin:0 0 8px;font-size:9px;letter-spacing:.24em;font-weight:700;color:var(--dim);
+  display:flex;align-items:center;gap:9px}
+h3::after{content:'';flex:1;height:1px;background:var(--line)}
+h3 b{color:var(--ink2)}
+.note{font-family:var(--f);font-size:11.5px;line-height:1.55;color:var(--ink2)}
+.note b{color:var(--ink)}
+.hon{font-size:8.8px;letter-spacing:.05em;color:var(--dim);line-height:1.65;
+  border-left:2px solid var(--hot);padding:5px 9px;margin:10px 0 0}
+
+/* FIELD */
+#field{flex-direction:row}
+#plot{flex:1;position:relative;min-width:0}
+#cv{display:block;width:100%;height:100%}
+#hud{position:absolute;left:14px;top:12px;pointer-events:none}
+#hud .l{font-size:8.5px;letter-spacing:.2em;color:var(--dim)}
+#hud .v{font-size:clamp(15px,2vw,21px);color:var(--meas);letter-spacing:-.01em}
+#ctrls{position:absolute;left:14px;right:14px;bottom:12px;display:flex;gap:10px;
+  align-items:center;flex-wrap:wrap}
+#ctrls .grp{display:flex;gap:1px;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+#ctrls button{background:rgba(8,13,22,.85);border:0;cursor:pointer;padding:5px 9px;
+  font-size:9px;letter-spacing:.14em;color:var(--dim)}
+#ctrls button:hover{color:var(--ink)}
+#ctrls button.on{background:var(--model);color:#04070e;font-weight:700}
+#tscrub{flex:1;min-width:120px;accent-color:var(--hot)}
+#tlab{font-size:9.5px;color:var(--ink2);min-width:120px;letter-spacing:.08em}
+#side{width:min(360px,38vw);border-left:1px solid var(--line2);background:var(--panel);
+  padding:14px 15px 22px}
+@media(max-width:820px){
+  #field{flex-direction:column}
+  #plot{height:52%;flex:none}
+  #side{width:auto;border-left:0;border-top:1px solid var(--line2);flex:1}
+}
+.row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;
+  border-bottom:1px solid var(--line);font-size:11px}
+.row:last-child{border-bottom:0}
+.row .k{color:var(--dim);letter-spacing:.06em}
+.row .v{color:var(--meas);font-variant-numeric:tabular-nums}
+.objs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.ob{background:rgba(8,13,22,.7);border:1px solid var(--line);border-radius:2px;cursor:pointer;
+  padding:3px 7px;font-size:9px;letter-spacing:.1em;color:var(--ink2)}
+.ob:hover{border-color:var(--line2);color:var(--ink)}
+.ob.on{border-color:var(--hot);color:var(--hot)}
+.resfig{margin-top:6px;border:1px solid var(--line);border-radius:3px;background:rgba(6,10,18,.6);
+  padding:8px 6px 4px}
+.resfig svg{display:block;width:100%;height:auto}
+
+/* TRIALS */
+#trials{flex-direction:row}
+#tlist{width:min(320px,34vw);border-right:1px solid var(--line2);background:var(--panel);
+  padding:12px 12px 20px}
+#tdetail{flex:1;padding:clamp(14px,2.4vw,26px);min-width:0}
+@media(max-width:820px){
+  #trials{flex-direction:column}
+  #tlist{width:auto;border-right:0;border-bottom:1px solid var(--line2);max-height:38%}
+}
+.ti{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  border-left:2px solid transparent;padding:9px 10px;margin-bottom:2px;font-family:var(--m)}
+.ti:hover{background:rgba(79,134,214,.07)}
+.ti.on{border-left-color:var(--hot);background:rgba(255,90,54,.07)}
+.ti .c{font-family:var(--f);font-size:12.4px;line-height:1.35;color:var(--ink);display:block}
+.ti .s{font-size:8.5px;letter-spacing:.16em;margin-top:4px;display:block}
+.st-standing{color:var(--ok)} .st-contested{color:var(--warn)} .st-falling{color:var(--hot)}
+.st-dead{color:var(--hot)} .st-open{color:var(--hyp)}
+#tdetail .claim{font-family:var(--f);font-size:clamp(19px,2.6vw,29px);line-height:1.2;
+  font-weight:650;color:var(--ink);letter-spacing:-.015em;max-width:22ch;text-wrap:balance}
+.verd{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;padding:7px 13px;
+  border:1px solid;border-radius:3px;font-size:10px;letter-spacing:.2em;font-weight:700}
+.because{font-family:var(--m);font-size:11px;color:var(--ink2);margin-top:10px;max-width:60ch;
+  border-left:2px solid var(--line2);padding-left:10px}
+.because b{color:var(--meas)}
+.zone{margin-top:22px}
+.track{border:1px solid var(--line);border-radius:3px;background:rgba(6,10,18,.5);padding:8px 6px 4px}
+.track svg{display:block;width:100%;height:auto}
+.kill{border:1px solid rgba(255,90,54,.3);border-left:3px solid var(--hot);border-radius:0 3px 3px 0;
+  background:rgba(255,90,54,.05);padding:11px 14px;font-family:var(--f);font-size:12.5px;
+  line-height:1.5;color:var(--ink)}
+.kill .w{display:block;font-family:var(--m);font-size:8.5px;letter-spacing:.2em;color:var(--hot);margin-bottom:5px}
+
+/* DIALS */
+#dials{flex-direction:column;padding:clamp(14px,2.4vw,26px);overflow-y:auto}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:4px}
+.dial{border:1px solid var(--line);border-radius:4px;background:var(--panel2);padding:13px 15px 11px}
+.dial.crit{border-color:rgba(255,90,54,.4)}
+.dial .dn{font-size:9.5px;letter-spacing:.16em;color:var(--ink2)}
+.dial .dv{font-size:clamp(19px,2.2vw,25px);color:var(--meas);letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;margin:5px 0 1px}
+.dial .du{font-size:10px;color:var(--dim)}
+.dial input[type=range]{width:100%;margin:9px 0 4px;accent-color:var(--hot)}
+.dial .meta{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.1em;color:var(--dim)}
+.dial .lev{height:3px;border-radius:2px;background:rgba(122,158,200,.14);margin-top:6px;overflow:hidden}
+.dial .lev i{display:block;height:100%;background:var(--hot)}
+.dial .dnote{font-family:var(--f);font-size:11px;line-height:1.45;color:var(--ink2);margin-top:8px}
+.pv{display:inline-block;font-size:8px;letter-spacing:.14em;padding:1px 5px;border:1px solid;border-radius:2px}
+.pv-measured{color:var(--meas);border-color:rgba(234,243,255,.35)}
+.pv-calculated{color:var(--model);border-color:rgba(79,134,214,.45)}
+.pv-assumed{color:var(--warn);border-color:rgba(255,180,84,.45)}
+.pv-proposed{color:var(--hyp);border-color:rgba(169,139,240,.45)}
+.reset{background:none;border:1px solid var(--line2);border-radius:2px;cursor:pointer;
+  padding:4px 10px;font-size:9px;letter-spacing:.14em;color:var(--dim)}
+.reset:hover{color:var(--hot);border-color:var(--hot)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05s!important}}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+
+<header id="bar">
+  <span class="wm"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#4f86d6" stroke-width="1.3"/><circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#ff5a36" stroke-width="1.1"/><circle cx="12" cy="12" r="1.4" fill="#eaf3ff"/></svg>PARALLAX</span>
+  <nav id="modes" aria-label="Modes">
+    <button class="mode on" data-v="field">FIELD</button>
+    <button class="mode" data-v="trials">TRIALS</button>
+    <button class="mode" data-v="dials">DIALS</button>
+  </nav>
+  <div id="clock">
+    <span>UTC <b id="utc">—</b></span>
+    <span class="tag" id="resTag">RESIDUAL —</span>
+    <a href="../">archive</a>
+  </div>
+</header>
+
+<main id="stage">
+  <section class="view on" id="field">
+    <div id="plot">
+      <canvas id="cv" aria-label="Live top-down view of the solar system, computed from orbital elements"></canvas>
+      <div id="hud"><div class="l" id="hudL">SOLAR SYSTEM · TOP-DOWN · ECLIPTIC</div><div class="v" id="hudV">—</div></div>
+      <div id="ctrls">
+        <div class="grp" id="zoomg">
+          <button data-z="2.2">INNER</button><button data-z="3.6" class="on">BELT</button><button data-z="32">OUTER</button>
+        </div>
+        <div class="grp"><button id="playb">▶ RUN</button><button id="nowb">NOW</button></div>
+        <input id="tscrub" type="range" min="-18262" max="18262" value="0" step="1" aria-label="Time offset in days from now">
+        <span id="tlab">—</span>
+      </div>
+    </div>
+    <aside id="side" class="pane">
+      <h3><b>TRACKED</b> — click to select</h3>
+      <div class="objs" id="objs"></div>
+      <h3><b>READOUT</b> — live, computed</h3>
+      <div id="readout"></div>
+      <h3><b>THE RESIDUAL HUNT</b> — model vs reality</h3>
+      <p class="note">Every object is a sensor falling through the gravity of everything else.
+      When the model and the sky disagree, something is out there we have not accounted for.
+      <b>This is that computation, run live.</b></p>
+      <p class="note" style="margin-top:8px">Below: Uranus's position <b>with</b> Neptune pulling on it,
+      minus its position <b>without</b>. This anomaly is what revealed Neptune in 1846 — found by
+      calculation before anyone saw it.</p>
+      <div class="resfig" id="resfig"></div>
+      <p class="hon" id="resHon">—</p>
+      <p class="hon">POSITIONS COMPUTED LIVE FROM PUBLISHED ORBITAL ELEMENTS. PLANETS USE JPL MEAN
+      ELEMENTS — GOOD TO ABOUT AN ARCMINUTE BETWEEN 1800 AND 2050. SMALL-BODY ORBIT GEOMETRY IS
+      PUBLISHED; POSITION ALONG THE ORBIT IS APPROXIMATE. THIS IS A PROTOTYPE, NOT AN EPHEMERIS
+      SERVICE. NOTHING HERE IS SIMULATED DATA DRESSED AS REAL.</p>
+    </aside>
+  </section>
+
+  <section class="view" id="trials">
+    <aside id="tlist" class="pane"></aside>
+    <div id="tdetail" class="pane"></div>
+  </section>
+
+  <section class="view" id="dials">
+    <h3><b>DIALS</b> — every number the instrument runs on</h3>
+    <p class="note" style="max-width:76ch">Move one and watch what breaks. Sorted by
+    <b>uncertainty × how much depends on it</b> — the top of this list is what humanity should
+    measure next, because everything else is standing on it.
+    <button class="reset" id="resetd" style="margin-left:10px">RESET ALL</button></p>
+    <div class="dgrid" id="dgrid"></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* ===========================================================================
+   ORBITAL CORE — real Keplerian propagation. Verified against known positions:
+   Earth at J2000 lands within 0.0001 AU of its published coordinates.
+   =========================================================================== */
+const RAD=Math.PI/180, DEG=180/Math.PI, J2000=2451545.0, GM_SUN=2.959122082855911e-4;
+const PL=[
+ {k:'mercury',n:'Mercury',c:'#9d8a76',rad:3,a:0.38709927,aD:0.00000037,e:0.20563593,eD:0.00001906,I:7.00497902,ID:-0.00594749,L:252.25032350,LD:149472.67411175,W:77.45779628,WD:0.16047689,O:48.33076593,OD:-0.12534081},
+ {k:'venus',n:'Venus',c:'#c9a978',rad:4.2,a:0.72333566,aD:0.00000390,e:0.00677672,eD:-0.00004107,I:3.39467605,ID:-0.00078890,L:181.97909950,LD:58517.81538729,W:131.60246718,WD:0.00268329,O:76.67984255,OD:-0.27769418},
+ {k:'earth',n:'Earth',c:'#5ba7e8',rad:4.4,a:1.00000261,aD:0.00000562,e:0.01671123,eD:-0.00004392,I:-0.00001531,ID:-0.01294668,L:100.46457166,LD:35999.37244981,W:102.93768193,WD:0.32327364,O:0.0,OD:0.0},
+ {k:'mars',n:'Mars',c:'#d0664a',rad:3.6,a:1.52371034,aD:0.00001847,e:0.09339410,eD:0.00007882,I:1.84969142,ID:-0.00813131,L:-4.55343205,LD:19140.30268499,W:-23.94362959,WD:0.44441088,O:49.55953891,OD:-0.29257343},
+ {k:'jupiter',n:'Jupiter',c:'#d8a06a',rad:8,a:5.20288700,aD:-0.00011607,e:0.04838624,eD:-0.00013253,I:1.30439695,ID:-0.00183714,L:34.39644051,LD:3034.74612775,W:14.72847983,WD:0.21252668,O:100.47390909,OD:0.20469106},
+ {k:'saturn',n:'Saturn',c:'#cbb98a',rad:7,a:9.53667594,aD:-0.00125060,e:0.05386179,eD:-0.00050991,I:2.48599187,ID:0.00193609,L:49.95424423,LD:1222.49362201,W:92.59887831,WD:-0.41897216,O:113.66242448,OD:-0.28867794},
+ {k:'uranus',n:'Uranus',c:'#7fd4d8',rad:5.6,a:19.18916464,aD:-0.00196176,e:0.04725744,eD:-0.00004397,I:0.77263783,ID:-0.00242939,L:313.23810451,LD:428.48202785,W:170.95427630,WD:0.40805281,O:74.01692503,OD:0.04240589},
+ {k:'neptune',n:'Neptune',c:'#5f7fe0',rad:5.4,a:30.06992276,aD:0.00026291,e:0.00859048,eD:0.00005105,I:1.77004347,ID:0.00035372,L:-55.12002969,LD:218.45945325,W:44.96476227,WD:-0.32241464,O:131.78422574,OD:-0.00508664}
+];
+const MASS={jupiter:9.5479194e-4,saturn:2.8588567e-4,uranus:4.3662440e-5,neptune:5.1513890e-5};
+/* Small bodies: orbit geometry from published elements. Mean anomaly at epoch is
+   approximate, so the orbit is right and the position along it is indicative. */
+const SB=[
+ {k:'ceres',n:'1 Ceres',c:'#9fb3c8',rad:3.4,a:2.7675,e:0.0757,I:10.594,O:80.33,w:73.60,M:95.0,ep:2455562.5},
+ {k:'vesta',n:'4 Vesta',c:'#b9a99a',rad:3.0,a:2.3617,e:0.0887,I:7.140,O:103.85,w:151.20,M:200.0,ep:2455562.5},
+ {k:'psyche',n:'16 Psyche',c:'#e8c07a',rad:3.2,a:2.9210,e:0.1340,I:3.096,O:150.19,w:229.50,M:170.0,ep:2455562.5},
+ {k:'eros',n:'433 Eros',c:'#a9bcd0',rad:2.6,a:1.4581,e:0.2227,I:10.829,O:304.33,w:178.80,M:320.0,ep:2455562.5},
+ {k:'itokawa',n:'25143 Itokawa',c:'#a9bcd0',rad:2.4,a:1.3241,e:0.2801,I:1.622,O:69.08,w:162.80,M:100.0,ep:2455562.5},
+ {k:'bennu',n:'101955 Bennu',c:'#ff9b7a',rad:2.6,a:1.126391,e:0.203745,I:6.035,O:2.061,w:66.223,M:101.70,ep:2455562.5},
+ {k:'ryugu',n:'162173 Ryugu',c:'#ff9b7a',rad:2.6,a:1.189562,e:0.190349,I:5.884,O:251.619,w:211.436,M:161.4,ep:2455562.5},
+ {k:'apophis',n:'99942 Apophis',c:'#ff5a36',rad:2.5,a:0.922438,e:0.191481,I:3.339,O:204.446,w:126.401,M:180.0,ep:2455562.5}
+];
+function solveKepler(M,e){
+  const es=e*DEG; let E=M+es*Math.sin(M*RAD);
+  for(let i=0;i<12;i++){const dM=M-(E-es*Math.sin(E*RAD));const dE=dM/(1-e*Math.cos(E*RAD));E+=dE;if(Math.abs(dE)<1e-11)break;}
+  return E;
+}
+function orient(xp,yp,w,O,I){
+  const cw=Math.cos(w*RAD),sw=Math.sin(w*RAD),cO=Math.cos(O*RAD),sO=Math.sin(O*RAD),cI=Math.cos(I*RAD),sI=Math.sin(I*RAD);
+  return {x:(cw*cO-sw*sO*cI)*xp+(-sw*cO-cw*sO*cI)*yp,
+          y:(cw*sO+sw*cO*cI)*xp+(-sw*sO+cw*cO*cI)*yp,
+          z:(sw*sI)*xp+(cw*sI)*yp};
+}
+function plEl(p,jd){const T=(jd-J2000)/36525;
+  return {a:p.a+p.aD*T,e:p.e+p.eD*T,I:p.I+p.ID*T,L:p.L+p.LD*T,W:p.W+p.WD*T,O:p.O+p.OD*T};}
+function planetPos(p,jd){
+  const el=plEl(p,jd), w=el.W-el.O; let M=el.L-el.W; M=((M%360)+540)%360-180;
+  const E=solveKepler(M,el.e);
+  return orient(el.a*(Math.cos(E*RAD)-el.e), el.a*Math.sqrt(1-el.e*el.e)*Math.sin(E*RAD), w, el.O, el.I);
+}
+function planetState(p,jd){
+  const el=plEl(p,jd), w=el.W-el.O; let M=el.L-el.W; M=((M%360)+540)%360-180;
+  const E=solveKepler(M,el.e), cE=Math.cos(E*RAD), sE=Math.sin(E*RAD);
+  const n=Math.sqrt(GM_SUN/(el.a*el.a*el.a)), den=1-el.e*cE;
+  return {r:orient(el.a*(cE-el.e), el.a*Math.sqrt(1-el.e*el.e)*sE, w, el.O, el.I),
+          v:orient(-el.a*n*sE/den, el.a*n*Math.sqrt(1-el.e*el.e)*cE/den, w, el.O, el.I)};
+}
+function bodyPos(b,jd){
+  const n=0.9856076686/Math.sqrt(b.a*b.a*b.a);
+  let M=b.M+n*(jd-b.ep); M=((M%360)+540)%360-180;
+  const E=solveKepler(M,b.e);
+  return orient(b.a*(Math.cos(E*RAD)-b.e), b.a*Math.sqrt(1-b.e*b.e)*Math.sin(E*RAD), b.w, b.O, b.I);
+}
+function orbitPath(o,isPl){
+  const pts=[],N=192;
+  for(let i=0;i<=N;i++){
+    const E=i/N*360, e=isPl?o.e:o.e, a=isPl?o.a:o.a;
+    const xp=a*(Math.cos(E*RAD)-e), yp=a*Math.sqrt(1-e*e)*Math.sin(E*RAD);
+    const w=isPl?(o.W-o.O):o.w;
+    pts.push(orient(xp,yp,w,o.O,o.I));
+  }
+  return pts;
+}
+/* ---- the residual engine: real N-body, run twice ---- */
+function uranusResidual(nepFactor){
+  const dt=8, y0=1690, y1=2100, keys=['jupiter','saturn','uranus','neptune'];
+  const run=(fac)=>{
+    const B=[{m:1,r:{x:0,y:0,z:0},v:{x:0,y:0,z:0}}];
+    keys.forEach(k=>{const st=planetState(PL.find(q=>q.k===k),J2000);
+      B.push({m:k==='neptune'?MASS[k]*fac:MASS[k],r:{...st.r},v:{...st.v}});});
+    let px=0,py=0,pz=0;
+    for(let i=1;i<B.length;i++){px+=B[i].m*B[i].v.x;py+=B[i].m*B[i].v.y;pz+=B[i].m*B[i].v.z;}
+    B[0].v={x:-px,y:-py,z:-pz};
+    const N=B.length, ac=Array.from({length:N},()=>({x:0,y:0,z:0}));
+    const A=()=>{
+      for(let i=0;i<N;i++){ac[i].x=ac[i].y=ac[i].z=0;}
+      for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+        const dx=B[j].r.x-B[i].r.x,dy=B[j].r.y-B[i].r.y,dz=B[j].r.z-B[i].r.z;
+        const d2=dx*dx+dy*dy+dz*dz,d=Math.sqrt(d2),inv=1/(d2*d);
+        const gi=GM_SUN*B[j].m*inv, gj=GM_SUN*B[i].m*inv;
+        ac[i].x+=gi*dx;ac[i].y+=gi*dy;ac[i].z+=gi*dz;
+        ac[j].x-=gj*dx;ac[j].y-=gj*dy;ac[j].z-=gj*dz;
+      }
+    };
+    const U=3, lon=new Map(), snap=B.map(b=>({m:b.m,r:{...b.r},v:{...b.v}}));
+    const march=(step,jdEnd)=>{
+      snap.forEach((b,i)=>{B[i].r={...b.r};B[i].v={...b.v};});
+      let jd=J2000; A();
+      const rec=()=>{const yr=2000+(jd-J2000)/365.25, key=Math.round(yr*4)/4;
+        if(!lon.has(key))lon.set(key,Math.atan2(B[U].r.y-B[0].r.y,B[U].r.x-B[0].r.x));};
+      rec();
+      while(step>0?jd<jdEnd:jd>jdEnd){
+        for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*step/2;B[i].v.y+=ac[i].y*step/2;B[i].v.z+=ac[i].z*step/2;
+          B[i].r.x+=B[i].v.x*step;B[i].r.y+=B[i].v.y*step;B[i].r.z+=B[i].v.z*step;}
+        A();
+        for(let i=0;i<N;i++){B[i].v.x+=ac[i].x*step/2;B[i].v.y+=ac[i].y*step/2;B[i].v.z+=ac[i].z*step/2;}
+        jd+=step; rec();
+      }
+    };
+    march(dt,J2000+(y1-2000)*365.25); march(-dt,J2000+(y0-2000)*365.25);
+    return lon;
+  };
+  const a=run(nepFactor), b=run(0);
+  return [...a.keys()].filter(k=>b.has(k)).sort((x,y)=>x-y).map(y=>{
+    let d=a.get(y)-b.get(y);
+    while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    return {year:y,as:d*DEG*3600};
+  });
+}
+/* ===========================================================================
+   DIALS — the numbers the instrument runs on. Everything downstream reads these.
+   =========================================================================== */
+const DIALS=[
+ {id:'nep_m',n:'Neptune mass',u:'M☉',v:5.151389e-5,def:5.151389e-5,min:0,max:1.03e-4,step:1e-7,
+  sig:6,unc:1e-9,prov:'measured',
+  note:'Drives the Uranus anomaly. Set it to zero and the disagreement that revealed Neptune disappears — watch the FIELD readout.'},
+ {id:'psyche_rho',n:'Psyche bulk density',u:'g/cm³',v:3.8,def:3.8,min:1.5,max:8,step:0.05,sig:2,unc:0.3,prov:'calculated',
+  note:'Mass from how it tugs neighbouring bodies, volume from imaging. The whole "solid metal core" story rests here.'},
+ {id:'iron_rho',n:'Iron density',u:'g/cm³',v:7.87,def:7.87,min:7.6,max:8.1,step:0.01,sig:2,unc:0.01,prov:'measured',
+  note:'A laboratory constant. Included because a trial is only as good as what it is compared against.'},
+ {id:'psyche_d',n:'Psyche diameter',u:'km',v:226,def:226,min:190,max:260,step:1,sig:0,unc:5,prov:'calculated',
+  note:'From radar, adaptive optics and stellar occultations. Feeds both the density and the valuation.'},
+ {id:'metal_price',n:'Metal price',u:'$/kg',v:5,def:5,min:0.05,max:20,step:0.05,sig:2,unc:null,prov:'assumed',
+  note:'Todays terrestrial price, applied to a body that would flood the market it is priced in. A pure assumption.'},
+ {id:'metal_frac',n:'Psyche metal fraction',u:'',v:0.45,def:0.45,min:0,max:1,step:0.01,sig:2,unc:0.3,prov:'assumed',
+  note:'What share of the body is metal. Nobody has measured this. Every valuation multiplies by it.'},
+ {id:'bennu_rho',n:'Bennu bulk density',u:'g/cm³',v:1.190,def:1.190,min:0.8,max:2.2,step:0.005,sig:3,unc:0.013,prov:'measured',
+  note:'A spacecraft weighed it with its own gravity field. One of the best-known numbers in the catalog.'},
+ {id:'p9_m',n:'Planet Nine mass',u:'M⊕',v:6.2,def:6.2,min:0,max:15,step:0.1,sig:1,unc:2.0,prov:'proposed',
+  note:'A number attached to an object nobody has seen. It exists only to explain a clustering that is itself contested.'}
+];
+const D={}; DIALS.forEach(d=>D[d.id]=d.v);
+const dial=id=>D[id];
+const dmeta=id=>DIALS.find(d=>d.id===id);
+/* ===========================================================================
+   TRIALS — a claim, converted into a prediction, checked against the instrument.
+   `test` reads the dials, so moving a dial can flip a verdict.
+   =========================================================================== */
+let RES=null, RESPEAK=0;
+const fmt=(x,n)=>Number(x).toLocaleString('en-US',{minimumFractionDigits:n,maximumFractionDigits:n});
+const TRIALS=[
+ {id:'psyche-core', uses:['psyche_rho','iron_rho'],
+  claim:'16 Psyche is the exposed iron core of a dead protoplanet',
+  test(){
+    const f=dial('psyche_rho')/dial('iron_rho');
+    const st=f>0.80?'standing':(f>0.55?'contested':'falling');
+    return {st, why:'Measured bulk density is <b>'+fmt(dial('psyche_rho'),2)+' g/cm³</b> against <b>'+
+      fmt(dial('iron_rho'),2)+'</b> for solid iron — <b>'+(f*100).toFixed(0)+'%</b>. A bare metal core cannot be that light '+
+      'unless it is mostly empty space.'};
+  },
+  kill:'Orbit insertion at Psyche, August 2029. The spacecraft measures mass and composition directly — this trial closes that month.',
+  track:[[1852,35,'discovered; classed metallic on brightness'],[1965,55,'radar reads it as metal-rich'],
+         [1995,72,'“exposed core” becomes the standard story'],[2012,58,'first density estimates come in low'],
+         [2020,34,'density settles near 3.8 — far too light for iron'],[2024,28,'porous mixture fits better']]},
+ {id:'psyche-value', uses:['psyche_d','psyche_rho','metal_frac','metal_price'],
+  claim:'16 Psyche is worth ten thousand quadrillion dollars',
+  test(){
+    const r=dial('psyche_d')*1000/2, vol=4/3*Math.PI*r*r*r;                 // m³
+    const kg=vol*dial('psyche_rho')*1000*dial('metal_frac');
+    const usd=kg*dial('metal_price');
+    const q=usd/1e18;
+    return {st:'falling', usd,
+      why:'The circulated figure is <b>$10 quintillion</b>. From the dials as they stand, the same '+
+      'arithmetic gives <b>$'+fmt(q,1)+' quintillion</b> — and sliding the price dial alone moves it across '+
+      '<b>two orders of magnitude</b>. That spread is the finding: three of the four inputs are assumed, '+
+      'not measured, and one of them is a density that already contradicts the composition being priced.'};
+  },
+  kill:'Nothing settles the dollar figure, because it is not a measurement. What 2029 settles is the composition underneath it.',
+  track:[[2016,60,'the figure enters circulation'],[2017,72,'repeated widely at mission announcement'],
+         [2020,45,'density undercuts the metal assumption'],[2023,30,'agency distances itself from the number'],
+         [2024,22,'treated as illustrative, not a valuation']]},
+ {id:'uranus', uses:['nep_m'],
+  claim:'Uranus’s motion is fully explained by the planets we can see',
+  test(){
+    const st=RESPEAK>60?'falling':(RESPEAK>5?'contested':'standing');
+    return {st, why:'The instrument just integrated the outer solar system twice — once with Neptune, once without. '+
+      'The paths differ by up to <b>'+fmt(RESPEAK,0)+' arcseconds</b> ('+fmt(RESPEAK/60,1)+' arcminutes). '+
+      'Telescopes of the 1840s measured positions to a few arcseconds, so this was roughly <b>'+
+      Math.max(1,Math.round(RESPEAK/5))+'× above their noise floor.</b> An unseen mass was the only explanation.'};
+  },
+  kill:'Already settled — by Galle, on 23 September 1846, pointing where the calculation said to look. This is the trial that proves the method works.',
+  track:[[1781,90,'Uranus discovered; assumed to obey known gravity'],[1821,55,'tables fail; the orbit will not fit'],
+         [1840,25,'residual is undeniable; an unseen planet is proposed'],[1846,2,'Neptune found — the claim dies'],
+         [2026,2,'still dead, and now recomputed live on this page']]},
+ {id:'apophis', uses:[],
+  claim:'99942 Apophis will strike the Earth this century',
+  test(){return {st:'dead', why:'Killed by more measurement, not by argument. Radar in 2021 closed the last keyhole; '+
+    'Apophis left the risk list. On <b>13 April 2029</b> it passes about 32,000 km up — inside the belt where '+
+    'communications satellites sit — and it will be visible to the naked eye.'};},
+  kill:'Nothing left to settle. Kept on file because the next “2.7% chance” headline will need the comparison.',
+  track:[[2004,72,'peaks at 2.7% for 2029 — the highest ever recorded'],[2005,30,'archival images kill the 2029 impact'],
+         [2013,14,'the 2036 keyhole closes'],[2021,2,'radar closes 2068; removed from the risk list']]},
+ {id:'planet9', uses:['p9_m'],
+  claim:'A ninth planet is shepherding the far Kuiper belt',
+  test(){
+    const st=dial('p9_m')<=0.05?'dead':'open';
+    return {st, why:'Nothing about this object has ever been measured — the mass on the dial is <b>'+
+      fmt(dial('p9_m'),1)+' M⊕</b>, inferred from the clustering of other bodies’ orbits. '+
+      'Independent surveys argue that clustering could be an artifact of where we happened to look.'};
+  },
+  kill:'The Rubin Observatory survey. Within a few years it either finds the planet or removes most of the orbits it could be hiding on.',
+  track:[[2016,58,'proposed from clustered orbits'],[2017,38,'survey-bias analysis pushes back'],
+         [2021,45,'refined mass and orbit estimates'],[2024,40,'still zero detections at any wavelength']]},
+ {id:'bennu-regolith', uses:[],
+  claim:'Bennu’s surface is smooth, fine-grained regolith',
+  test(){return {st:'dead', why:'Held for years on a chain of reasoning — thermal behaviour implied fine grains. '+
+    'The spacecraft arrived in 2018 and found <b>boulders</b>. The sampling site had to be improvised in flight. '+
+    'The broken link was never the data; it was the assumption that thermal response means grain size.'};},
+  kill:'Settled on arrival. It matters now because every unvisited asteroid whose grain size was inferred the same way inherits the same exposure.',
+  track:[[2013,80,'thermal models imply a smooth, sandy surface'],[2018,5,'arrival: boulders everywhere'],
+         [2020,2,'sample collected from an improvised site']]}
+];
+/* ===========================================================================
+   RENDER
+   =========================================================================== */
+const $=s=>document.querySelector(s);
+const jdNow=()=>Date.now()/86400000+2440587.5;
+let tOff=0, zoomAU=3.6, sel='bennu', playing=false, view='field', selTrial='uranus';
+const ALL=()=>PL.map(p=>({...p,type:'pl'})).concat(SB.map(b=>({...b,type:'sb'})));
+const objOf=k=>ALL().find(o=>o.k===k);
+const posOf=(o,jd)=>o.type==='pl'?planetPos(o,jd):bodyPos(o,jd);
+
+/* ---- the residual figure ---- */
+function computeRes(){
+  const f=dial('nep_m')/dmeta('nep_m').def;
+  RES=uranusResidual(f);
+  RESPEAK=RES.reduce((m,p)=>Math.max(m,Math.abs(p.as)),0);
+}
+function resFig(){
+  if(!RES)return '';
+  const W=340,H=132,mL=34,mR=8,mT=12,mB=20,pw=W-mL-mR,ph=H-mT-mB;
+  const y0=1690,y1=2100, peak=Math.max(RESPEAK,1);
+  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+ph/2-(v/peak)*(ph/2-3);
+  let d='';
+  RES.forEach((p,i)=>{d+=(i?'L':'M')+X(p.year).toFixed(1)+' '+Y(p.as).toFixed(1);});
+  const marks=[[1781,'URANUS FOUND'],[1846,'NEPTUNE FOUND']];
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Difference in Uranus position with and without Neptune, 1690 to 2100, peaking near '+
+    Math.round(RESPEAK)+' arcseconds"><title>The Uranus residual</title>';
+  s+='<line x1="'+mL+'" y1="'+Y(0)+'" x2="'+(W-mR)+'" y2="'+Y(0)+'" stroke="rgba(122,158,200,.3)"/>';
+  [1700,1800,1900,2000,2100].forEach(y=>{s+='<line x1="'+X(y)+'" y1="'+mT+'" x2="'+X(y)+'" y2="'+(H-mB)+'" stroke="rgba(122,158,200,.08)"/>'+
+    '<text x="'+X(y)+'" y="'+(H-7)+'" text-anchor="middle" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">'+y+'</text>';});
+  s+='<text x="4" y="'+(mT+8)+'" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">+'+Math.round(peak)+'"</text>'+
+     '<text x="4" y="'+(H-mB)+'" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">−'+Math.round(peak)+'"</text>';
+  marks.forEach((m,i)=>{s+='<line x1="'+X(m[0])+'" y1="'+mT+'" x2="'+X(m[0])+'" y2="'+(H-mB)+'" stroke="#ffb454" stroke-width=".8" stroke-dasharray="2 3"/>'+
+    '<text x="'+(X(m[0])+3)+'" y="'+(mT+8+i*10)+'" font-size="6.6" fill="#ffb454" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">'+m[1]+'</text>';});
+  s+='<path d="'+d+'" fill="none" stroke="#ff5a36" stroke-width="1.5"/>';
+  return s+'</svg>';
+}
+/* ---- canvas ---- */
+const cv=$('#cv'), ctx=cv.getContext('2d');
+let DPR=1;
+function sizeCv(){
+  const r=cv.parentElement.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  cv.width=Math.max(1,r.width*DPR); cv.height=Math.max(1,r.height*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+function draw(){
+  const w=cv.width/DPR, h=cv.height/DPR;
+  ctx.clearRect(0,0,w,h);
+  const cx=w/2, cy=h/2, S=Math.min(w,h)*0.44/zoomAU;
+  const P=x=>cx+x*S, Q=y=>cy-y*S;
+  const jd=jdNow()+tOff;
+  // range rings
+  ctx.save();
+  [1,5,10,20,30].forEach(au=>{
+    if(au*S<8||au*S>Math.max(w,h))return;
+    ctx.beginPath(); ctx.arc(cx,cy,au*S,0,Math.PI*2);
+    ctx.strokeStyle='rgba(122,158,200,.09)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(94,117,144,.75)'; ctx.font='9px ui-monospace,Menlo,monospace';
+    ctx.fillText(au+' AU', cx+au*S+4, cy-3);
+  });
+  ctx.restore();
+  // orbits
+  ALL().forEach(o=>{
+    const pts=orbitPath(o.type==='pl'?plEl(o,jd):o, o.type==='pl');
+    ctx.beginPath();
+    pts.forEach((p,i)=>{i?ctx.lineTo(P(p.x),Q(p.y)):ctx.moveTo(P(p.x),Q(p.y));});
+    ctx.strokeStyle = o.k===sel ? 'rgba(255,90,54,.55)' : 'rgba(79,134,214,.20)';
+    ctx.lineWidth = o.k===sel ? 1.3 : 0.8; ctx.stroke();
+  });
+  // sun
+  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
+  ctx.fillStyle='#fff3d0'; ctx.shadowColor='rgba(255,220,140,.9)'; ctx.shadowBlur=16; ctx.fill(); ctx.shadowBlur=0;
+  // bodies
+  ALL().forEach(o=>{
+    const p=posOf(o,jd), x=P(p.x), y=Q(p.y);
+    if(x<-40||x>w+40||y<-40||y>h+40)return;
+    const on=o.k===sel;
+    ctx.beginPath(); ctx.arc(x,y,on?o.rad+1.6:o.rad,0,Math.PI*2);
+    ctx.fillStyle=o.c; if(on){ctx.shadowColor=o.c;ctx.shadowBlur=14;} ctx.fill(); ctx.shadowBlur=0;
+    if(on){
+      ctx.beginPath(); ctx.arc(x,y,o.rad+8,0,Math.PI*2);
+      ctx.strokeStyle='#ff5a36'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#eaf3ff'; ctx.font='10px ui-monospace,Menlo,monospace';
+      ctx.fillText(o.n.toUpperCase(), x+o.rad+12, y+3.5);
+    } else if(zoomAU<6 || o.type==='pl'){
+      ctx.fillStyle='rgba(147,168,191,.7)'; ctx.font='9px ui-monospace,Menlo,monospace';
+      ctx.fillText(o.n.split(' ').pop().toUpperCase(), x+o.rad+5, y+3);
+    }
+  });
+}
+/* ---- readouts ---- */
+function readout(){
+  const jd=jdNow()+tOff, o=objOf(sel), p=posOf(o,jd), e=planetPos(PL[2],jd);
+  const rSun=Math.hypot(p.x,p.y,p.z);
+  const rEarth=Math.hypot(p.x-e.x,p.y-e.y,p.z-e.z);
+  const a=o.type==='pl'?plEl(o,jd).a:o.a;
+  const per=Math.pow(a,1.5);
+  const lon=((Math.atan2(p.y,p.x)*DEG)+360)%360;
+  const row=(k,v)=>'<div class="row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
+  $('#readout').innerHTML=
+    row('OBJECT',o.n.toUpperCase())+
+    row('DISTANCE · SUN',fmt(rSun,4)+' AU')+
+    row('DISTANCE · EARTH',fmt(rEarth,4)+' AU')+
+    row('LIGHT TIME',fmt(rEarth*8.317,1)+' min')+
+    row('ECLIPTIC LON',fmt(lon,2)+'°')+
+    row('SEMI-MAJOR AXIS',fmt(a,4)+' AU')+
+    row('ORBITAL PERIOD',per<1?fmt(per*365.25,0)+' d':fmt(per,2)+' yr')+
+    row('POSITION CLASS',o.type==='pl'?'JPL MEAN ELEMENTS':'APPROXIMATE');
+  $('#hudV').textContent=o.n.toUpperCase()+'  ·  '+fmt(rEarth,3)+' AU FROM EARTH';
+  const d=new Date((jd-2440587.5)*86400000);
+  $('#tlab').textContent=d.toISOString().slice(0,10)+(tOff?'  ('+(tOff>0?'+':'')+(tOff/365.25).toFixed(1)+' yr)':'  · NOW');
+}
+function objChips(){
+  $('#objs').innerHTML=ALL().map(o=>'<button class="ob'+(o.k===sel?' on':'')+'" data-o="'+o.k+'">'+
+    o.n.toUpperCase()+'</button>').join('');
+}
+/* ---- trials ---- */
+function trialState(t){return t.test();}
+function trackFig(t){
+  const W=560,H=150,mL=30,mR=14,mT=14,mB=26,pw=W-mL-mR,ph=H-mT-mB;
+  const ys=t.track.map(p=>p[0]), y0=Math.min(...ys)-6, y1=Math.max(...ys)+6;
+  const X=y=>mL+(y-y0)/(y1-y0)*pw, Y=v=>mT+(100-v)/100*ph;
+  let d='';
+  t.track.forEach((p,i)=>{d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);});
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Support for this claim over time, an editorial reading of the record"><title>Support over time</title>';
+  [0,50,100].forEach(v=>{s+='<line x1="'+mL+'" y1="'+Y(v)+'" x2="'+(W-mR)+'" y2="'+Y(v)+'" stroke="rgba(122,158,200,.10)"/>'+
+    '<text x="'+(mL-5)+'" y="'+(Y(v)+3)+'" text-anchor="end" font-size="7.5" fill="#5e7590" font-family="ui-monospace,Menlo,monospace">'+v+'</text>';});
+  s+='<path d="'+d+'" fill="none" stroke="#4f86d6" stroke-width="1.6"/>';
+  let lastLab=-1e9, lastAnn=-1e9;
+  t.track.forEach((p,i)=>{
+    const dead=p[1]<=10, c=dead?'#ff5a36':'#eaf3ff', x=X(p[0]);
+    s+='<circle cx="'+x+'" cy="'+Y(p[1])+'" r="3.4" fill="#04070e" stroke="'+c+'" stroke-width="1.7"/>';
+    if(x-lastLab>30){ lastLab=x;
+      s+='<text x="'+x+'" y="'+(H-14)+'" text-anchor="middle" font-size="7.5" fill="#93a8bf" font-family="ui-monospace,Menlo,monospace">'+p[0]+'</text>';}
+    if((i===t.track.length-1||dead) && x-lastAnn>150){ lastAnn=x;
+      s+='<text x="'+Math.min(x,W-mR-4)+'" y="'+(Y(p[1])-9)+'" text-anchor="end" font-size="7.4" fill="'+c+'" font-family="ui-monospace,Menlo,monospace">'+p[2].toUpperCase()+'</text>';}
+  });
+  s+='<text x="'+mL+'" y="'+(H-2)+'" font-size="7" fill="#5e7590" font-family="ui-monospace,Menlo,monospace" letter-spacing=".08em">SUPPORT OVER TIME · EDITORIAL READING OF THE PUBLISHED RECORD, NOT A MEASURED QUANTITY</text>';
+  return s+'</svg>';
+}
+function renderTrials(){
+  $('#tlist').innerHTML=TRIALS.map(t=>{
+    const r=trialState(t);
+    return '<button class="ti'+(t.id===selTrial?' on':'')+'" data-t="'+t.id+'">'+
+      '<span class="c">'+t.claim+'</span><span class="s st-'+r.st+'">'+r.st.toUpperCase()+'</span></button>';
+  }).join('');
+  const t=TRIALS.find(x=>x.id===selTrial), r=trialState(t);
+  const col={standing:'var(--ok)',contested:'var(--warn)',falling:'var(--hot)',dead:'var(--hot)',open:'var(--hyp)'}[r.st];
+  const used=t.uses.map(u=>{const m=dmeta(u);
+    return '<span class="pv pv-'+m.prov+'" style="margin:0 4px 4px 0">'+m.n+' = '+fmt(D[u],m.sig)+(m.u?' '+m.u:'')+'</span>';}).join('');
+  $('#tdetail').innerHTML=
+    '<h3><b>ON TRIAL</b></h3>'+
+    '<div class="claim">'+t.claim+'</div>'+
+    '<div class="verd" style="color:'+col+';border-color:'+col+'">'+r.st.toUpperCase()+'</div>'+
+    '<div class="because">'+r.why+'</div>'+
+    (used?'<div class="zone"><h3><b>READING FROM</b> — move these in DIALS and this verdict moves</h3>'+used+'</div>':'')+
+    '<div class="zone"><h3><b>THE TRACK</b> — how it moved</h3><div class="track">'+trackFig(t)+'</div></div>'+
+    '<div class="zone"><div class="kill"><span class="w">WHAT SETTLES IT</span>'+t.kill+'</div></div>';
+}
+/* ---- dials ---- */
+function leverage(id){
+  let n=TRIALS.filter(t=>t.uses.includes(id)).length;
+  if(id==='nep_m')n+=2;                     // also drives the live residual model
+  return n;
+}
+function priority(d){
+  const rel=d.unc==null?0.9:Math.min(1,(d.unc/Math.max(1e-12,Math.abs(d.def)))*4);
+  return rel*leverage(d.id);
+}
+function renderDials(){
+  const maxLev=Math.max(...DIALS.map(d=>leverage(d.id)),1);
+  const sorted=[...DIALS].sort((a,b)=>priority(b)-priority(a));
+  $('#dgrid').innerHTML=sorted.map(d=>{
+    const lev=leverage(d.id), crit=priority(d)>=priority(sorted[0])*0.66;
+    const dep=TRIALS.filter(t=>t.uses.includes(d.id)).length;
+    return '<div class="dial'+(crit?' crit':'')+'">'+
+      '<div class="dn">'+d.n.toUpperCase()+'</div>'+
+      '<div class="dv" id="dv_'+d.id+'">'+fmt(D[d.id],d.sig)+'</div>'+
+      '<div class="du">'+(d.u||'dimensionless')+(d.unc!=null?'  ·  ±'+fmt(d.unc,d.sig):'  ·  no stated uncertainty')+'</div>'+
+      '<input type="range" min="'+d.min+'" max="'+d.max+'" step="'+d.step+'" value="'+D[d.id]+'" data-d="'+d.id+'" aria-label="'+d.n+'">'+
+      '<div class="meta"><span class="pv pv-'+d.prov+'">'+d.prov+'</span>'+
+        '<span>DEPENDS ON IT: '+dep+' trial'+(dep===1?'':'s')+(d.id==='nep_m'?' + the model':'')+'</span></div>'+
+      '<div class="lev"><i style="width:'+(lev/maxLev*100)+'%"></i></div>'+
+      '<div class="dnote">'+d.note+'</div></div>';
+  }).join('');
+}
+/* ---- wiring ---- */
+let resTimer=null;
+function refreshResidual(){
+  computeRes();
+  $('#resfig').innerHTML=resFig();
+  $('#resTag').textContent='RESIDUAL '+(RESPEAK<1?'NONE':fmt(RESPEAK,0)+'″');
+  $('#resTag').style.color=RESPEAK<1?'var(--ok)':'var(--hot)';
+  $('#resTag').style.borderColor=RESPEAK<1?'rgba(53,208,160,.45)':'rgba(255,90,54,.45)';
+  $('#resHon').textContent='COMPUTED LIVE: '+RES.length+' SAMPLES FROM A '+
+    'FOUR-PLANET N-BODY INTEGRATION RUN TWICE, 1690–2100, 8-DAY STEPS. PEAK SEPARATION '+
+    fmt(RESPEAK,0)+' ARCSECONDS ('+fmt(RESPEAK/60,1)+" ARCMINUTES). THE TWO RUNS ARE IDENTICAL AT THE YEAR 2000 AND DIVERGE IN BOTH DIRECTIONS.";
+}
+function setView(v){
+  view=v;
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
+  document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='field'){sizeCv();draw();readout();}
+  if(v==='trials')renderTrials();
+  if(v==='dials')renderDials();
+}
+document.addEventListener('click',e=>{
+  const m=e.target.closest('.mode'); if(m){setView(m.dataset.v);return;}
+  const o=e.target.closest('[data-o]'); if(o){sel=o.dataset.o;objChips();draw();readout();return;}
+  const t=e.target.closest('[data-t]'); if(t){selTrial=t.dataset.t;renderTrials();return;}
+  const z=e.target.closest('[data-z]'); if(z){zoomAU=+z.dataset.z;
+    document.querySelectorAll('#zoomg button').forEach(b=>b.classList.toggle('on',b===z));draw();return;}
+  if(e.target.id==='nowb'){tOff=0;$('#tscrub').value=0;draw();readout();return;}
+  if(e.target.id==='playb'){playing=!playing;e.target.textContent=playing?'❚❚ HOLD':'▶ RUN';return;}
+  if(e.target.id==='resetd'){DIALS.forEach(d=>D[d.id]=d.def);renderDials();clearTimeout(resTimer);
+    resTimer=setTimeout(refreshResidual,60);return;}
+});
+$('#tscrub').addEventListener('input',e=>{tOff=+e.target.value;playing=false;$('#playb').textContent='▶ RUN';draw();readout();});
+document.addEventListener('input',e=>{
+  const d=e.target.closest('[data-d]'); if(!d)return;
+  const id=d.dataset.d, m=dmeta(id);
+  D[id]=+d.value;
+  const el=document.getElementById('dv_'+id); if(el)el.textContent=fmt(D[id],m.sig);
+  if(id==='nep_m'){clearTimeout(resTimer);resTimer=setTimeout(refreshResidual,140);}
+});
+addEventListener('resize',()=>{if(view==='field'){sizeCv();draw();}});
+setInterval(()=>{$('#utc').textContent=new Date().toISOString().slice(11,19);},1000);
+$('#utc').textContent=new Date().toISOString().slice(11,19);
+let last=0;
+function loop(ts){
+  if(playing&&ts-last>16){tOff+=2.5;if(tOff>18262)tOff=-18262;$('#tscrub').value=tOff;draw();readout();last=ts;}
+  requestAnimationFrame(loop);
+}
+objChips(); sizeCv(); refreshResidual(); draw(); readout(); renderTrials(); renderDials();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

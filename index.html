@@ -1027,7 +1027,7 @@ body.cxon #doc{right:min(430px,34vw)}
   <button id="brand" type="button" title="Back to the front page"><span class="p">PARALLAX</span></button>
   <div id="dock"></div>
   <div id="banner"></div>
-  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b79</span></div>
+  <div id="hud"><button id="qBtn">WATCH<b>none</b></button><button id="planBtn">PLAN<b>RESEARCHER</b></button><button id="liveBtn">DATA<b>SIM</b></button><button id="cmdHint">CMD<b>/</b></button><button id="who" title="account"><b>GUEST</b></button><span id="bld" title="What shipped in this build">b80</span></div>
   <div id="ctl"></div>
   <div id="hint"></div>
   <div id="findings"></div>
@@ -1074,7 +1074,7 @@ body.cxon #doc{right:min(430px,34vw)}
 <div id="home">
  <header id="hnav">
   <span class="hmark">PARALLAX</span>
-  <nav><a href="v2/" style="color:var(--asm)">V2 preview</a><a href="#hwhat">What it does</a><a href="#hfigs">Readouts</a><a href="#hperim">What it searches</a><a href="#hprice">Pricing</a></nav>
+  <nav><a href="instrument/" style="color:var(--asm)">The Instrument</a><a href="v2/">V2</a><a href="#hwhat">What it does</a><a href="#hfigs">Readouts</a><a href="#hperim">What it searches</a><a href="#hprice">Pricing</a></nav>
   <div class="hcta"><button class="hlink" data-home="login">Log in</button>
    <button class="hgo" data-home="signup">Start free</button></div>
  </header>
@@ -3341,8 +3341,11 @@ $('#cmdHint').addEventListener('click',openAp);
    itself, without me. The stamp says which build is loaded; opening it says
    what that build changed and exactly where to look for each item.
    --------------------------------------------------------------------------- */
-const BUILD='b79';
+const BUILD='b80';
 const WHATSNEW=[
+ ['THE INSTRUMENT \u2014 the solar system, computed live',
+  'PARALLAX stops reading about science and starts doing a piece of it. The new prototype at /instrument/ holds a live model of the solar system \u2014 sixteen bodies propagated from published orbital elements, in your browser, right now \u2014 and you can run time forward fifty years and watch them move. But the point is not the map. Every object is a sensor falling through the gravity of everything else, and the instrument\u2019s real job is catching the moment the model and the sky disagree, because that disagreement is where every real discovery has come from. It proves the method on the case that founded it: a four-planet N-body integration, run twice, once with Neptune and once without, computed live \u2014 and the gap between those two Uranuses is the anomaly that revealed Neptune in 1846, found by calculation before anyone saw it. Two smaller tabs sit beside it. TRIALS puts a claim on trial by turning it into a prediction and checking it. DIALS is every number the machine runs on, movable, ranked by uncertainty times how much depends on it. They are one machine: set Neptune\u2019s mass to zero in DIALS and the residual vanishes from the FIELD and the Uranus trial flips to standing.',
+  'Open /instrument/ \u2014 linked from the front page.'],
  ['The Dark Catalog: the map inverts',
   'Maps of what humanity knows exist everywhere; V2 now keeps the other map. Five shelves opened beyond the asteroids \u2014 Planet Nine, which has never been seen; Earth\u2019s own interior, drilled to a fifth of one percent of the way down; the deep seafloor, about a quarter properly mapped; the dark proteome, a thousand predicted structures for every measured one; and the unmade materials, hundreds of thousands predicted and forty-one ever synthesized. Every dossier now carries a touch index \u2014 of the claims we make about a thing, the share resting on measurement \u2014 and a ghost disc drawn at exactly that fidelity: Bennu renders sharp because we laser-mapped it, Planet Nine renders as haze because it is haze. The grading calendar grew into the docket, the schedule of days reality reports in, from the Apophis pass to Dragonfly on Titan. The catalog reads as three shelves: graded, on the docket, untouched.',
   'Open /v2/ \u2014 the catalog now opens on the docket and the shelves.'],
