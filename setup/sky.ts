@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 2;
+const WORKER_VERSION = 3;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -841,6 +841,57 @@ async function oaGet(url: string, ms = 10000): Promise<any | null> {
   return null;
 }
 
+/* arXiv, for the text OpenAlex cannot give.
+   ------------------------------------------------------------------
+   OpenAlex does not store an abstract, it stores a word-position map, and
+   rebuilding one drops whatever did not survive tokenisation — which is
+   reliably the mathematics. That is where
+   "For Kepler-10c ( ) we measure mass and density" came from: the parenthetical
+   held the numbers and was gone by the time anything read it. A model handed
+   that sentence and asked for a mass will supply one from context, and the
+   result is a fabricated value wearing a citation.
+
+   arXiv returns the abstract as written. For a quantitative claim that is not a
+   preference, it is the difference between extraction and invention. */
+function pickTag(xml: string, tag: string): string {
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
+  return m ? clean(m[1].replace(/<[^>]+>/g, " ")) : "";
+}
+
+async function arxivPapersFor(object: string, rows = 6): Promise<any[]> {
+  const q = searchName(object);
+  if (q.length < 3) return [];
+  try {
+    const xml = await (async () => {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 10000);
+      try {
+        const r = await fetch(
+          `https://export.arxiv.org/api/query?search_query=${
+            encodeURIComponent(`all:"${q}"`)}&sortBy=relevance&max_results=${rows}`,
+          { headers: UA, signal: ctl.signal });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return await r.text();
+      } finally { clearTimeout(t); }
+    })();
+
+    const out: any[] = [];
+    for (const entry of String(xml).split("<entry>").slice(1)) {
+      const id = (pickTag(entry, "id").split("/abs/")[1] ?? "").trim();
+      const title = pickTag(entry, "title");
+      const abstract = pickTag(entry, "summary").slice(0, 1800);
+      if (!id || !title || !abstract) continue;
+      const pub = pickTag(entry, "published");
+      out.push({
+        id: null, source_id: `arxiv:${id}`, title, abstract,
+        published_at: pub || null, year: num(String(pub).slice(0, 4)),
+        url: `https://arxiv.org/abs/${id}`, about: object,
+      });
+    }
+    return out;
+  } catch { return []; }
+}
+
 async function papersFor(object: string, rows = 6): Promise<any[]> {
   const q = searchName(object);
   if (q.length < 3) return [];
@@ -1109,9 +1160,15 @@ async function handle(req: Request): Promise<Response> {
     const fetched: any[] = [];
     const wanted = names.slice(0, 6);
     for (let i = 0; i < wanted.length; i += 2) {
-      const batch = await Promise.all(wanted.slice(i, i + 2).map((n) => papersFor(n)));
+      const batch = await Promise.all(wanted.slice(i, i + 2).flatMap((n) => [
+        arxivPapersFor(n), papersFor(n),
+      ]));
       fetched.push(...batch.flat());
     }
+    /* arXiv first. Both indices are read, but when the same paper arrives from
+       both, the copy with its numbers intact is the one that survives dedup —
+       and dedup keeps whichever it sees first. */
+    fetched.sort((a, b) => (b.source_id?.startsWith("arxiv:") ? 1 : 0) - (a.source_id?.startsWith("arxiv:") ? 1 : 0));
     const seenPaper = new Set<string>();
     const records = [...(Array.isArray(stored) ? stored : []), ...fetched]
       .filter((r) => {
@@ -1145,6 +1202,7 @@ async function handle(req: Request): Promise<Response> {
         papers: records.length,
         papers_from_corpus: matched,
         papers_fetched: fetched.length,
+        papers_with_full_abstract: fetched.filter((r: any) => String(r.source_id).startsWith("arxiv:")).length,
         /* Calls that failed twice. Any number above zero means part of this
            sweep's silence is the network, not the literature. */
         index_failures: OA_FAILURES.count,
