@@ -8,510 +8,358 @@
 <title>PARALLAX — The Record</title>
 <style>
 /* ============================================================================
-   PARALLAX / THE RECORD — instrument build.
+   PARALLAX / THE RECORD — a claim tracker.
 
-   Every record this thing retrieves carries a year, a citation count, a venue,
-   institutions, open-access status and concepts. Every record it reads closely
-   carries, on top of that, a relevance score, a stance, a structural role and
-   a measurement. That is a dataset, and the previous build printed it as
-   paragraphs. This build draws it.
+   It does not answer questions. You give it a claim, and it tells you whether
+   the claim is still standing.
 
-   Seven figure plates, all computed at 1:1 pixel scale from the actual return:
+   The relevance gate already reads every retrieved abstract and returns, for
+   each one, a stance toward the thing you gave it: supports, contests, or
+   neither, plus the position that record backs and any measurement it reports.
+   Hand it a claim instead of a question and that is per-record adjudication,
+   already running. Everything here is built on it.
 
-     01  TEMPORAL COVERAGE   the perimeter's reach, binned on the worker's own
-                             era windows, retrieved against read-closely
-     02  RELEVANCE FIELD     every scored record placed by year and citation
-                             weight, sized by relevance, coloured by stance
-     03  STRUCTURE           founding / canonical / current / method / review
-     04  SUBJECT MASS        what the concept vector of the corpus is made of
-     05  WEIGHT              where the explanatory weight sits
-     06  PROVENANCE          every pass, its yield and its cost, failures shown
-     0x  per-verb plates     mirrored literatures for a comparison, a claim
-                             standing matrix for a manuscript
+   What a person cannot do, and this can:
 
-   The room is cold, precise and gridded. Mono carries every label, every axis
-   and every number, at sizes that are actually legible; the prose is a neutral
-   grotesque, not a serif, because this is a readout and not an essay. One rust
-   accent, inherited from the front door, and a functional data palette that is
-   never used decoratively.
+     Reading forty abstracts is an afternoon. The work that does not scale is
+     the cross-check: every record that supports the claim has to be held
+     against every record that contests it. Twenty supporters and thirty
+     contesters is six hundred comparisons. That number is on the screen, next
+     to the handful that actually collide, because that is the difference
+     between a machine and a reading list.
 
-   Figures are generated at the container's measured width and redrawn on
-   resize, so the type inside a chart is real type at every viewport instead of
-   a viewBox scaled into illegibility.
+   A claim, once tracked, stays tracked. Re-check it and the sweep runs again,
+   the standing is recomputed, and the difference against last time is what you
+   are shown: a claim that was holding in March and is breaking in August is
+   the whole point of the instrument.
+
+   Design constraints, all of them from use:
+     · the page does not scroll. It is an app shell at viewport height and the
+       panes scroll inside themselves, so there is always an end to what you
+       are looking at.
+     · one typeface, at reading sizes. No monospace costume, no all-caps walls.
+     · one chart, and only because it answers "when did this start going wrong".
    ========================================================================== */
 
 :root{
-  --bg:#e9edf1; --panel:#fff; --panel2:#f5f8fa; --sunk:#dfe5ea;
-  --rule:#d0d8e0; --rule2:#adbac6; --rule3:#8a99a7;
-  --ink:#0a1015; --ink2:#31404d; --dim:#687886;
+  --bg:#eff1f4; --panel:#fff; --panel2:#f7f8fa; --sink:#e6e9ed;
+  --line:#dfe3e8; --line2:#c3cad2; --line3:#98a3ae;
+  --ink:#14181d; --ink2:#414a55; --dim:#78828d;
 
-  --acc:#b4560a; --acc2:#8e4306; --accbg:#fdf3ea;
-  --sup:#0f6f9e;   /* stance: supports    */
-  --con:#a8332a;   /* stance: contests    */
-  --neu:#7d8b99;   /* stance: neutral     */
-  --mat:#0d7a52;   /* material            */
-  --vio:#5b3fa8;
-  --warn:#a06010;
+  --acc:#b4560a; --acc2:#8e4306; --accbg:#fdf4ec;
+  --hold:#157f4d; --holdbg:#eef7f2;
+  --cont:#a86a0a; --contbg:#fdf6ea;
+  --brk:#b0352a;  --brkbg:#fdf1f0;
+  --unset:#6b7480;--unsetbg:#f2f4f6;
+  --sup:#1c6ea4;  --supbg:#eef5fa;
 
-  --mono:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Mono',Consolas,'Roboto Mono',Menlo,'DejaVu Sans Mono',monospace;
-  --sans:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-
-  --top:52px;
+  --f:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue','Noto Sans',Arial,sans-serif;
+  --bar:52px;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
-  font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,textarea{font-family:inherit;font-size:inherit}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}
-button,input,textarea{font-family:inherit}
+.n{font-variant-numeric:tabular-nums}
 a{color:var(--sup)}
-.tn{font-variant-numeric:tabular-nums}
+/* an author display rule out-specifies the UA's [hidden]{display:none}, and a
+   hidden pane that still occupies a grid track pushes the next one on top of
+   the tab strip. Settle it once, here. */
+[hidden]{display:none!important}
 
-/* ------------------------------------------------------------------ topbar */
-/* overflow:hidden is a backstop, not decoration — a fixed-width item in a flex
-   bar is the classic way a page starts scrolling sideways on a phone */
-#top{position:sticky;top:0;z-index:60;height:var(--top);background:var(--ink);
-  color:#e6edf3;display:flex;align-items:center;gap:16px;padding:0 clamp(12px,2.2vw,22px);
-  border-bottom:1px solid #000;overflow:hidden}
-#top .mk{display:flex;align-items:center;gap:9px;flex:none}
-#top .mk b{font-family:var(--mono);font-size:12.5px;letter-spacing:.4em;font-weight:700;color:#fff}
-#top .sl{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:#ff8a4c;
-  border-left:1px solid #34424e;padding-left:14px;flex:none}
-#top .st{margin-left:auto;display:flex;gap:6px 20px;flex-wrap:wrap;justify-content:flex-end;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:#7f909f}
-#top .st b{color:#cfdae4;font-weight:500}
-#top .st i{font-style:normal;display:inline-block;width:6px;height:6px;border-radius:50%;
-  background:#3f5164;margin-right:6px;vertical-align:1px}
-#top .st i.ok{background:#2ecb8a} #top .st i.busy{background:#ff8a4c;animation:bl 1.1s infinite}
-#top .st i.err{background:#e05a4c}
-@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
-#top a{color:#9fb0bf;text-decoration:none;font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.16em;border-bottom:1px solid #34424e;flex:0 1 auto;min-width:0;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#top a:hover{color:#fff;border-color:#ff8a4c}
-#top a .sm{display:none}
+/* ------------------------------------------------------------------- shell */
+#app{display:grid;grid-template-rows:var(--bar) 1fr;height:100dvh;min-height:0}
+#bar{display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--ink);
+  color:#e8edf2;position:relative;overflow:hidden}
+#bar .mk{display:flex;align-items:center;gap:9px;flex:none}
+#bar .mk b{font-size:13.5px;letter-spacing:.34em;font-weight:600;color:#fff}
+#bar .sl{font-size:11.5px;letter-spacing:.12em;color:#ff9160;border-left:1px solid #333d47;
+  padding-left:13px;flex:none;white-space:nowrap}
+#bar .sp{margin-left:auto}
+#bar .stat{font-size:12px;color:#8c98a5;display:flex;align-items:center;gap:8px;flex:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+#bar .stat i{width:7px;height:7px;border-radius:50%;background:#48545f;flex:none}
+#bar .stat i.go{background:#ff9160;animation:pulse 1.1s infinite}
+#bar .stat i.ok{background:#31c78c} #bar .stat i.bad{background:#e2645a}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+#bar a.out{color:#93a1ae;font-size:12px;text-decoration:none;border-bottom:1px solid #333d47;flex:none}
+#bar a.out:hover{color:#fff;border-color:#ff9160}
+#prog{position:absolute;left:0;bottom:0;height:2px;width:0;background:#ff9160;transition:width .4s}
 
-.shell{max-width:1500px;margin:0 auto;padding:0 clamp(12px,2.2vw,22px)}
+#body{display:grid;grid-template-columns:296px minmax(0,1fr);min-height:0}
 
-/* ----------------------------------------------------------------- console */
-#console{background:var(--panel);border:1px solid var(--rule2);border-top:0;
-  margin-bottom:14px;box-shadow:0 1px 0 rgba(10,16,21,.04)}
-.verbs{display:grid;grid-template-columns:repeat(3,1fr)}
-.verb{appearance:none;background:var(--panel2);border:0;border-right:1px solid var(--rule);
-  border-bottom:1px solid var(--rule2);padding:11px 16px 12px;cursor:pointer;text-align:left;
-  position:relative;transition:background .12s}
-.verb:last-child{border-right:0}
-.verb:hover{background:#fff}
-.verb .vk{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--dim);
-  display:block;margin-bottom:5px}
-.verb b{display:block;font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.1em;
-  color:var(--ink2);margin-bottom:4px}
-.verb span{display:block;font-size:12.5px;line-height:1.42;color:var(--dim)}
-.verb.on{background:#fff;border-bottom-color:var(--acc)}
-.verb.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--acc)}
-.verb.on b{color:var(--acc)} .verb.on span{color:var(--ink2)} .verb.on .vk{color:var(--acc)}
+/* --------------------------------------------------------------- watchlist */
+#side{background:var(--panel);border-right:1px solid var(--line2);display:grid;
+  grid-template-rows:auto auto 1fr;min-height:0;min-width:0}
+#side .sh{padding:13px 15px 11px;border-bottom:1px solid var(--line)}
+#side .sh h2{margin:0 0 2px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);font-weight:600}
+#side .sh p{margin:0;font-size:12.5px;color:var(--dim)}
+#newbox{padding:13px 15px;border-bottom:1px solid var(--line);background:var(--panel2)}
+#newbox textarea{width:100%;display:block;resize:none;border:1px solid var(--line2);
+  background:#fff;color:var(--ink);border-radius:4px;padding:9px 10px;font-size:14px;
+  line-height:1.45;min-height:66px}
+#newbox textarea:focus{border-color:var(--acc)}
+#newbox textarea::placeholder{color:#9aa4ae}
+.brow{display:flex;gap:8px;margin-top:9px}
+.pri{flex:1;background:var(--acc);color:#fff;border:0;border-radius:4px;padding:9px 12px;
+  cursor:pointer;font-weight:600;font-size:13.5px}
+.pri:hover{background:var(--acc2)} .pri[disabled]{background:var(--line2);cursor:not-allowed}
+.sec{background:#fff;color:var(--ink2);border:1px solid var(--line2);border-radius:4px;
+  padding:9px 12px;cursor:pointer;font-size:13px}
+.sec:hover{border-color:var(--acc);color:var(--acc)}
+.sec[disabled]{opacity:.5;cursor:not-allowed}
+#egs{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+#egs button{background:none;border:1px solid var(--line);border-radius:20px;padding:4px 10px;
+  font-size:12px;color:var(--dim);cursor:pointer;text-align:left}
+#egs button:hover{border-color:var(--acc);color:var(--acc)}
+#list{overflow-y:auto;min-height:0}
+.wi{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);
+  padding:12px 15px;cursor:pointer;position:relative}
+.wi:hover{background:var(--panel2)}
+.wi.on{background:var(--accbg);box-shadow:inset 3px 0 0 var(--acc)}
+.wi .wt{font-size:13.5px;line-height:1.4;color:var(--ink);display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px}
+.wi .wm{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim)}
+.wi .wm .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.wi .wm .st{font-weight:600}
+.wi .wm .ago{margin-left:auto;font-size:11px}
+.wi .bd{display:flex;height:3px;margin-top:7px;border-radius:2px;overflow:hidden;background:var(--line)}
+.wi .bd i{display:block;height:100%}
+.wi .chg{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:1px 6px;
+  border-radius:3px;background:var(--brkbg);color:var(--brk)}
+#empty{padding:22px 15px;color:var(--dim);font-size:13px;line-height:1.6}
 
-.pane{display:none;padding:16px clamp(14px,2vw,20px) 18px}
-.pane.on{display:block}
-.lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--dim);
-  margin:0 0 7px;display:block}
-.lab u{text-decoration:none;color:var(--rule3);letter-spacing:.08em}
-.fld{width:100%;display:block;font-family:var(--sans);font-size:16px;line-height:1.45;
-  color:var(--ink);background:var(--panel2);border:1px solid var(--rule2);border-radius:0;
-  padding:11px 13px}
-.fld::placeholder{color:#93a2ae}
-.fld:focus{border-color:var(--acc);background:#fff;box-shadow:inset 0 0 0 1px rgba(180,86,10,.25)}
-textarea.fld{resize:vertical;min-height:132px;font-size:15px;line-height:1.55}
-.duo{display:grid;grid-template-columns:1fr 46px 1fr;gap:0;align-items:stretch}
-.duo .vs{display:flex;align-items:center;justify-content:center;font-family:var(--mono);
-  font-size:10px;letter-spacing:.14em;color:var(--rule3);padding-top:22px}
-.sub2{margin-top:13px}
-.egs{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;align-items:center}
-.egs .el{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--rule3);margin-right:3px}
-.eg{appearance:none;background:var(--panel2);border:1px solid var(--rule);border-radius:0;
-  padding:5px 10px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
-  color:var(--ink2)}
-.eg:hover{border-color:var(--acc);color:var(--acc);background:#fff}
-.runrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:15px;
-  border-top:1px solid var(--rule);padding-top:14px}
-.run{appearance:none;background:var(--acc);color:#fff;border:0;border-radius:0;
-  padding:11px 24px;cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:700;
-  letter-spacing:.18em;transition:background .12s}
-.run:hover{background:var(--acc2)}
-.run[disabled]{background:var(--rule2);cursor:not-allowed}
-.hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);margin:0}
-.ghost{appearance:none;background:none;border:1px solid var(--rule2);border-radius:0;
-  padding:9px 15px;cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
-  color:var(--ink2)}
-.ghost:hover{border-color:var(--acc);color:var(--acc);background:#fff}
+/* -------------------------------------------------------------- claim view */
+/* min-width:0 as well as min-height:0. A grid item defaults to min-width:auto,
+   so the tab strip's min-content width became the floor for the whole page and
+   a phone scrolled sideways by 128px. */
+#main{display:grid;grid-template-rows:auto auto minmax(0,1fr);min-height:0;min-width:0}
+#blank{display:flex;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto}
+#blank .in{max-width:560px}
+#blank h1{font-size:26px;line-height:1.2;letter-spacing:-.02em;font-weight:600;margin:0 0 12px}
+#blank p{font-size:15.5px;line-height:1.6;color:var(--ink2);margin:0 0 14px}
+#blank .ex{border:1px solid var(--line2);border-radius:6px;background:var(--panel);
+  padding:14px 16px;margin-top:18px}
+#blank .ex h3{margin:0 0 9px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);font-weight:600}
+#blank .ex button{display:block;width:100%;text-align:left;background:none;border:0;
+  border-top:1px solid var(--line);padding:9px 0;cursor:pointer;font-size:14.5px;color:var(--ink2)}
+#blank .ex button:first-of-type{border-top:0}
+#blank .ex button:hover{color:var(--acc)}
 
-#recent{display:none;gap:0;flex-wrap:wrap;align-items:stretch;margin-bottom:14px;
-  border:1px solid var(--rule);background:var(--panel)}
-#recent.on{display:flex}
-#recent .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--rule3);
-  padding:8px 12px;border-right:1px solid var(--rule);display:flex;align-items:center}
-.rchip{appearance:none;background:none;border:0;border-right:1px solid var(--rule);
-  padding:8px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--ink2);
-  max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
-.rchip:hover{background:var(--accbg);color:var(--acc)}
-.rchip i{font-style:normal;color:var(--acc);margin-right:8px;letter-spacing:.14em;font-size:9px}
+#head{padding:16px 22px 0;border-bottom:1px solid var(--line2);background:var(--panel)}
+#head .claim{font-size:clamp(18px,1.9vw,23px);line-height:1.34;letter-spacing:-.012em;
+  font-weight:600;margin:0 0 12px;max-width:74ch}
+.verdict{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid;border-radius:4px;
+  padding:6px 12px;font-weight:600;font-size:14px}
+.badge .dot{width:9px;height:9px;border-radius:50%}
+.badge.holding{color:var(--hold);border-color:#a9d4bf;background:var(--holdbg)}
+.badge.holding .dot{background:var(--hold)}
+.badge.contested{color:var(--cont);border-color:#e6cd9e;background:var(--contbg)}
+.badge.contested .dot{background:var(--cont)}
+.badge.breaking{color:var(--brk);border-color:#e5b3ae;background:var(--brkbg)}
+.badge.breaking .dot{background:var(--brk)}
+.badge.unsettled{color:var(--unset);border-color:var(--line2);background:var(--unsetbg)}
+.badge.unsettled .dot{background:var(--unset)}
+.moved{font-size:13px;color:var(--brk);font-weight:600}
+.moved.up{color:var(--hold)}
+.checked{font-size:12.5px;color:var(--dim);margin-left:auto}
+.acts{display:flex;gap:8px}
 
-/* ------------------------------------------------------------------- sweep */
-#sweep{display:none;background:var(--ink);color:#dbe4ec;margin-bottom:14px;
-  padding:14px clamp(14px,2vw,20px) 16px}
-#sweep.on{display:block}
-.swtop{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-.swtop .t{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:#fff}
-.swtop .n{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#ff8a4c;
-  font-variant-numeric:tabular-nums;margin-left:auto}
-.swbar{height:3px;background:#22303c;margin:12px 0 11px;overflow:hidden}
-.swbar i{display:block;height:100%;background:#ff8a4c;transition:width .5s cubic-bezier(.2,.7,.2,1)}
-.swbar.indet i{width:26%;animation:sl 1.4s cubic-bezier(.5,0,.5,1) infinite}
-@keyframes sl{0%{margin-left:-26%}100%{margin-left:100%}}
-.swst{display:flex;flex-wrap:wrap;gap:5px 18px;font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.14em;color:#69798a}
-.swst span{display:inline-flex;align-items:center;gap:7px}
-.swst span::before{content:'';width:6px;height:6px;background:#33424f}
-.swst span.doing::before{background:#ff8a4c;animation:bl 1.1s infinite}
-.swst span.done::before{background:#2ecb8a}
-.swst span.doing,.swst span.done{color:#c3d0da}
+/* the line that says what a person would have had to do */
+.work{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line2);border-radius:5px;
+  overflow:hidden;margin-bottom:14px;background:var(--panel2)}
+.work div{flex:1 1 120px;padding:9px 13px 10px;border-right:1px solid var(--line);background:var(--panel)}
+.work div:last-child{border-right:0}
+.work div.pop{background:var(--brkbg)}
+.work .v{font-size:20px;font-weight:650;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.work div.pop .v{color:var(--brk)}
+.work .k{font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.3}
 
-#err{display:none;background:#fdf2f1;border:1px solid rgba(168,51,42,.35);
-  border-left:3px solid var(--con);padding:14px 18px;margin-bottom:14px;font-size:14px;
-  line-height:1.6;color:#7d241c}
-#err.on{display:block}
-#err b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;margin-bottom:7px}
-#err a{color:#7d241c}
+#tabs{display:flex;gap:0;padding:0 22px;background:var(--panel);border-bottom:1px solid var(--line2);
+  overflow-x:auto;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+#tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px 9px;
+  cursor:pointer;font-size:13.5px;font-weight:600;color:var(--dim);margin-bottom:-1px;
+  flex:none;white-space:nowrap}
+#tabs button:hover{color:var(--ink)}
+#tabs button.on{color:var(--acc);border-bottom-color:var(--acc)}
+#tabs button u{text-decoration:none;font-weight:500;color:var(--line3);margin-left:6px;font-size:12px}
+#tabs button.on u{color:var(--acc)}
 
-/* ------------------------------------------------------------------ layout */
-#work{display:none;grid-template-columns:206px minmax(0,1fr);gap:0;align-items:start;
-  padding-bottom:80px}
-#work.on{display:grid}
-#rail{position:sticky;top:calc(var(--top) + 12px);align-self:start;padding-right:18px}
-#rail .rh{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--rule3);
-  padding:0 0 9px;border-bottom:1px solid var(--rule2);margin-bottom:8px}
-#rail a{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
-  color:var(--dim);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid transparent;
-  line-height:1.35}
-#rail a:hover{color:var(--ink)}
-#rail a.on{color:var(--acc);border-left-color:var(--acc);background:linear-gradient(90deg,var(--accbg),transparent)}
-#rail a u{text-decoration:none;color:var(--rule3);float:right;padding-left:6px}
-#doc{min-width:0;border-left:1px solid var(--rule2);padding-left:clamp(16px,2.2vw,30px)}
+#pane{overflow-y:auto;min-height:0;padding:18px 22px 40px}
+.card{background:var(--panel);border:1px solid var(--line2);border-radius:6px;margin-bottom:14px}
+.card>.ch{padding:11px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;
+  gap:12px;flex-wrap:wrap}
+.card>.ch h3{margin:0;font-size:14px;font-weight:650;color:var(--ink)}
+.card>.ch span{font-size:12.5px;color:var(--dim);margin-left:auto}
+.card>.cb{padding:15px 16px}
+.card>.cb>p:last-child{margin-bottom:0}
+p{margin:0 0 .8em;max-width:80ch}
+.lede{font-size:16px;line-height:1.6;color:var(--ink)}
+.muted{color:var(--ink2)}
+.small{font-size:13px;color:var(--dim)}
 
-/* ---------------------------------------------------------- readout header */
-.rdh{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px}
-.rdh .kk{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--acc);margin:0 0 9px}
-.rdh h1{font-family:var(--sans);font-size:clamp(21px,2.5vw,31px);line-height:1.16;
-  letter-spacing:-.018em;font-weight:600;margin:0;color:var(--ink);max-width:32ch}
-.rdh h1 em{font-style:normal;color:var(--rule3);font-weight:400}
-.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:1px;
-  background:var(--rule);border:1px solid var(--rule);margin-top:16px}
-.keys div{background:var(--panel);padding:9px 11px 10px}
-.keys .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;color:var(--dim);
-  display:block;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.keys .v{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--ink);
-  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
-.keys .v small{font-size:11px;font-weight:400;color:var(--dim);letter-spacing:0}
-.keys div.hi .v{color:var(--acc)}
+/* an opposition: two records that cannot both be right */
+.opp{border:1px solid var(--line2);border-radius:6px;margin-bottom:12px;overflow:hidden;
+  background:var(--panel)}
+.opp .oh{padding:9px 14px;background:var(--panel2);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--dim)}
+.opp .oh b{color:var(--ink);font-weight:650}
+.opp .oh .flag{margin-left:auto;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:3px;
+  background:var(--brkbg);color:var(--brk)}
+.opp .og{display:grid;grid-template-columns:1fr 1fr}
+.opp .og>div{padding:13px 14px}
+.opp .og>div:first-child{border-right:1px solid var(--line);background:var(--supbg)}
+.opp .og>div:last-child{background:var(--brkbg)}
+.opp .sk{font-size:11.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.opp .og>div:first-child .sk{color:var(--sup)}
+.opp .og>div:last-child .sk{color:var(--brk)}
+.opp .ot{font-size:14.5px;line-height:1.42;margin:0 0 5px}
+.opp .ot a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
+.opp .ot a:hover{border-color:currentColor}
+.opp .om{font-size:12px;color:var(--dim);margin:0 0 7px}
+.opp .op{font-size:13.5px;line-height:1.45;color:var(--ink2);margin:0}
+.opp .op b{color:var(--ink)}
+.opp .meas{display:inline-block;margin-top:7px;font-size:13px;font-variant-numeric:tabular-nums;
+  border:1px solid var(--line2);border-radius:3px;padding:2px 8px;background:#fff;color:var(--ink)}
 
-/* ------------------------------------------------------------------ plates */
-.plate{border:1px solid var(--rule2);background:var(--panel);margin:0 0 20px}
-.plate>.ph{display:flex;align-items:baseline;gap:12px;padding:9px 14px;
-  border-bottom:1px solid var(--rule);background:var(--panel2);flex-wrap:wrap}
-.plate>.ph .pn{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:#fff;
-  background:var(--acc);padding:3px 7px;flex:none}
-.plate>.ph .pt{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink);
-  font-weight:700}
-.plate>.ph .ps{font-family:var(--sans);font-size:12px;color:var(--dim);margin-left:auto;
-  text-align:right}
-.plate>.pb{padding:14px}
-.plate>.pc{border-top:1px solid var(--rule);padding:10px 14px;background:var(--panel2);
-  font-size:13px;line-height:1.55;color:var(--ink2)}
-.plate>.pc b{color:var(--ink);font-weight:600}
-.fig{width:100%}
-.fig svg{display:block;width:100%;height:auto}
-.fig text{font-family:var(--mono)}
-.legend{display:flex;flex-wrap:wrap;gap:5px 16px;margin-top:11px;padding-top:10px;
-  border-top:1px solid var(--rule);font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
-  color:var(--dim)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:9px;height:9px;flex:none;border-radius:0}
-.legend i.rg{background:none;border:1.5px solid var(--mat);border-radius:50%}
+/* evidence rows */
+.ev{display:grid;grid-template-columns:8px 54px minmax(0,1fr);gap:0 12px;padding:11px 0;
+  border-bottom:1px solid var(--line);align-items:start}
+.ev:last-child{border-bottom:0}
+.ev .bar{width:4px;border-radius:2px;height:100%;min-height:26px}
+.ev .yr{font-size:13px;font-weight:600;color:var(--dim);padding-top:1px}
+.ev .t{font-size:14.5px;line-height:1.4;margin:0 0 4px}
+.ev .t a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
+.ev .t a:hover{border-color:currentColor}
+.ev .m{font-size:12px;color:var(--dim);display:flex;flex-wrap:wrap;gap:3px 12px;margin-bottom:5px}
+.ev .w{font-size:13.5px;line-height:1.45;color:var(--ink2);margin:0}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+.filters button{background:var(--panel);border:1px solid var(--line2);border-radius:20px;
+  padding:5px 12px;cursor:pointer;font-size:12.5px;color:var(--ink2)}
+.filters button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.more{width:100%;background:var(--panel2);border:1px solid var(--line2);border-radius:5px;
+  padding:9px;cursor:pointer;font-size:13px;color:var(--ink2);margin-top:12px}
+.more:hover{border-color:var(--acc);color:var(--acc)}
 
-/* ----------------------------------------------------------------- prose § */
-section.s{margin:0 0 20px;border:1px solid var(--rule2);background:var(--panel)}
-section.s>h2{display:flex;align-items:baseline;gap:12px;margin:0;padding:9px 14px;
-  border-bottom:1px solid var(--rule);background:var(--panel2);
-  font-family:var(--mono);font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--ink)}
-section.s>h2 u{text-decoration:none;font-family:var(--sans);font-size:12px;letter-spacing:0;
-  font-weight:400;color:var(--dim);margin-left:auto}
-section.s>.sb{padding:14px}
-p{margin:0 0 .85em;max-width:78ch}
-p:last-child{margin-bottom:0}
-.lead{font-size:16.5px;line-height:1.62;color:var(--ink)}
-.body{color:var(--ink2);font-size:15px}
+/* one chart */
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{font-family:var(--f)}
 
-/* findings as a numbered register */
-.reg{border-top:1px solid var(--rule)}
-.reg .rw{display:grid;grid-template-columns:34px minmax(0,1fr);gap:0 14px;
-  padding:13px 0;border-bottom:1px solid var(--rule)}
-.reg .rw:last-child{border-bottom:0}
-.reg .ix{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--acc);
-  font-variant-numeric:tabular-nums;padding-top:3px}
-.reg .t1{font-size:16px;line-height:1.5;color:var(--ink);margin:0 0 5px;max-width:78ch}
-.reg .t2{font-size:14px;line-height:1.55;color:var(--ink2);margin:0;max-width:78ch}
-
-.tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;
-  letter-spacing:.16em;padding:2px 7px;border:1px solid;white-space:nowrap;background:#fff}
-.tag.ok{color:var(--mat);border-color:rgba(13,122,82,.45)}
-.tag.wa{color:var(--warn);border-color:rgba(160,96,16,.45)}
-.tag.no{color:var(--con);border-color:rgba(168,51,42,.4)}
-.tag.nu{color:var(--neu);border-color:var(--rule2)}
-.tag.ac{color:var(--acc);border-color:rgba(180,86,10,.45)}
-.tag.sp{color:var(--sup);border-color:rgba(15,111,158,.4)}
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 0}
-
-/* generic technical table */
-.tb{width:100%;border-collapse:collapse;font-size:14px}
-.tb th{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--dim);
-  text-align:left;padding:0 12px 7px 0;border-bottom:1px solid var(--rule2);white-space:nowrap}
-.tb td{padding:9px 12px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink2)}
-.tb tr:last-child td{border-bottom:0}
-.tb td.m{font-family:var(--mono);font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;
-  white-space:nowrap}
-.tb td b{color:var(--ink);font-weight:600}
-/* without a floor the table just crushes its columns to fit and the scroll
-   container never has anything to scroll */
-.scroll{overflow-x:auto}
-.scroll>.tb{min-width:min(100%,600px)}
-
-ul.pl{margin:0;padding:0;list-style:none;max-width:78ch}
-ul.pl li{position:relative;padding-left:18px;margin-bottom:8px;font-size:15px;line-height:1.55;
-  color:var(--ink2)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--dim);font-weight:600;padding:0 12px 7px 0;border-bottom:1px solid var(--line2)}
+.tbl td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+.wrapx{overflow-x:auto}
+ul.pl{margin:0;padding:0;list-style:none;max-width:80ch}
+ul.pl li{position:relative;padding-left:17px;margin-bottom:7px;color:var(--ink2)}
 ul.pl li:last-child{margin-bottom:0}
-ul.pl li::before{content:'';position:absolute;left:1px;top:.62em;width:6px;height:2px;background:var(--acc)}
+ul.pl li::before{content:'';position:absolute;left:0;top:.63em;width:7px;height:2px;background:var(--line3)}
 
-/* rivals */
-.rivals{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule)}
-.rival{background:var(--panel);padding:16px}
-.rival .rk{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);margin-bottom:7px}
-.rival.win .rk{color:var(--acc)}
-.rival h3{font-family:var(--sans);font-size:18px;font-weight:600;letter-spacing:-.012em;
-  margin:0 0 6px;color:var(--ink)}
-.rival .rc{font-size:15px;line-height:1.5;color:var(--ink2);margin:0 0 11px}
-.rival.win{box-shadow:inset 3px 0 0 var(--acc)}
-dl.kv{margin:11px 0 0;font-size:14px;line-height:1.5}
-dl.kv dt{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--dim);margin-top:11px}
-dl.kv dt:first-child{margin-top:0}
-dl.kv dd{margin:5px 0 0;color:var(--ink2)}
+#err{margin:0 22px 14px;background:var(--brkbg);border:1px solid #e5b3ae;border-left:3px solid var(--brk);
+  border-radius:4px;padding:12px 15px;font-size:13.5px;line-height:1.55;color:#7e241c;display:none}
+#err.on{display:block}
+#err a{color:#7e241c}
 
-.disc{border:1px solid var(--rule);margin-bottom:12px}
-.disc .dh{padding:11px 14px;border-bottom:1px solid var(--rule);background:var(--panel2);
-  display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
-.disc .dh .dn{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--acc)}
-.disc .dh p{font-size:15.5px;line-height:1.45;color:var(--ink);margin:0;flex:1 1 300px;max-width:none}
-.disc .dg{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule)}
-.disc .dg>div{background:var(--panel);padding:12px 14px}
-.disc .dg .gk{font-family:var(--mono);font-size:9px;letter-spacing:.16em;margin-bottom:5px}
-.disc .dg>div:first-child .gk{color:var(--sup)}
-.disc .dg>div:last-child .gk{color:var(--con)}
-.disc .dg p{font-size:14.5px;line-height:1.5;color:var(--ink2);margin:0;max-width:none}
-.disc .dn2{border-top:1px solid var(--rule);padding:10px 14px;background:var(--panel2);
-  font-size:13.5px;line-height:1.5;color:var(--ink2)}
-
-/* claims */
-.claim{border:1px solid var(--rule);border-left:3px solid var(--neu);margin-bottom:12px;padding:14px 16px}
-.claim.q-supported{border-left-color:var(--mat)}
-.claim.q-contested{border-left-color:var(--warn)}
-.claim.q-unsupported,.claim.q-superseded{border-left-color:var(--con)}
-.claim.q-already-established{border-left-color:var(--sup)}
-.claim .ck{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--dim);margin-bottom:6px}
-.claim .ct{font-size:16px;line-height:1.5;color:var(--ink);margin:0;max-width:78ch}
-
-/* records */
-.recs{border-top:1px solid var(--rule)}
-.rec{display:grid;grid-template-columns:52px minmax(0,1fr) 92px;gap:0 14px;padding:11px 0;
-  border-bottom:1px solid var(--rule);align-items:start}
-.rec:last-child{border-bottom:0}
-.rec .yr{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--acc);
-  font-variant-numeric:tabular-nums;padding-top:2px}
-.rec .tt{font-size:15px;line-height:1.4;margin:0 0 4px;max-width:none}
-.rec .tt a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2)}
-.rec .tt a:hover{color:var(--sup);border-color:var(--sup)}
-.rec .mm{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--dim);
-  display:flex;flex-wrap:wrap;gap:3px 12px}
-.rec .wy{font-size:13.5px;line-height:1.5;color:var(--ink2);margin:6px 0 0;max-width:78ch}
-.rec .wy b{color:var(--ink);font-family:var(--mono);font-size:12px}
-.rec .sc{font-family:var(--mono);font-size:11px;color:var(--ink2);text-align:right;
-  font-variant-numeric:tabular-nums;padding-top:2px}
-.rec .sc i{display:block;font-style:normal;font-size:8.5px;letter-spacing:.14em;color:var(--dim)}
-.rec.hl{background:var(--accbg);box-shadow:inset 3px 0 0 var(--acc)}
-.more{appearance:none;background:var(--panel2);border:1px solid var(--rule2);border-radius:0;
-  padding:9px 16px;margin-top:12px;cursor:pointer;font-family:var(--mono);font-size:10.5px;
-  letter-spacing:.14em;color:var(--ink2);width:100%}
-.more:hover{border-color:var(--acc);color:var(--acc);background:#fff}
-
-details.fold{border:1px solid var(--rule2);background:var(--panel);margin-bottom:20px}
-details.fold>summary{cursor:pointer;list-style:none;padding:10px 14px;background:var(--panel2);
-  font-family:var(--mono);font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--ink);
-  display:flex;align-items:baseline;gap:11px}
-details.fold>summary::-webkit-details-marker{display:none}
-details.fold>summary::before{content:'+';color:var(--acc);font-weight:700}
-details.fold[open]>summary::before{content:'\2013'}
-details.fold[open]>summary{border-bottom:1px solid var(--rule)}
-details.fold>summary u{text-decoration:none;font-family:var(--sans);font-size:12px;letter-spacing:0;
-  font-weight:400;color:var(--dim);margin-left:auto}
-details.fold>.fb{padding:14px}
-
-@media(max-width:1000px){
-  #work.on{grid-template-columns:1fr}
-  /* a grid item defaults to min-width:auto, which lets this strip push the
-     whole page wider than the viewport instead of scrolling inside itself */
-  #rail{position:static;min-width:0;padding:0;display:flex;gap:0;overflow-x:auto;
-    border-bottom:1px solid var(--rule2);margin-bottom:14px;background:var(--panel)}
-  #rail .rh{display:none}
-  #rail a{white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:9px 13px}
-  #rail a.on{border-left:0;border-bottom-color:var(--acc);background:var(--accbg)}
-  #rail a u{display:none}
-  #doc{border-left:0;padding-left:0}
-}
-@media(max-width:760px){
-  .verbs{grid-template-columns:1fr}
-  .verb{border-right:0;border-bottom:1px solid var(--rule)}
-  .verb.on::after{left:0;right:auto;top:0;bottom:0;width:2px;height:auto}
-  .duo{grid-template-columns:1fr} .duo .vs{padding:9px 0;justify-content:flex-start}
-  .rivals,.disc .dg{grid-template-columns:1fr}
-  .rec{grid-template-columns:44px minmax(0,1fr)}
-  .rec .sc{grid-column:2;text-align:left;padding-top:6px}
-  #top{gap:11px}
-  #top .st{display:none}
-  #top .sl{border-left:0;padding-left:0}
-  #top a .lg{display:none} #top a .sm{display:inline}
+#backBtn{display:none}
+@media(max-width:880px){
+  #body{grid-template-columns:1fr}
+  #side{border-right:0}
+  body.viewing #side{display:none}
+  body:not(.viewing) #main{display:none}
+  #backBtn{display:inline-flex}
+  #head,#tabs{padding-left:15px;padding-right:15px}
+  #pane{padding:15px 15px 40px}
+  .opp .og{grid-template-columns:1fr}
+  .opp .og>div:first-child{border-right:0;border-bottom:1px solid var(--line)}
+  #bar .sl{display:none}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media print{#top,#console,#sweep,#recent,#rail{display:none!important}
-  #work.on{grid-template-columns:1fr}#doc{border:0;padding:0}body{background:#fff}}
 </style>
 </head>
 <body>
+<div id="app">
 
-<div id="top">
+<div id="bar">
   <span class="mk">
     <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#ff8a4c" stroke-width="1.5"/>
+      <circle cx="10.2" cy="12" r="7.9" fill="none" stroke="#ff9160" stroke-width="1.5"/>
       <circle cx="13.8" cy="12" r="7.9" fill="none" stroke="#5e9bea" stroke-width="1.5"/>
       <circle cx="12" cy="12" r="1.4" fill="#fff"/></svg>
     <b>PARALLAX</b>
   </span>
-  <span class="sl">THE RECORD</span>
-  <span class="st">
-    <span id="stState"><i></i>IDLE</span>
-    <span id="stPer">PERIMETER <b>18 ARCHIVES &middot; 11 ERA WINDOWS</b></span>
-    <span id="stWorker">WORKER <b>&mdash;</b></span>
-  </span>
-  <a href="../">&larr; <span class="lg">BOTH INSTRUMENTS</span><span class="sm">BOTH</span></a>
+  <span class="sl">The Record — claim tracker</span>
+  <span class="sp"></span>
+  <span class="stat" id="stat"><i></i><span id="statText">Idle</span></span>
+  <a class="out" href="../">Both instruments</a>
+  <div id="prog"></div>
 </div>
 
-<div class="shell">
+<div id="body">
 
-<div id="recent"></div>
-
-<div id="console">
-  <div class="verbs">
-    <button class="verb on" data-verb="ask" type="button">
-      <span class="vk">MODE 01</span><b>ASK</b>
-      <span>One question &rarr; the state of the field, its structure, and where its weight sits</span>
-    </button>
-    <button class="verb" data-verb="compare" type="button">
-      <span class="vk">MODE 02</span><b>COMPARE</b>
-      <span>Two rival explanations &rarr; the tests that separate them, and which is in trouble</span>
-    </button>
-    <button class="verb" data-verb="check" type="button">
-      <span class="vk">MODE 03</span><b>CHECK</b>
-      <span>Your own text &rarr; every claim you make, graded against the published record</span>
-    </button>
-  </div>
-
-  <div class="pane on" data-pane="ask">
-    <label class="lab" for="askQ">QUESTION</label>
-    <input class="fld" id="askQ" type="text" autocomplete="off"
-      placeholder="How do supermassive black holes get so big so early?">
-    <div class="egs">
-      <span class="el">PRESETS</span>
-      <button class="eg" type="button" data-fill="ask|How do supermassive black holes get so big so early?">EARLY&nbsp;SMBH</button>
-      <button class="eg" type="button" data-fill="ask|Where does the primordial lithium problem stand?">LITHIUM&nbsp;PROBLEM</button>
-      <button class="eg" type="button" data-fill="ask|What actually limits the lifetime of a fusion tokamak first wall?">TOKAMAK&nbsp;WALL</button>
-      <button class="eg" type="button" data-fill="ask|What is the strongest evidence for organic molecules in returned asteroid samples?">ASTEROID&nbsp;ORGANICS</button>
+  <aside id="side">
+    <div class="sh">
+      <h2>Tracked claims</h2>
+      <p id="sideCount">Nothing tracked yet</p>
     </div>
-    <div class="runrow">
-      <button class="run" id="runAsk" type="button">RUN SWEEP</button>
-      <p class="hint">124 PASSES &middot; 18 ARCHIVES &middot; 11 ERA WINDOWS &middot; 40&ndash;120 s LIVE</p>
-    </div>
-  </div>
-
-  <div class="pane" data-pane="compare">
-    <div class="duo">
-      <div>
-        <label class="lab" for="cmpA">EXPLANATION A</label>
-        <input class="fld" id="cmpA" type="text" autocomplete="off" placeholder="Cold dark matter">
+    <div id="newbox">
+      <textarea id="newClaim" rows="3"
+        placeholder="State a claim, not a question.&#10;“Dark matter is effectively collisionless.”"></textarea>
+      <div class="brow">
+        <button class="pri" id="track">Track this claim</button>
+        <button class="sec" id="fromText" title="Paste a paragraph and every claim in it gets tracked">From text</button>
       </div>
-      <div class="vs">VS</div>
-      <div>
-        <label class="lab" for="cmpB">EXPLANATION B</label>
-        <input class="fld" id="cmpB" type="text" autocomplete="off" placeholder="Modified Newtonian dynamics">
+      <div id="egs">
+        <button data-eg="Extra spatial dimensions are detectable at LHC energies.">Extra dimensions at the LHC</button>
+        <button data-eg="Dark matter is cold and effectively collisionless.">Dark matter is collisionless</button>
+        <button data-eg="The organic molecules in returned asteroid samples are extraterrestrial in origin.">Asteroid organics are extraterrestrial</button>
+        <button data-eg="The primordial lithium abundance disagrees with standard big bang nucleosynthesis.">The lithium discrepancy is real</button>
       </div>
     </div>
-    <div class="sub2">
-      <label class="lab" for="cmpQ">COMPETING TO EXPLAIN <u>optional &mdash; sharpens the adjudication</u></label>
-      <input class="fld" id="cmpQ" type="text" autocomplete="off" placeholder="Galaxy rotation curves">
-    </div>
-    <div class="egs">
-      <span class="el">PRESETS</span>
-      <button class="eg" type="button" data-fill="compare|Cold dark matter|Modified Newtonian dynamics|Galaxy rotation curves">CDM&nbsp;/&nbsp;MOND</button>
-      <button class="eg" type="button" data-fill="compare|Direct collapse of pristine gas clouds|Runaway mergers of stellar-mass black holes|Seeds of the earliest supermassive black holes">SMBH&nbsp;SEEDS</button>
-      <button class="eg" type="button" data-fill="compare|Delivery by comets and asteroids|Water retained from Earth's own formation|The origin of Earth's oceans">OCEAN&nbsp;ORIGIN</button>
-    </div>
-    <div class="runrow">
-      <button class="run" id="runCmp" type="button">ADJUDICATE</button>
-      <p class="hint">TWO PERIMETERS PULLED, THEN READ AGAINST EACH OTHER &middot; 30&ndash;90 s</p>
-    </div>
-  </div>
+    <div id="list"><div id="empty">Track a claim and it stays tracked. Re-check it whenever you
+      like and PARALLAX tells you what moved.</div></div>
+  </aside>
 
-  <div class="pane" data-pane="check">
-    <label class="lab" for="chkT">SOURCE TEXT <u>abstract, draft section, grant aim, or a list of claims</u></label>
-    <textarea class="fld" id="chkT" rows="7"
-      placeholder="Paste your text, or drop a .txt / .md file onto this box."></textarea>
-    <div class="egs">
-      <span class="el">INPUT</span>
-      <button class="eg" type="button" id="chkFile">LOAD&nbsp;FILE</button>
-      <button class="eg" type="button" id="chkDemo">SAMPLE&nbsp;ABSTRACT</button>
+  <main id="main">
+    <div id="blank">
+      <div class="in">
+        <h1>It does not answer questions. It tells you whether a claim is still standing.</h1>
+        <p>Every abstract PARALLAX retrieves is read and given a stance toward <em>your</em> claim:
+        does this record support it, contest it, or neither. Then every supporter is held against
+        every contester.</p>
+        <p class="muted">Forty abstracts is an afternoon of reading. Twenty supporters against
+        thirty contesters is six hundred comparisons, and the handful that actually collide are
+        the only ones that matter. That is the part that does not scale by hand.</p>
+        <div class="ex">
+          <h3>Start with one of these</h3>
+          <button data-eg="Extra spatial dimensions are detectable at LHC energies.">Extra spatial dimensions are detectable at LHC energies.</button>
+          <button data-eg="Dark matter is cold and effectively collisionless.">Dark matter is cold and effectively collisionless.</button>
+          <button data-eg="The organic molecules in returned asteroid samples are extraterrestrial in origin.">The organic molecules in returned asteroid samples are extraterrestrial in origin.</button>
+        </div>
+      </div>
     </div>
-    <div class="runrow">
-      <button class="run" id="runChk" type="button">AUDIT CLAIMS</button>
-      <p class="hint">CLAIMS EXTRACTED FIRST, THEN EACH ONE PUT AGAINST THE PERIMETER &middot; 40&ndash;120 s</p>
+
+    <div id="head" hidden>
+      <button class="sec" id="backBtn" style="margin-bottom:11px">&larr; All claims</button>
+      <p class="claim" id="claimText"></p>
+      <div class="verdict" id="verdict"></div>
+      <div class="work" id="work"></div>
     </div>
-  </div>
+    <div id="tabs" hidden></div>
+    <div id="pane" hidden></div>
+    <div id="err"></div>
+  </main>
+
 </div>
-
-<div id="sweep">
-  <div class="swtop">
-    <span class="t" id="swTitle">SWEEPING</span>
-    <span class="n"><span id="swElapsed">0</span> s &middot; <span id="swPass">0</span> PASSES &middot; <span id="swRec">0</span> RECORDS</span>
-  </div>
-  <div class="swbar indet" id="swBar"><i></i></div>
-  <div class="swst" id="swSteps"></div>
-  <div style="margin-top:12px"><button class="ghost" id="swCancel" type="button"
-    style="border-color:#34424e;color:#9fb0bf">ABORT</button></div>
-</div>
-
-<div id="err"></div>
-
-<div id="work">
-  <nav id="rail"></nav>
-  <main id="doc"></main>
-</div>
-
 </div>
 
 <input type="file" id="filePick" accept=".txt,.md,text/plain,text/markdown" style="display:none">
@@ -519,7 +367,9 @@ details.fold>.fb{padding:14px}
 <script>
 'use strict';
 /* ===========================================================================
-   1. WIRE  — the worker is unchanged; it was never the part that was wrong.
+   WIRE — the worker is unchanged. Handing it a claim as the "question" makes
+   its relevance gate score every record's stance toward that claim, which is
+   exactly the adjudication this instrument is built on.
    =========================================================================== */
 var SUPA_URL='https://zfmjjazkmolvywvayjzj.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
@@ -533,50 +383,37 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 function arr(x){return Array.isArray(x)?x:[];}
 function txt(x){return String(x==null?'':x).trim();}
 function num(x){var n=Number(x);return isFinite(n)?n:null;}
-function UP(s){return String(s==null?'':s).toUpperCase();}
-
-/* One source of truth for colour: the stylesheet. The JS reads the same custom
-   properties the CSS paints with, so a figure can never drift from the room
-   around it — which is exactly the bug this file had in an earlier life. */
-var C={};
-(function(){
-  var cs=getComputedStyle(document.documentElement);
-  ['ink','ink2','dim','rule','rule2','rule3','acc','sup','con','neu','mat','vio','warn',
-   'panel','panel2','accbg','sunk'].forEach(function(k){
-    C[k]=cs.getPropertyValue('--'+k).trim()||'#000';
-  });
-})();
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function plural(n,a,b){return fmt(n)+' '+(Number(n)===1?a:b);}
 
 var CSPB=[];
 try{addEventListener('securitypolicyviolation',function(e){
   CSPB.push({uri:String(e.blockedURI||'').slice(0,140),
     dir:String(e.effectiveDirective||e.violatedDirective||''),at:Date.now()});
-  if(CSPB.length>30)CSPB.shift();
-});}catch(e){}
+  if(CSPB.length>30)CSPB.shift();});}catch(e){}
 var SANDBOXED=(function(){try{return window.top!==window.self;}catch(e){return true;}})();
 
 function netDiag(e){
   var m=String(e&&e.message||e);
-  if(/abort/i.test(m))return 'The sweep passed its time limit and the browser dropped it. The worker '+
-    'may well have completed; a second run is usually faster.';
+  if(/abort/i.test(m))return 'The sweep ran past its time limit and the browser dropped it. '+
+    'The worker may have finished anyway — re-check the claim and it is usually faster.';
   if(!/failed to fetch|networkerror|load failed|network request failed/i.test(m))return esc(m);
   var host=SUPA_URL.replace(/^https?:\/\//,'').split('/')[0];
   var blocked=CSPB.filter(function(x){return Date.now()-x.at<90000&&
     (x.uri.indexOf(host)>=0||/connect-src/.test(x.dir));});
   if(blocked.length||SANDBOXED)
     return 'The connection was refused before it left the browser. Wherever this page is embedded '+
-      'applies a content policy that blocks every outside request, so nothing was sent and the '+
-      'backend never heard about it. Run it on the live build: '+
+      'blocks outside requests, so nothing was sent. Open the live build: '+
       '<a href="'+PAGES_URL+'read/">'+PAGES_URL+'read/</a>';
-  return 'No HTTP status came back from '+esc(host)+' at all, so there is nothing from the worker '+
-    'to read. Either the function was killed mid-request or the network dropped.';
+  return 'No response came back from '+esc(host)+' at all. Either the function was killed '+
+    'mid-request or the network dropped.';
 }
 
 var CTLS=[];
 function abortAll(){CTLS.forEach(function(c){try{c.abort();}catch(e){}});CTLS=[];}
 function post(body,ms){
   var ctl=new AbortController();CTLS.push(ctl);
-  var timer=setTimeout(function(){ctl.abort();},ms||120000);
+  var timer=setTimeout(function(){ctl.abort();},ms||130000);
   return fetch(SUPA_URL+'/functions/v1/ingest',{
     method:'POST',signal:ctl.signal,
     headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
@@ -585,1003 +422,663 @@ function post(body,ms){
     clearTimeout(timer);
     return r.text().then(function(raw){
       var j=null;try{j=JSON.parse(raw);}catch(e){}
-      if(!r.ok)throw new Error('HTTP '+r.status+' — '+String(raw).slice(0,180));
-      if(!j)throw new Error('the worker did not return JSON — '+String(raw).slice(0,180));
+      if(!r.ok)throw new Error('HTTP '+r.status+' — '+String(raw).slice(0,170));
+      if(!j)throw new Error('the worker did not return JSON — '+String(raw).slice(0,170));
       if(j.error)throw new Error(j.error);
       return j;
     });
   },function(e){clearTimeout(timer);throw e;});
 }
-function setState(cls,label){
-  $('#stState').innerHTML='<i class="'+cls+'"></i>'+UP(label);
+function status(cls,text){
+  $('#stat').firstElementChild.className=cls||'';
+  $('#statText').textContent=text;
 }
+function progress(f){$('#prog').style.width=(f==null?0:Math.max(2,Math.min(100,f*100)))+'%';}
+function showErr(html){$('#err').innerHTML=html;$('#err').classList.add('on');}
+function clearErr(){$('#err').classList.remove('on');}
 
 /* ===========================================================================
-   2. FIGURE ENGINE
-   Charts are generated at the container's measured pixel width and redrawn on
-   resize. A viewBox scaled down to a phone turns 10px axis type into 4px; this
-   does not, so the labels stay real type at every viewport.
+   ANALYSIS — everything below is computed from what came back. Nothing here
+   invents a relationship the gate did not report.
    =========================================================================== */
-var FIGS=[],FIGN=0,RSZ=null;
-function figure(draw){
-  var id='fig'+(++FIGN);
-  FIGS.push({id:id,draw:draw});
-  return '<div class="fig" id="'+id+'"></div>';
-}
-function drawFigs(){
-  FIGS.forEach(function(f){
-    var el=document.getElementById(f.id);if(!el)return;
-    var w=Math.max(300,Math.round(el.clientWidth||760));
-    try{el.innerHTML=f.draw(w);}catch(e){el.innerHTML='';}
-  });
-}
-addEventListener('resize',function(){clearTimeout(RSZ);RSZ=setTimeout(drawFigs,140);});
-
-function svgOpen(w,h){return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+
-  '" role="img" style="max-width:100%">';}
-function T(x,y,s,o){o=o||{};
-  return '<text x="'+r1(x)+'" y="'+r1(y)+'" fill="'+(o.fill||C.dim)+'" font-size="'+(o.size||10)+
-    '" letter-spacing="'+(o.ls==null?0.6:o.ls)+'" text-anchor="'+(o.a||'start')+
-    '"'+(o.w?' font-weight="'+o.w+'"':'')+'>'+esc(s)+'</text>';}
-function L(x1,y1,x2,y2,c,w){return '<line x1="'+r1(x1)+'" y1="'+r1(y1)+'" x2="'+r1(x2)+'" y2="'+
-  r1(y2)+'" stroke="'+(c||C.rule)+'" stroke-width="'+(w||1)+'"/>';}
-function R(x,y,w,h,f,o){o=o||{};
-  return '<rect x="'+r1(x)+'" y="'+r1(y)+'" width="'+Math.max(0,r1(w))+'" height="'+
-    Math.max(0,r1(h))+'" fill="'+f+'"'+(o.op?' opacity="'+o.op+'"':'')+
-    (o.stroke?' stroke="'+o.stroke+'" stroke-width="'+(o.sw||1)+'"':'')+
-    (o.title?'><title>'+esc(o.title)+'</title></rect>':'/>');}
-function r1(n){return Math.round(n*10)/10;}
-function nice(max){
-  if(max<=0)return 1;
-  var e=Math.pow(10,Math.floor(Math.log10(max))),f=max/e;
-  return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;
-}
-
-/* the worker's own era windows, so a coverage chart is binned exactly the way
-   the perimeter was sampled rather than on a grid of our invention */
-var ERAS=[[1665,1929],[1930,1939],[1940,1949],[1950,1959],[1960,1969],[1970,1979],
-          [1980,1989],[1990,1999],[2000,2009],[2010,2019],[2020,2035]];
-function eraName(w){return w[0]===1665?'PRE-1930':w[0]===2020?'2020s':String(w[0]).slice(2)+'s';}
+function stanceOf(r){return txt(r&&r.stance).toLowerCase();}
 function yearOf(r){
   var y=num(r&&r.year);
   if(!y&&r&&r.published_at)y=num(String(r.published_at).slice(0,4));
   return (y&&y>1400&&y<2100)?y:null;
 }
-function binEras(recs){
-  var b=ERAS.map(function(){return 0;});
-  arr(recs).forEach(function(r){
-    var y=yearOf(r);if(y==null)return;
-    for(var i=0;i<ERAS.length;i++)if(y>=ERAS[i][0]&&y<=ERAS[i][1]){b[i]++;return;}
+function normParam(s){return txt(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
+function measOf(r){
+  var m=r&&r.measurement;
+  if(!m)return null;
+  if(typeof m==='string')return {parameter:'',value:m,sigma:''};
+  if(!txt(m.parameter)&&!txt(m.value))return null;
+  return {parameter:txt(m.parameter),value:txt(m.value),sigma:txt(m.sigma)};
+}
+
+/* The claim's standing. Two things decide it: how much of the read record
+   contests the claim, and whether anything material has landed against it
+   recently. A single strong contradiction from this year matters more than a
+   slow drift of neutral papers, so it is allowed to move the verdict. */
+function standingOf(res){
+  var sup=res.filter(function(r){return stanceOf(r)==='supports';});
+  var con=res.filter(function(r){return stanceOf(r)==='contests';});
+  var n=sup.length+con.length;
+  var share=n?con.length/n:0;
+  var thisYear=new Date().getFullYear();
+  var recentHard=con.filter(function(r){
+    var y=yearOf(r);return r.material&&y!=null&&(thisYear-y)<=6;}).length;
+  var k;
+  if(n<4)k='unsettled';
+  else if(share>=0.45||recentHard>=3)k='breaking';
+  else if(share>=0.15||recentHard>=1)k='contested';
+  else k='holding';
+  return {k:k,sup:sup,con:con,share:share,recentHard:recentHard,
+    label:{holding:'Holding',contested:'Contested',breaking:'Breaking',
+           unsettled:'Not enough on the record'}[k]};
+}
+var RANK={holding:0,contested:1,breaking:2,unsettled:-1};
+
+/* Oppositions. Every supporting record has to be reconciled against every
+   contesting one; that product is the work a person would have to do. What
+   comes back ranked is the subset worth looking at, and a pair where both
+   sides report the same measured parameter is a head-on collision rather than
+   a difference of emphasis. */
+function oppositions(st){
+  var pairs=[],direct=0;
+  st.sup.forEach(function(a){
+    var ma=measOf(a);
+    st.con.forEach(function(b){
+      var mb=measOf(b);
+      var same=!!(ma&&mb&&ma.parameter&&mb.parameter&&
+        normParam(ma.parameter)===normParam(mb.parameter));
+      if(same)direct++;
+      var score=(num(a.relevance)||0)+(num(b.relevance)||0)+
+        (a.material?0.6:0)+(b.material?0.6:0)+(same?3:0)+((ma&&mb)?0.8:0);
+      pairs.push({a:a,b:b,ma:ma,mb:mb,same:same,score:score});
+    });
   });
-  return b;
+  pairs.sort(function(x,y){return y.score-x.score;});
+  /* The highest-scoring supporter pairs well against everything, so a plain
+     top-N is the same paper eight times down the left column. Cap how often
+     either side may reappear and the list becomes eight different collisions
+     rather than one collision shown eight ways. */
+  var use={},spread=[],rest=[];
+  pairs.forEach(function(p){
+    var ka='a'+p.a.source_id,kb='b'+p.b.source_id;
+    if((use[ka]||0)<2&&(use[kb]||0)<2){
+      use[ka]=(use[ka]||0)+1;use[kb]=(use[kb]||0)+1;spread.push(p);
+    }else rest.push(p);
+  });
+  return {pairs:spread.concat(rest),total:st.sup.length*st.con.length,direct:direct};
 }
-
-/* ---- PLATE 01 : temporal coverage ---------------------------------------- */
-function figCoverage(all,read){
-  return function(W){
-    /* Square root, not linear, on the bar heights. Retrieval is heavily skewed
-       to the present: a linear axis puts three hundred records in one bin and
-       flattens every historical window to a hairline, erasing the one thing
-       this plate exists to show. Sqrt keeps zero at zero and the order intact,
-       the ticks carry real counts rather than root units, and the axis says
-       which scale it is on. */
-    /* the top band is reserved for the axis caption so the tallest bar's own
-       value label can never land on top of it, wherever that bar happens to be */
-    var H=236,m={l:42,r:12,t:32,b:36};
-    var A=binEras(all),B=binEras(read);
-    var max=Math.max.apply(null,A.concat([1]));
-    var iw=W-m.l-m.r,ih=H-m.t-m.b,bw=iw/ERAS.length;
-    var hOf=function(v){return v<=0?0:ih*Math.sqrt(v/max);};
-    var s='';
-    var cand=[1,2,5,10,25,50,100,250,500,1000,2500,5000].filter(function(t){return t<max;});
-    var ticks=[];
-    while(cand.length&&ticks.length<3){
-      ticks.unshift(cand.pop());
-      cand=cand.filter(function(t){return t<=ticks[0]/3;});
-    }
-    /* the max is always worth a tick, but not if it lands on top of the one
-       below it — on a root axis the top two candidates sit very close */
-    if(!ticks.length||hOf(max)-hOf(ticks[ticks.length-1])>13)ticks.push(max);
-    else ticks[ticks.length-1]=max;
-    ticks.forEach(function(t){
-      var gy=m.t+ih-hOf(t);
-      s+=L(m.l,gy,W-m.r,gy,C.rule);
-      s+=T(m.l-7,gy+3.5,String(t),{a:'end',size:9.5,fill:C.dim});
-    });
-    ERAS.forEach(function(e,i){
-      var x=m.l+i*bw,hA=hOf(A[i]),hB=hOf(B[i]);
-      s+=R(x+2,m.t+ih-hA,bw-4,hA,C.rule2,{title:eraName(e)+': '+A[i]+' retrieved'});
-      if(hB>0)s+=R(x+2,m.t+ih-hB,bw-4,hB,C.acc,{title:eraName(e)+': '+B[i]+' read closely'});
-      if(A[i]>0)s+=T(x+bw/2,m.t+ih-hA-4,String(A[i]),{a:'middle',size:9,fill:C.ink2,w:700});
-      s+=T(x+bw/2,H-m.b+15,eraName(e),{a:'middle',size:9,fill:C.dim,ls:.4});
-    });
-    s+=L(m.l,m.t+ih,W-m.r,m.t+ih,C.ink2,1.2);
-    s+=T(m.l,H-4,'ERA WINDOW',{size:8.5,fill:C.rule3,ls:1.6});
-    s+=T(m.l-7,11,'RECORDS · √ SCALE',{size:8.5,fill:C.rule3,ls:1.6});
-    return svgOpen(W,H)+s+'</svg>';
-  };
+function assertionsIn(res){
+  return res.filter(function(r){return txt(r.position)||measOf(r);}).length;
 }
-
-/* ---- PLATE 02 : relevance field ------------------------------------------ */
-/* x = year, y = log10(citations+1), radius = relevance, colour = stance.
-   This is the one view that shows a field's shape at a glance: the canon sits
-   top-left, the current wave bottom-right, and anything contesting is red. */
-function figField(recs){
-  return function(W){
-    var H=290,m={l:46,r:14,t:18,b:38};
-    var pts=arr(recs).map(function(r){
-      var y=yearOf(r);if(y==null)return null;
-      return {y:y,c:Math.max(0,num(r.citations)||0),rel:num(r.relevance)||0,
-        mat:!!r.material,st:txt(r.stance).toLowerCase(),t:r.title,url:r.url,id:r.source_id};
-    }).filter(Boolean);
-    if(!pts.length)return '';
-    var ys=pts.map(function(p){return p.y;});
-    var y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
-    if(y1-y0<8){y0-=4;y1+=4;}
-    var cmax=Math.max.apply(null,pts.map(function(p){return p.c;}).concat([10]));
-    /* headroom on both axes: a point sitting exactly on the domain edge has
-       half its disc drawn outside the plot */
-    var lmax=Math.log10(cmax+1)*1.08;
-    var pad=(y1-y0)*0.04;y0-=pad;y1+=pad;
-    var iw=W-m.l-m.r,ih=H-m.t-m.b;
-    var X=function(y){return m.l+iw*(y-y0)/(y1-y0);};
-    var Y=function(c){return m.t+ih-ih*(Math.log10(c+1)/lmax);};
-    var s='';
-    /* y gridlines on decade powers */
-    for(var p=0;Math.pow(10,p)<=cmax*1.2&&p<7;p++){
-      var gy=Y(Math.pow(10,p));
-      if(gy<m.t-1||gy>m.t+ih+1)continue;
-      s+=L(m.l,gy,W-m.r,gy,C.rule);
-      s+=T(m.l-7,gy+3.5,p===0?'1':'10^'+p,{a:'end',size:9,fill:C.dim});
-    }
-    /* x ticks on round years */
-    var step=(y1-y0)>140?50:(y1-y0)>60?20:10;
-    for(var yy=Math.ceil(y0/step)*step;yy<=y1;yy+=step){
-      s+=L(X(yy),m.t,X(yy),m.t+ih,C.rule);
-      s+=T(X(yy),H-m.b+15,String(yy),{a:'middle',size:9,fill:C.dim});
-    }
-    s+=L(m.l,m.t+ih,W-m.r,m.t+ih,C.ink2,1.2);
-    s+=L(m.l,m.t,m.l,m.t+ih,C.ink2,1.2);
-    pts.sort(function(a,b){return a.rel-b.rel;}).forEach(function(pt){
-      var rad=3+pt.rel*6.5;
-      var col=pt.st==='contests'?C.con:(pt.st==='supports'?C.sup:C.neu);
-      var tip=String(pt.t).slice(0,110)+' · '+pt.y+' · '+pt.c+' cites · relevance '+
-        pt.rel.toFixed(2)+(pt.st?' · '+pt.st:'')+(pt.mat?' · material':'');
-      s+='<g><title>'+esc(tip)+'</title>'+
-        '<circle cx="'+r1(X(pt.y))+'" cy="'+r1(Y(pt.c))+'" r="'+r1(rad)+'" fill="'+col+
-        '" fill-opacity="'+(0.28+pt.rel*0.42)+'" stroke="'+col+'" stroke-width="1"/>'+
-        (pt.mat?'<circle cx="'+r1(X(pt.y))+'" cy="'+r1(Y(pt.c))+'" r="'+r1(rad+3)+
-          '" fill="none" stroke="'+C.mat+'" stroke-width="1.3"/>':'')+'</g>';
-    });
-    s+=T(m.l,H-4,'YEAR OF PUBLICATION',{size:8.5,fill:C.rule3,ls:1.6});
-    /* the y label belongs on the y axis: at the foot of the frame it reads as
-       a second caption for the x axis */
-    s+=T(m.l-6,m.t-6,'CITATIONS (LOG)',{size:8.5,fill:C.rule3,ls:1.6});
-    return svgOpen(W,H)+s+'</svg>';
-  };
-}
-
-/* ---- ranked horizontal bars (roles, concepts, provenance) ---------------- */
-function figRanked(rows,opt){
-  opt=opt||{};
-  return function(W){
-    if(!rows.length)return '';
-    /* on a phone a fixed label gutter eats the bars; cap it as a fraction of
-       the measured width and let the labels truncate instead */
-    var rh=opt.rh||21;
-    var m={l:Math.min(opt.l||128,Math.round(W*0.36)),r:Math.min(opt.r||56,Math.round(W*0.16)),
-      t:6,b:6};
-    var chars=Math.max(6,Math.floor((m.l-10)/6.1));
-    var H=m.t+m.b+rows.length*rh;
-    var max=Math.max.apply(null,rows.map(function(r){return r.v;}).concat([1]));
-    var iw=W-m.l-m.r;
-    var s='';
-    rows.forEach(function(row,i){
-      var y=m.t+i*rh,bw=iw*(row.v/max);
-      s+=R(m.l,y+3,iw,rh-8,C.panel2);
-      s+=R(m.l,y+3,bw,rh-8,row.c||C.acc,{title:row.k+': '+row.v,op:row.op||1});
-      if(row.hatch)s+=R(m.l,y+3,bw,rh-8,'url(#hx)');
-      s+=T(m.l-8,y+rh/2+3.5,UP(row.k).slice(0,chars),{a:'end',size:9.5,fill:C.ink2,ls:.9});
-      s+=T(W-m.r+7,y+rh/2+3.5,row.lab!=null?row.lab:String(row.v),
-        {size:10,fill:row.c||C.ink2,w:700});
-      if(row.sub)s+=T(W-m.r+7,y+rh/2+3.5,row.sub,{size:9,fill:C.dim,a:'start'});
-    });
-    s+=L(m.l,m.t,m.l,H-m.b,C.rule2,1.2);
-    var defs='<defs><pattern id="hx" width="5" height="5" patternTransform="rotate(45)" '+
-      'patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="5" stroke="'+C.panel+
-      '" stroke-width="2"/></pattern></defs>';
-    return svgOpen(W,H)+defs+s+'</svg>';
-  };
-}
-
-/* ---- PLATE 05 : where the explanatory weight sits ------------------------ */
-function figWeight(pos){
-  return function(W){
-    var H=74,m={l:0,r:0,t:16,b:30};
-    var tot=pos.reduce(function(n,p){return n+Math.max(0,num(p.support)||0);},0)||1;
-    var pal=[C.acc,C.sup,C.vio,C.neu];
-    var x=0,s='',iw=W;
-    pos.forEach(function(p,i){
-      var v=Math.max(0,num(p.support)||0),w=iw*(v/tot);
-      s+=R(x,m.t,w-1,26,pal[i%pal.length],{title:p.n+': '+v});
-      if(w>52)s+=T(x+7,m.t+17,String(Math.round(100*v/tot))+'%',{size:11,fill:'#fff',w:700,ls:.4});
-      s+=T(x,m.t+44,UP(p.n).slice(0,Math.max(6,Math.floor(w/6.6))),{size:9.5,fill:C.ink2,ls:.9,w:700});
-      s+=L(x,m.t+30,x,m.t+34,pal[i%pal.length],1.5);
-      x+=w;
-    });
-    s+=T(0,10,'RELATIVE WEIGHT OF EACH EXPLANATION IN THE RETRIEVED RECORD',
-      {size:8.5,fill:C.rule3,ls:1.6});
-    return svgOpen(W,H)+s+'</svg>';
-  };
-}
-
-/* ---- COMPARE : two literatures, mirrored --------------------------------- */
-function figMirror(a,b,na,nb){
-  return function(W){
-    /* both series are named at the top: a legend on the bottom edge lands on
-       the era labels and the two strings overprint */
-    var H=252,m={l:40,r:12,t:34,b:26};
-    var A=binEras(a),B=binEras(b);
-    var max=nice(Math.max.apply(null,A.concat(B).concat([1])));
-    var iw=W-m.l-m.r,half=(H-m.t-m.b)/2,mid=m.t+half,bw=iw/ERAS.length;
-    var s='';
-    for(var g=1;g<=2;g++){
-      s+=L(m.l,mid-half*g/2,W-m.r,mid-half*g/2,C.rule);
-      s+=L(m.l,mid+half*g/2,W-m.r,mid+half*g/2,C.rule);
-      s+=T(m.l-6,mid-half*g/2+3.5,String(Math.round(max*g/2)),{a:'end',size:9,fill:C.dim});
-      s+=T(m.l-6,mid+half*g/2+3.5,String(Math.round(max*g/2)),{a:'end',size:9,fill:C.dim});
-    }
-    ERAS.forEach(function(e,i){
-      var x=m.l+i*bw;
-      var ha=half*(A[i]/max),hb=half*(B[i]/max);
-      if(ha>0)s+=R(x+2,mid-ha,bw-4,ha,C.sup,{title:'A · '+eraName(e)+': '+A[i]});
-      if(hb>0)s+=R(x+2,mid,bw-4,hb,C.con,{title:'B · '+eraName(e)+': '+B[i]});
-      s+=T(x+bw/2,H-6,eraName(e),{a:'middle',size:9,fill:C.dim,ls:.4});
-    });
-    s+=L(m.l,mid,W-m.r,mid,C.ink2,1.4);
-    var cap=Math.max(12,Math.floor((W-m.l-m.r)/16));
-    s+=R(m.l,6,9,9,C.sup);
-    s+=T(m.l+14,14.5,'A  '+UP(na).slice(0,cap),{size:9.5,fill:C.sup,w:700,ls:1.2});
-    s+=R(m.l,21,9,9,C.con);
-    s+=T(m.l+14,29.5,'B  '+UP(nb).slice(0,cap),{size:9.5,fill:C.con,w:700,ls:1.2});
-    s+=T(W-m.r,14.5,'RECORDS PER ERA WINDOW',{size:8.5,fill:C.rule3,ls:1.6,a:'end'});
-    return svgOpen(W,H)+s+'</svg>';
-  };
-}
-
-/* ---- CHECK : claim standing matrix --------------------------------------- */
-function figClaims(claims,by){
-  return function(W){
-    var rh=30,m={l:0,r:0,t:22,b:8};
-    var H=m.t+m.b+claims.length*rh;
-    var COL={supported:C.mat,contested:C.warn,unsupported:C.con,superseded:C.con,
-      'already-established':C.sup};
-    var lw=Math.min(150,Math.max(96,W*0.22));
-    var s=T(0,10,'CLAIM STANDING · LEFT BAR = LOAD BEARING',{size:8.5,fill:C.rule3,ls:1.6});
-    claims.forEach(function(c,i){
-      var st=by[i+1]||{},k=txt(st.status).toLowerCase(),col=COL[k]||C.neu;
-      var y=m.t+i*rh;
-      s+=R(0,y+2,4,rh-8,/load/i.test(txt(c.load))?C.ink:C.rule2);
-      s+=T(12,y+16,'C'+String(i+1).padStart(2,'0'),{size:10,fill:C.dim,w:700,ls:1});
-      s+=R(44,y+5,lw,rh-14,col,{op:.16});
-      s+=R(44,y+5,lw*(k==='supported'?1:k==='already-established'?.85:k==='contested'?.55:.3),
-        rh-14,col,{title:c.text});
-      s+=T(50,y+17,UP(k||'unrated'),{size:9,fill:'#fff',w:700,ls:1});
-      s+=T(44+lw+12,y+17,String(c.text).slice(0,Math.max(10,Math.floor((W-lw-70)/6.4))),
-        {size:10.5,fill:C.ink2,ls:.2});
-      s+=L(0,y+rh-2,W,y+rh-2,C.rule);
-    });
-    return svgOpen(W,H)+s+'</svg>';
-  };
+/* when the claim started taking fire */
+var ERAS=[[1665,1929],[1930,1939],[1940,1949],[1950,1959],[1960,1969],[1970,1979],
+          [1980,1989],[1990,1999],[2000,2009],[2010,2019],[2020,2035]];
+function eraName(w){return w[0]===1665?'pre-1930':w[0]===2020?'2020s':String(w[0]).slice(2)+'s';}
+function byEra(res){
+  return ERAS.map(function(w){
+    var inE=res.filter(function(r){var y=yearOf(r);return y!=null&&y>=w[0]&&y<=w[1];});
+    return {w:w,name:eraName(w),
+      sup:inE.filter(function(r){return stanceOf(r)==='supports';}).length,
+      con:inE.filter(function(r){return stanceOf(r)==='contests';}).length};
+  });
 }
 
 /* ===========================================================================
-   3. CONSOLE
+   STORE — a tracked claim keeps its history, which is what makes this a
+   tracker rather than a search box.
    =========================================================================== */
-var VERB='ask';
-function setVerb(v){
-  VERB=v;
-  $$('.verb').forEach(function(b){b.classList.toggle('on',b.dataset.verb===v);});
-  $$('.pane').forEach(function(p){p.classList.toggle('on',p.dataset.pane===v);});
+var KEY='parallax.claims.v1';
+var DB={claims:[]},SEL=null;
+function load(){
+  try{var d=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(d&&Array.isArray(d.claims))DB=d;}catch(e){}
 }
-$$('.verb').forEach(function(b){b.addEventListener('click',function(){setVerb(b.dataset.verb);});});
-$$('.eg').forEach(function(b){
-  if(!b.dataset.fill)return;
-  b.addEventListener('click',function(){
-    var p=b.dataset.fill.split('|');
-    setVerb(p[0]);
-    if(p[0]==='ask'){$('#askQ').value=p[1];$('#askQ').focus();}
-    else if(p[0]==='compare'){$('#cmpA').value=p[1]||'';$('#cmpB').value=p[2]||'';$('#cmpQ').value=p[3]||'';}
-  });
-});
-$('#askQ').addEventListener('keydown',function(e){if(e.key==='Enter')goAsk();});
-$('#cmpQ').addEventListener('keydown',function(e){if(e.key==='Enter')goCompare();});
-$('#cmpB').addEventListener('keydown',function(e){if(e.key==='Enter')goCompare();});
-$('#runAsk').addEventListener('click',goAsk);
-$('#runCmp').addEventListener('click',goCompare);
-$('#runChk').addEventListener('click',goCheck);
-$('#chkFile').addEventListener('click',function(){$('#filePick').click();});
-$('#filePick').addEventListener('change',function(){
-  var f=this.files&&this.files[0];if(!f)return;
-  f.text().then(function(t){$('#chkT').value=t.slice(0,24000);});
-  this.value='';
-});
-var DEMO='We report a bulk density of 1.19 g/cm3 for the Bennu returned sample, implying a '+
-'macroporosity above 50 per cent. We argue that this porosity is primordial rather than the '+
-'product of impact processing, and that it therefore constrains the accretion environment of '+
-'the parent body. We further claim that the amino acid inventory measured in the sample is '+
-'racemic within error, which rules out terrestrial contamination as the dominant source.';
-$('#chkDemo').addEventListener('click',function(){$('#chkT').value=DEMO;$('#chkT').focus();});
-['dragover','drop'].forEach(function(ev){
-  $('#chkT').addEventListener(ev,function(e){
-    e.preventDefault();if(ev!=='drop')return;
-    var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
-    if(f)f.text().then(function(t){$('#chkT').value=t.slice(0,24000);});
-  });
-});
+function save(){
+  for(var i=0;i<5;i++){
+    try{localStorage.setItem(KEY,JSON.stringify(DB));return;}
+    catch(e){
+      /* trim the heaviest thing first — the raw corpus — before dropping claims */
+      var big=DB.claims.slice().sort(function(a,b){
+        return arr(b.data&&b.data.corpus).length-arr(a.data&&a.data.corpus).length;})[0];
+      if(big&&big.data&&arr(big.data.corpus).length>20){big.data.corpus=big.data.corpus.slice(0,20);}
+      else if(DB.claims.length>1)DB.claims.pop();
+      else return;
+    }
+  }
+}
+function slim(j){
+  var s={};
+  ['results','archives','synthesis','question','worker','sweepMs','retrieved','material',
+   'hosts','passes','profile','rungs'].forEach(function(k){if(j[k]!=null)s[k]=j[k];});
+  s.corpus=arr(j.corpus).slice(0,60);
+  return JSON.parse(JSON.stringify(s));
+}
+function findClaim(text){
+  var k=txt(text).toLowerCase();
+  for(var i=0;i<DB.claims.length;i++)
+    if(txt(DB.claims[i].text).toLowerCase()===k)return DB.claims[i];
+  return null;
+}
+function ago(ts){
+  if(!ts)return 'never';
+  var s=(Date.now()-ts)/1000;
+  if(s<90)return 'just now';
+  if(s<5400)return Math.round(s/60)+' min ago';
+  if(s<172800)return Math.round(s/3600)+' h ago';
+  return Math.round(s/86400)+' d ago';
+}
 
 /* ===========================================================================
-   4. SWEEP READOUT
+   SWEEP
    =========================================================================== */
-var SW={t0:0,timer:null,steps:[],n:0,hold:false,pass:0,rec:0};
-function sweepStart(title,steps){
-  SW.t0=Date.now();SW.steps=steps;SW.n=0;SW.hold=false;SW.pass=0;SW.rec=0;CTLS=[];
-  $('#swTitle').textContent=UP(title);
-  $('#swBar').className='swbar indet';$('#swBar').firstChild.style.width='';
-  $('#swSteps').innerHTML=steps.map(function(s,i){
-    return '<span class="'+(i===0?'doing':'')+'">'+esc(UP(s))+'</span>';}).join('');
-  $('#sweep').classList.add('on');$('#err').classList.remove('on');
-  setState('busy','sweeping');
-  clearInterval(SW.timer);
-  SW.timer=setInterval(function(){
-    $('#swElapsed').textContent=Math.round((Date.now()-SW.t0)/1000);},400);
-  $('#swElapsed').textContent='0';$('#swPass').textContent='0';$('#swRec').textContent='0';
+var BUSY=false;
+function setBusy(on){
+  BUSY=on;
+  $('#track').disabled=on;$('#fromText').disabled=on;
+  /* every re-check button, wherever it is. The one in the verdict block sits
+     outside #pane, so scoping this to the pane left it disabled for good after
+     the first sweep — paint() runs while the sweep is still busy, and nothing
+     ever went back to re-enable it. */
+  $$('.recheck').forEach(function(b){b.disabled=on;});
 }
-function sweepStep(i){
-  SW.n=i;
-  $$('#swSteps span').forEach(function(s,k){s.className=k<i?'done':(k===i?'doing':'');});
-}
-function sweepCount(pass,rec){
-  SW.pass=pass;SW.rec=rec;
-  $('#swPass').textContent=pass;$('#swRec').textContent=rec;
-}
-function sweepProgress(f){
-  var b=$('#swBar');b.className='swbar';
-  b.firstChild.style.width=Math.max(3,Math.min(100,f*100))+'%';
-}
-function sweepEnd(){SW.hold=false;clearInterval(SW.timer);$('#sweep').classList.remove('on');
-  setState('ok','ready');}
-$('#swCancel').addEventListener('click',function(){abortAll();sweepEnd();busy(false);
-  setState('','idle');});
-function showErr(html){
-  $('#err').innerHTML='<b>RUN FAILED</b><p style="margin:0">'+html+'</p>';
-  $('#err').classList.add('on');setState('err','fault');
-  $('#err').scrollIntoView({behavior:'smooth',block:'center'});
-}
-function busy(on){['#runAsk','#runCmp','#runChk'].forEach(function(s){$(s).disabled=on;});}
-
-/* ===========================================================================
-   5. RUNS
-   =========================================================================== */
-var CUR=null;
-function goAsk(){
-  var q=txt($('#askQ').value);
-  if(!q){$('#askQ').focus();return;}
-  busy(true);
-  sweepStart('sweep · '+q.slice(0,54),
-    ['interpret','core perimeter','relevance gate','synthesis','historical ladder']);
-  post({question:q,limit:40,store:true,slice:0,slices:SLICES},130000)
+function runClaim(claim,onDone){
+  if(BUSY)return;
+  setBusy(true);clearErr();
+  status('go','Sweeping the archives for “'+claim.text.slice(0,44)+'”');
+  progress(0.06);
+  post({question:claim.text,limit:40,store:true,slice:0,slices:SLICES},135000)
   .then(function(j){
     if(!j.results)throw new Error('the worker returned no scored records — an old build may be deployed');
-    sweepStep(4);
-    sweepCount(arr(j.archives).length,j.retrieved||0);
-    j._verb='ask';j._label=q;
-    CUR=j;render(j);reveal();remember(j);
-    SW.hold=true;$('#swTitle').textContent='HISTORICAL LADDER · FILLING THE PERIMETER';
-    ladder(q,j);
-  }).catch(fail).then(done);
-}
-/* The ladder: slice 0 has landed and the readout is already live; the other
-   five are retrieval only — no model calls — so they are cheap enough that the
-   platform will not kill the isolate the way it did when all 124 passes ran in
-   one invocation. */
-function ladder(q,j0){
-  var n=Number(j0.slices)||SLICES;
-  if(n<2){sweepEnd();return;}
-  var landed=0;
-  sweepProgress(1/n);
-  var one=function(k){
-    return post({question:q,q:j0.query,tracked:(j0.profile&&j0.profile.tracked)||undefined,
-      limit:40,slice:k,slices:n,gate:false,profile:j0.profile||null},95000)
-    .then(function(j){merge(j0,j);},function(){})
-    .then(function(){
-      landed++;sweepProgress((landed+1)/n);
-      sweepCount(arr(j0.archives).length,j0.retrieved||0);
-      /* the readout on screen is being read: a landing slice updates the two
-         counters it changed and nothing else. The redraw waits for the end. */
-      if(CUR===j0)bumpKeys(j0);
+    progress(1/SLICES);
+    commit(claim,j);
+    status('go','Filling out the perimeter');
+    /* the ladder: slice 0 already answered, the rest is retrieval only and
+       cheap enough that the platform will not kill the isolate */
+    var landed=0,n=Number(j.slices)||SLICES,runs=[];
+    for(var k=1;k<n;k++)(function(k){
+      runs.push(post({question:claim.text,q:j.query,
+        tracked:(j.profile&&j.profile.tracked)||undefined,limit:40,slice:k,slices:n,
+        gate:false,profile:j.profile||null},95000)
+      .then(function(s){mergeSlice(claim,s);},function(){})
+      .then(function(){landed++;progress((landed+1)/n);}));
+    })(k);
+    return Promise.all(runs).then(function(){
+      save();
+      if(SEL===claim.id)paint();
+      drawList();
     });
-  };
-  var runs=[];for(var k=1;k<n;k++)runs.push(one(k));
-  Promise.all(runs).then(function(){
-    sweepEnd();
-    if(CUR===j0)render(j0);
-    remember(j0);
+  })
+  .catch(function(e){status('bad','Sweep failed');showErr(netDiag(e));})
+  .then(function(){
+    setBusy(false);progress(0);
+    if(status_ok())status('ok','Ready');
+    if(onDone)onDone();
   });
 }
-function merge(base,j){
-  base.archives=arr(base.archives).concat(arr(j.archives));
-  var add=arr(j.corpus);
+function status_ok(){return !$('#err').classList.contains('on');}
+function mergeSlice(claim,s){
+  var d=claim.data;if(!d)return;
+  d.archives=arr(d.archives).concat(arr(s.archives));
+  var add=arr(s.corpus);
   if(add.length){
-    var have={};arr(base.corpus).forEach(function(c){if(c&&c.source_id)have[c.source_id]=1;});
-    base.corpus=arr(base.corpus).concat(add.filter(function(c){
-      return c&&c.source_id&&!have[c.source_id];}));
-    base.retrieved=base.corpus.length;
+    var have={};arr(d.corpus).forEach(function(c){if(c&&c.source_id)have[c.source_id]=1;});
+    d.corpus=arr(d.corpus).concat(add.filter(function(c){
+      return c&&c.source_id&&!have[c.source_id];})).slice(0,400);
+    d.retrieved=(num(d.retrieved)||0)+add.length;
   }
 }
-function bumpKeys(j){
-  var a=$('#doc [data-k="retrieved"] .v'),b=$('#doc [data-k="passes"] .v');
-  if(a)a.textContent=j.retrieved||arr(j.corpus).length;
-  if(b)b.textContent=arr(j.archives).length;
+/* Committing a sweep is where tracking actually happens: the new standing is
+   compared with the one on file and the difference is kept. */
+function commit(claim,j){
+  var st=standingOf(arr(j.results));
+  var prev=claim.state||null;
+  claim.data=slim(j);
+  claim.state=st.k;
+  claim.sup=st.sup.length;claim.con=st.con.length;
+  claim.checked=Date.now();
+  claim.history=arr(claim.history);
+  claim.history.push({at:claim.checked,state:st.k,sup:claim.sup,con:claim.con});
+  if(claim.history.length>24)claim.history=claim.history.slice(-24);
+  claim.moved=(prev&&prev!==st.k)?{from:prev,to:st.k}:null;
+  save();
 }
 
-function goCompare(){
-  var a=txt($('#cmpA').value),b=txt($('#cmpB').value),q=txt($('#cmpQ').value);
-  if(!a||!b){(!a?$('#cmpA'):$('#cmpB')).focus();return;}
-  busy(true);
-  sweepStart('adjudication · '+a.slice(0,22)+' vs '+b.slice(0,22),
-    ['perimeter a','perimeter b','side-by-side read']);
-  setTimeout(function(){if(SW.n===0)sweepStep(1);},7000);
-  setTimeout(function(){if(SW.n<2)sweepStep(2);},16000);
-  post({mode:'adjudicate',a:a,b:b,question:q,limit:18},120000)
-  .then(function(j){
-    if(!j.adjudication)throw new Error('the worker could not return a structured adjudication');
-    j._verb='compare';j._label=a+' vs '+b;
-    CUR=j;render(j);reveal();remember(j);
-  }).catch(fail).then(done);
-}
-
-function goCheck(){
-  var t=txt($('#chkT').value);
-  if(t.length<40){$('#chkT').focus();
-    showErr('Under about forty characters there is nothing to extract. Give it an abstract, '+
-      'a paragraph, or a handful of claims.');return;}
-  busy(true);
-  sweepStart('claim audit',['extract claims','perimeter from claim terms','grade each claim']);
-  setTimeout(function(){if(SW.n===0)sweepStep(1);},9000);
-  setTimeout(function(){if(SW.n<2)sweepStep(2);},22000);
-  post({mode:'manuscript',text:t,limit:22},130000)
-  .then(function(j){
-    if(!j.claims||!j.claims.length)throw new Error('no claims could be read out of that text — '+
-      'it may be too short, or it may not be making assertions');
-    j._verb='check';j._label=txt(j.title)||'source text';
-    CUR=j;render(j);reveal();remember(j);
-  }).catch(fail).then(done);
-}
-function fail(e){sweepEnd();setState('err','fault');showErr(netDiag(e));}
-function done(){busy(false);if(!SW.hold)sweepEnd();}
-function reveal(){
-  var w=$('#work');
-  if(w&&w.classList.contains('on'))w.scrollIntoView({behavior:'smooth',block:'start'});
+function trackText(text,select){
+  text=txt(text);
+  if(text.length<8)return null;
+  var ex=findClaim(text);
+  if(ex){if(select!==false)select_(ex.id);return ex;}
+  var c={id:'c'+Date.now()+Math.round(Math.random()*1e4),text:text,state:null,
+    sup:0,con:0,checked:0,history:[],data:null,moved:null};
+  DB.claims.unshift(c);save();drawList();
+  if(select!==false)select_(c.id);
+  return c;
 }
 
 /* ===========================================================================
-   6. MEMORY
+   WATCHLIST
    =========================================================================== */
-var KEY='parallax.record.v3',RUNS=[];
-function loadRuns(){
-  try{var r=JSON.parse(localStorage.getItem(KEY)||'[]');RUNS=Array.isArray(r)?r:[];}
-  catch(e){RUNS=[];}
-  drawRecent();
-}
-function remember(j){
-  var s=JSON.parse(JSON.stringify(j));
-  if(arr(s.corpus).length>240)s.corpus=s.corpus.slice(0,240);
-  if(arr(s.corpusA).length>90)s.corpusA=s.corpusA.slice(0,90);
-  if(arr(s.corpusB).length>90)s.corpusB=s.corpusB.slice(0,90);
-  s._at=Date.now();
-  RUNS=RUNS.filter(function(r){return !(r._verb===s._verb&&r._label===s._label);});
-  RUNS.unshift(s);
-  while(RUNS.length>10)RUNS.pop();
-  for(var i=0;i<4;i++){
-    try{localStorage.setItem(KEY,JSON.stringify(RUNS));break;}
-    catch(e){RUNS.pop();if(!RUNS.length)break;}
+function drawList(){
+  var L=$('#list');
+  $('#sideCount').textContent=DB.claims.length?
+    plural(DB.claims.length,'claim','claims')+' tracked':'Nothing tracked yet';
+  if(!DB.claims.length){
+    L.innerHTML='<div id="empty">Track a claim and it stays tracked. Re-check it whenever '+
+      'you like and PARALLAX tells you what moved.</div>';
+    return;
   }
-  drawRecent();
-}
-function drawRecent(){
-  var el=$('#recent');
-  if(!RUNS.length){el.classList.remove('on');return;}
-  el.classList.add('on');
-  el.innerHTML='<span class="rl">SESSION</span>'+RUNS.map(function(r,i){
-    return '<button class="rchip" type="button" data-run="'+i+'"><i>'+UP(r._verb)+
-      '</i>'+esc(r._label||'')+'</button>';}).join('');
-  $$('#recent .rchip').forEach(function(b){
-    b.addEventListener('click',function(){
-      var r=RUNS[Number(b.dataset.run)];if(!r)return;
-      CUR=r;render(r);reveal();
-    });
+  L.innerHTML=DB.claims.map(function(c){
+    var k=c.state||'unsettled';
+    var col={holding:'var(--hold)',contested:'var(--cont)',breaking:'var(--brk)',
+      unsettled:'var(--unset)'}[k];
+    var lab={holding:'Holding',contested:'Contested',breaking:'Breaking',
+      unsettled:c.checked?'Not enough on the record':'Not checked yet'}[k];
+    var tot=(c.sup||0)+(c.con||0);
+    /* a claim nobody has looked at in a week is not being tracked, it is being
+       remembered — say so where the state is */
+    var stale=c.checked&&(Date.now()-c.checked)>6048e5;
+    return '<button class="wi'+(SEL===c.id?' on':'')+'" data-id="'+c.id+'">'+
+      '<div class="wt">'+esc(c.text)+'</div>'+
+      '<div class="wm"><span class="dot" style="background:'+col+'"></span>'+
+        '<span class="st" style="color:'+col+'">'+lab+'</span>'+
+        '<span class="ago"'+(stale?' style="color:var(--cont);font-weight:600"':'')+'>'+
+        (c.checked?ago(c.checked)+(stale?' · stale':''):'')+'</span></div>'+
+      (tot?'<div class="bd"><i style="background:var(--sup);width:'+
+        (100*(c.sup||0)/tot)+'%"></i><i style="background:var(--brk);width:'+
+        (100*(c.con||0)/tot)+'%"></i></div>':'')+
+      (c.moved?'<span class="chg">moved '+esc(c.moved.from)+' &rarr; '+esc(c.moved.to)+'</span>':'')+
+      '</button>';
+  }).join('');
+  $$('#list .wi').forEach(function(b){
+    b.addEventListener('click',function(){select_(b.dataset.id);});
   });
+}
+function select_(id){
+  SEL=id;document.body.classList.add('viewing');
+  drawList();paint();
+  var c=cur();
+  if(c&&!c.data&&!BUSY)runClaim(c);
+}
+function cur(){
+  for(var i=0;i<DB.claims.length;i++)if(DB.claims[i].id===SEL)return DB.claims[i];
+  return null;
 }
 
 /* ===========================================================================
-   7. RENDER
+   THE CLAIM VIEW
    =========================================================================== */
-var PLATE=0;
-function plate(title,sub,body,caption){
-  PLATE++;
-  return '<div class="plate" data-toc="'+esc(title)+'" data-tocn="PL'+String(PLATE).padStart(2,'0')+'">'+
-    '<div class="ph"><span class="pn">PLATE '+String(PLATE).padStart(2,'0')+'</span>'+
-    '<span class="pt">'+esc(UP(title))+'</span>'+
-    (sub?'<span class="ps">'+esc(sub)+'</span>':'')+'</div>'+
-    '<div class="pb">'+body+'</div>'+
-    (caption?'<div class="pc">'+caption+'</div>':'')+'</div>';
-}
-function sect(title,note,body){
-  if(!body)return '';
-  return '<section class="s" data-toc="'+esc(title)+'">'+
-    '<h2>'+esc(UP(title))+(note?'<u>'+esc(note)+'</u>':'')+'</h2>'+
-    '<div class="sb">'+body+'</div></section>';
-}
-function legend(items){
-  return '<div class="legend">'+items.map(function(i){
-    return '<span><i class="'+(i.cls||'')+'" style="'+(i.cls?'':'background:'+i.c)+'"></i>'+
-      esc(UP(i.k))+'</span>';}).join('')+'</div>';
-}
-function keys(list){
-  return '<div class="keys">'+list.map(function(k){
-    return '<div'+(k.hi?' class="hi"':'')+(k.id?' data-k="'+k.id+'"':'')+
-      '><span class="k">'+esc(UP(k.k))+'</span><span class="v">'+k.v+
-      (k.u?' <small>'+esc(k.u)+'</small>':'')+'</span></div>';}).join('')+'</div>';
-}
-function bullets(list){
-  var a=arr(list).map(txt).filter(Boolean);
-  if(!a.length)return '';
-  return '<ul class="pl">'+a.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
-}
-function tag(s,k){s=txt(s);if(!s)return '';return '<span class="tag '+k+'">'+esc(UP(s))+'</span>';}
-function statusTag(s){
-  var k=txt(s).toLowerCase();if(!k)return '';
-  if(/^(established|supported|done|high)$/.test(k))return tag(k,'ok');
-  if(/^(contested|underway|proposed|moderate)$/.test(k))return tag(k,'wa');
-  if(/^(fringe|unsupported|superseded|infeasible|dormant|low)$/.test(k))return tag(k,'no');
-  if(/^already-established$/.test(k))return tag(k,'sp');
-  return tag(k,'nu');
-}
-function secs(ms){return ms?Math.round(ms/1000):0;}
-function pl(n,one,many){return n+' '+(Number(n)===1?one:many);}
+var TAB='conflicts';
+function paint(){
+  var c=cur();
+  if(!c){$('#blank').hidden=false;['#head','#tabs','#pane'].forEach(function(s){$(s).hidden=true;});return;}
+  $('#blank').hidden=true;
+  ['#head','#tabs','#pane'].forEach(function(s){$(s).hidden=false;});
+  $('#claimText').textContent=c.text;
 
-function render(j){
-  FIGS=[];FIGN=0;PLATE=0;
-  var html=j._verb==='ask'?renderAsk(j):j._verb==='compare'?renderCompare(j):renderCheck(j);
-  $('#doc').innerHTML=html;
-  $('#work').classList.add('on');
-  $('#stWorker').innerHTML='WORKER <b>'+(j.worker?('v'+j.worker):'&mdash;')+'</b>';
-  drawFigs();buildRail();wireDoc();
-}
-function buildRail(){
-  var items=$$('#doc [data-toc]');
-  $('#rail').innerHTML='<div class="rh">CONTENTS</div>'+items.map(function(el,i){
-    el.id=el.id||'sec'+i;
-    return '<a href="#'+el.id+'" data-i="'+i+'">'+esc(UP(el.dataset.toc))+
-      (el.dataset.tocn?'<u>'+el.dataset.tocn+'</u>':'')+'</a>';}).join('');
-  $$('#rail a').forEach(function(a){
-    a.addEventListener('click',function(e){
-      e.preventDefault();
-      var t=document.getElementById(a.getAttribute('href').slice(1));
-      if(t)window.scrollTo({top:t.getBoundingClientRect().top+scrollY-64,behavior:'smooth'});
-    });
-  });
-  if(window.IntersectionObserver){
-    var links=$$('#rail a');
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(en){
-        if(!en.isIntersecting)return;
-        var i=items.indexOf(en.target);
-        links.forEach(function(l,k){l.classList.toggle('on',k===i);});
-      });
-    },{rootMargin:'-64px 0px -70% 0px'});
-    items.forEach(function(el){io.observe(el);});
+  if(!c.data){
+    $('#verdict').innerHTML='<span class="badge unsettled"><span class="dot"></span>'+
+      (BUSY?'Sweeping…':'Not checked yet')+'</span>';
+    $('#work').innerHTML='';
+    $('#tabs').innerHTML='';
+    $('#pane').innerHTML='<div class="card"><div class="cb"><p class="muted">'+
+      (BUSY?'Reading every abstract the perimeter returns and scoring each one for and against '+
+        'this claim. Forty to a hundred and twenty seconds.':
+        'Nothing on file for this claim yet.')+'</p>'+
+      (BUSY?'':'<button class="pri recheck" style="max-width:200px">Run the first check</button>')+
+      '</div></div>';
+    wirePane();
+    return;
   }
+
+  var res=arr(c.data.results);
+  var st=standingOf(res),op=oppositions(st);
+
+  /* verdict line */
+  var mv=c.moved?'<span class="moved'+(RANK[c.moved.to]<RANK[c.moved.from]?' up':'')+'">'+
+    'moved '+esc(c.moved.from)+' &rarr; '+esc(c.moved.to)+' since last check</span>':'';
+  $('#verdict').innerHTML=
+    '<span class="badge '+st.k+'"><span class="dot"></span>'+esc(st.label)+'</span>'+mv+
+    '<span class="checked">Last checked '+esc(ago(c.checked))+'</span>'+
+    '<span class="acts"><button class="sec recheck">Re-check now</button>'+
+    '<button class="sec" id="dropBtn">Stop tracking</button></span>';
+
+  /* the arithmetic: what a person would have had to do */
+  var read=num(c.data.retrieved)||arr(c.data.corpus).length;
+  $('#work').innerHTML=
+    cell(fmt(read),'records retrieved')+
+    cell(fmt(res.length),'read and scored against this claim')+
+    cell(fmt(assertionsIn(res)),'positions extracted')+
+    cell(fmt(op.total),'support-vs-contest comparisons')+
+    cell(fmt(op.direct||Math.min(op.pairs.length,op.total)),
+      op.direct?'head-on measurement collisions':'oppositions worth reading',op.direct>0);
+
+  /* tabs */
+  var tabs=[['conflicts','Where it breaks',op.direct||Math.min(op.pairs.length,op.total)],
+            ['standing','Standing',null],
+            ['evidence','Evidence',res.length],
+            ['history','History',arr(c.history).length],
+            ['sweep','Sweep',arr(c.data.archives).length]];
+  $('#tabs').innerHTML=tabs.map(function(t){
+    return '<button data-tab="'+t[0]+'"'+(TAB===t[0]?' class="on"':'')+'>'+esc(t[1])+
+      (t[2]!=null?'<u>'+fmt(t[2])+'</u>':'')+'</button>';}).join('');
+  $$('#tabs button').forEach(function(b){
+    b.addEventListener('click',function(){TAB=b.dataset.tab;paint();
+      $('#pane').scrollTop=0;});
+  });
+
+  $('#pane').innerHTML=
+    TAB==='conflicts'?viewConflicts(c,st,op):
+    TAB==='standing'?viewStanding(c,st):
+    TAB==='evidence'?viewEvidence(c,st):
+    TAB==='history'?viewHistory(c):viewSweep(c);
+  wirePane();
 }
-var OPEN={};
-function wireDoc(){
-  $$('.more').forEach(function(b){
+function cell(v,k,pop){
+  return '<div'+(pop?' class="pop"':'')+'><div class="v n">'+v+'</div><div class="k">'+
+    esc(k)+'</div></div>';
+}
+function wirePane(){
+  $$('.recheck').forEach(function(b){
+    b.disabled=BUSY;
+    b.addEventListener('click',function(){var c=cur();if(c)runClaim(c);});
+  });
+  var d=$('#dropBtn');
+  if(d)d.addEventListener('click',function(){
+    var c=cur();if(!c)return;
+    DB.claims=DB.claims.filter(function(x){return x.id!==c.id;});
+    SEL=null;save();drawList();paint();
+    document.body.classList.remove('viewing');
+  });
+  $$('#pane .more').forEach(function(b){
     b.addEventListener('click',function(){
       var h=document.getElementById(b.dataset.target);
       if(h){h.style.display='block';b.remove();}
     });
   });
-  $$('details.fold').forEach(function(d){
-    var k=d.dataset.fold||'';
-    if(OPEN[k])d.open=true;
-    d.addEventListener('toggle',function(){OPEN[k]=d.open;});
-  });
 }
 
-/* -------------------------------------------------------------------- ASK - */
-function renderAsk(j){
-  var S=j.synthesis||{},res=arr(j.results),cor=arr(j.corpus);
-  var all=cor.length?cor:res;
-  var ys=all.map(yearOf).filter(function(y){return y!=null;});
-  var span=ys.length?(Math.min.apply(null,ys)+'–'+Math.max.apply(null,ys)):'—';
-  var h='';
-
-  h+='<div class="rdh"><p class="kk">MODE 01 · ASK</p><h1>'+esc(j.question||j._label)+'</h1>'+
-    keys([
-      {k:'records',v:(j.retrieved||all.length),id:'retrieved'},
-      {k:'read closely',v:res.length,hi:1},
-      {k:'material',v:(j.material||res.filter(function(r){return r.material;}).length)},
-      {k:'passes',v:arr(j.archives).length,id:'passes'},
-      {k:'archives',v:(j.hosts||'—')},
-      {k:'span',v:'<span style="font-size:14px">'+span+'</span>'},
-      {k:'elapsed',v:secs(j.sweepMs),u:'s'}
-    ])+
-    (j.profile&&j.profile.field?'<p class="hint" style="margin-top:11px">FIELD <b style="color:var(--ink)">'+
-      esc(UP(j.profile.field))+'</b>'+(arr(j.profile.tracked).length?
-      '  ·  TRACKING '+esc(UP(j.profile.tracked.slice(0,4).join(' / '))):'')+'</p>':'')+
-    '</div>';
-
-  /* PLATE 01 — temporal coverage */
-  if(ys.length){
-    var b=binEras(all),live=b.filter(function(x){return x>0;}).length;
-    h+=plate('Temporal coverage',live+' of 11 era windows returned records',
-      figure(figCoverage(all,res))+
-      legend([{k:'retrieved',c:C.rule2},{k:'read by the gate',c:C.acc}]),
-      'The perimeter is sampled once per era window, not once overall, which is why a '+
-      '<b>'+esc(String(Math.min.apply(null,ys)))+'</b> paper comes back alongside this year’s. '+
-      'Bars are total retrieved; the rust segment is what the relevance gate actually read.');
+/* ------------------------------------------------------- where it breaks -- */
+function viewConflicts(c,st,op){
+  if(!st.sup.length||!st.con.length){
+    return '<div class="card"><div class="ch"><h3>Nothing collides yet</h3></div><div class="cb">'+
+      '<p class="muted">'+(st.con.length?
+        'Every record the gate read either contests this claim or does not bear on it — there is '+
+        'nothing on the supporting side to hold them against.':
+        'No record the gate read contests this claim. That is not the same as the claim being '+
+        'safe; it means nothing in the retrieved perimeter argues the other way.')+'</p>'+
+      '<p class="small">Supporting: '+st.sup.length+' &middot; contesting: '+st.con.length+
+      ' &middot; neither: '+(arr(c.data.results).length-st.sup.length-st.con.length)+'</p>'+
+      '</div></div>';
   }
+  var show=op.pairs.slice(0,8),rest=op.pairs.slice(8,40);
+  var h='<div class="card"><div class="cb"><p class="lede">'+
+    'Holding '+plural(st.sup.length,'supporting record','supporting records')+' against '+
+    plural(st.con.length,'contesting record','contesting records')+' is <b>'+fmt(op.total)+
+    '</b> comparisons. '+(op.direct?
+      'Of those, <b>'+fmt(op.direct)+'</b> put a measurement of the same quantity on both sides — '+
+      'those cannot both be right.':
+      'None of them measure the same quantity, so these are differences of interpretation rather '+
+      'than head-on contradictions.')+'</p>'+
+    '<p class="small" style="margin:0">Ranked by how much weight the gate put on each side. '+
+    'Showing '+show.length+' of '+fmt(op.total)+'.</p></div></div>';
+  h+=show.map(oppCard).join('');
+  if(rest.length)
+    h+='<div id="moreOpp" style="display:none">'+rest.map(oppCard).join('')+'</div>'+
+      '<button class="more" data-target="moreOpp">Show '+rest.length+' more oppositions</button>';
+  return h;
+}
+function oppCard(p){
+  var side=function(r,m,kind){
+    var y=yearOf(r);
+    return '<div><div class="sk">'+(kind==='s'?'Supports the claim':'Contests it')+'</div>'+
+      '<p class="ot">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+
+        esc(r.title)+'</a>':esc(r.title))+'</p>'+
+      '<p class="om">'+(y||'year unknown')+(r.venue?' · '+esc(String(r.venue).slice(0,44)):'')+
+        (num(r.citations)!=null?' · '+fmt(num(r.citations))+' cites':'')+'</p>'+
+      (txt(r.position)?'<p class="op"><b>Backs:</b> '+esc(r.position)+'</p>':'')+
+      (txt(r.why)?'<p class="op">'+esc(r.why)+'</p>':'')+
+      (m?'<span class="meas">'+esc([m.parameter,m.value].filter(Boolean).join(' = '))+
+        (m.sigma?' ± '+esc(m.sigma):'')+'</span>':'')+
+      '</div>';
+  };
+  var head=p.same?
+    'Both report <b>'+esc(p.ma.parameter)+'</b> and disagree':
+    'Opposite positions on the claim';
+  return '<div class="opp"><div class="oh">'+head+
+    (p.same?'<span class="flag">direct contradiction</span>':'')+'</div>'+
+    '<div class="og">'+side(p.a,p.ma,'s')+side(p.b,p.mb,'c')+'</div></div>';
+}
 
-  /* PLATE 02 — relevance field */
-  if(res.length>2){
-    var con=res.filter(function(r){return txt(r.stance).toLowerCase()==='contests';}).length;
-    h+=plate('Relevance field',pl(res.length,'scored record','scored records'),
-      figure(figField(res))+
-      legend([{k:'supports',c:C.sup},{k:'contests',c:C.con},{k:'neutral',c:C.neu},
-              {k:'material — new measurement',cls:'rg'}]),
-      'Radius is the gate’s relevance score. The canon sits high and left, the current wave '+
-      'low and right, and <b>'+con+'</b> record'+(con===1?'':'s')+' actively contest'+(con===1?'s':'')+
-      ' the question as posed.');
-  }
+/* ------------------------------------------------------------- standing --- */
+function viewStanding(c,st){
+  var S=c.data.synthesis||{};
+  var eras=byEra(arr(c.data.results));
+  var firstCon=null;
+  for(var i=0;i<eras.length;i++)if(eras[i].con>0){firstCon=eras[i];break;}
+  var recent=arr(c.data.results).filter(function(r){return yearOf(r)!=null;})
+    .sort(function(a,b){return yearOf(b)-yearOf(a);})[0];
 
-  /* PLATE 03 — structural roles */
-  var roles=tally(res,'role');
-  if(roles.length){
-    var RC={founding:C.vio,canonical:C.sup,current:C.acc,method:C.mat,review:C.neu,peripheral:C.rule2};
-    h+=plate('Structure of the literature','how each record functions',
-      figure(figRanked(roles.map(function(r){return {k:r.k,v:r.v,c:RC[r.k]||C.neu};}),{l:104,r:44})),
-      'Not all records do the same job. <b>Founding</b> papers set the question, <b>canonical</b> '+
-      'ones fixed its terms, <b>current</b> work is moving it now.');
-  }
+  var h='<div class="card"><div class="ch"><h3>When it started taking fire</h3>'+
+    '<span>supporting above the line, contesting below</span></div>'+
+    '<div class="cb"><div class="chart" id="eraChart"></div>'+
+    '<p class="small" style="margin-top:11px">'+
+    (firstCon?'The first record contesting this claim lands in the <b>'+esc(firstCon.name)+
+      '</b> window.':'No window contains a contesting record.')+
+    (recent?' The most recent record on the claim ('+(yearOf(recent))+') <b>'+
+      (stanceOf(recent)==='contests'?'contests it':stanceOf(recent)==='supports'?'supports it':
+       'does not take a side')+'</b>.':'')+
+    '</p></div></div>';
 
-  /* PLATE 04 — subject mass */
-  var cons=tally(all,'concepts',true).slice(0,10);
-  if(cons.length>2){
-    h+=plate('Subject mass','top '+cons.length+' concepts across the perimeter',
-      figure(figRanked(cons.map(function(r){return {k:r.k,v:r.v,c:C.sup,op:.85};}),{l:150,r:44,rh:19})),
-      'What the retrieved literature is actually made of, counted across every record’s concept vector.');
-  }
+  if(st.recentHard)
+    h+='<div class="card"><div class="ch"><h3>Recent hard evidence against it</h3></div><div class="cb">'+
+      '<p class="muted">'+plural(st.recentHard,'record','records')+' from the last six years '+
+      'contest this claim <em>and</em> report a new measurement or bound. That is what moved the '+
+      'verdict, not the raw count.</p></div></div>';
 
-  /* PLATE 05 — weight */
-  var P=arr(S.positions);
-  if(P.length)
-    h+=plate('Where the weight sits',pl(P.length,'competing explanation','competing explanations'),
-      figure(figWeight(P)),
-      'Weights are the synthesis’s reading of the retrieved record, not a vote count.');
-
-  /* ---- prose sections ---- */
-  if(txt(S.state))h+=sect('State of the question','',
-    '<p class="lead">'+esc(String(S.state).replace(/\n/g,' '))+'</p>');
-  if(txt(S.arc))h+=sect('How it got here','',
-    String(S.arc).split(/\n{2,}/).map(function(p){return '<p class="body">'+esc(p)+'</p>';}).join(''));
-
-  var F=arr(S.findings);
-  if(F.length)h+=sect('Established findings',F.length+' supported by the retrieved record',
-    '<div class="reg">'+F.map(function(f,i){
-      return '<div class="rw"><div class="ix">'+String(i+1).padStart(2,'0')+'</div><div>'+
-        '<p class="t1">'+esc(f.t)+'</p>'+(txt(f.why)?'<p class="t2">'+esc(f.why)+'</p>':'')+
-        '<div class="tags">'+statusTag(f.conf)+
-        (txt(f.ev)?tag('rec '+f.ev,'nu'):'')+'</div></div></div>';}).join('')+'</div>');
-
-  if(P.length)h+=sect('Competing explanations','',
-    '<div class="scroll"><table class="tb"><thead><tr><th>EXPLANATION</th><th>ACCOUNTS FOR</th>'+
-    '<th>CONFLICTS WITH</th><th>SETTLED BY</th><th style="text-align:right">WEIGHT</th></tr></thead><tbody>'+
-    P.map(function(p){
-      return '<tr><td><b>'+esc(p.n)+'</b>'+(txt(p.d)?'<br><span style="color:var(--dim);font-size:13px">'+
-        esc(p.d)+'</span>':'')+'</td><td>'+esc(p.ex||'—')+'</td><td>'+esc(p.fx||'—')+'</td>'+
-        '<td>'+esc(p.test||'—')+'</td><td class="m" style="text-align:right">'+
-        (num(p.support)!=null?Math.round(num(p.support)):'—')+'</td></tr>';}).join('')+
-    '</tbody></table></div>');
+  if(txt(S.state))
+    h+='<div class="card"><div class="ch"><h3>What the record says</h3></div>'+
+      '<div class="cb"><p class="lede">'+esc(String(S.state).replace(/\n/g,' '))+'</p></div></div>';
 
   var CO=arr(S.contested);
-  if(CO.length)h+=sect('Open disagreements',CO.length+' unresolved',
-    CO.map(function(c){
-      return '<p class="lead" style="font-size:15.5px;margin-bottom:9px">'+esc(c.point)+'</p>'+
-        '<div class="disc" style="margin-bottom:16px"><div class="dg">'+
-        '<div><div class="gk">ONE SIDE</div><p>'+esc(c.a)+'</p></div>'+
-        '<div><div class="gk">THE OTHER</div><p>'+esc(c.b)+'</p></div></div></div>';}).join(''));
+  if(CO.length)
+    h+='<div class="card"><div class="ch"><h3>Open disagreements</h3><span>'+
+      plural(CO.length,'point','points')+' unresolved</span></div><div class="cb">'+
+      CO.map(function(x,i){
+        return '<p class="lede" style="margin-bottom:7px">'+esc(x.point)+'</p>'+
+          '<div class="opp" style="margin-bottom:'+(i===CO.length-1?'0':'14px')+'"><div class="og">'+
+          '<div><div class="sk">One side</div><p class="op">'+esc(x.a)+'</p></div>'+
+          '<div><div class="sk">The other</div><p class="op">'+esc(x.b)+'</p></div>'+
+          '</div></div>';}).join('')+'</div></div>';
 
   var Q=arr(S.quantities);
-  if(Q.length)h+=sect('Tracked quantities',Q.length+' with current values or bounds',
-    '<div class="scroll"><table class="tb"><thead><tr><th>SYM</th><th>QUANTITY</th>'+
-    '<th>VALUE OR BOUND</th><th>SOURCE</th></tr></thead><tbody>'+
-    Q.map(function(q){return '<tr><td class="m">'+esc(q.sym||'')+'</td><td><b>'+esc(q.name||'')+
-      '</b></td><td class="m">'+esc(q.value||'')+'</td><td>'+esc(q.src||'')+'</td></tr>';}).join('')+
-    '</tbody></table></div>');
+  if(Q.length)
+    h+='<div class="card"><div class="ch"><h3>The numbers this rests on</h3></div><div class="cb">'+
+      '<div class="wrapx"><table class="tbl"><thead><tr><th>Quantity</th><th>Value or bound</th>'+
+      '<th>Source</th></tr></thead><tbody>'+Q.map(function(q){
+        return '<tr><td><b>'+esc(q.name||q.sym||'')+'</b></td><td class="n">'+esc(q.value||'')+
+          '</td><td>'+esc(q.src||'')+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';
 
-  if(txt(S.nextTest))h+=sect('Decisive next measurement','',
-    '<p class="lead">'+esc(S.nextTest)+'</p>');
-  if(arr(S.gaps).length)h+=sect('Gaps',arr(S.gaps).length+' identified',bullets(S.gaps));
-
-  if(!txt(S.state)&&!F.length&&!P.length)
-    h+=sect('Synthesis unavailable','',
-      '<p class="body">The perimeter returned records but the synthesis step produced nothing '+
-      'usable. The figures and the records below are computed from the retrieval and are unaffected.</p>');
-
-  h+=recordsBlock(j);
-  h+=provenance(j);
+  if(txt(S.nextTest))
+    h+='<div class="card"><div class="ch"><h3>What would settle it</h3></div><div class="cb">'+
+      '<p class="lede">'+esc(S.nextTest)+'</p></div></div>';
   return h;
 }
-/* count a scalar field, or flatten an array field, across records */
-function tally(recs,field,isArr){
-  var m={};
-  arr(recs).forEach(function(r){
-    var v=r&&r[field];
-    if(isArr){arr(v).forEach(function(x){x=txt(x);if(x)m[x]=(m[x]||0)+1;});}
-    else{v=txt(v).toLowerCase();if(v)m[v]=(m[v]||0)+1;}
+
+/* one chart, and only because it answers when the claim started going wrong */
+function drawEra(){
+  var host=$('#eraChart');if(!host)return;
+  var c=cur();if(!c||!c.data)return;
+  var eras=byEra(arr(c.data.results));
+  var W=Math.max(300,Math.round(host.clientWidth||620)),H=138;
+  var m={l:8,r:8,t:14,b:26},iw=W-m.l-m.r,half=(H-m.t-m.b)/2,mid=m.t+half;
+  var max=Math.max(1,Math.max.apply(null,eras.map(function(e){
+    return Math.max(e.sup,e.con);})));
+  var bw=iw/eras.length,s='';
+  s+='<line x1="'+m.l+'" y1="'+mid+'" x2="'+(W-m.r)+'" y2="'+mid+'" stroke="#c3cad2"/>';
+  eras.forEach(function(e,i){
+    var x=m.l+i*bw;
+    var hs=half*(e.sup/max),hc=half*(e.con/max);
+    if(hs>0)s+='<rect x="'+(x+2)+'" y="'+(mid-hs)+'" width="'+(bw-4)+'" height="'+hs+
+      '" fill="#1c6ea4"><title>'+e.name+': '+e.sup+' supporting</title></rect>';
+    if(hc>0)s+='<rect x="'+(x+2)+'" y="'+mid+'" width="'+(bw-4)+'" height="'+hc+
+      '" fill="#b0352a"><title>'+e.name+': '+e.con+' contesting</title></rect>';
+    s+='<text x="'+(x+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10.5" fill="#78828d">'+
+      e.name+'</text>';
   });
-  return Object.keys(m).map(function(k){return {k:k,v:m[k]};})
-    .sort(function(a,b){return b.v-a.v;});
+  s+='<text x="'+m.l+'" y="10" font-size="10.5" fill="#1c6ea4">supports</text>';
+  s+='<text x="'+(W-m.r)+'" y="10" text-anchor="end" font-size="10.5" fill="#b0352a">contests</text>';
+  host.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img">'+s+'</svg>';
 }
 
-/* ---------------------------------------------------------------- COMPARE - */
-function renderCompare(j){
-  var A=j.adjudication||{},a=A.a||{},b=A.b||{},V=A.verdict||{};
-  var lean=txt(V.leaning).toLowerCase();
-  var ca=arr(j.corpusA),cb=arr(j.corpusB);
-  var na=txt(a.name)||j.a,nb=txt(b.name)||j.b;
-  var h='';
-
-  h+='<div class="rdh"><p class="kk">MODE 02 · ADJUDICATION</p>'+
-    '<h1>'+esc(na)+' <em>vs</em> '+esc(nb)+'</h1>'+
-    keys([
-      {k:'leaning',v:'<span style="font-size:14px">'+esc(UP(lean==='a'?na:lean==='b'?nb:'neither'))
-        .slice(0,18)+'</span>',hi:1},
-      {k:'confidence',v:'<span style="font-size:14px">'+esc(UP(V.confidence||'—'))+'</span>'},
-      {k:'records a',v:(j.retrievedA||ca.length)},
-      {k:'records b',v:(j.retrievedB||cb.length)},
-      {k:'tests found',v:arr(A.discriminators).length},
-      {k:'elapsed',v:secs(j.sweepMs),u:'s'}
-    ])+
-    (txt(j.question)?'<p class="hint" style="margin-top:11px">COMPETING TO EXPLAIN '+
-      '<b style="color:var(--ink)">'+esc(UP(j.question))+'</b></p>':'')+'</div>';
-
-  if(ca.length||cb.length){
-    var ta=binEras(ca),tb=binEras(cb);
-    var peak=function(t){var i=t.indexOf(Math.max.apply(null,t));return eraName(ERAS[i]);};
-    h+=plate('Two literatures','records per era window, A above the axis, B below',
-      figure(figMirror(ca,cb,na,nb)),
-      'A peaks in the <b>'+esc(peak(ta))+'</b>, B in the <b>'+esc(peak(tb))+'</b>. '+
-      'A literature that stopped growing is telling you something a reading list cannot.');
-  }
-
-  if(txt(V.why))h+=sect('Verdict',UP(V.confidence||'')+' CONFIDENCE',
-    '<div class="tags" style="margin:0 0 11px">'+
-      (lean==='a'||lean==='b'?tag('leans '+(lean==='a'?na:nb),'ac'):tag('neither','nu'))+
-      statusTag(V.confidence)+'</div>'+
-    '<p class="lead">'+esc(V.why)+'</p>');
-
-  h+=sect('The two positions','what each buys and what it costs',
-    '<div class="rivals">'+[['A',a,j.a,C.sup],['B',b,j.b,C.con]].map(function(p){
-      var side=p[0],x=p[1],raw=p[2],col=p[3],win=lean===side.toLowerCase();
-      return '<div class="rival'+(win?' win':'')+'">'+
-        '<div class="rk" style="color:'+(win?C.acc:col)+'">EXPLANATION '+side+
-          (win?' · LEANING HERE':'')+'</div>'+
-        '<h3>'+esc(txt(x.name)||raw)+'</h3>'+
-        (txt(x.claim)?'<p class="rc">'+esc(x.claim)+'</p>':'')+
-        '<div class="tags" style="margin-top:0">'+statusTag(x.status)+
-          (txt(x.era)?tag(x.era,'nu'):'')+'</div>'+
-        '<dl class="kv">'+
-          (arr(x.explains).length?'<dt>ACCOUNTS FOR WHAT THE OTHER DOES NOT</dt><dd>'+
-            bullets(x.explains)+'</dd>':'')+
-          (arr(x.fails).length?'<dt>CANNOT ACCOUNT FOR</dt><dd>'+bullets(x.fails)+'</dd>':'')+
-          (arr(x.rests_on).length?'<dt>ONLY WORKS IF</dt><dd>'+bullets(x.rests_on)+'</dd>':'')+
-        '</dl></div>';}).join('')+'</div>');
-
-  if(arr(A.shared).length)
-    h+=sect('Both are on the hook for','neither gets to walk away from these',bullets(A.shared));
-
-  var D=arr(A.discriminators);
-  if(D.length)h+=sect('Discriminating tests',pl(D.length,'test','tests')+' where the two predict differently',
-    D.map(function(d,i){
-      return '<div class="disc"><div class="dh"><span class="dn">TEST '+
-        String(i+1).padStart(2,'0')+'</span><p>'+esc(d.test)+'</p>'+statusTag(d.status)+'</div>'+
-        '<div class="dg">'+
-          '<div><div class="gk">A PREDICTS</div><p>'+esc(d.predicts_a||'—')+'</p></div>'+
-          '<div><div class="gk">B PREDICTS</div><p>'+esc(d.predicts_b||'—')+'</p></div></div>'+
-        (txt(d.note)?'<div class="dn2">'+esc(d.note)+'</div>':'')+'</div>';}).join(''));
-
-  if(arr(A.misframings).length)
-    h+=sect('Misframings','each smuggles in an assumption',bullets(A.misframings));
-
-  h+=recordsBlock(j);
-  h+=provenance(j);
-  return h;
+/* ------------------------------------------------------------- evidence --- */
+var EVF='contests';
+function viewEvidence(c,st){
+  var res=arr(c.data.results);
+  var neu=res.filter(function(r){var s=stanceOf(r);return s!=='supports'&&s!=='contests';});
+  var sets={contests:st.con,supports:st.sup,neither:neu,all:res};
+  var pick=sets[EVF]||res;
+  pick=pick.slice().sort(function(a,b){return (num(b.relevance)||0)-(num(a.relevance)||0);});
+  var first=pick.slice(0,25),rest=pick.slice(25,200);
+  var f=function(k,label,n){
+    return '<button data-ev="'+k+'"'+(EVF===k?' class="on"':'')+'>'+label+' '+n+'</button>';};
+  return '<div class="filters">'+f('contests','Contesting',st.con.length)+
+    f('supports','Supporting',st.sup.length)+f('neither','Neither',neu.length)+
+    f('all','Everything scored',res.length)+'</div>'+
+    '<div class="card"><div class="cb">'+
+    (pick.length?first.map(evRow).join('')+
+      (rest.length?'<div id="moreEv" style="display:none">'+rest.map(evRow).join('')+'</div>'+
+        '<button class="more" data-target="moreEv">Show '+rest.length+' more</button>':'')
+      :'<p class="muted" style="margin:0">Nothing in this group.</p>')+
+    '</div></div>';
 }
-
-/* ------------------------------------------------------------------ CHECK - */
-function renderCheck(j){
-  var AU=j.audit||{},cl=arr(j.claims),st=arr(AU.claims);
-  var by={};st.forEach(function(s){by[Number(s.i)]=s;});
-  var cnt=function(k){return st.filter(function(s){
-    return txt(s.status).toLowerCase()===k;}).length;};
-  var load=cl.filter(function(c){return /load/i.test(txt(c.load));}).length;
-  var h='';
-
-  h+='<div class="rdh"><p class="kk">MODE 03 · CLAIM AUDIT</p>'+
-    '<h1>'+esc(txt(j.title)||'Source text')+'</h1>'+
-    keys([
-      {k:'claims',v:cl.length},
-      {k:'load bearing',v:load,hi:1},
-      {k:'supported',v:cnt('supported')},
-      {k:'contested',v:cnt('contested')},
-      {k:'unsupported',v:cnt('unsupported')+cnt('superseded')},
-      {k:'already known',v:cnt('already-established')},
-      {k:'records',v:(j.retrieved||0)},
-      {k:'elapsed',v:secs(j.sweepMs),u:'s'}
-    ])+
-    (txt(j.field)?'<p class="hint" style="margin-top:11px">FIELD <b style="color:var(--ink)">'+
-      esc(UP(j.field))+'</b></p>':'')+'</div>';
-
-  if(cl.length)
-    h+=plate('Claim standing','every assertion, coded against the retrieved record',
-      figure(figClaims(cl,by))+
-      legend([{k:'supported',c:C.mat},{k:'contested',c:C.warn},{k:'unsupported',c:C.con},
-              {k:'already established',c:C.sup},{k:'unrated',c:C.neu}]),
-      'Bar length is how much of the record stands behind the claim. '+
-      '<b>'+load+'</b> of '+cl.length+' '+(load===1?'is':'are')+' load-bearing — the argument '+
-      'does not survive '+(load===1?'its':'their')+' failure.');
-
-  if(txt(AU.novelty))h+=sect('Novelty','what is actually new here',
-    '<p class="lead">'+esc(AU.novelty)+'</p>');
-
-  if(cl.length)h+=sect('Claim by claim',cl.length+' extracted',
-    cl.map(function(c,i){
-      var s=by[i+1]||{},k=txt(s.status).toLowerCase();
-      return '<div class="claim q-'+esc(k||'neutral')+'">'+
-        '<div class="ck">CLAIM '+String(i+1).padStart(2,'0')+
-          (txt(c.load)?' · '+esc(UP(c.load)):'')+(txt(c.kind)?' · '+esc(UP(c.kind)):'')+'</div>'+
-        '<p class="ct">'+esc(c.text)+'</p>'+
-        '<div class="tags">'+statusTag(k)+
-          (arr(s.records).length?tag('rec '+arr(s.records).join(', '),'nu'):'')+
-          (txt(c.quantity)?tag('rests on '+c.quantity,'ac'):'')+'</div>'+
-        '<dl class="kv">'+
-          (txt(s.why)?'<dt>WHY</dt><dd>'+esc(s.why)+'</dd>':'')+
-          (txt(s.risk)?'<dt>WHAT BREAKS IF WRONG</dt><dd>'+esc(s.risk)+'</dd>':'')+
-          (txt(s.action)?'<dt>ACTION</dt><dd>'+esc(s.action)+'</dd>':'')+
-        '</dl></div>';}).join(''));
-
-  if(txt(AU.strongest)||txt(AU.weakest))
-    h+=sect('Strongest and most exposed','',
-      '<div class="disc"><div class="dg">'+
-      '<div><div class="gk" style="color:'+C.mat+'">STANDS BEST</div><p>'+esc(AU.strongest||'—')+'</p></div>'+
-      '<div><div class="gk" style="color:'+C.con+'">MOST EXPOSED</div><p>'+esc(AU.weakest||'—')+'</p></div>'+
-      '</div></div>');
-
-  if(txt(AU.nextTest))h+=sect('Most decisive next step','',
-    '<p class="lead">'+esc(AU.nextTest)+'</p>');
-  if(arr(AU.missing).length)
-    h+=sect('Apparently uncited',arr(AU.missing).length+' from the retrieved record',
-      bullets(AU.missing));
-
-  h+=recordsBlock(j);
-  h+=provenance(j);
-  return h;
-}
-
-/* ------------------------------------------------------------------ shared - */
-function recordsBlock(j){
-  var scored=arr(j.results).slice().sort(function(x,y){
-    return (num(y.relevance)||0)-(num(x.relevance)||0);});
-  var corpus=arr(j.corpus);
-  if(j.corpusA||j.corpusB){
-    corpus=arr(j.corpusA).map(function(r){r=Object.assign({},r);r._side='A';return r;})
-      .concat(arr(j.corpusB).map(function(r){r=Object.assign({},r);r._side='B';return r;}));
-  }
-  if(!scored.length&&!corpus.length)return '';
-  var seen={};scored.forEach(function(r){if(r.source_id)seen[r.source_id]=1;});
-  var rest=corpus.filter(function(r){return r&&!seen[r.source_id];})
-    .sort(function(x,y){return (num(y.citations)||0)-(num(x.citations)||0);});
-  var h='';
-  if(scored.length){
-    var first=scored.slice(0,14),more=scored.slice(14);
-    h+=sect('Records read closely',scored.length+' scored by the gate',
-      '<div class="recs">'+first.map(recRow).join('')+'</div>'+
-      (more.length?'<div id="moreScored" style="display:none" class="recs">'+
-        more.map(recRow).join('')+'</div>'+
-        '<button class="more" data-target="moreScored" type="button">SHOW THE OTHER '+
-        more.length+'</button>':''));
-  }
-  if(rest.length){
-    var cap=rest.slice(0,150);
-    h+='<details class="fold" data-fold="rest" data-toc="Full perimeter">'+
-      '<summary>FULL PERIMETER<u>'+pl(rest.length,'further record','further records')+
-      (rest.length>cap.length?', first '+cap.length+' shown':'')+'</u></summary>'+
-      '<div class="fb"><div class="recs">'+cap.map(recRow).join('')+'</div></div></details>';
-  }
-  return h;
-}
-function recRow(r){
-  var m=[];
-  if(r.source)m.push(UP(r.source));
-  if(r._side)m.push('SIDE '+r._side);
-  if(r.venue)m.push(esc(String(r.venue).slice(0,52)));
-  if(num(r.citations)!=null)m.push(num(r.citations)+' CITES');
-  if(r.role)m.push(UP(r.role));
-  if(r.oa)m.push('OPEN ACCESS');
-  var st=txt(r.stance).toLowerCase();
-  var rel=num(r.relevance);
-  return '<div class="rec">'+
-    '<div class="yr">'+esc(yearOf(r)||'—')+'</div>'+
-    '<div><p class="tt">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+
+function evRow(r){
+  var s=stanceOf(r);
+  var col=s==='contests'?'var(--brk)':s==='supports'?'var(--sup)':'var(--line2)';
+  var m=measOf(r),bits=[];
+  if(r.source)bits.push(esc(r.source));
+  if(r.venue)bits.push(esc(String(r.venue).slice(0,42)));
+  if(num(r.citations)!=null)bits.push(fmt(num(r.citations))+' cites');
+  if(r.role)bits.push(esc(r.role));
+  if(num(r.relevance)!=null)bits.push('relevance '+num(r.relevance).toFixed(2));
+  if(r.material)bits.push('new measurement');
+  return '<div class="ev"><div class="bar" style="background:'+col+'"></div>'+
+    '<div class="yr n">'+(yearOf(r)||'—')+'</div><div>'+
+    '<p class="t">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+
       esc(r.title)+'</a>':esc(r.title))+'</p>'+
-    '<div class="mm">'+m.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>'+
-    (txt(r.why)?'<p class="wy">'+esc(r.why)+
-      (r.measurement?' <b>'+esc(typeof r.measurement==='object'?
-        [r.measurement.parameter,r.measurement.value,r.measurement.sigma].filter(Boolean).join(' = ')
-        :r.measurement)+'</b>':'')+'</p>':'')+
-    '</div>'+
-    '<div class="sc">'+(rel!=null?rel.toFixed(2)+'<i>RELEVANCE</i>':'')+
-      (r.material?'<i style="color:'+C.mat+'">MATERIAL</i>':'')+
-      (st&&st!=='neutral'?'<i style="color:'+(st==='contests'?C.con:C.sup)+'">'+UP(st)+'</i>':'')+
+    '<div class="m">'+bits.map(function(b){return '<span>'+b+'</span>';}).join('')+'</div>'+
+    (txt(r.why)?'<p class="w">'+esc(r.why)+'</p>':'')+
+    (m?'<span class="meas" style="margin-top:6px;display:inline-block">'+
+      esc([m.parameter,m.value].filter(Boolean).join(' = '))+
+      (m.sigma?' ± '+esc(m.sigma):'')+'</span>':'')+
     '</div></div>';
 }
 
-function provenance(j){
-  var A=arr(j.archives);
-  if(!A.length)return '';
+/* -------------------------------------------------------------- history --- */
+function viewHistory(c){
+  var H=arr(c.history).slice().reverse();
+  if(!H.length)return '<div class="card"><div class="cb"><p class="muted" style="margin:0">'+
+    'No checks on file yet.</p></div></div>';
+  return '<div class="card"><div class="ch"><h3>Every check on this claim</h3>'+
+    '<span>newest first</span></div><div class="cb"><div class="wrapx">'+
+    '<table class="tbl"><thead><tr><th>When</th><th>Standing</th><th>Supporting</th>'+
+    '<th>Contesting</th><th>Change</th></tr></thead><tbody>'+
+    H.map(function(h,i){
+      var prev=H[i+1];
+      var ch=!prev?'first check':(prev.state===h.state?'no change':
+        prev.state+' → '+h.state);
+      var col={holding:'var(--hold)',contested:'var(--cont)',breaking:'var(--brk)',
+        unsettled:'var(--unset)'}[h.state];
+      return '<tr><td class="n">'+new Date(h.at).toLocaleString()+'</td>'+
+        '<td><b style="color:'+col+'">'+esc(h.state)+'</b></td>'+
+        '<td class="n">'+h.sup+'</td><td class="n">'+h.con+'</td><td>'+esc(ch)+'</td></tr>';
+    }).join('')+'</tbody></table></div>'+
+    '<p class="small" style="margin-top:12px">Re-check this claim after a conference season and '+
+    'the row that appears here is the answer to “has anything changed”.</p></div></div>';
+}
+
+/* ---------------------------------------------------------------- sweep --- */
+function viewSweep(c){
+  var A=arr(c.data.archives);
   var bad=A.filter(function(a){return a.error;});
   var got=A.reduce(function(n,a){return n+(num(a.got)||0);},0);
-  var rows=A.slice().sort(function(x,y){return (num(y.got)||0)-(num(x.got)||0);})
-    .slice(0,26).map(function(a){
-      return {k:String(a.name||'').slice(0,22),v:Math.max(0,num(a.got)||0),
-        c:a.error?C.con:C.sup,op:a.error?.5:.85,hatch:!!a.error,
-        lab:(a.error?'FAIL':String(num(a.got)||0))};});
-  return '<div class="plate" data-toc="Provenance" data-tocn="PL'+String(++PLATE).padStart(2,'0')+'">'+
-    '<div class="ph"><span class="pn">PLATE '+String(PLATE).padStart(2,'0')+'</span>'+
-    '<span class="pt">PROVENANCE</span><span class="ps">'+pl(A.length,'pass','passes')+' · '+
-    got+' hits'+(bad.length?' · '+bad.length+' failed':'')+'</span></div>'+
-    '<div class="pb">'+figure(figRanked(rows,{l:150,r:52,rh:17}))+
-    legend([{k:'pass yield',c:C.sup},{k:'failed pass',c:C.con}])+'</div>'+
-    '<div class="pc">Every pass the perimeter ran, its yield and whether it came back. A pass that '+
-    'failed is shown as a failed pass: a perimeter that quietly shrinks is worse than one that says '+
-    'it shrank.'+(arr(j.rungs).length?'<br><br><span style="font-family:var(--mono);font-size:11px;'+
-    'color:var(--dim)">'+arr(j.rungs).map(esc).join(' &nbsp;·&nbsp; ')+'</span>':'')+'</div>'+
-    '<details class="fold" data-fold="ledger" style="border:0;border-top:1px solid var(--rule);margin:0">'+
-    '<summary>PASS LEDGER<u>'+pl(A.length,'row','rows')+'</u></summary><div class="fb"><div class="scroll">'+
-    '<table class="tb"><thead><tr><th>PASS</th><th>WINDOW</th><th style="text-align:right">HITS</th>'+
-    '<th style="text-align:right">MS</th></tr></thead><tbody>'+
-    A.map(function(a){
-      return '<tr><td class="m">'+esc(a.name||'')+'</td><td>'+esc(a.note||'')+
-        (a.error?'<br><span style="color:'+C.con+';font-size:12px">'+
-          esc(String(a.error).slice(0,110))+'</span>':'')+'</td>'+
-        '<td class="m" style="text-align:right">'+(a.got==null?'—':a.got)+'</td>'+
-        '<td class="m" style="text-align:right">'+(a.ms==null?'—':Math.round(a.ms))+'</td></tr>';
-    }).join('')+'</tbody></table></div></div></details></div>';
+  return '<div class="card"><div class="ch"><h3>How this was gathered</h3>'+
+    '<span>'+plural(A.length,'pass','passes')+' · '+fmt(got)+' hits'+
+    (bad.length?' · '+bad.length+' failed':'')+'</span></div><div class="cb">'+
+    '<p class="muted">The perimeter is sampled once per era window rather than once overall, '+
+    'which is why a founding paper comes back next to this year’s preprint. A pass that failed '+
+    'is listed as a failed pass — a perimeter that quietly shrinks is worse than one that says '+
+    'it shrank.</p>'+
+    '<div class="wrapx"><table class="tbl"><thead><tr><th>Pass</th><th>What it covers</th>'+
+    '<th>Hits</th><th>ms</th></tr></thead><tbody>'+A.map(function(a){
+      return '<tr><td class="n">'+esc(a.name||'')+'</td><td>'+esc(a.note||'')+
+        (a.error?'<br><span style="color:var(--brk)">failed: '+esc(String(a.error).slice(0,100))+
+          '</span>':'')+'</td><td class="n">'+(a.got==null?'—':a.got)+'</td>'+
+        '<td class="n">'+(a.ms==null?'—':Math.round(a.ms))+'</td></tr>';
+    }).join('')+'</tbody></table></div></div></div>';
 }
 
 /* ===========================================================================
-   8. BOOT
+   INPUT
    =========================================================================== */
-setState('','idle');
-loadRuns();
+$('#track').addEventListener('click',function(){
+  var t=txt($('#newClaim').value);
+  if(t.length<8){$('#newClaim').focus();return;}
+  $('#newClaim').value='';
+  trackText(t);
+});
+$('#newClaim').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))$('#track').click();
+});
+$$('#egs button,#blank .ex button').forEach(function(b){
+  b.addEventListener('click',function(){trackText(b.dataset.eg);});
+});
+$('#backBtn').addEventListener('click',function(){
+  document.body.classList.remove('viewing');
+});
+
+/* Paste a paragraph and every claim in it becomes a tracked claim. The worker
+   already extracts claims from text; this wires that to the watchlist rather
+   than to a one-off report. */
+$('#fromText').addEventListener('click',function(){$('#filePick').click();});
+$('#filePick').addEventListener('change',function(){
+  var f=this.files&&this.files[0];this.value='';
+  if(!f)return;
+  f.text().then(function(t){extractClaims(t.slice(0,24000));});
+});
+function extractClaims(text){
+  if(BUSY||txt(text).length<40)return;
+  setBusy(true);clearErr();status('go','Reading your text for claims');progress(0.4);
+  post({mode:'manuscript',text:text,limit:12},130000)
+  .then(function(j){
+    var cl=arr(j.claims);
+    if(!cl.length)throw new Error('no claims could be read out of that text');
+    cl.forEach(function(x,i){var c=trackText(x.text,i===0);});
+    status('ok',plural(cl.length,'claim','claims')+' added to the watchlist');
+  })
+  .catch(function(e){status('bad','Could not read that');showErr(netDiag(e));})
+  .then(function(){setBusy(false);progress(0);});
+}
+
+/* ===========================================================================
+   BOOT
+   =========================================================================== */
+var RSZ=null;
+addEventListener('resize',function(){clearTimeout(RSZ);RSZ=setTimeout(drawEra,140);});
+var _paint=paint;
+paint=function(){_paint();drawEra();};
+
+load();drawList();
+status('','Idle');
 (function(){
-  var m=/[?&#]q=([^&]+)/.exec(location.search+location.hash);
-  if(m){
-    try{var q=decodeURIComponent(m[1].replace(/\+/g,' '));
-      setVerb('ask');$('#askQ').value=q;goAsk();}catch(e){}
-  }else{$('#askQ').focus({preventScroll:true});}
+  var m=/[?&#]claim=([^&]+)/.exec(location.search+location.hash);
+  if(m){try{trackText(decodeURIComponent(m[1].replace(/\+/g,' ')));}catch(e){}}
+  else if(DB.claims.length){select_(DB.claims[0].id);}
+  else paint();
 })();
 </script>
 </body>
