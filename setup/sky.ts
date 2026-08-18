@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 4;
+const WORKER_VERSION = 5;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -925,7 +925,13 @@ async function papersFor(object: string, rows = 6): Promise<any[]> {
   {
     const j = await oaGet(
       `https://api.openalex.org/works?filter=title_and_abstract.search:${encodeURIComponent(q)}` +
-      `&per-page=${rows}&sort=cited_by_count:desc&mailto=${encodeURIComponent(MAIL)}`,
+      /* NOT sorted by citation count. Ranking by fame returns the most-cited
+         papers that happen to mention the name — for Kepler-10 that is the TESS
+         mission description, which is about 200,000 stars and none of them in
+         particular. The model then extracts real numbers belonging to no
+         object, which is what twenty discarded items looked like. Relevance is
+         the default and is the thing actually wanted: papers about this object. */
+      `&per-page=${rows}&mailto=${encodeURIComponent(MAIL)}`,
     );
     return (j?.results ?? []).map((w: any) => ({
       id: null,
@@ -1140,13 +1146,24 @@ async function handle(req: Request): Promise<Response> {
   if (mode === "papers") {
     const name = target || "Kepler-10";
     const [ax, oa] = await Promise.all([arxivPapersFor(name, 5), papersFor(name, 5)]);
+    /* Titles for everything, not just a sample. Whether an index returned
+       papers about the object or merely papers that mention it is visible in
+       the titles alone, and that single distinction is what decides whether
+       extraction has anything to find. */
+    const key = searchName(name).toLowerCase().replace(/\s+/g, "");
+    const listing = (rs: any[]) => rs.map((r) => ({
+      title: r.title,
+      year: r.year,
+      about_this_object: String(r.title ?? "").toLowerCase().replace(/\s+/g, "").includes(key),
+    }));
     const first = (rs: any[]) => rs[0]
-      ? { title: rs[0].title, year: rs[0].year, abstract: String(rs[0].abstract).slice(0, 600) }
+      ? { title: rs[0].title, abstract: String(rs[0].abstract).slice(0, 600) }
       : null;
     return json({
       worker: WORKER_VERSION, mode, ms: Date.now() - t0, searched_as: searchName(name),
-      arxiv: { got: ax.length, ...ARXIV, sample: first(ax) },
-      openalex: { got: oa.length, failures: OA_FAILURES.count, sample: first(oa) },
+      arxiv: { got: ax.length, calls: ARXIV.calls, failures: ARXIV.failures, last_error: ARXIV.last_error,
+               titles: listing(ax), sample: first(ax) },
+      openalex: { got: oa.length, failures: OA_FAILURES.count, titles: listing(oa), sample: first(oa) },
     });
   }
 
@@ -1210,10 +1227,22 @@ async function handle(req: Request): Promise<Response> {
       ]));
       fetched.push(...batch.flat());
     }
-    /* arXiv first. Both indices are read, but when the same paper arrives from
-       both, the copy with its numbers intact is the one that survives dedup —
-       and dedup keeps whichever it sees first. */
-    fetched.sort((a, b) => (b.source_id?.startsWith("arxiv:") ? 1 : 0) - (a.source_id?.startsWith("arxiv:") ? 1 : 0));
+    /* Two orderings, and the first matters more than the second.
+       A paper with the object's name in its TITLE is a paper about that object,
+       and a paper about a planet states that planet's numbers in its abstract.
+       A paper that merely mentions it in passing — a survey, a mission
+       description, a review — states numbers about something else entirely, and
+       feeding those to an extractor produces measurements attached to nothing.
+       Then, among equals, arXiv first: both indices are read, but when the same
+       work arrives from both, dedup keeps whichever it sees first, and it should
+       keep the copy whose abstract still has its mathematics. */
+    const titleNames = (r: any) => {
+      const t = String(r.title ?? "").toLowerCase().replace(/\s+/g, "");
+      const o = String(r.about ?? "").toLowerCase().replace(/\s+/g, "");
+      return o.length > 2 && t.includes(o) ? 1 : 0;
+    };
+    const isArxiv = (r: any) => (String(r.source_id ?? "").startsWith("arxiv:") ? 1 : 0);
+    fetched.sort((a, b) => (titleNames(b) - titleNames(a)) || (isArxiv(b) - isArxiv(a)));
     const seenPaper = new Set<string>();
     const records = [...(Array.isArray(stored) ? stored : []), ...fetched]
       .filter((r) => {
@@ -1249,6 +1278,16 @@ async function handle(req: Request): Promise<Response> {
         papers_fetched: fetched.length,
         papers_with_full_abstract: fetched.filter((r: any) => String(r.source_id).startsWith("arxiv:")).length,
         arxiv: { ...ARXIV },
+        /* Of the papers read, how many are actually ABOUT one of the objects
+           rather than merely mentioning it. This is the number that predicts
+           whether extraction finds anything. */
+        papers_about_an_object: records.filter((r: any) => {
+          const t = String(r.title ?? "").toLowerCase().replace(/\s+/g, "");
+          return names.some((n) => {
+            const o = n.toLowerCase().replace(/\s+/g, "");
+            return o.length > 2 && t.includes(o);
+          });
+        }).length,
         /* Calls that failed twice. Any number above zero means part of this
            sweep's silence is the network, not the literature. */
         index_failures: OA_FAILURES.count,
