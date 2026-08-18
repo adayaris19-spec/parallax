@@ -52,6 +52,28 @@ t("a negative error bar is taken as a magnitude", S.normalise(1, -0.2, "km").err
 t("conversion noise is not published as precision", S.normalise(8.594, 0.029, "rearth").err_si === 184964.9);
 t("milliarcseconds are a dimension, not a blank", S.normalise(130.23, 0.36, "mas").unit_si === "mas");
 
+// how astronomers actually write units ----------------------------------------
+// A catalogue column says "rearth". A paper says "Earth radii", or "R_⊕", or
+// "g cm^-3". Sixteen correctly-read measurements were discarded in one sweep
+// for arriving in units an astronomer would consider entirely ordinary.
+const UNIT_FORMS = [
+  ["M⊕", "kg"], ["M ⊕", "kg"], ["M_⊕", "kg"], ["M_Earth", "kg"], ["Mearth", "kg"],
+  ["Earth masses", "kg"], ["Earth mass", "kg"], ["M_E", "kg"], ["MJup", "kg"],
+  ["M_Jup", "kg"], ["Jupiter masses", "kg"], ["M_sun", "kg"], ["M☉", "kg"], ["solar masses", "kg"],
+  ["R⊕", "m"], ["R_⊕", "m"], ["Earth radii", "m"], ["R_Jup", "m"], ["Jupiter radii", "m"],
+  ["R_sun", "m"], ["R☉", "m"], ["km", "m"], ["AU", "m"], ["pc", "m"],
+  ["g/cm3", "kg/m3"], ["g cm^-3", "kg/m3"], ["g cm-3", "kg/m3"], ["g/cm^3", "kg/m3"], ["g cc", "kg/m3"],
+  ["days", "s"], ["d", "s"], ["yr", "s"],
+  ["K", "K"], ["km/s", "m/s"], ["km s^-1", "m/s"], ["mas", "mas"],
+];
+for (const [form, want] of UNIT_FORMS) {
+  t(`unit "${form}" resolves to ${want}`, S.normalise(1, 0.1, form).unit_si === want);
+}
+// the dimension being right is not the same as the number being right
+t("17.2 Earth masses converts correctly",
+  Math.abs(S.normalise(17.2, 1.9, "Earth masses").value_si - 1.02721324e26) < 1e20);
+t("5.8 g cm^-3 converts correctly", S.normalise(5.8, 0.5, "g cm^-3").value_si === 5800);
+
 // TAP dialects ----------------------------------------------------------------
 t("TAP row-of-objects is read", S.tapRows([{ a: 1 }]).length === 1);
 const columnar = S.tapRows({ metadata: [{ name: "PL_NAME" }, { name: "pl_rade" }], data: [["Kepler-10 b", 1.47]] });

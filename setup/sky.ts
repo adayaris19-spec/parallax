@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 5;
+const WORKER_VERSION = 6;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -163,12 +163,46 @@ const UNITS: Record<string, [number, string]> = {
   "m/s": [1, "m/s"], "km/s": [1e3, "m/s"],
   // angle on the sky -> milliarcseconds
   mas: [1, "mas"], arcsec: [1e3, "mas"], as: [1e3, "mas"],
+
+  /* WRITTEN-OUT AND CGS FORMS.
+     A catalogue column says "rearth". A paper says "Earth radii", or "R_⊕", or
+     "g cm^-3", because it is prose written for people. Sixteen correctly-read
+     measurements were discarded in one sweep for arriving in units an
+     astronomer would consider completely ordinary, and a measurement thrown
+     away for its spelling is indistinguishable downstream from one that was
+     never made. */
+  earthmass: [5.97217e24, "kg"], earthmasses: [5.97217e24, "kg"],
+  jupitermass: [1.898125e27, "kg"], jupitermasses: [1.898125e27, "kg"],
+  solarmass: [1.988409e30, "kg"], solarmasses: [1.988409e30, "kg"],
+  earthradius: [6.3781e6, "m"], earthradii: [6.3781e6, "m"],
+  jupiterradius: [7.1492e7, "m"], jupiterradii: [7.1492e7, "m"],
+  solarradius: [6.957e8, "m"], solarradii: [6.957e8, "m"],
+  "gcm-3": [1e3, "kg/m3"], gcm3: [1e3, "kg/m3"], "gcc": [1e3, "kg/m3"],
+  "kgm-3": [1, "kg/m3"],
+  "kms-1": [1e3, "m/s"], "ms-1": [1, "m/s"],
+  earthday: [86400, "s"], earthdays: [86400, "s"],
   // dimensionless / already canonical
   k: [1, "K"], deg: [1, "deg"], mag: [1, "mag"], "": [1, ""],
 };
 
+/* Reduce a unit as a paper writes it to the one form the table is keyed on.
+   Astronomical symbols first, because they carry the meaning: an Earth symbol
+   is the difference between a rocky planet and a star. Then the typographic
+   scaffolding that means nothing — underscores, braces, carets, dollar signs
+   and dot separators left over from mathematics — and finally the plural. */
+function unitKey(unit: string): string {
+  return String(unit ?? "")
+    .toLowerCase()
+    .replace(/[⊕]/g, "earth")
+    .replace(/[⊙☉]/g, "sun")
+    .replace(/[♃]/g, "jupiter")
+    .replace(/[_{}$\\·⋅×]/g, "")
+    .replace(/\^/g, "")
+    .replace(/\s+/g, "");
+}
+
 function normalise(value: number | null, err: number | null, unit: string) {
-  const key = String(unit ?? "").toLowerCase().replace(/\s+/g, "").replace(/[⊕]/g, "earth");
+  const key = unitKey(unit);
   const hit = UNITS[key];
   if (!hit || value === null) return { value_si: null, err_si: null, unit_si: null };
   /* Rounded for the same reason the symmetrised error bar is: converting
