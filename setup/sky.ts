@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 7;
+const WORKER_VERSION = 8;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -294,7 +294,7 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
     `ra,dec,disc_year,pl_refname from ps ${where}`;
   const j = await getJSON(
     `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${encodeURIComponent(q)}&format=json`,
-    {}, 15000,
+    {}, 10000,
   );
   const out: Obs[] = [];
   for (const r of tapRows(j)) {
@@ -563,6 +563,21 @@ async function skyPerimeter(
   await Promise.all(live.map(async (s) => {
     const t0 = Date.now();
     const ask = target || (useProbeTargets ? s.probe ?? "" : "");
+    /* One retry before a source is believed dead. The exoplanet archive
+       answered in two seconds on three consecutive sweeps and timed out on the
+       fourth with an identical query — service latency, not a bad request. It
+       is also the only source that can supply the planet side of a comparison,
+       so when it drops out the entire sweep has one eye open and every
+       measurement lands in no_counterpart. */
+    const attempt = async (): Promise<Obs[]> => {
+      try { return await s.run(ask, per); }
+      catch (e) {
+        const m = String((e as Error)?.message ?? e);
+        if (m === "needs a target") throw e;
+        await new Promise((r) => setTimeout(r, 500));
+        return await s.run(ask, per);
+      }
+    };
     /* The deadline timer has to be cancelled when the source wins the race.
        Left running, it rejects a promise that nothing is listening to any more,
        and an unhandled rejection in this runtime is not a warning — it can take
@@ -571,7 +586,7 @@ async function skyPerimeter(
     let timer: number | undefined;
     try {
       const got = await Promise.race([
-        s.run(ask, per),
+        attempt(),
         new Promise<Obs[]>((_, rej) => {
           timer = setTimeout(() => rej(new Error("deadline")),
             Math.max(1000, deadlineMs - (Date.now() - started)));
@@ -1217,7 +1232,36 @@ async function handle(req: Request): Promise<Response> {
      is pure arithmetic and costs nothing. */
   if (mode === "tension") {
     const since = String(body.since ?? "").slice(0, 10);
-    const { rows: sky, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
+    const { rows: swept, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
+    let sky = swept;
+
+    /* Observations are written on every sweep, not only in sky mode, because
+       an archive value is not news — it is the same number tomorrow — and
+       having yesterday's copy is the difference between a comparison and a
+       shrug when a service is slow. */
+    if (swept.length && body.store !== false) {
+      await sb("observations?on_conflict=source,source_id,quantity", "POST", swept,
+        "resolution=merge-duplicates,return=minimal");
+    }
+
+    /* When a source drops out entirely, fall back to what it said last time.
+       Marked as such: a sweep comparing against a stored value is making a
+       weaker statement than one comparing against a value fetched a second ago,
+       and the reply says which it did. */
+    let from_store = 0;
+    const lostSources = ledger.filter((l: any) => l.error).map((l: any) => l.name);
+    if (lostSources.length && target) {
+      const t = target.replace(/[%,*()]/g, " ").trim();
+      const cached = await sb(
+        `observations?select=source,source_id,object,quantity,value,err,unit,value_si,err_si,unit_si,reference,url,ra,dec` +
+        `&object=ilike.*${encodeURIComponent(t)}*&limit=300`) as any[];
+      if (Array.isArray(cached) && cached.length) {
+        const have = new Set(sky.map((o) => `${o.source}|${o.source_id}|${o.quantity}`));
+        const extra = cached.filter((c) => !have.has(`${c.source}|${c.source_id}|${c.quantity}`));
+        sky = [...sky, ...extra];
+        from_store = extra.length;
+      }
+    }
 
     /* The papers are fetched AFTER the sky sweep, and chosen by what the sky
        actually returned. Reading the most recent sixty records instead — which
@@ -1328,6 +1372,11 @@ async function handle(req: Request): Promise<Response> {
       ledger,
       read: {
         observations: sky.length,
+        /* Above zero means a source failed and its previous answer stood in for
+           it. The comparison still happened; it happened against a stored
+           value. */
+        observations_from_store: from_store,
+        sources_lost: lostSources,
         objects_seen: names.length,
         papers: records.length,
         papers_from_corpus: matched,
