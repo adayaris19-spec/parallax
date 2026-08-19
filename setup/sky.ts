@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 10;
+const WORKER_VERSION = 11;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -669,6 +669,11 @@ async function extractFrom(records: any[]) {
        wrong; it does not say what, and every round spent guessing at that is a
        redeploy nobody needed. */
     sample_items: [] as any[],
+    /* The unit strings that could not be converted, verbatim. Nine of twenty
+       readings were discarded for their spelling in one sweep and the counter
+       could not say which spellings, so the fix was a guess. This is the fourth
+       place in this file where naming a failure replaced guessing at it. */
+    unconverted_units: [] as string[],
   };
   if (!records.length || !ANT) return { rows: [] as any[], diag };
   const digest = records.map((r, i) =>
@@ -734,7 +739,13 @@ async function extractFrom(records: any[]) {
     if (!quantity || !ALLOWED.has(quantity)) { diag.dropped.unknown_quantity++; continue; }
     const unit = clean(m.unit);
     const n = normalise(value, num(m.err), unit);
-    if (n.unit_si === null) { diag.dropped.no_unit_match++; continue; }
+    if (n.unit_si === null) {
+      diag.dropped.no_unit_match++;
+      if (!diag.unconverted_units.includes(unit) && diag.unconverted_units.length < 12) {
+        diag.unconverted_units.push(unit);
+      }
+      continue;
+    }
     const source_text = `${src.title ?? ""} ${src.abstract ?? ""}`;
     if (!inText(source_text, value)) { diag.dropped.value_not_in_text++; continue; }
     diag.kept++;
@@ -1386,8 +1397,28 @@ async function handle(req: Request): Promise<Response> {
       await sb("measurements", "POST", reported, "return=minimal");
     }
 
-    const { tensions, skipped } = reconcile(sky, reported);
-    const { orphans: orph, rejected } = await verifiedOrphans(orphans(sky, reported));
+    const { tensions: allTensions, skipped } = reconcile(sky, reported);
+
+    /* A QUESTION ABOUT ONE SYSTEM MUST NOT BE ANSWERED WITH ANOTHER.
+       Asked about TRAPPIST-1, this returned seven claims about gravitational
+       wave events. Every one was true and properly verified, and not one of
+       them was what anybody asked for: the perimeter sweeps every source
+       whatever the target, and the orphan detector correctly noticed that
+       recent GWTC events are unwritten-about. Correct claims on the wrong
+       subject are still the wrong answer, and a frontier that answers a
+       question about seven planets with black hole mergers is not one anybody
+       would look at twice.
+
+       So when a target is named, claims are scoped to it. Nothing is deleted -
+       what was set aside is counted and reported - and an untargeted sweep is
+       unaffected, because there the whole sky is the subject. */
+    const onTarget = (o: any) => !target || belongsToTarget(String(o?.object ?? "")) === 0;
+    const tensions = allTensions.filter(onTarget);
+    const candidates = orphans(sky, reported).filter(onTarget);
+    const set_aside_off_target =
+      (allTensions.length - tensions.length) + (orphans(sky, reported).length - candidates.length);
+
+    const { orphans: orph, rejected } = await verifiedOrphans(candidates);
     const claims = claimsFrom(tensions, orph);
 
     if (claims.length && body.store !== false) {
@@ -1443,6 +1474,8 @@ async function handle(req: Request): Promise<Response> {
          different object from one that compared four thousand, and hiding the
          denominator is how a frontier starts looking more certain than it is. */
       skipped,
+      /* Claims that were real but about something other than what was asked. */
+      set_aside_off_target,
       tensions,
       orphans: orph,
       /* Candidates the literature check threw out, with the hit count that
