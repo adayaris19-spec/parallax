@@ -21,7 +21,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const tmp = join(here, ".sky.undertest.ts");
 writeFileSync(tmp,
   readFileSync(join(here, "sky.ts"), "utf8") +
-  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs, searchName };\n");
+  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs, searchName, plausible };\n");
 
 globalThis.Deno = { env: { get: () => "test" }, serve: () => {} };
 const S = await import("./.sky.undertest.ts");
@@ -79,18 +79,31 @@ t("5.8 g cm^-3 converts correctly", S.normalise(5.8, 0.5, "g cm^-3").value_si ==
 // them with quantities this worker accepts. They were dropped only because those
 // units are absent from the table — luck, not a rule. The same age in DAYS would
 // have been filed as an orbital period.
-// The honest limit of the guard: an age and an orbital period are both times.
-// Dimension alone cannot separate them, so a 7.6 Gyr age mislabelled as a period
-// is caught only because Gyr is absent from the table. Quoted in years it would
-// pass. Closing that needs plausibility bounds per quantity, which this worker
-// does not yet have — recorded here so the gap is documented rather than assumed
-// shut.
-t("an age and a period share a dimension, so this guard cannot separate them",
-  S.normalise(7.6, 0.2, "yr").unit_si === "s" && S.normalise(4.05, 0.01, "days").unit_si === "s");
-t("a mass unit and a length unit never share a dimension",
-  S.normalise(1, 0, "Mearth").unit_si !== S.normalise(1, 0, "Rearth").unit_si);
+// An age and an orbital period are both times, so dimension alone can never
+// separate them. Magnitude can: TRAPPIST-1 is 7.6 Gyr old and its outermost
+// planet orbits in 19 days, and there is nothing in between that is either.
+t("a gigayear is now recognised as a time rather than refused as a typo",
+  S.normalise(7.6, 0.2, "Gyr").unit_si === "s");
+t("a 7.6 Gyr age is refused as an orbital period",
+  !S.plausible("period", S.normalise(7.6, 0.2, "Gyr").value_si));
+t("a 4.05 day orbital period is accepted",
+  S.plausible("period", S.normalise(4.05, 0.01, "days").value_si));
+t("a 19 day orbital period is accepted",
+  S.plausible("period", S.normalise(18.77, 0.01, "days").value_si));
+t("a 300 Myr age is still refused as a period",
+  !S.plausible("period", S.normalise(300, 10, "Myr").value_si));
+// the same rule on the other quantities it protects
+t("a stellar mass is not a planet-sized mass", S.plausible("mass", S.normalise(1, 0, "Msun").value_si));
+t("a gram is not any object's mass", !S.plausible("mass", S.normalise(1, 0, "g").value_si));
+t("an Earth density is plausible", S.plausible("density", S.normalise(5.5, 0.1, "g/cm3").value_si));
+t("an albedo above one and a half is refused", !S.plausible("albedo", 3));
+t("a quantity with no stated range is never refused", S.plausible("detections", 1e30));
+t("a missing value is not judged implausible", S.plausible("period", null));
+
 t("a transit depth in ppm converts to nothing", S.normalise(4300, 50, "ppm").unit_si === null);
 t("an epoch in BJD_TDB converts to nothing", S.normalise(2457000, 0.1, "BJD_TDB").unit_si === null);
+t("a mass unit and a length unit never share a dimension",
+  S.normalise(1, 0, "Mearth").unit_si !== S.normalise(1, 0, "Rearth").unit_si);
 
 // TAP dialects ----------------------------------------------------------------
 t("TAP row-of-objects is read", S.tapRows([{ a: 1 }]).length === 1);

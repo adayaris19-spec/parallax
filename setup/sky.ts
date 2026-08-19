@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 13;
+const WORKER_VERSION = 14;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -159,6 +159,11 @@ const UNITS: Record<string, [number, string]> = {
   s: [1, "s"], sec: [1, "s"], min: [60, "s"], hr: [3600, "s"], h: [3600, "s"],
   d: [86400, "s"], day: [86400, "s"], days: [86400, "s"],
   yr: [3.15576e7, "s"], year: [3.15576e7, "s"], years: [3.15576e7, "s"],
+  /* Ages arrive in these. Teaching them is what turns the guard below from luck
+     into a rule: an age is refused because 10^17 seconds is not an orbital
+     period, not because nobody told this file what a gigayear is. */
+  kyr: [3.15576e10, "s"], myr: [3.15576e13, "s"], gyr: [3.15576e16, "s"],
+  ga: [3.15576e16, "s"], ma: [3.15576e13, "s"],
   // velocity -> m/s
   "m/s": [1, "m/s"], "km/s": [1e3, "m/s"],
   // angle on the sky -> milliarcseconds
@@ -254,6 +259,42 @@ const qname = (s: string) => QMAP[String(s ?? "").toLowerCase()] ?? String(s ?? 
    refused only because Gyr is absent from the unit table; quoted in years it
    would pass this check. Separating those needs a plausible range per quantity,
    which this worker does not have yet. */
+/* What each quantity can plausibly be, in its canonical unit. Deliberately
+   generous — these are not measurements, they are the edges past which a number
+   cannot be the thing it says it is. A period of 10^17 seconds is not a long
+   orbit, it is the age of a star wearing the wrong label, and that is the one
+   confusion a dimension check alone can never catch because both are times.
+
+   Applied to values read out of prose, not to catalogue rows: an archive that
+   states a curated number with an error bar has already been checked by people,
+   and silently dropping its values would hide a real disagreement rather than
+   catch a false one. */
+const QRANGE: Record<string, [number, number]> = {
+  radius: [1e5, 2e12],            // a small moon to a red giant
+  diameter: [1, 1e10],
+  "stellar-radius": [1e7, 2e12],
+  distance: [1e15, 1e27],         // inside a parsec, out to a gigaparsec
+  mass: [1e18, 1e34],             // a large asteroid to a few hundred suns
+  "stellar-mass": [1e28, 1e33],
+  "chirp-mass": [1e29, 1e34],
+  "final-mass": [1e29, 1e34],
+  density: [10, 1e6],
+  period: [1, 1e12],              // a second to ~30,000 years. An age is 10^16.
+  "equilibrium-temperature": [1, 1e4],
+  "stellar-teff": [500, 1e6],
+  parallax: [1e-4, 1e4],
+  albedo: [0, 1.5],
+  "absolute-magnitude": [-30, 40],
+};
+
+/* Exported shape kept simple so the rule can be tested directly rather than
+   only through a model call that needs a network. */
+function plausible(quantity: string, valueSI: number | null): boolean {
+  const r = QRANGE[quantity];
+  if (!r || valueSI === null) return true;
+  return Math.abs(valueSI) >= r[0] && Math.abs(valueSI) <= r[1];
+}
+
 const QDIM: Record<string, string> = {
   radius: "m", diameter: "m", "stellar-radius": "m", distance: "m",
   mass: "kg", "stellar-mass": "kg", "chirp-mass": "kg", "final-mass": "kg",
@@ -726,7 +767,8 @@ async function extractFrom(records: any[]) {
     kept: 0,
     dropped: {
       bad_index: 0, no_object: 0, no_value: 0,
-      unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0, wrong_dimension: 0,
+      unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0,
+      wrong_dimension: 0, implausible: 0,
     },
     /* When nothing at all survives, the first few items exactly as the model
        returned them. Twenty items discarded under one counter says something is
@@ -816,6 +858,14 @@ async function extractFrom(records: any[]) {
       diag.dropped.wrong_dimension++;
       if (!diag.unconverted_units.includes(`${quantity}:${unit}`) && diag.unconverted_units.length < 12) {
         diag.unconverted_units.push(`${quantity}:${unit}`);
+      }
+      continue;
+    }
+    /* An age is a time and so is a period; only the magnitude separates them. */
+    if (!plausible(quantity, n.value_si)) {
+      diag.dropped.implausible++;
+      if (!diag.unconverted_units.includes(`${quantity}=${value}${unit}`) && diag.unconverted_units.length < 12) {
+        diag.unconverted_units.push(`${quantity}=${value}${unit}`);
       }
       continue;
     }
