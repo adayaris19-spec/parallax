@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 12;
+const WORKER_VERSION = 13;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -233,6 +233,36 @@ const QMAP: Record<string, string> = {
   albedo: "albedo", diameter: "diameter", h: "absolute-magnitude",
 };
 const qname = (s: string) => QMAP[String(s ?? "").toLowerCase()] ?? String(s ?? "").toLowerCase();
+
+/* THE UNIT MUST AGREE WITH THE QUANTITY.
+   A sweep of TRAPPIST-1 read ages in Gyr, transit epochs in BJD_TDB, X-ray
+   luminosity ratios and transit depths in ppm — and labelled every one of them
+   with a quantity this worker accepts. They were discarded only because those
+   units happen to be absent from the table, which is luck, not a rule. An age
+   quoted in DAYS would have been filed as an orbital period and compared
+   against one, and a billion years against a few days is exactly the shape of a
+   spectacular, confident, entirely false tension.
+
+   So a quantity now declares its dimension, and a value whose unit does not
+   resolve to that dimension is refused however plausibly it was labelled. This
+   is the same guard as never comparing across units, applied one step earlier:
+   there, two values had to agree with each other; here, a value has to agree
+   with what it claims to be.
+
+   It is not a complete guard, and should not be mistaken for one. An age and an
+   orbital period are both times, so a 7.6 Gyr age labelled as a period is
+   refused only because Gyr is absent from the unit table; quoted in years it
+   would pass this check. Separating those needs a plausible range per quantity,
+   which this worker does not have yet. */
+const QDIM: Record<string, string> = {
+  radius: "m", diameter: "m", "stellar-radius": "m", distance: "m",
+  mass: "kg", "stellar-mass": "kg", "chirp-mass": "kg", "final-mass": "kg",
+  density: "kg/m3",
+  period: "s",
+  "equilibrium-temperature": "K", "stellar-teff": "K",
+  parallax: "mas",
+  albedo: "", detections: "", "absolute-magnitude": "mag",
+};
 
 // ---------------------------------------------------------------------------
 // what the sky did
@@ -696,7 +726,7 @@ async function extractFrom(records: any[]) {
     kept: 0,
     dropped: {
       bad_index: 0, no_object: 0, no_value: 0,
-      unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0,
+      unknown_quantity: 0, no_unit_match: 0, value_not_in_text: 0, wrong_dimension: 0,
     },
     /* When nothing at all survives, the first few items exactly as the model
        returned them. Twenty items discarded under one counter says something is
@@ -777,6 +807,15 @@ async function extractFrom(records: any[]) {
       diag.dropped.no_unit_match++;
       if (!diag.unconverted_units.includes(unit) && diag.unconverted_units.length < 12) {
         diag.unconverted_units.push(unit);
+      }
+      continue;
+    }
+    /* An age is not a period, whatever it was labelled. */
+    const want = QDIM[quantity];
+    if (want !== undefined && n.unit_si !== want) {
+      diag.dropped.wrong_dimension++;
+      if (!diag.unconverted_units.includes(`${quantity}:${unit}`) && diag.unconverted_units.length < 12) {
+        diag.unconverted_units.push(`${quantity}:${unit}`);
       }
       continue;
     }

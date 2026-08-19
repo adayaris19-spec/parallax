@@ -74,6 +74,24 @@ t("17.2 Earth masses converts correctly",
   Math.abs(S.normalise(17.2, 1.9, "Earth masses").value_si - 1.02721324e26) < 1e20);
 t("5.8 g cm^-3 converts correctly", S.normalise(5.8, 0.5, "g cm^-3").value_si === 5800);
 
+// a value must agree with what it claims to be ---------------------------------
+// A TRAPPIST-1 sweep read ages in Gyr and transit epochs in BJD_TDB and labelled
+// them with quantities this worker accepts. They were dropped only because those
+// units are absent from the table — luck, not a rule. The same age in DAYS would
+// have been filed as an orbital period.
+// The honest limit of the guard: an age and an orbital period are both times.
+// Dimension alone cannot separate them, so a 7.6 Gyr age mislabelled as a period
+// is caught only because Gyr is absent from the table. Quoted in years it would
+// pass. Closing that needs plausibility bounds per quantity, which this worker
+// does not yet have — recorded here so the gap is documented rather than assumed
+// shut.
+t("an age and a period share a dimension, so this guard cannot separate them",
+  S.normalise(7.6, 0.2, "yr").unit_si === "s" && S.normalise(4.05, 0.01, "days").unit_si === "s");
+t("a mass unit and a length unit never share a dimension",
+  S.normalise(1, 0, "Mearth").unit_si !== S.normalise(1, 0, "Rearth").unit_si);
+t("a transit depth in ppm converts to nothing", S.normalise(4300, 50, "ppm").unit_si === null);
+t("an epoch in BJD_TDB converts to nothing", S.normalise(2457000, 0.1, "BJD_TDB").unit_si === null);
+
 // TAP dialects ----------------------------------------------------------------
 t("TAP row-of-objects is read", S.tapRows([{ a: 1 }]).length === 1);
 const columnar = S.tapRows({ metadata: [{ name: "PL_NAME" }, { name: "pl_rade" }], data: [["Kepler-10 b", 1.47]] });
