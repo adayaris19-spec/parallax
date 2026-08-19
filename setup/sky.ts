@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 9;
+const WORKER_VERSION = 10;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -902,15 +902,30 @@ function deInvert(inv: Record<string, number[]> | null | undefined): string {
    identical runs. A single failed call is indistinguishable from a subject
    nobody has written about, which makes a transient refusal look like a
    finding. */
-const OA_FAILURES = { count: 0 };
+/* The message, not only the count. Fourteen index calls failed in one CI sweep
+   and every orphan candidate came back unverifiable; the claim rule correctly
+   published nothing, but a bare count cannot distinguish a rate limit from a
+   timeout from a service that has moved, and those have three different fixes.
+   This is the third place in this file where a failure was counted without
+   being named, and the third time it cost a round to find out why. */
+const OA_FAILURES = { count: 0, last_error: "", statuses: [] as string[] };
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function oaGet(url: string, ms = 10000): Promise<any | null> {
+  let last = "";
   for (let attempt = 0; attempt < 2; attempt++) {
     try { return await getJSON(url, {}, ms); }
-    catch { if (attempt === 0) await pause(600); }
+    catch (e) {
+      last = String((e as Error)?.message ?? e).slice(0, 90);
+      /* A rate limit is worth waiting longer for than a dropped connection,
+         and this index answers 429 when a burst is too wide rather than when
+         the question is wrong. */
+      if (attempt === 0) await pause(last.includes("429") ? 2000 : 600);
+    }
   }
   OA_FAILURES.count++;
+  OA_FAILURES.last_error = last;
+  if (OA_FAILURES.statuses.length < 5) OA_FAILURES.statuses.push(last);
   return null;
 }
 
@@ -1226,7 +1241,7 @@ async function handle(req: Request): Promise<Response> {
       worker: WORKER_VERSION, mode, ms: Date.now() - t0, searched_as: searchName(name),
       arxiv: { got: ax.length, calls: ARXIV.calls, failures: ARXIV.failures, last_error: ARXIV.last_error,
                titles: listing(ax), sample: first(ax) },
-      openalex: { got: oa.length, failures: OA_FAILURES.count, titles: listing(oa), sample: first(oa) },
+      openalex: { got: oa.length, failures: OA_FAILURES.count, errors: OA_FAILURES.statuses, titles: listing(oa), sample: first(oa) },
     });
   }
 
@@ -1414,6 +1429,7 @@ async function handle(req: Request): Promise<Response> {
         /* Calls that failed twice. Any number above zero means part of this
            sweep's silence is the network, not the literature. */
         index_failures: OA_FAILURES.count,
+        index_errors: OA_FAILURES.statuses,
         /* False here means the corpus contained nothing about anything observed
            this sweep, so what follows is a fallback comparison and a thin
            result is expected rather than a fault. */
