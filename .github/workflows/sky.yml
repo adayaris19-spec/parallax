@@ -1,0 +1,110 @@
+name: sky
+
+# Deploy the sky worker and run a sweep, so the loop is not a person copying a
+# file into a browser and pasting JSON back.
+#
+# Two triggers:
+#   * push  — any change to setup/sky.ts deploys and runs one sweep, so a commit
+#             is verified against live services rather than against a test suite
+#             that cannot reach them.
+#   * manual — run a sweep on demand, with the mode and target you want, without
+#             changing any code.
+#
+# Secrets required (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_ACCESS_TOKEN  supabase.com/dashboard/account/tokens
+#   SUPABASE_ANON_KEY      Project Settings -> API -> anon public
+#
+# The project ref is not a secret — it is in every URL the site already calls —
+# so it stays readable here rather than pretending otherwise.
+
+on:
+  push:
+    branches: [claude/parallax-brainstorm-xxdb17]
+    paths: ["setup/sky.ts", ".github/workflows/sky.yml"]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe | papers | sky | tension | scorecard"
+        default: tension
+        type: string
+      target:
+        description: "object or system, e.g. Kepler-10"
+        default: Kepler-10
+        type: string
+      deploy:
+        description: "deploy setup/sky.ts before running"
+        default: true
+        type: boolean
+
+env:
+  PROJECT_REF: zfmjjazkmolvywvayjzj
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unit tests
+        # These need no network and no deploy. If the claim arithmetic is wrong
+        # there is no point deploying it to find out.
+        run: node --experimental-strip-types --no-warnings setup/sky.test.mjs
+
+      - uses: supabase/setup-cli@v1
+        if: ${{ github.event_name == 'push' || inputs.deploy }}
+        with:
+          version: latest
+
+      - name: Deploy
+        if: ${{ github.event_name == 'push' || inputs.deploy }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          # The CLI wants supabase/functions/<name>/index.ts; the source of
+          # truth stays at setup/sky.ts so there is one copy to edit and read.
+          mkdir -p supabase/functions/sky
+          cp setup/sky.ts supabase/functions/sky/index.ts
+          supabase functions deploy sky --project-ref "$PROJECT_REF" --no-verify-jwt
+
+      - name: Sweep
+        env:
+          ANON: ${{ secrets.SUPABASE_ANON_KEY }}
+          MODE: ${{ inputs.mode || 'tension' }}
+          TARGET: ${{ inputs.target || 'Kepler-10' }}
+        run: |
+          set -o pipefail
+          body=$(printf '{"mode":"%s","target":"%s","limit":40}' "$MODE" "$TARGET")
+          echo "request: $body"
+
+          # --fail-with-body so an error response is printed rather than
+          # swallowed into a bare exit code.
+          curl -sS --fail-with-body --max-time 120 \
+            -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
+            -H "Authorization: Bearer $ANON" \
+            -H "Content-Type: application/json" \
+            -d "$body" | tee sweep.json | head -c 200000
+
+          echo
+          echo "----- summary -----"
+          # Everything worth reading first, without scrolling a full sweep.
+          node -e '
+            const r = JSON.parse(require("fs").readFileSync("sweep.json","utf8"));
+            const pick = (o, ks) => ks.filter(k => o && k in o).map(k => `${k}=${JSON.stringify(o[k])}`).join("  ");
+            console.log("worker  ", r.worker, " mode", r.mode, " ms", r.ms);
+            if (r.ledger) for (const l of r.ledger)
+              console.log("  source", l.name.padEnd(20), l.got ?? 0, l.error ? "ERROR "+l.error : (l.skipped ? "skipped "+l.skipped : ""));
+            if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
+            if (r.extraction) console.log("kept     ", r.extraction.kept, " dropped", JSON.stringify(r.extraction.dropped));
+            if (r.skipped) console.log("compare  ", JSON.stringify(r.skipped));
+            console.log("tensions ", (r.tensions||[]).length, " orphans", (r.orphans||[]).length, " claims", (r.claims||[]).length);
+            for (const t of r.tensions||[])
+              console.log(`  TENSION ${t.object} ${t.quantity}: ${t.sigma}σ  archive ${t.measured.value}${t.measured.unit} vs ${t.reported.year} ${t.reported.value}${t.reported.unit}`);
+          '
+
+      - name: Keep the sweep
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweep
+          path: sweep.json
+          if-no-files-found: ignore
