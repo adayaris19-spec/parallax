@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 8;
+const WORKER_VERSION = 9;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -228,6 +228,7 @@ const QMAP: Record<string, string> = {
   pl_orbper: "period", period: "period", per: "period",
   pl_eqt: "equilibrium-temperature", teq: "equilibrium-temperature",
   st_rad: "stellar-radius", st_mass: "stellar-mass", st_teff: "stellar-teff",
+  "stellar-teff": "stellar-teff", teff: "stellar-teff",
   sy_dist: "distance", luminosity_distance: "distance", distance: "distance",
   albedo: "albedo", diameter: "diameter", h: "absolute-magnitude",
 };
@@ -288,9 +289,17 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
   const where = target
     ? `where default_flag = 1 and (upper(pl_name) like '${t}%' or upper(hostname) like '${t}%')`
     : `where pl_dens is not null and default_flag = 1`;
+  /* Ask for every quantity a paper is likely to state, not only the ones a
+     catalogue leads with. Ten measurements were read correctly out of Kepler-10
+     abstracts and then had nothing to be compared against, because the papers
+     talked about the star's mass, the planet's equilibrium temperature and the
+     system's distance, and this query had never asked for any of them. A
+     quantity the archive is not asked for is a comparison that cannot happen. */
   const q = `select top ${rows} pl_name,hostname,pl_rade,pl_radeerr1,pl_radeerr2,` +
     `pl_bmasse,pl_bmasseerr1,pl_bmasseerr2,pl_dens,pl_denserr1,pl_denserr2,` +
     `pl_orbper,pl_orbpererr1,pl_orbpererr2,st_rad,st_raderr1,st_raderr2,` +
+    `st_mass,st_masserr1,st_masserr2,pl_eqt,pl_eqterr1,pl_eqterr2,` +
+    `sy_dist,sy_disterr1,sy_disterr2,st_teff,st_tefferr1,st_tefferr2,` +
     `ra,dec,disc_year,pl_refname from ps ${where}`;
   const j = await getJSON(
     `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${encodeURIComponent(q)}&format=json`,
@@ -314,6 +323,10 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
       ["density", "g/cm3", r.pl_dens, r.pl_denserr1, r.pl_denserr2],
       ["period", "day", r.pl_orbper, r.pl_orbpererr1, r.pl_orbpererr2],
       ["stellar-radius", "rsun", r.st_rad, r.st_raderr1, r.st_raderr2],
+      ["stellar-mass", "msun", r.st_mass, r.st_masserr1, r.st_masserr2],
+      ["equilibrium-temperature", "k", r.pl_eqt, r.pl_eqterr1, r.pl_eqterr2],
+      ["distance", "pc", r.sy_dist, r.sy_disterr1, r.sy_disterr2],
+      ["stellar-teff", "k", r.st_teff, r.st_tefferr1, r.st_tefferr2],
     ];
     for (const [quantity, unit, v, e1, e2] of cols) {
       const value = num(v);
@@ -669,7 +682,8 @@ async function extractFrom(records: any[]) {
     `- A value you cannot find written in the text is not a measurement. Omit it.\n` +
     `- "object" is the named thing measured (e.g. "Kepler-10 b", "GW150914"). Skip if unnamed.\n` +
     `- "quantity" is one of: radius, mass, density, period, distance, chirp-mass,\n` +
-    `  stellar-radius, stellar-mass, equilibrium-temperature, albedo, diameter, parallax.\n` +
+    `  stellar-radius, stellar-mass, stellar-teff, equilibrium-temperature, albedo,\n` +
+    `  diameter, parallax.\n` +
     `  Skip anything that is not one of these.\n` +
     `- "err" is the stated uncertainty, symmetric, in the same unit. null if the text gives none.\n` +
     `- "quote" is the exact sentence the number came from, copied verbatim from the\n` +
