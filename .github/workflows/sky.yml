@@ -95,6 +95,8 @@ jobs:
               console.log("  source", l.name.padEnd(20), l.got ?? 0, l.error ? "ERROR "+l.error : (l.skipped ? "skipped "+l.skipped : ""));
             if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
             if (r.extraction) console.log("kept     ", r.extraction.kept, " dropped", JSON.stringify(r.extraction.dropped));
+            if (r.extraction?.unconverted_units?.length) console.log("units?   ", r.extraction.unconverted_units.join("  |  "));
+            if (r.set_aside_off_target) console.log("off-target set aside", r.set_aside_off_target);
             if (r.skipped) console.log("compare  ", JSON.stringify(r.skipped));
             console.log("tensions ", (r.tensions||[]).length, " orphans", (r.orphans||[]).length, " claims", (r.claims||[]).length);
             for (const t of r.tensions||[])

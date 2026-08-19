@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 11;
+const WORKER_VERSION = 12;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -306,6 +306,7 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
     {}, 10000,
   );
   const out: Obs[] = [];
+  const hostsSeen = new Set<string>();
   for (const r of tapRows(j)) {
     const name = clean(r.pl_name);
     if (!name) continue;
@@ -332,6 +333,39 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
       const value = num(v);
       if (value === null) continue;
       out.push(obs({ ...base, source_id: `exo:${name}`, quantity, value, err: sym(e1, e2), unit }));
+    }
+
+    /* THE STAR HAS TO BE AN OBJECT TOO.
+       Every row above is filed under the planet's name, the star's own mass and
+       radius included. So a paper stating "TRAPPIST-1 has a mass of 0.0898
+       solar masses" produces object TRAPPIST-1, and there is no observation
+       anywhere carrying that name — the host is measured constantly and was
+       never comparable to anything.
+
+       The same values are therefore emitted a second time under the host, and
+       renamed as the host's own: what the catalogue calls the stellar radius is
+       simply the radius of the star. Once per host rather than once per planet,
+       since seven planets share one. */
+    const host = clean(r.hostname);
+    if (host && !hostsSeen.has(host)) {
+      hostsSeen.add(host);
+      const starCols: [string, string, unknown, unknown, unknown][] = [
+        ["radius", "rsun", r.st_rad, r.st_raderr1, r.st_raderr2],
+        ["mass", "msun", r.st_mass, r.st_masserr1, r.st_masserr2],
+        ["stellar-teff", "k", r.st_teff, r.st_tefferr1, r.st_tefferr2],
+        ["distance", "pc", r.sy_dist, r.sy_disterr1, r.sy_disterr2],
+      ];
+      for (const [quantity, unit, v, e1, e2] of starCols) {
+        const value = num(v);
+        if (value === null) continue;
+        out.push(obs({
+          source: "exoplanet-archive", source_id: `exo:star:${host}`, object: host,
+          quantity, value, err: sym(e1, e2), unit,
+          ra: num(r.ra), dec: num(r.dec),
+          reference: clean(r.pl_refname).replace(/<[^>]+>/g, " ").trim(),
+          url: `https://exoplanetarchive.ipac.caltech.edu/overview/${encodeURIComponent(host)}`,
+        }));
+      }
     }
   }
   return out;
