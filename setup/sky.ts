@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 6;
+const WORKER_VERSION = 7;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1230,8 +1230,30 @@ async function handle(req: Request): Promise<Response> {
        recent slice: the sweep then reports a large no_counterpart count, which
        is the honest signal that the corpus and the sky are not yet looking at
        the same things. */
+    /* ASKED FOR KEPLER-10, GIVEN KEPLER-1022.
+       The archive query anchors on the front, so KEPLER-10% also matches
+       Kepler-100, Kepler-1013 and Kepler-1022 — a hundred and thirty planets,
+       among which the two actually named are a rounding error. Taking the first
+       twelve then spends the entire paper budget on planets nobody has written
+       about, which is why five of six literature searches came back empty and
+       why measurements of Kepler-10 c had nothing to be compared against.
+
+       So when a target is named, objects belonging to it are ranked first: the
+       name itself, or the name followed by a planet letter. Everything the
+       prefix dragged in stays available behind them rather than crowding them
+       out. */
+    const t = target.toLowerCase().replace(/\s+/g, "");
+    const belongsToTarget = (n: string) => {
+      if (!t) return 0;
+      const o = n.toLowerCase().replace(/\s+/g, "");
+      if (o === t) return 0;
+      // "kepler-10" -> "kepler-10b", "kepler-10c": the family, not Kepler-1022
+      if (o.startsWith(t) && /^[a-z]$/.test(o.slice(t.length))) return 0;
+      return 1;
+    };
     const names = [...new Set(sky.map((o) => o.object))]
       .filter((n) => n && n.length > 3)
+      .sort((a, b) => belongsToTarget(a) - belongsToTarget(b))
       .slice(0, 12);
     const safe = (n: string) => n.replace(/["(),*\\]/g, " ").trim();
     const filter = names.length
@@ -1315,6 +1337,10 @@ async function handle(req: Request): Promise<Response> {
         /* Of the papers read, how many are actually ABOUT one of the objects
            rather than merely mentioning it. This is the number that predicts
            whether extraction finds anything. */
+        /* How many of the objects worked on actually belong to what was asked
+           for. Low here means the sweep wandered off the target and any silence
+           downstream is about other planets entirely. */
+        objects_on_target: names.filter((n) => belongsToTarget(n) === 0).length,
         papers_about_an_object: records.filter((r: any) => {
           const t = String(r.title ?? "").toLowerCase().replace(/\s+/g, "");
           return names.some((n) => {
