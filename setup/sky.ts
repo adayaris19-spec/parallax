@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 20;
+const WORKER_VERSION = 21;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1243,18 +1243,32 @@ async function papersFor(object: string, rows = 6): Promise<any[]> {
   }
 }
 
-async function verifiedOrphans(candidates: any[], max = 8) {
-  const checked = await Promise.all(candidates.slice(0, max).map(async (o) => {
-    const count = await litCount(o.object);
-    return { ...o, searched_as: searchName(o.object), lit_count: count };
-  }));
+async function verifiedOrphans(candidates: any[], max = 8, chunk = 6) {
+  /* In chunks rather than all at once. Eight parallel index calls is fine and
+     three hundred is a burst the index answers with 429s, which fail closed and
+     turn a working sweep into an empty one. */
+  const take = candidates.slice(0, max);
+  const checked: any[] = [];
+  for (let i = 0; i < take.length; i += chunk) {
+    checked.push(...await Promise.all(take.slice(i, i + chunk).map(async (o) => {
+      const count = await litCount(o.object);
+      return { ...o, searched_as: searchName(o.object), lit_count: count };
+    })));
+  }
   return {
     orphans: checked.filter((o) => o.lit_count === 0),
     /* Everything the check rejected, kept in the reply. A sweep that proposed
        ten absences and could stand behind none of them is the single most
-       useful thing it can report about itself. */
-    rejected: checked.filter((o) => o.lit_count !== 0)
+       useful thing it can report about itself.
+
+       And the two rejections are not the same thing: an object with papers is
+       simply not an orphan, while an object whose check errored is one this
+       worker cannot speak about either way. Counting them together is the
+       mistake this file has made six times. */
+    rejected: checked.filter((o) => typeof o.lit_count === "number" && o.lit_count > 0)
       .map((o) => ({ object: o.object, searched_as: o.searched_as, lit_count: o.lit_count })),
+    unverifiable: checked.filter((o) => o.lit_count === null)
+      .map((o) => ({ object: o.object, searched_as: o.searched_as })),
   };
 }
 
@@ -1761,6 +1775,65 @@ async function handle(req: Request): Promise<Response> {
     return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, scorecard: board, claims: open });
   }
 
+  /* ---------- survey: absence, at the scale absence actually occurs ----------
+     The tension path reads papers, so it is bounded by what a model can be
+     handed in one prompt: twelve objects and eight absence checks per sweep.
+     That ceiling is correct for a comparison and absurd for a census, and it
+     is why the register stopped at eleven claims while the archives were
+     returning fifteen hundred rows a call.
+
+     A silence claim needs neither the papers nor the model. It needs an object
+     with a value and a stated reference, and an index that returns nothing for
+     its name. So this path skips extraction entirely and spends its whole
+     budget on the one check that gates the claim — which is also the check
+     that fails closed, so the denominator is reported three ways: written
+     about, not written about, and could not be checked. */
+  if (mode === "survey") {
+    const want = Math.min(Math.max(Number(body.limit) || 80, 1), 400);
+    const { rows: sky, ledger } = await skyPerimeter(
+      target, Math.min(want * 2, 300), 26000, false, body.all === true);
+
+    const writes: any[] = [];
+    if (body.store !== false) {
+      writes.push(await write("observations", "observations?on_conflict=source,source_id,quantity",
+        sky, "resolution=merge-duplicates,return=minimal"));
+    }
+
+    /* No papers were read, so every distinct object carrying a value is a
+       candidate. That is the point: the question here is not whether the
+       archive and the literature disagree, it is whether the literature
+       mentions the object at all. */
+    const candidates = orphans(sky, []);
+    const { orphans: orph, rejected, unverifiable } = await verifiedOrphans(candidates, want, 6);
+    const claims = claimsFrom([], orph);
+
+    if (body.store !== false) {
+      writes.push(await write("claims", "claims?on_conflict=claim_id",
+        claims.map((c) => ({ ...c, last_moved_at: new Date().toISOString() })),
+        "resolution=merge-duplicates,return=minimal"));
+    }
+
+    return json({
+      worker: WORKER_VERSION, mode, ms: Date.now() - t0, target: target || "(the whole sky)",
+      ledger,
+      read: {
+        observations: sky.length,
+        distinct_objects: candidates.length,
+        checked: Math.min(candidates.length, want),
+      },
+      /* The denominator, three ways. A survey that checked four objects and
+         found one silence is a different object from one that checked four
+         hundred, and a survey where the index was down found nothing at all
+         however many it looked at. */
+      unwritten: orph.length,
+      has_literature: rejected.length,
+      could_not_check: unverifiable.length,
+      sample_rejected: rejected.slice(0, 8),
+      stored: writes,
+      claims,
+    });
+  }
+
   /* ---------- dump: the register, in full, in one reply ----------
      The site embeds a snapshot of the claims table so it renders where it
      cannot reach the database — a sandboxed frame blocks every host. Rebuilding
@@ -1777,5 +1850,5 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
-  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "resolve", "scorecard", "dump"] }, 400);
+  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "survey", "resolve", "scorecard", "dump"] }, 400);
 }

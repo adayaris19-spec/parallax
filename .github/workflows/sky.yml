@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "probe | papers | sky | tension | scorecard"
+        description: "probe | papers | sky | tension | survey | scorecard | dump"
         default: tension
         type: string
       target:
@@ -139,7 +139,9 @@ jobs:
             console.log("worker  ", r.worker, " mode", r.mode, " ms", r.ms);
             if (r.ledger) for (const l of r.ledger)
               console.log("  source", l.name.padEnd(20), l.got ?? 0, l.error ? "ERROR "+l.error : (l.skipped ? "skipped "+l.skipped : ""));
-            if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
+            if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","distinct_objects","checked","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
+            if (r.mode === "survey")
+              console.log("survey   ", `unwritten=${r.unwritten}  has_literature=${r.has_literature}  could_not_check=${r.could_not_check}`);
             if (r.extraction) console.log("kept     ", r.extraction.kept, "of", r.extraction.items_returned, "returned from", r.extraction.papers_in, "papers  dropped", JSON.stringify(r.extraction.dropped));
             if (r.extraction?.model_error) console.log("model    FAILED", r.extraction.model_error);
             if (r.extraction?.unconverted_units?.length) console.log("units?   ", r.extraction.unconverted_units.join("  |  "));
