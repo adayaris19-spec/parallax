@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 21;
+const WORKER_VERSION = 22;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1790,21 +1790,40 @@ async function handle(req: Request): Promise<Response> {
      about, not written about, and could not be checked. */
   if (mode === "survey") {
     const want = Math.min(Math.max(Number(body.limit) || 80, 1), 400);
-    const { rows: sky, ledger } = await skyPerimeter(
-      target, Math.min(want * 2, 300), 26000, false, body.all === true);
+    const from = Math.max(Number(body.offset) || 0, 0);
 
+    /* Read the candidates out of the store rather than sweeping for them.
+       The first census swept and checked in one call and the wall clock ate
+       it: the exoplanet archive aborted mid-fetch and two thirds of the
+       absence checks never ran. An archive value is not news — it is the same
+       number tomorrow — so the sweep and the census do not have to be the same
+       call, and separating them lets this one spend its entire budget on the
+       check that gates the claim. */
+    const fromStore = body.from_store !== false;
     const writes: any[] = [];
-    if (body.store !== false) {
-      writes.push(await write("observations", "observations?on_conflict=source,source_id,quantity",
-        sky, "resolution=merge-duplicates,return=minimal"));
+    let sky: any[] = [], ledger: any[] = [];
+
+    if (fromStore) {
+      sky = await sb("observations?select=object,quantity,source,value,unit,url,reference,ra,dec" +
+        `&order=object.asc&offset=${from}&limit=${Math.min(want * 3, 900)}`) as any[];
+    } else {
+      const swept = await skyPerimeter(target, Math.min(want * 2, 300), 26000, false, body.all === true);
+      sky = swept.rows; ledger = swept.ledger;
+      if (body.store !== false) {
+        writes.push(await write("observations", "observations?on_conflict=source,source_id,quantity",
+          sky, "resolution=merge-duplicates,return=minimal"));
+      }
     }
 
     /* No papers were read, so every distinct object carrying a value is a
        candidate. That is the point: the question here is not whether the
        archive and the literature disagree, it is whether the literature
        mentions the object at all. */
-    const candidates = orphans(sky, []);
-    const { orphans: orph, rejected, unverifiable } = await verifiedOrphans(candidates, want, 6);
+    const already = new Set(((await sb("claims?select=object&limit=4000")) as any[])
+      .map((c: any) => String(c.object).toLowerCase().trim()));
+    const candidates = orphans(sky as Obs[], [])
+      .filter((o: any) => !already.has(String(o.object).toLowerCase().trim()));
+    const { orphans: orph, rejected, unverifiable } = await verifiedOrphans(candidates, want, 4);
     const claims = claimsFrom([], orph);
 
     if (body.store !== false) {
@@ -1815,10 +1834,11 @@ async function handle(req: Request): Promise<Response> {
 
     return json({
       worker: WORKER_VERSION, mode, ms: Date.now() - t0, target: target || "(the whole sky)",
-      ledger,
+      ledger, from_store: fromStore, offset: from,
       read: {
         observations: sky.length,
-        distinct_objects: candidates.length,
+        already_claimed: already.size,
+        new_candidates: candidates.length,
         checked: Math.min(candidates.length, want),
       },
       /* The denominator, three ways. A survey that checked four objects and
