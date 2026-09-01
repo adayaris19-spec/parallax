@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 16;
+const WORKER_VERSION = 17;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -784,22 +784,36 @@ async function skyPerimeter(
 // ---------------------------------------------------------------------------
 // what the papers said
 // ---------------------------------------------------------------------------
-async function ask(prompt: string, maxTokens: number) {
-  if (!ANT) return null;
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (!r.ok) { console.log("ask", r.status, await r.text()); return null; }
-  const j = await r.json();
-  const m = (j.content?.[0]?.text ?? "").match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try { return JSON.parse(m[0]); } catch { return null; }
+/* Returns the reason it failed, not merely null. A sweep once read thirty-six
+   papers, kept nothing, and reported every drop counter at zero — which says
+   only that the model returned no items, and cannot distinguish an API error
+   from an empty reply from output that would not parse. Three different faults,
+   one silence. */
+async function ask(prompt: string, maxTokens: number): Promise<{ data: any; error: string }> {
+  if (!ANT) return { data: null, error: "no ANTHROPIC_API_KEY" };
+  let r: Response;
+  try {
+    r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": ANT, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: maxTokens,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+  } catch (e) { return { data: null, error: "fetch: " + String((e as Error)?.message ?? e).slice(0, 80) }; }
+
+  if (!r.ok) return { data: null, error: `HTTP ${r.status} ${(await r.text().catch(() => "")).slice(0, 120)}` };
+  const j = await r.json().catch(() => null);
+  const text = j?.content?.[0]?.text ?? "";
+  /* A truncated reply is the likely failure when the digest is large, and it
+     looks identical to a refusal unless the stop reason is read. */
+  const stop = j?.stop_reason ? ` stop_reason=${j.stop_reason}` : "";
+  const m = String(text).match(/\{[\s\S]*\}/);
+  if (!m) return { data: null, error: `no JSON in reply${stop} (${String(text).slice(0, 80)})` };
+  try { return { data: JSON.parse(m[0]), error: "" }; }
+  catch (e) { return { data: null, error: `unparseable JSON${stop}: ${String((e as Error)?.message ?? e).slice(0, 80)}` }; }
 }
 
 /* The extraction is the one place a model touches the claim path, and it is
@@ -818,6 +832,7 @@ async function extractFrom(records: any[]) {
     model_configured: !!ANT,
     papers_in: records.length,
     model_replied: false,
+    model_error: "",
     items_returned: 0,
     kept: 0,
     dropped: {
@@ -837,11 +852,18 @@ async function extractFrom(records: any[]) {
     unconverted_units: [] as string[],
   };
   if (!records.length || !ANT) return { rows: [] as any[], diag };
-  const digest = records.map((r, i) =>
+  /* Capped. Thirty-six abstracts at nine hundred characters is a thirty
+     thousand character prompt, and a reply that runs out of room produces no
+     JSON at all rather than fewer measurements. The papers are already sorted
+     with the ones actually about the target first, so the cap takes the useful
+     end. */
+  const forPrompt = records.slice(0, 20);
+  diag.papers_in = forPrompt.length;
+  const digest = forPrompt.map((r, i) =>
     `[${i}] (${r.year ?? r.published_at?.slice(0, 4) ?? "n/a"}) ${clean(r.title)}\n${clean(r.abstract).slice(0, 900)}`
   ).join("\n\n");
 
-  const out = await ask(
+  const asked = await ask(
     `Extract every quantitative measurement stated in these abstracts.\n\n` +
     `Rules:\n` +
     `- Only values the text actually states. Never infer, never convert, never round.\n` +
@@ -885,13 +907,15 @@ async function extractFrom(records: any[]) {
     return false;
   };
 
+  const out = asked.data;
   diag.model_replied = !!out;
+  diag.model_error = asked.error;
   diag.items_returned = (out?.m ?? []).length;
 
   const rows: any[] = [];
   const ALLOWED = new Set(Object.values(QMAP));
   for (const m of out?.m ?? []) {
-    const src = records[Number(m.i)];
+    const src = forPrompt[Number(m.i)];
     const value = num(m.value);
     if (!src) { diag.dropped.bad_index++; continue; }
     if (!m.object) { diag.dropped.no_object++; continue; }
