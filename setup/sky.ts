@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 15;
+const WORKER_VERSION = 16;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1377,6 +1377,15 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 async function handle(req: Request): Promise<Response> {
+  /* PER REQUEST, NOT PER ISOLATE.
+     These counters live at module scope and an Edge Function reuses its isolate
+     between requests, so a warm one inherits the previous sweep's failures and
+     reports them as its own. Every diagnostic in this file is only worth reading
+     if it describes the run that produced it; a count that silently accumulates
+     across callers is worse than no count, because it is believed. */
+  OA_FAILURES.count = 0; OA_FAILURES.last_error = ""; OA_FAILURES.statuses = [];
+  ARXIV.calls = 0; ARXIV.failures = 0; ARXIV.empty = 0; ARXIV.last_error = "";
+
   let body: any = {};
   try { body = await req.json(); } catch { /* cron sends nothing */ }
   const mode = String(body.mode ?? "tension");
