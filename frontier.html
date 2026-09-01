@@ -1,163 +1,319 @@
-<title>PARALLAX</title>
+<title>The Parallax Register</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
 <style>
-/* Light-first and committed to it. One accent, one warning colour, one
-   confirmation colour. Everything else is ink on paper. */
+/* ---------------------------------------------------------------- tokens ---
+   Cold observatory daylight. The neutral is pulled toward the ink's blue so
+   nothing on the page is a default grey. One structural colour (indigo), and
+   semantic colour kept separate from it: rose means two numbers disagree,
+   slate means nobody has looked, amber means Parallax took a claim back.      */
 :root{
-  --ground:#F2F4F8;
-  --card:#FFFFFF;
-  --ink:#0C1017;
-  --ink-2:#4A5261;
-  --ink-3:#8B94A6;
-  --hair:#E2E7EF;
-  --rule:#CBD3E0;
-  --accent:#2B4BFF;
-  --accent-soft:rgba(43,75,255,.09);
-  --accent-line:rgba(43,75,255,.28);
-  --kill:#B4620A;
-  --kill-soft:rgba(180,98,10,.10);
-  --live:#0E7C58;
-  --dead:#A33A48;
-  --ui:"Inter","Helvetica Neue",Helvetica,"Segoe UI",Roboto,system-ui,sans-serif;
-  --num:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --paper:#E8ECF2;
+  --surface:#FCFDFE;
+  --surface-2:#F3F6FA;
+  --ink:#0E1521;
+  --ink-2:#4C596C;
+  --ink-3:#8592A5;
+  --hair:#DDE3EC;
+  --rule:#C3CCDA;
+  --indigo:#1E2A5E;
+  --indigo-soft:rgba(30,42,94,.07);
+  --rose:#C81E5B;
+  --rose-soft:rgba(200,30,91,.09);
+  --slate:#3F6C8F;
+  --slate-soft:rgba(63,108,143,.09);
+  --amber:#9A5B0E;
+  --amber-soft:rgba(154,91,14,.10);
+  --green:#0B6E4F;
+  --night:#101A2E;          /* the one dark surface, used deliberately */
+  --night-ink:#E9EFF8;
+  --night-hair:#2C3A54;
+  --display:"Bricolage Grotesque","Helvetica Neue",Helvetica,sans-serif;
+  --body:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B111C;
+    --surface:#131C2B;
+    --surface-2:#18222F;
+    --ink:#E9EFF8;
+    --ink-2:#A6B3C6;
+    --ink-3:#71809A;
+    --hair:#22304A;
+    --rule:#33425E;
+    --indigo:#93A6E8;
+    --indigo-soft:rgba(147,166,232,.12);
+    --rose:#FF6E9C;
+    --rose-soft:rgba(255,110,156,.14);
+    --slate:#7EAECF;
+    --slate-soft:rgba(126,174,207,.14);
+    --amber:#E5A252;
+    --amber-soft:rgba(229,162,82,.14);
+    --green:#4FBF95;
+    --night:#060B14;
+    --night-hair:#1E2A40;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B111C; --surface:#131C2B; --surface-2:#18222F;
+  --ink:#E9EFF8; --ink-2:#A6B3C6; --ink-3:#71809A;
+  --hair:#22304A; --rule:#33425E;
+  --indigo:#93A6E8; --indigo-soft:rgba(147,166,232,.12);
+  --rose:#FF6E9C; --rose-soft:rgba(255,110,156,.14);
+  --slate:#7EAECF; --slate-soft:rgba(126,174,207,.14);
+  --amber:#E5A252; --amber-soft:rgba(229,162,82,.14);
+  --green:#4FBF95; --night:#060B14; --night-hair:#1E2A40;
+}
+
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
 body{
-  margin:0;
-  background:var(--ground);
-  /* A faint measured grid. The instrument is graph paper, not a dashboard. */
-  background-image:
-    linear-gradient(rgba(43,75,255,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(43,75,255,.045) 1px,transparent 1px);
-  background-size:44px 44px;
-  color:var(--ink);
-  font:15px/1.55 var(--ui);
+  margin:0;background:var(--paper);color:var(--ink);
+  font:400 17px/1.6 var(--body);
+  font-variant-numeric:tabular-nums;
   -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:680px;margin:0 auto;padding:0 18px 96px}
+.shell{max-width:1000px;margin:0 auto;padding:0 20px 120px}
 
-/* ---------- masthead ---------- */
-header{
-  position:sticky;top:0;z-index:20;
-  margin:0 -18px;padding:14px 18px 0;
-  background:linear-gradient(var(--ground) 76%,transparent);
-  backdrop-filter:blur(8px);
+/* ------------------------------------------------------------- masthead --- */
+.mast{padding:34px 0 0}
+.mark{display:flex;align-items:center;gap:14px}
+.mark .glyph{width:30px;height:30px;flex:none}
+.mark h1{
+  margin:0;font:800 25px/1 var(--display);letter-spacing:-.02em;
 }
-.brand{display:flex;align-items:baseline;gap:12px}
-.brand h1{margin:0;font:600 17px/1 var(--ui);letter-spacing:.30em}
-.brand .dot{
-  width:7px;height:7px;border-radius:50%;background:var(--accent);
-  box-shadow:0 0 0 4px var(--accent-soft);align-self:center;
+.mark .stamp{
+  margin-left:auto;font:500 11px/1.5 var(--mono);color:var(--ink-3);
+  text-align:right;letter-spacing:.02em;
 }
-.brand .now{margin-left:auto;font:11px/1 var(--num);color:var(--ink-3);letter-spacing:.06em}
-
-/* Tabs are the only navigation, because there are only two surfaces. */
-nav{display:flex;gap:4px;margin:13px 0 0;padding-bottom:12px}
-nav button{
-  appearance:none;border:1px solid transparent;background:transparent;
-  color:var(--ink-3);cursor:pointer;
-  font:600 11px/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;
-  padding:8px 13px;border-radius:999px;
+.lede{
+  margin:18px 0 0;max-width:58ch;
+  font:300 21px/1.45 var(--body);color:var(--ink-2);
 }
-nav button:hover{color:var(--ink-2)}
-nav button[aria-selected="true"]{
-  color:var(--accent);background:var(--card);border-color:var(--accent-line);
-  box-shadow:0 1px 2px rgba(12,16,23,.05);
+.lede b{color:var(--ink);font-weight:500}
+
+/* The instrument's current reading. Four counts, and none of them decorative:
+   each is a thing the machine did or a thing it is still waiting on. */
+.readout{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  margin:26px 0 0;background:var(--rule);
+  border:1px solid var(--rule);border-radius:3px;overflow:hidden;
 }
-nav button .n{font-family:var(--num);letter-spacing:0;opacity:.75;margin-left:6px}
-
-/* ---------- feed ---------- */
-.feed{display:flex;flex-direction:column;gap:16px}
-.card{
-  background:var(--card);
-  border:1px solid var(--hair);
-  border-radius:16px;
-  overflow:hidden;
-  box-shadow:0 1px 2px rgba(12,16,23,.04),0 8px 24px -18px rgba(12,16,23,.35);
+.readout div{background:var(--surface);padding:13px 15px}
+.readout dt{
+  margin:0 0 5px;font:500 10px/1 var(--mono);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);
 }
+.readout dd{margin:0;font:600 27px/1 var(--display);letter-spacing:-.02em}
+.readout dd small{font:500 11px/1 var(--mono);color:var(--ink-3);margin-left:5px;letter-spacing:0}
+.readout .hot dd{color:var(--rose)}
+.readout .cool dd{color:var(--slate)}
+@media(max-width:640px){.readout{grid-template-columns:repeat(2,1fr)}}
 
-/* The figure is the hero — it sits where the image sits in a feed, and it is
-   drawn from the numbers in the claim, not chosen to illustrate it. */
-.hero{background:linear-gradient(180deg,#FBFCFE,#F5F7FB);border-bottom:1px solid var(--hair);padding:14px 8px 8px}
-.hero svg{display:block;width:100%;height:auto}
-.hero .cap{padding:2px 12px 4px;font:10px/1.5 var(--num);color:var(--ink-3)}
-
-.body{padding:16px 18px 4px}
-.kicker{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  font:600 10px/1 var(--ui);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);
+/* ------------------------------------------------------------------ nav --- */
+.bar{
+  position:sticky;top:0;z-index:30;margin:30px -20px 0;padding:0 20px;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hair);
 }
-.tag{border:1px solid var(--rule);border-radius:999px;padding:4px 8px}
-.tag.kind{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
-.tag.open{color:var(--live)}
-.tag.withdrawn,.tag.refuted{color:var(--dead)}
-/* text-transform on the kicker would turn σ into Σ. */
-.kicker .sig{margin-left:auto;font-family:var(--num);letter-spacing:0;font-size:12px;color:var(--ink);text-transform:none}
+.tabs{display:flex;gap:26px}
+.tabs button{
+  appearance:none;background:none;border:0;cursor:pointer;padding:15px 0 13px;
+  color:var(--ink-3);font:600 12px/1 var(--display);letter-spacing:.14em;
+  text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;
+}
+.tabs button:hover{color:var(--ink-2)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--rose)}
+.tabs button .n{font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--ink-3);margin-left:7px}
 
-h2{margin:9px 0 6px;font:600 20px/1.28 var(--ui);letter-spacing:-.011em}
-.said{margin:0;color:var(--ink-2);font-size:14.5px}
+/* ----------------------------------------------------------- filter row --- */
+.sift{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:18px 0 4px}
+.chip{
+  appearance:none;cursor:pointer;background:var(--surface);
+  border:1px solid var(--rule);border-radius:2px;padding:6px 11px;
+  font:500 11px/1 var(--mono);letter-spacing:.05em;color:var(--ink-2);
+}
+.chip:hover{border-color:var(--ink-3)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.sift input{
+  flex:1;min-width:160px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--rule);border-radius:2px;padding:7px 11px;
+  font:400 13px/1 var(--mono);
+}
+.sift input::placeholder{color:var(--ink-3)}
+:where(button,input,a,summary):focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 
-/* The kill condition is the part that makes a claim a claim. It gets a frame. */
+/* --------------------------------------------------------------- stream --- */
+.stream{display:flex;flex-direction:column;gap:34px;padding:26px 0 0}
+
+/* An entry is a plate in a log, not a social card: it hangs off a rule at the
+   top rather than floating in a rounded box. Only the rare kind gets a frame. */
+.entry{border-top:1px solid var(--rule);padding-top:16px}
+.eyebrow{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.eyebrow .kind{color:var(--ink);font-weight:600}
+.eyebrow .kind.tension{color:var(--rose)}
+.eyebrow .kind.silence{color:var(--slate)}
+.eyebrow .age{margin-left:auto;letter-spacing:.04em}
+.entry h2{
+  margin:11px 0 0;font:600 clamp(26px,3.4vw,36px)/1.12 var(--display);
+  letter-spacing:-.025em;text-wrap:balance;
+}
+.entry h3{margin:10px 0 0;font:600 21px/1.2 var(--display);letter-spacing:-.018em}
+.plain{
+  margin:12px 0 0;max-width:60ch;
+  font:400 18px/1.5 var(--body);color:var(--ink-2);
+}
+.plain::before{
+  content:"In plain terms";display:block;
+  font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:6px;
+}
+.said{margin:14px 0 0;max-width:64ch;font:400 15.5px/1.62 var(--body);color:var(--ink-2)}
+
+/* --------------------------------------------------------------- plates --- */
+.plate{
+  margin:18px 0 0;background:var(--surface-2);
+  border:1px solid var(--hair);border-radius:3px;padding:12px 10px 6px;
+}
+.plate svg{display:block;width:100%;height:auto}
+.plate .cap{
+  padding:6px 8px 4px;font:400 11px/1.5 var(--mono);color:var(--ink-3);
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.plate .cap a{color:var(--ink-3)}
+/* The rare kind gets the one dark surface on the page. */
+.plate.night{background:var(--night);border-color:var(--night);padding:16px 12px 8px}
+.plate.night .cap{color:#8FA2C0}
+.plate.night .cap a{color:#8FA2C0}
+
+/* --------------------------------------------------------- kill / ended --- */
 .kill{
-  margin:14px 0 0;padding:11px 13px;border-radius:10px;
-  background:var(--kill-soft);border:1px solid rgba(180,98,10,.22);
-  font-size:13.5px;color:#6E3D06;
+  margin:18px 0 0;padding:0 0 0 15px;border-left:2px solid var(--amber);
+  max-width:62ch;
 }
 .kill .lab{
-  display:block;font:600 9.5px/1 var(--ui);letter-spacing:.17em;text-transform:uppercase;
-  color:var(--kill);margin-bottom:5px;
+  display:block;font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:6px;
 }
+.kill p{margin:0;font:400 15.5px/1.6 var(--body);color:var(--ink-2)}
+.ended{border-left-color:var(--rose)}
+.ended .lab{color:var(--rose)}
 
-/* ---------- foot of a card: only things that carry state ---------- */
+/* ----------------------------------------------------------- entry foot --- */
 .foot{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  margin-top:14px;padding:10px 18px;border-top:1px solid var(--hair);
-  background:#FAFBFD;
-  font:11px/1 var(--num);color:var(--ink-3);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:20px 0 0;
+  padding-top:11px;border-top:1px solid var(--hair);
+  font:400 11px/1 var(--mono);color:var(--ink-3);
 }
-.foot a{color:var(--ink-3);text-decoration:none;border-bottom:1px solid var(--hair)}
-.foot a:hover{color:var(--accent);border-color:var(--accent-line)}
-.watch{
+.foot a{color:var(--ink-3);text-underline-offset:3px}
+.keep{
   margin-left:auto;appearance:none;cursor:pointer;
-  border:1px solid var(--rule);background:var(--card);color:var(--ink-2);
-  border-radius:999px;padding:6px 12px;
-  font:600 10px/1 var(--ui);letter-spacing:.13em;text-transform:uppercase;
+  background:none;border:1px solid var(--rule);border-radius:2px;padding:7px 13px;
+  font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--ink-2);
 }
-.watch:hover{border-color:var(--accent-line);color:var(--accent)}
-.watch[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.keep:hover{border-color:var(--ink-3);color:var(--ink)}
+.keep[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:#fff}
+:root[data-theme="dark"] .keep[aria-pressed="true"],
+:root:not([data-theme="light"]) .keep[aria-pressed="true"]{color:var(--night)}
 
-/* ---------- watch ---------- */
+/* ------------------------------------------------------------- clusters ---
+   Seven identical sentences about seven different events are one finding, not
+   seven. They are grouped, and the members open individually.                */
+.members{margin:16px 0 0;border-top:1px solid var(--hair)}
+.row{border-bottom:1px solid var(--hair)}
+.row summary{
+  display:flex;align-items:center;gap:14px;cursor:pointer;padding:11px 2px;
+  list-style:none;font:400 13px/1.3 var(--mono);color:var(--ink-2);
+}
+.row summary::-webkit-details-marker{display:none}
+.row summary:hover{color:var(--ink)}
+.row .who{color:var(--ink);font-weight:500}
+.row .val{color:var(--ink-3)}
+.row .more{margin-left:auto;color:var(--ink-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.row[open] .more{color:var(--rose)}
+.row[open] .more span{transform:rotate(45deg);display:inline-block}
+.row .inner{padding:2px 2px 18px;max-width:64ch}
+
+/* -------------------------------------------------------------- generic --- */
+.note{
+  margin:0 0 4px;font:400 12px/1.5 var(--mono);color:var(--ink-3);
+}
 .moved{
-  margin:0 0 10px;padding:10px 13px;border-radius:10px;
-  border:1px solid var(--accent-line);background:var(--accent-soft);
-  font:12px/1.5 var(--ui);color:var(--ink);
+  margin:0 0 14px;padding:9px 13px;border-left:2px solid var(--rose);
+  background:var(--rose-soft);font:400 14px/1.5 var(--body);color:var(--ink);
 }
-.empty{
-  padding:34px 22px;text-align:center;color:var(--ink-3);
-  border:1px dashed var(--rule);border-radius:16px;background:rgba(255,255,255,.6);
-  font-size:14px;
+.hollow{
+  padding:52px 26px;text-align:center;color:var(--ink-3);
+  border:1px dashed var(--rule);border-radius:3px;
+  font:400 17px/1.55 var(--body);max-width:52ch;margin:26px auto 0;
 }
-.count{margin:0 2px 14px;font:11px/1 var(--num);color:var(--ink-3);letter-spacing:.04em}
+
+/* ------------------------------------------------------------- scorecard --- */
+.verdict{
+  margin:28px 0 0;font:600 clamp(27px,4vw,40px)/1.16 var(--display);
+  letter-spacing:-.028em;max-width:20ch;text-wrap:balance;
+}
+.verdict em{font-style:normal;color:var(--rose)}
+.ledger{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  margin:26px 0 0;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden;
+}
+.ledger div{background:var(--surface);padding:15px}
+.ledger dt{margin:0 0 6px;font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.ledger dd{margin:0;font:600 30px/1 var(--display);letter-spacing:-.02em}
+.ledger p{margin:7px 0 0;font:400 13px/1.45 var(--body);color:var(--ink-3)}
+.composition{display:flex;height:11px;margin:22px 0 8px;border-radius:2px;overflow:hidden;background:var(--hair)}
+.composition span{display:block}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font:400 11px/1 var(--mono);color:var(--ink-3)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;font-style:normal}
+.prose{margin:26px 0 0;max-width:62ch;font:400 17px/1.62 var(--body);color:var(--ink-2)}
+.prose b{color:var(--ink);font-weight:500}
 [hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <span class="dot"></span>
-      <h1>PARALLAX</h1>
-      <span class="now" id="now"></span>
+<div class="shell">
+  <header class="mast">
+    <div class="mark">
+      <!-- Two sightlines on one object from two places: the measurement the
+           instrument is named for. -->
+      <svg class="glyph" viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="6" r="3.2" fill="var(--rose)"></circle>
+        <circle cx="4.5" cy="25" r="2" fill="var(--indigo)"></circle>
+        <circle cx="25.5" cy="25" r="2" fill="var(--indigo)"></circle>
+        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--indigo)" stroke-width="1.1"></path>
+        <path d="M4.5 25 H25.5" fill="none" stroke="var(--rule)" stroke-width="1.1"></path>
+      </svg>
+      <h1>Parallax</h1>
+      <span class="stamp" id="stamp"></span>
     </div>
-    <nav role="tablist">
-      <button role="tab" id="tab-frontier" aria-selected="true">Frontier<span class="n" id="n-frontier"></span></button>
-      <button role="tab" id="tab-watch" aria-selected="false">Watch<span class="n" id="n-watch"></span></button>
-    </nav>
+
+    <p class="lede">
+      A machine reads what the world's observatories measured last night, and holds it
+      against everything that has been published. <b>Where the two disagree, it says so
+      — and states the one measurement that would prove it wrong.</b>
+    </p>
+
+    <dl class="readout" id="readout"></dl>
   </header>
 
-  <main>
-    <p class="count" id="count"></p>
-    <div class="feed" id="feed"></div>
-  </main>
+  <div class="bar">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-frontier" aria-selected="true">Frontier<span class="n" id="n-frontier"></span></button>
+      <button role="tab" id="tab-watch" aria-selected="false">Watch<span class="n" id="n-watch"></span></button>
+      <button role="tab" id="tab-record" aria-selected="false">Record<span class="n" id="n-record"></span></button>
+    </div>
+  </div>
+
+  <main id="main"></main>
 </div>
 
 <script>
@@ -562,175 +718,372 @@ const SNAPSHOT = [
  }
 ];
 
+/* ---------------------------------------------------------------- helpers */
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const safely = (fn, fallback) => { try { return fn(); } catch (e) { console.error(e); return fallback; } };
+const safely = (fn, fb) => { try { return fn(); } catch (e) { console.error(e); return fb; } };
 
-const sci = v => {
+const num = v => {
   if (!Number.isFinite(v)) return "—";
   const a = Math.abs(v);
   if (a !== 0 && (a >= 1e4 || a < 1e-2)) {
     const e = Math.floor(Math.log10(a));
-    return (v / 10 ** e).toFixed(2) + "e" + e;
+    return (v / 10 ** e).toFixed(2) + "×10^" + e;
   }
   return String(Number(v.toPrecision(4)));
 };
+const days = iso => {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "";
+  const d = Math.max(0, Math.round((Date.now() - t) / 864e5));
+  return d === 0 ? "opened today" : d === 1 ? "open 1 day" : `open ${d} days`;
+};
+// Units as an observatory writes them, spelled out for anyone else.
+const UNIT_WORDS = { msun:"times the mass of the Sun", mearth:"times the mass of Earth",
+  rearth:"times the radius of Earth", rjup:"times the radius of Jupiter", kg:"kilograms",
+  d:"days", s:"seconds", yr:"years", k:"kelvin" };
+const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
 
-/* ------------------------------------------------------------------ figures */
+// The plain-language line is built from the claim's own fields — it restates
+// what is already there for someone who does not read papers, and invents
+// nothing. Written from the structure, not from the numbers' meaning.
+function plain(c){
+  const o = c.observed || {}, r = c.reported || {};
+  if (c.kind === "tension") {
+    return `Two careful measurements of the same thing do not agree. The archive says
+      ${num(o.value)}; a paper from ${r.year || "an earlier year"} says ${num(r.value)}.
+      Their stated error bars are too small for both to be right, so one of them is wrong —
+      and nothing in the published record settles which.`;
+  }
+  return `A real object, measured once by ${o.source || "an observatory"} and recorded as
+    ${num(o.value)} ${spell(o.unit)}. Since then, nobody has written a single paper that
+    even mentions it by name. It is not disputed. It is unexamined.`;
+}
 
-// Two measurements with their stated uncertainties on one axis, at the scale
-// where the disagreement is visible. Nothing is chosen; everything is computed.
+// The same restatement for a group, in the plural, with the spread that makes
+// the set concrete rather than a count.
+function plainGroup(members){
+  const o = members[0].observed || {};
+  const vals = members.map(m => (m.observed || {}).value).filter(Number.isFinite);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  return `${members.length} real objects, each measured once by ${o.source || "an observatory"} and
+    then left alone \u2014 ${num(lo)} to ${num(hi)} ${spell(o.unit)}. Not one of them is named in a
+    single published paper. They are not disputed. Nobody has looked.`;
+}
+
+/* ---------------------------------------------------------------- figures */
+
+// Two measurements and their error bars on one axis, at the scale where the
+// disagreement is the visible thing. Drawn on the page's one dark surface.
 function interval(fig){
   const S = fig.series || [];
   if (S.length < 2) return "";
-  const lo = Math.min(...S.map(s => s.value - s.err));
-  const hi = Math.max(...S.map(s => s.value + s.err));
-  const pad = (hi - lo) * .22 || 1;
-  const a = lo - pad, b = hi + pad;
-  const W = 640, H = 178, y0 = 96;
-  const x = v => 44 + (v - a) / (b - a) * (W - 88);
+  const lo = Math.min(...S.map(s => s.value - s.err)), hi = Math.max(...S.map(s => s.value + s.err));
+  const pad = (hi - lo) * .30 || 1, a = lo - pad, b = hi + pad;
+  const W = 660, H = 230, y0 = 128;
+  const x = v => 60 + (v - a) / (b - a) * (W - 120);
+  const C = ["#FF5C8A", "#F2B872"];
 
-  let out = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="two measurements with error bars, ${fig.sigma} sigma apart">`;
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Two measurements with error bars, ${fig.sigma} standard deviations apart">`;
+  o += `<line x1="40" y1="${y0}" x2="${W - 40}" y2="${y0}" stroke="#2C3A54" stroke-width="1"></line>`;
   S.forEach((s, i) => {
-    const c = i === 0 ? "#2B4BFF" : "#B4620A";
-    const y = i === 0 ? y0 - 24 : y0 + 24;
-    const x1 = x(s.value - s.err).toFixed(1), x2 = x(s.value + s.err).toFixed(1);
-    // The band each measurement rules out at one sigma of its own error.
-    out += `<rect x="${x1}" y="34" width="${(x2 - x1).toFixed(1)}" height="${H - 68}" fill="${c}" opacity=".07"/>`;
-    out += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"/>`;
-    for (const e of [x1, x2])
-      out += `<line x1="${e}" y1="${y - 5}" x2="${e}" y2="${y + 5}" stroke="${c}" stroke-width="2"/>`;
-    out += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="4.5" fill="${c}"/>`;
-    out += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 13 : y + 20}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0C1017">${sci(s.value)} ± ${sci(s.err)}</text>`;
-    out += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 18 : H - 6}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" letter-spacing=".08em" fill="#8B94A6">${esc(String(s.label).toUpperCase())}</text>`;
+    const c = C[i], y = i === 0 ? y0 - 34 : y0 + 34;
+    const x1 = +x(s.value - s.err).toFixed(1), x2 = +x(s.value + s.err).toFixed(1);
+    // Each measurement's own one-sigma band, carried the full height so the
+    // gap between the two bands is the claim.
+    o += `<rect x="${x1}" y="42" width="${(x2 - x1).toFixed(1)}" height="${H - 84}" fill="${c}" opacity=".10"></rect>`;
+    o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"></line>`;
+    for (const e of [x1, x2]) o += `<line x1="${e}" y1="${y - 6}" x2="${e}" y2="${y + 6}" stroke="${c}" stroke-width="2"></line>`;
+    o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="5" fill="${c}"></circle>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 15 : y + 22}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="#E9EFF8">${num(s.value)} ± ${num(s.err)}</text>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 24 : H - 8}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" letter-spacing="1.4" fill="#8FA2C0">${esc(String(s.label).toUpperCase())}</text>`;
   });
-  out += `<line x1="32" y1="${y0}" x2="${W - 32}" y2="${y0}" stroke="#CBD3E0"/>`;
-  out += `<text x="${W - 32}" y="${y0 - 8}" text-anchor="end" font-family="ui-monospace,monospace" font-size="10" fill="#8B94A6">${esc(fig.unit || "")}</text>`;
-  out += `<text x="32" y="${y0 - 8}" font-family="ui-monospace,monospace" font-size="12" fill="#0C1017">${fig.sigma}σ</text>`;
-  return out + `</svg>`;
+  const gap = Math.abs(x(S[0].value) - x(S[1].value));
+  const mid = (x(S[0].value) + x(S[1].value)) / 2;
+  o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="#E9EFF8" stroke-width="1.5"></line>`;
+  if (gap > 90)
+    o += `<text x="${mid.toFixed(1)}" y="${y0 - 9}" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="600" font-size="17" fill="#FFFFFF">${fig.sigma}σ apart</text>`;
+  o += `<text x="${W - 40}" y="${y0 + 20}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#8FA2C0">${esc(fig.unit || "")}</text>`;
+  return o + `</svg>`;
 }
 
-// An orphan's figure is its silence: where its value sits among the objects
-// measured beside it, and how many papers name it. The bar is that count.
-function silence(claim, cohort){
-  const o = claim.observed || {};
-  const vals = cohort.map(c => (c.observed || {}).value).filter(Number.isFinite);
-  const W = 640, H = 132;
-  let out = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.object)} among its cohort, named by ${Number(o.lit_count) || 0} papers">`;
-  if (vals.length > 1 && Number.isFinite(o.value)) {
-    const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo;
-    const a = span ? lo - span * .18 : lo * .9, b = span ? hi + span * .18 : hi * 1.1;
-    const x = v => 44 + (v - a) / (b - a || 1) * (W - 88);
-    out += `<line x1="44" y1="52" x2="${W - 44}" y2="52" stroke="#CBD3E0"/>`;
-    for (const v of vals)
-      out += `<circle cx="${x(v).toFixed(1)}" cy="52" r="3" fill="#8B94A6" opacity=".55"/>`;
-    out += `<line x1="${x(o.value).toFixed(1)}" y1="34" x2="${x(o.value).toFixed(1)}" y2="70" stroke="#2B4BFF" stroke-width="2"/>`;
-    out += `<circle cx="${x(o.value).toFixed(1)}" cy="52" r="5" fill="#2B4BFF"/>`;
-    out += `<text x="${x(o.value).toFixed(1)}" y="26" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0C1017">${sci(o.value)} ${esc(o.unit)}</text>`;
-    out += `<text x="44" y="88" font-family="Inter,sans-serif" font-size="10" letter-spacing=".08em" fill="#8B94A6">${esc(String(o.quantity || "").toUpperCase())}, AGAINST ${vals.length - 1} OBJECTS SWEPT WITH IT</text>`;
-  }
-  // The count, to scale against fifty papers. Zero is a bar of no width.
-  const n = Number(o.lit_count) || 0;
-  out += `<rect x="44" y="${H - 30}" width="${W - 88}" height="14" rx="7" fill="#F2F4F8" stroke="#E2E7EF"/>`;
-  if (n > 0) out += `<rect x="44" y="${H - 30}" width="${Math.min(W - 88, n * (W - 88) / 50).toFixed(1)}" height="14" rx="7" fill="#2B4BFF"/>`;
-  out += `<text x="${W - 44}" y="${H - 19}" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="${n ? "#0C1017" : "#A33A48"}">${n} papers name it</text>`;
-  return out + `</svg>`;
+// A group of orphans on one axis: every object the sweep measured beside them,
+// none of them written about. The lower bar is the literature, to scale.
+function chorus(members, all){
+  const vals = members.map(m => (m.observed || {}).value).filter(Number.isFinite);
+  if (!vals.length) return "";
+  const peers = all.map(m => (m.observed || {}).value).filter(Number.isFinite);
+  const lo = Math.min(...peers), hi = Math.max(...peers), span = hi - lo;
+  const a = span ? lo - span * .12 : lo * .9, b = span ? hi + span * .12 : hi * 1.1;
+  const W = 660, H = 162, y = 62;
+  const x = v => 46 + (v - a) / (b - a || 1) * (W - 92);
+  const o0 = members[0].observed || {};
+
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${members.length} objects on one axis, none of them named in any paper">`;
+  o += `<line x1="46" y1="${y}" x2="${W - 46}" y2="${y}" stroke="var(--rule)" stroke-width="1"></line>`;
+  for (const v of peers) o += `<circle cx="${x(v).toFixed(1)}" cy="${y}" r="3" fill="var(--ink-3)" opacity=".38"></circle>`;
+  members.forEach(m => {
+    const v = (m.observed || {}).value;
+    if (!Number.isFinite(v)) return;
+    o += `<line x1="${x(v).toFixed(1)}" y1="${y - 16}" x2="${x(v).toFixed(1)}" y2="${y + 16}" stroke="var(--slate)" stroke-width="1.5"></line>`;
+    o += `<circle cx="${x(v).toFixed(1)}" cy="${y}" r="5" fill="var(--slate)"></circle>`;
+  });
+  o += `<text x="46" y="26" font-family="IBM Plex Mono,monospace" font-size="10.5" letter-spacing="1.4" fill="var(--ink-3)">${esc(String(o0.quantity || "").toUpperCase())} — ${esc(String(o0.unit || ""))}</text>`;
+  o += `<text x="46" y="${y + 36}" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--ink-3)">${num(Math.min(...vals))}</text>`;
+  o += `<text x="${W - 46}" y="${y + 36}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--ink-3)">${num(Math.max(...vals))}</text>`;
+  // Literature, drawn against fifty papers. Every bar here has no width.
+  o += `<rect x="46" y="${H - 38}" width="${W - 92}" height="15" rx="2" fill="var(--surface)" stroke="var(--hair)"></rect>`;
+  const cited = members.filter(m => (Number((m.observed || {}).lit_count) || 0) > 0).length;
+  if (cited) o += `<rect x="46" y="${H - 38}" width="${(cited / members.length * (W - 92)).toFixed(1)}" height="15" rx="2" fill="var(--slate)"></rect>`;
+  o += `<text x="46" y="${H - 6}" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--rose)">${cited} of ${members.length} appear in any paper ever written</text>`;
+  return o + `</svg>`;
 }
 
-/* -------------------------------------------------------------------- state */
+/* ------------------------------------------------------------------ state */
 const KEY = "parallax.watch.v1";
-const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-const save = w => { try { localStorage.setItem(KEY, JSON.stringify(w)); } catch {} };
+const readWatch = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+const writeWatch = w => { try { localStorage.setItem(KEY, JSON.stringify(w)); } catch {} };
 
 let CLAIMS = SNAPSHOT.slice();
-let TAB = "frontier";
+let TAB = "frontier", SIFT = "all", QUERY = "";
 
-function figureFor(c){
-  const f = c.figure || {};
-  if (f.type === "interval") return interval(f);
-  const o = c.observed || {};
-  const cohort = CLAIMS.filter(x => (x.observed || {}).source === o.source &&
-                                    (x.observed || {}).quantity === o.quantity);
-  return silence(c, cohort);
+const isOpen = c => String(c.status || "open") === "open";
+const matches = c => {
+  if (SIFT === "tension" && c.kind !== "tension") return false;
+  if (SIFT === "silence" && c.kind !== "orphan") return false;
+  if (SIFT === "closed" && isOpen(c)) return false;
+  if (SIFT === "all" && !isOpen(c)) return false;   // closed claims live in Record
+  if (!QUERY) return true;
+  const hay = [c.title, c.object, c.claim_id, (c.observed || {}).source, (c.observed || {}).reference]
+    .join(" ").toLowerCase();
+  return hay.includes(QUERY);
+};
+
+/* ------------------------------------------------------------------ parts */
+function keepButton(c, w){
+  const on = !!w[c.claim_id];
+  return `<button class="keep" data-id="${esc(c.claim_id)}" aria-pressed="${on}">${on ? "Watching" : "Watch"}</button>`;
 }
 
-function card(c, watched){
+function killBlock(c){
+  let out = c.kill ? `<div class="kill"><span class="lab">What would end this claim</span><p>${esc(c.kill)}</p></div>` : "";
+  if (c.resolution) out += `<div class="kill ended"><span class="lab">How it ended</span><p>${esc(c.resolution)}</p></div>`;
+  return out;
+}
+
+// A tension is rare — one in eleven — so it is given the page's only dark
+// plate and the largest headline. Rarity is the reason, not decoration.
+function tensionEntry(c, w){
   const o = c.observed || {};
-  const svg = safely(() => figureFor(c), "");
-  const state = String(c.status || "open");
-  return `<article class="card">
-    ${svg ? `<div class="hero">${svg}<div class="cap">${esc(o.source)} · ${esc(o.reference)}${o.url ? ` · <a href="${esc(o.url)}">source</a>` : ""}</div></div>` : ""}
-    <div class="body">
-      <div class="kicker">
-        <span class="tag kind">${esc(c.kind)}</span>
-        <span class="tag ${esc(state)}">${esc(state)}</span>
-        ${Number.isFinite(c.sigma) ? `<span class="sig">${c.sigma}σ</span>` : ""}
-      </div>
-      <h2>${esc(c.title)}</h2>
-      <p class="said">${esc(c.statement)}</p>
-      ${c.kill ? `<div class="kill"><span class="lab">What would end this claim</span>${esc(c.kill)}</div>` : ""}
-      ${c.resolution ? `<div class="kill" style="background:rgba(163,58,72,.07);border-color:rgba(163,58,72,.22);color:#7A2A34"><span class="lab" style="color:#A33A48">How it ended</span>${esc(c.resolution)}</div>` : ""}
+  return `<article class="entry">
+    <div class="eyebrow">
+      <span class="kind tension">Disagreement</span>
+      <span>${esc(o.source)}</span>
+      <span class="age">${esc(days(c.opened_at))}</span>
     </div>
-    <div class="foot">
-      <span>${esc(c.claim_id)}</span>
-      <span>opened ${esc(String(c.opened_at || "").slice(0, 10))}</span>
-      <button class="watch" data-id="${esc(c.claim_id)}" aria-pressed="${watched ? "true" : "false"}">${watched ? "Watching" : "Watch"}</button>
+    <h2>${esc(c.title)}</h2>
+    <div class="plate night">${safely(() => interval(c.figure || {}), "")}
+      <div class="cap"><span>${esc(o.source)} · ${esc(o.reference)}</span>${o.url ? `<a href="${esc(o.url)}">source</a>` : ""}</div>
     </div>
+    <p class="plain">${esc(plain(c))}</p>
+    <p class="said">${esc(c.statement)}</p>
+    ${killBlock(c)}
+    <div class="foot"><span>${esc(c.claim_id)}</span><span>${esc(String(c.opened_at || "").slice(0, 10))}</span>${keepButton(c, w)}</div>
   </article>`;
 }
 
-function render(){
-  const w = load();
-  const feed = document.getElementById("feed");
-  const count = document.getElementById("count");
-  document.getElementById("n-frontier").textContent = CLAIMS.length;
-  document.getElementById("n-watch").textContent = Object.keys(w).length;
-  document.getElementById("tab-frontier").setAttribute("aria-selected", TAB === "frontier");
-  document.getElementById("tab-watch").setAttribute("aria-selected", TAB === "watch");
+// Seven identical sentences about seven different events are one finding.
+function clusterEntry(g, w){
+  const o0 = g.members[0].observed || {};
+  const head = g.members.length + " " + (o0.source === "gwosc" ? "gravitational-wave events" : "planets")
+    + " nobody has written about";
+  const rows = g.members.map(m => `<details class="row">
+      <summary>
+        <span class="who">${esc(m.object)}</span>
+        <span class="val">${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)}</span>
+        <span class="more">${esc(days(m.opened_at))} <span aria-hidden="true">+</span></span>
+      </summary>
+      <div class="inner">
+        ${killBlock(m)}
+        <div class="foot"><span>${esc(m.claim_id)}</span>${(m.observed || {}).url ? `<a href="${esc((m.observed || {}).url)}">source</a>` : ""}${keepButton(m, w)}</div>
+      </div>
+    </details>`).join("");
 
-  if (TAB === "frontier") {
-    const open = CLAIMS.filter(c => c.status === "open").length;
-    count.textContent = `${CLAIMS.length} claims · ${open} open · ${CLAIMS.length - open} closed`;
-    feed.innerHTML = CLAIMS.map(c => card(c, !!w[c.claim_id])).join("");
-    return;
+  return `<article class="entry">
+    <div class="eyebrow">
+      <span class="kind silence">Silence</span>
+      <span>${esc(o0.source)} · ${esc(o0.reference)}</span>
+      <span class="age">${g.members.length} claims</span>
+    </div>
+    <h2>${esc(head)}</h2>
+    <div class="plate">${safely(() => chorus(g.members, g.cohort), "")}
+      <div class="cap"><span>every ${esc(o0.quantity)} the sweep read from ${esc(o0.source)}; the marked ones are named in nothing</span></div>
+    </div>
+    <p class="plain">${esc(plainGroup(g.members))}</p>
+    <div class="members">${rows}</div>
+  </article>`;
+}
+
+function singleEntry(c, w){
+  const o = c.observed || {};
+  return `<article class="entry">
+    <div class="eyebrow">
+      <span class="kind ${c.kind === "tension" ? "tension" : "silence"}">${c.kind === "tension" ? "Disagreement" : "Silence"}</span>
+      <span>${esc(o.source)}</span>
+      <span class="age">${esc(days(c.opened_at))}</span>
+    </div>
+    <h3>${esc(c.title)}</h3>
+    <p class="plain">${esc(plain(c))}</p>
+    ${killBlock(c)}
+    <div class="foot"><span>${esc(c.claim_id)}</span>${o.url ? `<a href="${esc(o.url)}">source</a>` : ""}${keepButton(c, w)}</div>
+  </article>`;
+}
+
+// Grouping is computed, so it holds for whatever the next sweep returns:
+// three or more orphans from one instrument measuring one quantity are one
+// entry; anything rarer stands on its own.
+function compose(list){
+  const out = [], groups = new Map();
+  for (const c of list) {
+    if (c.kind === "tension") { out.push({ type: "tension", claim: c }); continue; }
+    const o = c.observed || {};
+    const k = `${o.source}|${o.quantity}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(c);
   }
+  for (const [k, members] of groups) {
+    const cohort = CLAIMS.filter(c => `${(c.observed || {}).source}|${(c.observed || {}).quantity}` === k);
+    if (members.length >= 3) out.push({ type: "cluster", members, cohort });
+    else for (const m of members) out.push({ type: "single", claim: m });
+  }
+  return out;
+}
 
-  // Watch keeps the state a claim was in when it was taken, so that a change
-  // to it is visible rather than something you have to remember.
+/* ----------------------------------------------------------------- views */
+function frontier(w){
+  const shown = CLAIMS.filter(matches);
+  const sift = `<div class="sift">
+      ${[["all", "Open"], ["tension", "Disagreements"], ["silence", "Silences"], ["closed", "Closed"]]
+        .map(([k, l]) => `<button class="chip" data-sift="${k}" aria-pressed="${SIFT === k}">${l}</button>`).join("")}
+      <input id="q" type="search" placeholder="Search an object, an archive, a claim id" value="${esc(QUERY)}">
+    </div>`;
+  if (!shown.length)
+    return sift + `<p class="hollow">Nothing in the register matches that. The register only holds what a sweep actually found — it is short on purpose.</p>`;
+  const body = compose(shown).map(it =>
+    it.type === "tension" ? tensionEntry(it.claim, w)
+    : it.type === "cluster" ? clusterEntry(it, w)
+    : singleEntry(it.claim, w)).join("");
+  return sift + `<div class="stream">${body}</div>`;
+}
+
+function watch(w){
   const kept = CLAIMS.filter(c => w[c.claim_id]);
-  count.textContent = kept.length ? `${kept.length} watched` : "";
-  if (!kept.length) {
-    feed.innerHTML = `<div class="empty">Nothing watched yet. Watch a claim on the Frontier and it is kept here, with the state it was in when you took it, so a move shows.</div>`;
-    return;
-  }
-  feed.innerHTML = kept.map(c => {
+  if (!kept.length)
+    return `<p class="hollow">Nothing kept yet. Watch a claim and it is held here with the state it was in when you took it — so if Parallax later withdraws or confirms it, the change is what you see first.</p>`;
+  return `<div class="stream">${kept.map(c => {
     const was = w[c.claim_id] || {};
     const moved = was.status && was.status !== c.status
-      ? `<p class="moved">Moved since you watched it: <b>${esc(was.status)}</b> → <b>${esc(c.status)}</b>.</p>` : "";
-    return moved + card(c, true);
-  }).join("");
+      ? `<p class="moved">This moved since you kept it: <b>${esc(was.status)}</b> → <b>${esc(c.status)}</b>.</p>` : "";
+    return moved + (c.kind === "tension" ? tensionEntry(c, w) : singleEntry(c, w));
+  }).join("")}</div>`;
+}
+
+// The instrument's own record. A claim-making machine that never shows its
+// own retractions is asking to be trusted rather than checked.
+function record(){
+  const by = s => CLAIMS.filter(c => String(c.status || "open") === s).length;
+  const n = CLAIMS.length, open = by("open"), withdrawn = by("withdrawn"),
+        confirmed = by("confirmed"), refuted = by("refuted"), closed = n - open;
+  const seg = (k, colour) => k ? `<span style="width:${(k / n * 100).toFixed(1)}%;background:${colour}"></span>` : "";
+  const ended = CLAIMS.filter(c => !isOpen(c));
+
+  return `<p class="verdict">Parallax has made ${n} claims. <em>${withdrawn || "None"} of them it withdrew itself.</em></p>
+
+    <div class="composition">
+      ${seg(open, "var(--slate)")}${seg(confirmed, "var(--green)")}${seg(refuted, "var(--indigo)")}${seg(withdrawn, "var(--rose)")}
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--slate)"></i>${open} open</span>
+      <span><i style="background:var(--green)"></i>${confirmed} confirmed</span>
+      <span><i style="background:var(--indigo)"></i>${refuted} refuted</span>
+      <span><i style="background:var(--rose)"></i>${withdrawn} withdrawn</span>
+    </div>
+
+    <dl class="ledger">
+      <div><dt>Still standing</dt><dd>${open}</dd><p>Open claims, each with a stated measurement that would end it.</p></div>
+      <div><dt>Settled</dt><dd>${closed}</dd><p>Claims that met their kill condition, or that Parallax could no longer support.</p></div>
+      <div><dt>Withdrawal rate</dt><dd>${n ? (withdrawn / n * 100).toFixed(0) : 0}<small>%</small></dd><p>Claims retracted by the instrument rather than by anyone catching them.</p></div>
+    </dl>
+
+    <p class="prose">Every claim in the register carries the measurement that would kill it. That is
+      the whole discipline: a claim that cannot be ended by any observation is not a claim, and
+      <b>the code refuses to write one</b>. When a claim's receipt fails — when a number it rested on
+      cannot be found in the text it was supposedly read from — it is withdrawn with a written reason
+      and left in the register, visible, rather than quietly deleted.</p>
+
+    ${ended.length ? `<div class="stream" style="padding-top:34px">${ended.map(c => `
+      <article class="entry">
+        <div class="eyebrow"><span class="kind tension">${esc(c.status)}</span><span>${esc((c.observed || {}).source)}</span><span class="age">${esc(String(c.resolved_at || "").slice(0, 10))}</span></div>
+        <h3>${esc(c.title)}</h3>
+        ${killBlock(c)}
+        <div class="foot"><span>${esc(c.claim_id)}</span></div>
+      </article>`).join("")}</div>` : ""}`;
+}
+
+/* ---------------------------------------------------------------- render */
+function render(){
+  const w = readWatch();
+  const open = CLAIMS.filter(isOpen).length;
+  const tensions = CLAIMS.filter(c => c.kind === "tension" && isOpen(c)).length;
+  const silences = CLAIMS.filter(c => c.kind === "orphan" && isOpen(c)).length;
+  const sources = new Set(CLAIMS.map(c => (c.observed || {}).source).filter(Boolean)).size;
+
+  document.getElementById("readout").innerHTML = `
+    <div><dt>Open claims</dt><dd>${open}</dd></div>
+    <div class="cool"><dt>Unexamined</dt><dd>${silences}</dd></div>
+    <div class="hot"><dt>Disagreements</dt><dd>${tensions}</dd></div>
+    <div><dt>Archives watched</dt><dd>${sources}<small>live</small></dd></div>`;
+
+  document.getElementById("n-frontier").textContent = open;
+  document.getElementById("n-watch").textContent = Object.keys(w).length;
+  document.getElementById("n-record").textContent = CLAIMS.length;
+  for (const t of ["frontier", "watch", "record"])
+    document.getElementById("tab-" + t).setAttribute("aria-selected", String(TAB === t));
+
+  document.getElementById("main").innerHTML =
+    TAB === "frontier" ? frontier(w) : TAB === "watch" ? watch(w) : record();
 }
 
 document.addEventListener("click", e => {
-  const b = e.target.closest(".watch");
-  if (b) {
-    const id = b.dataset.id, w = load();
+  const keep = e.target.closest(".keep");
+  if (keep) {
+    const id = keep.dataset.id, w = readWatch();
     if (w[id]) delete w[id];
     else {
       const c = CLAIMS.find(x => x.claim_id === id) || {};
       w[id] = { status: c.status, at: new Date().toISOString() };
     }
-    save(w); render(); return;
+    writeWatch(w); render(); return;
   }
-  const t = e.target.closest('[role="tab"]');
-  if (t) { TAB = t.id === "tab-watch" ? "watch" : "frontier"; render(); }
+  const chip = e.target.closest(".chip");
+  if (chip) { SIFT = chip.dataset.sift; render(); return; }
+  const tab = e.target.closest('[role="tab"]');
+  if (tab) { TAB = tab.id.replace("tab-", ""); render(); }
 });
 
-document.getElementById("now").textContent =
-  new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
+document.addEventListener("input", e => {
+  if (e.target.id !== "q") return;
+  QUERY = e.target.value.trim().toLowerCase();
+  render();
+  const q = document.getElementById("q");
+  if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+});
+
+document.getElementById("stamp").textContent =
+  "register read " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
 safely(() => render());
 
-// Live claims when the page can reach the database; the snapshot stands in
-// when it cannot, which is the normal case inside a sandboxed frame.
+// Live claims where the page can reach the database; the snapshot stands in
+// where it cannot, which is the normal case inside a sandboxed frame.
 fetch(`${SUPA_URL}/claims?select=*&order=opened_at.desc&limit=200`, {
   headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
 }).then(r => r.ok ? r.json() : null).then(rows => {
