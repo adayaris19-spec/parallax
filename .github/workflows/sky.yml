@@ -98,6 +98,10 @@ jobs:
             if (r.extraction?.unconverted_units?.length) console.log("units?   ", r.extraction.unconverted_units.join("  |  "));
             if (r.set_aside_off_target) console.log("off-target set aside", r.set_aside_off_target);
             if (r.skipped) console.log("compare  ", JSON.stringify(r.skipped));
+            // Whether anything actually reached the database. A write that fails
+            // loses data silently; this is the line that makes it loud.
+            for (const w of r.stored || [])
+              console.log("stored   ", String(w.table).padEnd(14), w.error ? `FAILED ${w.status} ${w.error}` : `${w.rows} rows`);
             console.log("tensions ", (r.tensions||[]).length, " orphans", (r.orphans||[]).length, " claims", (r.claims||[]).length);
             for (const t of r.tensions||[])
               console.log(`  TENSION ${t.object} ${t.quantity}: ${t.sigma}σ  archive ${t.measured.value}${t.measured.unit} vs ${t.reported.year} ${t.reported.value}${t.reported.unit}`);
