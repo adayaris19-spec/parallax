@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 17;
+const WORKER_VERSION = 18;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -238,6 +238,7 @@ const UNITS: Record<string, [number, string]> = {
   jupiterradius: [7.1492e7, "m"], jupiterradii: [7.1492e7, "m"],
   solarradius: [6.957e8, "m"], solarradii: [6.957e8, "m"],
   "gcm-3": [1e3, "kg/m3"], gcm3: [1e3, "kg/m3"], "gcc": [1e3, "kg/m3"],
+  "g/cc": [1e3, "kg/m3"], "g/cm-3": [1e3, "kg/m3"],
   "kgm-3": [1, "kg/m3"],
   "kms-1": [1e3, "m/s"], "ms-1": [1, "m/s"],
   earthday: [86400, "s"], earthdays: [86400, "s"],
@@ -256,6 +257,11 @@ function unitKey(unit: string): string {
     .replace(/[⊕]/g, "earth")
     .replace(/[⊙☉]/g, "sun")
     .replace(/[♃]/g, "jupiter")
+    /* Written mathematics, once the backslash and braces are gone: a paper
+       typesets an Earth symbol as \oplus and a solar one as \odot, so R_\oplus
+       arrives here as roplus and matched nothing. */
+    .replace(/oplus/g, "earth")
+    .replace(/odot/g, "sun")
     .replace(/[_{}$\\·⋅×]/g, "")
     .replace(/\^/g, "")
     .replace(/\s+/g, "");

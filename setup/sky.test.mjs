@@ -73,6 +73,12 @@ for (const [form, want] of UNIT_FORMS) {
 t("17.2 Earth masses converts correctly",
   Math.abs(S.normalise(17.2, 1.9, "Earth masses").value_si - 1.02721324e26) < 1e20);
 t("5.8 g cm^-3 converts correctly", S.normalise(5.8, 0.5, "g cm^-3").value_si === 5800);
+// Seen in a live sweep: LaTeX survives into the unit string once braces and
+// backslashes are stripped, and g/cc is how a lot of people write density.
+t("R_\\oplus is Earth radii", S.normalise(1, 0, "R_\\oplus").unit_si === "m");
+t("M_\\oplus is Earth masses", S.normalise(1, 0, "M_\\oplus").unit_si === "kg");
+t("R_\\odot is solar radii", S.normalise(1, 0, "R_\\odot").unit_si === "m");
+t("g/cc is a density", S.normalise(5.5, 0.1, "g/cc").value_si === 5500);
 
 // a value must agree with what it claims to be ---------------------------------
 // A TRAPPIST-1 sweep read ages in Gyr and transit epochs in BJD_TDB and labelled
