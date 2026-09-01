@@ -1,265 +1,254 @@
 <title>The Parallax Register</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
 /* ---------------------------------------------------------------- tokens ---
-   Light, and only light. There is no dark palette in this file and no system
-   theme switch: the register is a page of lab paper, in every viewer's theme.
-   Colour carries two facts and nothing else — the field an object belongs to,
-   and whether the question is still open.                                     */
+   Light, and only light — no dark palette in this file and no system switch.
+   Nothing here has a hard edge: every surface is a rounded panel lifted off a
+   warm ground by shadow rather than fenced in by a rule. Colour says two
+   things only — which field an entry belongs to, and whether it is still open. */
 :root{
-  --paper:#EFF1EC;          /* pale green-grey: graph paper, not cream        */
+  --paper:#F1F0ED;
   --surface:#FFFFFF;
-  --sunk:#E7EAE3;           /* settled things sit back into the page          */
-  --ink:#141A18;
-  --ink-2:#535C58;
-  --ink-3:#8C948F;
-  --hair:#DCE0D8;
-  --rule:#C2C8BC;
-  --astro:#3A3A8C;          /* astronomy                                      */
-  --gene:#8A5320;           /* genomics                                       */
-  --phys:#1F6257;           /* fundamental physics                            */
-  --live:#B01E52;           /* open, contested                                */
-  --live-soft:#FBE9EF;
-  --shut:#3F6B4A;           /* settled                                        */
-  --kill:#8A5A0B;
-  --display:"Bricolage Grotesque","Helvetica Neue",Helvetica,sans-serif;
-  --body:"Newsreader",Georgia,"Times New Roman",serif;
+  --sunk:#E9E7E3;
+  --ink:#101114;
+  --ink-2:#5C6068;
+  --ink-3:#979BA3;
+  --line:#E9E7E4;
+  --astro:#5B54E6;
+  --astro-soft:#EEEDFD;
+  --gene:#C4703A;
+  --gene-soft:#FBF0E8;
+  --phys:#1F8C7C;
+  --phys-soft:#E7F5F2;
+  --live:#DE3F68;
+  --live-soft:#FDEDF1;
+  --shut:#3E9370;
+  --shut-soft:#EAF5F0;
+  --kill:#B07C1B;
+  --kill-soft:#FBF3E3;
+  --r-lg:24px; --r-md:18px; --r-sm:13px;
+  --lift:0 1px 2px rgba(16,17,20,.04), 0 14px 34px -22px rgba(16,17,20,.30);
+  --lift-2:0 2px 6px rgba(16,17,20,.05), 0 22px 46px -24px rgba(16,17,20,.36);
+  --ui:"Manrope","Helvetica Neue",Helvetica,system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
-  margin:0;background:var(--paper);color:var(--ink);
-  font:400 17px/1.6 var(--body);font-variant-numeric:tabular-nums;
-  -webkit-font-smoothing:antialiased;
+  margin:0;color:var(--ink);background:var(--paper);
+  font:400 16px/1.6 var(--ui);font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;letter-spacing:-.006em;
 }
-.shell{max-width:1180px;margin:0 auto;padding:0 22px 120px}
-:where(button,input,a,summary,select):focus-visible{outline:2px solid var(--live);outline-offset:2px}
+/* A single soft wash behind the masthead, so the page opens with light rather
+   than with a ruled box. */
+body::before{
+  content:"";position:fixed;inset:0 0 auto;height:520px;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(760px 320px at 18% -8%, rgba(91,84,230,.13), transparent 70%),
+    radial-gradient(680px 300px at 88% -14%, rgba(222,63,104,.10), transparent 70%);
+}
+.shell{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 22px 130px}
+:where(button,input,a,summary,select):focus-visible{outline:2px solid var(--astro);outline-offset:3px;border-radius:8px}
+
+/* ---------------------------------------------------------- floating nav --- */
+.bar{position:sticky;top:14px;z-index:40;display:flex;justify-content:center;padding:16px 0 0}
+.tabs{
+  display:flex;align-items:center;gap:4px;padding:6px;
+  background:rgba(255,255,255,.86);backdrop-filter:blur(14px) saturate(1.4);
+  border-radius:999px;box-shadow:var(--lift-2);
+}
+.tabs button{
+  appearance:none;border:0;cursor:pointer;background:transparent;color:var(--ink-2);
+  font:600 13px/1 var(--ui);letter-spacing:-.005em;padding:10px 17px;border-radius:999px;
+  transition:background .15s,color .15s;
+}
+.tabs button:hover{color:var(--ink);background:rgba(16,17,20,.045)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+.tabs button .n{font-family:var(--mono);font-size:11px;opacity:.55;margin-left:7px}
 
 /* ------------------------------------------------------------- masthead --- */
-.mast{padding:26px 0 0}
-.mark{display:flex;align-items:center;gap:13px}
-.mark svg{width:29px;height:29px;flex:none}
-.mark h1{margin:0;font:800 24px/1 var(--display);letter-spacing:-.02em}
-.mark .stamp{margin-left:auto;font:500 11px/1.4 var(--mono);color:var(--ink-3);text-align:right}
-.lede{margin:13px 0 0;max-width:78ch;font:300 18px/1.45 var(--body);color:var(--ink-2)}
-.lede b{color:var(--ink);font-weight:500}
-
-.readout{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:18px 0 0;
-  background:var(--rule);border:1px solid var(--rule);
+.mast{padding:34px 0 0;text-align:center}
+.mark{display:flex;align-items:center;justify-content:center;gap:11px}
+.mark svg{width:30px;height:30px;flex:none}
+.mark h1{margin:0;font:800 27px/1 var(--ui);letter-spacing:-.035em}
+.lede{
+  margin:16px auto 0;max-width:60ch;
+  font:400 19px/1.5 var(--ui);color:var(--ink-2);letter-spacing:-.012em;text-wrap:balance;
 }
-.readout div{background:var(--surface);padding:10px 13px}
-.readout dt{margin:0 0 5px;font:500 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
-.readout dd{margin:0;font:600 23px/1 var(--display);letter-spacing:-.02em}
-.readout dd small{font:500 11px/1 var(--mono);color:var(--ink-3);margin-left:5px}
-.readout .hot dd{color:var(--live)}
-@media(max-width:700px){.readout{grid-template-columns:repeat(2,1fr)}}
-
-/* ------------------------------------------------------------------ nav --- */
-.bar{
-  position:sticky;top:0;z-index:30;margin:22px -22px 0;padding:0 22px;
-  background:color-mix(in srgb,var(--paper) 90%,transparent);
-  backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);
+.lede b{color:var(--ink);font-weight:700}
+/* The counts, as one quiet line. They were four bordered boxes; they are
+   four facts, and four facts do not need four boxes. */
+.tally{
+  display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:20px 0 0;padding:0;
+  list-style:none;font:500 13px/1 var(--ui);color:var(--ink-2);
 }
-.tabs{display:flex;gap:24px;flex-wrap:wrap}
-.tabs button{
-  appearance:none;background:none;border:0;cursor:pointer;padding:14px 0 12px;
-  color:var(--ink-3);font:600 12px/1 var(--display);letter-spacing:.13em;
-  text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;
-}
-.tabs button:hover{color:var(--ink-2)}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--live)}
-.tabs button .n{font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--ink-3);margin-left:6px}
+.tally li{background:rgba(255,255,255,.72);padding:9px 15px;border-radius:999px;box-shadow:var(--lift)}
+.tally b{color:var(--ink);font-weight:700}
+.tally .hot b{color:var(--live)}
+.stamp{display:block;margin:18px 0 0;font:400 11.5px/1 var(--mono);color:var(--ink-3)}
 
 /* ----------------------------------------------------------- filter row --- */
-.sift{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:18px 0 2px}
+.sift{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:26px 0 2px}
 .chip{
-  appearance:none;cursor:pointer;background:var(--surface);border:1px solid var(--rule);
-  padding:6px 11px;font:500 11px/1 var(--mono);letter-spacing:.04em;color:var(--ink-2);
+  appearance:none;cursor:pointer;background:rgba(255,255,255,.8);border:0;
+  padding:9px 15px;border-radius:999px;font:600 13px/1 var(--ui);color:var(--ink-2);
+  box-shadow:var(--lift);transition:background .15s,color .15s,transform .12s;
 }
-.chip:hover{border-color:var(--ink-3)}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip:hover{color:var(--ink);transform:translateY(-1px)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff}
 .sift input{
-  flex:1;min-width:170px;background:var(--surface);color:var(--ink);
-  border:1px solid var(--rule);padding:7px 11px;font:400 13px/1 var(--mono);
+  flex:1;min-width:190px;background:rgba(255,255,255,.8);color:var(--ink);border:0;
+  padding:11px 17px;border-radius:999px;font:500 13.5px/1 var(--ui);box-shadow:var(--lift);
 }
 .sift input::placeholder{color:var(--ink-3)}
 
 /* ---------------------------------------------------------------- tiles ---
-   Three across, so ten things you are not interested in cost one glance and
-   not ten screens. A tile is a whole question, never a fragment of one.       */
-.grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 0 0;
-  align-items:stretch;
-}
+   Three across, so ten entries you do not care about cost one glance and not
+   ten screens. A tile is a whole question, never a fragment of one.           */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:22px 0 0}
 @media(max-width:940px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.grid{grid-template-columns:1fr}}
 
 .tile{
-  display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;
-  background:var(--surface);border:1px solid var(--hair);border-top:3px solid var(--astro);
-  padding:14px 16px 15px;min-height:196px;font:inherit;color:inherit;
-  transition:border-color .12s,transform .12s;
+  display:flex;flex-direction:column;gap:11px;text-align:left;cursor:pointer;
+  background:var(--surface);border:0;border-radius:var(--r-lg);box-shadow:var(--lift);
+  padding:20px 21px 21px;min-height:210px;font:inherit;color:inherit;
+  transition:box-shadow .18s,transform .18s;
 }
-.tile:hover{border-color:var(--rule);border-top-color:inherit;transform:translateY(-2px)}
-@media (prefers-reduced-motion:reduce){.tile{transition:none}.tile:hover{transform:none}}
-.tile.astronomy{border-top-color:var(--astro)}
-.tile.genomics{border-top-color:var(--gene)}
-.tile.physics{border-top-color:var(--phys)}
-.tile.wide{grid-column:span 2}
+.tile:hover{box-shadow:var(--lift-2);transform:translateY(-3px)}
+@media (prefers-reduced-motion:reduce){.tile,.chip{transition:none}.tile:hover{transform:none}}
+.tile.wide{grid-column:span 2;background:linear-gradient(152deg,#FFFFFF 58%,var(--astro-soft))}
+.tile.wide.genomics{background:linear-gradient(152deg,#FFFFFF 58%,var(--gene-soft))}
+.tile.wide.physics{background:linear-gradient(152deg,#FFFFFF 58%,var(--phys-soft))}
 @media(max-width:620px){.tile.wide{grid-column:span 1}}
-.tile.closed{background:var(--sunk);border-color:var(--rule)}
+.tile.closed{background:var(--sunk);box-shadow:none}
 
-.tile .head{display:flex;align-items:center;gap:8px;font:500 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.tile .head .fld{color:var(--astro)}
-.tile.genomics .head .fld{color:var(--gene)}
-.tile.physics .head .fld{color:var(--phys)}
-.tile .head .state{margin-left:auto;color:var(--live)}
-.tile.closed .head .state{color:var(--shut)}
-.tile h3{
-  margin:0;font:600 clamp(17px,1.55vw,21px)/1.2 var(--display);
-  letter-spacing:-.018em;text-wrap:balance;
+.head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pill{
+  padding:5px 11px;border-radius:999px;font:600 11.5px/1 var(--ui);letter-spacing:-.002em;
+  background:var(--astro-soft);color:var(--astro);
 }
-.tile.wide h3{font-size:clamp(20px,2.1vw,27px)}
-.tile .hook{margin:0;font:400 14.5px/1.45 var(--body);color:var(--ink-2)}
-.tile .spark{margin-top:auto;padding-top:10px}
+.genomics .pill.fld{background:var(--gene-soft);color:var(--gene)}
+.physics .pill.fld{background:var(--phys-soft);color:var(--phys)}
+.pill.kind{background:rgba(16,17,20,.05);color:var(--ink-2)}
+.pill.kept{background:var(--ink);color:#fff}
+.head .state{margin-left:auto;font:600 11.5px/1 var(--ui);color:var(--live)}
+.closed .head .state,.detail .eyebrow .state{color:var(--shut)}
+.tile h3{margin:0;font:700 clamp(18px,1.6vw,22px)/1.22 var(--ui);letter-spacing:-.027em;text-wrap:balance}
+.tile.wide h3{font-size:clamp(22px,2.3vw,29px);letter-spacing:-.032em}
+.tile .hook{margin:0;font:400 14.5px/1.5 var(--ui);color:var(--ink-2)}
+.tile .spark{margin-top:auto;padding-top:12px}
 .tile .spark svg{display:block;width:100%;height:auto}
-.tile .metric{
-  margin-top:auto;padding-top:10px;display:flex;align-items:baseline;gap:8px;
-  font:500 11px/1 var(--mono);color:var(--ink-3);
-}
-.tile .metric b{font:600 21px/1 var(--display);color:var(--live);letter-spacing:-.02em}
+.tile .metric{margin-top:auto;padding-top:12px;display:flex;align-items:baseline;gap:8px;font:500 13px/1 var(--ui);color:var(--ink-3)}
+.tile .metric b{font:800 24px/1 var(--ui);color:var(--live);letter-spacing:-.03em}
 .tile.closed .metric b{color:var(--shut)}
-.tile .kept{color:var(--astro);font-weight:600}
 
 /* -------------------------------------------------------------- detail ---- */
 .back{
-  appearance:none;background:none;border:0;cursor:pointer;padding:20px 0 0;
-  font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  appearance:none;background:rgba(255,255,255,.8);border:0;cursor:pointer;
+  margin:24px 0 0;padding:9px 16px;border-radius:999px;box-shadow:var(--lift);
+  font:600 13px/1 var(--ui);color:var(--ink-2);
 }
 .back:hover{color:var(--ink)}
-.detail{max-width:74ch;padding:8px 0 0}
-.detail .eyebrow{display:flex;gap:12px;flex-wrap:wrap;font:500 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
-.detail .eyebrow .fld{color:var(--astro);font-weight:600}
-.detail.genomics .eyebrow .fld{color:var(--gene)}
-.detail.physics .eyebrow .fld{color:var(--phys)}
-.detail h2{margin:12px 0 0;font:600 clamp(28px,4vw,42px)/1.1 var(--display);letter-spacing:-.03em;text-wrap:balance}
-.detail .plain{margin:16px 0 0;font:400 20px/1.5 var(--body);color:var(--ink)}
-.detail .said{margin:16px 0 0;font:400 16px/1.62 var(--body);color:var(--ink-2)}
+.detail{max-width:70ch;margin:0 auto;padding:20px 0 0}
+.detail .eyebrow{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.detail h2{margin:18px 0 0;font:800 clamp(30px,4.2vw,46px)/1.06 var(--ui);letter-spacing:-.042em;text-wrap:balance}
+.detail .plain{margin:18px 0 0;font:400 19.5px/1.55 var(--ink);color:var(--ink);letter-spacing:-.012em}
+.detail .said{margin:16px 0 0;font:400 15.5px/1.62 var(--ui);color:var(--ink-2)}
 
-.layer{
-  margin:30px 0 0;padding-top:12px;border-top:1px solid var(--rule);
-}
-.layer > h4{
-  margin:0 0 12px;font:500 10px/1 var(--mono);letter-spacing:.15em;
-  text-transform:uppercase;color:var(--ink-3);
-}
-.plate{background:var(--surface);border:1px solid var(--hair);padding:14px 12px 8px}
+.layer{margin:30px 0 0}
+.layer > h4{margin:0 0 12px;font:700 13px/1 var(--ui);letter-spacing:-.01em;color:var(--ink-3)}
+.plate{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--lift);padding:18px 16px 10px}
 .plate svg{display:block;width:100%;height:auto}
-.plate .cap{padding:8px 6px 2px;font:400 11px/1.5 var(--mono);color:var(--ink-3)}
+.plate .cap{padding:10px 6px 2px;font:400 11.5px/1.5 var(--mono);color:var(--ink-3)}
 
-.sides{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:14px}
-.sides div{background:var(--surface);padding:13px 14px}
-.sides dt{margin:0 0 6px;font:500 10px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
-.sides dd{margin:0;font:600 19px/1.2 var(--display);letter-spacing:-.015em}
-.sides p{margin:6px 0 0;font:400 12.5px/1.45 var(--body);color:var(--ink-3)}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.sides div{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--lift);padding:16px 17px}
+.sides dt{margin:0 0 7px;font:600 12px/1.3 var(--ui);color:var(--ink-3)}
+.sides dd{margin:0;font:800 21px/1.15 var(--ui);letter-spacing:-.03em}
+.sides dd span{font:500 12px/1 var(--mono);color:var(--ink-3)}
+.sides p{margin:8px 0 0;font:400 13px/1.45 var(--ui);color:var(--ink-3)}
 @media(max-width:620px){.sides{grid-template-columns:1fr}}
 
-/* The guess. It is asked before the evidence is shown, because committing
-   first is the difference between reading a fact and testing yourself. */
-.guess{border:1px solid var(--live);background:var(--live-soft);padding:16px 17px;margin:14px 0 0}
-.guess p{margin:0 0 12px;font:500 16px/1.4 var(--display);letter-spacing:-.01em}
+/* The guess, asked before the evidence is shown: committing first is the
+   difference between reading a fact and testing yourself against one. */
+.guess{background:var(--live-soft);border-radius:var(--r-md);padding:20px 21px;margin:20px 0 0}
+.guess p{margin:0 0 14px;font:700 17px/1.35 var(--ui);letter-spacing:-.018em}
 .guess .opts{display:flex;gap:9px;flex-wrap:wrap}
 .guess button{
-  appearance:none;cursor:pointer;background:var(--surface);border:1px solid var(--live);
-  color:var(--ink);padding:9px 14px;font:500 13px/1.2 var(--mono);text-align:left;
+  appearance:none;cursor:pointer;background:#fff;border:0;border-radius:999px;
+  color:var(--ink);padding:11px 18px;font:600 13.5px/1.2 var(--ui);box-shadow:var(--lift);
+  transition:background .15s,color .15s;
 }
 .guess button:hover{background:var(--live);color:#fff}
-.guess .said-you{margin:12px 0 0;font:400 14px/1.5 var(--body);color:var(--ink-2)}
-.guess .said-you b{color:var(--live)}
+.guess .said-you{margin:0;font:400 14.5px/1.55 var(--ui);color:var(--ink-2)}
+.guess .said-you b{color:var(--live);font-weight:700}
 
-.kill{margin:14px 0 0;padding:0 0 0 15px;border-left:2px solid var(--kill)}
-.kill .lab{display:block;font:600 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--kill);margin-bottom:6px}
-.kill p{margin:0;font:400 16px/1.6 var(--body);color:var(--ink-2)}
-.nokill{border-left-color:var(--ink-3)}
+.kill{margin:14px 0 0;background:var(--kill-soft);border-radius:var(--r-md);padding:17px 19px}
+.kill .lab{display:block;font:700 12px/1 var(--ui);color:var(--kill);margin-bottom:8px}
+.kill p{margin:0;font:400 15.5px/1.6 var(--ui);color:#6C4E12}
+.nokill{background:rgba(16,17,20,.045)}
 .nokill .lab{color:var(--ink-3)}
+.nokill p{color:var(--ink-2)}
 
-.cites{margin:14px 0 0;padding:0;list-style:none;font:400 12.5px/1.7 var(--mono);color:var(--ink-3)}
-.cites a{color:var(--ink-2)}
-.foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:26px 0 0;padding-top:12px;border-top:1px solid var(--hair);font:400 11px/1 var(--mono);color:var(--ink-3)}
+.cites{margin:14px 0 0;padding:0;list-style:none;font:400 12.5px/1.85 var(--mono);color:var(--ink-3)}
+.foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:28px 0 0;font:400 11.5px/1 var(--mono);color:var(--ink-3)}
+.foot a{color:var(--ink-2)}
 .keep{
-  margin-left:auto;appearance:none;cursor:pointer;background:none;border:1px solid var(--rule);
-  padding:8px 14px;font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--ink-2);
+  margin-left:auto;appearance:none;cursor:pointer;background:#fff;border:0;border-radius:999px;
+  padding:11px 20px;font:600 13px/1 var(--ui);color:var(--ink-2);box-shadow:var(--lift);
 }
-.keep:hover{border-color:var(--ink-3);color:var(--ink)}
-.keep[aria-pressed="true"]{background:var(--astro);border-color:var(--astro);color:#fff}
+.keep:hover{color:var(--ink)}
+.keep[aria-pressed="true"]{background:var(--astro);color:#fff}
 
 /* ------------------------------------------------------------ workbench --- */
-.bench{max-width:78ch;padding:22px 0 0}
-.bench h2{margin:0;font:600 30px/1.15 var(--display);letter-spacing:-.025em}
-.bench .prose{margin:14px 0 0;font:400 17px/1.6 var(--body);color:var(--ink-2);max-width:62ch}
-.form{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 0}
+.bench{max-width:72ch;margin:0 auto;padding:26px 0 0}
+.bench h2{margin:0;font:800 34px/1.1 var(--ui);letter-spacing:-.04em}
+.bench .prose{margin:16px 0 0;font:400 17px/1.6 var(--ui);color:var(--ink-2)}
+.form{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 0}
 .form input,.form select{
-  background:var(--surface);border:1px solid var(--rule);color:var(--ink);
-  padding:10px 12px;font:400 14px/1 var(--mono);
+  background:#fff;border:0;border-radius:999px;color:var(--ink);
+  padding:13px 19px;font:500 14px/1 var(--ui);box-shadow:var(--lift);
 }
-.form input{flex:1;min-width:220px}
+.form input{flex:1;min-width:230px}
 .form button{
-  appearance:none;cursor:pointer;background:var(--ink);border:1px solid var(--ink);color:var(--paper);
-  padding:10px 20px;font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  appearance:none;cursor:pointer;background:var(--ink);border:0;border-radius:999px;color:#fff;
+  padding:13px 26px;font:600 13.5px/1 var(--ui);
 }
-.form button[disabled]{opacity:.5;cursor:progress}
-.modes{margin:14px 0 0;border:1px solid var(--hair);background:var(--surface)}
-.modes div{display:flex;gap:14px;padding:9px 13px;border-bottom:1px solid var(--hair);font:400 13px/1.5 var(--body);color:var(--ink-2)}
-.modes div:last-child{border-bottom:0}
-.modes code{font:500 12px/1 var(--mono);color:var(--ink);min-width:78px}
+.form button[disabled]{opacity:.45;cursor:progress}
+.modes{margin:18px 0 0;background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:6px 4px}
+.modes div{display:flex;gap:16px;padding:11px 16px;font:400 14px/1.5 var(--ui);color:var(--ink-2)}
+.modes code{font:500 12.5px/1.5 var(--mono);color:var(--astro);min-width:82px}
 .out{
-  margin:18px 0 0;background:var(--surface);border:1px solid var(--hair);padding:14px;
-  font:400 12px/1.55 var(--mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word;
+  margin:20px 0 0;background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:18px;
+  font:400 12px/1.6 var(--mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word;
   max-height:440px;overflow:auto;
 }
 .out b{color:var(--ink)}
 
 /* -------------------------------------------------------------- generic --- */
-.verdict{margin:24px 0 0;font:600 clamp(26px,3.6vw,38px)/1.15 var(--display);letter-spacing:-.028em;max-width:22ch;text-wrap:balance}
+.verdict{margin:26px auto 0;max-width:22ch;font:800 clamp(28px,3.8vw,42px)/1.1 var(--ui);letter-spacing:-.042em;text-align:center;text-wrap:balance}
 .verdict em{font-style:normal;color:var(--live)}
-.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;margin:24px 0 0;background:var(--rule);border:1px solid var(--rule)}
-.ledger div{background:var(--surface);padding:14px}
-.ledger dt{margin:0 0 6px;font:500 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
-.ledger dd{margin:0;font:600 29px/1 var(--display);letter-spacing:-.02em}
-.ledger p{margin:7px 0 0;font:400 13px/1.45 var(--body);color:var(--ink-3)}
-.prose{margin:24px 0 0;max-width:62ch;font:400 17px/1.62 var(--body);color:var(--ink-2)}
-.prose b{color:var(--ink);font-weight:500}
-.hollow{padding:48px 24px;text-align:center;color:var(--ink-3);border:1px dashed var(--rule);font:400 17px/1.55 var(--body);max-width:52ch;margin:24px auto 0}
-.moved{margin:0 0 12px;padding:9px 13px;border-left:2px solid var(--live);background:var(--live-soft);font:400 14px/1.5 var(--body)}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:28px 0 0}
+.ledger div{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:20px}
+.ledger dt{margin:0 0 8px;font:600 12.5px/1 var(--ui);color:var(--ink-3)}
+.ledger dd{margin:0;font:800 32px/1 var(--ui);letter-spacing:-.04em}
+.ledger dd small{font:600 13px/1 var(--ui);color:var(--ink-3);margin-left:4px}
+.ledger p{margin:10px 0 0;font:400 13.5px/1.5 var(--ui);color:var(--ink-3)}
+.prose{margin:28px auto 0;max-width:64ch;font:400 17px/1.62 var(--ui);color:var(--ink-2)}
+.prose b{color:var(--ink);font-weight:700}
+.hollow{
+  padding:56px 30px;text-align:center;color:var(--ink-2);background:rgba(255,255,255,.6);
+  border-radius:var(--r-lg);font:400 17px/1.55 var(--ui);max-width:54ch;margin:28px auto 0;
+}
+.moved{margin:0;padding:14px 18px;border-radius:var(--r-md);background:var(--live-soft);font:500 14.5px/1.5 var(--ui)}
 [hidden]{display:none!important}
 </style>
 
 <div class="shell">
-  <header class="mast">
-    <div class="mark">
-      <svg viewBox="0 0 30 30" aria-hidden="true">
-        <circle cx="15" cy="6" r="3.2" fill="var(--live)"></circle>
-        <circle cx="4.5" cy="25" r="2" fill="var(--astro)"></circle>
-        <circle cx="25.5" cy="25" r="2" fill="var(--astro)"></circle>
-        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--astro)" stroke-width="1.1"></path>
-        <path d="M4.5 25 H25.5" fill="none" stroke="var(--rule)" stroke-width="1.1"></path>
-      </svg>
-      <h1>Parallax</h1>
-      <span class="stamp" id="stamp"></span>
-    </div>
-    <p class="lede">
-      Every entry here is a place where careful people measured the same thing and
-      <b>got different answers</b> — or measured something once and never looked again.
-      Each one says what observation would settle it.
-    </p>
-    <dl class="readout" id="readout"></dl>
-  </header>
-
   <div class="bar">
     <div class="tabs" role="tablist">
       <button role="tab" id="tab-feed" aria-selected="true">Feed<span class="n" id="n-feed"></span></button>
@@ -268,6 +257,26 @@ body{
       <button role="tab" id="tab-record" aria-selected="false">Record<span class="n" id="n-record"></span></button>
     </div>
   </div>
+
+  <header class="mast">
+    <div class="mark">
+      <svg viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="6" r="3.4" fill="var(--live)"></circle>
+        <circle cx="4.5" cy="25" r="2.2" fill="var(--astro)"></circle>
+        <circle cx="25.5" cy="25" r="2.2" fill="var(--astro)"></circle>
+        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-linejoin="round"></path>
+        <path d="M4.5 25 H25.5" fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-linecap="round" opacity=".5"></path>
+      </svg>
+      <h1>Parallax</h1>
+    </div>
+    <p class="lede">
+      Every entry is a place where careful people measured the same thing and
+      <b>got different answers</b> — or measured something once and never looked again.
+      Each one says what observation would settle it.
+    </p>
+    <ul class="tally" id="tally"></ul>
+    <span class="stamp" id="stamp"></span>
+  </header>
 
   <main id="main"></main>
 </div>
@@ -704,7 +713,7 @@ const SEEDS = [
   cites:["Planck Collaboration, A&A 641, A6 (2020)","Riess et al., ApJL 934, L7 (2022)"]
 },
 {
-  id:"MICROBE", field:"genomics", kind:"orthodoxy", status:"refuted", featured:true,
+  id:"MICROBE", field:"genomics", kind:"orthodoxy", status:"refuted",
   title:"You are not ten parts bacteria to one part human",
   hook:"A number in every textbook for forty years traced back to one paragraph of arithmetic nobody rechecked.",
   plain:`For decades it was repeated everywhere that your body holds ten bacterial cells for
@@ -1034,12 +1043,12 @@ function interval(p, W = 660, H = 190){
   const C = ["var(--astro)", "var(--live)"];
 
   let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S[0].label)} against ${esc(S[1].label)}">`;
-  o += `<line x1="34" y1="${y0}" x2="${W - 34}" y2="${y0}" stroke="var(--rule)"></line>`;
+  o += `<line x1="34" y1="${y0}" x2="${W - 34}" y2="${y0}" stroke="var(--line)" stroke-width="2" stroke-linecap="round"></line>`;
   S.forEach((s, i) => {
     const c = C[i], y = i === 0 ? y0 - 30 : y0 + 30, e = err[i];
     const x1 = +x(s.value - e).toFixed(1), x2 = +x(s.value + e).toFixed(1);
     if (e > 0) {
-      o += `<rect x="${x1}" y="30" width="${(x2 - x1).toFixed(1)}" height="${H - 60}" fill="${c}" opacity=".08"></rect>`;
+      o += `<rect x="${x1}" y="30" width="${(x2 - x1).toFixed(1)}" height="${H - 60}" rx="10" fill="${c}" opacity=".09"></rect>`;
       o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"></line>`;
       for (const t of [x1, x2]) o += `<line x1="${t}" y1="${y - 6}" x2="${t}" y2="${y + 6}" stroke="${c}" stroke-width="2"></line>`;
     }
@@ -1049,7 +1058,7 @@ function interval(p, W = 660, H = 190){
   });
   o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="var(--ink)" stroke-width="1.5"></line>`;
   if (Number.isFinite(p.sigma) && Math.abs(x(S[0].value) - x(S[1].value)) > 96)
-    o += `<text x="${((x(S[0].value) + x(S[1].value)) / 2).toFixed(1)}" y="${y0 - 8}" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="600" font-size="16" fill="var(--ink)">${p.sigma}σ apart</text>`;
+    o += `<text x="${((x(S[0].value) + x(S[1].value)) / 2).toFixed(1)}" y="${y0 - 8}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="17" fill="var(--ink)">${p.sigma}σ apart</text>`;
   o += `<text x="${W - 34}" y="${y0 + 19}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="var(--ink-3)">${esc(S[0].unit || "")}</text>`;
   return o + `</svg>`;
 }
@@ -1065,10 +1074,10 @@ function spark(p){
   const a = lo - pad, b = hi + pad, W = 620, H = 26, y = 13;
   const x = v => 4 + (v - a) / (b - a) * (W - 8);
   let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="two measurements, apart">`;
-  o += `<line x1="4" y1="${y}" x2="${W - 4}" y2="${y}" stroke="var(--hair)" stroke-width="2"></line>`;
+  o += `<line x1="4" y1="${y}" x2="${W - 4}" y2="${y}" stroke="var(--line)" stroke-width="3" stroke-linecap="round"></line>`;
   S.forEach((s, i) => {
     const c = i === 0 ? "var(--astro)" : "var(--live)", e = err[i];
-    if (e > 0) o += `<rect x="${x(s.value - e).toFixed(1)}" y="${y - 5}" width="${(x(s.value + e) - x(s.value - e)).toFixed(1)}" height="10" fill="${c}" opacity=".22"></rect>`;
+    if (e > 0) o += `<rect x="${x(s.value - e).toFixed(1)}" y="${y - 5}" width="${(x(s.value + e) - x(s.value - e)).toFixed(1)}" height="10" rx="5" fill="${c}" opacity=".22"></rect>`;
     o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="4.5" fill="${c}"></circle>`;
   });
   return o + `</svg>`;
@@ -1105,9 +1114,9 @@ function tile(p, w){
         : `<span>${esc(KIND_WORD[p.kind] || "")}</span>`}</div>`;
   return `<button class="tile ${esc(p.field)} ${closed ? "closed" : ""} ${p.featured ? "wide" : ""}" data-open="${esc(p.id)}">
     <div class="head">
-      <span class="fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
-      <span>${esc(KIND_WORD[p.kind] || p.kind)}</span>
-      ${w[p.id] ? `<span class="kept">kept</span>` : ""}
+      <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
+      <span class="pill kind">${esc(KIND_WORD[p.kind] || p.kind)}</span>
+      ${w[p.id] ? `<span class="pill kept">Kept</span>` : ""}
       <span class="state">${state}</span>
     </div>
     <h3>${esc(p.title)}</h3>
@@ -1148,10 +1157,10 @@ function detail(p, w){
   return `<button class="back" data-back>← All entries</button>
   <article class="detail ${esc(p.field)}">
     <div class="eyebrow">
-      <span class="fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
-      <span>${esc(KIND_WORD[p.kind] || p.kind)}</span>
-      <span>${p.machine ? "found by Parallax" : "curated entry"}</span>
-      <span>${esc(p.status)}</span>
+      <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
+      <span class="pill kind">${esc(KIND_WORD[p.kind] || p.kind)}</span>
+      <span class="pill kind">${p.machine ? "Found by Parallax" : "Curated entry"}</span>
+      <span class="state">${esc(p.status)}</span>
     </div>
     <h2>${esc(p.title)}</h2>
     <p class="plain">${esc(p.plain)}</p>
@@ -1264,11 +1273,11 @@ function render(){
   const disputes = POSTS.filter(p => p.kind === "disagreement" && p.status === "open").length;
   const fields = new Set(POSTS.map(p => p.field)).size;
 
-  document.getElementById("readout").innerHTML = `
-    <div><dt>Open questions</dt><dd>${openQ}</dd></div>
-    <div class="hot"><dt>Live disagreements</dt><dd>${disputes}</dd></div>
-    <div><dt>Fields</dt><dd>${fields}</dd></div>
-    <div><dt>Machine claims</dt><dd>${REGISTER.length}<small>own</small></dd></div>`;
+  document.getElementById("tally").innerHTML = `
+    <li><b>${openQ}</b> open questions</li>
+    <li class="hot"><b>${disputes}</b> live disagreements</li>
+    <li><b>${fields}</b> fields</li>
+    <li><b>${REGISTER.length}</b> claims the machine found itself</li>`;
 
   document.getElementById("n-feed").textContent = POSTS.length;
   document.getElementById("n-watch").textContent = Object.keys(w).length;
