@@ -5,310 +5,266 @@
 
 <style>
 /* ---------------------------------------------------------------- tokens ---
-   Cold observatory daylight. The neutral is pulled toward the ink's blue so
-   nothing on the page is a default grey. One structural colour (indigo), and
-   semantic colour kept separate from it: rose means two numbers disagree,
-   slate means nobody has looked, amber means Parallax took a claim back.      */
+   Light, and only light. There is no dark palette in this file and no system
+   theme switch: the register is a page of lab paper, in every viewer's theme.
+   Colour carries two facts and nothing else — the field an object belongs to,
+   and whether the question is still open.                                     */
 :root{
-  --paper:#E8ECF2;
-  --surface:#FCFDFE;
-  --surface-2:#F3F6FA;
-  --ink:#0E1521;
-  --ink-2:#4C596C;
-  --ink-3:#8592A5;
-  --hair:#DDE3EC;
-  --rule:#C3CCDA;
-  --indigo:#1E2A5E;
-  --indigo-soft:rgba(30,42,94,.07);
-  --rose:#C81E5B;
-  --rose-soft:rgba(200,30,91,.09);
-  --slate:#3F6C8F;
-  --slate-soft:rgba(63,108,143,.09);
-  --amber:#9A5B0E;
-  --amber-soft:rgba(154,91,14,.10);
-  --green:#0B6E4F;
-  --night:#101A2E;          /* the one dark surface, used deliberately */
-  --night-ink:#E9EFF8;
-  --night-hair:#2C3A54;
+  --paper:#EFF1EC;          /* pale green-grey: graph paper, not cream        */
+  --surface:#FFFFFF;
+  --sunk:#E7EAE3;           /* settled things sit back into the page          */
+  --ink:#141A18;
+  --ink-2:#535C58;
+  --ink-3:#8C948F;
+  --hair:#DCE0D8;
+  --rule:#C2C8BC;
+  --astro:#3A3A8C;          /* astronomy                                      */
+  --gene:#8A5320;           /* genomics                                       */
+  --phys:#1F6257;           /* fundamental physics                            */
+  --live:#B01E52;           /* open, contested                                */
+  --live-soft:#FBE9EF;
+  --shut:#3F6B4A;           /* settled                                        */
+  --kill:#8A5A0B;
   --display:"Bricolage Grotesque","Helvetica Neue",Helvetica,sans-serif;
   --body:"Newsreader",Georgia,"Times New Roman",serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --paper:#0B111C;
-    --surface:#131C2B;
-    --surface-2:#18222F;
-    --ink:#E9EFF8;
-    --ink-2:#A6B3C6;
-    --ink-3:#71809A;
-    --hair:#22304A;
-    --rule:#33425E;
-    --indigo:#93A6E8;
-    --indigo-soft:rgba(147,166,232,.12);
-    --rose:#FF6E9C;
-    --rose-soft:rgba(255,110,156,.14);
-    --slate:#7EAECF;
-    --slate-soft:rgba(126,174,207,.14);
-    --amber:#E5A252;
-    --amber-soft:rgba(229,162,82,.14);
-    --green:#4FBF95;
-    --night:#060B14;
-    --night-hair:#1E2A40;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0B111C; --surface:#131C2B; --surface-2:#18222F;
-  --ink:#E9EFF8; --ink-2:#A6B3C6; --ink-3:#71809A;
-  --hair:#22304A; --rule:#33425E;
-  --indigo:#93A6E8; --indigo-soft:rgba(147,166,232,.12);
-  --rose:#FF6E9C; --rose-soft:rgba(255,110,156,.14);
-  --slate:#7EAECF; --slate-soft:rgba(126,174,207,.14);
-  --amber:#E5A252; --amber-soft:rgba(229,162,82,.14);
-  --green:#4FBF95; --night:#060B14; --night-hair:#1E2A40;
-}
-
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   margin:0;background:var(--paper);color:var(--ink);
-  font:400 17px/1.6 var(--body);
-  font-variant-numeric:tabular-nums;
+  font:400 17px/1.6 var(--body);font-variant-numeric:tabular-nums;
   -webkit-font-smoothing:antialiased;
 }
-.shell{max-width:1000px;margin:0 auto;padding:0 20px 120px}
+.shell{max-width:1180px;margin:0 auto;padding:0 22px 120px}
+:where(button,input,a,summary,select):focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 /* ------------------------------------------------------------- masthead --- */
-.mast{padding:34px 0 0}
-.mark{display:flex;align-items:center;gap:14px}
-.mark .glyph{width:30px;height:30px;flex:none}
-.mark h1{
-  margin:0;font:800 25px/1 var(--display);letter-spacing:-.02em;
-}
-.mark .stamp{
-  margin-left:auto;font:500 11px/1.5 var(--mono);color:var(--ink-3);
-  text-align:right;letter-spacing:.02em;
-}
-.lede{
-  margin:18px 0 0;max-width:58ch;
-  font:300 21px/1.45 var(--body);color:var(--ink-2);
-}
+.mast{padding:26px 0 0}
+.mark{display:flex;align-items:center;gap:13px}
+.mark svg{width:29px;height:29px;flex:none}
+.mark h1{margin:0;font:800 24px/1 var(--display);letter-spacing:-.02em}
+.mark .stamp{margin-left:auto;font:500 11px/1.4 var(--mono);color:var(--ink-3);text-align:right}
+.lede{margin:13px 0 0;max-width:78ch;font:300 18px/1.45 var(--body);color:var(--ink-2)}
 .lede b{color:var(--ink);font-weight:500}
 
-/* The instrument's current reading. Four counts, and none of them decorative:
-   each is a thing the machine did or a thing it is still waiting on. */
 .readout{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
-  margin:26px 0 0;background:var(--rule);
-  border:1px solid var(--rule);border-radius:3px;overflow:hidden;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:18px 0 0;
+  background:var(--rule);border:1px solid var(--rule);
 }
-.readout div{background:var(--surface);padding:13px 15px}
-.readout dt{
-  margin:0 0 5px;font:500 10px/1 var(--mono);letter-spacing:.14em;
-  text-transform:uppercase;color:var(--ink-3);
-}
-.readout dd{margin:0;font:600 27px/1 var(--display);letter-spacing:-.02em}
-.readout dd small{font:500 11px/1 var(--mono);color:var(--ink-3);margin-left:5px;letter-spacing:0}
-.readout .hot dd{color:var(--rose)}
-.readout .cool dd{color:var(--slate)}
-@media(max-width:640px){.readout{grid-template-columns:repeat(2,1fr)}}
+.readout div{background:var(--surface);padding:10px 13px}
+.readout dt{margin:0 0 5px;font:500 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.readout dd{margin:0;font:600 23px/1 var(--display);letter-spacing:-.02em}
+.readout dd small{font:500 11px/1 var(--mono);color:var(--ink-3);margin-left:5px}
+.readout .hot dd{color:var(--live)}
+@media(max-width:700px){.readout{grid-template-columns:repeat(2,1fr)}}
 
 /* ------------------------------------------------------------------ nav --- */
 .bar{
-  position:sticky;top:0;z-index:30;margin:30px -20px 0;padding:0 20px;
-  background:color-mix(in srgb,var(--paper) 88%,transparent);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--hair);
+  position:sticky;top:0;z-index:30;margin:22px -22px 0;padding:0 22px;
+  background:color-mix(in srgb,var(--paper) 90%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);
 }
-.tabs{display:flex;gap:26px}
+.tabs{display:flex;gap:24px;flex-wrap:wrap}
 .tabs button{
-  appearance:none;background:none;border:0;cursor:pointer;padding:15px 0 13px;
-  color:var(--ink-3);font:600 12px/1 var(--display);letter-spacing:.14em;
+  appearance:none;background:none;border:0;cursor:pointer;padding:14px 0 12px;
+  color:var(--ink-3);font:600 12px/1 var(--display);letter-spacing:.13em;
   text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;
 }
 .tabs button:hover{color:var(--ink-2)}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--rose)}
-.tabs button .n{font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--ink-3);margin-left:7px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--live)}
+.tabs button .n{font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--ink-3);margin-left:6px}
 
 /* ----------------------------------------------------------- filter row --- */
-.sift{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:18px 0 4px}
+.sift{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:18px 0 2px}
 .chip{
-  appearance:none;cursor:pointer;background:var(--surface);
-  border:1px solid var(--rule);border-radius:2px;padding:6px 11px;
-  font:500 11px/1 var(--mono);letter-spacing:.05em;color:var(--ink-2);
+  appearance:none;cursor:pointer;background:var(--surface);border:1px solid var(--rule);
+  padding:6px 11px;font:500 11px/1 var(--mono);letter-spacing:.04em;color:var(--ink-2);
 }
 .chip:hover{border-color:var(--ink-3)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .sift input{
-  flex:1;min-width:160px;background:var(--surface);color:var(--ink);
-  border:1px solid var(--rule);border-radius:2px;padding:7px 11px;
-  font:400 13px/1 var(--mono);
+  flex:1;min-width:170px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--rule);padding:7px 11px;font:400 13px/1 var(--mono);
 }
 .sift input::placeholder{color:var(--ink-3)}
-:where(button,input,a,summary):focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 
-/* --------------------------------------------------------------- stream --- */
-.stream{display:flex;flex-direction:column;gap:34px;padding:26px 0 0}
+/* ---------------------------------------------------------------- tiles ---
+   Three across, so ten things you are not interested in cost one glance and
+   not ten screens. A tile is a whole question, never a fragment of one.       */
+.grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 0 0;
+  align-items:stretch;
+}
+@media(max-width:940px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}}
 
-/* An entry is a plate in a log, not a social card: it hangs off a rule at the
-   top rather than floating in a rounded box. Only the rare kind gets a frame. */
-.entry{border-top:1px solid var(--rule);padding-top:16px}
-.eyebrow{
-  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
-  font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink-3);
+.tile{
+  display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;
+  background:var(--surface);border:1px solid var(--hair);border-top:3px solid var(--astro);
+  padding:14px 16px 15px;min-height:196px;font:inherit;color:inherit;
+  transition:border-color .12s,transform .12s;
 }
-.eyebrow .kind{color:var(--ink);font-weight:600}
-.eyebrow .kind.tension{color:var(--rose)}
-.eyebrow .kind.silence{color:var(--slate)}
-.eyebrow .age{margin-left:auto;letter-spacing:.04em}
-.entry h2{
-  margin:11px 0 0;font:600 clamp(26px,3.4vw,36px)/1.12 var(--display);
-  letter-spacing:-.025em;text-wrap:balance;
-}
-.entry h3{margin:10px 0 0;font:600 21px/1.2 var(--display);letter-spacing:-.018em}
-.plain{
-  margin:12px 0 0;max-width:60ch;
-  font:400 18px/1.5 var(--body);color:var(--ink-2);
-}
-.plain::before{
-  content:"In plain terms";display:block;
-  font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink-3);margin-bottom:6px;
-}
-.said{margin:14px 0 0;max-width:64ch;font:400 15.5px/1.62 var(--body);color:var(--ink-2)}
+.tile:hover{border-color:var(--rule);border-top-color:inherit;transform:translateY(-2px)}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.tile:hover{transform:none}}
+.tile.astronomy{border-top-color:var(--astro)}
+.tile.genomics{border-top-color:var(--gene)}
+.tile.physics{border-top-color:var(--phys)}
+.tile.wide{grid-column:span 2}
+@media(max-width:620px){.tile.wide{grid-column:span 1}}
+.tile.closed{background:var(--sunk);border-color:var(--rule)}
 
-/* --------------------------------------------------------------- plates --- */
-.plate{
-  margin:18px 0 0;background:var(--surface-2);
-  border:1px solid var(--hair);border-radius:3px;padding:12px 10px 6px;
+.tile .head{display:flex;align-items:center;gap:8px;font:500 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.tile .head .fld{color:var(--astro)}
+.tile.genomics .head .fld{color:var(--gene)}
+.tile.physics .head .fld{color:var(--phys)}
+.tile .head .state{margin-left:auto;color:var(--live)}
+.tile.closed .head .state{color:var(--shut)}
+.tile h3{
+  margin:0;font:600 clamp(17px,1.55vw,21px)/1.2 var(--display);
+  letter-spacing:-.018em;text-wrap:balance;
 }
+.tile.wide h3{font-size:clamp(20px,2.1vw,27px)}
+.tile .hook{margin:0;font:400 14.5px/1.45 var(--body);color:var(--ink-2)}
+.tile .spark{margin-top:auto;padding-top:10px}
+.tile .spark svg{display:block;width:100%;height:auto}
+.tile .metric{
+  margin-top:auto;padding-top:10px;display:flex;align-items:baseline;gap:8px;
+  font:500 11px/1 var(--mono);color:var(--ink-3);
+}
+.tile .metric b{font:600 21px/1 var(--display);color:var(--live);letter-spacing:-.02em}
+.tile.closed .metric b{color:var(--shut)}
+.tile .kept{color:var(--astro);font-weight:600}
+
+/* -------------------------------------------------------------- detail ---- */
+.back{
+  appearance:none;background:none;border:0;cursor:pointer;padding:20px 0 0;
+  font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+}
+.back:hover{color:var(--ink)}
+.detail{max-width:74ch;padding:8px 0 0}
+.detail .eyebrow{display:flex;gap:12px;flex-wrap:wrap;font:500 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.detail .eyebrow .fld{color:var(--astro);font-weight:600}
+.detail.genomics .eyebrow .fld{color:var(--gene)}
+.detail.physics .eyebrow .fld{color:var(--phys)}
+.detail h2{margin:12px 0 0;font:600 clamp(28px,4vw,42px)/1.1 var(--display);letter-spacing:-.03em;text-wrap:balance}
+.detail .plain{margin:16px 0 0;font:400 20px/1.5 var(--body);color:var(--ink)}
+.detail .said{margin:16px 0 0;font:400 16px/1.62 var(--body);color:var(--ink-2)}
+
+.layer{
+  margin:30px 0 0;padding-top:12px;border-top:1px solid var(--rule);
+}
+.layer > h4{
+  margin:0 0 12px;font:500 10px/1 var(--mono);letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.plate{background:var(--surface);border:1px solid var(--hair);padding:14px 12px 8px}
 .plate svg{display:block;width:100%;height:auto}
-.plate .cap{
-  padding:6px 8px 4px;font:400 11px/1.5 var(--mono);color:var(--ink-3);
-  display:flex;gap:8px;flex-wrap:wrap;
-}
-.plate .cap a{color:var(--ink-3)}
-/* The rare kind gets the one dark surface on the page. */
-.plate.night{background:var(--night);border-color:var(--night);padding:16px 12px 8px}
-.plate.night .cap{color:#8FA2C0}
-.plate.night .cap a{color:#8FA2C0}
+.plate .cap{padding:8px 6px 2px;font:400 11px/1.5 var(--mono);color:var(--ink-3)}
 
-/* --------------------------------------------------------- kill / ended --- */
-.kill{
-  margin:18px 0 0;padding:0 0 0 15px;border-left:2px solid var(--amber);
-  max-width:62ch;
-}
-.kill .lab{
-  display:block;font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--amber);margin-bottom:6px;
-}
-.kill p{margin:0;font:400 15.5px/1.6 var(--body);color:var(--ink-2)}
-.ended{border-left-color:var(--rose)}
-.ended .lab{color:var(--rose)}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:14px}
+.sides div{background:var(--surface);padding:13px 14px}
+.sides dt{margin:0 0 6px;font:500 10px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.sides dd{margin:0;font:600 19px/1.2 var(--display);letter-spacing:-.015em}
+.sides p{margin:6px 0 0;font:400 12.5px/1.45 var(--body);color:var(--ink-3)}
+@media(max-width:620px){.sides{grid-template-columns:1fr}}
 
-/* ----------------------------------------------------------- entry foot --- */
-.foot{
-  display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:20px 0 0;
-  padding-top:11px;border-top:1px solid var(--hair);
-  font:400 11px/1 var(--mono);color:var(--ink-3);
+/* The guess. It is asked before the evidence is shown, because committing
+   first is the difference between reading a fact and testing yourself. */
+.guess{border:1px solid var(--live);background:var(--live-soft);padding:16px 17px;margin:14px 0 0}
+.guess p{margin:0 0 12px;font:500 16px/1.4 var(--display);letter-spacing:-.01em}
+.guess .opts{display:flex;gap:9px;flex-wrap:wrap}
+.guess button{
+  appearance:none;cursor:pointer;background:var(--surface);border:1px solid var(--live);
+  color:var(--ink);padding:9px 14px;font:500 13px/1.2 var(--mono);text-align:left;
 }
-.foot a{color:var(--ink-3);text-underline-offset:3px}
+.guess button:hover{background:var(--live);color:#fff}
+.guess .said-you{margin:12px 0 0;font:400 14px/1.5 var(--body);color:var(--ink-2)}
+.guess .said-you b{color:var(--live)}
+
+.kill{margin:14px 0 0;padding:0 0 0 15px;border-left:2px solid var(--kill)}
+.kill .lab{display:block;font:600 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--kill);margin-bottom:6px}
+.kill p{margin:0;font:400 16px/1.6 var(--body);color:var(--ink-2)}
+.nokill{border-left-color:var(--ink-3)}
+.nokill .lab{color:var(--ink-3)}
+
+.cites{margin:14px 0 0;padding:0;list-style:none;font:400 12.5px/1.7 var(--mono);color:var(--ink-3)}
+.cites a{color:var(--ink-2)}
+.foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:26px 0 0;padding-top:12px;border-top:1px solid var(--hair);font:400 11px/1 var(--mono);color:var(--ink-3)}
 .keep{
-  margin-left:auto;appearance:none;cursor:pointer;
-  background:none;border:1px solid var(--rule);border-radius:2px;padding:7px 13px;
-  font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--ink-2);
+  margin-left:auto;appearance:none;cursor:pointer;background:none;border:1px solid var(--rule);
+  padding:8px 14px;font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--ink-2);
 }
 .keep:hover{border-color:var(--ink-3);color:var(--ink)}
-.keep[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:#fff}
-:root[data-theme="dark"] .keep[aria-pressed="true"],
-:root:not([data-theme="light"]) .keep[aria-pressed="true"]{color:var(--night)}
+.keep[aria-pressed="true"]{background:var(--astro);border-color:var(--astro);color:#fff}
 
-/* ------------------------------------------------------------- clusters ---
-   Seven identical sentences about seven different events are one finding, not
-   seven. They are grouped, and the members open individually.                */
-.members{margin:16px 0 0;border-top:1px solid var(--hair)}
-.row{border-bottom:1px solid var(--hair)}
-.row summary{
-  display:flex;align-items:center;gap:14px;cursor:pointer;padding:11px 2px;
-  list-style:none;font:400 13px/1.3 var(--mono);color:var(--ink-2);
+/* ------------------------------------------------------------ workbench --- */
+.bench{max-width:78ch;padding:22px 0 0}
+.bench h2{margin:0;font:600 30px/1.15 var(--display);letter-spacing:-.025em}
+.bench .prose{margin:14px 0 0;font:400 17px/1.6 var(--body);color:var(--ink-2);max-width:62ch}
+.form{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 0}
+.form input,.form select{
+  background:var(--surface);border:1px solid var(--rule);color:var(--ink);
+  padding:10px 12px;font:400 14px/1 var(--mono);
 }
-.row summary::-webkit-details-marker{display:none}
-.row summary:hover{color:var(--ink)}
-.row .who{color:var(--ink);font-weight:500}
-.row .val{color:var(--ink-3)}
-.row .more{margin-left:auto;color:var(--ink-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-.row[open] .more{color:var(--rose)}
-.row[open] .more span{transform:rotate(45deg);display:inline-block}
-.row .inner{padding:2px 2px 18px;max-width:64ch}
+.form input{flex:1;min-width:220px}
+.form button{
+  appearance:none;cursor:pointer;background:var(--ink);border:1px solid var(--ink);color:var(--paper);
+  padding:10px 20px;font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+}
+.form button[disabled]{opacity:.5;cursor:progress}
+.modes{margin:14px 0 0;border:1px solid var(--hair);background:var(--surface)}
+.modes div{display:flex;gap:14px;padding:9px 13px;border-bottom:1px solid var(--hair);font:400 13px/1.5 var(--body);color:var(--ink-2)}
+.modes div:last-child{border-bottom:0}
+.modes code{font:500 12px/1 var(--mono);color:var(--ink);min-width:78px}
+.out{
+  margin:18px 0 0;background:var(--surface);border:1px solid var(--hair);padding:14px;
+  font:400 12px/1.55 var(--mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word;
+  max-height:440px;overflow:auto;
+}
+.out b{color:var(--ink)}
 
 /* -------------------------------------------------------------- generic --- */
-.note{
-  margin:0 0 4px;font:400 12px/1.5 var(--mono);color:var(--ink-3);
-}
-.moved{
-  margin:0 0 14px;padding:9px 13px;border-left:2px solid var(--rose);
-  background:var(--rose-soft);font:400 14px/1.5 var(--body);color:var(--ink);
-}
-.hollow{
-  padding:52px 26px;text-align:center;color:var(--ink-3);
-  border:1px dashed var(--rule);border-radius:3px;
-  font:400 17px/1.55 var(--body);max-width:52ch;margin:26px auto 0;
-}
-
-/* ------------------------------------------------------------- scorecard --- */
-.verdict{
-  margin:28px 0 0;font:600 clamp(27px,4vw,40px)/1.16 var(--display);
-  letter-spacing:-.028em;max-width:20ch;text-wrap:balance;
-}
-.verdict em{font-style:normal;color:var(--rose)}
-.ledger{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
-  margin:26px 0 0;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden;
-}
-.ledger div{background:var(--surface);padding:15px}
-.ledger dt{margin:0 0 6px;font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.ledger dd{margin:0;font:600 30px/1 var(--display);letter-spacing:-.02em}
+.verdict{margin:24px 0 0;font:600 clamp(26px,3.6vw,38px)/1.15 var(--display);letter-spacing:-.028em;max-width:22ch;text-wrap:balance}
+.verdict em{font-style:normal;color:var(--live)}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;margin:24px 0 0;background:var(--rule);border:1px solid var(--rule)}
+.ledger div{background:var(--surface);padding:14px}
+.ledger dt{margin:0 0 6px;font:500 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.ledger dd{margin:0;font:600 29px/1 var(--display);letter-spacing:-.02em}
 .ledger p{margin:7px 0 0;font:400 13px/1.45 var(--body);color:var(--ink-3)}
-.composition{display:flex;height:11px;margin:22px 0 8px;border-radius:2px;overflow:hidden;background:var(--hair)}
-.composition span{display:block}
-.legend{display:flex;gap:18px;flex-wrap:wrap;font:400 11px/1 var(--mono);color:var(--ink-3)}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;font-style:normal}
-.prose{margin:26px 0 0;max-width:62ch;font:400 17px/1.62 var(--body);color:var(--ink-2)}
+.prose{margin:24px 0 0;max-width:62ch;font:400 17px/1.62 var(--body);color:var(--ink-2)}
 .prose b{color:var(--ink);font-weight:500}
+.hollow{padding:48px 24px;text-align:center;color:var(--ink-3);border:1px dashed var(--rule);font:400 17px/1.55 var(--body);max-width:52ch;margin:24px auto 0}
+.moved{margin:0 0 12px;padding:9px 13px;border-left:2px solid var(--live);background:var(--live-soft);font:400 14px/1.5 var(--body)}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="shell">
   <header class="mast">
     <div class="mark">
-      <!-- Two sightlines on one object from two places: the measurement the
-           instrument is named for. -->
-      <svg class="glyph" viewBox="0 0 30 30" aria-hidden="true">
-        <circle cx="15" cy="6" r="3.2" fill="var(--rose)"></circle>
-        <circle cx="4.5" cy="25" r="2" fill="var(--indigo)"></circle>
-        <circle cx="25.5" cy="25" r="2" fill="var(--indigo)"></circle>
-        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--indigo)" stroke-width="1.1"></path>
+      <svg viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="6" r="3.2" fill="var(--live)"></circle>
+        <circle cx="4.5" cy="25" r="2" fill="var(--astro)"></circle>
+        <circle cx="25.5" cy="25" r="2" fill="var(--astro)"></circle>
+        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--astro)" stroke-width="1.1"></path>
         <path d="M4.5 25 H25.5" fill="none" stroke="var(--rule)" stroke-width="1.1"></path>
       </svg>
       <h1>Parallax</h1>
       <span class="stamp" id="stamp"></span>
     </div>
-
     <p class="lede">
-      A machine reads what the world's observatories measured last night, and holds it
-      against everything that has been published. <b>Where the two disagree, it says so
-      — and states the one measurement that would prove it wrong.</b>
+      Every entry here is a place where careful people measured the same thing and
+      <b>got different answers</b> — or measured something once and never looked again.
+      Each one says what observation would settle it.
     </p>
-
     <dl class="readout" id="readout"></dl>
   </header>
 
   <div class="bar">
     <div class="tabs" role="tablist">
-      <button role="tab" id="tab-frontier" aria-selected="true">Frontier<span class="n" id="n-frontier"></span></button>
+      <button role="tab" id="tab-feed" aria-selected="true">Feed<span class="n" id="n-feed"></span></button>
       <button role="tab" id="tab-watch" aria-selected="false">Watch<span class="n" id="n-watch"></span></button>
+      <button role="tab" id="tab-bench" aria-selected="false">Workbench</button>
       <button role="tab" id="tab-record" aria-selected="false">Record<span class="n" id="n-record"></span></button>
     </div>
   </div>
@@ -317,11 +273,11 @@ body{
 </div>
 
 <script>
-const SUPA_URL = "https://zfmjjazkmolvywvayjzj.supabase.co/rest/v1";
+const SUPA = "https://zfmjjazkmolvywvayjzj.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8";
 
-// Verbatim rows from the claims table, so the page renders where fetch cannot
-// reach — a sandboxed frame blocks every host. Live data replaces this on load.
+// Rows from the claims table, verbatim, so the register renders where the page
+// cannot reach the network. Live rows replace these when the fetch succeeds.
 const SNAPSHOT = [
  {
   "claim_id": "PARALLAX-2026-87761",
@@ -718,10 +674,281 @@ const SNAPSHOT = [
  }
 ];
 
-/* ---------------------------------------------------------------- helpers */
+/* -------------------------------------------------------------- the seeds ---
+   Known open questions, entered by hand with their published numbers, because
+   a register that starts empty tells you nothing about what it is for. Each is
+   marked `curated` wherever it appears; nothing here is passed off as machine
+   output. Values are as published, rounded, with the paper named.             */
+const SEEDS = [
+{
+  id:"HUBBLE", field:"astronomy", kind:"disagreement", status:"open", featured:true,
+  title:"The universe is expanding at two different speeds",
+  hook:"Measure it from the young universe and from nearby stars, and you get answers that cannot both be right.",
+  plain:`Two teams measured how fast the universe is flying apart. One read it off the
+    afterglow of the Big Bang; the other counted the brightness of stars close enough to
+    see individually. Both are meticulous, both have been checked for a decade, and the
+    two numbers do not overlap. Something in one of the measurements — or in our picture
+    of the universe between them — is wrong.`,
+  statement:`Planck's fit to the cosmic microwave background gives H₀ = 67.4 ± 0.5 km/s/Mpc.
+    The SH0ES Cepheid-calibrated distance ladder gives 73.04 ± 1.04. That is about 4.9σ —
+    a one-in-a-million coincidence if both error budgets are complete.`,
+  sides:[
+    {label:"Early universe", value:67.4, err:0.5, unit:"km/s/Mpc", source:"Planck 2018 CMB", note:"Inferred from the Big Bang's afterglow, assuming standard cosmology."},
+    {label:"Late universe", value:73.04, err:1.04, unit:"km/s/Mpc", source:"SH0ES 2022 (Riess et al.)", note:"Built up from Cepheid variables and supernovae, step by step."}],
+  sigma:4.9,
+  guess:"Which one do you think will turn out to be right?",
+  kill:`A distance ladder that does not use Cepheids at all — tip-of-the-red-giant-branch
+    or JWST-calibrated rungs — reaching better than 1% precision. Or a few dozen
+    gravitational-wave 'standard sirens' with identified host galaxies, which measure
+    distance directly from the waveform and lean on no ladder at all.`,
+  cites:["Planck Collaboration, A&A 641, A6 (2020)","Riess et al., ApJL 934, L7 (2022)"]
+},
+{
+  id:"MICROBE", field:"genomics", kind:"orthodoxy", status:"refuted", featured:true,
+  title:"You are not ten parts bacteria to one part human",
+  hook:"A number in every textbook for forty years traced back to one paragraph of arithmetic nobody rechecked.",
+  plain:`For decades it was repeated everywhere that your body holds ten bacterial cells for
+    every human one — that you are, in some sense, mostly not you. When three researchers
+    finally went back to the source in 2016, they found the ratio came from a single
+    back-of-the-envelope estimate published in 1972 and never measured. Redone properly,
+    the ratio is about 1.3 to 1. Roughly half and half.`,
+  statement:`Sender, Fuchs & Milo (2016) estimate ≈3.8×10¹³ bacteria against ≈3.0×10¹³ human
+    cells in a reference adult — a ratio near 1.3:1, revised each defecation. The 10:1
+    figure originates with Luckey (1972), an order-of-magnitude estimate presented as such
+    and cited thereafter as measurement.`,
+  sides:[
+    {label:"What was repeated", value:10, err:0, unit:": 1", source:"Luckey 1972, an estimate", note:"Cited for four decades as though it were data."},
+    {label:"What was measured", value:1.3, err:0.3, unit:": 1", source:"Sender, Fuchs & Milo 2016", note:"Recounted from organ-by-organ cell densities."}],
+  sigma:null,
+  kill:`A direct census of bacterial and human cell counts in the same cadavers, by a method
+    that does not rely on stool density extrapolation. This claim is already closed against
+    the 10:1 figure; what remains open is the size of the error bar on 1.3.`,
+  cites:["Sender, Fuchs & Milo, PLoS Biology 14(8): e1002533 (2016)","Luckey, Am J Clin Nutr 25 (1972)"]
+},
+{
+  id:"NEUTRON", field:"physics", kind:"disagreement", status:"open",
+  title:"Nobody can agree how long a neutron lives",
+  hook:"Count the neutrons that survive, or count what they decay into, and the answers differ by nine seconds.",
+  plain:`A free neutron falls apart in about a quarter of an hour. There are two ways to time
+    it: trap a bottle of neutrons and count how many are left, or fire a beam of them and
+    count the protons that appear as they decay. The bottle says 877.8 seconds. The beam
+    says 888. They have disagreed for thirty years, and both methods have been rebuilt
+    from scratch since.`,
+  statement:`Ultracold-neutron storage gives τₙ = 877.75 ± 0.36 s; the beam method gives
+    888.0 ± 2.0 s. About 5σ apart. Either one experiment has an unfound systematic, or
+    roughly 1% of neutrons decay into something the beam method cannot see.`,
+  sides:[
+    {label:"Bottle method", value:877.75, err:0.36, unit:"s", source:"UCNτ 2021", note:"Counts the neutrons still in the trap."},
+    {label:"Beam method", value:888.0, err:2.0, unit:"s", source:"NIST beam experiment", note:"Counts the protons that decay produces."}],
+  sigma:5.0,
+  guess:"Which method do you think is hiding the error?",
+  kill:`A beam measurement whose proton-counting efficiency is calibrated against an
+    independent source, or a direct search finding — or excluding — a dark decay channel
+    at the 1% branching ratio the gap implies.`,
+  cites:["UCNτ Collaboration, PRL 127, 162501 (2021)","Yue et al., PRL 111, 222501 (2013)"]
+},
+{
+  id:"PETO", field:"genomics", kind:"disagreement", status:"open",
+  title:"Whales have a thousand times more cells than you and less cancer",
+  hook:"Every cell division is a chance to go wrong. Bigger, longer-lived animals should be riddled with tumours. They aren't.",
+  plain:`Cancer starts when a cell accumulates the wrong mutations. A blue whale has on the
+    order of a thousand times more cells than a human and lives about as long, so it should
+    get cancer constantly. It doesn't. Elephants, which are also enormous, die of cancer
+    less often than we do — under 5%, against 11–25% in humans. Something about being large
+    comes with a defence, and we do not fully know what it is.`,
+  statement:`Cancer incidence shows no correlation with body mass or lifespan across species —
+    Peto's paradox. Elephants carry ~20 copies of the tumour-suppressor gene TP53 against
+    one in humans, which is part of an answer but not the whole of it.`,
+  sides:[
+    {label:"Elephant cancer mortality", value:4.8, err:0, unit:"%", source:"Abegglen et al. 2015", note:"Across 644 necropsies at zoos and sanctuaries."},
+    {label:"Human cancer mortality", value:18, err:7, unit:"%", source:"Same study, human comparison", note:"Range across the populations compared."}],
+  sigma:null,
+  guess:"Do you think the defence is genetic, or something about how big bodies work?",
+  kill:`A somatic mutation rate measured per cell division across species spanning four orders
+    of magnitude in body mass. If large animals mutate at the same per-cell rate as small
+    ones, the defence is active suppression; if they mutate more slowly, the paradox
+    dissolves into arithmetic.`,
+  cites:["Abegglen et al., JAMA 314(17):1850 (2015)","Peto et al., J Epidemiol Community Health 29 (1975)"]
+},
+{
+  id:"HERITABLE", field:"genomics", kind:"disagreement", status:"open",
+  title:"Height is 80% inherited and nobody could find where",
+  hook:"Twin studies and gene-hunting gave answers that were out by a factor of ten. The gap has a name.",
+  plain:`Compare identical and fraternal twins and you conclude that about 80% of the variation
+    in human height is inherited. Then sequence hundreds of thousands of people, find the
+    specific genetic variants involved, and add up what they explain — for years, under 10%.
+    Something was clearly being inherited that the search could not see. Larger studies have
+    since closed much of the gap, but not all of it, and the same hole is wide open for most
+    complex diseases.`,
+  statement:`Twin-based heritability of adult height is ~0.8. Early genome-wide association
+    studies accounted for ~5% of variance; Yang et al. (2010) showed that all common SNPs
+    together account for ~45%, implying the signal is spread across thousands of variants
+    each too small to reach significance alone. Rare variants make up part of the remainder.`,
+  sides:[
+    {label:"Twin studies say", value:80, err:5, unit:"% heritable", source:"Classical twin designs", note:"Inferred from resemblance, not from any located gene."},
+    {label:"Located variants explain", value:45, err:5, unit:"% of variance", source:"Yang et al. 2010, common SNPs", note:"Up from ~5% in the first wave of studies."}],
+  sigma:null,
+  kill:`Whole-genome sequencing — not genotyping arrays — of a cohort large enough to capture
+    rare variants, with the residual gap accounted for. If it closes, the paradox was a
+    limitation of the instrument; if it does not, the twin estimate is inflated by something
+    shared that is not genetic.`,
+  cites:["Yang et al., Nature Genetics 42, 565 (2010)","Manolio et al., Nature 461, 747 (2009)"]
+},
+{
+  id:"ENCODE", field:"genomics", kind:"orthodoxy", status:"open",
+  title:"Is 80% of your genome functional, or 10%?",
+  hook:"Two respected estimates of how much DNA does anything differ by a factor of eight. They are measuring different things and both call it 'function'.",
+  plain:`In 2012 a large consortium announced that around 80% of the human genome is
+    biochemically active — transcribed, bound by proteins, marked in some way. Evolutionary
+    biologists objected that only about 8–10% of it shows any sign of being preserved by
+    natural selection, which is the test that matters if 'functional' means 'doing something
+    worth keeping'. The disagreement is not really about the data. It is about what the word
+    means, and it has not been settled.`,
+  statement:`ENCODE (2012) reported biochemical activity for ~80% of the genome. Comparative
+    genomics puts the fraction under purifying selection at ~8–10%. Biochemical activity and
+    evolutionary constraint are different measurements; the dispute is whether the former is
+    evidence of function at all.`,
+  sides:[
+    {label:"Biochemically active", value:80, err:0, unit:"%", source:"ENCODE Consortium 2012", note:"Transcribed or protein-bound somewhere, in some cell type."},
+    {label:"Under selection", value:9, err:1, unit:"%", source:"Comparative genomics", note:"Conserved across mammals, so plausibly load-bearing."}],
+  sigma:null,
+  guess:"Which definition of 'functional' do you think should win?",
+  kill:`A saturation mutagenesis or mutational-load measurement giving the fitness cost of
+    disrupting randomly chosen genomic regions. That converts a definitional argument into
+    a measured quantity, which is the only thing that can end it.`,
+  cites:["ENCODE Project Consortium, Nature 489, 57 (2012)","Graur et al., Genome Biol Evol 5, 578 (2013)"]
+},
+{
+  id:"LITHIUM", field:"astronomy", kind:"disagreement", status:"open",
+  title:"There is three times less lithium than the Big Bang made",
+  hook:"The theory that predicts the abundance of every light element correctly gets one of them wrong, by a factor of three.",
+  plain:`In the first few minutes after the Big Bang, the universe made hydrogen, helium and a
+    trace of lithium. The calculation predicts all of them, and for hydrogen and helium it
+    matches observation beautifully — one of the great successes in physics. For lithium-7
+    it predicts about three times more than we actually find in the oldest stars. The theory
+    is right about everything except this one number.`,
+  statement:`Standard Big Bang nucleosynthesis with the Planck baryon density predicts
+    ⁷Li/H ≈ 5×10⁻¹⁰. The Spite plateau in metal-poor halo stars sits near 1.6×10⁻¹⁰ — a
+    factor of roughly three, far outside either uncertainty.`,
+  sides:[
+    {label:"Predicted", value:5.0, err:0.3, unit:"×10⁻¹⁰", source:"BBN + Planck baryon density", note:"From the same calculation that gets helium right."},
+    {label:"Observed", value:1.6, err:0.3, unit:"×10⁻¹⁰", source:"Spite plateau, metal-poor stars", note:"Flat across a wide range of old stars."}],
+  sigma:null,
+  guess:"Do you think the stars destroyed it, or the physics is incomplete?",
+  kill:`A measured depletion mechanism inside old stars that removes exactly this much
+    lithium — settled by asteroseismology of halo stars — or a nuclear resonance in the
+    reaction network found in the lab that changes the predicted yield.`,
+  cites:["Fields, Annu Rev Nucl Part Sci 61, 47 (2011)","Spite & Spite, Nature 297, 483 (1982)"]
+},
+{
+  id:"TWINS", field:"genomics", kind:"disagreement", status:"open",
+  title:"Identical twins, identical DNA, different diseases",
+  hook:"If the genome were the whole story, one twin's diagnosis would always be the other's.",
+  plain:`Identical twins start from the same genome. Yet when one develops type 1 diabetes, the
+    other follows only about a third to half of the time. For multiple sclerosis it is closer
+    to a quarter. The genome loads the gun and something else pulls the trigger — chemical
+    marks laid on top of the DNA, immune history, exposures. Which of those matter, and how
+    much, is an open measurement, not a settled story.`,
+  statement:`Monozygotic concordance is well below unity for most complex disease: roughly
+    30–50% for type 1 diabetes and ~25% for multiple sclerosis. The residual is attributed to
+    epigenetic and environmental divergence, but the attribution is largely inferential —
+    prospective methylome data from discordant pairs before onset is scarce.`,
+  sides:[
+    {label:"Shared DNA", value:100, err:0, unit:"%", source:"Monozygotic twins", note:"Barring a handful of post-zygotic mutations."},
+    {label:"Shared diagnosis", value:35, err:10, unit:"%", source:"Type 1 diabetes concordance", note:"Across long-running twin registries."}],
+  sigma:null,
+  kill:`A longitudinal methylome from disease-discordant twin pairs sampled before onset. If
+    the marks that differ at diagnosis were already different beforehand, they are causal;
+    if they appear afterwards, they are a consequence, and the field has been reading the
+    arrow backwards.`,
+  cites:["Redondo et al., Diabetologia 44, 354 (2001)","Willer et al., PNAS 100, 12877 (2003)"]
+},
+{
+  id:"S8", field:"astronomy", kind:"disagreement", status:"open",
+  title:"The universe looks smoother than it should",
+  hook:"Weigh the clumpiness of matter two ways and the answers pull apart — not as sharply as the expansion rate, but in the same direction.",
+  plain:`Run the early universe forward from the Big Bang's afterglow and you can predict how
+    lumpy matter should be today. Then measure the lumpiness directly, by watching how
+    galaxies bend the light passing them. The direct measurement keeps coming back smoother
+    than the prediction. It is a milder disagreement than the expansion rate, and it might
+    be nothing — or it might be the same crack seen from another angle.`,
+  statement:`Planck infers S₈ = 0.834 ± 0.016; KiDS-1000 cosmic shear measures 0.759 ± 0.024.
+    About 2.6σ — suggestive, not decisive, and sensitive to how baryonic feedback is modelled.`,
+  sides:[
+    {label:"Predicted from the CMB", value:0.834, err:0.016, unit:"S₈", source:"Planck 2018", note:"Extrapolated forward 13.8 billion years."},
+    {label:"Measured by lensing", value:0.759, err:0.024, unit:"S₈", source:"KiDS-1000", note:"From the distortion of distant galaxy shapes."}],
+  sigma:2.6,
+  kill:`Euclid or LSST weak-lensing at percent-level precision, with baryonic feedback
+    calibrated against hydrodynamic simulations. At that precision the gap either becomes a
+    detection or vanishes.`,
+  cites:["Heymans et al., A&A 646, A140 (2021)","Planck Collaboration, A&A 641, A6 (2020)"]
+},
+{
+  id:"CVALUE", field:"genomics", kind:"question", status:"settled",
+  title:"A Japanese flower has fifty times more DNA than you",
+  hook:"Genome size has almost nothing to do with complexity. Working out why took a century.",
+  plain:`Paris japonica, a modest white woodland flower, carries a genome of about 149 billion
+    base pairs. Yours is 3.1 billion. Lungfish, onions and some amoebae all dwarf us too.
+    For most of the twentieth century this looked like a paradox: surely a human needs more
+    instructions than a flower. The answer turned out to be that most of a large genome is
+    repeated sequence and duplicated copies, and that carrying it around is cheap enough
+    that nothing removes it.`,
+  statement:`The C-value paradox is resolved: genome size is dominated by repetitive elements
+    and whole-genome duplication, neither of which scales with organismal complexity. What
+    remains open is why tolerance for that load varies so widely between lineages.`,
+  sides:[
+    {label:"Paris japonica", value:148.9, err:0, unit:"Gb", source:"Pellicer et al. 2010", note:"The largest genome measured in any plant."},
+    {label:"Human", value:3.1, err:0, unit:"Gb", source:"Reference assembly", note:"About 2% of it codes for protein."}],
+  sigma:null,
+  kill:`Settled in 1971, when repetitive DNA was characterised. It stays in the register as a
+    worked example: a paradox that dissolved once the right thing was measured, rather than
+    one that was argued away.`,
+  cites:["Pellicer, Fay & Leitch, Bot J Linn Soc 164, 10 (2010)","Thomas, Annu Rev Genet 5, 237 (1971)"]
+},
+{
+  id:"OLBERS", field:"astronomy", kind:"question", status:"settled",
+  title:"Why is the night sky dark?",
+  hook:"In an infinite, ageless universe every sightline ends on a star, and the whole sky blazes. It doesn't.",
+  plain:`Point in any direction in a universe that goes on forever and has always existed, and
+    your line of sight must eventually land on the surface of a star. The night sky should be
+    as bright as the Sun, everywhere. It is not — and the reason is that the universe has a
+    finite age. Light from far enough away has not had time to arrive. The darkness overhead
+    is direct evidence that there was a beginning.`,
+  statement:`Olbers' paradox is resolved by finite cosmic age and expansion: the observable
+    volume is bounded by the light travel time since recombination, and redshift removes what
+    energy does arrive from the furthest sources.`,
+  sides:[
+    {label:"Age of the universe", value:13.8, err:0.02, unit:"Gyr", source:"Planck 2018", note:"Which is what bounds the volume you can see."},
+    {label:"Sky brightness", value:0, err:0, unit:"—", source:"Observation", note:"Dark, which is the whole point."}],
+  sigma:null,
+  kill:`Settled. It is here because it is the cleanest example of the register's own logic:
+    an observation anyone can make on any clear night, that rules out an entire class of
+    universe.`,
+  cites:["Harrison, Darkness at Night (1987)"]
+},
+{
+  id:"FERMI", field:"astronomy", kind:"question", status:"open", nokill:true,
+  title:"Where is everybody?",
+  hook:"Parallax cannot make this a claim, and that is worth showing.",
+  plain:`The galaxy is old and enormous and we now know that planets are ordinary — most stars
+    have them. So the question Fermi asked over lunch in 1950 still stands: if life is at all
+    common, why is there no sign of anyone? It is a genuinely open question, and it is the
+    kind of thing this register cannot hold.`,
+  statement:`No observation currently proposed would end this question. A detection would
+    answer it; no non-detection can, because absence of evidence at any given sensitivity is
+    consistent with almost every hypothesis on offer.`,
+  sides:[],
+  sigma:null,
+  kill:`None. There is no measurement that would prove this wrong, which is exactly why
+    Parallax will not file it as a claim. It sits in the feed as the boundary marker: an
+    interesting question is not the same thing as a testable one, and the difference is the
+    entire discipline of this register.`,
+  cites:["Hart, QJRAS 16, 128 (1975)"]
+}];
+
+/* ------------------------------------------------------------------ utils */
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const safely = (fn, fb) => { try { return fn(); } catch (e) { console.error(e); return fb; } };
-
 const num = v => {
   if (!Number.isFinite(v)) return "—";
   const a = Math.abs(v);
@@ -735,348 +962,400 @@ const days = iso => {
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) return "";
   const d = Math.max(0, Math.round((Date.now() - t) / 864e5));
-  return d === 0 ? "opened today" : d === 1 ? "open 1 day" : `open ${d} days`;
+  return d <= 1 ? "opened today" : `open ${d} days`;
 };
-// Units as an observatory writes them, spelled out for anyone else.
+const FIELD_WORD = { astronomy:"Astronomy", genomics:"Genomics", physics:"Physics" };
+const KIND_WORD = { disagreement:"Disagreement", silence:"Silence", orthodoxy:"Repeated, unchecked", question:"Open question" };
 const UNIT_WORDS = { msun:"times the mass of the Sun", mearth:"times the mass of Earth",
-  rearth:"times the radius of Earth", rjup:"times the radius of Jupiter", kg:"kilograms",
-  d:"days", s:"seconds", yr:"years", k:"kelvin" };
+  rearth:"times the radius of Earth", rjup:"times the radius of Jupiter", d:"days", s:"seconds" };
 const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
 
-// The plain-language line is built from the claim's own fields — it restates
-// what is already there for someone who does not read papers, and invents
-// nothing. Written from the structure, not from the numbers' meaning.
-function plain(c){
-  const o = c.observed || {}, r = c.reported || {};
-  if (c.kind === "tension") {
-    return `Two careful measurements of the same thing do not agree. The archive says
-      ${num(o.value)}; a paper from ${r.year || "an earlier year"} says ${num(r.value)}.
-      Their stated error bars are too small for both to be right, so one of them is wrong —
-      and nothing in the published record settles which.`;
+/* ---------------------------------------------------- machine → post shape */
+// Claims the sweep actually minted, reshaped into the same object as a seed so
+// one feed can hold both. Origin is carried through and always shown.
+function fromRegister(rows){
+  const out = [], groups = new Map();
+  for (const c of rows) {
+    if (c.kind === "tension") {
+      const o = c.observed || {}, r = c.reported || {};
+      out.push({
+        id:c.claim_id, field:"astronomy", kind:"disagreement", status:c.status || "open",
+        machine:true, opened:c.opened_at, title:c.title,
+        hook:`${o.source} and a ${r.year || "published"} paper disagree by ${c.sigma}σ about the same quantity.`,
+        plain:`Two measurements of the same object do not agree. The archive says
+          ${num(o.value)}; a paper says ${num(r.value)}. Their stated error bars are too
+          small for both to be right, and nothing in the published record settles which.`,
+        statement:c.statement,
+        sides:[
+          {label:o.source || "archive", value:o.value, err:o.err, unit:o.unit, source:o.reference || "", note:"Held in the archive as the current value."},
+          {label:`published ${r.year || ""}`.trim(), value:r.value, err:r.err, unit:r.unit, source:"the paper", note:"Read out of the abstract by the extractor."}],
+        sigma:c.sigma, kill:c.kill, resolution:c.resolution, url:o.url,
+        guess:"Which do you think is wrong — the archive, or the paper?",
+        cites:[o.reference, c.claim_id].filter(Boolean)
+      });
+      continue;
+    }
+    const o = c.observed || {}, k = `${o.source}|${o.quantity}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(c);
   }
-  return `A real object, measured once by ${o.source || "an observatory"} and recorded as
-    ${num(o.value)} ${spell(o.unit)}. Since then, nobody has written a single paper that
-    even mentions it by name. It is not disputed. It is unexamined.`;
-}
-
-// The same restatement for a group, in the plural, with the spread that makes
-// the set concrete rather than a count.
-function plainGroup(members){
-  const o = members[0].observed || {};
-  const vals = members.map(m => (m.observed || {}).value).filter(Number.isFinite);
-  const lo = Math.min(...vals), hi = Math.max(...vals);
-  return `${members.length} real objects, each measured once by ${o.source || "an observatory"} and
-    then left alone \u2014 ${num(lo)} to ${num(hi)} ${spell(o.unit)}. Not one of them is named in a
-    single published paper. They are not disputed. Nobody has looked.`;
+  for (const [k, ms] of groups) {
+    const o = ms[0].observed || {};
+    const vals = ms.map(m => (m.observed || {}).value).filter(Number.isFinite);
+    const what = o.source === "gwosc" ? "gravitational-wave events" : "planets";
+    out.push({
+      id:"SILENCE-" + k, field:"astronomy", kind:"silence", status:"open", machine:true,
+      opened:ms[0].opened_at, members:ms,
+      title:`${ms.length} ${what} nobody has written about`,
+      hook:`Recorded once by ${o.source}, then named in no paper since. Not disputed — unexamined.`,
+      plain:`${ms.length} real objects, each measured once by ${o.source} and then left alone —
+        ${num(Math.min(...vals))} to ${num(Math.max(...vals))} ${spell(o.unit)}. Not one of them
+        is named in a single published paper. Nobody has looked.`,
+      statement:ms[0].statement,
+      sides:[], sigma:null, kill:ms[0].kill,
+      cites:[o.reference].filter(Boolean)
+    });
+  }
+  return out;
 }
 
 /* ---------------------------------------------------------------- figures */
-
 // Two measurements and their error bars on one axis, at the scale where the
-// disagreement is the visible thing. Drawn on the page's one dark surface.
-function interval(fig){
-  const S = fig.series || [];
+// disagreement is the visible thing.
+function interval(p, W = 660, H = 190){
+  const S = (p.sides || []).filter(s => Number.isFinite(s.value));
   if (S.length < 2) return "";
-  const lo = Math.min(...S.map(s => s.value - s.err)), hi = Math.max(...S.map(s => s.value + s.err));
-  const pad = (hi - lo) * .30 || 1, a = lo - pad, b = hi + pad;
-  const W = 660, H = 230, y0 = 128;
-  const x = v => 60 + (v - a) / (b - a) * (W - 120);
-  const C = ["#FF5C8A", "#F2B872"];
+  const err = S.map(s => Number.isFinite(s.err) ? s.err : 0);
+  const lo = Math.min(...S.map((s, i) => s.value - err[i]));
+  const hi = Math.max(...S.map((s, i) => s.value + err[i]));
+  const pad = (hi - lo) * .34 || Math.abs(hi) * .3 || 1;
+  const a = lo - pad, b = hi + pad, y0 = H / 2;
+  const x = v => 56 + (v - a) / (b - a) * (W - 112);
+  const C = ["var(--astro)", "var(--live)"];
 
-  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Two measurements with error bars, ${fig.sigma} standard deviations apart">`;
-  o += `<line x1="40" y1="${y0}" x2="${W - 40}" y2="${y0}" stroke="#2C3A54" stroke-width="1"></line>`;
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S[0].label)} against ${esc(S[1].label)}">`;
+  o += `<line x1="34" y1="${y0}" x2="${W - 34}" y2="${y0}" stroke="var(--rule)"></line>`;
   S.forEach((s, i) => {
-    const c = C[i], y = i === 0 ? y0 - 34 : y0 + 34;
-    const x1 = +x(s.value - s.err).toFixed(1), x2 = +x(s.value + s.err).toFixed(1);
-    // Each measurement's own one-sigma band, carried the full height so the
-    // gap between the two bands is the claim.
-    o += `<rect x="${x1}" y="42" width="${(x2 - x1).toFixed(1)}" height="${H - 84}" fill="${c}" opacity=".10"></rect>`;
-    o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"></line>`;
-    for (const e of [x1, x2]) o += `<line x1="${e}" y1="${y - 6}" x2="${e}" y2="${y + 6}" stroke="${c}" stroke-width="2"></line>`;
+    const c = C[i], y = i === 0 ? y0 - 30 : y0 + 30, e = err[i];
+    const x1 = +x(s.value - e).toFixed(1), x2 = +x(s.value + e).toFixed(1);
+    if (e > 0) {
+      o += `<rect x="${x1}" y="30" width="${(x2 - x1).toFixed(1)}" height="${H - 60}" fill="${c}" opacity=".08"></rect>`;
+      o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"></line>`;
+      for (const t of [x1, x2]) o += `<line x1="${t}" y1="${y - 6}" x2="${t}" y2="${y + 6}" stroke="${c}" stroke-width="2"></line>`;
+    }
     o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="5" fill="${c}"></circle>`;
-    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 15 : y + 22}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="#E9EFF8">${num(s.value)} ± ${num(s.err)}</text>`;
-    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 24 : H - 8}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" letter-spacing="1.4" fill="#8FA2C0">${esc(String(s.label).toUpperCase())}</text>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 14 : y + 22}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ink)">${num(s.value)}${e ? " ± " + num(e) : ""}</text>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 20 : H - 6}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" letter-spacing="1.3" fill="var(--ink-3)">${esc(String(s.label).toUpperCase())}</text>`;
   });
-  const gap = Math.abs(x(S[0].value) - x(S[1].value));
-  const mid = (x(S[0].value) + x(S[1].value)) / 2;
-  o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="#E9EFF8" stroke-width="1.5"></line>`;
-  if (gap > 90)
-    o += `<text x="${mid.toFixed(1)}" y="${y0 - 9}" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="600" font-size="17" fill="#FFFFFF">${fig.sigma}σ apart</text>`;
-  o += `<text x="${W - 40}" y="${y0 + 20}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#8FA2C0">${esc(fig.unit || "")}</text>`;
+  o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="var(--ink)" stroke-width="1.5"></line>`;
+  if (Number.isFinite(p.sigma) && Math.abs(x(S[0].value) - x(S[1].value)) > 96)
+    o += `<text x="${((x(S[0].value) + x(S[1].value)) / 2).toFixed(1)}" y="${y0 - 8}" text-anchor="middle" font-family="Bricolage Grotesque,sans-serif" font-weight="600" font-size="16" fill="var(--ink)">${p.sigma}σ apart</text>`;
+  o += `<text x="${W - 34}" y="${y0 + 19}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="var(--ink-3)">${esc(S[0].unit || "")}</text>`;
   return o + `</svg>`;
 }
 
-// A group of orphans on one axis: every object the sweep measured beside them,
-// none of them written about. The lower bar is the literature, to scale.
-function chorus(members, all){
-  const vals = members.map(m => (m.observed || {}).value).filter(Number.isFinite);
-  if (!vals.length) return "";
-  const peers = all.map(m => (m.observed || {}).value).filter(Number.isFinite);
-  const lo = Math.min(...peers), hi = Math.max(...peers), span = hi - lo;
-  const a = span ? lo - span * .12 : lo * .9, b = span ? hi + span * .12 : hi * 1.1;
-  const W = 660, H = 162, y = 62;
-  const x = v => 46 + (v - a) / (b - a || 1) * (W - 92);
-  const o0 = members[0].observed || {};
-
-  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${members.length} objects on one axis, none of them named in any paper">`;
-  o += `<line x1="46" y1="${y}" x2="${W - 46}" y2="${y}" stroke="var(--rule)" stroke-width="1"></line>`;
-  for (const v of peers) o += `<circle cx="${x(v).toFixed(1)}" cy="${y}" r="3" fill="var(--ink-3)" opacity=".38"></circle>`;
-  members.forEach(m => {
-    const v = (m.observed || {}).value;
-    if (!Number.isFinite(v)) return;
-    o += `<line x1="${x(v).toFixed(1)}" y1="${y - 16}" x2="${x(v).toFixed(1)}" y2="${y + 16}" stroke="var(--slate)" stroke-width="1.5"></line>`;
-    o += `<circle cx="${x(v).toFixed(1)}" cy="${y}" r="5" fill="var(--slate)"></circle>`;
+// The tile-sized version: the same two marks, no labels, read at a glance.
+function spark(p){
+  const S = (p.sides || []).filter(s => Number.isFinite(s.value));
+  if (S.length < 2) return "";
+  const err = S.map(s => Number.isFinite(s.err) ? s.err : 0);
+  const lo = Math.min(...S.map((s, i) => s.value - err[i]));
+  const hi = Math.max(...S.map((s, i) => s.value + err[i]));
+  const pad = (hi - lo) * .3 || Math.abs(hi) * .25 || 1;
+  const a = lo - pad, b = hi + pad, W = 620, H = 26, y = 13;
+  const x = v => 4 + (v - a) / (b - a) * (W - 8);
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="two measurements, apart">`;
+  o += `<line x1="4" y1="${y}" x2="${W - 4}" y2="${y}" stroke="var(--hair)" stroke-width="2"></line>`;
+  S.forEach((s, i) => {
+    const c = i === 0 ? "var(--astro)" : "var(--live)", e = err[i];
+    if (e > 0) o += `<rect x="${x(s.value - e).toFixed(1)}" y="${y - 5}" width="${(x(s.value + e) - x(s.value - e)).toFixed(1)}" height="10" fill="${c}" opacity=".22"></rect>`;
+    o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="4.5" fill="${c}"></circle>`;
   });
-  o += `<text x="46" y="26" font-family="IBM Plex Mono,monospace" font-size="10.5" letter-spacing="1.4" fill="var(--ink-3)">${esc(String(o0.quantity || "").toUpperCase())} — ${esc(String(o0.unit || ""))}</text>`;
-  o += `<text x="46" y="${y + 36}" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--ink-3)">${num(Math.min(...vals))}</text>`;
-  o += `<text x="${W - 46}" y="${y + 36}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--ink-3)">${num(Math.max(...vals))}</text>`;
-  // Literature, drawn against fifty papers. Every bar here has no width.
-  o += `<rect x="46" y="${H - 38}" width="${W - 92}" height="15" rx="2" fill="var(--surface)" stroke="var(--hair)"></rect>`;
-  const cited = members.filter(m => (Number((m.observed || {}).lit_count) || 0) > 0).length;
-  if (cited) o += `<rect x="46" y="${H - 38}" width="${(cited / members.length * (W - 92)).toFixed(1)}" height="15" rx="2" fill="var(--slate)"></rect>`;
-  o += `<text x="46" y="${H - 6}" font-family="IBM Plex Mono,monospace" font-size="11" fill="var(--rose)">${cited} of ${members.length} appear in any paper ever written</text>`;
   return o + `</svg>`;
 }
 
 /* ------------------------------------------------------------------ state */
-const KEY = "parallax.watch.v1";
-const readWatch = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-const writeWatch = w => { try { localStorage.setItem(KEY, JSON.stringify(w)); } catch {} };
+const WKEY = "parallax.watch.v2", GKEY = "parallax.guess.v1";
+const rd = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } };
+const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-let CLAIMS = SNAPSHOT.slice();
-let TAB = "frontier", SIFT = "all", QUERY = "";
+let REGISTER = SNAPSHOT.slice();
+let POSTS = SEEDS.concat(fromRegister(REGISTER));
+let TAB = "feed", SIFT = "all", QUERY = "", OPEN_ID = null;
+let BENCH = { running:false, out:"", target:"Kepler-10", mode:"tension" };
 
-const isOpen = c => String(c.status || "open") === "open";
-const matches = c => {
-  if (SIFT === "tension" && c.kind !== "tension") return false;
-  if (SIFT === "silence" && c.kind !== "orphan") return false;
-  if (SIFT === "closed" && isOpen(c)) return false;
-  if (SIFT === "all" && !isOpen(c)) return false;   // closed claims live in Record
+const post = id => POSTS.find(p => p.id === id);
+const matches = p => {
+  if (["astronomy", "genomics", "physics"].includes(SIFT) && p.field !== SIFT) return false;
+  if (["disagreement", "silence", "orthodoxy"].includes(SIFT) && p.kind !== SIFT) return false;
+  if (SIFT === "settled" && p.status === "open") return false;
   if (!QUERY) return true;
-  const hay = [c.title, c.object, c.claim_id, (c.observed || {}).source, (c.observed || {}).reference]
-    .join(" ").toLowerCase();
-  return hay.includes(QUERY);
+  return [p.title, p.hook, p.plain, p.id, p.field].join(" ").toLowerCase().includes(QUERY);
 };
 
-/* ------------------------------------------------------------------ parts */
-function keepButton(c, w){
-  const on = !!w[c.claim_id];
-  return `<button class="keep" data-id="${esc(c.claim_id)}" aria-pressed="${on}">${on ? "Watching" : "Watch"}</button>`;
-}
-
-function killBlock(c){
-  let out = c.kill ? `<div class="kill"><span class="lab">What would end this claim</span><p>${esc(c.kill)}</p></div>` : "";
-  if (c.resolution) out += `<div class="kill ended"><span class="lab">How it ended</span><p>${esc(c.resolution)}</p></div>`;
-  return out;
-}
-
-// A tension is rare — one in eleven — so it is given the page's only dark
-// plate and the largest headline. Rarity is the reason, not decoration.
-function tensionEntry(c, w){
-  const o = c.observed || {};
-  return `<article class="entry">
-    <div class="eyebrow">
-      <span class="kind tension">Disagreement</span>
-      <span>${esc(o.source)}</span>
-      <span class="age">${esc(days(c.opened_at))}</span>
+/* ------------------------------------------------------------------ tiles */
+function tile(p, w){
+  const closed = p.status !== "open";
+  const state = closed ? (p.status === "refuted" ? "Refuted" : p.status === "withdrawn" ? "Withdrawn" : "Settled") : "Open";
+  const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
+  const tail = two
+    ? `<div class="spark">${safely(() => spark(p), "")}</div>`
+    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>claims, none of them examined</span>`
+        : p.nokill ? `<b>0</b><span>observations would settle it</span>`
+        : `<span>${esc(KIND_WORD[p.kind] || "")}</span>`}</div>`;
+  return `<button class="tile ${esc(p.field)} ${closed ? "closed" : ""} ${p.featured ? "wide" : ""}" data-open="${esc(p.id)}">
+    <div class="head">
+      <span class="fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
+      <span>${esc(KIND_WORD[p.kind] || p.kind)}</span>
+      ${w[p.id] ? `<span class="kept">kept</span>` : ""}
+      <span class="state">${state}</span>
     </div>
-    <h2>${esc(c.title)}</h2>
-    <div class="plate night">${safely(() => interval(c.figure || {}), "")}
-      <div class="cap"><span>${esc(o.source)} · ${esc(o.reference)}</span>${o.url ? `<a href="${esc(o.url)}">source</a>` : ""}</div>
-    </div>
-    <p class="plain">${esc(plain(c))}</p>
-    <p class="said">${esc(c.statement)}</p>
-    ${killBlock(c)}
-    <div class="foot"><span>${esc(c.claim_id)}</span><span>${esc(String(c.opened_at || "").slice(0, 10))}</span>${keepButton(c, w)}</div>
-  </article>`;
+    <h3>${esc(p.title)}</h3>
+    <p class="hook">${esc(p.hook)}</p>
+    ${tail}
+  </button>`;
 }
 
-// Seven identical sentences about seven different events are one finding.
-function clusterEntry(g, w){
-  const o0 = g.members[0].observed || {};
-  const head = g.members.length + " " + (o0.source === "gwosc" ? "gravitational-wave events" : "planets")
-    + " nobody has written about";
-  const rows = g.members.map(m => `<details class="row">
-      <summary>
-        <span class="who">${esc(m.object)}</span>
-        <span class="val">${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)}</span>
-        <span class="more">${esc(days(m.opened_at))} <span aria-hidden="true">+</span></span>
-      </summary>
-      <div class="inner">
-        ${killBlock(m)}
-        <div class="foot"><span>${esc(m.claim_id)}</span>${(m.observed || {}).url ? `<a href="${esc((m.observed || {}).url)}">source</a>` : ""}${keepButton(m, w)}</div>
+/* ----------------------------------------------------------------- detail */
+function detail(p, w){
+  const g = rd(GKEY), mine = g[p.id];
+  const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
+  const askFirst = p.guess && !mine;
+
+  const evidence = `
+    <div class="layer">
+      <h4>What was actually measured</h4>
+      ${two ? `<div class="plate">${safely(() => interval(p), "")}
+        <div class="cap">${esc((p.sides[0] || {}).source || "")} · ${esc((p.sides[1] || {}).source || "")}</div>
       </div>
-    </details>`).join("");
-
-  return `<article class="entry">
-    <div class="eyebrow">
-      <span class="kind silence">Silence</span>
-      <span>${esc(o0.source)} · ${esc(o0.reference)}</span>
-      <span class="age">${g.members.length} claims</span>
-    </div>
-    <h2>${esc(head)}</h2>
-    <div class="plate">${safely(() => chorus(g.members, g.cohort), "")}
-      <div class="cap"><span>every ${esc(o0.quantity)} the sweep read from ${esc(o0.source)}; the marked ones are named in nothing</span></div>
-    </div>
-    <p class="plain">${esc(plainGroup(g.members))}</p>
-    <div class="members">${rows}</div>
-  </article>`;
-}
-
-function singleEntry(c, w){
-  const o = c.observed || {};
-  return `<article class="entry">
-    <div class="eyebrow">
-      <span class="kind ${c.kind === "tension" ? "tension" : "silence"}">${c.kind === "tension" ? "Disagreement" : "Silence"}</span>
-      <span>${esc(o.source)}</span>
-      <span class="age">${esc(days(c.opened_at))}</span>
-    </div>
-    <h3>${esc(c.title)}</h3>
-    <p class="plain">${esc(plain(c))}</p>
-    ${killBlock(c)}
-    <div class="foot"><span>${esc(c.claim_id)}</span>${o.url ? `<a href="${esc(o.url)}">source</a>` : ""}${keepButton(c, w)}</div>
-  </article>`;
-}
-
-// Grouping is computed, so it holds for whatever the next sweep returns:
-// three or more orphans from one instrument measuring one quantity are one
-// entry; anything rarer stands on its own.
-function compose(list){
-  const out = [], groups = new Map();
-  for (const c of list) {
-    if (c.kind === "tension") { out.push({ type: "tension", claim: c }); continue; }
-    const o = c.observed || {};
-    const k = `${o.source}|${o.quantity}`;
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(c);
-  }
-  for (const [k, members] of groups) {
-    const cohort = CLAIMS.filter(c => `${(c.observed || {}).source}|${(c.observed || {}).quantity}` === k);
-    if (members.length >= 3) out.push({ type: "cluster", members, cohort });
-    else for (const m of members) out.push({ type: "single", claim: m });
-  }
-  return out;
-}
-
-/* ----------------------------------------------------------------- views */
-function frontier(w){
-  const shown = CLAIMS.filter(matches);
-  const sift = `<div class="sift">
-      ${[["all", "Open"], ["tension", "Disagreements"], ["silence", "Silences"], ["closed", "Closed"]]
-        .map(([k, l]) => `<button class="chip" data-sift="${k}" aria-pressed="${SIFT === k}">${l}</button>`).join("")}
-      <input id="q" type="search" placeholder="Search an object, an archive, a claim id" value="${esc(QUERY)}">
+      <dl class="sides">${p.sides.map(s => `<div>
+        <dt>${esc(s.label)}</dt>
+        <dd>${num(s.value)}${Number.isFinite(s.err) && s.err ? ` ± ${num(s.err)}` : ""} <span style="font:500 12px/1 var(--mono);color:var(--ink-3)">${esc(s.unit || "")}</span></dd>
+        <p>${esc(s.source)}${s.note ? " — " + esc(s.note) : ""}</p>
+      </div>`).join("")}</dl>` : ""}
+      ${p.statement ? `<p class="said">${esc(p.statement)}</p>` : ""}
     </div>`;
-  if (!shown.length)
-    return sift + `<p class="hollow">Nothing in the register matches that. The register only holds what a sweep actually found — it is short on purpose.</p>`;
-  const body = compose(shown).map(it =>
-    it.type === "tension" ? tensionEntry(it.claim, w)
-    : it.type === "cluster" ? clusterEntry(it, w)
-    : singleEntry(it.claim, w)).join("");
-  return sift + `<div class="stream">${body}</div>`;
+
+  const guessBlock = p.guess ? `<div class="guess">
+      <p>${esc(p.guess)}</p>
+      ${mine ? `<p class="said-you">You said <b>${esc(mine.pick)}</b>. Nothing has settled it yet —
+        if it does, this entry moves, and you will see the move in Watch.</p>`
+      : `<div class="opts">${(p.sides.length ? p.sides.map(s => s.label) : ["Yes", "No"])
+          .map(l => `<button data-guess="${esc(p.id)}" data-pick="${esc(l)}">${esc(l)}</button>`).join("")}
+        </div>`}
+    </div>` : "";
+
+  return `<button class="back" data-back>← All entries</button>
+  <article class="detail ${esc(p.field)}">
+    <div class="eyebrow">
+      <span class="fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
+      <span>${esc(KIND_WORD[p.kind] || p.kind)}</span>
+      <span>${p.machine ? "found by Parallax" : "curated entry"}</span>
+      <span>${esc(p.status)}</span>
+    </div>
+    <h2>${esc(p.title)}</h2>
+    <p class="plain">${esc(p.plain)}</p>
+    ${guessBlock}
+    ${askFirst ? `<p class="said" style="color:var(--ink-3)">The numbers are below. Answer first if you want to test yourself against them.</p>` : ""}
+    ${evidence}
+    <div class="layer">
+      <h4>${p.nokill ? "Why this is not a claim" : "What would end it"}</h4>
+      <div class="kill ${p.nokill ? "nokill" : ""}">
+        <span class="lab">${p.nokill ? "No kill condition" : "Kill condition"}</span>
+        <p>${esc(p.kill)}</p>
+      </div>
+      ${p.resolution ? `<div class="kill"><span class="lab">How it ended</span><p>${esc(p.resolution)}</p></div>` : ""}
+      ${p.members ? `<ul class="cites">${p.members.map(m => `<li>${esc(m.object)} — ${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)} · ${esc(m.claim_id)}</li>`).join("")}</ul>` : ""}
+      ${p.cites ? `<ul class="cites">${p.cites.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+    </div>
+    <div class="foot">
+      <span>${esc(p.id)}</span>
+      ${p.opened ? `<span>${esc(days(p.opened))}</span>` : ""}
+      ${p.url ? `<a href="${esc(p.url)}">source</a>` : ""}
+      <button class="keep" data-id="${esc(p.id)}" aria-pressed="${!!w[p.id]}">${w[p.id] ? "Watching" : "Watch"}</button>
+    </div>
+  </article>`;
+}
+
+/* ------------------------------------------------------------------ views */
+function feed(w){
+  if (OPEN_ID && post(OPEN_ID)) return detail(post(OPEN_ID), w);
+  const chips = [["all", "Everything"], ["astronomy", "Astronomy"], ["genomics", "Genomics"],
+    ["disagreement", "Disagreements"], ["silence", "Silences"], ["orthodoxy", "Repeated, unchecked"], ["settled", "Settled"]];
+  const sift = `<div class="sift">
+      ${chips.map(([k, l]) => `<button class="chip" data-sift="${k}" aria-pressed="${SIFT === k}">${l}</button>`).join("")}
+      <input id="q" type="search" placeholder="Search a question, a field, an object" value="${esc(QUERY)}">
+    </div>`;
+  const shown = POSTS.filter(matches);
+  if (!shown.length) return sift + `<p class="hollow">Nothing matches that yet. The register holds only what has been measured or found — it is short on purpose.</p>`;
+  return sift + `<div class="grid">${shown.map(p => tile(p, w)).join("")}</div>`;
 }
 
 function watch(w){
-  const kept = CLAIMS.filter(c => w[c.claim_id]);
+  const kept = POSTS.filter(p => w[p.id]);
   if (!kept.length)
-    return `<p class="hollow">Nothing kept yet. Watch a claim and it is held here with the state it was in when you took it — so if Parallax later withdraws or confirms it, the change is what you see first.</p>`;
-  return `<div class="stream">${kept.map(c => {
-    const was = w[c.claim_id] || {};
-    const moved = was.status && was.status !== c.status
-      ? `<p class="moved">This moved since you kept it: <b>${esc(was.status)}</b> → <b>${esc(c.status)}</b>.</p>` : "";
-    return moved + (c.kind === "tension" ? tensionEntry(c, w) : singleEntry(c, w));
+    return `<p class="hollow">Nothing kept yet. Open an entry and press Watch — it is held here with the state it was in when you took it, so if it later moves, the move is what you see first.</p>`;
+  return `<div class="grid">${kept.map(p => {
+    const was = w[p.id] || {};
+    const moved = was.status && was.status !== p.status;
+    return (moved ? `<p class="moved" style="grid-column:1/-1">${esc(p.title)} moved: <b>${esc(was.status)}</b> → <b>${esc(p.status)}</b></p>` : "") + tile(p, w);
   }).join("")}</div>`;
 }
 
-// The instrument's own record. A claim-making machine that never shows its
-// own retractions is asking to be trusted rather than checked.
-function record(){
-  const by = s => CLAIMS.filter(c => String(c.status || "open") === s).length;
-  const n = CLAIMS.length, open = by("open"), withdrawn = by("withdrawn"),
-        confirmed = by("confirmed"), refuted = by("refuted"), closed = n - open;
-  const seg = (k, colour) => k ? `<span style="width:${(k / n * 100).toFixed(1)}%;background:${colour}"></span>` : "";
-  const ended = CLAIMS.filter(c => !isOpen(c));
-
-  return `<p class="verdict">Parallax has made ${n} claims. <em>${withdrawn || "None"} of them it withdrew itself.</em></p>
-
-    <div class="composition">
-      ${seg(open, "var(--slate)")}${seg(confirmed, "var(--green)")}${seg(refuted, "var(--indigo)")}${seg(withdrawn, "var(--rose)")}
+// The researcher's side. Same engine the feed's machine entries come from,
+// pointed wherever you want, live.
+function bench(){
+  return `<section class="bench">
+    <h2>Point it at something</h2>
+    <p class="prose">This runs the same sweep that produced the machine-found entries in the feed:
+      it queries live observatory archives for a subject, pulls what has been published about
+      the same objects, normalises every value to SI, and reports each disagreement with the
+      measurement that would end it. A full sweep asks six services and takes about half a
+      minute.</p>
+    <div class="form">
+      <input id="bench-target" value="${esc(BENCH.target)}" placeholder="Kepler-10, TRAPPIST-1, GW250114">
+      <select id="bench-mode">
+        ${["tension", "sky", "papers", "probe", "scorecard"].map(m => `<option value="${m}"${BENCH.mode === m ? " selected" : ""}>${m}</option>`).join("")}
+      </select>
+      <button id="bench-run"${BENCH.running ? " disabled" : ""}>${BENCH.running ? "Sweeping…" : "Run sweep"}</button>
     </div>
-    <div class="legend">
-      <span><i style="background:var(--slate)"></i>${open} open</span>
-      <span><i style="background:var(--green)"></i>${confirmed} confirmed</span>
-      <span><i style="background:var(--indigo)"></i>${refuted} refuted</span>
-      <span><i style="background:var(--rose)"></i>${withdrawn} withdrawn</span>
+    <div class="modes">
+      <div><code>tension</code><span>Both eyes: archives, literature, the comparison, and any claims it mints.</span></div>
+      <div><code>sky</code><span>Observatories only. Stores what they report, compares nothing.</span></div>
+      <div><code>papers</code><span>What the two paper indices return for one name. Writes nothing.</span></div>
+      <div><code>probe</code><span>Asks every observatory whether it answers. Start here when something is wrong.</span></div>
+      <div><code>scorecard</code><span>What has been claimed so far and how it resolved.</span></div>
     </div>
-
-    <dl class="ledger">
-      <div><dt>Still standing</dt><dd>${open}</dd><p>Open claims, each with a stated measurement that would end it.</p></div>
-      <div><dt>Settled</dt><dd>${closed}</dd><p>Claims that met their kill condition, or that Parallax could no longer support.</p></div>
-      <div><dt>Withdrawal rate</dt><dd>${n ? (withdrawn / n * 100).toFixed(0) : 0}<small>%</small></dd><p>Claims retracted by the instrument rather than by anyone catching them.</p></div>
-    </dl>
-
-    <p class="prose">Every claim in the register carries the measurement that would kill it. That is
-      the whole discipline: a claim that cannot be ended by any observation is not a claim, and
-      <b>the code refuses to write one</b>. When a claim's receipt fails — when a number it rested on
-      cannot be found in the text it was supposedly read from — it is withdrawn with a written reason
-      and left in the register, visible, rather than quietly deleted.</p>
-
-    ${ended.length ? `<div class="stream" style="padding-top:34px">${ended.map(c => `
-      <article class="entry">
-        <div class="eyebrow"><span class="kind tension">${esc(c.status)}</span><span>${esc((c.observed || {}).source)}</span><span class="age">${esc(String(c.resolved_at || "").slice(0, 10))}</span></div>
-        <h3>${esc(c.title)}</h3>
-        ${killBlock(c)}
-        <div class="foot"><span>${esc(c.claim_id)}</span></div>
-      </article>`).join("")}</div>` : ""}`;
+    ${BENCH.out ? `<div class="out">${BENCH.out}</div>` : ""}
+  </section>`;
 }
 
-/* ---------------------------------------------------------------- render */
+// The instrument's own record. A claim-making machine that never shows its
+// retractions is asking to be trusted rather than checked.
+function record(){
+  const rows = REGISTER;
+  const by = s => rows.filter(c => String(c.status || "open") === s).length;
+  const n = rows.length, open = by("open"), withdrawn = by("withdrawn");
+  const ended = rows.filter(c => String(c.status || "open") !== "open");
+  return `<p class="verdict">Parallax has minted ${n} claims of its own. <em>${withdrawn || "None"} it withdrew itself.</em></p>
+    <dl class="ledger">
+      <div><dt>Still standing</dt><dd>${open}</dd><p>Each carries the measurement that would end it.</p></div>
+      <div><dt>Settled or retracted</dt><dd>${n - open}</dd><p>Closed with a written reason, left visible.</p></div>
+      <div><dt>Withdrawal rate</dt><dd>${n ? (withdrawn / n * 100).toFixed(0) : 0}<small>%</small></dd><p>Retracted by the instrument, not by someone catching it.</p></div>
+      <div><dt>Curated entries</dt><dd>${SEEDS.length}</dd><p>Known open questions, entered by hand and labelled as such.</p></div>
+    </dl>
+    <p class="prose">Every claim the machine mints carries the measurement that would kill it —
+      <b>the code refuses to write one without it</b>. When a claim's receipt fails, when a number
+      it rested on cannot be found in the text it was supposedly read from, it is withdrawn with
+      a written reason and left in the register rather than quietly deleted. The curated entries
+      in the feed are marked as curated everywhere they appear; they are known questions with
+      published numbers, not machine output dressed up as discovery.</p>
+    ${ended.map(c => `<div class="layer">
+      <h4>${esc(c.status)} · ${esc(c.claim_id)}</h4>
+      <p class="said" style="font-size:17px;color:var(--ink)">${esc(c.title)}</p>
+      <div class="kill"><span class="lab">How it ended</span><p>${esc(c.resolution || "")}</p></div>
+    </div>`).join("")}`;
+}
+
+/* ----------------------------------------------------------------- render */
 function render(){
-  const w = readWatch();
-  const open = CLAIMS.filter(isOpen).length;
-  const tensions = CLAIMS.filter(c => c.kind === "tension" && isOpen(c)).length;
-  const silences = CLAIMS.filter(c => c.kind === "orphan" && isOpen(c)).length;
-  const sources = new Set(CLAIMS.map(c => (c.observed || {}).source).filter(Boolean)).size;
+  const w = rd(WKEY);
+  const openQ = POSTS.filter(p => p.status === "open").length;
+  const disputes = POSTS.filter(p => p.kind === "disagreement" && p.status === "open").length;
+  const fields = new Set(POSTS.map(p => p.field)).size;
 
   document.getElementById("readout").innerHTML = `
-    <div><dt>Open claims</dt><dd>${open}</dd></div>
-    <div class="cool"><dt>Unexamined</dt><dd>${silences}</dd></div>
-    <div class="hot"><dt>Disagreements</dt><dd>${tensions}</dd></div>
-    <div><dt>Archives watched</dt><dd>${sources}<small>live</small></dd></div>`;
+    <div><dt>Open questions</dt><dd>${openQ}</dd></div>
+    <div class="hot"><dt>Live disagreements</dt><dd>${disputes}</dd></div>
+    <div><dt>Fields</dt><dd>${fields}</dd></div>
+    <div><dt>Machine claims</dt><dd>${REGISTER.length}<small>own</small></dd></div>`;
 
-  document.getElementById("n-frontier").textContent = open;
+  document.getElementById("n-feed").textContent = POSTS.length;
   document.getElementById("n-watch").textContent = Object.keys(w).length;
-  document.getElementById("n-record").textContent = CLAIMS.length;
-  for (const t of ["frontier", "watch", "record"])
+  document.getElementById("n-record").textContent = REGISTER.length;
+  for (const t of ["feed", "watch", "bench", "record"])
     document.getElementById("tab-" + t).setAttribute("aria-selected", String(TAB === t));
 
   document.getElementById("main").innerHTML =
-    TAB === "frontier" ? frontier(w) : TAB === "watch" ? watch(w) : record();
+    TAB === "feed" ? feed(w) : TAB === "watch" ? watch(w) : TAB === "bench" ? bench() : record();
 }
 
-document.addEventListener("click", e => {
-  const keep = e.target.closest(".keep");
-  if (keep) {
-    const id = keep.dataset.id, w = readWatch();
-    if (w[id]) delete w[id];
-    else {
-      const c = CLAIMS.find(x => x.claim_id === id) || {};
-      w[id] = { status: c.status, at: new Date().toISOString() };
-    }
-    writeWatch(w); render(); return;
+/* --------------------------------------------------------------- the bench */
+async function runSweep(){
+  BENCH.running = true; BENCH.out = "Asking the observatories…"; render();
+  const body = { mode: BENCH.mode, target: BENCH.target, limit: 40 };
+  try {
+    const r = await fetch(`${SUPA}/functions/v1/sky`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPA_KEY}` },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    BENCH.out = summarise(j);
+  } catch (e) {
+    // Say what failed and hand over the exact command, rather than a spinner
+    // that never resolves. Sandboxed frames block every outbound host.
+    BENCH.out = `<b>This page could not reach the worker.</b>\n${String(e && e.message || e)}\n\n`
+      + `That is expected inside a sandboxed frame, which blocks outbound requests.\n`
+      + `The same sweep from a terminal:\n\n`
+      + `curl -X POST ${SUPA}/functions/v1/sky \\\n  -H "Authorization: Bearer $ANON_KEY" \\\n`
+      + `  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(body)}'`;
   }
-  const chip = e.target.closest(".chip");
-  if (chip) { SIFT = chip.dataset.sift; render(); return; }
-  const tab = e.target.closest('[role="tab"]');
-  if (tab) { TAB = tab.id.replace("tab-", ""); render(); }
+  BENCH.running = false; render();
+}
+
+// The denominator matters as much as the finding: a sweep that compared four
+// things and found one disagreement is a different object from one that
+// compared four thousand.
+function summarise(r){
+  const L = [];
+  L.push(`<b>worker ${esc(r.worker ?? "?")}  mode ${esc(r.mode ?? "?")}  ${esc(r.ms ?? "?")}ms</b>`);
+  for (const l of r.ledger || []) L.push(`  ${String(l.name).padEnd(20)} ${l.got ?? 0}${l.error ? "  ERROR " + esc(l.error) : ""}`);
+  if (r.read) L.push(`  read ${esc(JSON.stringify(r.read))}`);
+  if (r.extraction) L.push(`  kept ${r.extraction.kept} of ${r.extraction.items_returned} from ${r.extraction.papers_in} papers`);
+  for (const s of r.stored || []) L.push(`  stored ${s.table}: ${s.error ? "FAILED " + esc(s.error) : s.rows + " rows"}`);
+  L.push(`<b>${(r.tensions || []).length} disagreements · ${(r.orphans || []).length} silences · ${(r.claims || []).length} claims</b>`);
+  for (const t of r.tensions || [])
+    L.push(`  ${esc(t.object)} ${esc(t.quantity)}: ${t.sigma}σ — ${t.measured.value}${esc(t.measured.unit)} vs ${t.reported.value}${esc(t.reported.unit)}`);
+  return L.join("\n");
+}
+
+/* ------------------------------------------------------------------ events */
+document.addEventListener("click", e => {
+  const t = e.target.closest('[role="tab"]');
+  if (t) { TAB = t.id.replace("tab-", ""); OPEN_ID = null; render(); window.scrollTo(0, 0); return; }
+
+  const open = e.target.closest("[data-open]");
+  if (open) { OPEN_ID = open.dataset.open; TAB = "feed"; render(); window.scrollTo(0, 0); return; }
+
+  if (e.target.closest("[data-back]")) { OPEN_ID = null; render(); return; }
+
+  const g = e.target.closest("[data-guess]");
+  if (g) { const all = rd(GKEY); all[g.dataset.guess] = { pick: g.dataset.pick, at: Date.now() }; wr(GKEY, all); render(); return; }
+
+  const k = e.target.closest(".keep");
+  if (k) {
+    const id = k.dataset.id, w = rd(WKEY);
+    if (w[id]) delete w[id]; else w[id] = { status: (post(id) || {}).status, at: new Date().toISOString() };
+    wr(WKEY, w); render(); return;
+  }
+
+  const c = e.target.closest(".chip");
+  if (c) { SIFT = c.dataset.sift; OPEN_ID = null; render(); return; }
+
+  if (e.target.id === "bench-run") { runSweep(); }
 });
 
 document.addEventListener("input", e => {
-  if (e.target.id !== "q") return;
-  QUERY = e.target.value.trim().toLowerCase();
-  render();
-  const q = document.getElementById("q");
-  if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  if (e.target.id === "q") {
+    QUERY = e.target.value.trim().toLowerCase(); render();
+    const q = document.getElementById("q");
+    if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  }
+  if (e.target.id === "bench-target") BENCH.target = e.target.value;
+  if (e.target.id === "bench-mode") BENCH.mode = e.target.value;
 });
+document.addEventListener("change", e => { if (e.target.id === "bench-mode") BENCH.mode = e.target.value; });
 
 document.getElementById("stamp").textContent =
   "register read " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
@@ -1084,9 +1363,13 @@ safely(() => render());
 
 // Live claims where the page can reach the database; the snapshot stands in
 // where it cannot, which is the normal case inside a sandboxed frame.
-fetch(`${SUPA_URL}/claims?select=*&order=opened_at.desc&limit=200`, {
+fetch(`${SUPA}/rest/v1/claims?select=*&order=opened_at.desc&limit=200`, {
   headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
 }).then(r => r.ok ? r.json() : null).then(rows => {
-  if (Array.isArray(rows) && rows.length) { CLAIMS = rows; safely(() => render()); }
+  if (Array.isArray(rows) && rows.length) {
+    REGISTER = rows;
+    POSTS = SEEDS.concat(fromRegister(REGISTER));
+    safely(() => render());
+  }
 }).catch(() => {});
 </script>
