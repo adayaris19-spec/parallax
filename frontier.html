@@ -1,0 +1,477 @@
+<title>PARALLAX — The Frontier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --paper:#EDEAE3;
+  --entry:#F5F3EE;
+  --ink:#16171A;
+  --ink-2:#54565C;
+  --ink-3:#84868D;
+  --rule:#CFCBC2;
+  --hair:#DEDAD2;
+  --axis:#1B4B63;
+  --kill:#9A5B12;
+  --kill-fill:rgba(154,91,18,.13);
+  --dead:#8E3B3B;
+  --live:#2C6E49;
+  --font-ui:"Helvetica Neue",Helvetica,"Segoe UI",Roboto,system-ui,sans-serif;
+  --font-num:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1013;
+    --entry:#15181C;
+    --ink:#E6E7E9;
+    --ink-2:#9A9DA4;
+    --ink-3:#6C6F76;
+    --rule:#282C32;
+    --hair:#1D2126;
+    --axis:#6FB2CE;
+    --kill:#D2913F;
+    --kill-fill:rgba(210,145,63,.15);
+    --dead:#C97070;
+    --live:#5FA97F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1013; --entry:#15181C; --ink:#E6E7E9; --ink-2:#9A9DA4; --ink-3:#6C6F76;
+  --rule:#282C32; --hair:#1D2126; --axis:#6FB2CE; --kill:#D2913F;
+  --kill-fill:rgba(210,145,63,.15); --dead:#C97070; --live:#5FA97F;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--font-ui);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.wrap{max-width:56rem;margin:0 auto;padding:0 1.25rem}
+
+/* ---------- masthead ---------- */
+header{border-bottom:1px solid var(--rule)}
+.mast{display:flex;flex-wrap:wrap;gap:1.25rem 2.5rem;align-items:baseline;padding:1.5rem 0 1.1rem}
+.mark{font-weight:800;letter-spacing:-.02em;font-size:1.05rem}
+.mark span{color:var(--ink-3);font-weight:500;letter-spacing:.16em;font-size:.7rem;
+  text-transform:uppercase;margin-left:.6rem}
+.tally{display:flex;gap:1.75rem;margin-left:auto}
+.tally div{display:flex;flex-direction:column;gap:.1rem}
+.tally b{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:1.3rem;
+  font-weight:600;line-height:1}
+.tally span{font-family:var(--font-num);font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+.tally .w b{color:var(--dead)}
+.provenance{
+  font-family:var(--font-num);font-size:.68rem;letter-spacing:.04em;color:var(--ink-3);
+  padding-bottom:1rem;max-width:46rem;
+}
+.provenance b{color:var(--ink-2);font-weight:400}
+
+/* ---------- the register ---------- */
+main{padding:0 0 5rem}
+.entry{border-bottom:1px solid var(--rule);padding:2rem 0}
+.entry.closed{opacity:.62}
+.head{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:baseline;margin-bottom:.7rem}
+.cid{font-family:var(--font-num);font-size:.7rem;letter-spacing:.08em;color:var(--ink-3)}
+.chip{font-family:var(--font-num);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--rule);padding:.15rem .42rem;color:var(--ink-2)}
+.chip.open{color:var(--live);border-color:var(--live)}
+.chip.withdrawn,.chip.refuted{color:var(--dead);border-color:var(--dead)}
+.sig{margin-left:auto;font-family:var(--font-num);font-size:.78rem;color:var(--axis)}
+h2{font-size:1.32rem;line-height:1.22;letter-spacing:-.015em;font-weight:650;margin:0 0 .55rem;
+  text-wrap:balance;max-width:44rem}
+.said{color:var(--ink-2);margin:0 0 1.1rem;max-width:42rem;font-size:.95rem}
+
+figure{margin:0 0 1.1rem;background:var(--entry);border:1px solid var(--hair);padding:1rem 1.1rem .8rem}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{font-family:var(--font-num);font-size:.66rem;color:var(--ink-3);margin-top:.65rem;
+  line-height:1.5;letter-spacing:.02em}
+
+/* the kill condition is the widest, loudest structural element on an entry */
+.killrow{border-left:3px solid var(--kill);background:var(--kill-fill);padding:.7rem .9rem;
+  margin:0 0 .9rem;max-width:44rem}
+.killrow .lab{font-family:var(--font-num);font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--kill);display:block;margin-bottom:.25rem}
+.killrow p{margin:0;font-size:.9rem;color:var(--ink)}
+
+.meta{display:flex;flex-wrap:wrap;gap:.35rem 1.4rem;font-family:var(--font-num);
+  font-size:.68rem;color:var(--ink-3);letter-spacing:.02em}
+.meta b{font-weight:400;color:var(--ink-2)}
+.meta a{color:var(--axis)}
+.audit{font-family:var(--font-num);font-size:.68rem;color:var(--ink-2);
+  border-top:1px dashed var(--rule);margin-top:.9rem;padding-top:.6rem;max-width:44rem}
+.audit .ok{color:var(--live)}
+.audit .no{color:var(--dead)}
+.retracted{border-left:3px solid var(--dead);padding:.7rem .9rem;margin:.9rem 0 0;
+  max-width:44rem;font-size:.9rem;color:var(--ink-2)}
+.retracted .lab{font-family:var(--font-num);font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dead);display:block;margin-bottom:.25rem}
+
+.state{padding:4rem 0;max-width:38rem}
+.state h2{font-size:1.5rem}
+.state p{color:var(--ink-2)}
+footer{border-top:1px solid var(--rule);padding:1.5rem 0 3rem;font-family:var(--font-num);
+  font-size:.66rem;color:var(--ink-3);letter-spacing:.04em;line-height:1.7}
+@media (max-width:640px){ .tally{margin-left:0;gap:1.25rem} h2{font-size:1.15rem} }
+</style>
+
+<header><div class="wrap">
+  <div class="mast">
+    <div class="mark">PARALLAX<span>The Frontier</span></div>
+    <div class="tally" id="tally"></div>
+  </div>
+  <div class="provenance" id="prov">Reading the register…</div>
+</div></header>
+
+<main class="wrap" id="register"></main>
+
+<footer class="wrap">
+  <div>Every claim states what would end it. Every number is drawn from the record it cites.</div>
+  <div>Nothing here is illustrated — each figure is computed from the values shown beside it.</div>
+</footer>
+
+<script>
+/* ---------------------------------------------------------------------------
+   THE FRONTIER
+
+   A register of what science has not settled, as far as this instrument can
+   see. It is deliberately small. Ten open claims is the honest size of what
+   Parallax currently stands behind, and a page that padded that out would be
+   the first lie it told.
+
+   Three things are load-bearing and none of them are decoration:
+
+     THE KILL CONDITION is the widest, loudest block in an entry. It is what
+     separates a claim from an assertion, so it gets the weight a headline
+     would get anywhere else.
+
+     THE FIGURE is computed here, in the browser, from the numbers printed
+     beside it. Nothing is drawn that the data does not contain — which is why
+     a gravitational wave orphan gets a mass strip and not a sky map: the
+     catalogue never gave those events coordinates, and inventing a dot to
+     fill the space would be exactly the failure this instrument exists to
+     avoid.
+
+     THE AUDIT LINE recomputes sigma in front of the reader from the two
+     values and their error bars, and says whether it matches what was stored.
+     A reader who trusts none of this can check the arithmetic without leaving
+     the page.
+--------------------------------------------------------------------------- */
+
+const SUPA_URL = 'https://zfmjjazkmolvywvayjzj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
+
+/* A stored copy of the register, verbatim from the claims table. It is used
+   only when the live read fails, and the page says so plainly when it falls
+   back — a frontier showing yesterday's register is making a weaker statement
+   than one showing today's, and the difference belongs on screen. */
+const SNAPSHOT = [{"claim_id": "PARALLAX-2026-87761","kind": "orphan","object": "GW250119_190238","quantity": "mass","title": "Nothing has been written about GW250119_190238","statement": "gwosc carries GW250119_190238 (11.54 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250119_190238","quantity": "mass","source": "gwosc","value": 11.54,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250119_190238/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250119_190238","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250119_190238. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250119_190238"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-62561","kind": "orphan","object": "GW250119_025138","quantity": "mass","title": "Nothing has been written about GW250119_025138","statement": "gwosc carries GW250119_025138 (33.8 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250119_025138","quantity": "mass","source": "gwosc","value": 33.8,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250119_025138/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250119_025138","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250119_025138. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250119_025138"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-59423","kind": "orphan","object": "GW250118_170523","quantity": "mass","title": "Nothing has been written about GW250118_170523","statement": "gwosc carries GW250118_170523 (38.1 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250118_170523","quantity": "mass","source": "gwosc","value": 38.1,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250118_170523/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250118_170523","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250118_170523. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250118_170523"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-70047","kind": "orphan","object": "GW250118_055802","quantity": "mass","title": "Nothing has been written about GW250118_055802","statement": "gwosc carries GW250118_055802 (10.3 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250118_055802","quantity": "mass","source": "gwosc","value": 10.3,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250118_055802/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250118_055802","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250118_055802. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250118_055802"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-28809","kind": "orphan","object": "GW250118_023225","quantity": "mass","title": "Nothing has been written about GW250118_023225","statement": "gwosc carries GW250118_023225 (44 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250118_023225","quantity": "mass","source": "gwosc","value": 44,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250118_023225/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250118_023225","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250118_023225. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250118_023225"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-15327","kind": "orphan","object": "GW250116_015318","quantity": "mass","title": "Nothing has been written about GW250116_015318","statement": "gwosc carries GW250116_015318 (34.2 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250116_015318","quantity": "mass","source": "gwosc","value": 34.2,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250116_015318/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250116_015318","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250116_015318. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250116_015318"},"status": "open","opened_at": "2026-08-11T17:04:43.191636+00:00","resolution": null},{"claim_id": "PARALLAX-2026-68698","kind": "orphan","object": "GW250109_074552","quantity": "mass","title": "Nothing has been written about GW250109_074552","statement": "gwosc carries GW250109_074552 (39 msun), on the authority of GWTC. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "GW250109_074552","quantity": "mass","source": "gwosc","value": 39,"unit": "msun","url": "https://gwosc.org/eventapi/html/event/GW250109_074552/","reference": "GWTC","ra": null,"dec": null,"searched_as": "GW250109_074552","lit_count": 0},"reported": null,"kill": "A single paper that measures or models GW250109_074552. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": null,"dec": null,"label": "GW250109_074552"},"status": "open","opened_at": "2026-08-19T19:49:52.713016+00:00","resolution": null},{"claim_id": "PARALLAX-2026-66956","kind": "orphan","object": "Kepler-1022 b","quantity": "radius","title": "Nothing has been written about Kepler-1022 b","statement": "exoplanet-archive carries Kepler-1022 b (2.36 rearth), on the authority of Morton et al. 2016. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "Kepler-1022 b","quantity": "radius","source": "exoplanet-archive","value": 2.36,"unit": "rearth","url": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-1022%20b","reference": "Morton et al. 2016","ra": 289.3520595,"dec": 46.9736345,"searched_as": "Kepler-1022 b","lit_count": 0},"reported": null,"kill": "A single paper that measures or models Kepler-1022 b. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": 289.3520595,"dec": 46.9736345,"label": "Kepler-1022 b"},"status": "open","opened_at": "2026-08-11T17:08:37.508395+00:00","resolution": null},{"claim_id": "PARALLAX-2026-98795","kind": "orphan","object": "Kepler-1086 c","quantity": "radius","title": "Nothing has been written about Kepler-1086 c","statement": "exoplanet-archive carries Kepler-1086 c (2.94 rearth), on the authority of Morton et al. 2016. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "Kepler-1086 c","quantity": "radius","source": "exoplanet-archive","value": 2.94,"unit": "rearth","url": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-1086%20c","reference": "Morton et al. 2016","ra": 295.251187,"dec": 45.8429537,"searched_as": "Kepler-1086 c","lit_count": 0},"reported": null,"kill": "A single paper that measures or models Kepler-1086 c. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": 295.251187,"dec": 45.8429537,"label": "Kepler-1086 c"},"status": "open","opened_at": "2026-08-11T17:08:37.508395+00:00","resolution": null},{"claim_id": "PARALLAX-2026-30158","kind": "orphan","object": "Kepler-1047 c","quantity": "radius","title": "Nothing has been written about Kepler-1047 c","statement": "exoplanet-archive carries Kepler-1047 c (0.99 rearth), on the authority of Morton et al. 2016. Beyond that, a title and abstract search across OpenAlex — every field, every year — returns nothing that names it. It was reported once and never taken up.","sigma": null,"observed": {"object": "Kepler-1047 c","quantity": "radius","source": "exoplanet-archive","value": 0.99,"unit": "rearth","url": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-1047%20c","reference": "Morton et al. 2016","ra": 288.6462564,"dec": 50.7889645,"searched_as": "Kepler-1047 c","lit_count": 0},"reported": null,"kill": "A single paper that measures or models Kepler-1047 c. One hit refutes this claim outright, and says the search behind it was too narrow — which is worth knowing about the perimeter regardless.","cost": "Archival — the data is already public.","figure": {"type": "position","ra": 288.6462564,"dec": 50.7889645,"label": "Kepler-1047 c"},"status": "open","opened_at": "2026-08-11T17:08:37.508395+00:00","resolution": null},{"claim_id": "PARALLAX-2026-96721","kind": "tension","object": "Kepler-10 c","quantity": "mass","title": "The published mass of Kepler-10 c disagrees with the archive","statement": "exoplanet-archive measures 11.29 mearth ± 1.24. A 2016 paper states 19.2 M⊕ ± 1.9. Those are 3.49σ apart. One of the two is wrong, and which one is not determined by anything in the record.","sigma": 3.49,"observed": {"err": 1.24,"url": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-10%20c","unit": "mearth","value": 11.29,"err_si": 7.4054908e+24,"source": "exoplanet-archive","value_si": 6.74257993e+25,"reference": "Bonomo et al. 2025"},"reported": {"err": 1.9,"unit": "M⊕","year": 2016,"quote": "For Kepler-10c ( ) we measure mass and density","value": 19.2,"err_si": 1.1347123e+25,"value_si": 1.14665664e+26,"record_id": null,"confidence": 0.7},"kill": "One independent re-measurement of the mass of Kepler-10 c at or below 1.24 mearth precision. If it lands on the published value, this claim is wrong and the archive carries an error; if it lands on the archive value, the paper does.","cost": "One measurement at existing precision — no new instrument required.","figure": {"type": "interval","unit": "kg","sigma": 3.49,"series": [{"err": 7.4054908e+24,"label": "exoplanet-archive","value": 6.74257993e+25},{"err": 1.1347123e+25,"label": "published 2016","value": 1.14665664e+26}]},"status": "withdrawn","opened_at": "2026-08-11T17:08:37.508395+00:00","resolved_at": "2026-09-01T17:34:16.437+00:00","resolution": "Withdrawn by Parallax. This tension was minted before a stated value was required to appear as digits in the text it was read from. The published figure of 19.2 +/- 1.9 Earth masses could not be found in the source abstract on re-check, so the disagreement it reported against the archive value of 11.29 +/- 1.24 rests on a number this system cannot trace. The underlying question is real - the mass of Kepler-10 c has been contested since it was announced as a mega-Earth - but this claim was not evidence for it. Retracted rather than corrected, because a claim whose receipt fails is not a claim with a small error in it."}];
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Significant figures, not fixed decimals: 0.99 and 44 are both real values in
+   this register and neither should be printed as 44.00 or 1.0. */
+/* Number.isFinite, never the global isFinite, throughout this file: the global
+   coerces, so isFinite(null) is true and a claim with no sigma rendered as
+   "0.00σ" — a measured-looking zero where there is no measurement at all. */
+const sig = (v, n = 4) => (v === null || v === undefined || !Number.isFinite(v))
+  ? '—' : String(Number(Number(v).toPrecision(n)));
+
+// ---------------------------------------------------------------------------
+// figures
+// ---------------------------------------------------------------------------
+
+/* THE INTERVAL, for a tension.
+   Two measurements on one axis with their error bars, and — the part that
+   matters — the regions a future measurement would have to land in to settle
+   it, taken from the precision the kill condition actually names rather than
+   from anything invented for the drawing.
+
+   Plotted from value_si, which is the only representation guaranteed to be
+   comparable across two sources that wrote their units differently, then
+   labelled back into the unit the archive stated by the exact factor between
+   the two. No conversion constant is hardcoded here; it comes from the row. */
+function interval(fig, claim) {
+  const s = (fig.series || []).filter((d) => d && Number.isFinite(d.value));
+  if (s.length < 2) return null;
+
+  const obs = claim.observed || {};
+  const factor = (obs.value_si && obs.value) ? obs.value_si / obs.value : 1;
+  const unit = obs.unit || fig.unit || '';
+  const to = (si) => si / factor;
+
+  const req = Number.isFinite(obs.err_si) && obs.err_si > 0 ? obs.err_si : null;
+  const lo0 = Math.min(...s.map((d) => d.value - (d.err || 0)));
+  const hi0 = Math.max(...s.map((d) => d.value + (d.err || 0)));
+  const pad = (hi0 - lo0) * 0.28 || Math.abs(hi0) * 0.1 || 1;
+  const lo = lo0 - pad, hi = hi0 + pad;
+
+  const W = 720, H = 200, L = 12, R = 12, y0 = 100;
+  const x = (v) => L + ((v - lo) / (hi - lo)) * (W - L - R);
+
+  /* The band says what a landing there MEANS, not who measured it — the series
+     is already labelled below its own mark, and printing the same string twice
+     eighteen pixels apart read as a rendering fault rather than as emphasis. */
+  const bands = req ? s.map((d, i) => ({
+    a: x(d.value - req), b: x(d.value + req), i,
+    label: String(d.label || '').startsWith('published') ? 'the paper is right' : 'the archive is right',
+  })) : [];
+
+  const ticks = [];
+  if (Number.isFinite(fig.sigma) && s.length === 2) {
+    const joint = Math.sqrt((s[0].err || 0) ** 2 + (s[1].err || 0) ** 2);
+    if (joint > 0) {
+      const dir = s[1].value >= s[0].value ? 1 : -1;
+      for (let k = 1; k <= Math.ceil(Math.abs(fig.sigma)) + 1; k++) {
+        const v = s[0].value + dir * k * joint;
+        if (v >= lo && v <= hi) ticks.push({ x: x(v), k });
+      }
+    }
+  }
+
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(claim.title)}">
+    ${bands.map((b) => `
+      <rect x="${b.a.toFixed(1)}" y="52" width="${Math.max(1, b.b - b.a).toFixed(1)}" height="96"
+            fill="var(--kill-fill)" stroke="var(--kill)" stroke-width=".75" stroke-dasharray="3 3"/>
+      <text x="${((b.a + b.b) / 2).toFixed(1)}" y="26" text-anchor="middle"
+            font-family="ui-monospace,monospace" font-size="10.5" fill="var(--kill)"
+            letter-spacing=".5">lands here → ${esc(b.label)}</text>`).join('')}
+
+    <line x1="${L}" y1="${y0}" x2="${W - R}" y2="${y0}" stroke="currentColor" opacity=".3"/>
+    ${ticks.map((t) => `
+      <line x1="${t.x.toFixed(1)}" y1="${y0 - (t.k === 3 ? 11 : 5)}"
+            x2="${t.x.toFixed(1)}" y2="${y0 + (t.k === 3 ? 11 : 5)}"
+            stroke="var(--axis)" stroke-width="${t.k === 3 ? 1.6 : .8}" opacity="${t.k === 3 ? 1 : .55}"/>
+      ${t.k === 3 ? `<text x="${t.x.toFixed(1)}" y="${y0 - 16}" text-anchor="middle"
+            font-family="ui-monospace,monospace" font-size="10" fill="var(--axis)">3σ</text>` : ''}`).join('')}
+
+    ${s.map((d, i) => {
+      const cx = x(d.value), e = d.err || 0;
+      const yy = i === 0 ? y0 - 22 : y0 + 22;
+      return `
+      <line x1="${x(d.value - e).toFixed(1)}" y1="${yy}" x2="${x(d.value + e).toFixed(1)}" y2="${yy}"
+            stroke="currentColor" stroke-width="1.4"${i === 1 ? ' stroke-dasharray="4 3"' : ''}/>
+      <line x1="${x(d.value - e).toFixed(1)}" y1="${yy - 5}" x2="${x(d.value - e).toFixed(1)}" y2="${yy + 5}" stroke="currentColor" stroke-width="1.4"/>
+      <line x1="${x(d.value + e).toFixed(1)}" y1="${yy - 5}" x2="${x(d.value + e).toFixed(1)}" y2="${yy + 5}" stroke="currentColor" stroke-width="1.4"/>
+      <circle cx="${cx.toFixed(1)}" cy="${yy}" r="4.5"
+              fill="${i === 0 ? 'currentColor' : 'var(--paper)'}" stroke="currentColor" stroke-width="1.8"/>
+      <text x="${cx.toFixed(1)}" y="${i === 0 ? 44 : 172}" text-anchor="middle"
+            font-family="ui-monospace,monospace" font-size="11.5" fill="currentColor">
+        ${sig(to(d.value))} ± ${sig(to(e), 2)}
+        <tspan fill="var(--ink-3)" font-size="10"> ${esc(d.label)}</tspan>
+      </text>`;
+    }).join('')}
+
+    <text x="${W - R}" y="${y0 + 25}" text-anchor="end" font-family="ui-monospace,monospace"
+          font-size="10" fill="var(--ink-3)">${esc(unit)}</text>
+  </svg>`;
+}
+
+/* THE STRIP, for an orphan.
+   The claim is that nothing has been written about this object, so the figure
+   that carries it is the object placed among its own catalogue: an ordinary
+   value in a crowded index that no one has looked at. A sky position would be
+   the obvious choice and it is not available — GWOSC gives these events no
+   coordinates at all — so the strip is drawn from the quantity every one of
+   them does carry. */
+function strip(claim, population) {
+  const o = claim.observed || {};
+  const v = Number(o.value);
+  if (!Number.isFinite(v)) return null;
+
+  const peers = (population || []).filter((p) => Number.isFinite(p));
+  const all = peers.length ? peers.concat([v]) : [v];
+  const lo0 = Math.min(...all), hi0 = Math.max(...all);
+  const pad = (hi0 - lo0) * 0.06 || Math.abs(v) * 0.2 || 1;
+  const lo = lo0 - pad, hi = hi0 + pad;
+
+  const W = 720, H = 96, L = 12, R = 12, y0 = 58;
+  const x = (t) => L + ((t - lo) / (hi - lo)) * (W - L - R);
+
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(claim.object)} among its catalogue">
+    <line x1="${L}" y1="${y0}" x2="${W - R}" y2="${y0}" stroke="currentColor" opacity=".3"/>
+    ${peers.map((p) => `<line x1="${x(p).toFixed(1)}" y1="${y0 - 7}" x2="${x(p).toFixed(1)}" y2="${y0 + 7}"
+        stroke="currentColor" stroke-width=".9" opacity=".28"/>`).join('')}
+    <line x1="${x(v).toFixed(1)}" y1="${y0 - 22}" x2="${x(v).toFixed(1)}" y2="${y0 + 14}"
+          stroke="var(--kill)" stroke-width="2"/>
+    <circle cx="${x(v).toFixed(1)}" cy="${y0 - 22}" r="4" fill="var(--kill)"/>
+    <text x="${x(v).toFixed(1)}" y="${y0 - 31}" text-anchor="middle"
+          font-family="ui-monospace,monospace" font-size="11.5" fill="var(--kill)">
+      ${sig(v)} ${esc(o.unit || '')}
+    </text>
+    <text x="${L}" y="${y0 + 28}" font-family="ui-monospace,monospace" font-size="10" fill="var(--ink-3)">${sig(lo)}</text>
+    <text x="${W - R}" y="${y0 + 28}" text-anchor="end" font-family="ui-monospace,monospace" font-size="10" fill="var(--ink-3)">${sig(hi)}</text>
+  </svg>`;
+}
+
+// ---------------------------------------------------------------------------
+// the entry
+// ---------------------------------------------------------------------------
+
+/* Recompute sigma from the two values and their error bars and say whether it
+   matches what was stored. This is the shortest path from "a machine asserts
+   this" to "I checked it myself", and it costs one line. */
+function auditLine(fig) {
+  const s = (fig.series || []).filter((d) => d && Number.isFinite(d.value));
+  if (s.length !== 2 || !Number.isFinite(fig.sigma)) return '';
+  const joint = Math.sqrt((s[0].err || 0) ** 2 + (s[1].err || 0) ** 2);
+  if (!(joint > 0)) return '';
+  const got = Math.abs(s[0].value - s[1].value) / joint;
+  const ok = Math.abs(got - fig.sigma) < 0.02;
+  return `<div class="audit">σ = |${s[0].value.toExponential(4)} − ${s[1].value.toExponential(4)}|
+    / √(${(s[0].err || 0).toExponential(3)}² + ${(s[1].err || 0).toExponential(3)}²)
+    = <b>${got.toFixed(2)}</b> &nbsp;·&nbsp; stored ${Number(fig.sigma).toFixed(2)}
+    <span class="${ok ? 'ok' : 'no'}">${ok ? '✓ agrees' : '✗ does not agree'}</span></div>`;
+}
+
+function entry(c, population) {
+  const fig = c.figure || {};
+  const o = c.observed || {};
+  const closed = c.status && c.status !== 'open';
+
+  let svg = null, caption = '';
+  if (fig.type === 'interval') {
+    svg = interval(fig, c);
+    caption = `Solid mark and filled dot: the archive. Dashed mark and open dot: the paper. ` +
+      `Both values in ${esc(o.unit || '')}, plotted from the normalised figures the ` +
+      `comparison actually used. Dashed regions are where a re-measurement at the precision ` +
+      `the kill condition names would have to land to settle it. Ticks step in units of the ` +
+      `joint error; the tall one is 3σ, the threshold below which this is not a claim.`;
+  } else if (o.value !== undefined && o.value !== null) {
+    const pop = population[`${o.source}|${c.quantity}`] || [];
+    svg = strip(c, pop);
+    caption = pop.length
+      ? `${esc(c.object)} against ${pop.length} other ${esc(c.quantity)} values ${esc(o.source)} ` +
+        `carries. It is an ordinary entry in a crowded catalogue, which is the point: nothing ` +
+        `about it stood out enough for anyone to write it down.`
+      : `${esc(c.object)} at its catalogued ${esc(c.quantity)}. No comparison population was ` +
+        `available on this load, so the strip shows the value alone.`;
+    if (o.ra === null || o.ra === undefined) {
+      caption += ` No sky position is drawn because ${esc(o.source)} does not publish coordinates ` +
+        `for these events.`;
+    }
+  }
+
+  const links = [];
+  if (o.url) links.push(`<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.source || 'archive')} record ↗</a>`);
+  /* The archive side has a URL. The paper side has a year, a value and the
+     sentence it came from, and no identifier at all — the extractor keeps no
+     DOI. Drawing a link glyph there would invent a citation, and leaving the
+     space blank reads as an oversight, so the gap is named. */
+  if (c.kind === 'tension' && c.reported && !c.reported.record_id) {
+    links.push(`<span style="color:var(--dead)">paper not identified — value traced to its sentence only</span>`);
+  }
+  if (o.reference) links.push(`on the authority of <b>${esc(o.reference)}</b>`);
+  if (Number.isFinite(o.ra) && Number.isFinite(o.dec)) links.push(`ra <b>${sig(o.ra, 7)}</b> dec <b>${sig(o.dec, 6)}</b>`);
+  if (o.lit_count === 0) links.push(`papers naming it <b>0</b>`);
+  if (c.opened_at) links.push(`open since <b>${esc(String(c.opened_at).slice(0, 10))}</b>`);
+
+  return `<article class="entry${closed ? ' closed' : ''}">
+    <div class="head">
+      <span class="cid">${esc(c.claim_id)}</span>
+      <span class="chip ${esc(c.status || 'open')}">${esc(c.status || 'open')}</span>
+      <span class="chip">${esc(c.kind)}</span>
+      ${Number.isFinite(c.sigma) ? `<span class="sig num">${Number(c.sigma).toFixed(2)}σ</span>` : ''}
+    </div>
+    <h2>${esc(c.title)}</h2>
+    <p class="said">${esc(c.statement)}</p>
+    ${svg ? `<figure>${svg}<figcaption>${caption}</figcaption></figure>` : ''}
+    ${c.kill ? `<div class="killrow"><span class="lab">What would end this</span>
+      <p>${esc(c.kill)}</p></div>` : ''}
+    ${fig.type === 'interval' ? auditLine(fig) : ''}
+    <div class="meta">${links.join('<span></span>')}${c.cost ? `<span>${esc(c.cost)}</span>` : ''}</div>
+    ${closed && c.resolution ? `<div class="retracted"><span class="lab">${esc(c.status)}</span>
+      ${esc(c.resolution)}</div>` : ''}
+  </article>`;
+}
+
+// ---------------------------------------------------------------------------
+// load
+// ---------------------------------------------------------------------------
+
+async function get(path) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* Populations for the strips: every value of a quantity a source carries, so an
+   orphan can be shown among its own catalogue rather than alone. Failing to get
+   them is not fatal — the strip degrades to the single value and says so. */
+function index(rows) {
+  const by = {};
+  for (const r of rows || []) {
+    if (!Number.isFinite(Number(r.value))) continue;
+    const k = `${r.source}|${r.quantity}`;
+    (by[k] = by[k] || []).push(Number(r.value));
+  }
+  return by;
+}
+
+function render(claims, population, live, note) {
+  const open = claims.filter((c) => !c.status || c.status === 'open');
+  const closed = claims.filter((c) => c.status && c.status !== 'open');
+
+  /* Strongest disagreement first, then the unwritten-about, then everything
+     that has been closed — which stays on the page. A register that dropped its
+     retractions would be the one document this instrument must never produce. */
+  const rank = (c) => (Number.isFinite(c.sigma) ? -1000 + -c.sigma : 0);
+  open.sort((a, b) => (rank(a) - rank(b))
+    || String(b.opened_at || '').localeCompare(String(a.opened_at || '')));
+
+  const tension = open.filter((c) => c.kind === 'tension').length;
+  $('#tally').innerHTML = `
+    <div><b>${open.length}</b><span>open</span></div>
+    <div><b>${tension}</b><span>tensions</span></div>
+    <div><b>${open.length - tension}</b><span>unexplained</span></div>
+    ${closed.length ? `<div class="w"><b>${closed.length}</b><span>withdrawn</span></div>` : ''}`;
+
+  $('#prov').innerHTML = live
+    ? `Read live from the claims register. <b>${claims.length}</b> claims in total, of which
+       <b>${open.length}</b> are open. Every one survived a search that could have refuted it;
+       ${closed.length ? `<b>${closed.length}</b> did not, and ${closed.length === 1 ? 'it is' : 'they are'}
+       still here with the reason.` : 'none have been closed yet.'}`
+    : `<b>Showing a stored copy.</b> The live register could not be reached${note ? ` — ${esc(note)}` : ''},
+       so this is the last known state and may be out of date. The counts and every value below are
+       verbatim from that copy, not reconstructed.`;
+
+  $('#register').innerHTML = open.concat(closed).length
+    ? open.concat(closed).map((c) => entry(c, population)).join('')
+    : `<div class="state"><h2>Nothing is open.</h2>
+        <p>The register is empty. That is a real state and not an error: every comparison this
+        instrument has run either agreed, or lacked an error bar on one side, or could not be
+        traced to the text it came from — and none of those is a claim.</p></div>`;
+}
+
+function safely(fn) {
+  /* A thrown render used to leave a filled masthead above an empty register,
+     which is indistinguishable from a frontier with nothing open. Those are
+     opposite facts and must never look alike. */
+  try { fn(); } catch (e) {
+    document.querySelector('#register').innerHTML =
+      `<div class="state"><h2>This page failed to draw the register.</h2>
+        <p>The claims were fetched but something went wrong rendering them, so nothing below is
+        trustworthy and none of it is shown. This is a fault in the page, not an empty frontier.</p>
+        <p class="num" style="color:var(--dead)">${esc(String(e && e.message || e))}</p></div>`;
+  }
+}
+
+(async () => {
+  try {
+    const [claims, obs] = await Promise.all([
+      get('claims?select=*&order=opened_at.desc&limit=200'),
+      get('observations?select=source,quantity,value&limit=2000').catch(() => []),
+    ]);
+    if (!Array.isArray(claims)) throw new Error('unexpected reply');
+    safely(() => render(claims, index(obs), true));
+  } catch (e) {
+    safely(() => render(SNAPSHOT, index(SNAPSHOT.map((c) => ({
+      source: (c.observed || {}).source, quantity: c.quantity, value: (c.observed || {}).value,
+    }))), false, String(e && e.message || e)));
+  }
+})();
+</script>
