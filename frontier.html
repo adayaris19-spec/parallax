@@ -244,6 +244,86 @@ body::before{
 .prose b{color:var(--ink);font-weight:700}
 .hollow{padding:56px 30px;text-align:center;color:var(--ink-2);background:rgba(255,255,255,.6);border-radius:var(--r-lg);font:400 17px/1.55 var(--ui);max-width:54ch;margin:28px auto 0}
 .moved{margin:0;padding:14px 18px;border-radius:var(--r-md);background:var(--live-soft);font:500 14.5px/1.5 var(--ui)}
+
+/* ---------------------------------------------------------- entry layout ---
+   Two columns, not a stack of identical cards: a reading column that behaves
+   like a page, and a rail that stays with you carrying the numbers, your
+   position on the question, and the way to ask about it. */
+.entry-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:44px;align-items:start;padding:18px 0 0}
+@media(max-width:1000px){.entry-wrap{grid-template-columns:1fr;gap:26px}}
+.read{max-width:66ch;min-width:0}
+.rail{position:sticky;top:92px;display:grid;gap:14px}
+@media(max-width:1000px){.rail{position:static}}
+
+.read h2{margin:16px 0 0;font:800 clamp(30px,4vw,44px)/1.05 var(--ui);letter-spacing:-.042em;text-wrap:balance}
+.read .plain{margin:18px 0 0;font:400 19.5px/1.55 var(--ui);color:var(--ink-2)}
+/* The stakes are the reason to read the entry, so they are set as a passage
+   with a rule beside them rather than boxed like everything else. */
+.stakes{margin:34px 0 0;padding:2px 0 2px 26px;border-left:3px solid var(--live);background:none;box-shadow:none;border-radius:0}
+.stakes h4{margin:0 0 12px;font:800 13px/1 var(--ui);color:var(--live)}
+.stakes p{margin:0;font:400 19px/1.6 var(--ui);color:var(--ink);letter-spacing:-.014em}
+.section{margin:38px 0 0;padding-top:22px;border-top:1px solid rgba(16,17,20,.09)}
+.section > h4{margin:0 0 16px;font:800 13px/1 var(--ui);color:var(--ink-3)}
+.figwrap{margin:0}
+.figwrap svg{display:block;width:100%;height:auto}
+.figwrap .cap{margin:12px 0 0;font:400 13px/1.5 var(--ui);color:var(--ink-3)}
+.killnote{margin:0;font:400 17px/1.62 var(--ui);color:var(--ink-2)}
+.killnote b{display:block;font:800 13px/1 var(--ui);color:var(--kill);margin-bottom:10px}
+
+/* rail cards */
+.card{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:17px 18px}
+.card h5{margin:0 0 12px;font:800 12px/1 var(--ui);color:var(--ink-3)}
+.readout{display:grid;gap:12px}
+.readout .row{display:grid;gap:3px}
+.readout .who{font:600 12px/1.3 var(--ui);color:var(--ink-3)}
+.readout .val{font:800 21px/1.1 var(--ui);letter-spacing:-.032em}
+.readout .val small{font:500 11.5px/1 var(--mono);color:var(--ink-3);margin-left:4px}
+.readout .gap{
+  display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:999px;
+  background:var(--live-soft);color:var(--live);font:800 13px/1 var(--ui);justify-content:center;
+}
+.rail .keep{margin:0;width:100%;justify-content:center;text-align:center}
+.myguess{background:var(--astro-soft);border-radius:var(--r-md);padding:15px 17px;font:400 13.5px/1.5 var(--ui);color:var(--ink-2)}
+.myguess b{color:var(--astro);font-weight:700}
+
+/* Ask Parallax */
+.ask h5{color:var(--astro)}
+.ask .qs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.ask .qs button{
+  appearance:none;cursor:pointer;border:0;background:rgba(16,17,20,.045);color:var(--ink-2);
+  border-radius:999px;padding:7px 11px;font:600 11.5px/1.25 var(--ui);text-align:left;
+}
+.ask .qs button:hover{background:var(--astro-soft);color:var(--astro)}
+.ask form{display:flex;gap:7px}
+.ask input{
+  flex:1;min-width:0;border:0;background:rgba(16,17,20,.045);border-radius:999px;
+  padding:10px 14px;font:500 13px/1 var(--ui);color:var(--ink);
+}
+.ask input::placeholder{color:var(--ink-3)}
+.ask .go{appearance:none;cursor:pointer;border:0;background:var(--astro);color:#fff;border-radius:999px;padding:10px 15px;font:700 12.5px/1 var(--ui)}
+.ask .go[disabled]{opacity:.5;cursor:progress}
+.ask .out{margin:13px 0 0;font:400 14px/1.6 var(--ui);color:var(--ink-2);white-space:pre-wrap}
+.ask .said{margin:0 0 8px;font:700 13px/1.4 var(--ui);color:var(--ink)}
+.ask .fine{margin:11px 0 0;font:400 11.5px/1.45 var(--ui);color:var(--ink-3)}
+
+/* ------------------------------------------------------------ watch rows ---
+   Watch is a list of positions, not a second copy of the feed. */
+.pos{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:18px 20px;display:grid;gap:10px}
+.pos .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pos h3{margin:0;font:700 19px/1.25 var(--ui);letter-spacing:-.026em}
+.pos .line{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font:400 13.5px/1.5 var(--ui);color:var(--ink-2)}
+.pos .line b{font-weight:700;color:var(--ink)}
+.pos .await{font:400 13.5px/1.55 var(--ui);color:var(--ink-3)}
+.pos .await b{color:var(--kill);font-weight:700}
+.pos .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.pos .acts button{appearance:none;cursor:pointer;border:0;border-radius:999px;padding:8px 14px;font:600 12.5px/1 var(--ui);background:rgba(16,17,20,.05);color:var(--ink-2)}
+.pos .acts button:hover{background:rgba(16,17,20,.09);color:var(--ink)}
+.stack{display:grid;gap:14px;max-width:74ch;margin:0 auto}
+
+/* ---------------------------------------------------------- bench subnav --- */
+.subnav{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 20px}
+.subnav button{appearance:none;cursor:pointer;border:0;border-radius:999px;padding:9px 15px;font:600 13px/1 var(--ui);background:rgba(255,255,255,.8);color:var(--ink-2);box-shadow:var(--lift)}
+.subnav button[aria-selected="true"]{background:var(--ink);color:#fff}
 [hidden]{display:none!important}
 </style>
 
@@ -1533,7 +1613,9 @@ const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch
 let REGISTER = SNAPSHOT.slice();
 let POSTS = SEEDS.concat(fromRegister(REGISTER));
 let TAB = "feed", SIFT = "all", QUERY = "", OPEN_ID = null;
-let BENCH = { running:false, out:"", target:"Kepler-10", mode:"tension" };
+let BENCH = { running:false, out:"", target:"Kepler-10", mode:"tension", sub:"run" };
+// Ask Parallax: the sampling capability, and one answer kept per entry.
+let SAMPLE = null; const ASK = {};
 
 const post = id => POSTS.find(p => p.id === id);
 const matches = p => {
@@ -1568,14 +1650,71 @@ function tile(p, w){
 }
 
 /* ----------------------------------------------------------------- detail */
+const SUGGEST = [
+  "Why has this not been settled yet?",
+  "Who is working on it right now?",
+  "What would I need to know to follow the argument?",
+  "What is the strongest case for each side?"
+];
+
+function railFor(p, w){
+  const S = (p.sides || []).filter(s => Number.isFinite(s.value));
+  const g = rd(GKEY)[p.id];
+  const numbers = S.length >= 2 ? `<div class="card">
+      <h5>The two measurements</h5>
+      <div class="readout">
+        <div class="row"><span class="who">${esc(S[0].label)}</span>
+          <span class="val">${num(S[0].value)}${S[0].err ? ` ± ${num(S[0].err)}` : ""}<small>${esc(S[0].unit || "")}</small></span></div>
+        <div class="gap">${Number.isFinite(p.sigma) ? `${p.sigma}σ apart` : "cannot both be right"}</div>
+        <div class="row"><span class="who">${esc(S[1].label)}</span>
+          <span class="val">${num(S[1].value)}${S[1].err ? ` ± ${num(S[1].err)}` : ""}<small>${esc(S[1].unit || "")}</small></span></div>
+      </div>
+    </div>` : "";
+
+  const mine = g ? `<div class="myguess">Your position: <b>${esc(g.pick)}</b>. It is being tracked in Watch.</div>` : "";
+
+  // Ask Parallax. Only rendered where the viewer's runtime can actually
+  // answer — absence is the normal case, and the rail must read fine without it.
+  const a = ASK[p.id] || {};
+  const ask = SAMPLE ? `<div class="card ask">
+      <h5>Ask Parallax about this</h5>
+      <div class="qs">${SUGGEST.map(q => `<button data-ask="${esc(p.id)}" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+      <form data-askform="${esc(p.id)}">
+        <input name="q" placeholder="Ask your own question" value="${esc(a.busy ? a.q : "")}" ${a.busy ? "disabled" : ""}>
+        <button class="go" type="submit" ${a.busy ? "disabled" : ""}>${a.busy ? "…" : "Ask"}</button>
+      </form>
+      ${a.q && !a.busy ? `<p class="said">${esc(a.q)}</p>` : ""}
+      ${a.busy || a.text || a.err ? `<div class="out" id="ask-out">${esc(a.text || (a.busy ? "Thinking…" : ""))}</div>` : ""}
+      ${a.err ? `<p class="fine">${esc(a.err)}</p>` : ""}
+      <p class="fine">Answers come from Claude with this entry as context. It cannot browse — the
+        sources below are what the numbers are drawn from.</p>
+    </div>` : "";
+
+  return `<aside class="rail">
+    ${numbers}
+    ${mine}
+    <button class="keep" data-id="${esc(p.id)}" aria-pressed="${!!w[p.id]}">${w[p.id] ? "Watching this" : "Watch this question"}</button>
+    ${ask}
+  </aside>`;
+}
+
 function detail(p, w){
   const g = rd(GKEY), mine = g[p.id];
   const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
 
-  const numbers = two ? `<div class="layer">
+  const guessBlock = p.guess ? `<div class="guess">
+      <p>${esc(p.guess)}</p>
+      ${mine ? `<p class="said-you">You said <b>${esc(mine.pick)}</b>. Nothing has settled it yet —
+        this question is now in Watch, and if it moves that is where you will see it.</p>`
+      : `<div class="opts">${(p.sides.length ? p.sides.map(s => s.label) : ["Yes", "No"])
+          .map(l => `<button data-guess="${esc(p.id)}" data-pick="${esc(l)}">${esc(l)}</button>`).join("")}
+        </div>`}
+    </div>` : "";
+
+  const numbers = two ? `<div class="section">
       <h4>What was measured</h4>
-      <div class="plate">${safely(() => interval(p), "")}
-        <div class="cap">${esc((p.sides[0] || {}).source || "")} · ${esc((p.sides[1] || {}).source || "")}</div>
+      <div class="figwrap">${safely(() => interval(p), "")}
+        <p class="cap">${esc((p.sides[0] || {}).source || "")} · ${esc((p.sides[1] || {}).source || "")}</p>
       </div>
       <dl class="sides">${p.sides.map(s => `<div>
         <dt>${esc(s.label)}</dt>
@@ -1584,61 +1723,47 @@ function detail(p, w){
       </div>`).join("")}</dl>
     </div>` : "";
 
-  const record = p.history ? `<div class="layer">
+  const record = p.history ? `<div class="section">
       <h4>How the measurements have moved</h4>
-      <div class="plate">${safely(() => history(p), "")}
-        ${p.history_note ? `<div class="cap">${esc(p.history_note)}</div>` : ""}
+      <div class="figwrap">${safely(() => history(p), "")}
+        ${p.history_note ? `<p class="cap">${esc(p.history_note)}</p>` : ""}
       </div>
     </div>` : "";
 
-  const guessBlock = p.guess ? `<div class="guess">
-      <p>${esc(p.guess)}</p>
-      ${mine ? `<p class="said-you">You said <b>${esc(mine.pick)}</b>. Nothing has settled it yet —
-        if it does, this entry moves, and Watch shows you the move.</p>`
-      : `<div class="opts">${(p.sides.length ? p.sides.map(s => s.label) : ["Yes", "No"])
-          .map(l => `<button data-guess="${esc(p.id)}" data-pick="${esc(l)}">${esc(l)}</button>`).join("")}
-        </div>`}
-    </div>` : "";
-
   return `<button class="back" data-back>← All entries</button>
-  <article class="detail ${esc(p.field)}">
-    <div class="eyebrow">
-      <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
-      <span class="pill kind">${esc(KIND_WORD[p.kind] || p.kind)}</span>
-      <span class="pill kind">${p.machine ? "Found by Parallax" : "Curated entry"}</span>
-      <span class="state">${esc(p.status)}</span>
-    </div>
-    <h2>${esc(p.title)}</h2>
-    <p class="plain">${esc(p.plain)}</p>
-    ${guessBlock}
-
-    <div class="layer">
+  <div class="entry-wrap ${esc(p.field)}">
+    <article class="read">
+      <div class="eyebrow">
+        <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
+        <span class="pill kind">${esc(KIND_WORD[p.kind] || p.kind)}</span>
+        <span class="pill kind">${p.machine ? "Found by Parallax" : "Curated entry"}</span>
+        <span class="state">${esc(p.status)}</span>
+      </div>
+      <h2>${esc(p.title)}</h2>
+      <p class="plain">${esc(p.plain)}</p>
+      ${guessBlock}
       <div class="stakes">
         <h4>What turns on the answer</h4>
         <p>${esc(p.stakes)}</p>
       </div>
-    </div>
-
-    ${numbers}
-    ${record}
-
-    <div class="layer">
-      <h4>${p.nokill ? "Why this is not a claim" : "What would end it"}</h4>
-      <div class="kill ${p.nokill ? "nokill" : ""}">
-        <span class="lab">${p.nokill ? "No kill condition" : "Kill condition"}</span>
-        <p>${esc(p.kill)}</p>
+      ${numbers}
+      ${record}
+      <div class="section">
+        <h4>${p.nokill ? "Why this is not a claim" : "What would end it"}</h4>
+        <p class="killnote"><b>${p.nokill ? "No kill condition" : "Kill condition"}</b>${esc(p.kill)}</p>
+        ${p.resolution ? `<p class="killnote" style="margin-top:18px"><b style="color:var(--live)">How it ended</b>${esc(p.resolution)}</p>` : ""}
       </div>
-      ${p.resolution ? `<div class="kill"><span class="lab">How it ended</span><p>${esc(p.resolution)}</p></div>` : ""}
-      ${p.members ? `<ul class="cites">${p.members.map(m => `<li>${esc(m.object)} — ${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)} · ${esc(m.claim_id)}</li>`).join("")}</ul>` : ""}
-      ${p.cites ? `<ul class="cites">${p.cites.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
-    </div>
-    <div class="foot">
-      <span>${esc(p.id)}</span>
-      ${p.opened ? `<span>${esc(days(p.opened))}</span>` : ""}
-      ${p.url ? `<a href="${esc(p.url)}">source</a>` : ""}
-      <button class="keep" data-id="${esc(p.id)}" aria-pressed="${!!w[p.id]}">${w[p.id] ? "Watching" : "Watch"}</button>
-    </div>
-  </article>`;
+      <div class="section">
+        <h4>Sources</h4>
+        <ul class="cites">
+          ${p.members ? p.members.map(m => `<li>${esc(m.object)} — ${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)} · ${esc(m.claim_id)}</li>`).join("") : ""}
+          ${(p.cites || []).map(c => `<li>${esc(c)}</li>`).join("")}
+        </ul>
+        <div class="foot"><span>${esc(p.id)}</span>${p.opened ? `<span>${esc(days(p.opened))}</span>` : ""}${p.url ? `<a href="${esc(p.url)}">source</a>` : ""}</div>
+      </div>
+    </article>
+    ${railFor(p, w)}
+  </div>`;
 }
 
 /* ------------------------------------------------------------------ heads */
@@ -1695,25 +1820,46 @@ function feed(w){
 function watch(w){
   const kept = POSTS.filter(p => w[p.id]);
   if (!kept.length)
-    return `<p class="hollow">Nothing kept yet. Open an entry and press Watch. It is held here with the
-      state it was in when you took it, so if Parallax later withdraws or confirms it, the change is
-      what you see first.</p>`;
-  return `<div class="grid">${kept.map(p => {
-    const was = w[p.id] || {};
+    return `<p class="hollow">Watch is where you keep the questions you care about. Open any entry
+      and press <b>Watch this question</b> — or answer its "which side is right" — and it is held
+      here with the state it was in at that moment. Then, if the question ever resolves, or Parallax
+      withdraws a claim, the change is the first thing you see rather than something you would have
+      had to notice.</p>`;
+  const guesses = rd(GKEY);
+  return `<div class="stack">${kept.map(p => {
+    const was = w[p.id] || {}, g = guesses[p.id];
     const moved = was.status && was.status !== p.status;
-    return (moved ? `<p class="moved" style="grid-column:1/-1">${esc(p.title)} moved: <b>${esc(was.status)}</b> → <b>${esc(p.status)}</b></p>` : "") + tile(p, w);
+    const closed = p.status !== "open";
+    return `<article class="pos">
+      <div class="top">
+        <span class="pill fld ${esc(p.field)}">${esc(FIELD_WORD[p.field] || p.field)}</span>
+        <span class="pill kind">${closed ? esc(p.status) : "still open"}</span>
+      </div>
+      <h3>${esc(p.title)}</h3>
+      ${moved ? `<p class="moved">This moved since you kept it: <b>${esc(was.status)}</b> → <b>${esc(p.status)}</b></p>` : ""}
+      ${g ? `<p class="line">You backed <b>${esc(g.pick)}</b>${closed ? "" : " — nothing has settled it yet"}.</p>`
+          : `<p class="line">Kept ${esc(String(was.at || "").slice(0, 10))}. You have not taken a side.</p>`}
+      <p class="await"><b>Waiting on:</b> ${esc(String(p.kill).split(". ")[0])}.</p>
+      <div class="acts">
+        <button data-open="${esc(p.id)}">Open</button>
+        <button class="keep" data-id="${esc(p.id)}" aria-pressed="true" style="margin:0">Stop watching</button>
+      </div>
+    </article>`;
   }).join("")}</div>`;
 }
 
 // The researcher's side: what the engine does, the rules that gate a claim,
 // what it queries, and a live run against any subject.
 function bench(){
-  return `<section class="bench">
-    <div class="form">
+  const tabs = [["run", "Run a sweep"], ["how", "How it works"], ["rules", "What gates a claim"], ["what", "What it queries"]];
+  const sub = `<div class="subnav">${tabs.map(([k, l]) =>
+    `<button data-sub="${k}" aria-selected="${BENCH.sub === k}">${l}</button>`).join("")}</div>`;
+
+  const run = `<div class="form">
       <input id="bench-target" value="${esc(BENCH.target)}" placeholder="Kepler-10, TRAPPIST-1, GW250114">
       <select id="bench-mode">
         ${[["tension", "tension — both eyes, the comparison, any claims"],
-           ["sky", "sky — observatories only, store what they report"],
+           ["sky", "sky — observatories only"],
            ["papers", "papers — what the indices return for one name"],
            ["probe", "probe — does every observatory answer?"],
            ["scorecard", "scorecard — what has been claimed, how it resolved"]]
@@ -1721,57 +1867,48 @@ function bench(){
       </select>
       <button id="bench-run"${BENCH.running ? " disabled" : ""}>${BENCH.running ? "Sweeping…" : "Run sweep"}</button>
     </div>
-    ${BENCH.out ? `<div class="out">${BENCH.out}</div>` : ""}
+    ${BENCH.out ? `<div class="out">${BENCH.out}</div>`
+      : `<p class="prose" style="margin-top:20px">A full sweep asks six services and takes about half a
+        minute. It returns what it found <b>and what it dropped</b> — the denominator, always: a sweep
+        that compared four things and found one disagreement is a different object from one that
+        compared four thousand.</p>`}`;
 
-    <div class="panel">
-      <h4>What a sweep actually does</h4>
-      <ol class="steps">
-        <li><b>Asks the archives.</b> Six services in parallel — the NASA Exoplanet Archive, GWOSC,
-          SIMBAD, the Minor Planet Center, JPL Small-Body Database, and the TESS object catalogue —
-          for every object matching the subject, with the value, its stated uncertainty and the
-          reference that published it.</li>
-        <li><b>Reads the literature.</b> Queries OpenAlex and arXiv for the same subject, ranks
-          results by whether the title actually names an object rather than by citation count,
-          and keeps the full abstract where one is available.</li>
-        <li><b>Extracts with receipts.</b> Pulls stated values out of the abstracts, and requires
-          every extracted number to appear as digits in the text it was read from. A value that
-          cannot be found in its own source is dropped, not flagged.</li>
-        <li><b>Normalises to SI.</b> Thirty-six unit spellings map to SI before anything is
-          compared, and a quantity must match its declared dimension and a plausible magnitude.
-          Anything unconvertible is dropped and named in the reply.</li>
-        <li><b>Computes the disagreement.</b> σ = |measured − reported| ÷ √(err₁² + err₂²). No
-          model past this line — from here it is arithmetic.</li>
-        <li><b>Mints, or refuses to.</b> A claim is written only with the measurement that would
-          end it. It also reports the denominator: how many objects it compared, what it dropped,
-          and why.</li>
-      </ol>
-    </div>
+  const how = `<div class="panel"><ol class="steps">
+      <li><b>Asks the archives.</b> Six services in parallel, for every object matching the subject,
+        with the value, its stated uncertainty, and the reference that published it.</li>
+      <li><b>Reads the literature.</b> OpenAlex and arXiv for the same subject, ranked by whether the
+        title actually names an object rather than by citation count.</li>
+      <li><b>Extracts with receipts.</b> Every number pulled from an abstract must appear as digits in
+        the text it was read from. A value that cannot be found in its own source is dropped.</li>
+      <li><b>Normalises to SI.</b> Thirty-six unit spellings map to SI before anything is compared,
+        and a quantity must match its declared dimension and a plausible magnitude.</li>
+      <li><b>Computes the disagreement.</b> σ = |measured − reported| ÷ √(err₁² + err₂²). No model
+        past this line — from here it is arithmetic.</li>
+      <li><b>Mints, or refuses to.</b> A claim is written only with the measurement that would end it,
+        and the reply carries what was dropped and why.</li>
+    </ol></div>`;
 
-    <div class="panel">
-      <h4>The rules a claim has to pass</h4>
-      <ul class="rules">
-        <li><b>No error bar, no claim.</b> Two numbers without stated uncertainties are not a disagreement.</li>
-        <li><b>No kill condition, no claim.</b> There is no code path that writes a claim without the measurement that would end it.</li>
-        <li><b>No value that is not in the source text.</b> Every stated value must appear as digits in the text it was read from.</li>
-        <li><b>An absence must be searched for.</b> Before saying nothing explains an object, the worker queries an index and carries the hit count as its receipt. If the check errors, no claim.</li>
-        <li><b>A value must agree with what it claims to be.</b> A quantity declares a dimension and a plausible magnitude — an age and an orbital period are both times, and only magnitude separates them.</li>
-        <li><b>Never compare in the unit it arrived in.</b> Everything normalises to SI first or is dropped. Jupiter radii against Earth radii is a factor of eleven.</li>
-        <li><b>A targeted question gets targeted claims.</b> Correct claims about the wrong subject are still the wrong answer.</li>
-      </ul>
-    </div>
+  const rules = `<div class="panel"><ul class="rules">
+      <li><b>No error bar, no claim.</b> Two numbers without stated uncertainties are not a disagreement.</li>
+      <li><b>No kill condition, no claim.</b> No code path writes a claim without the measurement that would end it.</li>
+      <li><b>No value that is not in the source text.</b> Every stated value must appear as digits in the text it was read from.</li>
+      <li><b>An absence must be searched for.</b> Before saying nothing explains an object, the worker queries an index and carries the hit count as its receipt. If the check errors, no claim.</li>
+      <li><b>A value must agree with what it claims to be.</b> An age and an orbital period are both times; only magnitude separates them.</li>
+      <li><b>Never compare in the unit it arrived in.</b> Jupiter radii against Earth radii is a factor of eleven.</li>
+      <li><b>A targeted question gets targeted claims.</b> Correct claims about the wrong subject are still the wrong answer.</li>
+    </ul></div>`;
 
-    <div class="panel">
-      <h4>What it queries</h4>
-      <ul class="srcs">
-        <li><code>exoplanet-archive</code><span>Confirmed planets: mass, radius, period, with the reference that published each value.</span></li>
-        <li><code>gwosc</code><span>Every gravitational-wave event released by LIGO/Virgo/KAGRA, with component masses and distances.</span></li>
-        <li><code>simbad</code><span>Identifiers, coordinates and object types for anything with a name.</span></li>
-        <li><code>mpc / jpl-sbdb</code><span>Asteroids and comets: orbital elements, diameters, albedos.</span></li>
-        <li><code>openalex</code><span>The literature perimeter — title and abstract search across every field and year.</span></li>
-        <li><code>arxiv</code><span>Preprints, for anything published faster than an index can catch it.</span></li>
-      </ul>
-    </div>
-  </section>`;
+  const what = `<div class="panel"><ul class="srcs">
+      <li><code>exoplanet-archive</code><span>Confirmed planets: mass, radius, period, each with its published reference.</span></li>
+      <li><code>gwosc</code><span>Every gravitational-wave event released by LIGO, Virgo and KAGRA.</span></li>
+      <li><code>simbad</code><span>Identifiers, coordinates and object types for anything with a name.</span></li>
+      <li><code>mpc / jpl-sbdb</code><span>Asteroids and comets: orbital elements, diameters, albedos.</span></li>
+      <li><code>openalex</code><span>The literature perimeter — title and abstract, every field and year.</span></li>
+      <li><code>arxiv</code><span>Preprints, for anything published faster than an index can catch it.</span></li>
+    </ul></div>`;
+
+  return `<section class="bench">${sub}${
+    BENCH.sub === "how" ? how : BENCH.sub === "rules" ? rules : BENCH.sub === "what" ? what : run}</section>`;
 }
 
 function record(){
@@ -1866,7 +2003,18 @@ document.addEventListener("click", e => {
   if (open) { OPEN_ID = open.dataset.open; TAB = "feed"; render(); window.scrollTo(0, 0); return; }
   if (e.target.closest("[data-back]")) { OPEN_ID = null; render(); window.scrollTo(0, 0); return; }
   const g = e.target.closest("[data-guess]");
-  if (g) { const all = rd(GKEY); all[g.dataset.guess] = { pick: g.dataset.pick, at: Date.now() }; wr(GKEY, all); render(); return; }
+  if (g) {
+    // Taking a side is taking a position, so it is kept in Watch — which is
+    // what makes Watch fill up with things you actually care about.
+    const all = rd(GKEY); all[g.dataset.guess] = { pick: g.dataset.pick, at: Date.now() }; wr(GKEY, all);
+    const w = rd(WKEY);
+    if (!w[g.dataset.guess]) { w[g.dataset.guess] = { status: (post(g.dataset.guess) || {}).status, at: new Date().toISOString() }; wr(WKEY, w); }
+    render(); return;
+  }
+  const sub = e.target.closest("[data-sub]");
+  if (sub) { BENCH.sub = sub.dataset.sub; render(); return; }
+  const sug = e.target.closest("[data-ask]");
+  if (sug) { askAbout(sug.dataset.ask, sug.dataset.q); return; }
   const k = e.target.closest(".keep");
   if (k) {
     const id = k.dataset.id, w = rd(WKEY);
@@ -1876,6 +2024,14 @@ document.addEventListener("click", e => {
   const c = e.target.closest(".chip");
   if (c) { SIFT = c.dataset.sift; OPEN_ID = null; render(); return; }
   if (e.target.id === "bench-run") runSweep();
+});
+
+document.addEventListener("submit", e => {
+  const f = e.target.closest("[data-askform]");
+  if (!f) return;
+  e.preventDefault();
+  const q = String(new FormData(f).get("q") || "").trim();
+  if (q) askAbout(f.dataset.askform, q);
 });
 
 document.addEventListener("input", e => {
@@ -1888,7 +2044,76 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => { if (e.target.id === "bench-mode") BENCH.mode = e.target.value; });
 
+/* -------------------------------------------------------- ask about an entry
+   The page hands Claude the entry's own facts and the reader's question. It
+   cannot browse, so the answer is reasoning over what is here plus what the
+   model already knows — the copy in the rail says so rather than implying a
+   lookup. */
+async function askAbout(id, q){
+  const p = post(id);
+  if (!p || !SAMPLE || (ASK[id] || {}).busy) return;
+  ASK[id] = { q, text:"", err:"", busy:true };
+  render();
+
+  const facts = [
+    `ENTRY: ${p.title}`,
+    `FIELD: ${p.field}   KIND: ${p.kind}   STATUS: ${p.status}`,
+    `WHAT IT IS: ${p.plain}`,
+    `WHAT TURNS ON IT: ${p.stakes}`,
+    ...(p.sides || []).filter(s => Number.isFinite(s.value))
+      .map(s => `MEASUREMENT: ${s.label} = ${s.value}${s.err ? " ± " + s.err : ""} ${s.unit || ""} (${s.source})`),
+    Number.isFinite(p.sigma) ? `SEPARATION: ${p.sigma} sigma` : "",
+    `WHAT WOULD END IT: ${p.kill}`,
+    `SOURCES: ${(p.cites || []).join("; ")}`
+  ].filter(Boolean).join("\n");
+
+  const prompt = `You are answering inside Parallax, a register of open scientific questions.
+A reader is looking at the entry below and has asked a question about it.
+
+${facts}
+
+READER'S QUESTION: ${q}
+
+Answer in two to four short paragraphs of plain prose — no headings, no bullet lists.
+Be concrete and technical where it helps, but assume the reader is not a specialist in this field.
+Do not invent numbers: use the values above, or say that a figure is not in front of you.
+If the honest answer is that nobody knows, say that and say what is missing.
+If the question cannot be answered from this entry, say so briefly and answer what you can.`;
+
+  try {
+    const { text } = await SAMPLE(prompt, {
+      modelTier: "default",
+      onText: ({ text }) => {
+        if (!ASK[id]) return;
+        ASK[id].text = text;
+        const el = document.getElementById("ask-out");
+        if (el) el.textContent = text;
+      }
+    });
+    ASK[id].text = text;
+  } catch (err) {
+    const code = (err && err.code) || "upstream_error";
+    ASK[id].text = (err && err.text) || "";
+    ASK[id].err =
+      code === "not_granted" || code === "sampling_disabled" ? "Asking Claude is not enabled for this view."
+      : code === "rate_limited" ? "Too many questions at once. Try again in a minute."
+      : code === "refused" ? "Claude declined to answer that one. Try asking it differently."
+      : "That did not come back. Try again.";
+    if (code === "not_granted" || code === "sampling_disabled") SAMPLE = null;
+  }
+  if (ASK[id]) ASK[id].busy = false;
+  render();
+}
+
 safely(() => render());
+
+// The Ask box only exists where the viewer's runtime can answer. Absence is
+// the normal case: the rail is written to read correctly without it.
+(async () => {
+  try { SAMPLE = (window.claude && window.claude.use) ? await window.claude.use("sample") : null; }
+  catch { SAMPLE = null; }
+  if (SAMPLE) safely(() => render());
+})();
 
 // Live claims where the page can reach the database; the snapshot stands in
 // where it cannot, which is the normal case inside a sandboxed frame.
