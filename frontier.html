@@ -6,9 +6,9 @@
 <style>
 /* ---------------------------------------------------------------- tokens ---
    Light, and only light — no dark palette in this file and no system switch.
-   Nothing here has a hard edge: every surface is a rounded panel lifted off a
-   warm ground by shadow rather than fenced in by a rule. Colour says two
-   things only — which field an entry belongs to, and whether it is still open. */
+   Nothing has a hard edge: every surface is a rounded panel lifted off a warm
+   ground by shadow rather than fenced in by a rule. Colour says two things
+   only — which field an entry belongs to, and whether it is still open.       */
 :root{
   --paper:#F1F0ED;
   --surface:#FFFFFF;
@@ -26,7 +26,6 @@
   --live:#DE3F68;
   --live-soft:#FDEDF1;
   --shut:#3E9370;
-  --shut-soft:#EAF5F0;
   --kill:#B07C1B;
   --kill-soft:#FBF3E3;
   --r-lg:24px; --r-md:18px; --r-sm:13px;
@@ -42,8 +41,6 @@ body{
   font:400 16px/1.6 var(--ui);font-variant-numeric:tabular-nums;
   -webkit-font-smoothing:antialiased;letter-spacing:-.006em;
 }
-/* A single soft wash behind the masthead, so the page opens with light rather
-   than with a ruled box. */
 body::before{
   content:"";position:fixed;inset:0 0 auto;height:520px;pointer-events:none;z-index:0;
   background:
@@ -62,33 +59,29 @@ body::before{
 }
 .tabs button{
   appearance:none;border:0;cursor:pointer;background:transparent;color:var(--ink-2);
-  font:600 13px/1 var(--ui);letter-spacing:-.005em;padding:10px 17px;border-radius:999px;
+  font:600 13px/1 var(--ui);padding:10px 17px;border-radius:999px;
   transition:background .15s,color .15s;
 }
 .tabs button:hover{color:var(--ink);background:rgba(16,17,20,.045)}
 .tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
 .tabs button .n{font-family:var(--mono);font-size:11px;opacity:.55;margin-left:7px}
 
-/* ------------------------------------------------------------- masthead --- */
+/* ---------------------------------------------------------- page heading ---
+   Each surface introduces itself. The register's argument belongs on the
+   Feed, and repeating it above Watch or the Workbench would be furniture.     */
 .mast{padding:34px 0 0;text-align:center}
 .mark{display:flex;align-items:center;justify-content:center;gap:11px}
 .mark svg{width:30px;height:30px;flex:none}
 .mark h1{margin:0;font:800 27px/1 var(--ui);letter-spacing:-.035em}
-.lede{
-  margin:16px auto 0;max-width:60ch;
-  font:400 19px/1.5 var(--ui);color:var(--ink-2);letter-spacing:-.012em;text-wrap:balance;
-}
+.lede{margin:16px auto 0;max-width:60ch;font:400 19px/1.5 var(--ui);color:var(--ink-2);letter-spacing:-.012em;text-wrap:balance}
 .lede b{color:var(--ink);font-weight:700}
-/* The counts, as one quiet line. They were four bordered boxes; they are
-   four facts, and four facts do not need four boxes. */
-.tally{
-  display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:20px 0 0;padding:0;
-  list-style:none;font:500 13px/1 var(--ui);color:var(--ink-2);
-}
+.tally{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:20px 0 0;padding:0;list-style:none;font:500 13px/1 var(--ui);color:var(--ink-2)}
 .tally li{background:rgba(255,255,255,.72);padding:9px 15px;border-radius:999px;box-shadow:var(--lift)}
 .tally b{color:var(--ink);font-weight:700}
 .tally .hot b{color:var(--live)}
 .stamp{display:block;margin:18px 0 0;font:400 11.5px/1 var(--mono);color:var(--ink-3)}
+.mast.left{max-width:74ch;margin:0 auto;text-align:left}
+.mast.left .lede{margin-left:0;text-align:left}
 
 /* ----------------------------------------------------------- filter row --- */
 .sift{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:26px 0 2px}
@@ -105,32 +98,23 @@ body::before{
 }
 .sift input::placeholder{color:var(--ink-3)}
 
-/* ---------------------------------------------------------------- tiles ---
-   Three across, so ten entries you do not care about cost one glance and not
-   ten screens. A tile is a whole question, never a fragment of one.           */
+/* ---------------------------------------------------------------- tiles --- */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:22px 0 0}
 @media(max-width:940px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.grid{grid-template-columns:1fr}}
-
 .tile{
   display:flex;flex-direction:column;gap:11px;text-align:left;cursor:pointer;
   background:var(--surface);border:0;border-radius:var(--r-lg);box-shadow:var(--lift);
-  padding:20px 21px 21px;min-height:210px;font:inherit;color:inherit;
+  padding:20px 21px 21px;min-height:206px;font:inherit;color:inherit;
   transition:box-shadow .18s,transform .18s;
 }
 .tile:hover{box-shadow:var(--lift-2);transform:translateY(-3px)}
 @media (prefers-reduced-motion:reduce){.tile,.chip{transition:none}.tile:hover{transform:none}}
 .tile.wide{grid-column:span 2;background:linear-gradient(152deg,#FFFFFF 58%,var(--astro-soft))}
-.tile.wide.genomics{background:linear-gradient(152deg,#FFFFFF 58%,var(--gene-soft))}
-.tile.wide.physics{background:linear-gradient(152deg,#FFFFFF 58%,var(--phys-soft))}
 @media(max-width:620px){.tile.wide{grid-column:span 1}}
 .tile.closed{background:var(--sunk);box-shadow:none}
-
 .head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.pill{
-  padding:5px 11px;border-radius:999px;font:600 11.5px/1 var(--ui);letter-spacing:-.002em;
-  background:var(--astro-soft);color:var(--astro);
-}
+.pill{padding:5px 11px;border-radius:999px;font:600 11.5px/1 var(--ui);background:var(--astro-soft);color:var(--astro)}
 .genomics .pill.fld{background:var(--gene-soft);color:var(--gene)}
 .physics .pill.fld{background:var(--phys-soft);color:var(--phys)}
 .pill.kind{background:rgba(16,17,20,.05);color:var(--ink-2)}
@@ -156,15 +140,20 @@ body::before{
 .detail{max-width:70ch;margin:0 auto;padding:20px 0 0}
 .detail .eyebrow{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .detail h2{margin:18px 0 0;font:800 clamp(30px,4.2vw,46px)/1.06 var(--ui);letter-spacing:-.042em;text-wrap:balance}
-.detail .plain{margin:18px 0 0;font:400 19.5px/1.55 var(--ink);color:var(--ink);letter-spacing:-.012em}
+.detail .plain{margin:18px 0 0;font:400 19.5px/1.55 var(--ui);color:var(--ink);letter-spacing:-.012em}
 .detail .said{margin:16px 0 0;font:400 15.5px/1.62 var(--ui);color:var(--ink-2)}
+.layer{margin:34px auto 0;max-width:74ch}
+.layer > h4{margin:0 0 12px;font:700 13px/1 var(--ui);color:var(--ink-3)}
 
-.layer{margin:30px 0 0}
-.layer > h4{margin:0 0 12px;font:700 13px/1 var(--ui);letter-spacing:-.01em;color:var(--ink-3)}
+/* What turns on the answer. This is the part a reader is here for, so it is
+   the largest block on the page and it is never optional. */
+.stakes{background:#fff;border-radius:var(--r-lg);box-shadow:var(--lift);padding:24px 26px}
+.stakes h4{margin:0 0 10px;font:800 19px/1.2 var(--ui);letter-spacing:-.028em;color:var(--ink)}
+.stakes p{margin:0;font:400 17px/1.62 var(--ui);color:var(--ink-2)}
+
 .plate{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--lift);padding:18px 16px 10px}
 .plate svg{display:block;width:100%;height:auto}
-.plate .cap{padding:10px 6px 2px;font:400 11.5px/1.5 var(--mono);color:var(--ink-3)}
-
+.plate .cap{padding:10px 6px 2px;font:400 12px/1.5 var(--ui);color:var(--ink-3)}
 .sides{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .sides div{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--lift);padding:16px 17px}
 .sides dt{margin:0 0 7px;font:600 12px/1.3 var(--ui);color:var(--ink-3)}
@@ -173,21 +162,18 @@ body::before{
 .sides p{margin:8px 0 0;font:400 13px/1.45 var(--ui);color:var(--ink-3)}
 @media(max-width:620px){.sides{grid-template-columns:1fr}}
 
-/* The guess, asked before the evidence is shown: committing first is the
-   difference between reading a fact and testing yourself against one. */
 .guess{background:var(--live-soft);border-radius:var(--r-md);padding:20px 21px;margin:20px 0 0}
 .guess p{margin:0 0 14px;font:700 17px/1.35 var(--ui);letter-spacing:-.018em}
 .guess .opts{display:flex;gap:9px;flex-wrap:wrap}
 .guess button{
-  appearance:none;cursor:pointer;background:#fff;border:0;border-radius:999px;
-  color:var(--ink);padding:11px 18px;font:600 13.5px/1.2 var(--ui);box-shadow:var(--lift);
-  transition:background .15s,color .15s;
+  appearance:none;cursor:pointer;background:#fff;border:0;border-radius:999px;color:var(--ink);
+  padding:11px 18px;font:600 13.5px/1.2 var(--ui);box-shadow:var(--lift);transition:background .15s,color .15s;
 }
 .guess button:hover{background:var(--live);color:#fff}
 .guess .said-you{margin:0;font:400 14.5px/1.55 var(--ui);color:var(--ink-2)}
 .guess .said-you b{color:var(--live);font-weight:700}
 
-.kill{margin:14px 0 0;background:var(--kill-soft);border-radius:var(--r-md);padding:17px 19px}
+.kill{margin:14px 0 0;background:var(--kill-soft);border-radius:var(--r-md);padding:19px 21px}
 .kill .lab{display:block;font:700 12px/1 var(--ui);color:var(--kill);margin-bottom:8px}
 .kill p{margin:0;font:400 15.5px/1.6 var(--ui);color:#6C4E12}
 .nokill{background:rgba(16,17,20,.045)}
@@ -205,10 +191,8 @@ body::before{
 .keep[aria-pressed="true"]{background:var(--astro);color:#fff}
 
 /* ------------------------------------------------------------ workbench --- */
-.bench{max-width:72ch;margin:0 auto;padding:26px 0 0}
-.bench h2{margin:0;font:800 34px/1.1 var(--ui);letter-spacing:-.04em}
-.bench .prose{margin:16px 0 0;font:400 17px/1.6 var(--ui);color:var(--ink-2)}
-.form{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 0}
+.bench{max-width:74ch;margin:0 auto;padding:8px 0 0}
+.form{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 0}
 .form input,.form select{
   background:#fff;border:0;border-radius:999px;color:var(--ink);
   padding:13px 19px;font:500 14px/1 var(--ui);box-shadow:var(--lift);
@@ -219,31 +203,46 @@ body::before{
   padding:13px 26px;font:600 13.5px/1 var(--ui);
 }
 .form button[disabled]{opacity:.45;cursor:progress}
-.modes{margin:18px 0 0;background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:6px 4px}
-.modes div{display:flex;gap:16px;padding:11px 16px;font:400 14px/1.5 var(--ui);color:var(--ink-2)}
-.modes code{font:500 12.5px/1.5 var(--mono);color:var(--astro);min-width:82px}
+.panel{background:#fff;border-radius:var(--r-lg);box-shadow:var(--lift);padding:22px 24px;margin:18px 0 0}
+.panel h4{margin:0 0 14px;font:800 17px/1.2 var(--ui);letter-spacing:-.024em}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{
+  position:relative;padding:0 0 16px 40px;font:400 14.5px/1.55 var(--ui);color:var(--ink-2);
+  border-left:2px solid var(--line);margin-left:11px;
+}
+.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps li::before{
+  counter-increment:s;content:counter(s);position:absolute;left:-13px;top:-2px;
+  width:24px;height:24px;border-radius:999px;background:var(--astro-soft);color:var(--astro);
+  font:700 11.5px/24px var(--ui);text-align:center;
+}
+.steps b{color:var(--ink);font-weight:700}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.rules li{background:var(--kill-soft);border-radius:var(--r-sm);padding:12px 15px;font:400 14px/1.5 var(--ui);color:#6C4E12}
+.rules b{color:var(--kill);font-weight:700;display:block;margin-bottom:2px}
+.srcs{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.srcs li{display:flex;gap:14px;padding:10px 2px;font:400 14px/1.5 var(--ui);color:var(--ink-2);border-bottom:1px solid var(--line)}
+.srcs li:last-child{border-bottom:0}
+.srcs code{font:500 12.5px/1.5 var(--mono);color:var(--astro);min-width:150px}
 .out{
-  margin:20px 0 0;background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:18px;
+  margin:18px 0 0;background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:18px;
   font:400 12px/1.6 var(--mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word;
-  max-height:440px;overflow:auto;
+  max-height:460px;overflow:auto;
 }
 .out b{color:var(--ink)}
 
 /* -------------------------------------------------------------- generic --- */
-.verdict{margin:26px auto 0;max-width:22ch;font:800 clamp(28px,3.8vw,42px)/1.1 var(--ui);letter-spacing:-.042em;text-align:center;text-wrap:balance}
+.verdict{margin:14px auto 0;max-width:74ch;font:800 clamp(26px,3.4vw,38px)/1.12 var(--ui);letter-spacing:-.042em;text-wrap:balance}
 .verdict em{font-style:normal;color:var(--live)}
-.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:28px 0 0}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:28px auto 0;max-width:74ch}
 .ledger div{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:20px}
 .ledger dt{margin:0 0 8px;font:600 12.5px/1 var(--ui);color:var(--ink-3)}
 .ledger dd{margin:0;font:800 32px/1 var(--ui);letter-spacing:-.04em}
 .ledger dd small{font:600 13px/1 var(--ui);color:var(--ink-3);margin-left:4px}
 .ledger p{margin:10px 0 0;font:400 13.5px/1.5 var(--ui);color:var(--ink-3)}
-.prose{margin:28px auto 0;max-width:64ch;font:400 17px/1.62 var(--ui);color:var(--ink-2)}
+.prose{margin:28px auto 0;max-width:74ch;font:400 17px/1.62 var(--ui);color:var(--ink-2)}
 .prose b{color:var(--ink);font-weight:700}
-.hollow{
-  padding:56px 30px;text-align:center;color:var(--ink-2);background:rgba(255,255,255,.6);
-  border-radius:var(--r-lg);font:400 17px/1.55 var(--ui);max-width:54ch;margin:28px auto 0;
-}
+.hollow{padding:56px 30px;text-align:center;color:var(--ink-2);background:rgba(255,255,255,.6);border-radius:var(--r-lg);font:400 17px/1.55 var(--ui);max-width:54ch;margin:28px auto 0}
 .moved{margin:0;padding:14px 18px;border-radius:var(--r-md);background:var(--live-soft);font:500 14.5px/1.5 var(--ui)}
 [hidden]{display:none!important}
 </style>
@@ -257,27 +256,7 @@ body::before{
       <button role="tab" id="tab-record" aria-selected="false">Record<span class="n" id="n-record"></span></button>
     </div>
   </div>
-
-  <header class="mast">
-    <div class="mark">
-      <svg viewBox="0 0 30 30" aria-hidden="true">
-        <circle cx="15" cy="6" r="3.4" fill="var(--live)"></circle>
-        <circle cx="4.5" cy="25" r="2.2" fill="var(--astro)"></circle>
-        <circle cx="25.5" cy="25" r="2.2" fill="var(--astro)"></circle>
-        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-linejoin="round"></path>
-        <path d="M4.5 25 H25.5" fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-linecap="round" opacity=".5"></path>
-      </svg>
-      <h1>Parallax</h1>
-    </div>
-    <p class="lede">
-      Every entry is a place where careful people measured the same thing and
-      <b>got different answers</b> — or measured something once and never looked again.
-      Each one says what observation would settle it.
-    </p>
-    <ul class="tally" id="tally"></ul>
-    <span class="stamp" id="stamp"></span>
-  </header>
-
+  <header class="mast" id="mast"></header>
   <main id="main"></main>
 </div>
 
@@ -285,8 +264,6 @@ body::before{
 const SUPA = "https://zfmjjazkmolvywvayjzj.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8";
 
-// Rows from the claims table, verbatim, so the register renders where the page
-// cannot reach the network. Live rows replace these when the fetch succeeds.
 const SNAPSHOT = [
  {
   "claim_id": "PARALLAX-2026-87761",
@@ -682,278 +659,690 @@ const SNAPSHOT = [
   "resolution": "Withdrawn by Parallax. This tension was minted before a stated value was required to appear as digits in the text it was read from. The published figure of 19.2 +/- 1.9 Earth masses could not be found in the source abstract on re-check, so the disagreement it reported against the archive value of 11.29 +/- 1.24 rests on a number this system cannot trace. The underlying question is real - the mass of Kepler-10 c has been contested since it was announced as a mega-Earth - but this claim was not evidence for it. Retracted rather than corrected, because a claim whose receipt fails is not a claim with a small error in it."
  }
 ];
+/* The curated entries. Known open questions, entered by hand with their
+   published numbers, because a register that starts empty tells you nothing
+   about what it is for. Every one is marked `curated` wherever it appears.
 
-/* -------------------------------------------------------------- the seeds ---
-   Known open questions, entered by hand with their published numbers, because
-   a register that starts empty tells you nothing about what it is for. Each is
-   marked `curated` wherever it appears; nothing here is passed off as machine
-   output. Values are as published, rounded, with the paper named.             */
+   Each entry carries four things, and the third is the one that matters:
+     plain    — what the disagreement is, in a sentence or two
+     stakes   — what turns on the answer. Not trivia; consequences.
+     history  — the measurements over time, so a reader sees the dispute move
+     kill     — the observation that would end it
+
+   Values are as published, rounded, with the paper named. Where a number is
+   contested the contest is stated rather than smoothed over. */
 const SEEDS = [
 {
   id:"HUBBLE", field:"astronomy", kind:"disagreement", status:"open", featured:true,
   title:"The universe is expanding at two different speeds",
-  hook:"Measure it from the young universe and from nearby stars, and you get answers that cannot both be right.",
-  plain:`Two teams measured how fast the universe is flying apart. One read it off the
-    afterglow of the Big Bang; the other counted the brightness of stars close enough to
-    see individually. Both are meticulous, both have been checked for a decade, and the
-    two numbers do not overlap. Something in one of the measurements — or in our picture
-    of the universe between them — is wrong.`,
-  statement:`Planck's fit to the cosmic microwave background gives H₀ = 67.4 ± 0.5 km/s/Mpc.
-    The SH0ES Cepheid-calibrated distance ladder gives 73.04 ± 1.04. That is about 4.9σ —
-    a one-in-a-million coincidence if both error budgets are complete.`,
+  hook:"Measure it from the young universe and from nearby stars and you get answers that cannot both be right.",
+  plain:`Two ways of measuring how fast the universe expands have been refined for twenty years
+    and have converged — on different numbers. The gap is now far larger than either team's
+    stated uncertainty.`,
+  stakes:`If the late-universe number is right, the standard model of cosmology is incomplete:
+    something not in it — early dark energy, a changing dark-energy equation of state, extra
+    relativistic species — acted before recombination. That would be the first new ingredient
+    in the cosmological model since dark energy in 1998, and every derived quantity that
+    depends on the expansion history moves with it: the age of the universe, the total
+    neutrino mass bound, the growth rate of structure. If the early-universe number is right,
+    then a systematic has survived a decade of scrutiny inside the distance ladder, and every
+    supernova-based cosmology result inherits it.`,
   sides:[
-    {label:"Early universe", value:67.4, err:0.5, unit:"km/s/Mpc", source:"Planck 2018 CMB", note:"Inferred from the Big Bang's afterglow, assuming standard cosmology."},
-    {label:"Late universe", value:73.04, err:1.04, unit:"km/s/Mpc", source:"SH0ES 2022 (Riess et al.)", note:"Built up from Cepheid variables and supernovae, step by step."}],
+    {label:"Early universe", value:67.4, err:0.5, unit:"km/s/Mpc", source:"Planck 2018 CMB", note:"Inferred from the Big Bang's afterglow under standard cosmology."},
+    {label:"Late universe", value:73.04, err:1.04, unit:"km/s/Mpc", source:"SH0ES 2022 (Riess et al.)", note:"Built up rung by rung from Cepheid variables and supernovae."}],
   sigma:4.9,
+  history:[
+    {year:2001, value:72, err:8, method:"ladder", source:"HST Key Project"},
+    {year:2013, value:67.3, err:1.2, method:"cmb", source:"Planck 2013"},
+    {year:2016, value:73.24, err:1.74, method:"ladder", source:"SH0ES 2016"},
+    {year:2018, value:67.4, err:0.5, method:"cmb", source:"Planck 2018"},
+    {year:2022, value:73.04, err:1.04, method:"ladder", source:"SH0ES 2022"}],
+  history_note:"Both methods got more precise. They did not get closer.",
   guess:"Which one do you think will turn out to be right?",
-  kill:`A distance ladder that does not use Cepheids at all — tip-of-the-red-giant-branch
-    or JWST-calibrated rungs — reaching better than 1% precision. Or a few dozen
-    gravitational-wave 'standard sirens' with identified host galaxies, which measure
-    distance directly from the waveform and lean on no ladder at all.`,
-  cites:["Planck Collaboration, A&A 641, A6 (2020)","Riess et al., ApJL 934, L7 (2022)"]
+  kill:`A distance ladder that uses no Cepheids at all — tip-of-the-red-giant-branch or JWST
+    JAGB rungs — reaching better than 1% precision. Or a few dozen gravitational-wave standard
+    sirens with identified host galaxies, which read distance straight off the waveform and
+    lean on no ladder at all. Either one is a decisive test, and both are in progress now.`,
+  cites:["Planck Collaboration, A&A 641, A6 (2020)","Riess et al., ApJL 934, L7 (2022)","Freedman et al., ApJ 882, 34 (2019)"]
 },
 {
-  id:"MICROBE", field:"genomics", kind:"orthodoxy", status:"refuted",
-  title:"You are not ten parts bacteria to one part human",
-  hook:"A number in every textbook for forty years traced back to one paragraph of arithmetic nobody rechecked.",
-  plain:`For decades it was repeated everywhere that your body holds ten bacterial cells for
-    every human one — that you are, in some sense, mostly not you. When three researchers
-    finally went back to the source in 2016, they found the ratio came from a single
-    back-of-the-envelope estimate published in 1972 and never measured. Redone properly,
-    the ratio is about 1.3 to 1. Roughly half and half.`,
-  statement:`Sender, Fuchs & Milo (2016) estimate ≈3.8×10¹³ bacteria against ≈3.0×10¹³ human
-    cells in a reference adult — a ratio near 1.3:1, revised each defecation. The 10:1
-    figure originates with Luckey (1972), an order-of-magnitude estimate presented as such
-    and cited thereafter as measurement.`,
+  id:"VACUUM", field:"physics", kind:"disagreement", status:"open",
+  title:"The worst prediction in the history of physics",
+  hook:"Quantum field theory says empty space should hold a certain energy. The universe says it holds about 10¹²⁰ times less.",
+  plain:`Add up the zero-point energy of the quantum fields that fill empty space and you get an
+    enormous number. Measure the energy density actually driving cosmic acceleration and you
+    get a very small one. The two differ by roughly 120 orders of magnitude — the largest
+    mismatch between prediction and observation anywhere in science.`,
+  stakes:`This is not a discrepancy in a measurement; it is a discrepancy in whether we can
+    calculate at all. Quantum field theory is the most precisely verified framework physics
+    has — it predicts the electron's magnetic moment to twelve digits — and applied to the
+    vacuum it fails by a factor no amount of experimental error can absorb. Every proposed
+    fix (supersymmetric cancellation, anthropic selection in a landscape, modified gravity)
+    has a different, testable consequence for what else exists. It is the clearest signal
+    that the way quantum mechanics and gravity are joined is wrong.`,
   sides:[
-    {label:"What was repeated", value:10, err:0, unit:": 1", source:"Luckey 1972, an estimate", note:"Cited for four decades as though it were data."},
-    {label:"What was measured", value:1.3, err:0.3, unit:": 1", source:"Sender, Fuchs & Milo 2016", note:"Recounted from organ-by-organ cell densities."}],
+    {label:"Predicted density", value:1e113, err:0, unit:"J/m³", source:"QFT, Planck-scale cutoff", note:"The naive sum over vacuum modes."},
+    {label:"Observed density", value:6e-10, err:0, unit:"J/m³", source:"Cosmological constant, Planck 2018", note:"What actually drives the acceleration."}],
   sigma:null,
-  kill:`A direct census of bacterial and human cell counts in the same cadavers, by a method
-    that does not rely on stool density extrapolation. This claim is already closed against
-    the 10:1 figure; what remains open is the size of the error bar on 1.3.`,
-  cites:["Sender, Fuchs & Milo, PLoS Biology 14(8): e1002533 (2016)","Luckey, Am J Clin Nutr 25 (1972)"]
+  kill:`A calculation that derives the observed value from first principles, or a laboratory
+    measurement of how vacuum energy gravitates — Casimir-energy weighing experiments are the
+    only route currently proposed, and are many orders of magnitude from the sensitivity
+    required. This entry stays open because nothing on the table would close it soon, which is
+    itself the point.`,
+  cites:["Weinberg, Rev Mod Phys 61, 1 (1989)","Planck Collaboration, A&A 641, A6 (2020)"]
 },
 {
   id:"NEUTRON", field:"physics", kind:"disagreement", status:"open",
   title:"Nobody can agree how long a neutron lives",
   hook:"Count the neutrons that survive, or count what they decay into, and the answers differ by nine seconds.",
-  plain:`A free neutron falls apart in about a quarter of an hour. There are two ways to time
-    it: trap a bottle of neutrons and count how many are left, or fire a beam of them and
-    count the protons that appear as they decay. The bottle says 877.8 seconds. The beam
-    says 888. They have disagreed for thirty years, and both methods have been rebuilt
-    from scratch since.`,
-  statement:`Ultracold-neutron storage gives τₙ = 877.75 ± 0.36 s; the beam method gives
-    888.0 ± 2.0 s. About 5σ apart. Either one experiment has an unfound systematic, or
-    roughly 1% of neutrons decay into something the beam method cannot see.`,
+  plain:`A free neutron falls apart in about a quarter of an hour. Trap them and count the
+    survivors and you get 877.8 seconds. Fire a beam and count the protons that appear and you
+    get 888. The methods have disagreed for thirty years and both have been rebuilt since.`,
+  stakes:`The neutron lifetime sets how much helium the Big Bang made. It enters the primordial
+    abundance calculation directly, so a nine-second shift moves the predicted helium fraction
+    and with it the constraint on the number of neutrino species and any extra relativistic
+    physics in the early universe. It also fixes one of the two numbers that determine the
+    weak coupling strength, which every calculation of neutron-star cooling and stellar
+    burning inherits. And if the gap is real rather than systematic, roughly 1% of neutrons
+    are decaying into something invisible — a dark-sector particle — which would be a
+    discovery, not a correction.`,
   sides:[
-    {label:"Bottle method", value:877.75, err:0.36, unit:"s", source:"UCNτ 2021", note:"Counts the neutrons still in the trap."},
-    {label:"Beam method", value:888.0, err:2.0, unit:"s", source:"NIST beam experiment", note:"Counts the protons that decay produces."}],
+    {label:"Bottle method", value:877.75, err:0.36, unit:"s", source:"UCNτ 2021", note:"Counts the ultracold neutrons still in the trap."},
+    {label:"Beam method", value:888.0, err:2.0, unit:"s", source:"NIST beam experiment", note:"Counts the protons that the decay produces."}],
   sigma:5.0,
+  history:[
+    {year:2005, value:878.5, err:0.8, method:"bottle", source:"Serebrov et al."},
+    {year:2013, value:887.7, err:2.2, method:"beam", source:"Yue et al."},
+    {year:2018, value:877.7, err:0.8, method:"bottle", source:"UCNτ"},
+    {year:2021, value:877.75, err:0.36, method:"bottle", source:"UCNτ"}],
+  history_note:"The bottle result has tightened by a factor of two. The beam has not moved to meet it.",
   guess:"Which method do you think is hiding the error?",
-  kill:`A beam measurement whose proton-counting efficiency is calibrated against an
-    independent source, or a direct search finding — or excluding — a dark decay channel
-    at the 1% branching ratio the gap implies.`,
+  kill:`A beam measurement whose proton-counting efficiency is calibrated against an independent
+    source, or a direct search that finds — or excludes — a dark decay channel at the ~1%
+    branching ratio the gap implies. Both are running.`,
   cites:["UCNτ Collaboration, PRL 127, 162501 (2021)","Yue et al., PRL 111, 222501 (2013)"]
 },
 {
-  id:"PETO", field:"genomics", kind:"disagreement", status:"open",
-  title:"Whales have a thousand times more cells than you and less cancer",
-  hook:"Every cell division is a chance to go wrong. Bigger, longer-lived animals should be riddled with tumours. They aren't.",
-  plain:`Cancer starts when a cell accumulates the wrong mutations. A blue whale has on the
-    order of a thousand times more cells than a human and lives about as long, so it should
-    get cancer constantly. It doesn't. Elephants, which are also enormous, die of cancer
-    less often than we do — under 5%, against 11–25% in humans. Something about being large
-    comes with a defence, and we do not fully know what it is.`,
-  statement:`Cancer incidence shows no correlation with body mass or lifespan across species —
-    Peto's paradox. Elephants carry ~20 copies of the tumour-suppressor gene TP53 against
-    one in humans, which is part of an answer but not the whole of it.`,
+  id:"MUON", field:"physics", kind:"disagreement", status:"open",
+  title:"The muon wobbles, and the two ways of predicting it disagree with each other",
+  hook:"The famous experiment-versus-theory gap turned into a theory-versus-theory gap, which is worse.",
+  plain:`A muon in a magnetic field precesses at a rate the Standard Model predicts to ten
+    digits. Fermilab measured it to extraordinary precision. The catch is that the prediction
+    depends on a hadronic term computed two ways — from experimental electron-positron data,
+    and from lattice QCD — and those two disagree with each other by more than either
+    disagrees with the measurement.`,
+  stakes:`This was the leading candidate for new physics beyond the Standard Model for two
+    decades: a confirmed gap would point at particles nobody has produced. But the claim can
+    only be as good as the prediction, and the prediction is now the contested part. Until the
+    hadronic vacuum polarisation term is settled, the experiment cannot tell you anything about
+    new physics — a precisely measured number held against a disputed prediction is not
+    evidence. It is the cleanest live example of a measurement outrunning the theory it is
+    meant to test.`,
   sides:[
-    {label:"Elephant cancer mortality", value:4.8, err:0, unit:"%", source:"Abegglen et al. 2015", note:"Across 644 necropsies at zoos and sanctuaries."},
-    {label:"Human cancer mortality", value:18, err:7, unit:"%", source:"Same study, human comparison", note:"Range across the populations compared."}],
+    {label:"Data-driven prediction", value:116591810, err:43, unit:"×10⁻¹¹", source:"Theory Initiative 2020, R-ratio", note:"Hadronic term from e⁺e⁻ annihilation data."},
+    {label:"Lattice prediction", value:116591954, err:55, unit:"×10⁻¹¹", source:"BMW lattice QCD 2021", note:"Hadronic term computed from first principles."}],
   sigma:null,
-  guess:"Do you think the defence is genetic, or something about how big bodies work?",
-  kill:`A somatic mutation rate measured per cell division across species spanning four orders
-    of magnitude in body mass. If large animals mutate at the same per-cell rate as small
-    ones, the defence is active suppression; if they mutate more slowly, the paradox
-    dissolves into arithmetic.`,
-  cites:["Abegglen et al., JAMA 314(17):1850 (2015)","Peto et al., J Epidemiol Community Health 29 (1975)"]
+  guess:"Which prediction do you trust — the data-driven one or the lattice?",
+  kill:`Independent lattice groups reproducing the BMW hadronic term at the same precision, or a
+    resolution of the discrepancy in the e⁺e⁻ cross-section data between experiments. Whichever
+    way it lands, the experimental number stays where it is; only its meaning changes.`,
+  cites:["Aoyama et al., Phys Rep 887, 1 (2020)","Borsanyi et al., Nature 593, 51 (2021)","Muon g−2 Collaboration, PRL 131, 161802 (2023)"]
 },
 {
-  id:"HERITABLE", field:"genomics", kind:"disagreement", status:"open",
-  title:"Height is 80% inherited and nobody could find where",
-  hook:"Twin studies and gene-hunting gave answers that were out by a factor of ten. The gap has a name.",
-  plain:`Compare identical and fraternal twins and you conclude that about 80% of the variation
-    in human height is inherited. Then sequence hundreds of thousands of people, find the
-    specific genetic variants involved, and add up what they explain — for years, under 10%.
-    Something was clearly being inherited that the search could not see. Larger studies have
-    since closed much of the gap, but not all of it, and the same hole is wide open for most
-    complex diseases.`,
-  statement:`Twin-based heritability of adult height is ~0.8. Early genome-wide association
-    studies accounted for ~5% of variance; Yang et al. (2010) showed that all common SNPs
-    together account for ~45%, implying the signal is spread across thousands of variants
-    each too small to reach significance alone. Rare variants make up part of the remainder.`,
+  id:"DAMA", field:"physics", kind:"disagreement", status:"open",
+  title:"One detector has seen dark matter for twenty years. No other has.",
+  hook:"A signal at very high statistical significance that every competing experiment excludes.",
+  plain:`The DAMA/LIBRA detector under Gran Sasso reports an annual modulation in its count rate —
+    exactly the signature expected as Earth's velocity through the galactic dark-matter halo
+    changes over a year — at a significance above 9σ. Experiments using other target materials
+    rule out the interpretation. Experiments using the same target material, sodium iodide, are
+    now reporting no modulation.`,
+  stakes:`If DAMA is right, dark matter has been detected and the entire field has been looking
+    with the wrong materials. If it is wrong, a 9σ signal — a level of significance that would
+    be called a discovery anywhere else — has been produced by an unmodelled environmental
+    effect that survived twenty years of checking. Either conclusion is important, and the
+    second is the more instructive: it puts a number on how far statistical significance alone
+    can carry a claim.`,
   sides:[
-    {label:"Twin studies say", value:80, err:5, unit:"% heritable", source:"Classical twin designs", note:"Inferred from resemblance, not from any located gene."},
-    {label:"Located variants explain", value:45, err:5, unit:"% of variance", source:"Yang et al. 2010, common SNPs", note:"Up from ~5% in the first wave of studies."}],
+    {label:"DAMA/LIBRA modulation", value:9.5, err:0, unit:"σ", source:"DAMA/LIBRA phase 2", note:"Annual modulation, period and phase as predicted."},
+    {label:"Independent NaI searches", value:0, err:0, unit:"σ", source:"ANAIS-112, COSINE-100", note:"Same target material, no modulation found."}],
   sigma:null,
-  kill:`Whole-genome sequencing — not genotyping arrays — of a cohort large enough to capture
-    rare variants, with the residual gap accounted for. If it closes, the paradox was a
-    limitation of the instrument; if it does not, the twin estimate is inflated by something
-    shared that is not genetic.`,
-  cites:["Yang et al., Nature Genetics 42, 565 (2010)","Manolio et al., Nature 461, 747 (2009)"]
+  guess:"Signal, or an environmental effect nobody has identified?",
+  kill:`ANAIS-112 and COSINE-100 reaching DAMA's exposure with the same sodium-iodide target.
+    Same material, same signature, independent apparatus — that is a direct test, and it is
+    a few years from completion.`,
+  cites:["Bernabei et al., Nucl Phys At Energy 19, 307 (2018)","Amaré et al., PRL 123, 031301 (2019)"]
 },
 {
-  id:"ENCODE", field:"genomics", kind:"orthodoxy", status:"open",
-  title:"Is 80% of your genome functional, or 10%?",
-  hook:"Two respected estimates of how much DNA does anything differ by a factor of eight. They are measuring different things and both call it 'function'.",
-  plain:`In 2012 a large consortium announced that around 80% of the human genome is
-    biochemically active — transcribed, bound by proteins, marked in some way. Evolutionary
-    biologists objected that only about 8–10% of it shows any sign of being preserved by
-    natural selection, which is the test that matters if 'functional' means 'doing something
-    worth keeping'. The disagreement is not really about the data. It is about what the word
-    means, and it has not been settled.`,
-  statement:`ENCODE (2012) reported biochemical activity for ~80% of the genome. Comparative
-    genomics puts the fraction under purifying selection at ~8–10%. Biochemical activity and
-    evolutionary constraint are different measurements; the dispute is whether the former is
-    evidence of function at all.`,
+  id:"PROTON", field:"physics", kind:"disagreement", status:"settled",
+  title:"The proton was the wrong size for seven years",
+  hook:"Swap the electron in a hydrogen atom for a muon and the proton appeared 4% smaller. The muon was right.",
+  plain:`Measuring the proton's charge radius with ordinary hydrogen gave 0.877 femtometres.
+    Measuring it with muonic hydrogen in 2010 gave 0.842 — a 7σ discrepancy that stood for
+    years and drew serious proposals for new physics. Later electron-scattering and hydrogen
+    spectroscopy measurements converged on the smaller value.`,
+  stakes:`It is here as a worked example of the register's own logic. The tension was real, the
+    error bars were honest, and the resolution came from redoing the harder measurement rather
+    than from any new particle. The recommended value moved, several precision measurements
+    that depended on it moved with it, and no new physics was required. Most tensions end
+    this way, which is exactly why each one has to state in advance what would settle it.`,
   sides:[
-    {label:"Biochemically active", value:80, err:0, unit:"%", source:"ENCODE Consortium 2012", note:"Transcribed or protein-bound somewhere, in some cell type."},
-    {label:"Under selection", value:9, err:1, unit:"%", source:"Comparative genomics", note:"Conserved across mammals, so plausibly load-bearing."}],
-  sigma:null,
-  guess:"Which definition of 'functional' do you think should win?",
-  kill:`A saturation mutagenesis or mutational-load measurement giving the fitness cost of
-    disrupting randomly chosen genomic regions. That converts a definitional argument into
-    a measured quantity, which is the only thing that can end it.`,
-  cites:["ENCODE Project Consortium, Nature 489, 57 (2012)","Graur et al., Genome Biol Evol 5, 578 (2013)"]
+    {label:"Electronic hydrogen", value:0.8775, err:0.0051, unit:"fm", source:"CODATA 2010", note:"The accepted value before 2010."},
+    {label:"Muonic hydrogen", value:0.84087, err:0.00039, unit:"fm", source:"Pohl et al. 2010", note:"An order of magnitude more precise, and 7σ away."}],
+  sigma:7.0,
+  history:[
+    {year:2010, value:0.8775, err:0.0051, method:"electron", source:"CODATA 2010"},
+    {year:2010, value:0.84087, err:0.00039, method:"muon", source:"Pohl et al."},
+    {year:2019, value:0.831, err:0.008, method:"electron", source:"PRad"},
+    {year:2018, value:0.8414, err:0.0019, method:"recommended", source:"CODATA 2018"}],
+  history_note:"The recommended value moved to meet the muonic measurement, not the other way round.",
+  kill:`Settled. The kill condition was an independent electron-based measurement at comparable
+    precision; PRad and the 2S–4P hydrogen spectroscopy provided it, and the discrepancy closed.`,
+  cites:["Pohl et al., Nature 466, 213 (2010)","Xiong et al., Nature 575, 147 (2019)"]
 },
 {
   id:"LITHIUM", field:"astronomy", kind:"disagreement", status:"open",
   title:"There is three times less lithium than the Big Bang made",
-  hook:"The theory that predicts the abundance of every light element correctly gets one of them wrong, by a factor of three.",
-  plain:`In the first few minutes after the Big Bang, the universe made hydrogen, helium and a
-    trace of lithium. The calculation predicts all of them, and for hydrogen and helium it
-    matches observation beautifully — one of the great successes in physics. For lithium-7
-    it predicts about three times more than we actually find in the oldest stars. The theory
-    is right about everything except this one number.`,
-  statement:`Standard Big Bang nucleosynthesis with the Planck baryon density predicts
-    ⁷Li/H ≈ 5×10⁻¹⁰. The Spite plateau in metal-poor halo stars sits near 1.6×10⁻¹⁰ — a
-    factor of roughly three, far outside either uncertainty.`,
+  hook:"The calculation that gets hydrogen and helium right gets the third element wrong by a factor of three.",
+  plain:`Big Bang nucleosynthesis predicts the abundance of the light elements from one number,
+    the baryon density, which the CMB fixes independently. For hydrogen and helium the
+    prediction matches observation beautifully. For lithium-7 it overshoots what is seen in the
+    oldest stars by about a factor of three.`,
+  stakes:`Primordial nucleosynthesis is one of the two pillars of Big Bang cosmology — it is
+    how we know the universe was once hot and dense. A single element failing at a factor of
+    three either means old stars destroy lithium in a way stellar models do not capture, which
+    would revise the physics of stellar interiors, or that something decayed during the first
+    minutes and altered the yield, which would be physics beyond the Standard Model operating
+    at an epoch nothing else probes. The abundance of every other light element constrains how
+    much room there is for the second option.`,
   sides:[
-    {label:"Predicted", value:5.0, err:0.3, unit:"×10⁻¹⁰", source:"BBN + Planck baryon density", note:"From the same calculation that gets helium right."},
-    {label:"Observed", value:1.6, err:0.3, unit:"×10⁻¹⁰", source:"Spite plateau, metal-poor stars", note:"Flat across a wide range of old stars."}],
+    {label:"Predicted", value:5.0, err:0.3, unit:"×10⁻¹⁰", source:"BBN with Planck baryon density", note:"From the calculation that gets helium right."},
+    {label:"Observed", value:1.6, err:0.3, unit:"×10⁻¹⁰", source:"Spite plateau, metal-poor stars", note:"Remarkably flat across a wide range of old stars."}],
   sigma:null,
-  guess:"Do you think the stars destroyed it, or the physics is incomplete?",
-  kill:`A measured depletion mechanism inside old stars that removes exactly this much
-    lithium — settled by asteroseismology of halo stars — or a nuclear resonance in the
-    reaction network found in the lab that changes the predicted yield.`,
+  guess:"Stars destroyed it, or the early-universe physics is incomplete?",
+  kill:`Asteroseismology of metal-poor halo stars measuring the depth of convective mixing
+    directly. If it is deep enough to have destroyed two-thirds of the surface lithium, the
+    problem is stellar and the cosmology stands. If it is not, the problem is primordial.`,
   cites:["Fields, Annu Rev Nucl Part Sci 61, 47 (2011)","Spite & Spite, Nature 297, 483 (1982)"]
 },
 {
-  id:"TWINS", field:"genomics", kind:"disagreement", status:"open",
-  title:"Identical twins, identical DNA, different diseases",
-  hook:"If the genome were the whole story, one twin's diagnosis would always be the other's.",
-  plain:`Identical twins start from the same genome. Yet when one develops type 1 diabetes, the
-    other follows only about a third to half of the time. For multiple sclerosis it is closer
-    to a quarter. The genome loads the gun and something else pulls the trigger — chemical
-    marks laid on top of the DNA, immune history, exposures. Which of those matter, and how
-    much, is an open measurement, not a settled story.`,
-  statement:`Monozygotic concordance is well below unity for most complex disease: roughly
-    30–50% for type 1 diabetes and ~25% for multiple sclerosis. The residual is attributed to
-    epigenetic and environmental divergence, but the attribution is largely inferential —
-    prospective methylome data from discordant pairs before onset is scarce.`,
-  sides:[
-    {label:"Shared DNA", value:100, err:0, unit:"%", source:"Monozygotic twins", note:"Barring a handful of post-zygotic mutations."},
-    {label:"Shared diagnosis", value:35, err:10, unit:"%", source:"Type 1 diabetes concordance", note:"Across long-running twin registries."}],
-  sigma:null,
-  kill:`A longitudinal methylome from disease-discordant twin pairs sampled before onset. If
-    the marks that differ at diagnosis were already different beforehand, they are causal;
-    if they appear afterwards, they are a consequence, and the field has been reading the
-    arrow backwards.`,
-  cites:["Redondo et al., Diabetologia 44, 354 (2001)","Willer et al., PNAS 100, 12877 (2003)"]
-},
-{
   id:"S8", field:"astronomy", kind:"disagreement", status:"open",
-  title:"The universe looks smoother than it should",
-  hook:"Weigh the clumpiness of matter two ways and the answers pull apart — not as sharply as the expansion rate, but in the same direction.",
-  plain:`Run the early universe forward from the Big Bang's afterglow and you can predict how
-    lumpy matter should be today. Then measure the lumpiness directly, by watching how
-    galaxies bend the light passing them. The direct measurement keeps coming back smoother
-    than the prediction. It is a milder disagreement than the expansion rate, and it might
-    be nothing — or it might be the same crack seen from another angle.`,
-  statement:`Planck infers S₈ = 0.834 ± 0.016; KiDS-1000 cosmic shear measures 0.759 ± 0.024.
-    About 2.6σ — suggestive, not decisive, and sensitive to how baryonic feedback is modelled.`,
+  title:"The universe looks smoother than the early universe says it should",
+  hook:"Weigh the clumpiness of matter two ways and the answers pull apart — mildly, and always in the same direction.",
+  plain:`Run the cosmic microwave background forward under standard cosmology and you can predict
+    how clumpy matter should be today. Measure that clumpiness directly, by the way galaxies
+    distort the light passing them, and the direct measurement keeps coming back smoother.`,
+  stakes:`On its own this is a 2–3σ result, which is not enough to claim anything. It matters
+    because it is the second discrepancy pointing the same way as the expansion-rate tension —
+    both are the late universe disagreeing with what the early universe predicts. If both
+    survive better data they are one problem, not two, and they jointly rule out most of the
+    proposed fixes for either. If lensing systematics or baryonic feedback modelling explains
+    this one, the Hubble tension loses its corroborating evidence.`,
   sides:[
     {label:"Predicted from the CMB", value:0.834, err:0.016, unit:"S₈", source:"Planck 2018", note:"Extrapolated forward 13.8 billion years."},
     {label:"Measured by lensing", value:0.759, err:0.024, unit:"S₈", source:"KiDS-1000", note:"From the distortion of distant galaxy shapes."}],
   sigma:2.6,
-  kill:`Euclid or LSST weak-lensing at percent-level precision, with baryonic feedback
-    calibrated against hydrodynamic simulations. At that precision the gap either becomes a
-    detection or vanishes.`,
+  kill:`Euclid or LSST weak lensing at percent-level precision with baryonic feedback calibrated
+    against hydrodynamic simulations. At that precision the gap either becomes a detection or
+    disappears.`,
   cites:["Heymans et al., A&A 646, A140 (2021)","Planck Collaboration, A&A 641, A6 (2020)"]
 },
 {
-  id:"CVALUE", field:"genomics", kind:"question", status:"settled",
-  title:"A Japanese flower has fifty times more DNA than you",
-  hook:"Genome size has almost nothing to do with complexity. Working out why took a century.",
-  plain:`Paris japonica, a modest white woodland flower, carries a genome of about 149 billion
-    base pairs. Yours is 3.1 billion. Lungfish, onions and some amoebae all dwarf us too.
-    For most of the twentieth century this looked like a paradox: surely a human needs more
-    instructions than a flower. The answer turned out to be that most of a large genome is
-    repeated sequence and duplicated copies, and that carrying it around is cheap enough
-    that nothing removes it.`,
-  statement:`The C-value paradox is resolved: genome size is dominated by repetitive elements
-    and whole-genome duplication, neither of which scales with organismal complexity. What
-    remains open is why tolerance for that load varies so widely between lineages.`,
+  id:"SOLAR", field:"astronomy", kind:"disagreement", status:"open",
+  title:"We know the inside of the Sun better than its surface composition",
+  hook:"Improving the measurement of what the Sun is made of broke the model that had described its interior perfectly.",
+  plain:`Helioseismology — reading the Sun's interior from its surface oscillations — matched the
+    standard solar model to a fraction of a percent. Then spectroscopic analyses using better
+    3D atmosphere modelling revised the solar oxygen and carbon abundances downward, and the
+    agreement broke: predicted sound speed, convection zone depth and helium abundance all
+    stopped matching.`,
+  stakes:`The Sun is the calibration standard for every other star. Its composition sets the
+    reference scale used to infer the ages and metallicities of stellar populations across
+    astronomy, and the solar model is the template for stellar interiors generally. A
+    discrepancy here propagates outward into stellar ages, exoplanet host characterisation and
+    galactic chemical evolution. Either the improved abundance analysis is wrong, or opacity
+    calculations in the solar interior are — and the second would touch every stellar model.`,
   sides:[
-    {label:"Paris japonica", value:148.9, err:0, unit:"Gb", source:"Pellicer et al. 2010", note:"The largest genome measured in any plant."},
-    {label:"Human", value:3.1, err:0, unit:"Gb", source:"Reference assembly", note:"About 2% of it codes for protein."}],
+    {label:"Convection zone depth, seismic", value:0.713, err:0.001, unit:"R☉", source:"Helioseismology", note:"Measured from oscillation frequencies."},
+    {label:"Predicted, low-metallicity model", value:0.723, err:0.003, unit:"R☉", source:"Standard model with revised abundances", note:"The revision broke a previously exact match."}],
   sigma:null,
-  kill:`Settled in 1971, when repetitive DNA was characterised. It stays in the register as a
-    worked example: a paradox that dissolved once the right thing was measured, rather than
-    one that was argued away.`,
-  cites:["Pellicer, Fay & Leitch, Bot J Linn Soc 164, 10 (2010)","Thomas, Annu Rev Genet 5, 237 (1971)"]
+  kill:`Laboratory measurement of iron opacity at solar-interior conditions. The Sandia Z-machine
+    experiments already report opacities higher than calculated; a confirmed measurement at the
+    required conditions decides whether the fault lies in the abundances or in the opacities.`,
+  cites:["Asplund et al., ARA&A 47, 481 (2009)","Bailey et al., Nature 517, 56 (2015)"]
+},
+{
+  id:"METHUSELAH", field:"astronomy", kind:"disagreement", status:"settled",
+  title:"A star that appeared to be older than the universe",
+  hook:"HD 140283 was dated at 14.5 billion years. The universe is 13.8. Both had error bars.",
+  plain:`The subgiant HD 140283 was aged at 14.46 ± 0.8 billion years in 2013, against a
+    universe of 13.80 ± 0.02. The overlap was uncomfortable but within the star's uncertainty.
+    Better parallax from Gaia and revised stellar models brought the estimate down to roughly
+    13.5 billion years.`,
+  stakes:`It is included because the resolution was mundane and instructive: the star's age
+    depended on its distance, the distance was the weakest link, and a better distance fixed
+    it. The register's rule that a claim must state its own kill condition exists for exactly
+    this case — the kill condition here was "a parallax good to 1%", and when Gaia delivered
+    one, the tension closed without anyone needing to revise cosmology.`,
+  sides:[
+    {label:"Age of the star, 2013", value:14.46, err:0.8, unit:"Gyr", source:"Bond et al. 2013", note:"Using the best distance then available."},
+    {label:"Age of the universe", value:13.80, err:0.02, unit:"Gyr", source:"Planck 2018", note:"Forty times more precise than the stellar age."}],
+  sigma:null,
+  kill:`Settled by Gaia parallax. A 1% distance moved the stellar age below the age of the
+    universe, where it belongs.`,
+  cites:["Bond et al., ApJL 765, L12 (2013)","Gaia Collaboration, A&A 616, A1 (2018)"]
+},
+{
+  id:"PLANET9", field:"astronomy", kind:"question", status:"open",
+  title:"Six distant objects orbit as though something large is out there",
+  hook:"A prediction precise enough to be wrong, and a decade of searching that has not found it.",
+  plain:`The orbits of the most distant known trans-Neptunian objects cluster in orientation more
+    than chance comfortably allows. In 2016 that clustering was used to predict an unseen planet
+    of roughly five to ten Earth masses on a long, eccentric orbit. Surveys have covered much of
+    the predicted sky since. Nothing has been found.`,
+  stakes:`Two very different things are being tested at once. If the planet exists, the solar
+    system has an unaccounted major member and the story of how the giant planets migrated has
+    to be rewritten. If it does not, then the clustering is an artefact of where telescopes have
+    pointed — which would be a measured example of observational selection producing a signal
+    convincing enough to motivate a decade of searching. The second outcome is the more useful
+    one for every other field that infers structure from incomplete surveys.`,
+  sides:[
+    {label:"Predicted mass", value:6.2, err:2, unit:"M⊕", source:"Batygin & Brown 2021", note:"From the orbital clustering of distant objects."},
+    {label:"Detections", value:0, err:0, unit:"", source:"All surveys to date", note:"Much of the predicted region already covered."}],
+  sigma:null,
+  guess:"Real planet, or a selection effect in where we looked?",
+  kill:`LSST's first years of full-sky depth. It will either find the object or cover the
+    remaining parameter space, and — just as decisively — it will measure the survey selection
+    function well enough to say whether the original clustering was ever real.`,
+  cites:["Batygin & Brown, AJ 151, 22 (2016)","Napier et al., PSJ 2, 59 (2021)"]
+},
+{
+  id:"JWSTGAL", field:"astronomy", kind:"disagreement", status:"open",
+  title:"Galaxies too big to have formed that early",
+  hook:"JWST found massive galaxies a few hundred million years after the Big Bang. Models say there was not enough time.",
+  plain:`Candidate galaxies at redshifts above 10 appeared, in the first JWST images, to hold
+    more stellar mass than standard structure formation allows so soon. Spectroscopic follow-up
+    has revised several downward — some were reddened or hosted accreting black holes rather
+    than being purely massive — but a residual population remains harder to explain than the
+    models predict.`,
+  stakes:`Structure formation is where cosmology and astrophysics meet: the dark-matter framework
+    sets how fast halos assemble, and messy baryonic physics sets how efficiently gas inside
+    them becomes stars. An excess of early massive galaxies means either star formation was far
+    more efficient than any local calibration suggests, or the halos themselves grew faster
+    than ΛCDM predicts. The first is a revision to astrophysics; the second is a revision to
+    cosmology, and the two have to be disentangled by measurement rather than assumption.`,
+  sides:[],
+  sigma:null,
+  kill:`Spectroscopic confirmation of stellar masses — not photometric estimates — for a complete
+    sample at z > 10, with the AGN contribution to the continuum separated out. Photometric
+    candidates cannot settle this; several of the first ones did not survive spectroscopy.`,
+  cites:["Labbé et al., Nature 616, 266 (2023)","Harikane et al., ApJS 265, 5 (2023)"]
 },
 {
   id:"OLBERS", field:"astronomy", kind:"question", status:"settled",
   title:"Why is the night sky dark?",
-  hook:"In an infinite, ageless universe every sightline ends on a star, and the whole sky blazes. It doesn't.",
-  plain:`Point in any direction in a universe that goes on forever and has always existed, and
-    your line of sight must eventually land on the surface of a star. The night sky should be
-    as bright as the Sun, everywhere. It is not — and the reason is that the universe has a
-    finite age. Light from far enough away has not had time to arrive. The darkness overhead
-    is direct evidence that there was a beginning.`,
-  statement:`Olbers' paradox is resolved by finite cosmic age and expansion: the observable
-    volume is bounded by the light travel time since recombination, and redshift removes what
-    energy does arrive from the furthest sources.`,
+  hook:"In an infinite, ageless universe every sightline ends on a star and the whole sky blazes. It doesn't.",
+  plain:`Point anywhere in a universe that is infinite and has always existed and your line of
+    sight must eventually land on the surface of a star. The night sky should be as bright as
+    the Sun in every direction. It is not, because the universe has a finite age and light from
+    far enough away has not arrived.`,
+  stakes:`This is the cheapest decisive observation in the history of cosmology: it rules out an
+    entire class of universe, requires no instrument, and was available to anyone who looked up
+    for the whole of human history before anyone drew the conclusion. It is in the register as
+    the standard against which every other entry's kill condition is measured — how simple is
+    the observation that would settle this, really?`,
   sides:[
     {label:"Age of the universe", value:13.8, err:0.02, unit:"Gyr", source:"Planck 2018", note:"Which is what bounds the volume you can see."},
-    {label:"Sky brightness", value:0, err:0, unit:"—", source:"Observation", note:"Dark, which is the whole point."}],
+    {label:"Sky brightness", value:0, err:0, unit:"", source:"Direct observation", note:"Dark, which is the whole point."}],
   sigma:null,
-  kill:`Settled. It is here because it is the cleanest example of the register's own logic:
-    an observation anyone can make on any clear night, that rules out an entire class of
-    universe.`,
+  kill:`Settled. Finite cosmic age plus expansion accounts for the darkness quantitatively.`,
   cites:["Harrison, Darkness at Night (1987)"]
 },
 {
   id:"FERMI", field:"astronomy", kind:"question", status:"open", nokill:true,
   title:"Where is everybody?",
-  hook:"Parallax cannot make this a claim, and that is worth showing.",
-  plain:`The galaxy is old and enormous and we now know that planets are ordinary — most stars
-    have them. So the question Fermi asked over lunch in 1950 still stands: if life is at all
-    common, why is there no sign of anyone? It is a genuinely open question, and it is the
-    kind of thing this register cannot hold.`,
-  statement:`No observation currently proposed would end this question. A detection would
-    answer it; no non-detection can, because absence of evidence at any given sensitivity is
-    consistent with almost every hypothesis on offer.`,
+  hook:"Parallax cannot make this a claim, and showing why is the point of including it.",
+  plain:`The galaxy is old and enormous and we now know planets are ordinary — most stars have
+    them. So Fermi's lunchtime question stands: if life is at all common, why is there no sign
+    of anyone?`,
+  stakes:`It is here as the boundary marker. Every other entry in this register names an
+    observation that would end it. This one cannot: a detection would answer it, but no
+    non-detection can, because absence of evidence at any given sensitivity is consistent with
+    almost every hypothesis on offer. That asymmetry is what separates an interesting question
+    from a testable one, and the whole discipline of this register is refusing to blur it.`,
   sides:[],
   sigma:null,
-  kill:`None. There is no measurement that would prove this wrong, which is exactly why
-    Parallax will not file it as a claim. It sits in the feed as the boundary marker: an
-    interesting question is not the same thing as a testable one, and the difference is the
-    entire discipline of this register.`,
+  kill:`None. There is no measurement that would prove this wrong, so Parallax will not file it
+    as a claim. It sits in the feed labelled as what it is.`,
   cites:["Hart, QJRAS 16, 128 (1975)"]
+},
+
+{
+  id:"MUTRATE", field:"genomics", kind:"disagreement", status:"open",
+  title:"Two ways of measuring human mutation rate differ by a factor of two",
+  hook:"Every date in human prehistory is calculated from this number, and it is not settled.",
+  plain:`Count the new mutations in a child that neither parent carries and you get about
+    1.2×10⁻⁸ per base pair per generation. Calibrate instead against the fossil-dated split
+    from chimpanzees and you get roughly twice that. Both methods are careful and they have not
+    converged.`,
+  stakes:`This number is the clock. Every genetic date in human prehistory is computed by
+    dividing observed divergence by it: when modern humans left Africa, when populations
+    separated, when Neanderthal admixture occurred. Halving the rate doubles every one of those
+    dates. Whole archaeological debates — whether genetic and fossil evidence for the same
+    migration agree — turn on which calibration is used, and papers on both sides are often
+    comparing dates computed with different clocks without saying so.`,
+  sides:[
+    {label:"Pedigree-based", value:1.2, err:0.1, unit:"×10⁻⁸ /bp/gen", source:"Direct sequencing of parent-child trios", note:"Counts mutations that actually appeared."},
+    {label:"Phylogenetic", value:2.5, err:0.3, unit:"×10⁻⁸ /bp/gen", source:"Human-chimp divergence, fossil calibrated", note:"Depends on the assumed divergence date."}],
+  sigma:null,
+  guess:"Which clock do you think is right?",
+  kill:`Ancient DNA of known radiocarbon age used as a direct calibration point. Sequencing
+    dated specimens across tens of thousands of years measures the rate over that interval
+    without assuming a divergence date — this is now feasible and is the decisive test.`,
+  cites:["Scally & Durbin, Nat Rev Genet 13, 745 (2012)","Kong et al., Nature 488, 471 (2012)"]
+},
+{
+  id:"HERITABLE", field:"genomics", kind:"disagreement", status:"open",
+  title:"Height is 80% inherited and nobody could find where",
+  hook:"Twin studies and gene-hunting disagreed by a factor of ten. The gap has a name and it is not fully closed.",
+  plain:`Twin studies put the heritability of adult height near 80%. The first wave of
+    genome-wide association studies located variants explaining under 10%. Later work showed
+    that all common variants together account for roughly 45%, spread across thousands of sites
+    each too small to detect alone.`,
+  stakes:`Missing heritability is the reason polygenic risk scores underperform their advertised
+    heritability, and the reason they transfer badly between ancestry groups. Every clinical
+    application of genetic prediction — embryo screening, risk stratification, drug response —
+    is bounded by how much of the inherited signal can actually be located and how much of the
+    twin estimate was inflated by shared environment in the first place. The gap is not an
+    academic curiosity; it is the ceiling on what genomic medicine can currently deliver.`,
+  sides:[
+    {label:"Twin studies say", value:80, err:5, unit:"% heritable", source:"Classical twin designs", note:"Inferred from resemblance, not from any located gene."},
+    {label:"Located variants explain", value:45, err:5, unit:"% of variance", source:"Yang et al. 2010, all common SNPs", note:"Up from ~5% in the first wave."}],
+  sigma:null,
+  kill:`Whole-genome sequencing, not genotyping arrays, of a cohort large enough to capture rare
+    variants, with the residual gap accounted for. If it closes, the paradox was an instrument
+    limitation; if it does not, the twin estimate is inflated by something shared and
+    non-genetic.`,
+  cites:["Yang et al., Nature Genetics 42, 565 (2010)","Manolio et al., Nature 461, 747 (2009)"]
+},
+{
+  id:"ENCODE", field:"genomics", kind:"disagreement", status:"open",
+  title:"Is 80% of your genome functional, or 10%?",
+  hook:"Two respected estimates differ by a factor of eight because they define one word differently.",
+  plain:`ENCODE reported in 2012 that around 80% of the human genome is biochemically active.
+    Comparative genomics puts the fraction under purifying selection at 8–10%. The data are not
+    really in dispute; the meaning of "functional" is.`,
+  stakes:`The definition determines where a decade of sequencing effort goes. If most of the
+    genome is functional, non-coding variants found in disease studies are plausible causal
+    candidates and deserve follow-up. If only a tenth is, most of those associations are
+    tagging something else and the follow-up is wasted. It also decides how to interpret the
+    vast majority of GWAS hits, which fall outside genes — the single largest interpretive
+    problem in human genetics.`,
+  sides:[
+    {label:"Biochemically active", value:80, err:0, unit:"%", source:"ENCODE Consortium 2012", note:"Transcribed or protein-bound in some cell type."},
+    {label:"Under selection", value:9, err:1, unit:"%", source:"Comparative genomics", note:"Conserved across mammals, so plausibly load-bearing."}],
+  sigma:null,
+  guess:"Which definition of 'functional' should win?",
+  kill:`Saturation mutagenesis giving the fitness cost of disrupting randomly chosen genomic
+    regions. That converts a definitional argument into a measured quantity, which is the only
+    thing that can end it.`,
+  cites:["ENCODE Project Consortium, Nature 489, 57 (2012)","Graur et al., Genome Biol Evol 5, 578 (2013)"]
+},
+{
+  id:"PETO", field:"genomics", kind:"disagreement", status:"open",
+  title:"Whales have far more cells than you and less cancer",
+  hook:"Every cell division risks a mutation, so large long-lived animals should be riddled with tumours. They are not.",
+  plain:`Cancer risk should scale with the number of cell divisions in a lifetime. Across species
+    it does not: elephants die of cancer less often than humans do, and whales, with orders of
+    magnitude more cells, are not obviously worse off. Within a species the expected
+    correlation with size does appear — which makes the cross-species absence stranger.`,
+  stakes:`Large animals evolved cancer suppression that humans lack, and the mechanisms are
+    partially identified — elephants carry around twenty copies of TP53 against our one.
+    Understanding how those extra copies change the threshold for apoptosis is a direct route
+    to prevention rather than treatment. It also constrains the multi-hit model of
+    carcinogenesis: if the model were complete and universal, the cross-species pattern could
+    not look like this.`,
+  sides:[
+    {label:"Elephant cancer mortality", value:4.8, err:0, unit:"%", source:"Abegglen et al. 2015", note:"Across 644 zoo and sanctuary necropsies."},
+    {label:"Human cancer mortality", value:18, err:7, unit:"%", source:"Same study, human comparison", note:"Range across the populations compared."}],
+  sigma:null,
+  guess:"Genetic defence, or something about how large bodies work?",
+  kill:`Somatic mutation rate per cell division measured across species spanning four orders of
+    magnitude in body mass. If large animals mutate at the same per-cell rate as small ones,
+    the defence is active suppression; if more slowly, the paradox reduces to arithmetic.`,
+  cites:["Abegglen et al., JAMA 314, 1850 (2015)","Peto et al., J Epidemiol Community Health 29 (1975)"]
+},
+{
+  id:"TWINS", field:"genomics", kind:"disagreement", status:"open",
+  title:"Identical twins, identical DNA, different diseases",
+  hook:"If the genome were the whole story, one twin's diagnosis would always be the other's.",
+  plain:`Identical twins begin from the same genome, yet when one develops type 1 diabetes the
+    other follows only about a third to half of the time; for multiple sclerosis it is closer
+    to a quarter. The residual is attributed to epigenetic and environmental divergence, though
+    that attribution is largely inferential.`,
+  stakes:`Discordant twin pairs are the cleanest natural experiment in human biology — genetics
+    held constant, everything else varying. What they measure is the ceiling on genetic
+    prediction: for these diseases it is well under half, no matter how good the sequencing
+    gets. They are also the only design that can establish whether a methylation difference at
+    diagnosis is a cause or a consequence, and almost every epigenetic disease association
+    published to date cannot distinguish the two.`,
+  sides:[
+    {label:"Shared DNA", value:100, err:0, unit:"%", source:"Monozygotic twins", note:"Barring a handful of post-zygotic mutations."},
+    {label:"Shared diagnosis", value:35, err:10, unit:"%", source:"Type 1 diabetes concordance", note:"Across long-running twin registries."}],
+  sigma:null,
+  kill:`A longitudinal methylome from disease-discordant pairs sampled before onset. Marks that
+    already differ beforehand are candidate causes; marks that appear afterwards are
+    consequences, and the field has been reading the arrow backwards.`,
+  cites:["Redondo et al., Diabetologia 44, 354 (2001)","Willer et al., PNAS 100, 12877 (2003)"]
+},
+{
+  id:"CANDIDATE", field:"genomics", kind:"orthodoxy", status:"refuted",
+  title:"Hundreds of papers on depression genes that were not there",
+  hook:"Eighteen candidate genes, more than a thousand studies, and no association that survived a large sample.",
+  plain:`For two decades the genetics of depression was studied by picking a plausible gene —
+    the serotonin transporter, most famously — and testing it in a few hundred people. In 2019
+    a study of over 600,000 individuals tested the eighteen most-studied candidates and their
+    interactions with stress. None showed the claimed association.`,
+  stakes:`This is the clearest measured case of a literature built on underpowered studies and
+    publication bias, and it is not a historical curiosity: the same design is still used in
+    fields without the sample sizes to expose it. The specific casualty was the
+    gene-by-environment interaction claim for 5-HTTLPR, cited thousands of times and used to
+    justify clinical framing. The general lesson is a number: with samples in the hundreds,
+    plausible-sounding associations appear reliably, and they are false.`,
+  sides:[
+    {label:"Published candidate studies", value:1100, err:0, unit:"papers", source:"Literature on 18 candidate genes", note:"Most reporting positive associations."},
+    {label:"Associations replicating", value:0, err:0, unit:"of 18", source:"Border et al. 2019, n > 600,000", note:"No candidate showed more evidence than random genes."}],
+  sigma:null,
+  kill:`Refuted. The kill condition was a well-powered test of the same hypotheses, and it was
+    carried out. The entry stays visible because the retracted literature is still cited.`,
+  cites:["Border et al., Am J Psychiatry 176, 376 (2019)","Caspi et al., Science 301, 386 (2003)"]
+},
+{
+  id:"MICROBE", field:"genomics", kind:"orthodoxy", status:"refuted",
+  title:"You are not ten parts bacteria to one part human",
+  hook:"A number in every textbook for forty years traced back to one paragraph of arithmetic nobody rechecked.",
+  plain:`The claim that the body holds ten bacterial cells for every human one was repeated for
+    decades. Traced to its source in 2016, it came from a single order-of-magnitude estimate
+    published in 1972, presented as such and cited thereafter as measurement. Recounted from
+    organ-by-organ densities, the ratio is about 1.3 to 1.`,
+  stakes:`The 10:1 figure was doing rhetorical work — it was the standard opening line for the
+    argument that the microbiome dominates human physiology, and it appeared in grant
+    applications, popular books and review introductions. Correcting it does not undermine
+    microbiome research, but it removes a premise that a great deal of framing rested on. The
+    transmission path is the instructive part: an estimate became a fact purely by being cited,
+    with no intervening measurement, over forty years.`,
+  sides:[
+    {label:"What was repeated", value:10, err:0, unit:": 1", source:"Luckey 1972, an estimate", note:"Cited for four decades as though it were data."},
+    {label:"What was measured", value:1.3, err:0.3, unit:": 1", source:"Sender, Fuchs & Milo 2016", note:"Recounted from organ-by-organ cell densities."}],
+  sigma:null,
+  kill:`Refuted against the 10:1 figure. What remains open is the size of the error bar on 1.3,
+    which a direct census in matched cadavers would fix.`,
+  cites:["Sender, Fuchs & Milo, PLoS Biology 14, e1002533 (2016)","Luckey, Am J Clin Nutr 25 (1972)"]
+},
+{
+  id:"GENECOUNT", field:"genomics", kind:"orthodoxy", status:"settled",
+  title:"The human gene count fell by 80% and nobody had to retract anything",
+  hook:"Estimates of 100,000 genes narrowed to about 20,000 — roughly what a nematode has.",
+  plain:`Before the genome was sequenced, the working estimate was around 100,000
+    protein-coding genes. The draft sequence cut that to 30,000–40,000, and successive
+    annotations settled near 20,000 — comparable to far simpler organisms.`,
+  stakes:`The collapse of the gene count is why regulation, not gene content, became the
+    explanation for organismal complexity: with the same parts list as a worm, the difference
+    has to lie in how the parts are controlled. That reorientation created the entire field of
+    functional genomics and is the direct reason the ENCODE question above matters. It is also
+    a case where a widely held quantitative belief was wrong by a factor of five and the field
+    absorbed the correction without crisis, because nothing important had been built on top of
+    the specific number.`,
+  sides:[
+    {label:"Expected, pre-genome", value:100000, err:0, unit:"genes", source:"Consensus estimates c. 2000", note:"A sweepstake was run on the number."},
+    {label:"Current annotation", value:19900, err:300, unit:"genes", source:"GENCODE, protein-coding", note:"Still being refined slightly downward."}],
+  sigma:null,
+  history:[
+    {year:2000, value:100000, err:0, method:"estimate", source:"Pre-sequence consensus"},
+    {year:2001, value:35000, err:5000, method:"draft", source:"Draft genome"},
+    {year:2004, value:22000, err:1000, method:"annotation", source:"Finished sequence"},
+    {year:2020, value:19900, err:300, method:"annotation", source:"GENCODE"}],
+  history_note:"Each better measurement moved the same direction. The first estimate was out by a factor of five.",
+  kill:`Settled by sequencing and annotation. Small revisions continue; the order of magnitude
+    does not.`,
+  cites:["International Human Genome Sequencing Consortium, Nature 431, 931 (2004)","Nurk et al., Science 376, 44 (2022)"]
+},
+{
+  id:"FTO", field:"genomics", kind:"orthodoxy", status:"refuted",
+  title:"The obesity gene was not doing what everyone said",
+  hook:"The strongest common genetic association with body weight acts on a different gene entirely.",
+  plain:`Variants in the first intron of FTO give the strongest common-variant association with
+    obesity, and for a decade the mechanism was assumed to run through FTO itself and appetite
+    regulation. In 2015 the causal variant was shown to sit in an enhancer controlling IRX3
+    and IRX5, altering how precursor cells commit to energy-burning or energy-storing fat.`,
+  stakes:`The nearest gene is not the causal gene. That is now the central methodological
+    problem in interpreting the tens of thousands of GWAS associations that fall in non-coding
+    regions, and FTO is the case that proved it with a mechanism worked out end to end. Ten
+    years of functional work on the wrong protein followed from an assumption nobody had
+    tested, and the therapeutic target that emerged was a different pathway entirely.`,
+  sides:[
+    {label:"Assumed mechanism", value:1, err:0, unit:"gene: FTO", source:"A decade of functional studies", note:"Based on the variant's position within FTO."},
+    {label:"Demonstrated mechanism", value:2, err:0, unit:"genes: IRX3/IRX5", source:"Claussnitzer et al. 2015", note:"Enhancer acting over a long range."}],
+  sigma:null,
+  kill:`Refuted for the original mechanism, by directed editing of the causal variant and
+    measurement of the downstream effect. The association itself stands; the explanation was
+    wrong.`,
+  cites:["Claussnitzer et al., NEJM 373, 895 (2015)","Frayling et al., Science 316, 889 (2007)"]
+},
+{
+  id:"YCHROM", field:"genomics", kind:"disagreement", status:"open",
+  title:"Is the Y chromosome dying or has it stopped?",
+  hook:"Extrapolate its decay and it disappears in a few million years. Compare species and it looks stable.",
+  plain:`The Y chromosome has lost the great majority of the genes it once shared with the X.
+    Extrapolating that rate forward predicts eventual disappearance. Comparisons across
+    primates and other mammals suggest the losses happened early and the remaining gene content
+    has been conserved for tens of millions of years.`,
+  stakes:`The disagreement is about whether a rate measured over a long baseline can be
+    extrapolated at all — the same statistical question that recurs whenever decay is inferred
+    from two endpoints rather than measured along the way. Biologically the outcome matters for
+    understanding sex determination systems that have already been lost in some rodent lineages
+    without the species ending. Methodologically it is a clean case where the shape of the
+    curve, not the endpoints, carries all the information.`,
+  sides:[
+    {label:"Genes lost since divergence", value:97, err:0, unit:"%", source:"Comparison with the X chromosome", note:"The basis for linear extrapolation."},
+    {label:"Genes lost in 25 Myr", value:1, err:1, unit:"gene", source:"Hughes et al., rhesus comparison", note:"Consistent with a stabilised gene set."}],
+  sigma:null,
+  guess:"Continuing decay, or a stable remnant?",
+  kill:`Y chromosome assemblies across a dense sample of mammalian lineages with divergence times
+    known independently. That measures the shape of the loss curve instead of extrapolating
+    between two points, which is the only thing that settles it.`,
+  cites:["Hughes et al., Nature 483, 82 (2012)","Bachtrog, Nat Rev Genet 14, 113 (2013)"]
+},
+{
+  id:"CHIMP", field:"genomics", kind:"disagreement", status:"open",
+  title:"Humans and chimps are 98.8% identical, or 96%, or less",
+  hook:"The famous number depends entirely on what you agree to count.",
+  plain:`Aligning the parts of the two genomes that align gives about 98.8% identity at single
+    bases. Including insertions and deletions drops it to roughly 96%. Counting structural
+    variation and regions that cannot be aligned at all drops it further. Every figure is
+    correct for its own definition.`,
+  stakes:`The number is used as evidence in arguments it cannot support — about how much genetic
+    difference behavioural difference requires. Since the divergence is concentrated in
+    regulatory and structural variation rather than in coding sequence, a single similarity
+    percentage is not merely imprecise but actively misleading about where the differences sit.
+    Complete telomere-to-telomere assemblies of both genomes are now making the previously
+    unalignable regions comparable for the first time.`,
+  sides:[
+    {label:"Aligned base identity", value:98.8, err:0.1, unit:"%", source:"Substitutions in alignable regions", note:"The figure usually quoted."},
+    {label:"Including indels", value:96, err:0.5, unit:"%", source:"Chimpanzee Sequencing Consortium 2005", note:"Insertions and deletions counted."}],
+  sigma:null,
+  kill:`Telomere-to-telomere assemblies of both species compared over their whole length,
+    reporting identity separately by variant class. That replaces one contested number with
+    several uncontested ones, which is the correct resolution.`,
+  cites:["Chimpanzee Sequencing and Analysis Consortium, Nature 437, 69 (2005)","Yoo et al., Nature 641, 401 (2025)"]
+},
+{
+  id:"HUNGER", field:"genomics", kind:"question", status:"open",
+  title:"Can a famine mark your grandchildren?",
+  hook:"Children conceived during the Dutch Hunger Winter carry measurable epigenetic differences sixty years on. Whether that is inheritance is another matter.",
+  plain:`Individuals conceived during the Dutch famine of 1944–45 show reduced methylation at
+    the IGF2 locus six decades later, compared with unexposed same-sex siblings. Whether such
+    marks pass to a further generation in humans, independently of the shared conditions that
+    produced them, is not established.`,
+  stakes:`Transgenerational epigenetic inheritance is claimed constantly in popular science and
+    invoked in policy arguments about early-life intervention. In humans the evidence is
+    confounded by design: a pregnant woman's exposure directly reaches her fetus and that
+    fetus's germline, so an effect in grandchildren need not involve any transmitted mark at
+    all. Distinguishing genuine inheritance from three simultaneously exposed generations
+    determines whether a widely repeated claim about human biology is true.`,
+  sides:[],
+  sigma:null,
+  guess:"Do you think the effect survives to a generation that was never exposed?",
+  kill:`An effect measured in the F3 generation through the paternal line, where no direct
+    exposure of the germline is possible. In animal models this design is routine; in humans it
+    requires cohorts that are only now reaching the necessary age.`,
+  cites:["Heijmans et al., PNAS 105, 17046 (2008)","Horsthemke, Nat Commun 9, 2973 (2018)"]
+},
+{
+  id:"TELOMERE", field:"genomics", kind:"disagreement", status:"open",
+  title:"Long telomeres look protective and cause cancer",
+  hook:"Observational studies and genetic causal inference point in opposite directions.",
+  plain:`Short telomeres are associated with age-related disease and mortality, which supported a
+    view of telomere length as a marker — and possible lever — of biological ageing. Using
+    inherited variants to infer causation instead, genetically longer telomeres associate with
+    substantially increased risk of several cancers.`,
+  stakes:`A supplement and clinical-testing industry rests on the protective reading. If the
+    causal direction from Mendelian randomization holds, interventions that lengthen telomeres
+    trade one risk for another rather than slowing ageing, and consumer telomere tests are
+    measuring something whose relationship to health is not what buyers are told. It is also
+    among the cleanest illustrations that association and causal inference on the same variable
+    can point opposite ways, which is a general warning and not a niche one.`,
+  sides:[
+    {label:"Observational association", value:-1, err:0, unit:"shorter → worse", source:"Cohort studies of ageing", note:"Short telomeres track disease and mortality."},
+    {label:"Genetic causal estimate", value:1, err:0, unit:"longer → more cancer", source:"Mendelian randomization", note:"Inherited length raises risk for several cancers."}],
+  sigma:null,
+  kill:`A randomised intervention that alters telomere length and measures hard outcomes. Absent
+    that, larger Mendelian randomization studies with better instruments and explicit tests for
+    pleiotropy are the available route.`,
+  cites:["Telomeres Mendelian Randomization Collaboration, JAMA Oncol 3, 636 (2017)","Blackburn et al., Science 350, 1193 (2015)"]
+},
+{
+  id:"CVALUE", field:"genomics", kind:"question", status:"settled",
+  title:"A woodland flower carries fifty times more DNA than you",
+  hook:"Genome size has almost nothing to do with complexity, and working out why took a century.",
+  plain:`Paris japonica has a genome of about 149 billion base pairs; the human genome is 3.1
+    billion. Lungfish, onions and some amoebae also dwarf us. The resolution is that most of a
+    large genome is repetitive sequence and duplication, neither of which scales with
+    complexity.`,
+  stakes:`Settling this is what made "junk DNA" a coherent hypothesis and set up the functional
+    question that ENCODE later reopened — the two entries are the same argument fifty years
+    apart. It also fixed a methodological habit: genome size is a property of the history of
+    repeat expansion in a lineage, not a measure of anything about the organism, and any
+    inference that treats it as such is unsound.`,
+  sides:[
+    {label:"Paris japonica", value:148.9, err:0, unit:"Gb", source:"Pellicer et al. 2010", note:"The largest genome measured in any plant."},
+    {label:"Human", value:3.1, err:0, unit:"Gb", source:"Reference assembly", note:"About 2% of it codes for protein."}],
+  sigma:null,
+  kill:`Settled once repetitive DNA was characterised. What remains open is why tolerance for
+    that load varies so widely between lineages.`,
+  cites:["Pellicer, Fay & Leitch, Bot J Linn Soc 164, 10 (2010)","Thomas, Annu Rev Genet 5, 237 (1971)"]
 }];
+
 
 /* ------------------------------------------------------------------ utils */
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -961,10 +1350,11 @@ const safely = (fn, fb) => { try { return fn(); } catch (e) { console.error(e); 
 const num = v => {
   if (!Number.isFinite(v)) return "—";
   const a = Math.abs(v);
-  if (a !== 0 && (a >= 1e4 || a < 1e-2)) {
+  if (a !== 0 && (a >= 1e5 || a < 1e-2)) {
     const e = Math.floor(Math.log10(a));
     return (v / 10 ** e).toFixed(2) + "×10^" + e;
   }
+  if (a >= 1e4) return v.toLocaleString("en-US");
   return String(Number(v.toPrecision(4)));
 };
 const days = iso => {
@@ -980,8 +1370,6 @@ const UNIT_WORDS = { msun:"times the mass of the Sun", mearth:"times the mass of
 const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
 
 /* ---------------------------------------------------- machine → post shape */
-// Claims the sweep actually minted, reshaped into the same object as a seed so
-// one feed can hold both. Origin is carried through and always shown.
 function fromRegister(rows){
   const out = [], groups = new Map();
   for (const c of rows) {
@@ -991,13 +1379,15 @@ function fromRegister(rows){
         id:c.claim_id, field:"astronomy", kind:"disagreement", status:c.status || "open",
         machine:true, opened:c.opened_at, title:c.title,
         hook:`${o.source} and a ${r.year || "published"} paper disagree by ${c.sigma}σ about the same quantity.`,
-        plain:`Two measurements of the same object do not agree. The archive says
-          ${num(o.value)}; a paper says ${num(r.value)}. Their stated error bars are too
-          small for both to be right, and nothing in the published record settles which.`,
-        statement:c.statement,
+        plain:`Two measurements of the same object do not agree. The archive holds ${num(o.value)};
+          a paper states ${num(r.value)}. The stated error bars are too small for both to be right.`,
+        stakes:`Individually this is one object. Collectively it is a measure of how much of the
+          published record disagrees with the archives that are supposed to summarise it — and
+          nobody is auditing that at scale, because doing it by hand costs a literature search
+          per object. This entry exists because a machine did the search.`,
         sides:[
           {label:o.source || "archive", value:o.value, err:o.err, unit:o.unit, source:o.reference || "", note:"Held in the archive as the current value."},
-          {label:`published ${r.year || ""}`.trim(), value:r.value, err:r.err, unit:r.unit, source:"the paper", note:"Read out of the abstract by the extractor."}],
+          {label:`published ${r.year || ""}`.trim(), value:r.value, err:r.err, unit:r.unit, source:"the paper", note:"Read out of the abstract, with the quote kept as receipt."}],
         sigma:c.sigma, kill:c.kill, resolution:c.resolution, url:o.url,
         guess:"Which do you think is wrong — the archive, or the paper?",
         cites:[o.reference, c.claim_id].filter(Boolean)
@@ -1018,9 +1408,13 @@ function fromRegister(rows){
       title:`${ms.length} ${what} nobody has written about`,
       hook:`Recorded once by ${o.source}, then named in no paper since. Not disputed — unexamined.`,
       plain:`${ms.length} real objects, each measured once by ${o.source} and then left alone —
-        ${num(Math.min(...vals))} to ${num(Math.max(...vals))} ${spell(o.unit)}. Not one of them
-        is named in a single published paper. Nobody has looked.`,
-      statement:ms[0].statement,
+        ${num(Math.min(...vals))} to ${num(Math.max(...vals))} ${spell(o.unit)}. A title and
+        abstract search across OpenAlex returns nothing that names any of them.`,
+      stakes:`Detection has outrun analysis. Surveys now record objects far faster than anyone
+        can study them, so the limiting resource in observational astronomy is no longer
+        telescope time but attention — and nothing tracks which objects have never received
+        any. Each of these is a fully characterised object, publicly available, that a student
+        could take tomorrow. The list is the point: it is a queue nobody was maintaining.`,
       sides:[], sigma:null, kill:ms[0].kill,
       cites:[o.reference].filter(Boolean)
     });
@@ -1041,7 +1435,6 @@ function interval(p, W = 660, H = 190){
   const a = lo - pad, b = hi + pad, y0 = H / 2;
   const x = v => 56 + (v - a) / (b - a) * (W - 112);
   const C = ["var(--astro)", "var(--live)"];
-
   let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(S[0].label)} against ${esc(S[1].label)}">`;
   o += `<line x1="34" y1="${y0}" x2="${W - 34}" y2="${y0}" stroke="var(--line)" stroke-width="2" stroke-linecap="round"></line>`;
   S.forEach((s, i) => {
@@ -1049,21 +1442,70 @@ function interval(p, W = 660, H = 190){
     const x1 = +x(s.value - e).toFixed(1), x2 = +x(s.value + e).toFixed(1);
     if (e > 0) {
       o += `<rect x="${x1}" y="30" width="${(x2 - x1).toFixed(1)}" height="${H - 60}" rx="10" fill="${c}" opacity=".09"></rect>`;
-      o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2"></line>`;
-      for (const t of [x1, x2]) o += `<line x1="${t}" y1="${y - 6}" x2="${t}" y2="${y + 6}" stroke="${c}" stroke-width="2"></line>`;
+      o += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"></line>`;
+      for (const t of [x1, x2]) o += `<line x1="${t}" y1="${y - 6}" x2="${t}" y2="${y + 6}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"></line>`;
     }
-    o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="5" fill="${c}"></circle>`;
-    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 14 : y + 22}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ink)">${num(s.value)}${e ? " ± " + num(e) : ""}</text>`;
-    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 20 : H - 6}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" letter-spacing="1.3" fill="var(--ink-3)">${esc(String(s.label).toUpperCase())}</text>`;
+    o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="5.5" fill="${c}"></circle>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? y - 14 : y + 23}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="700" font-size="13" fill="var(--ink)">${num(s.value)}${e ? " ± " + num(e) : ""}</text>`;
+    o += `<text x="${x(s.value).toFixed(1)}" y="${i === 0 ? 20 : H - 6}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="600" font-size="11.5" fill="var(--ink-3)">${esc(s.label)}</text>`;
   });
-  o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="var(--ink)" stroke-width="1.5"></line>`;
+  o += `<line x1="${x(S[0].value).toFixed(1)}" y1="${y0}" x2="${x(S[1].value).toFixed(1)}" y2="${y0}" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"></line>`;
   if (Number.isFinite(p.sigma) && Math.abs(x(S[0].value) - x(S[1].value)) > 96)
-    o += `<text x="${((x(S[0].value) + x(S[1].value)) / 2).toFixed(1)}" y="${y0 - 8}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="17" fill="var(--ink)">${p.sigma}σ apart</text>`;
-  o += `<text x="${W - 34}" y="${y0 + 19}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="var(--ink-3)">${esc(S[0].unit || "")}</text>`;
+    o += `<text x="${((x(S[0].value) + x(S[1].value)) / 2).toFixed(1)}" y="${y0 - 9}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="17" fill="var(--ink)">${p.sigma}σ apart</text>`;
+  o += `<text x="${W - 34}" y="${y0 + 19}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="var(--ink-3)">${esc(S[0].unit || "")}</text>`;
   return o + `</svg>`;
 }
 
-// The tile-sized version: the same two marks, no labels, read at a glance.
+// The measurements over time, which is the figure a researcher actually wants:
+// it shows whether the dispute is converging, and it is drawn from the same
+// published values the entry cites.
+function history(p){
+  const H0 = p.history || [];
+  if (H0.length < 2) return "";
+  const W = 660, H = 260, L = 62, R = 26, T = 26, B = 46;
+  const ys = H0.flatMap(d => [d.value - (d.err || 0), d.value + (d.err || 0)]);
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  const log = hi / Math.max(lo, 1e-30) > 50;             // gene counts need a log axis
+  const f = v => log ? Math.log10(Math.max(v, 1e-30)) : v;
+  let flo = f(lo), fhi = f(hi), fp = (fhi - flo) * .18 || Math.abs(fhi) * .2 || 1;
+  flo -= fp; fhi += fp;
+  const xs = H0.map(d => d.year), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const px = yr => L + (yr - x0 + .5) / (x1 - x0 + 1) * (W - L - R);
+  const py = v => T + (1 - (f(v) - flo) / (fhi - flo)) * (H - T - B);
+  const methods = [...new Set(H0.map(d => d.method))];
+  const C = ["var(--astro)", "var(--live)", "var(--phys)", "var(--gene)"];
+  const col = m => C[methods.indexOf(m) % C.length];
+
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Published measurements by year">`;
+  // A faint grid, labelled with values the chart actually reaches.
+  for (let i = 0; i <= 3; i++) {
+    const v = flo + (fhi - flo) * i / 3, y = T + (1 - i / 3) * (H - T - B);
+    o += `<line x1="${L}" y1="${y.toFixed(1)}" x2="${W - R}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"></line>`;
+    o += `<text x="${L - 10}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="var(--ink-3)">${num(log ? 10 ** v : v)}</text>`;
+  }
+  // Each method as its own connected series, so convergence is visible.
+  for (const m of methods) {
+    const pts = H0.filter(d => d.method === m).sort((a2, b2) => a2.year - b2.year);
+    if (pts.length > 1)
+      o += `<polyline fill="none" stroke="${col(m)}" stroke-width="2" stroke-linejoin="round" opacity=".38" points="${pts.map(d => `${px(d.year).toFixed(1)},${py(d.value).toFixed(1)}`).join(" ")}"></polyline>`;
+  }
+  for (const d of H0) {
+    const c = col(d.method), X = px(d.year);
+    if (d.err) {
+      o += `<line x1="${X.toFixed(1)}" y1="${py(d.value + d.err).toFixed(1)}" x2="${X.toFixed(1)}" y2="${py(d.value - d.err).toFixed(1)}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"></line>`;
+    }
+    o += `<circle cx="${X.toFixed(1)}" cy="${py(d.value).toFixed(1)}" r="5" fill="${c}"></circle>`;
+    o += `<text x="${X.toFixed(1)}" y="${H - 24}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="var(--ink-3)">${d.year}</text>`;
+  }
+  // Legend, so a colour means a method rather than nothing.
+  methods.forEach((m, i) => {
+    o += `<circle cx="${L + i * 128 + 5}" cy="${H - 7}" r="4.5" fill="${col(m)}"></circle>`;
+    o += `<text x="${L + i * 128 + 15}" y="${H - 3}" font-family="Manrope,sans-serif" font-weight="600" font-size="11.5" fill="var(--ink-2)">${esc(m)}</text>`;
+  });
+  return o + `</svg>`;
+}
+
+// The tile-sized version: the same two marks, read at a glance.
 function spark(p){
   const S = (p.sides || []).filter(s => Number.isFinite(s.value));
   if (S.length < 2) return "";
@@ -1072,12 +1514,12 @@ function spark(p){
   const hi = Math.max(...S.map((s, i) => s.value + err[i]));
   const pad = (hi - lo) * .3 || Math.abs(hi) * .25 || 1;
   const a = lo - pad, b = hi + pad, W = 620, H = 26, y = 13;
-  const x = v => 4 + (v - a) / (b - a) * (W - 8);
+  const x = v => 6 + (v - a) / (b - a) * (W - 12);
   let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="two measurements, apart">`;
-  o += `<line x1="4" y1="${y}" x2="${W - 4}" y2="${y}" stroke="var(--line)" stroke-width="3" stroke-linecap="round"></line>`;
+  o += `<line x1="6" y1="${y}" x2="${W - 6}" y2="${y}" stroke="var(--line)" stroke-width="3" stroke-linecap="round"></line>`;
   S.forEach((s, i) => {
     const c = i === 0 ? "var(--astro)" : "var(--live)", e = err[i];
-    if (e > 0) o += `<rect x="${x(s.value - e).toFixed(1)}" y="${y - 5}" width="${(x(s.value + e) - x(s.value - e)).toFixed(1)}" height="10" rx="5" fill="${c}" opacity=".22"></rect>`;
+    if (e > 0) o += `<rect x="${x(s.value - e).toFixed(1)}" y="${y - 5}" width="${Math.max(2, x(s.value + e) - x(s.value - e)).toFixed(1)}" height="10" rx="5" fill="${c}" opacity=".22"></rect>`;
     o += `<circle cx="${x(s.value).toFixed(1)}" cy="${y}" r="4.5" fill="${c}"></circle>`;
   });
   return o + `</svg>`;
@@ -1099,7 +1541,7 @@ const matches = p => {
   if (["disagreement", "silence", "orthodoxy"].includes(SIFT) && p.kind !== SIFT) return false;
   if (SIFT === "settled" && p.status === "open") return false;
   if (!QUERY) return true;
-  return [p.title, p.hook, p.plain, p.id, p.field].join(" ").toLowerCase().includes(QUERY);
+  return [p.title, p.hook, p.plain, p.stakes, p.id, p.field].join(" ").toLowerCase().includes(QUERY);
 };
 
 /* ------------------------------------------------------------------ tiles */
@@ -1109,7 +1551,7 @@ function tile(p, w){
   const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
   const tail = two
     ? `<div class="spark">${safely(() => spark(p), "")}</div>`
-    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>claims, none of them examined</span>`
+    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>objects, none of them examined</span>`
         : p.nokill ? `<b>0</b><span>observations would settle it</span>`
         : `<span>${esc(KIND_WORD[p.kind] || "")}</span>`}</div>`;
   return `<button class="tile ${esc(p.field)} ${closed ? "closed" : ""} ${p.featured ? "wide" : ""}" data-open="${esc(p.id)}">
@@ -1129,26 +1571,30 @@ function tile(p, w){
 function detail(p, w){
   const g = rd(GKEY), mine = g[p.id];
   const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
-  const askFirst = p.guess && !mine;
 
-  const evidence = `
-    <div class="layer">
-      <h4>What was actually measured</h4>
-      ${two ? `<div class="plate">${safely(() => interval(p), "")}
+  const numbers = two ? `<div class="layer">
+      <h4>What was measured</h4>
+      <div class="plate">${safely(() => interval(p), "")}
         <div class="cap">${esc((p.sides[0] || {}).source || "")} · ${esc((p.sides[1] || {}).source || "")}</div>
       </div>
       <dl class="sides">${p.sides.map(s => `<div>
         <dt>${esc(s.label)}</dt>
-        <dd>${num(s.value)}${Number.isFinite(s.err) && s.err ? ` ± ${num(s.err)}` : ""} <span style="font:500 12px/1 var(--mono);color:var(--ink-3)">${esc(s.unit || "")}</span></dd>
+        <dd>${num(s.value)}${Number.isFinite(s.err) && s.err ? ` ± ${num(s.err)}` : ""} <span>${esc(s.unit || "")}</span></dd>
         <p>${esc(s.source)}${s.note ? " — " + esc(s.note) : ""}</p>
-      </div>`).join("")}</dl>` : ""}
-      ${p.statement ? `<p class="said">${esc(p.statement)}</p>` : ""}
-    </div>`;
+      </div>`).join("")}</dl>
+    </div>` : "";
+
+  const record = p.history ? `<div class="layer">
+      <h4>How the measurements have moved</h4>
+      <div class="plate">${safely(() => history(p), "")}
+        ${p.history_note ? `<div class="cap">${esc(p.history_note)}</div>` : ""}
+      </div>
+    </div>` : "";
 
   const guessBlock = p.guess ? `<div class="guess">
       <p>${esc(p.guess)}</p>
       ${mine ? `<p class="said-you">You said <b>${esc(mine.pick)}</b>. Nothing has settled it yet —
-        if it does, this entry moves, and you will see the move in Watch.</p>`
+        if it does, this entry moves, and Watch shows you the move.</p>`
       : `<div class="opts">${(p.sides.length ? p.sides.map(s => s.label) : ["Yes", "No"])
           .map(l => `<button data-guess="${esc(p.id)}" data-pick="${esc(l)}">${esc(l)}</button>`).join("")}
         </div>`}
@@ -1165,8 +1611,17 @@ function detail(p, w){
     <h2>${esc(p.title)}</h2>
     <p class="plain">${esc(p.plain)}</p>
     ${guessBlock}
-    ${askFirst ? `<p class="said" style="color:var(--ink-3)">The numbers are below. Answer first if you want to test yourself against them.</p>` : ""}
-    ${evidence}
+
+    <div class="layer">
+      <div class="stakes">
+        <h4>What turns on the answer</h4>
+        <p>${esc(p.stakes)}</p>
+      </div>
+    </div>
+
+    ${numbers}
+    ${record}
+
     <div class="layer">
       <h4>${p.nokill ? "Why this is not a claim" : "What would end it"}</h4>
       <div class="kill ${p.nokill ? "nokill" : ""}">
@@ -1186,10 +1641,47 @@ function detail(p, w){
   </article>`;
 }
 
+/* ------------------------------------------------------------------ heads */
+// Each tab introduces itself. The register's argument belongs to the Feed.
+function heading(w){
+  const openQ = POSTS.filter(p => p.status === "open").length;
+  const disputes = POSTS.filter(p => p.kind === "disagreement" && p.status === "open").length;
+  const fields = new Set(POSTS.map(p => p.field)).size;
+  const mark = `<div class="mark">
+      <svg viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="6" r="3.4" fill="var(--live)"></circle>
+        <circle cx="4.5" cy="25" r="2.2" fill="var(--astro)"></circle>
+        <circle cx="25.5" cy="25" r="2.2" fill="var(--astro)"></circle>
+        <path d="M4.5 25 L15 6 L25.5 25" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-linejoin="round"></path>
+        <path d="M4.5 25 H25.5" fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-linecap="round" opacity=".5"></path>
+      </svg><h1>Parallax</h1></div>`;
+
+  if (TAB === "feed" && !OPEN_ID) return `${mark}
+    <p class="lede">Every entry is a place where careful people measured the same thing and
+      <b>got different answers</b> — or measured something once and never looked again.
+      Each one says what observation would settle it.</p>
+    <ul class="tally">
+      <li><b>${openQ}</b> open questions</li>
+      <li class="hot"><b>${disputes}</b> live disagreements</li>
+      <li><b>${fields}</b> fields</li>
+      <li><b>${REGISTER.length}</b> claims the machine found itself</li>
+    </ul>`;
+  if (TAB === "feed") return "";
+  if (TAB === "watch") return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Watch</h1>
+    <p class="lede" style="font-size:17px">Entries you are keeping, each held with the state it was in
+      when you took it — so if one moves, the move is what you see first.</p>`;
+  if (TAB === "bench") return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Workbench</h1>
+    <p class="lede" style="font-size:17px">Point the same engine that found this register's machine
+      entries at a subject of your own.</p>`;
+  return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Record</h1>
+    <p class="lede" style="font-size:17px">What Parallax has claimed on its own, and how each one resolved —
+      including the ones it withdrew.</p>`;
+}
+
 /* ------------------------------------------------------------------ views */
 function feed(w){
   if (OPEN_ID && post(OPEN_ID)) return detail(post(OPEN_ID), w);
-  const chips = [["all", "Everything"], ["astronomy", "Astronomy"], ["genomics", "Genomics"],
+  const chips = [["all", "Everything"], ["astronomy", "Astronomy"], ["genomics", "Genomics"], ["physics", "Physics"],
     ["disagreement", "Disagreements"], ["silence", "Silences"], ["orthodoxy", "Repeated, unchecked"], ["settled", "Settled"]];
   const sift = `<div class="sift">
       ${chips.map(([k, l]) => `<button class="chip" data-sift="${k}" aria-pressed="${SIFT === k}">${l}</button>`).join("")}
@@ -1203,7 +1695,9 @@ function feed(w){
 function watch(w){
   const kept = POSTS.filter(p => w[p.id]);
   if (!kept.length)
-    return `<p class="hollow">Nothing kept yet. Open an entry and press Watch — it is held here with the state it was in when you took it, so if it later moves, the move is what you see first.</p>`;
+    return `<p class="hollow">Nothing kept yet. Open an entry and press Watch. It is held here with the
+      state it was in when you took it, so if Parallax later withdraws or confirms it, the change is
+      what you see first.</p>`;
   return `<div class="grid">${kept.map(p => {
     const was = w[p.id] || {};
     const moved = was.status && was.status !== p.status;
@@ -1211,42 +1705,81 @@ function watch(w){
   }).join("")}</div>`;
 }
 
-// The researcher's side. Same engine the feed's machine entries come from,
-// pointed wherever you want, live.
+// The researcher's side: what the engine does, the rules that gate a claim,
+// what it queries, and a live run against any subject.
 function bench(){
   return `<section class="bench">
-    <h2>Point it at something</h2>
-    <p class="prose">This runs the same sweep that produced the machine-found entries in the feed:
-      it queries live observatory archives for a subject, pulls what has been published about
-      the same objects, normalises every value to SI, and reports each disagreement with the
-      measurement that would end it. A full sweep asks six services and takes about half a
-      minute.</p>
     <div class="form">
       <input id="bench-target" value="${esc(BENCH.target)}" placeholder="Kepler-10, TRAPPIST-1, GW250114">
       <select id="bench-mode">
-        ${["tension", "sky", "papers", "probe", "scorecard"].map(m => `<option value="${m}"${BENCH.mode === m ? " selected" : ""}>${m}</option>`).join("")}
+        ${[["tension", "tension — both eyes, the comparison, any claims"],
+           ["sky", "sky — observatories only, store what they report"],
+           ["papers", "papers — what the indices return for one name"],
+           ["probe", "probe — does every observatory answer?"],
+           ["scorecard", "scorecard — what has been claimed, how it resolved"]]
+          .map(([m, l]) => `<option value="${m}"${BENCH.mode === m ? " selected" : ""}>${esc(l)}</option>`).join("")}
       </select>
       <button id="bench-run"${BENCH.running ? " disabled" : ""}>${BENCH.running ? "Sweeping…" : "Run sweep"}</button>
     </div>
-    <div class="modes">
-      <div><code>tension</code><span>Both eyes: archives, literature, the comparison, and any claims it mints.</span></div>
-      <div><code>sky</code><span>Observatories only. Stores what they report, compares nothing.</span></div>
-      <div><code>papers</code><span>What the two paper indices return for one name. Writes nothing.</span></div>
-      <div><code>probe</code><span>Asks every observatory whether it answers. Start here when something is wrong.</span></div>
-      <div><code>scorecard</code><span>What has been claimed so far and how it resolved.</span></div>
-    </div>
     ${BENCH.out ? `<div class="out">${BENCH.out}</div>` : ""}
+
+    <div class="panel">
+      <h4>What a sweep actually does</h4>
+      <ol class="steps">
+        <li><b>Asks the archives.</b> Six services in parallel — the NASA Exoplanet Archive, GWOSC,
+          SIMBAD, the Minor Planet Center, JPL Small-Body Database, and the TESS object catalogue —
+          for every object matching the subject, with the value, its stated uncertainty and the
+          reference that published it.</li>
+        <li><b>Reads the literature.</b> Queries OpenAlex and arXiv for the same subject, ranks
+          results by whether the title actually names an object rather than by citation count,
+          and keeps the full abstract where one is available.</li>
+        <li><b>Extracts with receipts.</b> Pulls stated values out of the abstracts, and requires
+          every extracted number to appear as digits in the text it was read from. A value that
+          cannot be found in its own source is dropped, not flagged.</li>
+        <li><b>Normalises to SI.</b> Thirty-six unit spellings map to SI before anything is
+          compared, and a quantity must match its declared dimension and a plausible magnitude.
+          Anything unconvertible is dropped and named in the reply.</li>
+        <li><b>Computes the disagreement.</b> σ = |measured − reported| ÷ √(err₁² + err₂²). No
+          model past this line — from here it is arithmetic.</li>
+        <li><b>Mints, or refuses to.</b> A claim is written only with the measurement that would
+          end it. It also reports the denominator: how many objects it compared, what it dropped,
+          and why.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h4>The rules a claim has to pass</h4>
+      <ul class="rules">
+        <li><b>No error bar, no claim.</b> Two numbers without stated uncertainties are not a disagreement.</li>
+        <li><b>No kill condition, no claim.</b> There is no code path that writes a claim without the measurement that would end it.</li>
+        <li><b>No value that is not in the source text.</b> Every stated value must appear as digits in the text it was read from.</li>
+        <li><b>An absence must be searched for.</b> Before saying nothing explains an object, the worker queries an index and carries the hit count as its receipt. If the check errors, no claim.</li>
+        <li><b>A value must agree with what it claims to be.</b> A quantity declares a dimension and a plausible magnitude — an age and an orbital period are both times, and only magnitude separates them.</li>
+        <li><b>Never compare in the unit it arrived in.</b> Everything normalises to SI first or is dropped. Jupiter radii against Earth radii is a factor of eleven.</li>
+        <li><b>A targeted question gets targeted claims.</b> Correct claims about the wrong subject are still the wrong answer.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h4>What it queries</h4>
+      <ul class="srcs">
+        <li><code>exoplanet-archive</code><span>Confirmed planets: mass, radius, period, with the reference that published each value.</span></li>
+        <li><code>gwosc</code><span>Every gravitational-wave event released by LIGO/Virgo/KAGRA, with component masses and distances.</span></li>
+        <li><code>simbad</code><span>Identifiers, coordinates and object types for anything with a name.</span></li>
+        <li><code>mpc / jpl-sbdb</code><span>Asteroids and comets: orbital elements, diameters, albedos.</span></li>
+        <li><code>openalex</code><span>The literature perimeter — title and abstract search across every field and year.</span></li>
+        <li><code>arxiv</code><span>Preprints, for anything published faster than an index can catch it.</span></li>
+      </ul>
+    </div>
   </section>`;
 }
 
-// The instrument's own record. A claim-making machine that never shows its
-// retractions is asking to be trusted rather than checked.
 function record(){
   const rows = REGISTER;
   const by = s => rows.filter(c => String(c.status || "open") === s).length;
   const n = rows.length, open = by("open"), withdrawn = by("withdrawn");
   const ended = rows.filter(c => String(c.status || "open") !== "open");
-  return `<p class="verdict">Parallax has minted ${n} claims of its own. <em>${withdrawn || "None"} it withdrew itself.</em></p>
+  return `<p class="verdict">${n} claims minted. <em>${withdrawn || "None"} withdrawn by the instrument itself.</em></p>
     <dl class="ledger">
       <div><dt>Still standing</dt><dd>${open}</dd><p>Each carries the measurement that would end it.</p></div>
       <div><dt>Settled or retracted</dt><dd>${n - open}</dd><p>Closed with a written reason, left visible.</p></div>
@@ -1254,37 +1787,33 @@ function record(){
       <div><dt>Curated entries</dt><dd>${SEEDS.length}</dd><p>Known open questions, entered by hand and labelled as such.</p></div>
     </dl>
     <p class="prose">Every claim the machine mints carries the measurement that would kill it —
-      <b>the code refuses to write one without it</b>. When a claim's receipt fails, when a number
-      it rested on cannot be found in the text it was supposedly read from, it is withdrawn with
-      a written reason and left in the register rather than quietly deleted. The curated entries
-      in the feed are marked as curated everywhere they appear; they are known questions with
-      published numbers, not machine output dressed up as discovery.</p>
+      <b>the code refuses to write one without it</b>. When a claim's receipt fails, when a number it
+      rested on cannot be found in the text it was supposedly read from, it is withdrawn with a written
+      reason and left in the register rather than quietly deleted. The curated entries in the feed are
+      marked as curated everywhere they appear; they are known questions with published numbers, not
+      machine output dressed up as discovery.</p>
     ${ended.map(c => `<div class="layer">
-      <h4>${esc(c.status)} · ${esc(c.claim_id)}</h4>
-      <p class="said" style="font-size:17px;color:var(--ink)">${esc(c.title)}</p>
-      <div class="kill"><span class="lab">How it ended</span><p>${esc(c.resolution || "")}</p></div>
+      <div class="stakes">
+        <h4>${esc(c.title)}</h4>
+        <p style="font:600 13px/1 var(--ui);color:var(--ink-3);margin-bottom:10px">${esc(c.status)} · ${esc(c.claim_id)}</p>
+        <p>${esc(c.resolution || "")}</p>
+      </div>
     </div>`).join("")}`;
 }
 
 /* ----------------------------------------------------------------- render */
 function render(){
   const w = rd(WKEY);
-  const openQ = POSTS.filter(p => p.status === "open").length;
-  const disputes = POSTS.filter(p => p.kind === "disagreement" && p.status === "open").length;
-  const fields = new Set(POSTS.map(p => p.field)).size;
-
-  document.getElementById("tally").innerHTML = `
-    <li><b>${openQ}</b> open questions</li>
-    <li class="hot"><b>${disputes}</b> live disagreements</li>
-    <li><b>${fields}</b> fields</li>
-    <li><b>${REGISTER.length}</b> claims the machine found itself</li>`;
-
   document.getElementById("n-feed").textContent = POSTS.length;
   document.getElementById("n-watch").textContent = Object.keys(w).length;
   document.getElementById("n-record").textContent = REGISTER.length;
   for (const t of ["feed", "watch", "bench", "record"])
     document.getElementById("tab-" + t).setAttribute("aria-selected", String(TAB === t));
-
+  const mast = document.getElementById("mast");
+  const head = heading(w);
+  mast.innerHTML = head;
+  mast.className = TAB === "feed" ? "mast" : "mast left";
+  mast.style.padding = head ? "34px 0 6px" : "10px 0 0";
   document.getElementById("main").innerHTML =
     TAB === "feed" ? feed(w) : TAB === "watch" ? watch(w) : TAB === "bench" ? bench() : record();
 }
@@ -1299,16 +1828,15 @@ async function runSweep(){
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPA_KEY}` },
       body: JSON.stringify(body)
     });
-    const j = await r.json();
-    BENCH.out = summarise(j);
+    BENCH.out = summarise(await r.json());
   } catch (e) {
     // Say what failed and hand over the exact command, rather than a spinner
     // that never resolves. Sandboxed frames block every outbound host.
-    BENCH.out = `<b>This page could not reach the worker.</b>\n${String(e && e.message || e)}\n\n`
+    BENCH.out = `<b>This page could not reach the worker.</b>\n${esc(String(e && e.message || e))}\n\n`
       + `That is expected inside a sandboxed frame, which blocks outbound requests.\n`
       + `The same sweep from a terminal:\n\n`
       + `curl -X POST ${SUPA}/functions/v1/sky \\\n  -H "Authorization: Bearer $ANON_KEY" \\\n`
-      + `  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(body)}'`;
+      + `  -H "Content-Type: application/json" \\\n  -d '${esc(JSON.stringify(body))}'`;
   }
   BENCH.running = false; render();
 }
@@ -1322,7 +1850,8 @@ function summarise(r){
   for (const l of r.ledger || []) L.push(`  ${String(l.name).padEnd(20)} ${l.got ?? 0}${l.error ? "  ERROR " + esc(l.error) : ""}`);
   if (r.read) L.push(`  read ${esc(JSON.stringify(r.read))}`);
   if (r.extraction) L.push(`  kept ${r.extraction.kept} of ${r.extraction.items_returned} from ${r.extraction.papers_in} papers`);
-  for (const s of r.stored || []) L.push(`  stored ${s.table}: ${s.error ? "FAILED " + esc(s.error) : s.rows + " rows"}`);
+  if (r.extraction && r.extraction.dropped) L.push(`  dropped ${esc(JSON.stringify(r.extraction.dropped))}`);
+  for (const s of r.stored || []) L.push(`  stored ${esc(s.table)}: ${s.error ? "FAILED " + esc(s.error) : s.rows + " rows"}`);
   L.push(`<b>${(r.tensions || []).length} disagreements · ${(r.orphans || []).length} silences · ${(r.claims || []).length} claims</b>`);
   for (const t of r.tensions || [])
     L.push(`  ${esc(t.object)} ${esc(t.quantity)}: ${t.sigma}σ — ${t.measured.value}${esc(t.measured.unit)} vs ${t.reported.value}${esc(t.reported.unit)}`);
@@ -1333,26 +1862,20 @@ function summarise(r){
 document.addEventListener("click", e => {
   const t = e.target.closest('[role="tab"]');
   if (t) { TAB = t.id.replace("tab-", ""); OPEN_ID = null; render(); window.scrollTo(0, 0); return; }
-
   const open = e.target.closest("[data-open]");
   if (open) { OPEN_ID = open.dataset.open; TAB = "feed"; render(); window.scrollTo(0, 0); return; }
-
-  if (e.target.closest("[data-back]")) { OPEN_ID = null; render(); return; }
-
+  if (e.target.closest("[data-back]")) { OPEN_ID = null; render(); window.scrollTo(0, 0); return; }
   const g = e.target.closest("[data-guess]");
   if (g) { const all = rd(GKEY); all[g.dataset.guess] = { pick: g.dataset.pick, at: Date.now() }; wr(GKEY, all); render(); return; }
-
   const k = e.target.closest(".keep");
   if (k) {
     const id = k.dataset.id, w = rd(WKEY);
     if (w[id]) delete w[id]; else w[id] = { status: (post(id) || {}).status, at: new Date().toISOString() };
     wr(WKEY, w); render(); return;
   }
-
   const c = e.target.closest(".chip");
   if (c) { SIFT = c.dataset.sift; OPEN_ID = null; render(); return; }
-
-  if (e.target.id === "bench-run") { runSweep(); }
+  if (e.target.id === "bench-run") runSweep();
 });
 
 document.addEventListener("input", e => {
@@ -1362,12 +1885,9 @@ document.addEventListener("input", e => {
     if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
   }
   if (e.target.id === "bench-target") BENCH.target = e.target.value;
-  if (e.target.id === "bench-mode") BENCH.mode = e.target.value;
 });
 document.addEventListener("change", e => { if (e.target.id === "bench-mode") BENCH.mode = e.target.value; });
 
-document.getElementById("stamp").textContent =
-  "register read " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
 safely(() => render());
 
 // Live claims where the page can reach the database; the snapshot stands in
