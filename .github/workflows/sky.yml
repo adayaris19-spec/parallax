@@ -35,6 +35,10 @@ on:
         description: "deploy setup/sky.ts before running"
         default: true
         type: boolean
+      body:
+        description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
+        default: ""
+        type: string
 
 env:
   PROJECT_REF: zfmjjazkmolvywvayjzj
@@ -71,9 +75,12 @@ jobs:
           ANON: ${{ secrets.SUPABASE_ANON_KEY }}
           MODE: ${{ inputs.mode || 'tension' }}
           TARGET: ${{ inputs.target || 'Kepler-10' }}
+          RAW: ${{ inputs.body }}
         run: |
           set -o pipefail
-          body=$(printf '{"mode":"%s","target":"%s","limit":40}' "$MODE" "$TARGET")
+          if [ -n "$RAW" ]; then body="$RAW"; else
+            body=$(printf '{"mode":"%s","target":"%s","limit":40}' "$MODE" "$TARGET")
+          fi
           echo "request: $body"
 
           # --fail-with-body so an error response is printed rather than

@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 18;
+const WORKER_VERSION = 19;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1707,14 +1707,59 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
+  // ---------- resolve: close a claim, and say why ----------
+  /* A claim that cannot close is not a claim, it is a notice. The scorecard has
+     always been able to count confirmed and refuted; nothing could ever set
+     them, so every claim this worker has ever made is still marked open —
+     including one it can no longer defend. The Kepler-10 c tension was minted
+     before values had to appear in the text they were read from; later sweeps
+     correctly stopped producing it, and nothing withdrew the row.
+
+     Closing requires a reason, for the same reason opening requires a kill
+     condition. A status changed without one is a fact nobody can check. */
+  if (mode === "resolve") {
+    const id = String(body.claim_id ?? "").trim();
+    const status = String(body.status ?? "").trim();
+    const resolution = String(body.resolution ?? "").trim();
+    const allowed = ["confirmed", "refuted", "withdrawn", "open"];
+
+    if (!id) return json({ error: "resolve needs a claim_id" }, 400);
+    if (!allowed.includes(status)) return json({ error: `status must be one of ${allowed.join(", ")}` }, 400);
+    if (status !== "open" && resolution.length < 10) {
+      return json({ error: "closing a claim requires a resolution saying why" }, 400);
+    }
+
+    const patch = {
+      status,
+      resolution: status === "open" ? null : resolution,
+      resolved_at: status === "open" ? null : new Date().toISOString(),
+      last_moved_at: new Date().toISOString(),
+    };
+    const r = await fetch(`${SB}/rest/v1/claims?claim_id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: {
+        apikey: SRK, Authorization: `Bearer ${SRK}`,
+        "Content-Type": "application/json", Prefer: "return=representation",
+      },
+      body: JSON.stringify(patch),
+    });
+    const text = await r.text().catch(() => "");
+    if (!r.ok) return json({ error: `HTTP ${r.status} ${text.slice(0, 200)}` }, 502);
+    let rows: any[] = [];
+    try { rows = JSON.parse(text); } catch { /* representation not returned */ }
+    if (!rows.length) return json({ error: `no claim with id ${id}` }, 404);
+    return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, resolved: rows[0] });
+  }
+
   // ---------- scorecard: what it has claimed, and how that went ----------
   if (mode === "scorecard") {
     const [board, open] = await Promise.all([
       sb("claim_scorecard?select=*"),
-      sb("claims?select=claim_id,kind,object,quantity,title,sigma,status,opened_at&order=sigma.desc&limit=50"),
+      sb("claims?select=claim_id,kind,object,quantity,title,sigma,status,resolution,opened_at,resolved_at" +
+         "&order=opened_at.desc&limit=100"),
     ]);
     return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, scorecard: board, claims: open });
   }
 
-  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "scorecard"] }, 400);
+  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "resolve", "scorecard"] }, 400);
 }
