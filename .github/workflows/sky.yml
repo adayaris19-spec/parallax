@@ -28,13 +28,17 @@ on:
         default: tension
         type: string
       target:
-        description: "object or system, e.g. Kepler-10"
+        description: "object or system; a comma-separated list runs one sweep each"
         default: Kepler-10
         type: string
       deploy:
         description: "deploy setup/sky.ts before running"
         default: true
         type: boolean
+      limit:
+        description: "objects per sweep"
+        default: "60"
+        type: string
       body:
         description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
         default: ""
@@ -76,10 +80,40 @@ jobs:
           MODE: ${{ inputs.mode || 'tension' }}
           TARGET: ${{ inputs.target || 'Kepler-10' }}
           RAW: ${{ inputs.body }}
+          LIMIT: ${{ inputs.limit }}
         run: |
           set -o pipefail
+
+          # A comma-separated target runs one sweep per entry, sequentially.
+          # The worker is one request per subject by design — a single call that
+          # looped internally would sit past the function's wall clock and be
+          # killed with nothing written, which is worse than being slow.
+          if [ -z "$RAW" ] && printf '%s' "$TARGET" | grep -q ','; then
+            printf '%s' "$TARGET" | tr ',' '\n' | while read -r one; do
+              one=$(printf '%s' "$one" | sed 's/^ *//; s/ *$//')
+              [ -z "$one" ] && continue
+              b=$(printf '{"mode":"%s","target":"%s","limit":%s}' "$MODE" "$one" "${LIMIT:-60}")
+              echo "----- sweep: $one"
+              curl -sS --fail-with-body --max-time 180 \
+                -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
+                -H "Authorization: Bearer $ANON" -H "Content-Type: application/json" \
+                -d "$b" > one.json || { echo "FAILED $one"; cat one.json; continue; }
+              node -e '
+                const r = JSON.parse(require("fs").readFileSync("one.json","utf8"));
+                console.log("  worker", r.worker, " ms", r.ms,
+                  " read", JSON.stringify(r.read||{}),
+                  " claims", (r.claims||[]).length,
+                  " tensions", (r.tensions||[]).length,
+                  " orphans", (r.orphans||[]).length);
+                for (const w of r.stored||[]) if (w.error) console.log("  STORE FAILED", w.table, w.error);
+              '
+            done
+            echo "sweeps complete"
+            exit 0
+          fi
+
           if [ -n "$RAW" ]; then body="$RAW"; else
-            body=$(printf '{"mode":"%s","target":"%s","limit":40}' "$MODE" "$TARGET")
+            body=$(printf '{"mode":"%s","target":"%s","limit":%s}' "$MODE" "$TARGET" "${LIMIT:-40}")
           fi
           echo "request: $body"
 

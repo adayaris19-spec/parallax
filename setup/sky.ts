@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 19;
+const WORKER_VERSION = 20;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1761,5 +1761,21 @@ async function handle(req: Request): Promise<Response> {
     return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, scorecard: board, claims: open });
   }
 
-  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "resolve", "scorecard"] }, 400);
+  /* ---------- dump: the register, in full, in one reply ----------
+     The site embeds a snapshot of the claims table so it renders where it
+     cannot reach the database — a sandboxed frame blocks every host. Rebuilding
+     that snapshot by hand is how it goes stale, so the worker hands over the
+     whole register in one call and the page is regenerated from the reply.
+     Read-only; writes nothing. */
+  if (mode === "dump") {
+    const cap = Math.min(Math.max(Number(body.limit) || 500, 1), 2000);
+    const from = Math.max(Number(body.offset) || 0, 0);
+    const rows = await sb(`claims?select=*&order=opened_at.desc&limit=${cap}&offset=${from}`) as any[];
+    return json({
+      worker: WORKER_VERSION, mode, ms: Date.now() - t0,
+      offset: from, returned: rows.length, claims: rows,
+    });
+  }
+
+  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "resolve", "scorecard", "dump"] }, 400);
 }
