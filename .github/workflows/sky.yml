@@ -60,6 +60,11 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         if: ${{ github.event_name == 'push' || inputs.deploy }}
+        # Authenticated, because resolving "latest" goes through the GitHub API
+        # and an anonymous call there is rate limited across the whole runner
+        # fleet — the deploy then fails on a quota this repository never spent.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: latest
 

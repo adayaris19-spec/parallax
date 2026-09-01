@@ -324,6 +324,23 @@ body::before{
 .subnav{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 20px}
 .subnav button{appearance:none;cursor:pointer;border:0;border-radius:999px;padding:9px 15px;font:600 13px/1 var(--ui);background:rgba(255,255,255,.8);color:var(--ink-2);box-shadow:var(--lift)}
 .subnav button[aria-selected="true"]{background:var(--ink);color:#fff}
+
+/* ------------------------------------------------------------------ live --- */
+.stream{display:grid;gap:1px}
+.ev{display:grid;grid-template-columns:96px 1fr auto;gap:14px;align-items:baseline;padding:11px 2px;border-bottom:1px solid rgba(16,17,20,.07)}
+.ev:last-child{border-bottom:0}
+.ev .when{font:500 11.5px/1.4 var(--mono);color:var(--ink-3)}
+.ev .what{font:600 14.5px/1.4 var(--ui);color:var(--ink)}
+.ev .tagm{font:600 11.5px/1.4 var(--ui);color:var(--ink-3);white-space:nowrap}
+.card .cap{margin:0;font:400 13.5px/1.55 var(--ui);color:var(--ink-3)}
+.card .cap b{color:var(--ink);font-weight:700}
+.card .figwrap svg{display:block;width:100%;height:auto}
+.closed-claim{margin:18px 0 0;padding:16px 18px;border-radius:var(--r-sm);background:var(--live-soft)}
+.closed-claim h6{margin:0;font:700 15px/1.3 var(--ui);letter-spacing:-.018em}
+.closed-claim .meta{margin:5px 0 9px;font:600 11.5px/1 var(--ui);color:var(--live)}
+.closed-claim p{margin:0;font:400 13.5px/1.55 var(--ui);color:var(--ink-2)}
+/* Something filed in the last week is worth pointing at. */
+.pill.fresh{background:var(--live);color:#fff}
 [hidden]{display:none!important}
 </style>
 
@@ -333,7 +350,7 @@ body::before{
       <button role="tab" id="tab-feed" aria-selected="true">Feed<span class="n" id="n-feed"></span></button>
       <button role="tab" id="tab-watch" aria-selected="false">Watch<span class="n" id="n-watch"></span></button>
       <button role="tab" id="tab-bench" aria-selected="false">Workbench</button>
-      <button role="tab" id="tab-record" aria-selected="false">Record<span class="n" id="n-record"></span></button>
+      <button role="tab" id="tab-live" aria-selected="false">Live<span class="n" id="n-live"></span></button>
     </div>
   </div>
   <header class="mast" id="mast"></header>
@@ -1502,6 +1519,8 @@ function fromRegister(rows){
   return out;
 }
 
+const byNewest = ps => ps.slice().sort((a, b) => Date.parse(b.opened || 0) - Date.parse(a.opened || 0));
+
 /* ---------------------------------------------------------------- figures */
 // Two measurements and their error bars on one axis, at the scale where the
 // disagreement is the visible thing.
@@ -1611,7 +1630,7 @@ const rd = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catc
 const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
 let REGISTER = SNAPSHOT.slice();
-let POSTS = SEEDS.concat(fromRegister(REGISTER));
+let POSTS = SEEDS.concat(byNewest(fromRegister(REGISTER)));
 let TAB = "feed", SIFT = "all", QUERY = "", OPEN_ID = null;
 let BENCH = { running:false, out:"", target:"Kepler-10", mode:"tension", sub:"run" };
 // Ask Parallax: the sampling capability, and one answer kept per entry.
@@ -1640,6 +1659,7 @@ function tile(p, w){
     <div class="head">
       <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
       <span class="pill kind">${esc(KIND_WORD[p.kind] || p.kind)}</span>
+      ${p.opened && (Date.now() - Date.parse(p.opened)) < 7 * 864e5 ? `<span class="pill fresh">New</span>` : ""}
       ${w[p.id] ? `<span class="pill kept">Kept</span>` : ""}
       <span class="state">${state}</span>
     </div>
@@ -1798,9 +1818,9 @@ function heading(w){
   if (TAB === "bench") return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Workbench</h1>
     <p class="lede" style="font-size:17px">Point the same engine that found this register's machine
       entries at a subject of your own.</p>`;
-  return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Record</h1>
-    <p class="lede" style="font-size:17px">What Parallax has claimed on its own, and how each one resolved —
-      including the ones it withdrew.</p>`;
+  return `<h1 style="margin:0;font:800 30px/1.1 var(--ui);letter-spacing:-.038em">Live</h1>
+    <p class="lede" style="font-size:17px">What the machine has been doing: when it last swept, what it
+      has filed since, and whether its own claims have held up.</p>`;
 }
 
 /* ------------------------------------------------------------------ views */
@@ -1911,31 +1931,80 @@ function bench(){
     BENCH.sub === "how" ? how : BENCH.sub === "rules" ? rules : BENCH.sub === "what" ? what : run}</section>`;
 }
 
-function record(){
-  const rows = REGISTER;
-  const by = s => rows.filter(c => String(c.status || "open") === s).length;
+// Live: is this thing actually running, and is it any good? Both answers are
+// computed from the register's own timestamps rather than asserted.
+function live(){
+  const rows = REGISTER.slice().sort((x, y) => Date.parse(y.opened_at || 0) - Date.parse(x.opened_at || 0));
+  const by = st => rows.filter(c => String(c.status || "open") === st).length;
   const n = rows.length, open = by("open"), withdrawn = by("withdrawn");
   const ended = rows.filter(c => String(c.status || "open") !== "open");
-  return `<p class="verdict">${n} claims minted. <em>${withdrawn || "None"} withdrawn by the instrument itself.</em></p>
-    <dl class="ledger">
-      <div><dt>Still standing</dt><dd>${open}</dd><p>Each carries the measurement that would end it.</p></div>
-      <div><dt>Settled or retracted</dt><dd>${n - open}</dd><p>Closed with a written reason, left visible.</p></div>
-      <div><dt>Withdrawal rate</dt><dd>${n ? (withdrawn / n * 100).toFixed(0) : 0}<small>%</small></dd><p>Retracted by the instrument, not by someone catching it.</p></div>
-      <div><dt>Curated entries</dt><dd>${SEEDS.length}</dd><p>Known open questions, entered by hand and labelled as such.</p></div>
-    </dl>
-    <p class="prose">Every claim the machine mints carries the measurement that would kill it —
-      <b>the code refuses to write one without it</b>. When a claim's receipt fails, when a number it
-      rested on cannot be found in the text it was supposedly read from, it is withdrawn with a written
-      reason and left in the register rather than quietly deleted. The curated entries in the feed are
-      marked as curated everywhere they appear; they are known questions with published numbers, not
-      machine output dressed up as discovery.</p>
-    ${ended.map(c => `<div class="layer">
-      <div class="stakes">
-        <h4>${esc(c.title)}</h4>
-        <p style="font:600 13px/1 var(--ui);color:var(--ink-3);margin-bottom:10px">${esc(c.status)} · ${esc(c.claim_id)}</p>
-        <p>${esc(c.resolution || "")}</p>
+  const newest = rows[0] && Date.parse(rows[0].opened_at);
+  const ago = ms => {
+    if (!Number.isFinite(ms)) return "—";
+    const h = (Date.now() - ms) / 36e5;
+    return h < 1 ? `${Math.max(1, Math.round(h * 60))} min ago`
+      : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`;
+  };
+
+  // Claims filed per day, from opened_at. The register's actual pulse — a flat
+  // stretch means nobody ran a sweep, and that is worth being able to see.
+  const perDay = new Map();
+  for (const c of rows) {
+    const d = String(c.opened_at || "").slice(0, 10);
+    if (d) perDay.set(d, (perDay.get(d) || 0) + 1);
+  }
+  const days30 = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 864e5).toISOString().slice(0, 10);
+    days30.push({ d, n: perDay.get(d) || 0 });
+  }
+  const peak = Math.max(1, ...days30.map(x => x.n));
+  const W = 660, H = 92, bw = (W - 8) / 30;
+  let pulse = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="claims filed per day over the last thirty days">`;
+  days30.forEach((x, i) => {
+    const h = x.n ? Math.max(4, (x.n / peak) * (H - 26)) : 2;
+    pulse += `<rect x="${(4 + i * bw).toFixed(1)}" y="${(H - 20 - h).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${h.toFixed(1)}" rx="2.5" fill="${x.n ? "var(--astro)" : "rgba(16,17,20,.10)"}"></rect>`;
+  });
+  pulse += `<text x="4" y="${H - 4}" font-family="Manrope,sans-serif" font-weight="600" font-size="11" fill="var(--ink-3)">30 days ago</text>`;
+  pulse += `<text x="${W - 4}" y="${H - 4}" text-anchor="end" font-family="Manrope,sans-serif" font-weight="600" font-size="11" fill="var(--ink-3)">today</text>`;
+  pulse += `<text x="${W - 4}" y="12" text-anchor="end" font-family="Manrope,sans-serif" font-weight="700" font-size="11" fill="var(--ink-3)">peak ${peak} in a day</text></svg>`;
+
+  return `<div class="stack">
+    <div class="card">
+      <h5>The machine's pulse</h5>
+      <div class="figwrap">${pulse}</div>
+      <p class="cap" style="margin-top:12px">${n} claims filed in total; the most recent
+        <b>${ago(newest)}</b>. A flat stretch is not a quiet universe — it is nobody having run a sweep.</p>
+    </div>
+
+    <div class="card">
+      <h5>Newest in the register</h5>
+      <div class="stream">
+        ${rows.slice(0, 12).map(c => `<div class="ev">
+          <span class="when">${esc(String(c.opened_at || "").slice(0, 10))}</span>
+          <span class="what">${esc(c.title)}</span>
+          <span class="tagm">${esc(c.kind)}${String(c.status) !== "open" ? " · " + esc(c.status) : ""}</span>
+        </div>`).join("")}
       </div>
-    </div>`).join("")}`;
+    </div>
+
+    <div class="card">
+      <h5>Has it been right?</h5>
+      <dl class="ledger" style="margin:0;max-width:none">
+        <div><dt>Still standing</dt><dd>${open}</dd><p>Each carries the measurement that would end it.</p></div>
+        <div><dt>Closed</dt><dd>${n - open}</dd><p>Settled or retracted, with a written reason.</p></div>
+        <div><dt>Withdrawn by itself</dt><dd>${n ? (withdrawn / n * 100).toFixed(0) : 0}<small>%</small></dd><p>Retracted by the instrument, not by someone catching it.</p></div>
+      </dl>
+      <p class="cap" style="margin-top:16px">A claim-making machine that never shows its retractions is
+        asking to be trusted rather than checked. Every closed claim stays in the register with the
+        reason it closed.</p>
+      ${ended.map(c => `<div class="closed-claim">
+        <h6>${esc(c.title)}</h6>
+        <p class="meta">${esc(c.status)} · ${esc(c.claim_id)}</p>
+        <p>${esc(c.resolution || "")}</p>
+      </div>`).join("")}
+    </div>
+  </div>`;
 }
 
 /* ----------------------------------------------------------------- render */
@@ -1943,8 +2012,8 @@ function render(){
   const w = rd(WKEY);
   document.getElementById("n-feed").textContent = POSTS.length;
   document.getElementById("n-watch").textContent = Object.keys(w).length;
-  document.getElementById("n-record").textContent = REGISTER.length;
-  for (const t of ["feed", "watch", "bench", "record"])
+  document.getElementById("n-live").textContent = REGISTER.length;
+  for (const t of ["feed", "watch", "bench", "live"])
     document.getElementById("tab-" + t).setAttribute("aria-selected", String(TAB === t));
   const mast = document.getElementById("mast");
   const head = heading(w);
@@ -1952,7 +2021,7 @@ function render(){
   mast.className = TAB === "feed" ? "mast" : "mast left";
   mast.style.padding = head ? "34px 0 6px" : "10px 0 0";
   document.getElementById("main").innerHTML =
-    TAB === "feed" ? feed(w) : TAB === "watch" ? watch(w) : TAB === "bench" ? bench() : record();
+    TAB === "feed" ? feed(w) : TAB === "watch" ? watch(w) : TAB === "bench" ? bench() : live();
 }
 
 /* --------------------------------------------------------------- the bench */
@@ -2122,7 +2191,7 @@ fetch(`${SUPA}/rest/v1/claims?select=*&order=opened_at.desc&limit=200`, {
 }).then(r => r.ok ? r.json() : null).then(rows => {
   if (Array.isArray(rows) && rows.length) {
     REGISTER = rows;
-    POSTS = SEEDS.concat(fromRegister(REGISTER));
+    POSTS = SEEDS.concat(byNewest(fromRegister(REGISTER)));
     safely(() => render());
   }
 }).catch(() => {});
