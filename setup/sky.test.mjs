@@ -21,7 +21,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const tmp = join(here, ".sky.undertest.ts");
 writeFileSync(tmp,
   readFileSync(join(here, "sky.ts"), "utf8") +
-  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs, searchName, plausible };\n");
+  "\nexport { normalise, reconcile, orphans, claimId, mint, claimsFrom, tapRows, sym, obs, searchName, plausible, forTable };\n");
 
 globalThis.Deno = { env: { get: () => "test" }, serve: () => {} };
 const S = await import("./.sky.undertest.ts");
@@ -104,6 +104,25 @@ t("a transit depth in ppm converts to nothing", S.normalise(4300, 50, "ppm").uni
 t("an epoch in BJD_TDB converts to nothing", S.normalise(2457000, 0.1, "BJD_TDB").unit_si === null);
 t("a mass unit and a length unit never share a dimension",
   S.normalise(1, 0, "Mearth").unit_si !== S.normalise(1, 0, "Rearth").unit_si);
+
+// only real columns are ever written -------------------------------------------
+// The worker added a quote_shows_value field to every measurement and kept
+// POSTing it to a table with no such column. PostgREST rejects the entire insert
+// when one key is unknown, so measurements stopped being stored for several
+// versions and the only trace was a console line nobody read.
+const measured = {
+  record_id: 1, object: "Kepler-10 c", quantity: "mass", value: 11.29, err: 1.24,
+  unit: "mearth", value_si: 6.7e25, err_si: 7.4e24, unit_si: "kg", year: 2016,
+  quote: "we measure a mass of 11.29", confidence: 0.9,
+  quote_shows_value: true, some_future_field: "x",
+};
+const [sent] = S.forTable("measurements", [measured]);
+t("a field the table does not have is not sent", !("quote_shows_value" in sent) && !("some_future_field" in sent));
+t("every field the table does have is sent", sent.value === 11.29 && sent.unit_si === "kg" && sent.year === 2016);
+t("a null-valued real column still goes", "record_id" in S.forTable("measurements", [{ ...measured, record_id: null }])[0]);
+t("an unknown table is passed through untouched", S.forTable("nope", [measured])[0].quote_shows_value === true);
+t("claims keep their jsonb columns",
+  "figure" in S.forTable("claims", [{ claim_id: "x", figure: { type: "interval" }, junk: 1 }])[0]);
 
 // TAP dialects ----------------------------------------------------------------
 t("TAP row-of-objects is read", S.tapRows([{ a: 1 }]).length === 1);

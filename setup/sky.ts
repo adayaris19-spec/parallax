@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 14;
+const WORKER_VERSION = 15;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -73,6 +73,61 @@ async function sb(path: string, method = "GET", body?: unknown, prefer?: string)
   });
   if (!r.ok && r.status !== 409) console.log("supabase", path, r.status, await r.text());
   try { return await r.json(); } catch { return null; }
+}
+
+/* WHAT EACH TABLE ACTUALLY HAS.
+   The worker gained a quote_shows_value field on every measurement and went on
+   POSTing it to a table that has no such column. PostgREST rejects the whole
+   insert when one key is unknown, so measurements stopped being stored
+   entirely — and the only sign of it was a line in a console log nobody reads.
+   Several versions ran that way.
+
+   So rows are reduced to the columns that exist before they are sent. A field
+   the code wants to carry in its reply but not in the database now costs
+   nothing instead of silently destroying the write. */
+const COLUMNS: Record<string, string[]> = {
+  observations: [
+    "source", "source_id", "object", "quantity", "value", "err", "unit",
+    "value_si", "err_si", "unit_si", "epoch", "ra", "dec", "reference", "url", "meta",
+  ],
+  measurements: [
+    "record_id", "object", "quantity", "value", "err", "unit",
+    "value_si", "err_si", "unit_si", "year", "quote", "confidence",
+  ],
+  claims: [
+    "claim_id", "kind", "object", "quantity", "title", "statement", "sigma",
+    "observed", "reported", "kill", "cost", "figure", "status", "last_moved_at",
+  ],
+};
+const forTable = (table: string, rows: any[]) => {
+  const cols = COLUMNS[table];
+  if (!cols) return rows;
+  return rows.map((r) => {
+    const o: Record<string, unknown> = {};
+    for (const c of cols) if (c in r) o[c] = r[c];
+    return o;
+  });
+};
+
+/* A write says whether it worked. `sb` swallows failure into a log line, which
+   is how an insert can fail on every sweep for days without anyone noticing —
+   the same blindness this worker has now been fixed for in four other places,
+   and the one place it mattered most, because a silent write failure loses
+   data rather than merely hiding a diagnosis. */
+async function write(table: string, path: string, rows: any[], prefer: string) {
+  if (!rows.length) return { table, rows: 0 };
+  const body = forTable(table, rows);
+  const r = await fetch(`${SB}/rest/v1/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: SRK, Authorization: `Bearer ${SRK}`,
+      "Content-Type": "application/json", Prefer: prefer,
+    },
+    body: JSON.stringify(body),
+  });
+  if (r.ok || r.status === 409) return { table, rows: rows.length };
+  const detail = await r.text().catch(() => "");
+  return { table, rows: 0, attempted: rows.length, status: r.status, error: detail.slice(0, 200) };
 }
 
 // ---------------------------------------------------------------------------
@@ -1382,11 +1437,10 @@ async function handle(req: Request): Promise<Response> {
   // ---------- sky: sweep the live sources and store what they said ----------
   if (mode === "sky") {
     const { rows, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
-    if (rows.length && body.store !== false) {
-      await sb("observations?on_conflict=source,source_id,quantity", "POST", rows,
-        "resolution=merge-duplicates,return=minimal");
-    }
-    return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, ledger, observations: rows });
+    const stored = body.store === false ? [] : [await write(
+      "observations", "observations?on_conflict=source,source_id,quantity", rows,
+      "resolution=merge-duplicates,return=minimal")];
+    return json({ worker: WORKER_VERSION, mode, ms: Date.now() - t0, ledger, stored, observations: rows });
   }
 
   // ---------- tension: both eyes, and the distance between them ----------
@@ -1402,9 +1456,10 @@ async function handle(req: Request): Promise<Response> {
        an archive value is not news — it is the same number tomorrow — and
        having yesterday's copy is the difference between a comparison and a
        shrug when a service is slow. */
-    if (swept.length && body.store !== false) {
-      await sb("observations?on_conflict=source,source_id,quantity", "POST", swept,
-        "resolution=merge-duplicates,return=minimal");
+    const writes: any[] = [];
+    if (body.store !== false) {
+      writes.push(await write("observations", "observations?on_conflict=source,source_id,quantity",
+        swept, "resolution=merge-duplicates,return=minimal"));
     }
 
     /* When a source drops out entirely, fall back to what it said last time.
@@ -1516,8 +1571,8 @@ async function handle(req: Request): Promise<Response> {
       })
       .slice(0, 60);
     const { rows: reported, diag: extraction } = await extractFrom(records);
-    if (reported.length && body.store !== false) {
-      await sb("measurements", "POST", reported, "return=minimal");
+    if (body.store !== false) {
+      writes.push(await write("measurements", "measurements", reported, "return=minimal"));
     }
 
     const { tensions: allTensions, skipped } = reconcile(sky, reported);
@@ -1536,18 +1591,19 @@ async function handle(req: Request): Promise<Response> {
        what was set aside is counted and reported - and an untargeted sweep is
        unaffected, because there the whole sky is the subject. */
     const onTarget = (o: any) => !target || belongsToTarget(String(o?.object ?? "")) === 0;
+    const allOrphans = orphans(sky, reported);
     const tensions = allTensions.filter(onTarget);
-    const candidates = orphans(sky, reported).filter(onTarget);
+    const candidates = allOrphans.filter(onTarget);
     const set_aside_off_target =
-      (allTensions.length - tensions.length) + (orphans(sky, reported).length - candidates.length);
+      (allTensions.length - tensions.length) + (allOrphans.length - candidates.length);
 
     const { orphans: orph, rejected } = await verifiedOrphans(candidates);
     const claims = claimsFrom(tensions, orph);
 
-    if (claims.length && body.store !== false) {
-      await sb("claims?on_conflict=claim_id", "POST",
+    if (body.store !== false) {
+      writes.push(await write("claims", "claims?on_conflict=claim_id",
         claims.map((c) => ({ ...c, last_moved_at: new Date().toISOString() })),
-        "resolution=merge-duplicates,return=minimal");
+        "resolution=merge-duplicates,return=minimal"));
     }
 
     return json({
@@ -1597,6 +1653,8 @@ async function handle(req: Request): Promise<Response> {
          different object from one that compared four thousand, and hiding the
          denominator is how a frontier starts looking more certain than it is. */
       skipped,
+      /* What actually reached the database, and what did not. */
+      stored: writes,
       /* Claims that were real but about something other than what was asked. */
       set_aside_off_target,
       tensions,
