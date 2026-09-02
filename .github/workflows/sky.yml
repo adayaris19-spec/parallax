@@ -43,6 +43,10 @@ on:
         description: "survey only: how many pages of the store to walk, one call each"
         default: "1"
         type: string
+      start:
+        description: "survey only: page to resume from, so a census can continue where the last one stopped"
+        default: "0"
+        type: string
       body:
         description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
         default: ""
@@ -94,6 +98,7 @@ jobs:
           RAW: ${{ inputs.body }}
           LIMIT: ${{ inputs.limit }}
           PAGES: ${{ inputs.pages }}
+          START: ${{ inputs.start }}
         run: |
           set -o pipefail
 
@@ -131,11 +136,12 @@ jobs:
           # closed and produce an empty census rather than a slow one.
           if [ "$MODE" = "survey" ] && [ "${PAGES:-1}" -gt 1 ] 2>/dev/null; then
             per="${LIMIT:-90}"
-            i=0
-            while [ "$i" -lt "$PAGES" ]; do
+            i=${START:-0}
+            last=$(( ${START:-0} + PAGES ))
+            while [ "$i" -lt "$last" ]; do
               off=$(( i * per * 3 ))
               b=$(printf '{"mode":"survey","limit":%s,"offset":%s}' "$per" "$off")
-              echo "----- census page $((i+1))/$PAGES  offset $off"
+              echo "----- census page $((i+1))  offset $off"
               curl -sS --fail-with-body --max-time 180 \
                 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
                 -H "Authorization: Bearer $ANON" -H "Content-Type: application/json" \
