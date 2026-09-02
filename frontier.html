@@ -341,6 +341,35 @@ body::before{
 .closed-claim p{margin:0;font:400 13.5px/1.55 var(--ui);color:var(--ink-2)}
 /* Something filed in the last week is worth pointing at. */
 .pill.fresh{background:var(--live);color:#fff}
+
+/* ------------------------------------------------------------- the argument */
+.lead-in{margin:-4px 0 16px;font:400 14.5px/1.55 var(--ui);color:var(--ink-3);max-width:60ch}
+.positions{display:grid;gap:12px}
+.pos-card{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:18px 20px;border-left:3px solid var(--ink-3)}
+.pos-card.live{border-left-color:var(--live)}
+.pos-card.leading,.pos-card.gaining,.pos-card.supported,.pos-card.the{border-left-color:var(--astro)}
+.pos-card.disfavoured,.pos-card.weak,.pos-card.squeezed,.pos-card.weakened,.pos-card.contradicted{border-left-color:var(--ink-3);background:var(--sunk);box-shadow:none}
+.pos-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pos-card h5{margin:0;font:700 16.5px/1.3 var(--ui);letter-spacing:-.022em}
+.pos-state{margin-left:auto;font:600 11.5px/1.3 var(--ui);color:var(--ink-3);text-align:right}
+.pos-card.live .pos-state{color:var(--live)}
+.pos-card .who{margin:6px 0 0;font:500 13px/1.4 var(--ui);color:var(--astro)}
+.pos-card .says{margin:10px 0 0;font:400 15px/1.55 var(--ui);color:var(--ink-2)}
+.pos-card .pred{margin:12px 0 0;font:400 14px/1.5 var(--ui);color:var(--ink-2)}
+.pos-card .pred b{display:block;font:700 11.5px/1 var(--ui);color:var(--ink-3);margin-bottom:5px}
+
+.gone{margin:0;padding:0;list-style:none;display:grid;gap:1px}
+.gone li{display:grid;gap:4px;padding:13px 2px;border-bottom:1px solid rgba(16,17,20,.08)}
+.gone li:last-child{border-bottom:0}
+.gone .x{font:600 15px/1.4 var(--ui);color:var(--ink-3);text-decoration:line-through;text-decoration-color:rgba(16,17,20,.22)}
+.gone .by{font:400 13.5px/1.5 var(--ui);color:var(--ink-2)}
+
+.soon{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.soon li{background:#fff;border-radius:var(--r-md);box-shadow:var(--lift);padding:16px 18px}
+.soon .what{margin:0;font:500 15px/1.5 var(--ui);color:var(--ink)}
+.soon .meta{display:flex;gap:12px;flex-wrap:wrap;margin:9px 0 0;font:600 12.5px/1.4 var(--ui);color:var(--astro)}
+.soon .when{margin-left:auto;color:var(--ink-3);font-weight:500;text-align:right}
+.depth{margin:0;font:600 12.5px/1.4 var(--ui);color:var(--astro)}
 [hidden]{display:none!important}
 </style>
 
@@ -1519,6 +1548,423 @@ function fromRegister(rows){
   return out;
 }
 
+/* The argument, not the fact.
+ *
+ * An entry that states two numbers and why they matter is a fact card. What
+ * makes one worth a researcher's time is the state of the dispute: which
+ * explanations are on the table and who holds them, what each one predicts
+ * that the others do not, what has already been eliminated, and which
+ * instrument reports next. That is what this file carries.
+ *
+ * Keyed by entry id and merged onto the seed. Every position names a
+ * proponent or a paper, because "some researchers argue" is the shape of a
+ * sentence that cannot be checked.
+ */
+const DEEP = {
+
+HUBBLE: {
+  positions: [
+    { name:"The distance ladder has a systematic", who:"Freedman, Madore and the CCHP",
+      claim:"Cepheid photometry in crowded fields is biased; a calibration that avoids Cepheids lands between the two camps.",
+      predicts:"As JWST resolves crowding, the ladder value drifts down toward 70. Their TRGB calibration gives 69.8 ± 1.9.",
+      state:"live" },
+    { name:"Something acted before recombination", who:"Poulin, Karwal & Kamionkowski (2019) and the early-dark-energy programme",
+      claim:"A scalar field briefly active near matter-radiation equality shrinks the sound horizon, so the CMB is being read with the wrong ruler.",
+      predicts:"A shifted CMB damping tail, and a higher S₈ — which makes the other tension on this register worse, not better.",
+      state:"live" },
+    { name:"Extra relativistic species",
+      who:"Various; constrained rather than championed",
+      claim:"More radiation in the early universe raises the expansion rate then and reconciles the inference.",
+      predicts:"A shift in the primordial helium abundance, which is measured independently.",
+      state:"squeezed" },
+    { name:"The CMB analysis is wrong", who:"Effectively nobody now",
+      claim:"Planck's inference carries an unmodelled systematic.",
+      predicts:"Independent CMB experiments would disagree with Planck.",
+      state:"disfavoured" }],
+  ruled_out: [
+    { what:"A local void making us measure an anomalously high local expansion", by:"Kenworthy, Scolnic & Riess 2019 — the void required is deeper and wider than galaxy counts permit" },
+    { what:"Cepheid metallicity zero-point error", by:"Direct Gaia parallaxes to Milky Way Cepheids; the residual is far too small to close a 5σ gap" },
+    { what:"A Planck-specific systematic", by:"ACT DR6 and SPT-3G reproduce the CMB-inferred value independently" }],
+  running: [
+    { what:"JWST cross-calibration of three independent distance indicators — Cepheids, the tip of the red giant branch, and JAGB — in the same galaxies", who:"SH0ES and CCHP, in parallel and in public disagreement", when:"reporting continuously since 2023" },
+    { what:"Gravitational-wave standard sirens with identified hosts", who:"LIGO/Virgo/KAGRA O5", when:"a few dozen events would give ~2% on H₀; the run is the limiting factor" },
+    { what:"Sound-horizon-independent constraints from BAO and full-shape clustering", who:"DESI", when:"annual data releases" }],
+  read_next: [
+    "Riess et al., ApJL 934, L7 (2022) — the ladder measurement",
+    "Planck Collaboration, A&A 641, A6 (2020) — the CMB inference",
+    "Freedman et al., ApJ 882, 34 (2019) — the TRGB calibration that lands in between",
+    "Kenworthy, Scolnic & Riess, ApJ 875, 145 (2019) — killing the void explanation"]
+},
+
+NEUTRON: {
+  positions: [
+    { name:"The beam undercounts protons", who:"Implied by the agreement among independent bottle experiments",
+      claim:"The beam method's proton detection efficiency is overestimated, so it counts too few decays and infers too long a lifetime.",
+      predicts:"A beam experiment with independently calibrated counting efficiency moves down to meet the bottle.",
+      state:"live" },
+    { name:"The bottle loses neutrons", who:"The historical objection to storage experiments",
+      claim:"Neutrons are lost to the walls or to quasi-stable orbits, so the trap empties faster than decay alone would empty it.",
+      predicts:"Material-walled and magnetically-trapped bottles would disagree.",
+      state:"weakened — UCNτ uses magnetic walls and agrees with material-bottle results" },
+    { name:"About 1% of neutrons decay into something invisible", who:"Fornal & Grinstein (2018)",
+      claim:"A dark decay channel, n → χ + anything, removes neutrons the beam cannot see as protons.",
+      predicts:"A specific missing-energy or monoenergetic-photon signature, and a softer neutron-star equation of state.",
+      state:"squeezed" }],
+  ruled_out: [
+    { what:"n → χ + γ at the branching ratio the gap requires", by:"Direct searches at UCNτ and Los Alamos exclude most of the parameter space" },
+    { what:"The simplest dark-decay models", by:"Two-solar-mass pulsars — a dark channel softens the equation of state and caps the maximum neutron star mass below what is observed" }],
+  running: [
+    { what:"BL3, a rebuilt beam experiment with a redesigned proton trap and independent efficiency calibration", who:"NIST", when:"targeting ~0.3 s, which is the precision that decides this" },
+    { what:"Continued magnetic-trap measurements", who:"UCNτ+", when:"pushing below 0.3 s" }],
+  read_next: [
+    "UCNτ Collaboration, PRL 127, 162501 (2021)",
+    "Fornal & Grinstein, PRL 120, 191801 (2018) — the dark decay proposal",
+    "Wietfeldt & Greene, Rev Mod Phys 83, 1173 (2011) — the discrepancy's history"]
+},
+
+MUON: {
+  positions: [
+    { name:"The lattice prediction is right", who:"BMW collaboration and, increasingly, other lattice groups",
+      claim:"Computing the hadronic vacuum polarisation from first principles gives a value that agrees with the measurement, leaving no room for new physics.",
+      predicts:"Independent lattice groups converge on the BMW number.",
+      state:"gaining" },
+    { name:"The data-driven prediction is right", who:"The Muon g−2 Theory Initiative's 2020 white paper",
+      claim:"The hadronic term derived from measured e⁺e⁻ → hadrons cross-sections is the sounder method, and the gap with experiment is real new physics.",
+      predicts:"The e⁺e⁻ data hold up under re-measurement.",
+      state:"under pressure" },
+    { name:"The e⁺e⁻ data themselves disagree", who:"CMD-3 (2023) against KLOE and BaBar",
+      claim:"CMD-3's measurement of the two-pion channel is higher than previous experiments, which moves the data-driven prediction toward the lattice and toward the measurement.",
+      predicts:"Resolving the experimental discrepancy between these cross-section measurements settles the prediction.",
+      state:"the actual crux" }],
+  ruled_out: [
+    { what:"An error in the experimental measurement", by:"Fermilab reproduced and improved on Brookhaven with a different systematics budget; the measurement is the least contested part" }],
+  running: [
+    { what:"Re-measurement of the e⁺e⁻ → π⁺π⁻ cross-section", who:"CMD-3, BaBar, Belle II, BESIII", when:"the discrepancy between these is now the rate-limiting step" },
+    { what:"Independent lattice calculations of the hadronic vacuum polarisation at BMW precision", who:"Several groups", when:"converging through the 2020s" }],
+  read_next: [
+    "Aoyama et al., Phys Rep 887, 1 (2020) — the data-driven prediction",
+    "Borsanyi et al., Nature 593, 51 (2021) — the lattice calculation",
+    "Muon g−2 Collaboration, PRL 131, 161802 (2023) — the measurement"]
+},
+
+DAMA: {
+  positions: [
+    { name:"It is dark matter", who:"The DAMA/LIBRA collaboration",
+      claim:"The annual modulation has the amplitude, period and phase expected from Earth's motion through the galactic halo.",
+      predicts:"Another sodium iodide experiment at comparable exposure sees the same modulation.",
+      state:"failing its own prediction" },
+    { name:"A seasonal environmental effect", who:"Multiple external analyses",
+      claim:"Muon flux, radon, or temperature vary annually underground and leak into the count rate.",
+      predicts:"The phase would track the environmental driver rather than the halo, and would not flip in the southern hemisphere.",
+      state:"live" },
+    { name:"An artefact of the background subtraction", who:"Re-analyses of DAMA's released data",
+      claim:"The modulation emerges from how the time-dependent background is modelled, not from the data.",
+      predicts:"Independent analysis of the same raw data would not reproduce it.",
+      state:"live, and contested because the raw data are not fully public" }],
+  ruled_out: [
+    { what:"The standard spin-independent WIMP-nucleon interpretation", by:"XENONnT, LZ and PandaX exclude the required cross-section by orders of magnitude" }],
+  running: [
+    { what:"ANAIS-112 — same target material, independent apparatus", who:"Canfranc", when:"published three years of data incompatible with DAMA's signal; accumulating exposure" },
+    { what:"COSINE-100 and its upgrade", who:"Yangyang", when:"ongoing" },
+    { what:"SABRE South at the Stawell mine, in the southern hemisphere", who:"SABRE", when:"the decisive test — a dark-matter modulation keeps its phase, a seasonal one inverts" }],
+  read_next: [
+    "Bernabei et al., Nucl Phys At Energy 19, 307 (2018)",
+    "Amaré et al., PRL 123, 031301 (2019) — ANAIS-112",
+    "Adhikari et al., Science Advances 7, eabf1745 (2021) — COSINE-100"]
+},
+
+LITHIUM: {
+  positions: [
+    { name:"Old stars destroyed it", who:"The stellar-depletion programme",
+      claim:"Atomic diffusion and turbulent mixing carry surface lithium down to where it burns, so the plateau is not the primordial abundance.",
+      predicts:"Depletion depends on stellar mass and metallicity, so the plateau should not be as flat as it is — which is the standing objection.",
+      state:"leading, but unresolved" },
+    { name:"Something decayed in the first minutes", who:"The particle-cosmology proposals",
+      claim:"A massive relic decaying during or after nucleosynthesis alters the yield.",
+      predicts:"A correlated shift in deuterium or helium-3, both of which are measured.",
+      state:"tightly constrained by those very measurements" },
+    { name:"A nuclear rate is wrong", who:"Proposed and then tested",
+      claim:"An unmeasured resonance in the reaction network changes the predicted ⁷Be yield.",
+      predicts:"A resonance at a specific energy in ⁷Be(d,p) or related channels.",
+      state:"largely eliminated" }],
+  ruled_out: [
+    { what:"The nuclear-resonance solution", by:"Direct measurement of the relevant reaction channels found no resonance of the required strength" },
+    { what:"A systematic in the stellar temperature scale large enough to close a factor of three", by:"Independent temperature determinations agree far more closely than that" }],
+  running: [
+    { what:"Lithium abundances in metal-poor globular clusters against field stars of the same metallicity", who:"Spectroscopic surveys", when:"ongoing — a depletion mechanism should behave differently in the two populations" },
+    { what:"Asteroseismology of halo subgiants, measuring convection depth directly", who:"PLATO and ground-based campaigns", when:"PLATO launches this decade" }],
+  read_next: [
+    "Fields, Annu Rev Nucl Part Sci 61, 47 (2011) — the problem stated",
+    "Spite & Spite, Nature 297, 483 (1982) — the plateau"]
+},
+
+PETO: {
+  positions: [
+    { name:"Extra tumour-suppressor copies", who:"Abegglen, Schiffman et al. (2015)",
+      claim:"Elephants carry about twenty copies of TP53 against our one, raising the apoptotic response to DNA damage.",
+      predicts:"Cells from large-bodied species die rather than repair after damage, at a lower threshold.",
+      state:"demonstrated in elephants, not general" },
+    { name:"Large animals mutate more slowly per cell division", who:"Cagan et al. (2022)",
+      claim:"Somatic mutation rate per year varies about forty-fold across mammals and scales inversely with lifespan, so long-lived species accumulate less damage per unit time.",
+      predicts:"Somatic mutation burden at end of life is roughly constant across species regardless of size.",
+      state:"measured, and it is roughly constant — the strongest result here" },
+    { name:"Hypertumours", who:"Nagy, Victor & Cropper (2007)",
+      claim:"In a very large tumour, cheater sub-clones parasitise the tumour's own blood supply and destroy it before it kills the host.",
+      predicts:"Tumour growth in large animals self-limits at a size below lethality.",
+      state:"elegant, largely untested" }],
+  ruled_out: [
+    { what:"That the paradox is an artefact of not correcting for lifespan", by:"It holds within lifespan-matched comparisons" }],
+  running: [
+    { what:"Comparative somatic mutation sequencing across many more species", who:"Sanger Institute and collaborators", when:"extending the 2022 sixteen-species result" },
+    { what:"Zoonomia comparative genomics of tumour-suppressor copy number", who:"Zoonomia consortium", when:"240 mammalian genomes already aligned" }],
+  read_next: [
+    "Cagan et al., Nature 604, 517 (2022) — somatic mutation rates across mammals",
+    "Abegglen et al., JAMA 314, 1850 (2015) — elephant TP53",
+    "Peto et al., J Epidemiol Community Health 29 (1975) — the original observation"]
+},
+
+ENCODE: {
+  positions: [
+    { name:"Biochemical activity is function", who:"The ENCODE consortium's 2012 framing",
+      claim:"A sequence that is reproducibly transcribed or protein-bound is doing something, and calling it junk is a failure of imagination.",
+      predicts:"Disrupting active regions has measurable phenotypic consequences.",
+      state:"largely abandoned in its strong form, including by ENCODE authors" },
+    { name:"Only evolutionary constraint counts", who:"Graur, Doolittle and the comparative-genomics camp",
+      claim:"If a sequence can be changed without cost, it is not functional however much machinery touches it. Constraint is the only test that means anything.",
+      predicts:"The constrained fraction stays near a tenth as resolution improves.",
+      state:"holding — Zoonomia's 240-mammal alignment puts it at about 10.7%" },
+    { name:"Transcriptional noise with occasional recruitment", who:"The middle position",
+      claim:"Most biochemical activity is spurious, but spurious activity is the raw material from which new function is occasionally recruited.",
+      predicts:"Lineage-specific functional elements should be young, weakly constrained, and common.",
+      state:"increasingly the working consensus" }],
+  ruled_out: [
+    { what:"The claim that 80% of the genome is functional in the evolutionary sense", by:"Comparative genomics at base resolution across 240 mammals" }],
+  running: [
+    { what:"Massively parallel reporter assays measuring the regulatory effect of hundreds of thousands of sequences directly", who:"Multiple groups", when:"ongoing, and turning the definitional argument into a measurement" },
+    { what:"Base-resolution constraint from expanding mammalian alignments", who:"Zoonomia", when:"published 2023, extending" }],
+  read_next: [
+    "ENCODE Project Consortium, Nature 489, 57 (2012)",
+    "Graur et al., Genome Biol Evol 5, 578 (2013) — the rebuttal",
+    "Christmas et al., Science 380, eabn3943 (2023) — Zoonomia constraint"]
+},
+
+MUTRATE: {
+  positions: [
+    { name:"The pedigree rate is right", who:"Direct-sequencing groups",
+      claim:"Counting new mutations in parent-child trios measures the thing itself; the phylogenetic estimate inherits whatever the fossil calibration assumed.",
+      predicts:"Genetic dates computed with the slow rate should agree with archaeology.",
+      state:"live, and it pushes human divergence dates older" },
+    { name:"The phylogenetic rate is right", who:"The comparative-genomics tradition",
+      claim:"Pedigree studies miss mutations through detection bias in repetitive and low-coverage regions.",
+      predicts:"Deeper sequencing of the same trios recovers the missing mutations.",
+      state:"weakening as trio sequencing improves" },
+    { name:"The rate has changed", who:"Generation-time and paternal-age arguments",
+      claim:"Mutation rate per generation depends on parental age and generation length, both of which have varied across hominin history.",
+      predicts:"A rate that is not constant, which would mean neither number is simply 'right'.",
+      state:"live, and the most uncomfortable option" }],
+  ruled_out: [
+    { what:"That the difference is a straightforward analysis artefact", by:"Multiple independent trio studies converge near 1.2×10⁻⁸" }],
+  running: [
+    { what:"Calibration against radiocarbon-dated ancient genomes, which measures the rate over a known interval without assuming a divergence date", who:"Ancient DNA laboratories", when:"the decisive design, now feasible" },
+    { what:"Long-read trio sequencing to close the detection-bias objection", who:"Multiple", when:"ongoing" }],
+  read_next: [
+    "Scally & Durbin, Nat Rev Genet 13, 745 (2012) — the problem and what it moves",
+    "Kong et al., Nature 488, 471 (2012) — the pedigree rate and paternal age"]
+},
+
+HERITABLE: {
+  positions: [
+    { name:"It is spread across thousands of tiny effects", who:"Yang, Visscher and the polygenic camp",
+      claim:"The heritability is real and located, but no single variant reaches significance; sum over all common variants and about half of it appears.",
+      predicts:"Larger samples keep recovering variance without finding large-effect loci.",
+      state:"confirmed for height" },
+    { name:"Rare variants carry the rest", who:"Sequencing-based analyses",
+      claim:"Genotyping arrays cannot see variants below about 1% frequency, and that is where the remainder sits.",
+      predicts:"Whole-genome sequencing of very large cohorts closes the gap.",
+      state:"testing now, in UK Biobank" },
+    { name:"The twin estimate is inflated", who:"Critics of the classical twin design",
+      claim:"Assortative mating and shared environment inflate the 80% figure, so part of the gap was never there.",
+      predicts:"Sibling-based and within-family estimates come out lower.",
+      state:"live — within-family estimates are consistently lower" }],
+  ruled_out: [
+    { what:"That a small number of large-effect genes explain human height variation", by:"GWAS at sample sizes over five million" }],
+  running: [
+    { what:"Whole-genome sequencing of half a million UK Biobank participants", who:"UK Biobank", when:"data released and being analysed now" },
+    { what:"Within-family GWAS designs, which are immune to assortative mating and population structure", who:"Multiple consortia", when:"ongoing" }],
+  read_next: [
+    "Yang et al., Nature Genetics 42, 565 (2010) — common variants explain ~45%",
+    "Manolio et al., Nature 461, 747 (2009) — the problem named"]
+},
+
+TWINS: {
+  positions: [
+    { name:"Epigenetic divergence causes it", who:"The epigenetic-epidemiology programme",
+      claim:"Methylation and chromatin differences accumulated after the zygote split determine which twin develops disease.",
+      predicts:"Marks differ before onset, not only after.",
+      state:"largely untested in the direction that matters" },
+    { name:"Stochastic developmental noise", who:"The developmental-biology reading",
+      claim:"Immune repertoire formation and other stochastic processes differ between twins by chance alone; no environmental cause need exist.",
+      predicts:"Discordance should be uncorrelated with measured environmental exposures.",
+      state:"live and under-considered" },
+    { name:"Environmental exposure", who:"The classical reading",
+      claim:"Different infections, diets or exposures explain it.",
+      predicts:"Discordance tracks measurable exposure differences.",
+      state:"weak for several diseases where exposures are closely shared" }],
+  ruled_out: [
+    { what:"That monozygotic twins are genetically identical in the strict sense", by:"Post-zygotic mutation is measurable, though far too small to explain concordance rates near a third" }],
+  running: [
+    { what:"Prospective methylome sampling in disease-discordant pairs before onset", who:"Long-running twin registries", when:"the design that decides causality; cohorts are only now old enough" }],
+  read_next: [
+    "Redondo et al., Diabetologia 44, 354 (2001)",
+    "Castillo-Fernandez, Spector & Bell, Genome Medicine 6, 60 (2014)"]
+},
+
+TELOMERE: {
+  positions: [
+    { name:"Short telomeres cause ageing pathology", who:"The observational and clinical tradition",
+      claim:"Attrition drives senescence, so length is both a marker and a lever.",
+      predicts:"Lengthening telomeres improves outcomes.",
+      state:"contradicted by the causal estimates" },
+    { name:"Long telomeres permit cancer", who:"Mendelian randomization analyses",
+      claim:"More replicative capacity means more chances for a damaged cell to keep dividing, so inherited length raises risk for several cancers.",
+      predicts:"Genetic instruments for longer telomeres associate with higher cancer incidence.",
+      state:"observed, across multiple cancers" },
+    { name:"Length is mostly a readout of something else", who:"The sceptical reading",
+      claim:"Leukocyte telomere length tracks inflammation and cell turnover; it is a symptom being read as a cause.",
+      predicts:"Adjusting for immune composition attenuates the associations.",
+      state:"live" }],
+  ruled_out: [
+    { what:"That telomere length is a simple protective factor to be maximised", by:"The cancer associations from genetic causal inference" }],
+  running: [
+    { what:"Larger Mendelian randomization studies with better instruments and explicit pleiotropy tests", who:"Multiple consortia", when:"ongoing" },
+    { what:"Tissue-specific rather than leukocyte telomere measurement", who:"Multiple", when:"early" }],
+  read_next: [
+    "Telomeres Mendelian Randomization Collaboration, JAMA Oncol 3, 636 (2017)",
+    "Codd et al., Nature Aging 2, 170 (2022)"]
+},
+
+S8: {
+  positions: [
+    { name:"Baryonic feedback is mismodelled", who:"The simulation community",
+      claim:"Energetic feedback from active galactic nuclei pushes gas out of halos and suppresses small-scale clustering; get that wrong and lensing looks smooth.",
+      predicts:"Cross-correlating lensing with the thermal Sunyaev-Zel'dovich effect measures the displaced gas directly.",
+      state:"leading, and now testable" },
+    { name:"It is the same crack as the expansion tension", who:"The new-physics camp",
+      claim:"Both are the late universe disagreeing with what the early universe predicts, and one modification should explain both.",
+      predicts:"Difficult — most fixes for one make the other worse.",
+      state:"live but constrained" },
+    { name:"Photometric redshift systematics", who:"The survey teams themselves",
+      claim:"Errors in the redshift distribution of source galaxies bias the amplitude.",
+      predicts:"Spectroscopic calibration samples remove the shift.",
+      state:"actively being closed" }],
+  ruled_out: [
+    { what:"A simple discrepancy between the two lensing surveys", by:"KiDS and DES have been reanalysed with harmonised choices and agree with each other" }],
+  running: [
+    { what:"Euclid weak lensing", who:"ESA", when:"first cosmology results this decade" },
+    { what:"LSST at the Rubin Observatory", who:"Vera C. Rubin Observatory", when:"ten-year survey beginning" },
+    { what:"Lensing cross-correlated with the kinematic and thermal SZ effects to measure feedback directly", who:"ACT, SPT and Simons Observatory", when:"now" }],
+  read_next: [
+    "Heymans et al., A&A 646, A140 (2021) — KiDS-1000",
+    "Amon & Efstathiou, MNRAS 516, 5355 (2022) — the feedback reading"]
+},
+
+JWSTGAL: {
+  positions: [
+    { name:"Star formation was simply more efficient early on", who:"Much of the theoretical community",
+      claim:"At high redshift, less feedback and denser gas allow a larger fraction of baryons to become stars.",
+      predicts:"Stellar masses stay high but halo masses are ordinary.",
+      state:"leading" },
+    { name:"The masses are overestimated", who:"The spectroscopic follow-up",
+      claim:"Photometric mass estimates conflate an accreting black hole, dust reddening and old stars; several early record-holders shrank on spectroscopy.",
+      predicts:"Systematic follow-up keeps removing the extreme cases.",
+      state:"partly confirmed — the 'little red dots' turned out to be AGN-dominated" },
+    { name:"Structure grew faster than ΛCDM allows", who:"The minority cosmological reading",
+      claim:"Halo assembly at these redshifts is faster than the standard model permits.",
+      predicts:"An excess that survives complete spectroscopic censuses.",
+      state:"not established, and the most consequential if it were" }],
+  ruled_out: [
+    { what:"The first, most extreme photometric candidates", by:"Spectroscopy revealed active nuclei and dust rather than enormous stellar masses" }],
+  running: [
+    { what:"Complete spectroscopic mass measurements for samples at z > 10, with the AGN continuum separated", who:"JWST cycles", when:"continuous" }],
+  read_next: [
+    "Labbé et al., Nature 616, 266 (2023)",
+    "Harikane et al., ApJS 265, 5 (2023)"]
+},
+
+PLANET9: {
+  positions: [
+    { name:"There is a planet", who:"Batygin & Brown",
+      claim:"The orbital clustering of distant trans-Neptunian objects requires a shepherd of several Earth masses.",
+      predicts:"A specific, shrinking region of sky and brightness.",
+      state:"live, and running out of room" },
+    { name:"It is observational selection", who:"Napier, Sheppard and others",
+      claim:"Surveys pointed where they pointed; the clustering is where telescopes looked, not where objects are.",
+      predicts:"A survey with a well-characterised selection function shows no clustering.",
+      state:"live, and strengthened by recent debiased samples" },
+    { name:"Self-gravity of a distant disc", who:"Alternative dynamical models",
+      claim:"The collective gravity of many small bodies produces the same shepherding without a planet.",
+      predicts:"No point-source detection, but the clustering persists.",
+      state:"minority" }],
+  ruled_out: [
+    { what:"Much of the originally predicted sky and brightness range", by:"Successive wide-field surveys with no detection" }],
+  running: [
+    { what:"LSST, which covers the remaining parameter space and — just as decisively — measures the survey selection function well enough to say whether the original clustering was ever real", who:"Rubin Observatory", when:"first years of the survey" }],
+  read_next: [
+    "Batygin & Brown, AJ 151, 22 (2016)",
+    "Napier et al., PSJ 2, 59 (2021) — the selection-effect analysis"]
+},
+
+VACUUM: {
+  positions: [
+    { name:"Anthropic selection in a landscape", who:"Weinberg (1987), and much of string cosmology",
+      claim:"The constant takes many values across a multiverse; observers only arise where it is small.",
+      predicts:"A value near the largest compatible with structure formation — which is roughly what is seen.",
+      state:"live, and criticised as unfalsifiable" },
+    { name:"A cancellation mechanism nobody has found", who:"The supersymmetry and sequestering programmes",
+      claim:"Some symmetry cancels the vacuum contributions almost exactly.",
+      predicts:"Supersymmetric partners, or a specific relation between scales.",
+      state:"weakened by the absence of superpartners at the LHC" },
+    { name:"Gravity does not respond to vacuum energy the way we assume", who:"Unimodular gravity and degravitation proposals",
+      claim:"The problem is in how the vacuum couples to spacetime, not in the size of the number.",
+      predicts:"Modified behaviour at long wavelengths.",
+      state:"live, constrained" }],
+  ruled_out: [
+    { what:"That the constant is exactly zero", by:"The 1998 supernova measurements of accelerating expansion" }],
+  running: [
+    { what:"DESI and Euclid measuring whether the dark-energy equation of state is constant in time", who:"DESI, Euclid", when:"reporting through this decade — a time-varying result would rule out a pure cosmological constant" },
+    { what:"Casimir-energy weighing experiments", who:"Laboratory groups", when:"many orders of magnitude from the required sensitivity" }],
+  read_next: [
+    "Weinberg, Rev Mod Phys 61, 1 (1989) — the problem stated properly",
+    "Martin, Comptes Rendus Physique 13, 566 (2012) — the modern accounting"]
+},
+
+YCHROM: {
+  positions: [
+    { name:"Decay continues", who:"The linear-extrapolation reading",
+      claim:"The Y has lost the overwhelming majority of its ancestral genes and the process has not stopped.",
+      predicts:"Gene loss detectable across recent primate divergences.",
+      state:"weak — almost no loss in 25 million years of rhesus divergence" },
+    { name:"It has stabilised", who:"Hughes, Page et al.",
+      claim:"The surviving genes are dosage-sensitive regulators under strong purifying selection; the losses happened early and stopped.",
+      predicts:"Y gene content conserved across distant mammalian lineages.",
+      state:"supported" },
+    { name:"Loss without extinction", who:"The comparative reading",
+      claim:"Some rodent lineages have lost the Y entirely and evolved new sex-determining systems; the chromosome can go without the lineage going.",
+      predicts:"More such transitions found as more genomes are assembled.",
+      state:"documented, and it reframes the question" }],
+  ruled_out: [
+    { what:"Naive linear extrapolation from two endpoints", by:"The rhesus comparison, which measures the recent rate directly and finds it near zero" }],
+  running: [
+    { what:"Telomere-to-telomere Y assemblies across many mammalian lineages with independent divergence times", who:"Comparative genomics consortia", when:"the complete human Y was only assembled in 2023" }],
+  read_next: [
+    "Hughes et al., Nature 483, 82 (2012)",
+    "Rhie et al., Nature 621, 344 (2023) — the complete human Y"]
+}
+
+};
+
+for (const p of SEEDS) if (DEEP[p.id]) Object.assign(p, DEEP[p.id]);
+
 const byNewest = ps => ps.slice().sort((a, b) => Date.parse(b.opened || 0) - Date.parse(a.opened || 0));
 
 /* ---------------------------------------------------------------- figures */
@@ -1665,6 +2111,7 @@ function tile(p, w){
     </div>
     <h3>${esc(p.title)}</h3>
     <p class="hook">${esc(p.hook)}</p>
+    ${p.positions ? `<p class="depth">${p.positions.length} competing explanations · ${(p.running || []).length} experiments running</p>` : ""}
     ${tail}
   </button>`;
 }
@@ -1768,16 +2215,51 @@ function detail(p, w){
       </div>
       ${numbers}
       ${record}
+
+      ${p.positions ? `<div class="section">
+        <h4>Who says what</h4>
+        <p class="lead-in">The explanations actually on the table, and what each one commits its
+          holder to. A position that predicts nothing the others do not is not in this list.</p>
+        <div class="positions">${p.positions.map(x => `<article class="pos-card ${esc(String(x.state).split(" ")[0])}">
+          <div class="pos-head">
+            <h5>${esc(x.name)}</h5>
+            <span class="pos-state">${esc(x.state)}</span>
+          </div>
+          <p class="who">${esc(x.who)}</p>
+          <p class="says">${esc(x.claim)}</p>
+          <p class="pred"><b>Commits them to</b>${esc(x.predicts)}</p>
+        </article>`).join("")}</div>
+      </div>` : ""}
+
+      ${p.ruled_out ? `<div class="section">
+        <h4>Already eliminated</h4>
+        <p class="lead-in">Explanations that were live and are not any more. Knowing what has been
+          tried is most of what separates a researcher from a reader.</p>
+        <ul class="gone">${p.ruled_out.map(x => `<li>
+          <span class="x">${esc(x.what)}</span>
+          <span class="by">${esc(x.by)}</span>
+        </li>`).join("")}</ul>
+      </div>` : ""}
+
+      ${p.running ? `<div class="section">
+        <h4>Running now</h4>
+        <p class="lead-in">The instruments that will move this, and when they report.</p>
+        <ul class="soon">${p.running.map(x => `<li>
+          <p class="what">${esc(x.what)}</p>
+          <p class="meta"><span>${esc(x.who)}</span><span class="when">${esc(x.when)}</span></p>
+        </li>`).join("")}</ul>
+      </div>` : ""}
+
       <div class="section">
         <h4>${p.nokill ? "Why this is not a claim" : "What would end it"}</h4>
         <p class="killnote"><b>${p.nokill ? "No kill condition" : "Kill condition"}</b>${esc(p.kill)}</p>
         ${p.resolution ? `<p class="killnote" style="margin-top:18px"><b style="color:var(--live)">How it ended</b>${esc(p.resolution)}</p>` : ""}
       </div>
       <div class="section">
-        <h4>Sources</h4>
+        <h4>${p.read_next ? "Read next" : "Sources"}</h4>
         <ul class="cites">
           ${p.members ? p.members.map(m => `<li>${esc(m.object)} — ${num((m.observed || {}).value)} ${esc((m.observed || {}).unit)} · ${esc(m.claim_id)}</li>`).join("") : ""}
-          ${(p.cites || []).map(c => `<li>${esc(c)}</li>`).join("")}
+          ${(p.read_next || p.cites || []).map(c => `<li>${esc(c)}</li>`).join("")}
         </ul>
         <div class="foot"><span>${esc(p.id)}</span>${p.opened ? `<span>${esc(days(p.opened))}</span>` : ""}${p.url ? `<a href="${esc(p.url)}">source</a>` : ""}</div>
       </div>
