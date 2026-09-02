@@ -51,6 +51,9 @@ on:
 env:
   PROJECT_REF: zfmjjazkmolvywvayjzj
 
+permissions:
+  contents: write
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -189,6 +192,28 @@ jobs:
             for (const t of r.tensions||[])
               console.log(`  TENSION ${t.object} ${t.quantity}: ${t.sigma}σ  archive ${t.measured.value}${t.measured.unit} vs ${t.reported.year} ${t.reported.value}${t.reported.unit}`);
           '
+
+      # The page embeds the register so it renders where it cannot reach the
+      # database. A dump therefore ends by rewriting that snapshot and pushing
+      # it, so the site's copy is refreshed by the same run that read the
+      # table rather than by anyone remembering to do it.
+      - name: Refresh the embedded register
+        if: ${{ inputs.mode == 'dump' || contains(inputs.body, '"dump"') }}
+        run: |
+          set -e
+          node setup/snapshot.mjs sweep.json
+          if git diff --quiet -- frontier.html; then
+            echo "register unchanged"
+            exit 0
+          fi
+          git config user.name "parallax-sky"
+          git config user.email "noreply@github.com"
+          git add frontier.html
+          git commit -m "Refresh the embedded register from a dump
+
+          Written by the sky workflow, from the claims table as it stood at
+          the end of this run."
+          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Keep the sweep
         if: always()
