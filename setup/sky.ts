@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 26;
+const WORKER_VERSION = 27;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1006,9 +1006,15 @@ async function extractFrom(records: any[]) {
    rather than a second one. A claim whose identifier changed every sweep could
    never be cited, watched, or scored — and being citable is the whole road from
    website to infrastructure. */
-function claimId(kind: string, object: string, quantity: string, year: number): string {
+/* The id is derived rather than assigned so the same finding keeps the same
+   name across sweeps. Kind, object and quantity were enough while one object
+   could hold one claim of a kind — but two published values for a planet's
+   mass can disagree with a third in two different ways, and those are two
+   findings with one name. A batch containing both was rejected whole by
+   Postgres, so the variant is part of the identity. */
+function claimId(kind: string, object: string, quantity: string, year: number, variant = ""): string {
   let h = 0x811c9dc5;
-  for (const ch of `${kind}|${object.toLowerCase()}|${quantity}`) {
+  for (const ch of `${kind}|${object.toLowerCase()}|${quantity}|${variant}`) {
     h ^= ch.charCodeAt(0);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
@@ -1319,12 +1325,13 @@ function orphans(observations: Obs[], reported: any[]) {
 function mint(o: {
   kind: string; object: string; quantity: string; title: string; statement: string;
   kill: string; cost?: string; sigma?: number; observed?: any; reported?: any; figure?: any;
+  variant?: string;
 }) {
   if (!o.kill || !clean(o.kill)) return null;
   if (!o.object || !o.quantity) return null;
   const year = new Date().getUTCFullYear();
   return {
-    claim_id: claimId(o.kind, o.object, o.quantity, year),
+    claim_id: claimId(o.kind, o.object, o.quantity, year, o.variant ?? ""),
     kind: o.kind,
     object: o.object,
     quantity: o.quantity,
@@ -1458,6 +1465,9 @@ async function handle(req: Request): Promise<Response> {
   /* Ask the archive for every published parameter set rather than the one it
      leads with. Only useful where the point is to compare them. */
   ALL_REFS.on = body.all_refs === true;
+  /* Two hundred rows is the right ceiling when a model has to read them and
+     far too low when the point is to collect every published value. */
+  const rowCap = ALL_REFS.on ? Math.min(Math.max(Number(body.limit) || 200, 5), 2000) : per;
   const t0 = Date.now();
 
   // ---------- probe: is every live source actually answering? ----------
@@ -1512,7 +1522,7 @@ async function handle(req: Request): Promise<Response> {
 
   // ---------- sky: sweep the live sources and store what they said ----------
   if (mode === "sky") {
-    const { rows, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
+    const { rows, ledger } = await skyPerimeter(target, rowCap, 26000, false, body.all === true);
     const stored = body.store === false ? [] : [await write(
       "observations", "observations?on_conflict=source,source_id,quantity", rows,
       "resolution=merge-duplicates,return=minimal")];
@@ -1525,7 +1535,7 @@ async function handle(req: Request): Promise<Response> {
      is pure arithmetic and costs nothing. */
   if (mode === "tension") {
     const since = String(body.since ?? "").slice(0, 10);
-    const { rows: swept, ledger } = await skyPerimeter(target, per, 26000, false, body.all === true);
+    const { rows: swept, ledger } = await skyPerimeter(target, rowCap, 26000, false, body.all === true);
     let sky = swept;
 
     /* Observations are written on every sweep, not only in sky mode, because
@@ -1965,6 +1975,7 @@ async function handle(req: Request): Promise<Response> {
         `so a reader taking the catalogue value gets one of them and never learns the other exists.`,
       sigma: d.sigma,
       observed: d.a, reported: d.b,
+      variant: `${d.a.reference || d.a.source}|${d.b.reference || d.b.source}`,
       kill:
         `One re-measurement of the ${d.quantity} of ${d.object} at or below the smaller of the two ` +
         `stated uncertainties. Whichever archive it lands on, the other is carrying an error that ` +
@@ -1975,10 +1986,21 @@ async function handle(req: Request): Promise<Response> {
         { label: String(d.b.reference || d.b.source).slice(0, 28), value: d.b.value_si, err: d.b.err_si }] },
     })).filter(Boolean);
 
+    /* One row per id in a batch. Postgres rejects an upsert that would touch
+       the same row twice, and it rejects the whole batch rather than the
+       duplicate — so a single collision silently costs every claim in the run,
+       which is what happened the first time this found anything. */
+    const byId = new Map<string, any>();
+    for (const c of claims as any[]) {
+      const prev = byId.get(c.claim_id);
+      if (!prev || (c.sigma ?? 0) > (prev.sigma ?? 0)) byId.set(c.claim_id, c);
+    }
+    const unique = [...byId.values()];
+
     const writes: any[] = [];
-    if (body.store !== false && claims.length) {
+    if (body.store !== false && unique.length) {
       writes.push(await write("claims", "claims?on_conflict=claim_id",
-        claims.map((c: any) => ({ ...c, last_moved_at: new Date().toISOString() })),
+        unique.map((c: any) => ({ ...c, last_moved_at: new Date().toISOString() })),
         "resolution=merge-duplicates,return=minimal"));
     }
 
@@ -1996,9 +2018,10 @@ async function handle(req: Request): Promise<Response> {
         agreed,
       },
       disagreements: disagreements.length,
+      collapsed_to_unique_claims: unique.length,
       worst: disagreements.slice(0, 12).map((d) => ({ object: d.object, quantity: d.quantity, sigma: d.sigma, a: d.a.source, b: d.b.source })),
       stored: writes,
-      claims,
+      claims: unique,
     });
   }
 
