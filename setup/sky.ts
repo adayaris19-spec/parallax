@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 25;
+const WORKER_VERSION = 26;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -374,6 +374,13 @@ const QDIM: Record<string, string> = {
 // perimeter runs on, for the same reason: a sweep that is only as reliable as
 // its least reliable service is not a sweep.
 // ---------------------------------------------------------------------------
+/* The exoplanet archive's `ps` table holds one row per publication. Pinned to
+   default_flag = 1 it yields the archive's chosen parameter set and nothing
+   else, which is the right answer for "what does the catalogue say" and the
+   wrong one for "what has anyone measured". A sweep can now ask for all of
+   them. Per request, like every other piece of mutable state in this file. */
+const ALL_REFS = { on: false };
+
 type Obs = {
   source: string; source_id: string; object: string; quantity: string;
   value: number | null; err: number | null; unit: string;
@@ -418,9 +425,10 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
      lets the match start from the front, and default_flag pins it to one row
      per planet instead of every published parameter set for it. */
   const t = target.toUpperCase().replace(/['%_]/g, "");
+  const pin = ALL_REFS.on ? "" : "default_flag = 1 and ";
   const where = target
-    ? `where default_flag = 1 and (upper(pl_name) like '${t}%' or upper(hostname) like '${t}%')`
-    : `where pl_dens is not null and default_flag = 1`;
+    ? `where ${pin}(upper(pl_name) like '${t}%' or upper(hostname) like '${t}%')`
+    : `where pl_dens is not null${ALL_REFS.on ? "" : " and default_flag = 1"}`;
   /* Ask for every quantity a paper is likely to state, not only the ones a
      catalogue leads with. Ten measurements were read correctly out of Kepler-10
      abstracts and then had nothing to be compared against, because the papers
@@ -1440,12 +1448,16 @@ async function handle(req: Request): Promise<Response> {
      across callers is worse than no count, because it is believed. */
   OA_FAILURES.count = 0; OA_FAILURES.last_error = ""; OA_FAILURES.statuses = [];
   ARXIV.calls = 0; ARXIV.failures = 0; ARXIV.empty = 0; ARXIV.last_error = "";
+  ALL_REFS.on = false;
 
   let body: any = {};
   try { body = await req.json(); } catch { /* cron sends nothing */ }
   const mode = String(body.mode ?? "tension");
   const target = String(body.target ?? "").slice(0, 120);
   const per = Math.min(Math.max(Number(body.limit) || 40, 5), 200);
+  /* Ask the archive for every published parameter set rather than the one it
+     leads with. Only useful where the point is to compare them. */
+  ALL_REFS.on = body.all_refs === true;
   const t0 = Date.now();
 
   // ---------- probe: is every live source actually answering? ----------
