@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 24;
+const WORKER_VERSION = 25;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1884,9 +1884,21 @@ async function handle(req: Request): Promise<Response> {
     const from = Math.max(Number(body.offset) || 0, 0);
     const floor = Math.max(Number(body.sigma) || 3, 1);
 
-    const rows = await sb("observations?select=object,quantity,source,value,err,unit," +
-      "value_si,err_si,unit_si,reference,url,ra,dec" +
-      `&order=object.asc&offset=${from}&limit=${want}`) as any[];
+    /* PostgREST caps a read at a thousand rows however large a limit is
+       asked for, and the first thousand of eleven thousand, ordered by name,
+       were all asteroids — objects each measured once. So the crosscheck was
+       reading a corner of the store and correctly reporting that nothing in
+       it was comparable. It pages now, and can be pointed at one archive. */
+    const only = String(body.source ?? "").slice(0, 40);
+    const cols = "object,quantity,source,value,err,unit,value_si,err_si,unit_si,reference,url,ra,dec";
+    const where = only ? `&source=eq.${encodeURIComponent(only)}` : "";
+    const rows: any[] = [];
+    for (let got = from; rows.length < want; got += 1000) {
+      const page = await sb(`observations?select=${cols}${where}` +
+        `&order=object.asc,reference.asc&offset=${got}&limit=1000`) as any[];
+      rows.push(...page);
+      if (page.length < 1000) break;
+    }
 
     /* Group on the object and quantity, not on the unit: the whole point is to
        catch an archive stating a radius in Earth radii against one stating it
@@ -1965,6 +1977,7 @@ async function handle(req: Request): Promise<Response> {
          from one that compared four thousand. */
       read: {
         rows: rows.length,
+        source: only || "(every archive)",
         object_quantities: groups.size,
         one_value_only,
         comparable_pairs: comparable,
