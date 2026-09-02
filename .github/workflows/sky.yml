@@ -39,6 +39,10 @@ on:
         description: "objects per sweep"
         default: "60"
         type: string
+      pages:
+        description: "survey only: how many pages of the store to walk, one call each"
+        default: "1"
+        type: string
       body:
         description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
         default: ""
@@ -86,6 +90,7 @@ jobs:
           TARGET: ${{ inputs.target || 'Kepler-10' }}
           RAW: ${{ inputs.body }}
           LIMIT: ${{ inputs.limit }}
+          PAGES: ${{ inputs.pages }}
         run: |
           set -o pipefail
 
@@ -114,6 +119,35 @@ jobs:
               '
             done
             echo "sweeps complete"
+            exit 0
+          fi
+
+          # A census walks the store a page at a time. One call per page, in
+          # sequence: the absence check is the slow part and running pages
+          # concurrently is a burst the index answers with 429s, which fail
+          # closed and produce an empty census rather than a slow one.
+          if [ "$MODE" = "survey" ] && [ "${PAGES:-1}" -gt 1 ] 2>/dev/null; then
+            per="${LIMIT:-90}"
+            i=0
+            while [ "$i" -lt "$PAGES" ]; do
+              off=$(( i * per * 3 ))
+              b=$(printf '{"mode":"survey","limit":%s,"offset":%s}' "$per" "$off")
+              echo "----- census page $((i+1))/$PAGES  offset $off"
+              curl -sS --fail-with-body --max-time 180 \
+                -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
+                -H "Authorization: Bearer $ANON" -H "Content-Type: application/json" \
+                -d "$b" > page.json || { echo "FAILED page $i"; head -c 400 page.json; i=$((i+1)); continue; }
+              node -e '
+                const r = JSON.parse(require("fs").readFileSync("page.json","utf8"));
+                console.log("  read", JSON.stringify(r.read||{}));
+                console.log("  unwritten", r.unwritten, " has_literature", r.has_literature,
+                            " could_not_check", r.could_not_check, " ms", r.ms);
+                for (const w of r.stored||[]) if (w.error) console.log("  STORE FAILED", w.table, w.error);
+                  else console.log("  stored", w.table, w.rows, "rows");
+              '
+              i=$((i+1))
+            done
+            echo "census complete"
             exit 0
           fi
 
