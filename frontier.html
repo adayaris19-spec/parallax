@@ -3264,7 +3264,7 @@ const UNIT_WORDS = { msun:"times the mass of the Sun", mearth:"times the mass of
 const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
 
 /* ---------------------------------------------------- machine → post shape */
-function fromRegister(rows){
+function fromRegister(rows, split){
   const out = [], groups = new Map();
   for (const c of rows) {
     if (c.kind === "tension") {
@@ -3294,6 +3294,27 @@ function fromRegister(rows){
   }
   for (const [k, ms] of groups) {
     const o = ms[0].observed || {};
+    /* Grouping keeps the everything-view readable — forty claims that each say
+       nothing has been written about a different event are one finding. But it
+       must not hide how large the register actually is, so the Silences filter
+       asks for them one at a time. */
+    if (split) {
+      for (const m of ms) {
+        const mo = m.observed || {};
+        out.push({
+          id:m.claim_id, field:"astronomy", kind:"silence", status:m.status || "open",
+          machine:true, opened:m.opened_at, members:[m], title:m.title,
+          hook:`Recorded once by ${mo.source}, on the authority of ${mo.reference || "its catalogue"}, and named in no paper since.`,
+          plain:m.statement,
+          stakes:`Detection has outrun analysis. This object is fully characterised, public, and
+            has never been the subject of a paper — a piece of work sitting in the open that
+            nobody has picked up.`,
+          sides:[], sigma:null, kill:m.kill, url:mo.url,
+          cites:[mo.reference].filter(Boolean)
+        });
+      }
+      continue;
+    }
     const vals = ms.map(m => (m.observed || {}).value).filter(Number.isFinite);
     const what = o.source === "gwosc" ? "gravitational-wave events" : "planets";
     out.push({
@@ -3866,7 +3887,7 @@ function tile(p, w){
   const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
   const tail = two
     ? `<div class="spark">${safely(() => spark(p), "")}</div>`
-    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>objects, none of them examined</span>`
+    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>objects, not one of them written about</span>`
         : p.nokill ? `<b>0</b><span>observations would settle it</span>`
         : `<span>${esc(KIND_WORD[p.kind] || "")}</span>`}</div>`;
   return `<button class="tile ${esc(p.field)} ${closed ? "closed" : ""} ${p.featured ? "wide" : ""}" data-open="${esc(p.id)}">
@@ -4082,7 +4103,10 @@ function feed(w){
       ${chips.map(([k, l]) => `<button class="chip" data-sift="${k}" aria-pressed="${SIFT === k}">${l}</button>`).join("")}
       <input id="q" type="search" placeholder="Search a question, a field, an object" value="${esc(QUERY)}">
     </div>`;
-  const shown = POSTS.filter(matches);
+  // The Silences filter lists every object individually; everything else sees
+  // the grouped view, which is the same claims read as findings.
+  const pool = SIFT === "silence" ? SEEDS.concat(byNewest(fromRegister(REGISTER, true))) : POSTS;
+  const shown = pool.filter(matches);
   if (!shown.length) return sift + `<p class="hollow">Nothing matches that yet. The register holds only what has been measured or found — it is short on purpose.</p>`;
   return sift + `<div class="grid">${shown.map(p => tile(p, w)).join("")}</div>`;
 }
@@ -4260,7 +4284,7 @@ function live(){
 /* ----------------------------------------------------------------- render */
 function render(){
   const w = rd(WKEY);
-  document.getElementById("n-feed").textContent = POSTS.length;
+  document.getElementById("n-feed").textContent = SEEDS.length + REGISTER.length;
   document.getElementById("n-watch").textContent = Object.keys(w).length;
   document.getElementById("n-live").textContent = REGISTER.length;
   for (const t of ["feed", "watch", "bench", "live"])
