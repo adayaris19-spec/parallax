@@ -370,6 +370,13 @@ body::before{
 .soon .meta{display:flex;gap:12px;flex-wrap:wrap;margin:9px 0 0;font:600 12.5px/1.4 var(--ui);color:var(--astro)}
 .soon .when{margin-left:auto;color:var(--ink-3);font-weight:500;text-align:right}
 .depth{margin:0;font:600 12.5px/1.4 var(--ui);color:var(--astro)}
+
+/* --------------------------------------------------------------- the sky --- */
+.skywrap{background:#fff;border-radius:var(--r-lg);box-shadow:var(--lift);padding:22px 24px 10px;margin:22px 0 0}
+.skywrap svg{display:block;width:100%;height:auto}
+.skyhead h4{margin:0;font:800 18px/1.2 var(--ui);letter-spacing:-.026em}
+.skyhead p{margin:8px 0 14px;font:400 14.5px/1.55 var(--ui);color:var(--ink-3);max-width:64ch}
+.tile .spark svg,.tile .where svg{display:block;width:100%;height:auto}
 [hidden]{display:none!important}
 </style>
 
@@ -3859,6 +3866,51 @@ function spark(p){
   return o + `</svg>`;
 }
 
+/* -------------------------------------------------------------------- sky --
+   Every claim the machine files carries the coordinates the archive gave it.
+   Plotted, they are a map of where this register has actually looked — and
+   the empty parts are as informative as the crowded ones, because they are
+   the sky nothing has swept. An Aitoff projection, because a rectangular one
+   makes the poles look like most of the sky. */
+function skyMap(rows, W = 1000, H = 400){
+  const pts = rows.map(c => {
+    const o = c.observed || {};
+    return Number.isFinite(o.ra) && Number.isFinite(o.dec)
+      ? { ra: o.ra, dec: o.dec, kind: c.kind, object: c.object, source: o.source } : null;
+  }).filter(Boolean);
+
+  const cx = W / 2, cy = H / 2, rx = W / 2 - 18, ry = H / 2 - 18;
+  const project = (ra, dec) => {
+    // Aitoff: longitude measured from the centre, so 180° sits at the edges.
+    const l = (((ra + 180) % 360) - 180) * Math.PI / 180, b = dec * Math.PI / 180;
+    const a = Math.acos(Math.cos(b) * Math.cos(l / 2));
+    const s = a === 0 ? 1 : Math.sin(a) / a;
+    return [cx - rx * (2 * Math.cos(b) * Math.sin(l / 2)) / (s * Math.PI) * (Math.PI / 2),
+            cy - ry * (Math.sin(b)) / s];
+  };
+
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Every object in the register, plotted on the sky">`;
+  o += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#F7F8FA" stroke="var(--line)" stroke-width="1.5"></ellipse>`;
+  // Graticule: every 30 degrees of longitude, every 30 of latitude.
+  for (let dec = -60; dec <= 60; dec += 30) {
+    const seg = [];
+    for (let ra = 0; ra <= 360; ra += 4) seg.push(project(ra, dec).map(v => v.toFixed(1)).join(","));
+    o += `<polyline points="${seg.join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"></polyline>`;
+  }
+  for (let ra = 0; ra <= 360; ra += 30) {
+    const seg = [];
+    for (let dec = -89; dec <= 89; dec += 3) seg.push(project(ra, dec).map(v => v.toFixed(1)).join(","));
+    o += `<polyline points="${seg.join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"></polyline>`;
+  }
+  for (const p of pts) {
+    const [x, y] = project(p.ra, p.dec);
+    const c = p.kind === "tension" || p.kind === "crosscheck" ? "var(--live)" : "var(--astro)";
+    o += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${c}" opacity=".78"><title>${esc(p.object)} — ${esc(p.source)}</title></circle>`;
+  }
+  o += `<text x="18" y="${H - 6}" font-family="Manrope,sans-serif" font-weight="600" font-size="13" fill="var(--ink-3)">${pts.length} of ${rows.length} claims carry coordinates</text>`;
+  return o + `</svg>`;
+}
+
 /* ------------------------------------------------------------------ state */
 const WKEY = "parallax.watch.v2", GKEY = "parallax.guess.v1";
 const rd = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } };
@@ -3880,16 +3932,41 @@ const matches = p => {
   return [p.title, p.hook, p.plain, p.stakes, p.id, p.field].join(" ").toLowerCase().includes(QUERY);
 };
 
+// The same sky, tile-sized: where this particular group of objects sits.
+function miniSky(members){
+  const pts = members.map(m => m.observed || {})
+    .filter(o => Number.isFinite(o.ra) && Number.isFinite(o.dec));
+  if (!pts.length) return "";
+  const W = 320, H = 104, cx = W / 2, cy = H / 2, rx = W / 2 - 6, ry = H / 2 - 6;
+  const project = (ra, dec) => {
+    const l = (((ra + 180) % 360) - 180) * Math.PI / 180, b = dec * Math.PI / 180;
+    const a = Math.acos(Math.cos(b) * Math.cos(l / 2));
+    const s = a === 0 ? 1 : Math.sin(a) / a;
+    return [cx - rx * Math.cos(b) * Math.sin(l / 2) / s, cy - ry * Math.sin(b) / s];
+  };
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="where these objects sit on the sky">`;
+  o += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#F7F8FA" stroke="var(--line)"></ellipse>`;
+  o += `<line x1="6" y1="${cy}" x2="${W - 6}" y2="${cy}" stroke="var(--line)"></line>`;
+  for (const p of pts) {
+    const [x, y] = project(p.ra, p.dec);
+    o += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="var(--astro)" opacity=".8"></circle>`;
+  }
+  return o + `</svg>`;
+}
+
 /* ------------------------------------------------------------------ tiles */
 function tile(p, w){
   const closed = p.status !== "open";
   const state = closed ? (p.status === "refuted" ? "Refuted" : p.status === "withdrawn" ? "Withdrawn" : "Settled") : "Open";
   const two = (p.sides || []).filter(s => Number.isFinite(s.value)).length >= 2;
+  const one = p.members && p.members.length === 1 ? (p.members[0].observed || {}) : null;
   const tail = two
     ? `<div class="spark">${safely(() => spark(p), "")}</div>`
-    : `<div class="metric">${p.members ? `<b>${p.members.length}</b><span>objects, not one of them written about</span>`
+    : `<div class="metric">${one ? `<b>${num(one.value)}</b><span>${esc(one.unit)} · ${esc(one.source)} · <b style="font:inherit;color:var(--live)">0</b> papers name it</span>`
+        : p.members ? `<b>${p.members.length}</b><span>objects, not one of them written about</span>`
         : p.nokill ? `<b>0</b><span>observations would settle it</span>`
         : `<span>${esc(KIND_WORD[p.kind] || "")}</span>`}</div>`;
+  const where = p.machine && p.members ? safely(() => miniSky(p.members), "") : "";
   return `<button class="tile ${esc(p.field)} ${closed ? "closed" : ""} ${p.featured ? "wide" : ""}" data-open="${esc(p.id)}">
     <div class="head">
       <span class="pill fld">${esc(FIELD_WORD[p.field] || p.field)}</span>
@@ -3901,7 +3978,7 @@ function tile(p, w){
     <h3>${esc(p.title)}</h3>
     <p class="hook">${esc(p.hook)}</p>
     ${p.positions ? `<p class="depth">${p.positions.length} competing explanations · ${(p.running || []).length} experiments running</p>` : ""}
-    ${tail}
+    ${where ? `<div class="spark">${where}</div>` : tail}
   </button>`;
 }
 
@@ -4106,9 +4183,19 @@ function feed(w){
   // The Silences filter lists every object individually; everything else sees
   // the grouped view, which is the same claims read as findings.
   const pool = SIFT === "silence" ? SEEDS.concat(byNewest(fromRegister(REGISTER, true))) : POSTS;
+  const placed = REGISTER.filter(c => Number.isFinite((c.observed || {}).ra));
+  const map = (SIFT === "all" && !QUERY && placed.length) ? `<section class="skywrap">
+      <div class="skyhead">
+        <h4>Where the machine has looked</h4>
+        <p>Every claim it filed, at the coordinates the archive gave it. The empty
+          parts are not empty sky — they are sky nothing has swept.</p>
+      </div>
+      ${safely(() => skyMap(REGISTER), "")}
+    </section>` : "";
+
   const shown = pool.filter(matches);
   if (!shown.length) return sift + `<p class="hollow">Nothing matches that yet. The register holds only what has been measured or found — it is short on purpose.</p>`;
-  return sift + `<div class="grid">${shown.map(p => tile(p, w)).join("")}</div>`;
+  return map + sift + `<div class="grid">${shown.map(p => tile(p, w)).join("")}</div>`;
 }
 
 function watch(w){
