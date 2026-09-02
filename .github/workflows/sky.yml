@@ -102,6 +102,33 @@ jobs:
         run: |
           set -o pipefail
 
+          # Every run appends what it did to a log the repository keeps, so a
+          # result is readable without digging through CI output — and so the
+          # site can show what the machine has actually been doing rather than
+          # inferring it from claim timestamps.
+          record () {
+            node -e '
+              const fs = require("fs");
+              let r; try { r = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch { return; }
+              const line = {
+                at: new Date().toISOString(),
+                mode: r.mode ?? process.env.MODE, worker: r.worker ?? null,
+                target: r.target ?? process.env.TARGET ?? "", ms: r.ms ?? null,
+                error: r.error ?? null,
+                read: r.read ?? null,
+                claims: (r.claims || []).length,
+                tensions: (r.tensions || []).length,
+                orphans: (r.orphans || []).length,
+                unwritten: r.unwritten ?? null,
+                has_literature: r.has_literature ?? null,
+                could_not_check: r.could_not_check ?? null,
+                disagreements: r.disagreements ?? null,
+                stored: (r.stored || []).map(w => ({ table: w.table, rows: w.rows ?? 0, error: w.error ?? null })),
+              };
+              fs.appendFileSync("sweeps.jsonl", JSON.stringify(line) + "\n");
+            ' "$1" || true
+          }
+
           # A comma-separated target runs one sweep per entry, sequentially.
           # The worker is one request per subject by design — a single call that
           # looped internally would sit past the function's wall clock and be
@@ -125,6 +152,7 @@ jobs:
                   " orphans", (r.orphans||[]).length);
                 for (const w of r.stored||[]) if (w.error) console.log("  STORE FAILED", w.table, w.error);
               '
+              record one.json
             done
             echo "sweeps complete"
             exit 0
@@ -154,6 +182,7 @@ jobs:
                 for (const w of r.stored||[]) if (w.error) console.log("  STORE FAILED", w.table, w.error);
                   else console.log("  stored", w.table, w.rows, "rows");
               '
+              record page.json
               i=$((i+1))
             done
             echo "census complete"
@@ -202,6 +231,7 @@ jobs:
             for (const t of r.tensions||[])
               console.log(`  TENSION ${t.object} ${t.quantity}: ${t.sigma}σ  archive ${t.measured.value}${t.measured.unit} vs ${t.reported.year} ${t.reported.value}${t.reported.unit}`);
           '
+          record sweep.json
 
       # The page embeds the register so it renders where it cannot reach the
       # database. A dump therefore ends by rewriting that snapshot and pushing
@@ -224,6 +254,18 @@ jobs:
           Written by the sky workflow, from the claims table as it stood at
           the end of this run."
           git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Keep the log
+        if: always()
+        run: |
+          [ -s sweeps.jsonl ] || exit 0
+          git config user.name "parallax-sky"
+          git config user.email "noreply@github.com"
+          git pull --rebase --quiet origin ${GITHUB_REF_NAME} || true
+          git add sweeps.jsonl
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Sweep log: $(tail -1 sweeps.jsonl | head -c 160)"
+          git push origin HEAD:${GITHUB_REF_NAME} || true
 
       - name: Keep the sweep
         if: always()
