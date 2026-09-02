@@ -205,14 +205,18 @@ jobs:
           echo
           echo "----- summary -----"
           # Everything worth reading first, without scrolling a full sweep.
+          record sweep.json
           node -e '
             const r = JSON.parse(require("fs").readFileSync("sweep.json","utf8"));
+            /* An error reply has none of the fields below, and a summary that
+               crashes reading them hides the very thing worth reading. */
+            if (r.error) { console.log("WORKER ERROR:", r.error, " worker", r.worker, " mode", r.mode); process.exit(0); }
             const pick = (o, ks) => ks.filter(k => o && k in o).map(k => `${k}=${JSON.stringify(o[k])}`).join("  ");
             console.log("worker  ", r.worker, " mode", r.mode, " ms", r.ms);
             if (r.ledger) for (const l of r.ledger)
               console.log("  source", l.name.padEnd(20), l.got ?? 0, l.error ? "ERROR "+l.error : (l.skipped ? "skipped "+l.skipped : ""));
             if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","distinct_objects","checked","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
-            if (r.mode === "crosscheck")
+            if (r.mode === "crosscheck" && r.read)
               console.log("crosscheck", `pairs=${r.read.comparable_pairs} agreed=${r.read.agreed} disagreements=${r.disagreements} one_source_only=${r.read.one_source_only}`);
             for (const w of r.worst || [])
               console.log(`  ${w.sigma}σ  ${w.object} ${w.quantity}: ${w.a} vs ${w.b}`);
@@ -231,7 +235,6 @@ jobs:
             for (const t of r.tensions||[])
               console.log(`  TENSION ${t.object} ${t.quantity}: ${t.sigma}σ  archive ${t.measured.value}${t.measured.unit} vs ${t.reported.year} ${t.reported.value}${t.reported.unit}`);
           '
-          record sweep.json
 
       # The page embeds the register so it renders where it cannot reach the
       # database. A dump therefore ends by rewriting that snapshot and pushing
