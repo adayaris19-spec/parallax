@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 22;
+const WORKER_VERSION = 23;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1854,6 +1854,113 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
+  /* ---------- crosscheck: archives against each other ----------
+     The census is bounded by an index that answers one name at a time, and
+     the tension path is bounded by what a model can read. This one is bounded
+     by nothing but the database.
+
+     Every archive states a value with an uncertainty and a reference. When two
+     of them hold the same quantity for the same object and their error bars do
+     not overlap, one is wrong — and that is a finding of exactly the same kind
+     as an archive disagreeing with a paper, reached without reading anything.
+     No model, no literature search, no rate limit: it is arithmetic over rows
+     that are already stored, so it runs over thousands per call.
+
+     The floor is three sigma. Below that, two careful measurements of the same
+     thing disagreeing is ordinary. */
+  if (mode === "crosscheck") {
+    const want = Math.min(Math.max(Number(body.limit) || 2000, 1), 5000);
+    const from = Math.max(Number(body.offset) || 0, 0);
+    const floor = Math.max(Number(body.sigma) || 3, 1);
+
+    const rows = await sb("observations?select=object,quantity,source,value,err,unit," +
+      "value_si,err_si,unit_si,reference,url,ra,dec" +
+      `&order=object.asc&offset=${from}&limit=${want}`) as any[];
+
+    /* Group on the object and quantity, not on the unit: the whole point is to
+       catch an archive stating a radius in Earth radii against one stating it
+       in Jupiter radii. Everything is compared in SI or not at all. */
+    const groups = new Map<string, any[]>();
+    for (const r of rows) {
+      if (!Number.isFinite(r.value_si) || !Number.isFinite(r.err_si) || !(r.err_si > 0)) continue;
+      const k = `${String(r.object).toLowerCase().trim()}|${r.quantity}`;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(r);
+    }
+
+    const disagreements: any[] = [];
+    let comparable = 0, agreed = 0, one_source_only = 0;
+    for (const [, g] of groups) {
+      const sources = new Set(g.map((r) => r.source));
+      if (sources.size < 2) { one_source_only++; continue; }
+      for (let i = 0; i < g.length; i++) {
+        for (let j = i + 1; j < g.length; j++) {
+          const a = g[i], b = g[j];
+          if (a.source === b.source) continue;
+          comparable++;
+          const sigma = Math.abs(a.value_si - b.value_si) /
+            Math.sqrt(a.err_si * a.err_si + b.err_si * b.err_si);
+          if (!Number.isFinite(sigma)) continue;
+          if (sigma < floor) { agreed++; continue; }
+          disagreements.push({
+            object: a.object, quantity: a.quantity, sigma: Number(sigma.toFixed(2)),
+            a: { source: a.source, value: a.value, err: a.err, unit: a.unit, reference: a.reference, url: a.url, value_si: a.value_si, err_si: a.err_si },
+            b: { source: b.source, value: b.value, err: b.err, unit: b.unit, reference: b.reference, url: b.url, value_si: b.value_si, err_si: b.err_si },
+            ra: a.ra ?? b.ra, dec: a.dec ?? b.dec,
+          });
+        }
+      }
+    }
+    disagreements.sort((x, y) => y.sigma - x.sigma);
+
+    const claims = disagreements.map((d) => mint({
+      kind: "crosscheck",
+      object: d.object,
+      quantity: d.quantity,
+      title: `Two archives disagree about the ${d.quantity} of ${d.object}`,
+      statement:
+        `${d.a.source} holds ${fmt(d.a.value, d.a.unit)} ± ${fmt(d.a.err, "")}, on the authority of ` +
+        `${d.a.reference || "its own catalogue"}. ${d.b.source} holds ${fmt(d.b.value, d.b.unit)} ± ` +
+        `${fmt(d.b.err, "")}, on the authority of ${d.b.reference || "its own catalogue"}. Compared in SI ` +
+        `those are ${d.sigma}σ apart, so at least one of the two curated values is wrong.`,
+      sigma: d.sigma,
+      observed: d.a, reported: d.b,
+      kill:
+        `One re-measurement of the ${d.quantity} of ${d.object} at or below the smaller of the two ` +
+        `stated uncertainties. Whichever archive it lands on, the other is carrying an error that ` +
+        `every downstream user of that catalogue has inherited.`,
+      cost: "Archival — both values are already public, and the disagreement is between them.",
+      figure: { type: "interval", unit: "SI", sigma: d.sigma, series: [
+        { label: d.a.source, value: d.a.value_si, err: d.a.err_si },
+        { label: d.b.source, value: d.b.value_si, err: d.b.err_si }] },
+    })).filter(Boolean);
+
+    const writes: any[] = [];
+    if (body.store !== false && claims.length) {
+      writes.push(await write("claims", "claims?on_conflict=claim_id",
+        claims.map((c: any) => ({ ...c, last_moved_at: new Date().toISOString() })),
+        "resolution=merge-duplicates,return=minimal"));
+    }
+
+    return json({
+      worker: WORKER_VERSION, mode, ms: Date.now() - t0, offset: from, sigma_floor: floor,
+      /* The denominator matters more here than anywhere: a crosscheck that
+         compared four pairs and found one disagreement is a different object
+         from one that compared four thousand. */
+      read: {
+        rows: rows.length,
+        object_quantities: groups.size,
+        one_source_only,
+        comparable_pairs: comparable,
+        agreed,
+      },
+      disagreements: disagreements.length,
+      worst: disagreements.slice(0, 12).map((d) => ({ object: d.object, quantity: d.quantity, sigma: d.sigma, a: d.a.source, b: d.b.source })),
+      stored: writes,
+      claims,
+    });
+  }
+
   /* ---------- dump: the register, in full, in one reply ----------
      The site embeds a snapshot of the claims table so it renders where it
      cannot reach the database — a sandboxed frame blocks every host. Rebuilding
@@ -1870,5 +1977,5 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
-  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "survey", "resolve", "scorecard", "dump"] }, 400);
+  return json({ error: `unknown mode '${mode}'`, modes: ["probe", "papers", "sky", "tension", "survey", "crosscheck", "resolve", "scorecard", "dump"] }, 400);
 }
