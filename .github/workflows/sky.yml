@@ -109,7 +109,7 @@ jobs:
           record () {
             node -e '
               const fs = require("fs");
-              let r; try { r = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch { return; }
+              let r; try { r = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch { process.exit(0); }
               const line = {
                 at: new Date().toISOString(),
                 mode: r.mode ?? process.env.MODE, worker: r.worker ?? null,
