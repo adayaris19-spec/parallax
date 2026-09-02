@@ -47,6 +47,10 @@ on:
         description: "survey only: page to resume from, so a census can continue where the last one stopped"
         default: "0"
         type: string
+      all_refs:
+        description: "ask the exoplanet archive for every published parameter set, not the one it leads with"
+        default: false
+        type: boolean
       body:
         description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
         default: ""
@@ -96,6 +100,7 @@ jobs:
           MODE: ${{ inputs.mode || 'tension' }}
           TARGET: ${{ inputs.target || 'Kepler-10' }}
           RAW: ${{ inputs.body }}
+          ALL_REFS: ${{ inputs.all_refs }}
           LIMIT: ${{ inputs.limit }}
           PAGES: ${{ inputs.pages }}
           START: ${{ inputs.start }}
@@ -137,7 +142,7 @@ jobs:
             printf '%s' "$TARGET" | tr ',' '\n' | while read -r one; do
               one=$(printf '%s' "$one" | sed 's/^ *//; s/ *$//')
               [ -z "$one" ] && continue
-              b=$(printf '{"mode":"%s","target":"%s","limit":%s}' "$MODE" "$one" "${LIMIT:-60}")
+              b=$(printf '{"mode":"%s","target":"%s","limit":%s,"all_refs":%s}' "$MODE" "$one" "${LIMIT:-60}" "${ALL_REFS:-false}")
               echo "----- sweep: $one"
               curl -sS --fail-with-body --max-time 180 \
                 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
@@ -190,7 +195,7 @@ jobs:
           fi
 
           if [ -n "$RAW" ]; then body="$RAW"; else
-            body=$(printf '{"mode":"%s","target":"%s","limit":%s}' "$MODE" "$TARGET" "${LIMIT:-40}")
+            body=$(printf '{"mode":"%s","target":"%s","limit":%s,"all_refs":%s}' "$MODE" "$TARGET" "${LIMIT:-40}" "${ALL_REFS:-false}")
           fi
           echo "request: $body"
 
