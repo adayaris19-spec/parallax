@@ -11635,7 +11635,7 @@ const days = iso => {
   return d <= 1 ? "opened today" : `open ${d} days`;
 };
 const FIELD_WORD = { astronomy:"Astronomy", genomics:"Genomics", physics:"Physics" };
-const KIND_WORD = { disagreement:"Disagreement", silence:"Silence", orthodoxy:"Repeated, unchecked", question:"Open question" };
+const KIND_WORD = { disagreement:"Disagreement", crosscheck:"Published values disagree", silence:"Silence", orthodoxy:"Repeated, unchecked", question:"Open question" };
 const UNIT_WORDS = { msun:"times the mass of the Sun", mearth:"times the mass of Earth",
   rearth:"times the radius of Earth", rjup:"times the radius of Jupiter", d:"days", s:"seconds" };
 const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
@@ -11644,23 +11644,39 @@ const spell = u => UNIT_WORDS[String(u || "").toLowerCase()] || u || "";
 function fromRegister(rows, split){
   const out = [], groups = new Map();
   for (const c of rows) {
-    if (c.kind === "tension") {
+    if (c.kind === "tension" || c.kind === "crosscheck") {
       const o = c.observed || {}, r = c.reported || {};
+      const cross = c.kind === "crosscheck";
       out.push({
-        id:c.claim_id, field:"astronomy", kind:"disagreement", status:c.status || "open",
+        id:c.claim_id, field:"astronomy", kind: cross ? "crosscheck" : "disagreement", status:c.status || "open",
         machine:true, opened:c.opened_at, title:c.title,
-        hook:`${o.source} and a ${r.year || "published"} paper disagree by ${c.sigma}σ about the same quantity.`,
-        plain:`Two measurements of the same object do not agree. The archive holds ${num(o.value)};
-          a paper states ${num(r.value)}. The stated error bars are too small for both to be right.`,
-        stakes:`Individually this is one object. Collectively it is a measure of how much of the
-          published record disagrees with the archives that are supposed to summarise it — and
-          nobody is auditing that at scale, because doing it by hand costs a literature search
-          per object. This entry exists because a machine did the search.`,
-        sides:[
-          {label:o.source || "archive", value:o.value, err:o.err, unit:o.unit, source:o.reference || "", note:"Held in the archive as the current value."},
-          {label:`published ${r.year || ""}`.trim(), value:r.value, err:r.err, unit:r.unit, source:"the paper", note:"Read out of the abstract, with the quote kept as receipt."}],
+        hook: cross
+          ? `Two published measurements of the same ${c.quantity}, ${c.sigma}σ apart. The catalogue shows one of them.`
+          : `${o.source} and a ${r.year || "published"} paper disagree by ${c.sigma}σ about the same quantity.`,
+        plain: cross
+          ? `Two papers measured the same quantity for this object and published values whose stated
+             uncertainties do not overlap: ${num(o.value)} ± ${num(o.err)} against ${num(r.value)} ±
+             ${num(r.err)} ${o.unit || ""}. The archive carries both, and shows one.`
+          : `Two measurements of the same object do not agree. The archive holds ${num(o.value)};
+             a paper states ${num(r.value)}. The stated error bars are too small for both to be right.`,
+        stakes: cross
+          ? `A catalogue shows one number per quantity. Every downstream user — a transit prediction,
+             a mass-radius diagram, a population study — takes that number and inherits whichever
+             paper the archive picked, with no indication that another measurement disagrees beyond
+             its own error bars. This is not a dispute anyone is having; it is one nobody has
+             noticed, because reading it requires comparing every published value against every
+             other, which is arithmetic no person is going to do by hand across thousands of rows.`
+          : `Individually this is one object. Collectively it is a measure of how much of the
+             published record disagrees with the archives that are supposed to summarise it — and
+             nobody is auditing that at scale, because doing it by hand costs a literature search
+             per object. This entry exists because a machine did the search.`,
+        sides: cross
+          ? [{label:String(o.reference || o.source || "one paper").slice(0, 30), value:o.value, err:o.err, unit:o.unit, source:o.source || "", note:"As published."},
+             {label:String(r.reference || r.source || "another paper").slice(0, 30), value:r.value, err:r.err, unit:r.unit, source:r.source || "", note:"As published, by a different reference."}]
+          : [{label:o.source || "archive", value:o.value, err:o.err, unit:o.unit, source:o.reference || "", note:"Held in the archive as the current value."},
+             {label:`published ${r.year || ""}`.trim(), value:r.value, err:r.err, unit:r.unit, source:"the paper", note:"Read out of the abstract, with the quote kept as receipt."}],
         sigma:c.sigma, kill:c.kill, resolution:c.resolution, url:o.url,
-        guess:"Which do you think is wrong — the archive, or the paper?",
+        guess: cross ? "" : "Which do you think is wrong — the archive, or the paper?",
         cites:[o.reference, c.claim_id].filter(Boolean)
       });
       continue;
@@ -12274,7 +12290,7 @@ function skyMap(rows, W = 1000, H = 400){
   }
   for (const p of pts) {
     const [x, y] = project(p.ra, p.dec);
-    const c = p.kind === "tension" || p.kind === "crosscheck" ? "var(--live)" : "var(--astro)";
+    const c = ["tension", "crosscheck", "disagreement"].includes(p.kind) ? "var(--live)" : "var(--astro)";
     o += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${c}" opacity=".78"><title>${esc(p.object)} — ${esc(p.source)}</title></circle>`;
   }
   o += `<text x="18" y="${H - 6}" font-family="Manrope,sans-serif" font-weight="600" font-size="13" fill="var(--ink-3)">${pts.length} of ${rows.length} claims carry coordinates</text>`;
@@ -12296,7 +12312,8 @@ let SAMPLE = null; const ASK = {};
 const post = id => POSTS.find(p => p.id === id);
 const matches = p => {
   if (["astronomy", "genomics", "physics"].includes(SIFT) && p.field !== SIFT) return false;
-  if (["disagreement", "silence", "orthodoxy"].includes(SIFT) && p.kind !== SIFT) return false;
+  if (SIFT === "disagreement" && !["disagreement", "crosscheck"].includes(p.kind)) return false;
+  if (["silence", "orthodoxy"].includes(SIFT) && p.kind !== SIFT) return false;
   if (SIFT === "settled" && p.status === "open") return false;
   if (!QUERY) return true;
   return [p.title, p.hook, p.plain, p.stakes, p.id, p.field].join(" ").toLowerCase().includes(QUERY);
@@ -12508,7 +12525,7 @@ function detail(p, w){
 // Each tab introduces itself. The register's argument belongs to the Feed.
 function heading(w){
   const openQ = POSTS.filter(p => p.status === "open").length;
-  const disputes = POSTS.filter(p => p.kind === "disagreement" && p.status === "open").length;
+  const disputes = POSTS.filter(p => ["disagreement", "crosscheck"].includes(p.kind) && p.status === "open").length;
   const fields = new Set(POSTS.map(p => p.field)).size;
   const mark = `<div class="mark">
       <svg viewBox="0 0 30 30" aria-hidden="true">
