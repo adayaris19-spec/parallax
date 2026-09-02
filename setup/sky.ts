@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 23;
+const WORKER_VERSION = 24;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -442,6 +442,17 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
   for (const r of tapRows(j)) {
     const name = clean(r.pl_name);
     if (!name) continue;
+    /* ONE ROW PER PUBLICATION, KEPT AS ONE ROW PER PUBLICATION.
+       The `ps` table returns every published parameter set for a planet, which
+       is precisely the data this project exists to compare. Keying a row on the
+       planet name alone collapsed all of them onto a single row, so the store
+       held whichever paper the archive happened to return last and every other
+       measurement was discarded on write. Nothing reported it, because an
+       upsert that overwrites is not an error.
+
+       The reference is part of the identity of a measurement. */
+    const refSlug = clean(r.pl_refname).replace(/<[^>]+>/g, " ")
+      .replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60).toLowerCase();
     const base = {
       source: "exoplanet-archive",
       object: name,
@@ -464,7 +475,7 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
     for (const [quantity, unit, v, e1, e2] of cols) {
       const value = num(v);
       if (value === null) continue;
-      out.push(obs({ ...base, source_id: `exo:${name}`, quantity, value, err: sym(e1, e2), unit }));
+      out.push(obs({ ...base, source_id: `exo:${name}:${refSlug || "unref"}`, quantity, value, err: sym(e1, e2), unit }));
     }
 
     /* THE STAR HAS TO BE AN OBJECT TOO.
@@ -491,7 +502,7 @@ async function fromExoplanetArchive(target: string, rows: number): Promise<Obs[]
         const value = num(v);
         if (value === null) continue;
         out.push(obs({
-          source: "exoplanet-archive", source_id: `exo:star:${host}`, object: host,
+          source: "exoplanet-archive", source_id: `exo:star:${host}:${refSlug || "unref"}`, object: host,
           quantity, value, err: sym(e1, e2), unit,
           ra: num(r.ra), dec: num(r.dec),
           reference: clean(r.pl_refname).replace(/<[^>]+>/g, " ").trim(),
@@ -1889,14 +1900,19 @@ async function handle(req: Request): Promise<Response> {
     }
 
     const disagreements: any[] = [];
-    let comparable = 0, agreed = 0, one_source_only = 0;
+    let comparable = 0, agreed = 0, one_value_only = 0;
     for (const [, g] of groups) {
-      const sources = new Set(g.map((r) => r.source));
-      if (sources.size < 2) { one_source_only++; continue; }
+      /* Two values are comparable when they came from different places, and a
+         different paper is a different place even inside one archive. The
+         exoplanet archive publishes every parameter set anyone has measured;
+         requiring two archives threw all of that away and left nothing to
+         compare, which is what the first crosscheck reported. */
+      const origins = new Set(g.map((r) => `${r.source}|${r.reference}`));
+      if (origins.size < 2) { one_value_only++; continue; }
       for (let i = 0; i < g.length; i++) {
         for (let j = i + 1; j < g.length; j++) {
           const a = g[i], b = g[j];
-          if (a.source === b.source) continue;
+          if (a.source === b.source && a.reference === b.reference) continue;
           comparable++;
           const sigma = Math.abs(a.value_si - b.value_si) /
             Math.sqrt(a.err_si * a.err_si + b.err_si * b.err_si);
@@ -1917,12 +1933,12 @@ async function handle(req: Request): Promise<Response> {
       kind: "crosscheck",
       object: d.object,
       quantity: d.quantity,
-      title: `Two archives disagree about the ${d.quantity} of ${d.object}`,
+      title: `Two published values for the ${d.quantity} of ${d.object} disagree`,
       statement:
-        `${d.a.source} holds ${fmt(d.a.value, d.a.unit)} ± ${fmt(d.a.err, "")}, on the authority of ` +
-        `${d.a.reference || "its own catalogue"}. ${d.b.source} holds ${fmt(d.b.value, d.b.unit)} ± ` +
-        `${fmt(d.b.err, "")}, on the authority of ${d.b.reference || "its own catalogue"}. Compared in SI ` +
-        `those are ${d.sigma}σ apart, so at least one of the two curated values is wrong.`,
+        `${d.a.reference || d.a.source} gives ${fmt(d.a.value, d.a.unit)} ± ${fmt(d.a.err, "")}. ` +
+        `${d.b.reference || d.b.source} gives ${fmt(d.b.value, d.b.unit)} ± ${fmt(d.b.err, "")}. ` +
+        `Compared in SI those are ${d.sigma}σ apart. Both are carried by ${d.a.source === d.b.source ? d.a.source : `${d.a.source} and ${d.b.source}`}, ` +
+        `so a reader taking the catalogue value gets one of them and never learns the other exists.`,
       sigma: d.sigma,
       observed: d.a, reported: d.b,
       kill:
@@ -1931,8 +1947,8 @@ async function handle(req: Request): Promise<Response> {
         `every downstream user of that catalogue has inherited.`,
       cost: "Archival — both values are already public, and the disagreement is between them.",
       figure: { type: "interval", unit: "SI", sigma: d.sigma, series: [
-        { label: d.a.source, value: d.a.value_si, err: d.a.err_si },
-        { label: d.b.source, value: d.b.value_si, err: d.b.err_si }] },
+        { label: String(d.a.reference || d.a.source).slice(0, 28), value: d.a.value_si, err: d.a.err_si },
+        { label: String(d.b.reference || d.b.source).slice(0, 28), value: d.b.value_si, err: d.b.err_si }] },
     })).filter(Boolean);
 
     const writes: any[] = [];
@@ -1950,7 +1966,7 @@ async function handle(req: Request): Promise<Response> {
       read: {
         rows: rows.length,
         object_quantities: groups.size,
-        one_source_only,
+        one_value_only,
         comparable_pairs: comparable,
         agreed,
       },

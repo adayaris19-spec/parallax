@@ -217,7 +217,7 @@ jobs:
               console.log("  source", l.name.padEnd(20), l.got ?? 0, l.error ? "ERROR "+l.error : (l.skipped ? "skipped "+l.skipped : ""));
             if (r.read) console.log("read     ", pick(r.read, ["observations","observations_from_store","distinct_objects","checked","objects_on_target","papers","papers_with_full_abstract","papers_about_an_object","measurements"]));
             if (r.mode === "crosscheck" && r.read)
-              console.log("crosscheck", `pairs=${r.read.comparable_pairs} agreed=${r.read.agreed} disagreements=${r.disagreements} one_source_only=${r.read.one_source_only}`);
+              console.log("crosscheck", `pairs=${r.read.comparable_pairs} agreed=${r.read.agreed} disagreements=${r.disagreements} one_value_only=${r.read.one_value_only}`);
             for (const w of r.worst || [])
               console.log(`  ${w.sigma}σ  ${w.object} ${w.quantity}: ${w.a} vs ${w.b}`);
             if (r.mode === "survey")
