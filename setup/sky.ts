@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 28;
+const WORKER_VERSION = 29;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -712,21 +712,42 @@ async function fromTEPCat(target: string, rows: number): Promise<Obs[]> {
 
   const at = (name: string) => head.findIndex((h) => h.toLowerCase() === name.toLowerCase());
   const iName = at("System");
-  // value, +err, -err, our quantity, our unit
-  const want: [string, string, string, string, string][] = [
-    ["M_b", "M_b_eu", "M_b_ed", "mass", "mjup"],
-    ["R_b", "R_b_eu", "R_b_ed", "radius", "rjup"],
-    ["Period", "Perioderr", "Perioderr", "period", "day"],
-    ["M_A", "M_A_eu", "M_A_ed", "stellar-mass", "msun"],
-    ["R_A", "R_A_eu", "R_A_ed", "stellar-radius", "rsun"],
-    ["Teff", "Tefferr", "Tefferr", "stellar-teff", "k"],
+
+  /* The probe answered the question this adapter could not answer from where
+     it was written. TEPCat does not name its uncertainty columns after the
+     quantity they belong to — they are all called err, erru, errd, errup,
+     errdn or errdown, repeated, and they belong to whichever value column they
+     follow:
+
+       System, Teff, err, err, [Fe/H], erru, errd, M_A, errup, errdn, R_A, ...
+
+     So a lookup by name alone takes the metallicity's error and attaches it to
+     a stellar mass — silently, and with a plausible-looking result. The rule
+     is therefore positional AND name-checked: the error for a value at column
+     i is at i+1 and i+2, and only if those columns are actually named like
+     errors. Anything else has no error bar, and no error bar is no claim. */
+  const ERRISH = /^(err|erru|errd|errup|errdn|errdown|e_up|e_dn)$/i;
+  const errsAfter = (i: number): [number, number] => [
+    i + 1 < head.length && ERRISH.test(head[i + 1]) ? i + 1 : -1,
+    i + 2 < head.length && ERRISH.test(head[i + 2]) ? i + 2 : -1,
   ];
-  const cols = want
-    .map(([v, e1, e2, q, u]) => ({ v: at(v), e1: at(e1), e2: at(e2), q, u }))
-    .filter((c) => c.v >= 0);
+
+  /* Only the star's own quantities. The System column names a system, not a
+     planet, so M_b and R_b here cannot be attached to a planet letter without
+     guessing which planet — and these are the columns that overlap the
+     exoplanet archive's host rows anyway, which is the whole point of a second
+     catalogue. */
+  const want: [string, string, string][] = [
+    ["M_A", "stellar-mass", "msun"],
+    ["R_A", "stellar-radius", "rsun"],
+    ["Teff", "stellar-teff", "k"],
+  ];
+  const cols = want.map(([col, q, u]) => {
+    const v = at(col);
+    const [e1, e2] = v >= 0 ? errsAfter(v) : [-1, -1];
+    return { v, e1, e2, q, u };
+  }).filter((c) => c.v >= 0 && c.e1 >= 0);
   TEPCAT_HEADERS.matched = cols.length;
-  /* Nothing matched means the file's shape has moved. Returning rows anyway
-     would mean filing claims about columns nobody identified. */
   if (iName < 0 || !cols.length) return [];
 
   const out: Obs[] = [];
