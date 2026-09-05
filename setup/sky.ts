@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 29;
+const WORKER_VERSION = 30;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -737,9 +737,18 @@ async function fromTEPCat(target: string, rows: number): Promise<Obs[]> {
      guessing which planet — and these are the columns that overlap the
      exoplanet archive's host rows anyway, which is the whole point of a second
      catalogue. */
+  /* THE SAME STAR MUST BE THE SAME KEY.
+     A comparison joins on object and quantity, so a second catalogue is only
+     worth having if it names both the way the first one does. The exoplanet
+     archive files a host's own values as `radius` and `mass` — what a
+     catalogue calls the stellar radius is simply the radius, when the object
+     IS the star — and TEPCat's System column names exactly that star. Emitting
+     these as `stellar-radius` produced fifty thousand rows that could never
+     pair with anything: twenty-two thousand comparisons, none of them across
+     catalogues. The convention is the join. */
   const want: [string, string, string][] = [
-    ["M_A", "stellar-mass", "msun"],
-    ["R_A", "stellar-radius", "rsun"],
+    ["M_A", "mass", "msun"],
+    ["R_A", "radius", "rsun"],
     ["Teff", "stellar-teff", "k"],
   ];
   const cols = want.map(([col, q, u]) => {
