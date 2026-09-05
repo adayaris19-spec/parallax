@@ -299,11 +299,28 @@ class Audit:
         return 1.0 - self.reach
 
 
-def audit(space, filt: Filter, n: int = 200_000, seed: int = 0) -> Audit:
-    """Compute discovery reach, and attribute the loss to individual decisions."""
-    table, weights = space.sample(n, seed)
+def audit(space, filt: Filter, n: int = 200_000, seed: int = 0,
+          attribute: bool = True, cached: tuple | None = None) -> Audit:
+    """
+    Compute discovery reach, and attribute the loss to individual decisions.
+
+    `attribute=False` skips the per-node counterfactuals, which dominate the
+    cost; robustness sweeps run thousands of audits and only need the scalar.
+    `cached` accepts a pre-drawn (table, weights) so a sweep over filter
+    parameters does not redraw or re-enumerate the space each time.
+    """
+    table, weights = cached if cached is not None else space.sample(n, seed)
     survives = filt.evaluate(table)
     reach = float(weights[survives].sum())
+
+    if not attribute:
+        return Audit(
+            space_name=space.name, filter_name=filt.name,
+            filter_fingerprint=filt.fingerprint(), prior_note=space.prior_note,
+            reach=reach, n=_size(table),
+            exact=isinstance(space, EnumeratedSpace),
+            table=table, survives=survives, weights=weights, nodes=[],
+        )
 
     parents: dict[str, Node | None] = {}
     seen: dict[str, Node] = {}

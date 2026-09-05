@@ -1,0 +1,1022 @@
+{
+  "certificate": "exclusion/v0",
+  "generated": "2026-09-05T12:03:03+00:00",
+  "space": {
+    "name": "generic-bsm-final-state",
+    "prior": "Log-uniform in mass (1-5000 GeV) and proper decay length (1e-6 to 10 m); uniform in visible fraction, leptonic fraction and multiplicity 2-20. A flat statement of ignorance over final-state CONFIGURATIONS, not a cross-section prior: it asks which of the things that could exist could be recorded, not which are likely. See the prior-family sweep for how reach moves under falling mass priors.",
+    "axes": [
+      {
+        "name": "m",
+        "kind": "log",
+        "lo": 1.0,
+        "hi": 5000.0,
+        "unit": "GeV",
+        "note": "mass scale of the produced state"
+      },
+      {
+        "name": "n_vis",
+        "kind": "int",
+        "lo": 2,
+        "hi": 20,
+        "unit": "",
+        "note": "visible final-state objects"
+      },
+      {
+        "name": "f_vis",
+        "kind": "lin",
+        "lo": 0.0,
+        "hi": 1.0,
+        "unit": "",
+        "note": "fraction of mass that is visible"
+      },
+      {
+        "name": "f_lep",
+        "kind": "lin",
+        "lo": 0.0,
+        "hi": 1.0,
+        "unit": "",
+        "note": "fraction of objects that are e/mu"
+      },
+      {
+        "name": "ctau",
+        "kind": "log",
+        "lo": 1e-06,
+        "hi": 10.0,
+        "unit": "m",
+        "note": "proper decay length"
+      },
+      {
+        "name": "gamma",
+        "kind": "log",
+        "lo": 1.0,
+        "hi": 20.0,
+        "unit": "",
+        "note": "Lorentz boost"
+      }
+    ]
+  },
+  "filter": {
+    "name": "atlas-run2-primary-menu",
+    "fingerprint": "21f842cd0b97f0c8",
+    "policy": {
+      "name": "atlas-run2-primary-menu",
+      "description": "ATLAS Run-2 (2017-2018) primary single-object and energy-sum triggers. Thresholds encoded from documented public values; see VERIFICATION_CHECKLIST.",
+      "root": {
+        "kind": "any",
+        "name": "menu",
+        "rationale": "an event is kept if any primary chain fires",
+        "children": [
+          {
+            "kind": "all",
+            "name": "mu_iso",
+            "rationale": "HLT_mu26_ivarmedium",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "mu_iso_has_lepton",
+                "rationale": "the chain requires a reconstructed lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_iso_pt",
+                "rationale": "HLT_mu26_ivarmedium: 26.0 GeV threshold, set by output bandwidth rather than by physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_iso_geom",
+                "rationale": "muon spectrometer reaches ~11 m, so muons survive displacement better than anything else",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "mu_noniso",
+            "rationale": "HLT_mu50",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "mu_noniso_has_lepton",
+                "rationale": "the chain requires a reconstructed lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_noniso_pt",
+                "rationale": "HLT_mu50: 50.0 GeV threshold, set by output bandwidth rather than by physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_noniso_geom",
+                "rationale": "same acceptance, higher threshold, no isolation",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "e_iso",
+            "rationale": "HLT_e26_lhtight_nod0_ivarloose",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "e_iso_has_lepton",
+                "rationale": "the chain requires a reconstructed lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_iso_pt",
+                "rationale": "HLT_e26_lhtight_nod0_ivarloose: 26.0 GeV threshold, set by output bandwidth rather than by physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_iso_geom",
+                "rationale": "electron identification needs a track: dies past the inner detector",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "e_med",
+            "rationale": "HLT_e60_lhmedium_nod0",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "e_med_has_lepton",
+                "rationale": "the chain requires a reconstructed lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_med_pt",
+                "rationale": "HLT_e60_lhmedium_nod0: 60.0 GeV threshold, set by output bandwidth rather than by physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_med_geom",
+                "rationale": "as above",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "e_loose",
+            "rationale": "HLT_e140_lhloose_nod0",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "e_loose_has_lepton",
+                "rationale": "the chain requires a reconstructed lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_loose_pt",
+                "rationale": "HLT_e140_lhloose_nod0: 140.0 GeV threshold, set by output bandwidth rather than by physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "e_loose_geom",
+                "rationale": "as above",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "g_single",
+            "rationale": "HLT_g140_loose",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "g_pt",
+                "rationale": "HLT_g140_loose: unconverted photons need only calorimeter energy",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "g_geom",
+                "rationale": "needs an EM calorimeter deposit",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "j_single",
+            "rationale": "HLT_j420",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "j_has_jet",
+                "rationale": "at least one jet",
+                "uses": [
+                  "n_jet"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "j_pt",
+                "rationale": "HLT_j420: the single-jet threshold is brutal because the QCD dijet rate is enormous - this cut is made of bandwidth, not of physics",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "j_geom",
+                "rationale": "needs a calorimeter deposit",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "j_four",
+            "rationale": "HLT_4j120",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "j4_count",
+                "rationale": "four or more jets",
+                "uses": [
+                  "n_jet"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "j4_pt",
+                "rationale": "HLT_4j120: every jet must clear the threshold, so soft busy events fail",
+                "uses": [
+                  "per_object"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "j4_geom",
+                "rationale": "calorimeter deposits",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "ht",
+            "rationale": "HLT_ht1000_L1J100",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "ht_sum",
+                "rationale": "HLT_ht1000_L1J100: scalar sum of transverse energy",
+                "uses": [
+                  "ht"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "ht_geom",
+                "rationale": "the sum is built from calorimeter towers",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "met",
+            "rationale": "HLT_xe110_pufit_L1XE55",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "met_thr",
+                "rationale": "HLT_xe110_pufit_L1XE55: missing transverse energy. The only path that rewards invisibility, and it also catches decays past the calorimeter",
+                "uses": [
+                  "met"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "dimu",
+            "rationale": "HLT_2mu14",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "dimu_count",
+                "rationale": "two muons",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "dimu_pt",
+                "rationale": "HLT_2mu14",
+                "uses": [
+                  "per_object"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "dimu_geom",
+                "rationale": "muon spectrometer acceptance",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "diel",
+            "rationale": "HLT_2e17_lhvloose_nod0",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "diel_count",
+                "rationale": "two electrons",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "diel_pt",
+                "rationale": "HLT_2e17_lhvloose_nod0",
+                "uses": [
+                  "per_object"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "diel_geom",
+                "rationale": "electron ID needs tracks",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "estimate": {
+    "method": "monte-carlo",
+    "samples": 120000,
+    "discovery_reach": 0.4043,
+    "blind_fraction": 0.5957
+  },
+  "attribution": [
+    {
+      "node": "j_has_jet",
+      "parent": "j_single",
+      "kind": "cut",
+      "rationale": "at least one jet",
+      "coverage": 1.0,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "mu_iso_geom",
+      "parent": "mu_iso",
+      "kind": "cut",
+      "rationale": "muon spectrometer reaches ~11 m, so muons survive displacement better than anything else",
+      "coverage": 0.912333,
+      "exclusive": null,
+      "cost_if_lifted": 0.00025
+    },
+    {
+      "node": "mu_noniso_geom",
+      "parent": "mu_noniso",
+      "kind": "cut",
+      "rationale": "same acceptance, higher threshold, no isolation",
+      "coverage": 0.912333,
+      "exclusive": null,
+      "cost_if_lifted": 1.7e-05
+    },
+    {
+      "node": "dimu_geom",
+      "parent": "dimu",
+      "kind": "cut",
+      "rationale": "muon spectrometer acceptance",
+      "coverage": 0.912333,
+      "exclusive": null,
+      "cost_if_lifted": 0.000183
+    },
+    {
+      "node": "mu_iso_has_lepton",
+      "parent": "mu_iso",
+      "kind": "cut",
+      "rationale": "the chain requires a reconstructed lepton",
+      "coverage": 0.8643,
+      "exclusive": null,
+      "cost_if_lifted": 0.008983
+    },
+    {
+      "node": "mu_noniso_has_lepton",
+      "parent": "mu_noniso",
+      "kind": "cut",
+      "rationale": "the chain requires a reconstructed lepton",
+      "coverage": 0.8643,
+      "exclusive": null,
+      "cost_if_lifted": 0.004383
+    },
+    {
+      "node": "e_iso_has_lepton",
+      "parent": "e_iso",
+      "kind": "cut",
+      "rationale": "the chain requires a reconstructed lepton",
+      "coverage": 0.8643,
+      "exclusive": null,
+      "cost_if_lifted": 0.008033
+    },
+    {
+      "node": "e_med_has_lepton",
+      "parent": "e_med",
+      "kind": "cut",
+      "rationale": "the chain requires a reconstructed lepton",
+      "coverage": 0.8643,
+      "exclusive": null,
+      "cost_if_lifted": 0.003117
+    },
+    {
+      "node": "e_loose_has_lepton",
+      "parent": "e_loose",
+      "kind": "cut",
+      "rationale": "the chain requires a reconstructed lepton",
+      "coverage": 0.8643,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "g_geom",
+      "parent": "g_single",
+      "kind": "cut",
+      "rationale": "needs an EM calorimeter deposit",
+      "coverage": 0.852875,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "j_geom",
+      "parent": "j_single",
+      "kind": "cut",
+      "rationale": "needs a calorimeter deposit",
+      "coverage": 0.852875,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "j4_geom",
+      "parent": "j_four",
+      "kind": "cut",
+      "rationale": "calorimeter deposits",
+      "coverage": 0.852875,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "ht_geom",
+      "parent": "ht",
+      "kind": "cut",
+      "rationale": "the sum is built from calorimeter towers",
+      "coverage": 0.852875,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "e_iso_geom",
+      "parent": "e_iso",
+      "kind": "cut",
+      "rationale": "electron identification needs a track: dies past the inner detector",
+      "coverage": 0.76995,
+      "exclusive": null,
+      "cost_if_lifted": 0.00025
+    },
+    {
+      "node": "e_med_geom",
+      "parent": "e_med",
+      "kind": "cut",
+      "rationale": "as above",
+      "coverage": 0.76995,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "e_loose_geom",
+      "parent": "e_loose",
+      "kind": "cut",
+      "rationale": "as above",
+      "coverage": 0.76995,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "diel_geom",
+      "parent": "diel",
+      "kind": "cut",
+      "rationale": "electron ID needs tracks",
+      "coverage": 0.76995,
+      "exclusive": null,
+      "cost_if_lifted": 0.0001
+    },
+    {
+      "node": "dimu_count",
+      "parent": "dimu",
+      "kind": "cut",
+      "rationale": "two muons",
+      "coverage": 0.727725,
+      "exclusive": null,
+      "cost_if_lifted": 0.011592
+    },
+    {
+      "node": "diel_count",
+      "parent": "diel",
+      "kind": "cut",
+      "rationale": "two electrons",
+      "coverage": 0.727725,
+      "exclusive": null,
+      "cost_if_lifted": 0.008083
+    },
+    {
+      "node": "j4_count",
+      "parent": "j_four",
+      "kind": "cut",
+      "rationale": "four or more jets",
+      "coverage": 0.614583,
+      "exclusive": null,
+      "cost_if_lifted": 5e-05
+    },
+    {
+      "node": "menu",
+      "parent": null,
+      "kind": "any",
+      "rationale": "an event is kept if any primary chain fires",
+      "coverage": 0.4043,
+      "exclusive": null,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "met",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_xe110_pufit_L1XE55",
+      "coverage": 0.351608,
+      "exclusive": 0.14645,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "met_thr",
+      "parent": "met",
+      "kind": "cut",
+      "rationale": "HLT_xe110_pufit_L1XE55: missing transverse energy. The only path that rewards invisibility, and it also catches decays past the calorimeter",
+      "coverage": 0.351608,
+      "exclusive": null,
+      "cost_if_lifted": 0.5957
+    },
+    {
+      "node": "dimu_pt",
+      "parent": "dimu",
+      "kind": "cut",
+      "rationale": "HLT_2mu14",
+      "coverage": 0.3145,
+      "exclusive": null,
+      "cost_if_lifted": 0.397683
+    },
+    {
+      "node": "mu_iso_pt",
+      "parent": "mu_iso",
+      "kind": "cut",
+      "rationale": "HLT_mu26_ivarmedium: 26.0 GeV threshold, set by output bandwidth rather than by physics",
+      "coverage": 0.2969,
+      "exclusive": null,
+      "cost_if_lifted": 0.4685
+    },
+    {
+      "node": "e_iso_pt",
+      "parent": "e_iso",
+      "kind": "cut",
+      "rationale": "HLT_e26_lhtight_nod0_ivarloose: 26.0 GeV threshold, set by output bandwidth rather than by physics",
+      "coverage": 0.2969,
+      "exclusive": null,
+      "cost_if_lifted": 0.398083
+    },
+    {
+      "node": "diel_pt",
+      "parent": "diel",
+      "kind": "cut",
+      "rationale": "HLT_2e17_lhvloose_nod0",
+      "coverage": 0.292358,
+      "exclusive": null,
+      "cost_if_lifted": 0.338233
+    },
+    {
+      "node": "mu_iso",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_mu26_ivarmedium",
+      "coverage": 0.22635,
+      "exclusive": 0.00055,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "mu_noniso_pt",
+      "parent": "mu_noniso",
+      "kind": "cut",
+      "rationale": "HLT_mu50: 50.0 GeV threshold, set by output bandwidth rather than by physics",
+      "coverage": 0.224667,
+      "exclusive": null,
+      "cost_if_lifted": 0.4685
+    },
+    {
+      "node": "e_med_pt",
+      "parent": "e_med",
+      "kind": "cut",
+      "rationale": "HLT_e60_lhmedium_nod0: 60.0 GeV threshold, set by output bandwidth rather than by physics",
+      "coverage": 0.204575,
+      "exclusive": null,
+      "cost_if_lifted": 0.398083
+    },
+    {
+      "node": "dimu",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_2mu14",
+      "coverage": 0.193867,
+      "exclusive": 0.004525,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "e_iso",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_e26_lhtight_nod0_ivarloose",
+      "coverage": 0.190625,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "mu_noniso",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_mu50",
+      "coverage": 0.169742,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "diel",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_2e17_lhvloose_nod0",
+      "coverage": 0.151025,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "e_med",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_e60_lhmedium_nod0",
+      "coverage": 0.129667,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "e_loose_pt",
+      "parent": "e_loose",
+      "kind": "cut",
+      "rationale": "HLT_e140_lhloose_nod0: 140.0 GeV threshold, set by output bandwidth rather than by physics",
+      "coverage": 0.118192,
+      "exclusive": null,
+      "cost_if_lifted": 0.398083
+    },
+    {
+      "node": "g_pt",
+      "parent": "g_single",
+      "kind": "cut",
+      "rationale": "HLT_g140_loose: unconverted photons need only calorimeter energy",
+      "coverage": 0.118192,
+      "exclusive": null,
+      "cost_if_lifted": 0.514967
+    },
+    {
+      "node": "g_single",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_g140_loose",
+      "coverage": 0.100267,
+      "exclusive": 0.001383,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "ht_sum",
+      "parent": "ht",
+      "kind": "cut",
+      "rationale": "HLT_ht1000_L1J100: scalar sum of transverse energy",
+      "coverage": 0.09515,
+      "exclusive": null,
+      "cost_if_lifted": 0.514967
+    },
+    {
+      "node": "j4_pt",
+      "parent": "j_four",
+      "kind": "cut",
+      "rationale": "HLT_4j120: every jet must clear the threshold, so soft busy events fail",
+      "coverage": 0.089858,
+      "exclusive": null,
+      "cost_if_lifted": 0.323875
+    },
+    {
+      "node": "ht",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_ht1000_L1J100",
+      "coverage": 0.080842,
+      "exclusive": 0.000117,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "e_loose",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_e140_lhloose_nod0",
+      "coverage": 0.073075,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "j_pt",
+      "parent": "j_single",
+      "kind": "cut",
+      "rationale": "HLT_j420: the single-jet threshold is brutal because the QCD dijet rate is enormous - this cut is made of bandwidth, not of physics",
+      "coverage": 0.034333,
+      "exclusive": null,
+      "cost_if_lifted": 0.514967
+    },
+    {
+      "node": "j_four",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_4j120",
+      "coverage": 0.033258,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "j_single",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "HLT_j420",
+      "coverage": 0.029175,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    }
+  ],
+  "blind_regions": [
+    {
+      "rule": "m <= 54.5 GeV",
+      "prior_mass": 0.46855,
+      "reach_within": 0.000249
+    },
+    {
+      "rule": "m <= 111 GeV and n_vis >= 6",
+      "prior_mass": 0.0656,
+      "reach_within": 0.00482724
+    }
+  ],
+  "caveat": "Reach is defined relative to the stated prior over signal space. It is a property of (instrument response, filter policy, prior) jointly, and is not comparable across differing priors.",
+  "robustness": {
+    "draws": 250,
+    "knobs": [
+      {
+        "name": "mu_iso",
+        "lo": 0.7,
+        "hi": 1.5,
+        "why": "single-muon threshold moved across Run 2"
+      },
+      {
+        "name": "e_iso",
+        "lo": 0.7,
+        "hi": 1.5,
+        "why": "single-electron threshold likewise"
+      },
+      {
+        "name": "j_single",
+        "lo": 0.6,
+        "hi": 1.4,
+        "why": "was 380 GeV in 2016, 420 later"
+      },
+      {
+        "name": "j_four",
+        "lo": 0.6,
+        "hi": 1.6,
+        "why": "multijet thresholds are the least certain here"
+      },
+      {
+        "name": "ht",
+        "lo": 0.6,
+        "hi": 1.5,
+        "why": "HT threshold varied with pile-up"
+      },
+      {
+        "name": "met",
+        "lo": 0.5,
+        "hi": 1.8,
+        "why": "MET threshold rose substantially through Run 2"
+      },
+      {
+        "name": "dimu",
+        "lo": 0.6,
+        "hi": 1.6,
+        "why": "dilepton thresholds least certain"
+      },
+      {
+        "name": "diel",
+        "lo": 0.6,
+        "hi": 1.6,
+        "why": "as above"
+      },
+      {
+        "name": "hardness",
+        "lo": 0.7,
+        "hi": 2.2,
+        "why": "how much the leading object leads - a pure modelling choice"
+      },
+      {
+        "name": "r_tracker",
+        "lo": 0.8,
+        "hi": 1.3,
+        "why": "effective tracking radius for electron ID"
+      },
+      {
+        "name": "r_calo",
+        "lo": 0.7,
+        "hi": 1.4,
+        "why": "effective calorimeter containment radius"
+      },
+      {
+        "name": "r_muon",
+        "lo": 0.7,
+        "hi": 1.4,
+        "why": "effective muon spectrometer radius"
+      }
+    ],
+    "claim_survival": {
+      "reach_below_half": {
+        "statement": "the menu can record less than half of the stated signal space",
+        "survives_fraction": 1.0
+      },
+      "light_hadronic_blind": {
+        "statement": "light states with no hard lepton (m < 100 GeV, f_lep < 0.1) are essentially unreachable: conditional reach below 2%",
+        "survives_fraction": 0.808
+      },
+      "soft_busy_blind": {
+        "statement": "soft high-multiplicity states (n_vis >= 10, m < 300 GeV) have conditional reach below 5%",
+        "survives_fraction": 0.108
+      },
+      "thresholds_beat_geometry": {
+        "statement": "energy thresholds destroy more reach than detector geometry does",
+        "survives_fraction": 1.0
+      },
+      "met_is_most_unique": {
+        "statement": "missing energy is the single most valuable path by unique coverage",
+        "survives_fraction": 1.0
+      }
+    },
+    "reach_spread": {
+      "median": 0.4140458333333335,
+      "p05": 0.3662400000000001,
+      "p95": 0.4584608333333335,
+      "min": 0.34731666666666683,
+      "max": 0.4691000000000002
+    }
+  },
+  "provenance": {
+    "thresholds": {
+      "mu_iso": {
+        "value": 26.0,
+        "chain": "HLT_mu26_ivarmedium",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "mu_noniso": {
+        "value": 50.0,
+        "chain": "HLT_mu50",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "e_iso": {
+        "value": 26.0,
+        "chain": "HLT_e26_lhtight_nod0_ivarloose",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "e_med": {
+        "value": 60.0,
+        "chain": "HLT_e60_lhmedium_nod0",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "e_loose": {
+        "value": 140.0,
+        "chain": "HLT_e140_lhloose_nod0",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "g_single": {
+        "value": 140.0,
+        "chain": "HLT_g140_loose",
+        "confidence": "high",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "j_single": {
+        "value": 420.0,
+        "chain": "HLT_j420",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "j_four": {
+        "value": 120.0,
+        "chain": "HLT_4j120",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "ht": {
+        "value": 1000.0,
+        "chain": "HLT_ht1000_L1J100",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "met": {
+        "value": 110.0,
+        "chain": "HLT_xe110_pufit_L1XE55",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "dimu": {
+        "value": 14.0,
+        "chain": "HLT_2mu14",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      },
+      "diel": {
+        "value": 17.0,
+        "chain": "HLT_2e17_lhvloose_nod0",
+        "confidence": "medium",
+        "verify": "ATLAS Trigger Operation public results / the Run-2 trigger menu papers; check the TriggerOperationPublicResults page"
+      }
+    },
+    "warning": "Encoded from documented public values but NOT verified against the source in the session that produced this file (no network access). See VERIFICATION_CHECKLIST in reach/domains/atlas_run2.py."
+  }
+}

@@ -13,10 +13,11 @@ Not because it is uninteresting — because the quantity has no name, no standar
 method, and no place in a paper. Which means this sentence is currently not
 expressible in the language of science:
 
-> *This apparatus is structurally incapable of recording 64% of the phenomena it
-> nominally covers, and here is the shape of what it misses.*
+> *This apparatus is structurally incapable of recording 60% of the phenomena it
+> nominally covers, the cause is bandwidth rather than physics, and here is the
+> shape of what it misses.*
 
-`reach` is a first attempt at making it expressible.
+`reach` makes it expressible, and — more importantly — makes it **falsifiable**.
 
 ---
 
@@ -25,19 +26,16 @@ expressible in the language of science:
 Discovery is bounded by filters, and filters are written from the theories we
 already hold.
 
-A collider sees collisions at ~40 MHz and writes roughly one in 10⁵ to disk. The
-discard is irreversible, decided in microseconds, in hardware, by rules derived
+ATLAS sees collisions at 40 MHz and writes roughly **3 in 100,000** to permanent
+storage. The discard is irreversible, decided in microseconds, by rules derived
 from the models people expected to test. A targeted assay finds exactly the
-compounds on its list and is blind to everything else *by construction*. A
-sky survey has a selection function. A sequencing pipeline has quality filters.
-Every one of these is a place where the universe was allowed to speak and we
-decided in advance which parts to hear.
+compounds on its list and is blind to everything else *by construction*. Every
+one of these is a place where the universe was allowed to speak and we decided
+in advance which parts to hear.
 
-Each field has independently noticed a local version of this — trigger-level
-analysis and anomaly triggers in particle physics, retrospective suspect
-screening in environmental chemistry, selection functions in astronomy. **None
-of them share a metric.** So blindness cannot be compared between instruments,
-optimised against, audited, or attached to a dataset.
+Each field has independently noticed a local version of this. **None of them
+share a metric**, so blindness cannot be compared between instruments, optimised
+against, audited, or attached to a dataset.
 
 **Discovery reach** is the proposed quantity:
 
@@ -46,70 +44,119 @@ reach = P( signal survives every stage of the filter )   under a stated prior
         over the space of signals that could exist
 ```
 
-Three inputs, all of which an experiment already has: the instrument response,
-the filter policy, and an explicit statement of what could be out there.
+---
 
-The third one is the honest part. **Reach is undefined without a stated prior**,
-and different priors give different, equally legitimate numbers. That is not a
-bug to be hidden — it is the content of the claim. `prior_note` is a required
-field on every signal space in this library for exactly that reason.
+## The result
+
+Audit of the **ATLAS Run-2 primary trigger menu** — real published chains
+(`HLT_mu26_ivarmedium`, `HLT_j420`, `HLT_xe110_pufit`, …), against a flat prior
+over final-state configurations:
+
+```
+  REACH   40.43%     of the stated signal space can be recorded at all
+  BLIND   59.57%     is destroyed before a human sees it
+
+  PATHS                     covers    unique
+  met (HLT_xe110_pufit)     35.16%    14.64%      <- most valuable chain
+  mu_iso (HLT_mu26)         22.64%     0.05%
+  j_single (HLT_j420)        2.92%     0.00%
+
+  BLIND REGIONS
+  [1] m <= 54.5 GeV                    46.9% of prior mass, reach 2.5e-04
+  [2] m <= 111 GeV and n_vis >= 6       6.6% of prior mass, reach 4.8e-03
+```
+
+The method was told nothing about known blind spots and recovered the
+sub-electroweak one. Missing energy comes out as the single most valuable
+chain — the only one that rewards a signal for being *invisible* — which is
+recognisably right and was not put in by hand.
 
 ---
 
-## Results from the two worked examples
+## Why you should believe it, or not
+
+The obvious objection to everything above is correct: the response models are
+proxies, the thresholds were encoded without network access to verify them, and
+the prior is a choice. An audit reporting `40.43%` and stopping would be worth
+nothing, because you could not tell a result from an artefact of my guesses.
+
+**So the framework attacks itself.** `reach.robust` varies every uncertain input
+simultaneously over its stated plausible range and reports, for each *qualitative
+claim*, the fraction of the ensemble in which it still holds. Claims worth making
+are almost never point estimates — they are orderings and inequalities, and
+orderings are far more robust than the numbers underneath them.
+
+250 draws, all 12 uncertain inputs varied together:
 
 ```
-THE BLINDNESS LEDGER
-================================================================================
+CLAIM SURVIVAL
+  ROBUST   100.0%   the menu records less than half of the stated signal space
+  ROBUST   100.0%   energy thresholds destroy more reach than detector geometry
+  ROBUST   100.0%   missing energy is the most valuable path by unique coverage
+  LIKELY    80.8%   light states with no hard lepton are essentially unreachable
+  FAILS     10.8%   soft high-multiplicity states have conditional reach < 5%
+```
+
+Two things to take from that table.
+
+**The headline claim is bandwidth, not physics.** Abolishing every energy
+threshold recovers ~58.6% of reach; abolishing every geometric limit recovers
+~0.06%. Three orders of magnitude apart, in 100% of draws. The dominant cause of
+blindness at a collider is not what the detector can physically register — it is
+what the readout can afford to keep.
+
+**The last line is a claim of mine that the sweep destroyed.** I predicted soft
+high-multiplicity states would be blind below 5%; the ensemble says ~10.8%
+median, and the claim survives in only 10.8% of draws. It is left in the output
+rather than quietly deleted, because a framework that only ever confirms its
+author is the exact failure it was built to detect.
+
+---
+
+## Priors are choices, and the choice dominates
+
+Reach is undefined without a prior over what could exist. This is not a caveat
+to bury — it is the content of the claim. The same menu, same code, same run,
+under a family of falling mass priors `m^-α`:
+
+```
+  mass prior                       reach
+  log-uniform (baseline)          40.43%
+  m^-0.5                           6.79%
+  m^-1                             0.67%
+  m^-1.5                           0.06%
+  m^-2                             0.01%
+```
+
+Two and a half orders of magnitude, from the prior alone. Every one of those
+numbers is legitimate; they answer different questions. **A reach figure quoted
+without its prior is not a result**, and every certificate the tool emits prints
+the prior in full.
+
+---
+
+## The second domain
+
+Chemistry, where the space of possibilities is enumerable, so reach is **exact**
+rather than sampled — computed over all 1,153,017 plausible CHNOPS formulas
+between 50 and 500 Da:
+
+```
   instrument + policy                   reach    blind   largest blind region
---------------------------------------------------------------------------------
-  collider trigger menu                35.79%   64.21%   m <= 73.5 GeV
   targeted MRM assay                    0.05%   99.95%   (everywhere)
   non-targeted HRMS (acquisition)      45.90%   54.10%   polarity >= 0.833
   non-targeted HRMS (as reported)       1.00%   99.00%   -
-================================================================================
 ```
 
-**The collider result is a validation, not a discovery.** The method was told
-nothing about known blind spots, and it recovered them: light states below the
-electroweak scale, soft high-multiplicity final states, and mostly-invisible
-decays. Any physicist would have told you that. The point is that the framework
-*derives* it from the menu, and attributes it — the audit shows that lifting a
-single pT threshold recovers 35–64% of reach, which is the precise statement
-that trigger thresholds set by bandwidth are the dominant source of blindness.
+Read the last two rows together. The acquisition hardware registers 45.9% of the
+space; what is **reported** is 1.0%. Some 98% of what the instrument actually
+detected dies at library annotation, not at the inlet. Metabolomics calls this
+"dark matter"; nobody quotes it as a number, because there was no number to
+quote.
 
-**The chemistry result is the interesting one.** Read the last two rows
-together. Under this prior the acquisition hardware can register 45.9% of the
-stated chemical space; what is actually *reported* is 1.0%. Roughly 98% of what
-the instrument detected is destroyed at the **annotation** step, because a
-feature that cannot be matched to a spectral library is generally never written
-down. Everyone in metabolomics knows this as "dark matter"; nobody quotes it as
-a number, because there was no number to quote.
-
-Chemistry also gives exactness: molecular formula space is enumerable, so reach
-there is computed over all 1,153,017 plausible CHNOPS formulas between 50 and
-500 Da rather than estimated by sampling.
-
----
-
-## What this is not
-
-Read this section before quoting anything above.
-
-- **The response models are crude, documented proxies.** The collider kinematics
-  are order-of-magnitude parameterisations and the trigger thresholds are
-  representative of published scales, **not** any experiment's actual menu.
-  Nothing here is a statement about ATLAS or CMS. The mass-spec ionisation and
-  retention models are deliberately simple heuristics, labelled as such in the
-  source.
-- **The contribution is the method, not these numbers.** Supply a real detector
-  response and a real trigger menu and the numbers move. The framework does not.
-- **The priors are choices.** The collider prior is a flat statement of
-  ignorance over final-state configurations, not a cross-section prior — it asks
-  "of the things that could exist, which could we record?", not "which are
-  likely?". The chemistry prior counts formulas, not molecules, and excludes
-  halogens and metals entirely, which means most PFAS are outside it. Both are
-  stated in full in every certificate the tool emits.
+That two domains this different reduce to the same three inputs and the same
+scalar is the entire universality claim, and it is why this is a metric rather
+than a tool.
 
 ---
 
@@ -119,26 +166,48 @@ Every dataset documents what it contains. **None documents what it structurally
 could never have contained.** That asymmetry is why blind spots compound
 silently when datasets are combined, meta-analysed, or used as training data.
 
-So the tool emits a machine-readable statement of what a filter policy makes
-unrecordable — reach, per-decision attribution, named blind regions, the stated
-prior, and a fingerprint of the exact policy:
-
-```json
-{
-  "certificate": "exclusion/v0",
-  "estimate": { "discovery_reach": 0.357875, "blind_fraction": 0.642125 },
-  "blind_regions": [
-    { "rule": "m <= 73.9 GeV", "prior_mass": 0.506, "reach_within": 0.00206 }
-  ],
-  "attribution": [
-    { "node": "met_200", "cost_if_lifted": 0.642125,
-      "rationale": "missing transverse energy; also catches decays past the calorimeter" }
-  ]
-}
-```
+So the tool emits `exclusion/v0`: reach, per-decision attribution, named blind
+regions, the stated prior, claim-survival rates, a fingerprint of the exact
+policy, and — for the ATLAS audit — the provenance and confidence of every
+encoded threshold.
 
 This is the piece I believe is genuinely missing from science's metadata, and
 the piece most likely to matter if any of this is right.
+
+---
+
+## What is still unverified
+
+Stated plainly, because the project is about not hiding this.
+
+- **The ATLAS thresholds were encoded from documented public values but not
+  checked against the source**, because the machine had no outbound network
+  access. Every entry carries its own `confidence` field, and
+  `VERIFICATION_CHECKLIST` in `reach/domains/atlas_run2.py` lists exactly what
+  to confirm and where — roughly thirty minutes with a browser. The robustness
+  sweep exists precisely so that this matters less than it sounds: if a
+  conclusion only holds when `HLT_j420` is exactly 420 GeV, the sweep says so.
+- **The response models are crude, documented proxies.** Collider kinematics are
+  order-of-magnitude parameterisations; the mass-spec ionisation and retention
+  models are heuristics. All are labelled in the source.
+- **This is not a statement about ATLAS.** It is a statement about a menu shaped
+  like the published one, under a prior I chose.
+
+## Prior art, and how to falsify the novelty claim
+
+Trigger-level and data-scouting analyses, anomaly-based triggers, retrospective
+suspect screening, and astronomical selection functions all already exist. The
+narrow claim here is that no **domain-independent** quantity puts them in the
+same units, attributes blindness to individual decisions, and attaches to a
+dataset as metadata.
+
+I could not verify that claim — the session that wrote this had no search
+budget left. To kill it, look for any of: a metric defined over
+(instrument response × filter policy × prior) that is reported across more than
+one field; a "selection function" formalism generalised beyond astronomy; or a
+dataset standard with a machine-readable exclusion statement. **If one exists,
+that is the single most useful thing anyone could tell me**, and this repository
+should be retired in its favour.
 
 ---
 
@@ -146,13 +215,15 @@ the piece most likely to matter if any of this is right.
 
 ```bash
 pip install numpy
-python examples/audit_collider.py     # trigger menu audit + certificate
+python examples/audit_atlas.py        # real menu + robustness + prior family
+python examples/audit_collider.py     # simplified menu, for comparison
 python examples/audit_massspec.py     # exact audit of three MS methods
-python examples/ledger.py             # one metric across all four
-python -m pytest tests/ -q
+python examples/ledger.py             # one metric across four instruments
+python -m pytest tests/ -q            # 18 tests
 ```
 
-Defining a new audit means stating three things:
+Defining an audit means stating three things — and a fourth, if you want to be
+believed:
 
 ```python
 space = SignalSpace(
@@ -167,39 +238,25 @@ menu = Filter("my-menu", Any_("menu", [
 ]))
 
 a = audit(space, menu)
-print(a.reach, find_blind_regions(a, ["m"]))
+
+# the fourth thing: state your claims and let the ensemble try to kill them
+e = sweep(run, knobs, [Claim("c1", "reach is below half",
+                             lambda q: q["reach"] < 0.5)], draws=250)
 ```
 
 `rationale` is not decoration. The belief that motivated a cut is the source of
 the blindness it causes, and the audit prints it next to the damage.
 
----
-
 ## What would make this real
 
-In rough order:
-
-1. **Formalise the metric.** Properties, invariances, behaviour under
-   composition of filters, and the relationship between reach and existing
-   selection-function formalisms. This is the paper that has to exist first.
-2. **One real audit.** A published, documented trigger menu or acquisition
-   method, with a real response model, audited end to end and compared against
-   what that collaboration believes about its own blind spots.
-3. **Exclusion certificates attached to real datasets.** The primitive only
-   matters if it ships with data.
-4. **Adversarial filter design.** Search for signals that would physically occur
-   and die in the filter, then fix the filter. This is the practical payoff, and
-   it is only possible once there is an objective function.
-
-## Prior art, honestly
-
-This is not virgin territory, and pretending otherwise would be the exact error
-the project is about. Trigger-level / data-scouting analyses and anomaly-based
-triggers already exist in high-energy physics; retrospective suspect screening
-already exists in environmental chemistry; astronomy has computed selection
-functions for decades. What does not exist, as far as I can tell, is a
-**domain-independent quantity** that lets these be stated in the same units,
-attributed to individual decisions, and attached to a dataset as metadata.
-
-If that already exists somewhere and I have missed it, that is the single most
-useful thing anyone could tell me.
+1. **Formalise the metric** — properties, invariances, behaviour under
+   composition of filters, and the relationship to existing selection-function
+   formalisms. The paper that has to exist first.
+2. **Verify the ATLAS encoding** against the source, and get one trigger expert
+   to say whether the blind regions match what the collaboration believes about
+   itself. That is the experiment that decides whether any of this is useful.
+3. **Ship exclusion certificates with real datasets.** The primitive only
+   matters if it travels with data.
+4. **Adversarial filter design** — search for signals that would physically
+   occur and die in the filter, then fix the filter. The practical payoff, and
+   only possible once there is an objective function.
