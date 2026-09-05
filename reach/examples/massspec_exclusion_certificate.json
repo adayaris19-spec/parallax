@@ -1,0 +1,186 @@
+{
+  "certificate": "exclusion/v0",
+  "generated": "2026-09-05T11:52:42+00:00",
+  "space": {
+    "name": "chnops-formula-space-50-500Da",
+    "prior": "Uniform over ENUMERATED FORMULAS, not over molecules: each formula counts once regardless of how many structural isomers realise it, and isomer count grows steeply with carbon number. A per-structure prior would weight large molecules far more heavily and lower reach further. Formulas are restricted to CHNOPS and to Kind & Fiehn-style ratio heuristics, so halogenated and metal-containing chemistry - including most PFAS - is outside this prior entirely.",
+    "axes": [
+      {
+        "name": "mass",
+        "kind": "log",
+        "lo": 50.0,
+        "hi": 500.0,
+        "unit": "Da",
+        "note": "monoisotopic neutral mass"
+      },
+      {
+        "name": "C",
+        "kind": "int",
+        "lo": 0,
+        "hi": 41,
+        "unit": "",
+        "note": "carbon count"
+      },
+      {
+        "name": "H",
+        "kind": "int",
+        "lo": 0,
+        "hi": 90,
+        "unit": "",
+        "note": "hydrogen count"
+      },
+      {
+        "name": "N",
+        "kind": "int",
+        "lo": 0,
+        "hi": 10,
+        "unit": "",
+        "note": "nitrogen count"
+      },
+      {
+        "name": "O",
+        "kind": "int",
+        "lo": 0,
+        "hi": 20,
+        "unit": "",
+        "note": "oxygen count"
+      },
+      {
+        "name": "P",
+        "kind": "int",
+        "lo": 0,
+        "hi": 4,
+        "unit": "",
+        "note": "phosphorus count"
+      },
+      {
+        "name": "S",
+        "kind": "int",
+        "lo": 0,
+        "hi": 6,
+        "unit": "",
+        "note": "sulfur count"
+      },
+      {
+        "name": "rdbe",
+        "kind": "lin",
+        "lo": 0,
+        "hi": 40,
+        "unit": "",
+        "note": "rings plus double-bond equivalents"
+      },
+      {
+        "name": "polarity",
+        "kind": "lin",
+        "lo": 0,
+        "hi": 5,
+        "unit": "",
+        "note": "heteroatom-to-carbon ratio proxy"
+      }
+    ]
+  },
+  "filter": {
+    "name": "nontargeted-hrms-esi-pos-rplc",
+    "fingerprint": "f1fc9ad7c9ff91e0",
+    "policy": {
+      "name": "nontargeted-hrms-esi-pos-rplc",
+      "description": "Non-targeted HRMS, ESI positive, reversed-phase LC, with library-based annotation.",
+      "root": {
+        "kind": "all",
+        "name": "nontargeted_method",
+        "rationale": "full-scan acquisition followed by library-based reporting",
+        "children": [
+          {
+            "kind": "cut",
+            "name": "mz_window",
+            "rationale": "scan range starts at m/z 100 to avoid solvent clusters; small molecules are discarded before anything else happens",
+            "uses": [
+              "mass"
+            ]
+          },
+          {
+            "kind": "cut",
+            "name": "ionises_esi_pos",
+            "rationale": "CRUDE PROXY: electrospray in positive mode needs a protonatable site; pure hydrocarbons are largely blind",
+            "uses": [
+              "N",
+              "hetero"
+            ]
+          },
+          {
+            "kind": "cut",
+            "name": "elutes_in_gradient",
+            "rationale": "CRUDE PROXY: very polar analytes elute in the void volume with the salts and are cut; very hydrophobic ones never elute",
+            "uses": [
+              "polarity",
+              "C"
+            ]
+          },
+          {
+            "kind": "cut",
+            "name": "library_annotatable",
+            "rationale": "a feature that cannot be matched to a spectral library is typically never reported - this is the 'dark matter of metabolomics', where only a small percent of detected features are ever identified",
+            "uses": [
+              "formula"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "estimate": {
+    "method": "exhaustive",
+    "samples": 1153017,
+    "discovery_reach": 0.010028,
+    "blind_fraction": 0.989972
+  },
+  "attribution": [
+    {
+      "node": "mz_window",
+      "parent": "nontargeted_method",
+      "kind": "cut",
+      "rationale": "scan range starts at m/z 100 to avoid solvent clusters; small molecules are discarded before anything else happens",
+      "coverage": 0.99933,
+      "exclusive": null,
+      "cost_if_lifted": 2e-06
+    },
+    {
+      "node": "ionises_esi_pos",
+      "parent": "nontargeted_method",
+      "kind": "cut",
+      "rationale": "CRUDE PROXY: electrospray in positive mode needs a protonatable site; pure hydrocarbons are largely blind",
+      "coverage": 0.995505,
+      "exclusive": null,
+      "cost_if_lifted": 7.8e-05
+    },
+    {
+      "node": "elutes_in_gradient",
+      "parent": "nontargeted_method",
+      "kind": "cut",
+      "rationale": "CRUDE PROXY: very polar analytes elute in the void volume with the salts and are cut; very hydrophobic ones never elute",
+      "coverage": 0.462415,
+      "exclusive": null,
+      "cost_if_lifted": 0.011533
+    },
+    {
+      "node": "library_annotatable",
+      "parent": "nontargeted_method",
+      "kind": "cut",
+      "rationale": "a feature that cannot be matched to a spectral library is typically never reported - this is the 'dark matter of metabolomics', where only a small percent of detected features are ever identified",
+      "coverage": 0.021682,
+      "exclusive": null,
+      "cost_if_lifted": 0.448929
+    },
+    {
+      "node": "nontargeted_method",
+      "parent": null,
+      "kind": "all",
+      "rationale": "full-scan acquisition followed by library-based reporting",
+      "coverage": 0.010028,
+      "exclusive": null,
+      "cost_if_lifted": null
+    }
+  ],
+  "blind_regions": [],
+  "caveat": "Reach is defined relative to the stated prior over signal space. It is a property of (instrument response, filter policy, prior) jointly, and is not comparable across differing priors."
+}

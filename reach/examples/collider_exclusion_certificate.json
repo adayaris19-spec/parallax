@@ -1,0 +1,526 @@
+{
+  "certificate": "exclusion/v0",
+  "generated": "2026-09-05T11:52:21+00:00",
+  "space": {
+    "name": "generic-bsm-final-state",
+    "prior": "Log-uniform in mass over 1-5000 GeV and in proper decay length over 1e-6 to 10 m; uniform in visible-energy fraction, leptonic fraction and object multiplicity 2-20. This is a deliberately flat statement of ignorance, NOT a production cross-section prior: it asks 'of the final-state configurations that could exist, which could we record?', not 'which are likely?'. A cross-section-weighted prior gives a very different and equally legitimate number - state which you mean.",
+    "axes": [
+      {
+        "name": "m",
+        "kind": "log",
+        "lo": 1.0,
+        "hi": 5000.0,
+        "unit": "GeV",
+        "note": "mass scale of the produced state"
+      },
+      {
+        "name": "n_vis",
+        "kind": "int",
+        "lo": 2,
+        "hi": 20,
+        "unit": "",
+        "note": "number of visible final-state objects"
+      },
+      {
+        "name": "f_vis",
+        "kind": "lin",
+        "lo": 0.0,
+        "hi": 1.0,
+        "unit": "",
+        "note": "fraction of the mass appearing as visible energy"
+      },
+      {
+        "name": "f_lep",
+        "kind": "lin",
+        "lo": 0.0,
+        "hi": 1.0,
+        "unit": "",
+        "note": "fraction of visible objects that are electrons or muons"
+      },
+      {
+        "name": "ctau",
+        "kind": "log",
+        "lo": 1e-06,
+        "hi": 10.0,
+        "unit": "m",
+        "note": "proper decay length"
+      },
+      {
+        "name": "gamma",
+        "kind": "log",
+        "lo": 1.0,
+        "hi": 20.0,
+        "unit": "",
+        "note": "Lorentz boost of the decaying state"
+      }
+    ]
+  },
+  "filter": {
+    "name": "representative-l1-hlt-menu",
+    "fingerprint": "94039d3eedb1428d",
+    "policy": {
+      "name": "representative-l1-hlt-menu",
+      "description": "Representative general-purpose collider trigger menu. Thresholds are illustrative of published scales, not any experiment's actual menu.",
+      "root": {
+        "kind": "any",
+        "name": "menu",
+        "rationale": "an event is kept if any path fires",
+        "children": [
+          {
+            "kind": "all",
+            "name": "single_muon",
+            "rationale": "the workhorse path: one hard, prompt-ish lepton",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "mu_present",
+                "rationale": "at least one lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_pt24",
+                "rationale": "single-muon threshold; set by rate, tuned for W/Z/top",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mu_in_acceptance",
+                "rationale": "muon system reaches ~10 m",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "single_egamma",
+            "rationale": "one hard electron or photon",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "eg_present",
+                "rationale": "at least one lepton",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "eg_pt30",
+                "rationale": "single-electron/photon threshold",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "eg_tracked",
+                "rationale": "electron identification needs a track: dies past the tracker",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "single_jet",
+            "rationale": "one very hard jet",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "jet_present",
+                "rationale": "at least one jet",
+                "uses": [
+                  "n_jet"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "jet_pt450",
+                "rationale": "single-jet threshold is brutal because QCD rate is enormous",
+                "uses": [
+                  "pt_lead"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "jet_in_calo",
+                "rationale": "needs a calorimeter deposit",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "multijet",
+            "rationale": "four hard jets",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "four_jets",
+                "rationale": "four or more jets",
+                "uses": [
+                  "n_jet"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "each_jet_100",
+                "rationale": "each jet must clear 100 GeV",
+                "uses": [
+                  "per_object"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "mj_in_calo",
+                "rationale": "needs calorimeter deposits",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "ht_sum",
+            "rationale": "large total visible energy",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "ht_1000",
+                "rationale": "scalar sum of transverse energy",
+                "uses": [
+                  "ht"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "ht_in_calo",
+                "rationale": "sum is built from calorimeter towers",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "missing_energy",
+            "rationale": "large imbalance - the only path that rewards invisibility",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "met_200",
+                "rationale": "missing transverse energy; also catches decays past the calorimeter",
+                "uses": [
+                  "met"
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "all",
+            "name": "dilepton",
+            "rationale": "two moderate leptons",
+            "children": [
+              {
+                "kind": "cut",
+                "name": "two_leptons",
+                "rationale": "two leptons",
+                "uses": [
+                  "n_lep"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "dilep_pt20",
+                "rationale": "both leptons above 20 GeV",
+                "uses": [
+                  "per_object"
+                ]
+              },
+              {
+                "kind": "cut",
+                "name": "dilep_tracked",
+                "rationale": "lepton pairing needs tracks",
+                "uses": [
+                  "displacement"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "estimate": {
+    "method": "monte-carlo",
+    "samples": 400000,
+    "discovery_reach": 0.357835,
+    "blind_fraction": 0.642165
+  },
+  "attribution": [
+    {
+      "node": "jet_present",
+      "parent": "single_jet",
+      "kind": "cut",
+      "rationale": "at least one jet",
+      "coverage": 1.0,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "mu_in_acceptance",
+      "parent": "single_muon",
+      "kind": "cut",
+      "rationale": "muon system reaches ~10 m",
+      "coverage": 0.907662,
+      "exclusive": null,
+      "cost_if_lifted": 0.001265
+    },
+    {
+      "node": "mu_present",
+      "parent": "single_muon",
+      "kind": "cut",
+      "rationale": "at least one lepton",
+      "coverage": 0.86287,
+      "exclusive": null,
+      "cost_if_lifted": 0.014175
+    },
+    {
+      "node": "eg_present",
+      "parent": "single_egamma",
+      "kind": "cut",
+      "rationale": "at least one lepton",
+      "coverage": 0.86287,
+      "exclusive": null,
+      "cost_if_lifted": 0.010717
+    },
+    {
+      "node": "jet_in_calo",
+      "parent": "single_jet",
+      "kind": "cut",
+      "rationale": "needs a calorimeter deposit",
+      "coverage": 0.85128,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "mj_in_calo",
+      "parent": "multijet",
+      "kind": "cut",
+      "rationale": "needs calorimeter deposits",
+      "coverage": 0.85128,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "ht_in_calo",
+      "parent": "ht_sum",
+      "kind": "cut",
+      "rationale": "sum is built from calorimeter towers",
+      "coverage": 0.85128,
+      "exclusive": null,
+      "cost_if_lifted": 0.0
+    },
+    {
+      "node": "eg_tracked",
+      "parent": "single_egamma",
+      "kind": "cut",
+      "rationale": "electron identification needs a track: dies past the tracker",
+      "coverage": 0.764045,
+      "exclusive": null,
+      "cost_if_lifted": 0.000792
+    },
+    {
+      "node": "dilep_tracked",
+      "parent": "dilepton",
+      "kind": "cut",
+      "rationale": "lepton pairing needs tracks",
+      "coverage": 0.764045,
+      "exclusive": null,
+      "cost_if_lifted": 0.000298
+    },
+    {
+      "node": "two_leptons",
+      "parent": "dilepton",
+      "kind": "cut",
+      "rationale": "two leptons",
+      "coverage": 0.726325,
+      "exclusive": null,
+      "cost_if_lifted": 0.01044
+    },
+    {
+      "node": "four_jets",
+      "parent": "multijet",
+      "kind": "cut",
+      "rationale": "four or more jets",
+      "coverage": 0.615765,
+      "exclusive": null,
+      "cost_if_lifted": 0.0018
+    },
+    {
+      "node": "menu",
+      "parent": null,
+      "kind": "any",
+      "rationale": "an event is kept if any path fires",
+      "coverage": 0.357835,
+      "exclusive": null,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "mu_pt24",
+      "parent": "single_muon",
+      "kind": "cut",
+      "rationale": "single-muon threshold; set by rate, tuned for W/Z/top",
+      "coverage": 0.3061,
+      "exclusive": null,
+      "cost_if_lifted": 0.496727
+    },
+    {
+      "node": "missing_energy",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "large imbalance - the only path that rewards invisibility",
+      "coverage": 0.281908,
+      "exclusive": 0.11016,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "met_200",
+      "parent": "missing_energy",
+      "kind": "cut",
+      "rationale": "missing transverse energy; also catches decays past the calorimeter",
+      "coverage": 0.281908,
+      "exclusive": null,
+      "cost_if_lifted": 0.642165
+    },
+    {
+      "node": "eg_pt30",
+      "parent": "single_egamma",
+      "kind": "cut",
+      "rationale": "single-electron/photon threshold",
+      "coverage": 0.280918,
+      "exclusive": null,
+      "cost_if_lifted": 0.418955
+    },
+    {
+      "node": "dilep_pt20",
+      "parent": "dilepton",
+      "kind": "cut",
+      "rationale": "both leptons above 20 GeV",
+      "coverage": 0.27429,
+      "exclusive": null,
+      "cost_if_lifted": 0.35711
+    },
+    {
+      "node": "single_muon",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "the workhorse path: one hard, prompt-ish lepton",
+      "coverage": 0.232978,
+      "exclusive": 0.016115,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "single_egamma",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "one hard electron or photon",
+      "coverage": 0.179733,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "dilepton",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "two moderate leptons",
+      "coverage": 0.14075,
+      "exclusive": 0.0,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "each_jet_100",
+      "parent": "multijet",
+      "kind": "cut",
+      "rationale": "each jet must clear 100 GeV",
+      "coverage": 0.105595,
+      "exclusive": null,
+      "cost_if_lifted": 0.348165
+    },
+    {
+      "node": "ht_1000",
+      "parent": "ht_sum",
+      "kind": "cut",
+      "rationale": "scalar sum of transverse energy",
+      "coverage": 0.094882,
+      "exclusive": null,
+      "cost_if_lifted": 0.550435
+    },
+    {
+      "node": "ht_sum",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "large total visible energy",
+      "coverage": 0.080883,
+      "exclusive": 0.0002,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "multijet",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "four hard jets",
+      "coverage": 0.041063,
+      "exclusive": 0.00058,
+      "cost_if_lifted": null
+    },
+    {
+      "node": "jet_pt450",
+      "parent": "single_jet",
+      "kind": "cut",
+      "rationale": "single-jet threshold is brutal because QCD rate is enormous",
+      "coverage": 0.030603,
+      "exclusive": null,
+      "cost_if_lifted": 0.550435
+    },
+    {
+      "node": "single_jet",
+      "parent": "menu",
+      "kind": "all",
+      "rationale": "one very hard jet",
+      "coverage": 0.026048,
+      "exclusive": 0.000125,
+      "cost_if_lifted": null
+    }
+  ],
+  "blind_regions": [
+    {
+      "rule": "m <= 73.9 GeV",
+      "prior_mass": 0.506015,
+      "reach_within": 0.00205528
+    },
+    {
+      "rule": "m <= 183 GeV and n_vis >= 10",
+      "prior_mass": 0.061363,
+      "reach_within": 0.00187411
+    },
+    {
+      "rule": "m <= 194 GeV and f_vis <= 0.305 and n_vis >= 3",
+      "prior_mass": 0.013855,
+      "reach_within": 0.00252616
+    }
+  ],
+  "caveat": "Reach is defined relative to the stated prior over signal space. It is a property of (instrument response, filter policy, prior) jointly, and is not comparable across differing priors."
+}
