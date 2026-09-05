@@ -15431,7 +15431,9 @@ function fromRegister(rows, split){
         id:c.claim_id, field:"astronomy", kind: cross ? "crosscheck" : "disagreement", status:c.status || "open",
         machine:true, opened:c.opened_at, title:c.title,
         hook: cross
-          ? `Two published measurements of the same ${c.quantity}, ${c.sigma}σ apart. The catalogue shows one of them.`
+          ? (c.quantity === "period"
+            ? `Two published periods for this object, ${c.sigma}σ apart — most likely a refined ephemeris rather than an error, and the catalogue shows one of them.`
+            : `Two published measurements of the same ${c.quantity}, ${c.sigma}σ apart. The catalogue shows one of them.`)
           : `${o.source} and a ${r.year || "published"} paper disagree by ${c.sigma}σ about the same quantity.`,
         plain: cross
           ? `Two papers measured the same quantity for this object and published values whose stated
@@ -15440,12 +15442,20 @@ function fromRegister(rows, split){
           : `Two measurements of the same object do not agree. The archive holds ${num(o.value)};
              a paper states ${num(r.value)}. The stated error bars are too small for both to be right.`,
         stakes: cross
-          ? `A catalogue shows one number per quantity. Every downstream user — a transit prediction,
+          ? (c.quantity === "period"
+            ? `An orbital period is the quantity most often re-measured, and two published periods
+               that disagree beyond their error bars usually mean a later, longer baseline refined
+               an earlier one rather than that either was wrong. That still matters — a transit
+               predicted from the superseded value drifts, and the catalogue does not say which of
+               the two it is showing — but this is the weakest kind of disagreement in the register,
+               and it should be read as an inconsistency in the record rather than an error by an
+               author. The period entries are here for that reason and marked as such.`
+            : `A catalogue shows one number per quantity. Every downstream user — a transit prediction,
              a mass-radius diagram, a population study — takes that number and inherits whichever
              paper the archive picked, with no indication that another measurement disagrees beyond
              its own error bars. This is not a dispute anyone is having; it is one nobody has
              noticed, because reading it requires comparing every published value against every
-             other, which is arithmetic no person is going to do by hand across thousands of rows.`
+             other, which is arithmetic no person is going to do by hand across thousands of rows.`)
           : `Individually this is one object. Collectively it is a measure of how much of the
              published record disagrees with the archives that are supposed to summarise it — and
              nobody is auditing that at scale, because doing it by hand costs a literature search
