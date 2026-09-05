@@ -152,7 +152,21 @@ jobs:
               curl -sS --fail-with-body --max-time 180 \
                 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
                 -H "Authorization: Bearer $ANON" -H "Content-Type: application/json" \
-                -d "$b" > one.json || { echo "FAILED $one"; cat one.json; continue; }
+                -d "$b" > one.json || {
+                  echo "FAILED $one"; head -c 300 one.json
+                  # A run in which everything failed wrote nothing at all, so it
+                  # looked identical to a run that never happened. Record the
+                  # failure too.
+                  node -e '
+                    const fs = require("fs");
+                    let body = ""; try { body = fs.readFileSync("one.json","utf8").slice(0,300); } catch {}
+                    fs.appendFileSync("sweeps.jsonl", JSON.stringify({
+                      at: new Date().toISOString(), mode: process.env.MODE,
+                      target: process.argv[1], failed: true, reply: body,
+                    }) + "\n");
+                  ' "$one" || true
+                  continue
+                }
               node -e '
                 const r = JSON.parse(require("fs").readFileSync("one.json","utf8"));
                 console.log("  worker", r.worker, " ms", r.ms,

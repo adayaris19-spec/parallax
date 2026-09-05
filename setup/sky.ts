@@ -52,7 +52,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "parallax-research@example.org";
    reading one number rather than by inferring it from which fields happen to be
    present — which is how a run that tested nothing got mistaken for a run that
    tested something. */
-const WORKER_VERSION = 27;
+const WORKER_VERSION = 28;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -678,6 +678,83 @@ async function fromFink(target: string, rows: number): Promise<Obs[]> {
 /* SIMBAD, via TAP. Not a source of new measurements so much as the naming
    authority: it is how an object that four archives call four different things
    is recognised as one object. */
+/* A SECOND CATALOGUE OF THE SAME PLANETS.
+   The crosscheck can only compare values that overlap, and one archive
+   comparing against itself is bounded by how often it happens to carry two
+   published parameter sets for the same quantity. TEPCat measures the same
+   transiting planets independently, so every planet in both becomes comparable
+   across catalogues as well as within them — it multiplies pairs rather than
+   adding rows.
+
+   It is a CSV whose exact headers this worker cannot see from where it was
+   written, so it matches them by name and REFUSES rather than guesses: a
+   column found by position or by fuzzy match is how a radius becomes a mass
+   silently, and this file has a rule about comparing a value against something
+   it is not. On a mismatch it returns nothing and reports the headers it
+   actually received, so the fix is one round trip rather than a guess. */
+const TEPCAT_HEADERS = { last_seen: [] as string[], matched: 0 };
+
+async function fromTEPCat(target: string, rows: number): Promise<Obs[]> {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 20000);
+  let text = "";
+  try {
+    const r = await fetch("https://www.astro.keele.ac.uk/jkt/tepcat/allplanets-csv.csv",
+      { headers: UA, signal: ctl.signal });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    text = await r.text();
+  } finally { clearTimeout(t); }
+
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return [];
+  const head = lines[0].split(",").map((h) => h.trim());
+  TEPCAT_HEADERS.last_seen = head.slice(0, 40);
+
+  const at = (name: string) => head.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+  const iName = at("System");
+  // value, +err, -err, our quantity, our unit
+  const want: [string, string, string, string, string][] = [
+    ["M_b", "M_b_eu", "M_b_ed", "mass", "mjup"],
+    ["R_b", "R_b_eu", "R_b_ed", "radius", "rjup"],
+    ["Period", "Perioderr", "Perioderr", "period", "day"],
+    ["M_A", "M_A_eu", "M_A_ed", "stellar-mass", "msun"],
+    ["R_A", "R_A_eu", "R_A_ed", "stellar-radius", "rsun"],
+    ["Teff", "Tefferr", "Tefferr", "stellar-teff", "k"],
+  ];
+  const cols = want
+    .map(([v, e1, e2, q, u]) => ({ v: at(v), e1: at(e1), e2: at(e2), q, u }))
+    .filter((c) => c.v >= 0);
+  TEPCAT_HEADERS.matched = cols.length;
+  /* Nothing matched means the file's shape has moved. Returning rows anyway
+     would mean filing claims about columns nobody identified. */
+  if (iName < 0 || !cols.length) return [];
+
+  const out: Obs[] = [];
+  for (const line of lines.slice(1, rows + 1)) {
+    const f = line.split(",").map((x) => x.trim());
+    const name = clean(f[iName] || "").replace(/_/g, " ");
+    if (!name) continue;
+    for (const c of cols) {
+      const value = num(f[c.v]);
+      if (value === null) continue;
+      const e1 = c.e1 >= 0 ? num(f[c.e1]) : null;
+      const e2 = c.e2 >= 0 ? num(f[c.e2]) : null;
+      const err = sym(e1, e2 === null ? e1 : e2);
+      if (err === null || !(err > 0)) continue;   // no error bar, no claim
+      out.push(obs({
+        source: "tepcat",
+        source_id: `tepcat:${name}:${c.q}`,
+        object: name,
+        quantity: c.q,
+        value, err, unit: c.u,
+        reference: "TEPCat (Southworth), homogeneous transiting-planet catalogue",
+        url: "https://www.astro.keele.ac.uk/jkt/tepcat/",
+      }));
+    }
+  }
+  return out;
+}
+
 async function fromSimbad(target: string, rows: number): Promise<Obs[]> {
   /* Thrown rather than returned empty, because those are different facts and a
      ledger that renders them identically is lying. A source that answered and
@@ -740,6 +817,7 @@ const SOURCES: {
   { name: "gwosc", run: fromGWOSC },
   { name: "sbdb", run: fromSBDB },
   { name: "simbad", run: fromSimbad, probe: "Vega" },
+  { name: "tepcat", run: fromTEPCat },
   { name: "alerce", run: fromALeRCE, optional: true },
   { name: "fink", run: fromFink, optional: true },
 ];
@@ -1480,6 +1558,8 @@ async function handle(req: Request): Promise<Response> {
     for (const r of rows) if (!sample[r.source]) sample[r.source] = r;
     return json({
       worker: WORKER_VERSION, mode, ms: Date.now() - t0,
+      tepcat_headers: TEPCAT_HEADERS.last_seen,
+      tepcat_columns_matched: TEPCAT_HEADERS.matched,
       ledger, total: rows.length, sample,
       healthy: ledger.filter((l: any) => l.got > 0).map((l: any) => l.name),
       /* Answered, but had nothing to say. A real state, and not the same as
