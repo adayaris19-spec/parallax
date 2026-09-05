@@ -51,6 +51,10 @@ on:
         description: "ask the exoplanet archive for every published parameter set, not the one it leads with"
         default: false
         type: boolean
+      source:
+        description: "crosscheck only: which archive's rows to compare"
+        default: "exoplanet-archive"
+        type: string
       body:
         description: "raw JSON body, overrides mode/target when set (for resolve etc.)"
         default: ""
@@ -101,6 +105,7 @@ jobs:
           TARGET: ${{ inputs.target || 'Kepler-10' }}
           RAW: ${{ inputs.body }}
           ALL_REFS: ${{ inputs.all_refs }}
+          SOURCE: ${{ inputs.source }}
           LIMIT: ${{ inputs.limit }}
           PAGES: ${{ inputs.pages }}
           START: ${{ inputs.start }}
@@ -167,14 +172,22 @@ jobs:
           # sequence: the absence check is the slow part and running pages
           # concurrently is a burst the index answers with 429s, which fail
           # closed and produce an empty census rather than a slow one.
-          if [ "$MODE" = "survey" ] && [ "${PAGES:-1}" -gt 1 ] 2>/dev/null; then
+          if { [ "$MODE" = "survey" ] || [ "$MODE" = "crosscheck" ]; } && [ "${PAGES:-1}" -gt 1 ] 2>/dev/null; then
             per="${LIMIT:-90}"
             i=${START:-0}
             last=$(( ${START:-0} + PAGES ))
             while [ "$i" -lt "$last" ]; do
-              off=$(( i * per * 3 ))
-              b=$(printf '{"mode":"survey","limit":%s,"offset":%s}' "$per" "$off")
-              echo "----- census page $((i+1))  offset $off"
+              # A census pages over objects; a crosscheck pages over stored rows,
+              # and reads them a thousand at a time whatever limit it is given.
+              if [ "$MODE" = "crosscheck" ]; then
+                off=$(( i * per ))
+                b=$(printf '{"mode":"crosscheck","limit":%s,"offset":%s,"source":"%s"}' \
+                      "$per" "$off" "${SOURCE:-exoplanet-archive}")
+              else
+                off=$(( i * per * 3 ))
+                b=$(printf '{"mode":"survey","limit":%s,"offset":%s}' "$per" "$off")
+              fi
+              echo "----- page $((i+1))  offset $off"
               curl -sS --fail-with-body --max-time 180 \
                 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sky" \
                 -H "Authorization: Bearer $ANON" -H "Content-Type: application/json" \
@@ -182,8 +195,13 @@ jobs:
               node -e '
                 const r = JSON.parse(require("fs").readFileSync("page.json","utf8"));
                 console.log("  read", JSON.stringify(r.read||{}));
-                console.log("  unwritten", r.unwritten, " has_literature", r.has_literature,
-                            " could_not_check", r.could_not_check, " ms", r.ms);
+                if (r.error) { console.log("  WORKER ERROR:", r.error); }
+                else if (r.mode === "crosscheck")
+                  console.log("  pairs", r.read.comparable_pairs, " agreed", r.read.agreed,
+                              " disagreements", r.disagreements, " ms", r.ms);
+                else
+                  console.log("  unwritten", r.unwritten, " has_literature", r.has_literature,
+                              " could_not_check", r.could_not_check, " ms", r.ms);
                 for (const w of r.stored||[]) if (w.error) console.log("  STORE FAILED", w.table, w.error);
                   else console.log("  stored", w.table, w.rows, "rows");
               '
