@@ -126,6 +126,12 @@ jobs:
                 target: r.target ?? process.env.TARGET ?? "", ms: r.ms ?? null,
                 error: r.error ?? null,
                 read: r.read ?? null,
+                // Which sources answered, and with how much. A probe reports
+                // only this, and it is the first thing worth knowing about any
+                // run: a sweep is only as good as the archives that replied.
+                ledger: (r.ledger || []).map(l => ({ name: l.name, got: l.got ?? 0, error: l.error ?? null, skipped: l.skipped ?? null })),
+                tepcat_headers: r.tepcat_headers ?? null,
+                tepcat_columns_matched: r.tepcat_columns_matched ?? null,
                 claims: (r.claims || []).length,
                 tensions: (r.tensions || []).length,
                 orphans: (r.orphans || []).length,
