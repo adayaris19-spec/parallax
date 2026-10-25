@@ -9,7 +9,7 @@
 //
 // Every 2 hours, one goal per call, header x-parallax-admin: <ADMIN_TOKEN>.
 //   POST {}  the goal whose reels are oldest (or missing) · POST {"slug": "mars"}  one goal now
-// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL. Optional: PEXELS_API_KEY.
+// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL. Optional: PIXABAY_API_KEY, UNSPLASH_ACCESS_KEY.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
@@ -22,7 +22,7 @@ const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const DAY = 86_400_000;
 
-type Cand = { kind: "video" | "image"; url: string; poster: string; credit: string; license: string; source_url: string; source: string };
+type Cand = { kind: "video" | "image"; url: string; poster: string; credit: string; license: string; source_url: string; source: string; landscape?: boolean; rehost?: boolean; id?: string; ping?: string };
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -118,30 +118,56 @@ async function asBlock(u: string) {
 }
 
 
-// Pexels: free, high-quality stock videos and photos (Pexels License: free to use; we credit the
-// creator and Pexels). Used only when PEXELS_API_KEY is set.
-const PEXELS = Deno.env.get("PEXELS_API_KEY") ?? "";
-async function pexelsVideos(q: string): Promise<Cand[]> {
-  if (!PEXELS) return [];
-  const r = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&orientation=portrait&size=medium&per_page=6`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
-  if (!r.ok) throw new Error(`pexels answered ${r.status}`);
-  const d = await r.json();
+// Pixabay: free videos and photos (Pixabay Content License: free to use, no attribution needed, but
+// we credit anyway). Their API rules forbid permanent hotlinking, so chosen files are copied into
+// Supabase Storage (public bucket "reels-media"). Used only when PIXABAY_API_KEY is set.
+const PIXABAY = Deno.env.get("PIXABAY_API_KEY") ?? "";
+async function pixabayVideos(q: string): Promise<Cand[]> {
+  if (!PIXABAY) return [];
+  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&safesearch=true&per_page=8`);
   // deno-lint-ignore no-explicit-any
-  return (d.videos ?? []).map((v: any) => {
-    // deno-lint-ignore no-explicit-any
-    const files = (v.video_files ?? []).filter((f: any) => f.file_type === "video/mp4" && f.height >= 960 && f.height <= 1920 && f.width < f.height).sort((a: any, b: any) => a.height - b.height);
-    const f = files[0];
-    if (!f || !v.image || (v.duration ?? 0) < 5) return null;
-    return { kind: "video", url: f.link, poster: v.image, credit: `${String(v.user?.name ?? "Pexels creator").slice(0, 50)} via Pexels`, license: "Pexels License", source_url: v.url, source: "pexels" };
+  return (d.hits ?? []).map((v: any) => {
+    const vs = v.videos ?? {};
+    const f = [vs.medium, vs.small, vs.large].find((x) => x?.url && (x.size ?? 0) < 25_000_000 && (x.height ?? 0) >= 540);
+    const thumb = f?.thumbnail || vs.medium?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
+    if (!f || !thumb || (v.duration ?? 0) < 6) return null;
+    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}` };
   }).filter(Boolean).slice(0, 2);
 }
-async function pexelsPhotos(q: string): Promise<Cand[]> {
-  if (!PEXELS) return [];
-  const r = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&orientation=portrait&per_page=6`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
-  if (!r.ok) throw new Error(`pexels answered ${r.status}`);
+async function pixabayPhotos(q: string): Promise<Cand[]> {
+  if (!PIXABAY) return [];
+  const d = await getJson(`https://pixabay.com/api/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&image_type=photo&orientation=vertical&min_height=1200&safesearch=true&per_page=6`);
+  // deno-lint-ignore no-explicit-any
+  return (d.hits ?? []).slice(0, 2).map((p: any) => ({ kind: "image", url: p.largeImageURL, poster: p.webformatURL, credit: `${String(p.user ?? "Pixabay photographer").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: p.pageURL, source: "pixabay", rehost: true, id: `pp${p.id}` }));
+}
+
+// Unsplash: beautiful photos (Unsplash License). Their rules: show the photo from their servers,
+// credit the photographer and Unsplash with links, and tell Unsplash when a photo is used.
+// Used only when UNSPLASH_ACCESS_KEY is set. The free tier allows 50 searches an hour.
+const UNSPLASH = Deno.env.get("UNSPLASH_ACCESS_KEY") ?? "";
+const UTM = "utm_source=parallax&utm_medium=referral";
+async function unsplashPhotos(q: string): Promise<Cand[]> {
+  if (!UNSPLASH) return [];
+  const r = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&orientation=portrait&content_filter=high&per_page=6`, { headers: { Authorization: `Client-ID ${UNSPLASH}`, "Accept-Version": "v1" }, signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`unsplash answered ${r.status}`);
   const d = await r.json();
   // deno-lint-ignore no-explicit-any
-  return (d.photos ?? []).slice(0, 2).map((p: any) => ({ kind: "image", url: p.src?.large2x ?? p.src?.large, poster: p.src?.medium ?? p.src?.large, credit: `${String(p.photographer ?? "Pexels photographer").slice(0, 50)} via Pexels`, license: "Pexels License", source_url: p.url, source: "pexels" }));
+  return (d.results ?? []).filter((p: any) => p.urls?.raw && !p.premium).slice(0, 3).map((p: any) => ({
+    kind: "image", url: `${p.urls.raw}&w=1080&h=1920&fit=crop&crop=entropy&q=80&fm=jpg`, poster: `${p.urls.raw}&w=600&q=70&fm=jpg`,
+    credit: `${String(p.user?.name ?? "Unsplash photographer").slice(0, 50)} on Unsplash`, license: "Unsplash License",
+    source_url: `${p.links?.html ?? "https://unsplash.com"}?${UTM}`, source: "unsplash", ping: p.links?.download_location,
+  }));
+}
+
+// Copy a file into Supabase Storage and return its public address.
+async function rehost(c: Cand, folder: string) {
+  const r = await fetch(c.url, { signal: AbortSignal.timeout(60000) });
+  if (!r.ok || !r.body) throw new Error(`copy failed ${r.status}`);
+  const type = (r.headers.get("content-type") ?? (c.kind === "video" ? "video/mp4" : "image/jpeg")).split(";")[0];
+  const path = `${folder}/${c.id}.${c.kind === "video" ? "mp4" : "jpg"}`;
+  const up = await fetch(`${SB}/storage/v1/object/reels-media/${path}`, { method: "POST", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": type, "x-upsert": "true", "cache-control": "max-age=31536000" }, body: r.body, signal: AbortSignal.timeout(90000) });
+  if (!up.ok) throw new Error(`storage ${up.status}: ${(await up.text()).slice(0, 120)}`);
+  return `${SB}/storage/v1/object/public/reels-media/${path}`;
 }
 
 const Scene = z.object({
@@ -214,9 +240,10 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   const cands: Cand[][] = await Promise.all(wants.map(async (w) => {
     const list: Cand[] = [];
     const add = async (f: () => Promise<Cand[]>) => { try { list.push(...await f()); } catch (e) { errors.push(e instanceof Error ? e.message : String(e)); } };
-    await add(() => pexelsVideos(w.q));
+    await add(() => pixabayVideos(w.q));
     if (plan.space) { await add(() => nasaVideos(w.q)); if (list.length < 3) await add(() => nasaImages(w.q)); }
-    if (list.length < 3) await add(() => pexelsPhotos(w.q));
+    if (list.length < 3) await add(() => unsplashPhotos(w.q));
+    if (list.length < 3) await add(() => pixabayPhotos(w.q));
     if (list.length < 2) await add(() => commons(w.q));
     return list.slice(0, 4);
   }));
@@ -225,7 +252,7 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Prefer video when it is as good. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
   wants.forEach((w, i) => {
     content.push({ type: "text", text: `\nScene ${i}: "${reels[w.r].scenes[w.s].caption}" (looking for: ${w.q})` });
-    cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind})` }); content.push(blocks[i][k]); } });
+    cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind}${c.landscape ? ", landscape: the centre will be cropped to a tall phone screen" : ""})` }); content.push(blocks[i][k]); } });
   });
   content.push({ type: "text", text: "One entry per scene; id = the scene number." });
   let verdict: z.infer<typeof Verdict> | null = null;
@@ -248,7 +275,14 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
     let url = c.url;
     if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
     if (c.kind === "video" && !(await alive(url, /^video\//))) url = "";
-    if (url) visual[`${wants[i].r}:${wants[i].s}`] = { ...c, url };
+    if (!url) continue;
+    let poster = c.poster;
+    if (c.rehost) {
+      try { url = await rehost({ ...c, url }, g.slug); poster = c.kind === "video" ? await rehost({ ...c, kind: "image", url: c.poster, id: `${c.id}-poster` }, g.slug) : url; }
+      catch (e) { errors.push(`copy: ${e instanceof Error ? e.message : e}`); continue; }
+    }
+    if (c.ping) fetch(c.ping, { headers: { Authorization: `Client-ID ${UNSPLASH}` } }).then((r) => r.body?.cancel()).catch(() => {});
+    visual[`${wants[i].r}:${wants[i].s}`] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source };
   }
 
   let saved = 0;

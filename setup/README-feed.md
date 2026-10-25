@@ -224,9 +224,11 @@ from the data, and NASA footage or an openly licensed photo checked by Claude). 
 `#/watch` with captions and music generated in the browser (no licences needed). No voice.
 
 Each reel has a mood (epic, uplifting, tense, bittersweet, mysterious, calm) that picks its music, and
-each scene a layout (bottom, center, top, big number, quote). For real footage, add a free Pexels key
-as the Edge Function secret `PEXELS_API_KEY` (pexels.com/api). Without it, only NASA and Wikimedia
-Commons are searched. A photo editor prompt scores every candidate and keeps only 8/10 or better.
+each scene a layout (bottom, center, top, big number, quote). For real footage and photos, add two
+free keys as Edge Function secrets: `PIXABAY_API_KEY` (videos and photos, pixabay.com/api/docs) and
+`UNSPLASH_ACCESS_KEY` (photos, unsplash.com/oauth/applications). Without them, only NASA and Wikimedia
+Commons are searched. Pixabay files are copied into the public Storage bucket `reels-media` (their
+rules forbid hotlinking); Unsplash photos load from Unsplash with credit, as their rules require. A photo editor prompt scores every candidate and keeps only 8/10 or better.
 To redo a goal's reels: `POST /functions/v1/reels` with `{"slug":"<slug>","fresh":true}` and the admin header.
 
 ## If the AI is unavailable
