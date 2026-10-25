@@ -14,7 +14,6 @@
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
 import { z } from "npm:zod@4.6.7";
-import { decode, Image } from "npm:imagescript@1.3.0";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -23,7 +22,7 @@ const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const DAY = 86_400_000;
 
-type Cand = { kind: "video" | "image"; url: string; poster: string; credit: string; license: string; source_url: string; source: string; landscape?: boolean; rehost?: boolean; id?: string; ping?: string };
+type Cand = { kind: "video" | "image"; url: string; poster: string; credit: string; license: string; source_url: string; source: string; landscape?: boolean; rehost?: boolean; id?: string; ping?: string; preview?: string };
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -118,28 +117,18 @@ async function commons(q: string): Promise<Cand[]> {
     const lic = strip(md.LicenseShortName?.value);
     const ok = /^(cc0|public domain|pd|cc by(-sa)? \d)/i.test(lic) && !/nc|nd/i.test(lic);
     if (!ii || !ok || (ii.width ?? 0) < 1200 || !/^image\/(jpeg|png|webp)/.test(ii.mime ?? "")) return null;
-    return { kind: "image", url: ii.thumburl ?? ii.url, poster: ii.thumburl ?? ii.url, credit: `${strip(md.Artist?.value).slice(0, 60) || "Unknown author"} via Wikimedia Commons`, license: lic, source_url: ii.descriptionurl ?? ii.url, source: "commons" };
+    return { kind: "image", url: ii.thumburl ?? ii.url, poster: String(ii.thumburl ?? ii.url).replace(/\/1600px-/, "/330px-"), credit: `${strip(md.Artist?.value).slice(0, 60) || "Unknown author"} via Wikimedia Commons`, license: lic, source_url: ii.descriptionurl ?? ii.url, source: "commons" };
   }).filter(Boolean).slice(0, 3) as Cand[];
 }
 
-// Pictures go to Claude as data (some sites do not let others fetch them), shrunk to 320 px wide:
-// enough to judge beauty and fit, at a fraction of the tokens of a full-size image.
-async function shrink(buf: Uint8Array): Promise<Uint8Array | null> {
-  try {
-    const img = await decode(buf);
-    if (!(img instanceof Image)) return null;
-    if (img.width > 320) img.resize(320, Image.RESIZE_AUTO);
-    return await img.encodeJPEG(75);
-  } catch { return null; }
-}
+// Pictures go to Claude as data (some sites do not let others fetch them). Each source is asked for a
+// small preview (about 320 px wide): enough to judge beauty and fit, at a fraction of the tokens.
 async function asBlock(u: string) {
   try {
     const r = await fetch(u, { headers: { "User-Agent": `Parallax/1.0 (${MAIL})` }, signal: AbortSignal.timeout(12000) });
-    let type = (r.headers.get("content-type") ?? "").split(";")[0];
+    const type = (r.headers.get("content-type") ?? "").split(";")[0];
     if (!r.ok || !/^image\/(jpeg|png|gif|webp)$/.test(type)) return null;
-    let buf: Uint8Array = new Uint8Array(await r.arrayBuffer());
-    const small = type === "image/gif" ? null : await shrink(buf);
-    if (small) { buf = small; type = "image/jpeg"; }
+    const buf = new Uint8Array(await r.arrayBuffer());
     if (buf.length > 1_500_000) return null; // keep each picture small
     let bin = "";
     for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
@@ -161,14 +150,14 @@ async function pixabayVideos(q: string): Promise<Cand[]> {
     const f = [vs.medium, vs.small, vs.large].find((x) => x?.url && (x.size ?? 0) < 25_000_000 && (x.height ?? 0) >= 540);
     const thumb = f?.thumbnail || vs.medium?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
-    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}` };
+    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.tiny?.thumbnail || thumb };
   }).filter(Boolean).slice(0, 2);
 }
 async function pixabayPhotos(q: string): Promise<Cand[]> {
   if (!PIXABAY) return [];
   const d = await getJson(`https://pixabay.com/api/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&image_type=photo&orientation=vertical&min_height=1200&safesearch=true&per_page=6`);
   // deno-lint-ignore no-explicit-any
-  return (d.hits ?? []).slice(0, 2).map((p: any) => ({ kind: "image", url: p.largeImageURL, poster: p.webformatURL, credit: `${String(p.user ?? "Pixabay photographer").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: p.pageURL, source: "pixabay", rehost: true, id: `pp${p.id}` }));
+  return (d.hits ?? []).slice(0, 2).map((p: any) => ({ kind: "image", url: p.largeImageURL, poster: String(p.webformatURL).replace(/_640\./, "_340."), credit: `${String(p.user ?? "Pixabay photographer").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: p.pageURL, source: "pixabay", rehost: true, id: `pp${p.id}` }));
 }
 
 // Unsplash: beautiful photos (Unsplash License). Their rules: show the photo from their servers,
@@ -183,7 +172,7 @@ async function unsplashPhotos(q: string): Promise<Cand[]> {
   const d = await r.json();
   // deno-lint-ignore no-explicit-any
   return (d.results ?? []).filter((p: any) => p.urls?.raw && !p.premium).slice(0, 3).map((p: any) => ({
-    kind: "image", url: `${p.urls.raw}&w=1080&h=1920&fit=crop&crop=entropy&q=80&fm=jpg`, poster: `${p.urls.raw}&w=600&q=70&fm=jpg`,
+    kind: "image", url: `${p.urls.raw}&w=1080&h=1920&fit=crop&crop=entropy&q=80&fm=jpg`, poster: `${p.urls.raw}&w=320&q=70&fm=jpg`,
     credit: `${String(p.user?.name ?? "Unsplash photographer").slice(0, 50)} on Unsplash`, license: "Unsplash License",
     source_url: `${p.links?.html ?? "https://unsplash.com"}?${UTM}`, source: "unsplash", ping: p.links?.download_location,
   }));
@@ -293,7 +282,7 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
     if (list.length < 2) await add(() => commons(w.q));
     return list.slice(0, 4);
   }));
-  const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.poster)))));
+  const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.preview ?? c.poster)))));
   // deno-lint-ignore no-explicit-any
   const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Prefer video when it is as good. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
   wants.forEach((w, i) => {
