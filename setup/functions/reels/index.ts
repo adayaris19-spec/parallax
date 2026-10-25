@@ -150,8 +150,8 @@ async function pixabayVideos(q: string): Promise<Cand[]> {
     const f = [vs.medium, vs.small, vs.large].find((x) => x?.url && (x.size ?? 0) < 25_000_000 && (x.height ?? 0) >= 540);
     const thumb = f?.thumbnail || vs.medium?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
-    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.tiny?.thumbnail || thumb };
-  }).filter(Boolean).slice(0, 2);
+    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.small?.thumbnail || thumb };
+  }).filter(Boolean).slice(0, 3);
 }
 async function pixabayPhotos(q: string): Promise<Cand[]> {
   if (!PIXABAY) return [];
@@ -226,6 +226,7 @@ async function fromLibrary(q: string, avoid: Set<string>): Promise<LibVisual | n
   const hits: LibVisual[] = await db("rpc/parallax_match_visuals", { method: "POST", body: { q, n: 8 } }).catch(() => []);
   const want = words(q);
   if (want.size < 2) return null;
+  hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video"));
   for (const h of hits) {
     if (avoid.has(h.url) || h.uses >= 4) continue; // keep the feed varied
     const have = words(`${h.query} ${h.caption ?? ""}`);
@@ -305,15 +306,18 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
     const list: Cand[] = [];
     const add = async (f: () => Promise<Cand[]>) => { try { list.push(...await f()); } catch (e) { errors.push(e instanceof Error ? e.message : String(e)); } };
     await add(() => pixabayVideos(w.q));
+    // Moving footage makes a reel: if the exact search found little, try a broader one.
+    if (list.length < 2) { const broad = w.q.split(/\s+/).slice(0, 2).join(" "); if (broad !== w.q) await add(() => pixabayVideos(broad)); }
     if (plan.space) { await add(() => nasaVideos(w.q)); if (list.length < 3) await add(() => nasaImages(w.q)); }
     if (list.length < 3) await add(() => unsplashPhotos(w.q));
     if (list.length < 3) await add(() => pixabayPhotos(w.q));
     if (list.length < 2) await add(() => commons(w.q));
-    return list.slice(0, 4);
+    // Up to 5 candidates: keep every video found, then the best photos.
+    return [...list.filter((c) => c.kind === "video").slice(0, 3), ...list.filter((c) => c.kind === "image")].slice(0, 5);
   }));
   const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.preview ?? c.poster)))));
   // deno-lint-ignore no-explicit-any
-  const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Prefer video when it is as good. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
+  const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Moving footage is what makes these reels feel alive: each video candidate is shown as one still frame, so imagine it moving, and pick a video whenever it scores within 1 point of the best photo. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
   wants.forEach((w, i) => {
     content.push({ type: "text", text: `\nScene ${i}: "${reels[w.r].scenes[w.s].caption}" (looking for: ${w.q})` });
     cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind}${c.landscape ? ", landscape: the centre will be cropped to a tall phone screen" : ""})` }); content.push(blocks[i][k]); } });
@@ -362,7 +366,7 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
   const fresh_: { url: string; poster: string; kind: string; credit: string; license: string; source_url: string; source: string; query: string; caption: string; score: number }[] = [];
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
-    const c = v && v.pick >= 0 && v.score >= 8 && present[i]?.[v.pick] ? cands[i][v.pick] : null;
+    const c = v && v.pick >= 0 && present[i]?.[v.pick] && (v.score >= 8 || (v.score >= 7 && cands[i][v.pick].kind === "video")) ? cands[i][v.pick] : null; // moving footage at 7/10 beats a plain background
     if (!c) continue;
     let url = c.url;
     if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
@@ -376,6 +380,27 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
     if (c.ping) fetch(c.ping, { headers: { Authorization: `Client-ID ${UNSPLASH}` } }).then((r) => r.body?.cancel()).catch(() => {});
     visual[`${wants[i].r}:${wants[i].s}`] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source };
     fresh_.push({ url, poster, kind: c.kind, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source, query: wants[i].q, caption: reels[wants[i].r].scenes[wants[i].s].caption, score: v?.score ?? 8 });
+  }
+  // Scenes the editor left empty: first a matching approved shot from the shared library, then one of
+  // this goal's approved shots. Videos first; no shot twice in one reel or more than twice per goal.
+  const qOf = new Map(wants.map((w) => [`${w.r}:${w.s}`, w.q]));
+  const uses = new Map<string, number>();
+  for (const v of Object.values(visual)) uses.set(v.url, (uses.get(v.url) ?? 0) + 1);
+  const pool = Object.values(visual).sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video"));
+  for (let ri = 0; ri < reels.length; ri++) {
+    const r = reels[ri];
+    const inReel = new Set(r.scenes.map((_, si) => visual[`${ri}:${si}`]?.url).filter(Boolean));
+    for (let si = 0; si < r.scenes.length; si++) {
+      const k = `${ri}:${si}`;
+      if (visual[k]) continue;
+      const q = qOf.get(k) ?? r.scenes[si].visual ?? r.scenes[si].caption;
+      const hits: LibVisual[] = await db("rpc/parallax_match_visuals", { method: "POST", body: { q, n: 12 } }).catch(() => []);
+      const lib = hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video")).find((h) => !uses.has(h.url) && h.uses < 4);
+      const pick: Cand | undefined = lib ? { kind: lib.kind, url: lib.url, poster: lib.poster ?? lib.url, credit: lib.credit, license: lib.license, source_url: lib.source_url, source: lib.source } : pool.find((v) => !inReel.has(v.url) && (uses.get(v.url) ?? 0) < 2);
+      if (!pick) continue;
+      visual[k] = pick; inReel.add(pick.url); uses.set(pick.url, (uses.get(pick.url) ?? 0) + 1);
+      if (lib) db("rpc/parallax_visual_used", { method: "POST", body: { vid: lib.id } }).catch(() => {});
+    }
   }
   // Every newly approved shot joins the shared library.
   if (fresh_.length) await db("visuals?on_conflict=url", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: fresh_ }).catch((e) => errors.push(`library: ${String(e).slice(0, 80)}`));
