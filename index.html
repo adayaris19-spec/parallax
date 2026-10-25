@@ -272,6 +272,55 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .foot a{color:var(--muted)}
 .hide{display:none!important}
 
+/* ---------- terminal ---------- */
+body.wide main{max-width:1080px}
+.term-h{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:30px 0 18px}
+.term-h .page-h{margin:0 0 4px}
+.term-h .act{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--accent-soft);color:var(--accent)}
+.pill.off{background:var(--sunk);color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.kpis .metric{border-left:1px solid var(--line)}
+.kpis .metric:first-child{border-left:0}
+.kpis .metric .v{font-size:24px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin:14px 0;overflow:hidden}
+.panel-h{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+.panel-h h2{font-size:15px;margin:0}
+.panel-h .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.panel-h select,.panel-h input{height:32px;border:1px solid var(--line2);border-radius:999px;background:var(--card);color:var(--ink);padding:0 12px;font:inherit;font-size:13px}
+.bars{padding:12px 18px 14px;display:grid;gap:8px}
+.kbar{display:grid;grid-template-columns:110px 1fr 44px;gap:12px;align-items:center;font-size:13px}
+.kbar .t{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.kbar .t i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.kbar .n{font-family:var(--m);text-align:right;color:var(--ink2)}
+.tw{overflow-x:auto}
+table.tt{width:100%;min-width:760px;border-collapse:collapse;font-size:13.5px}
+.tt td:first-child{min-width:230px}
+.tt th{position:sticky;top:0;background:var(--card);text-align:left;font-weight:500;font-size:12px;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+.tt th[aria-sort]{color:var(--ink)}
+.tt th[aria-sort="ascending"]::after{content:" ↑"} .tt th[aria-sort="descending"]::after{content:" ↓"}
+.tt th.nosort{cursor:default}
+.tt td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tt tr:last-child td{border-bottom:0}
+.tt td.num,.tt th.num{text-align:right;font-family:var(--m);font-feature-settings:"tnum";white-space:nowrap}
+.tt a{text-decoration:none}
+.tt a:hover{color:var(--accent)}
+.tt .sub{display:block;color:var(--muted);font-size:12px}
+.pbar{display:inline-block;width:56px;height:4px;border-radius:2px;background:var(--sunk);vertical-align:middle;margin-right:8px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--solved)}
+.up{color:var(--solved)} .down{color:var(--blocked)}
+.lock{padding:22px 18px;text-align:center;border-top:1px solid var(--line);background:linear-gradient(180deg,transparent,var(--accent-soft))}
+.lock b{display:block;font-size:15px;margin-bottom:4px}
+.lock p{color:var(--muted);margin:0 0 14px;font-size:13.5px}
+.offer{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:24px 22px}
+.offer h2{margin:0 0 6px;font-size:20px}
+.offer ul{margin:10px 0 0;padding-left:18px;color:var(--ink2);font-size:14px}
+.offer .price{font-family:var(--m);font-size:34px;letter-spacing:-.03em}
+.offer .price small{font-size:14px;color:var(--muted)}
+.spark{vertical-align:middle}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(3,1fr)}.kpis .metric:nth-child(4){border-left:0}.kpis .metric:nth-child(n+4){border-top:1px solid var(--line)}.offer{grid-template-columns:1fr}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}.kpis .metric{border-left:1px solid var(--line)!important;border-top:1px solid var(--line)}.kpis .metric:nth-child(odd){border-left:0!important}.kpis .metric:nth-child(-n+2){border-top:0}.kbar{grid-template-columns:90px 1fr 36px}}
+
 /* ---------- phone: app-like bottom bar ---------- */
 .bnav{display:none}
 @media (max-width:760px){
@@ -470,6 +519,7 @@ body{background:var(--bg)}
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
     <a class="navlink x" href="#/explore">Explore</a>
+    <a class="navlink x" href="#/terminal">Terminal</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
   </div>
   <div class="menu hide" id="menu" role="menu"></div>
@@ -478,7 +528,7 @@ body{background:var(--bg)}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="instruments.html">The original Parallax instruments</a>
+  <br><a href="#/terminal">Parallax Terminal</a> · <a href="instruments.html">The original Parallax instruments</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -640,6 +690,7 @@ function toggleMenu(force) {
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
     <a href="#/branch" role="menuitem">Your branch</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
+    <a href="#/terminal" role="menuitem">Parallax Terminal</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
   m.classList.remove('hide');
@@ -1394,6 +1445,202 @@ function openDidIt(it, btn) {
   };
 }
 
+// ------------------------------------------------------------ terminal
+// The paid view: every goal side by side, every open problem, exports.
+async function callFn(name, body = {}) {
+  let token = SUPA_KEY;
+  if (sb) { const { data: { session } } = await sb.auth.getSession(); if (session) token = session.access_token; }
+  const r = await fetch(`${SUPA_URL}/functions/v1/${name}`, {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok && !data.error) data.error = `Parallax answered ${r.status}`;
+  return data;
+}
+
+let term = null; // last answer from the terminal function
+let termSort = { goals: { key: 'momentum', dir: -1 }, problems: { key: '', dir: 1 } };
+let termFilter = { status: '', kind: '', q: '' };
+const KIND_LABEL = { knowledge: 'Knowledge', materials: 'Materials', instruments: 'Instruments', funding: 'Funding', attention: 'Attention', unknown: 'Not yet known' };
+const STATUS_LABEL = { blocked: 'Blocked', open: 'Open', in_progress: 'In progress', solved: 'Solved' };
+const pct = (x) => `${Math.round((x || 0) * 100)}%`;
+const signed = (n) => (n > 0 ? `+${n}` : String(n));
+const horizon = (g) => (g.horizon_low == null ? '—' : g.horizon_high && g.horizon_high !== g.horizon_low ? `${g.horizon_low}–${g.horizon_high} yr` : `${g.horizon_low} yr`);
+
+async function subscribe(btn) {
+  await authReady;
+  if (!me) { openSignIn('Sign in first, then you can subscribe to the Parallax Terminal.'); return; }
+  if (btn) btn.disabled = true;
+  const data = await callFn('billing', { action: 'checkout' });
+  if (data.url) { location.href = data.url; return; }
+  if (btn) btn.disabled = false;
+  if (data.already) { toast('You already have the Terminal'); terminalView(); return; }
+  toast(data.error || 'Could not start checkout. Try again.');
+}
+async function manageBilling(btn) {
+  btn.disabled = true;
+  const data = await callFn('billing', { action: 'portal' });
+  if (data.url) { location.href = data.url; return; }
+  btn.disabled = false;
+  toast(data.error || 'Could not open billing. Try again.');
+}
+
+function spark(points) {
+  if (!points || points.length < 2) return '<span style="color:var(--faint)">—</span>';
+  const w = 64, h = 18, ys = points.map((p) => p.progress || 0), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
+  const d = ys.map((y, i) => `${i ? 'L' : 'M'}${(i / (ys.length - 1) * w).toFixed(1)},${(h - 2 - (y - lo) / span * (h - 4)).toFixed(1)}`).join('');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-label="Progress over time"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
+}
+
+function sortRows(rows, { key, dir }) {
+  if (!key) return rows;
+  return [...rows].sort((a, b) => {
+    const x = a[key], y = b[key];
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir;
+  });
+}
+function th(table, key, label, cls = '') {
+  const s = termSort[table];
+  const sort = s.key === key ? ` aria-sort="${s.dir > 0 ? 'ascending' : 'descending'}"` : '';
+  return `<th class="${cls}" data-sort="${table}:${key}"${sort} scope="col">${label}</th>`;
+}
+
+function goalsTable() {
+  const hist = new Map();
+  for (const h of term.history || []) { if (!hist.has(h.goal_id)) hist.set(h.goal_id, []); hist.get(h.goal_id).push(h); }
+  const rows = sortRows(term.goals, termSort.goals);
+  return `<div class="tw"><table class="tt"><thead><tr>
+    ${th('goals', 'handle', 'Goal')}${th('goals', 'progress', 'Progress', 'num')}<th class="nosort num" scope="col">Trend</th>${th('goals', 'horizon_low', 'Countdown', 'num')}
+    ${th('goals', 'problems', 'Problems', 'num')}${th('goals', 'blocked', 'Blocked', 'num')}${th('goals', 'momentum', 'Momentum 30d', 'num')}
+    ${th('goals', 'promise_score', 'Promises kept', 'num')}${th('goals', 'followers', 'Followers', 'num')}${th('goals', 'contributors', 'Helpers', 'num')}
+  </tr></thead><tbody>${rows.map((g) => `<tr>
+    <td><a href="#/g/${encodeURIComponent(g.slug)}"><b>@${esc(g.handle)}</b></a><span class="sub">${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</span></td>
+    <td class="num"><span class="pbar"><i style="width:${Math.round((g.progress || 0) * 100)}%"></i></span>${pct(g.progress)}</td>
+    <td class="num">${spark(hist.get(g.id))}</td>
+    <td class="num">${horizon(g)}</td>
+    <td class="num">${g.problems}</td>
+    <td class="num">${g.blocked}</td>
+    <td class="num ${g.momentum > 0 ? 'up' : g.momentum < 0 ? 'down' : ''}">${signed(g.momentum)}<span class="sub">${g.advances30} up · ${g.setbacks30} down</span></td>
+    <td class="num">${g.promise_score == null ? '—' : pct(g.promise_score)}<span class="sub">${g.promises_kept + g.promises_partly + g.promises_broken} judged</span></td>
+    <td class="num">${g.followers}</td>
+    <td class="num">${g.contributors}</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+
+function problemsTable() {
+  const q = termFilter.q.toLowerCase();
+  let rows = term.problems.filter((p) => (!termFilter.status || p.status === termFilter.status) && (!termFilter.kind || p.blocker_kind === termFilter.kind)
+    && (!q || `${p.title} ${p.blocker} ${p.goal}`.toLowerCase().includes(q)));
+  rows = sortRows(rows, termSort.problems);
+  const shown = rows.slice(0, 300);
+  return `<div class="tw"><table class="tt"><thead><tr>
+    ${th('problems', 'title', 'Problem')}${th('problems', 'goal', 'Goal')}${th('problems', 'status', 'Status')}${th('problems', 'blocker_kind', 'Held back by')}${th('problems', 'sources', 'Sources', 'num')}
+  </tr></thead><tbody>${shown.map((p) => `<tr>
+    <td><a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}">${p.bottleneck ? '<span class="pill" style="height:18px;font-size:11px;margin-right:6px">Bottleneck</span>' : ''}${esc(p.title)}</a>${p.blocker ? `<span class="sub">${esc(p.blocker)}</span>` : ''}</td>
+    <td><a href="#/g/${encodeURIComponent(p.slug)}">@${esc(p.goal)}</a></td>
+    <td style="white-space:nowrap"><i class="dot st-${esc(p.status)}" style="display:inline-block;margin:0 6px 0 0;vertical-align:middle"></i>${STATUS_LABEL[p.status] || esc(p.status)}</td>
+    <td>${KIND_LABEL[p.blocker_kind] || esc(p.blocker_kind)}</td>
+    <td class="num">${p.sources}</td>
+  </tr>`).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nothing matches.</td></tr>'}</tbody></table></div>
+  ${rows.length > shown.length ? `<p style="padding:0 18px;color:var(--muted);font-size:13px">Showing 300 of ${rows.length}. Download the spreadsheet for all of them.</p>` : ''}`;
+}
+
+function csv(rows, cols) {
+  const cell = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  return [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\n');
+}
+function download(name, text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function exportCsv(which) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (which === 'goals') download(`parallax-goals-${day}.csv`, csv(term.goals, ['handle', 'name', 'progress', 'horizon_low', 'horizon_high', 'problems', 'solved', 'in_progress', 'blocked', 'open', 'bottleneck', 'momentum', 'advances30', 'setbacks30', 'promises_kept', 'promises_partly', 'promises_broken', 'promises_pending', 'promise_score', 'followers', 'contributors', 'checked_at']));
+  else download(`parallax-problems-${day}.csv`, csv(term.problems, ['goal', 'key', 'title', 'status', 'blocker_kind', 'blocker', 'sources', 'bottleneck', 'updated_at']));
+}
+
+function renderTerminal(box) {
+  const t = term, k = t.kpis, full = t.access === 'full';
+  const maxB = Math.max(1, ...t.blockers.map((b) => b.count));
+  const locked = (what) => full ? '' : `<div class="lock"><b>${what}</b><p>Subscribe to see every row, filter them and download the spreadsheets.</p><button class="btn primary" type="button" data-sub>Get the Terminal · ${esc(t.price)}</button></div>`;
+  box.innerHTML = `<div class="term-h"><div><h1 class="page-h">Parallax Terminal</h1>
+      <p class="page-sub">Every goal at once, from published research. Updated ${esc(ago(t.generated_at) === 'now' ? 'just now' : `${ago(t.generated_at)} ago`)}.</p></div>
+      <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${t.status === 'comp' ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
+    <div class="kpis">
+      <div class="metric"><div class="l">Goals tracked</div><div class="v">${k.goals}</div></div>
+      <div class="metric"><div class="l">Problems mapped</div><div class="v">${k.problems}</div></div>
+      <div class="metric"><div class="l">Solved</div><div class="v">${pct(k.solved_share)}</div></div>
+      <div class="metric"><div class="l">Blocked now</div><div class="v">${k.blocked}</div></div>
+      <div class="metric"><div class="l">Moves, 30 days</div><div class="v">${signed(k.advances30 - k.setbacks30)}</div><div class="s">${k.advances30} up · ${k.setbacks30} down</div></div>
+      <div class="metric"><div class="l">Promises kept</div><div class="v">${k.promise_score == null ? '—' : pct(k.promise_score)}</div><div class="s">${k.promises_judged} judged so far</div></div>
+    </div>
+    <section class="panel"><div class="panel-h"><h2>What is holding progress back</h2><span style="color:var(--muted);font-size:12.5px">Unsolved problems, by what they wait on</span></div>
+      <div class="bars">${t.blockers.map((b) => `<div class="kbar"><span>${KIND_LABEL[b.kind] || esc(b.kind)}</span><span class="t"><i style="width:${(b.count / maxB * 100).toFixed(1)}%"></i></span><span class="n">${b.count}</span></div>`).join('')}</div></section>
+    <section class="panel"><div class="panel-h"><h2>Goals ${full ? '' : `<span style="color:var(--muted);font-weight:400">· ${t.goals.length} of ${t.goals_total}</span>`}</h2>
+      <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download spreadsheet</button>' : ''}</div></div>
+      <div id="tGoals">${goalsTable()}</div>${locked(`${t.goals_total - t.goals.length} more goal${t.goals_total - t.goals.length === 1 ? '' : 's'}`)}</section>
+    <section class="panel"><div class="panel-h"><h2>Open problems ${full ? `<span style="color:var(--muted);font-weight:400">· ${t.problems_total}</span>` : `<span style="color:var(--muted);font-weight:400">· ${t.problems.length} of ${t.problems_total}</span>`}</h2>
+      ${full ? `<div class="tools"><input id="tQ" type="search" placeholder="Search problems" value="${esc(termFilter.q)}" aria-label="Search problems">
+        <select id="tStatus" aria-label="Status"><option value="">Any status</option>${['blocked', 'open', 'in_progress'].map((s) => `<option value="${s}"${termFilter.status === s ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select>
+        <select id="tKind" aria-label="Held back by"><option value="">Anything</option>${Object.keys(KIND_LABEL).map((s) => `<option value="${s}"${termFilter.kind === s ? ' selected' : ''}>${KIND_LABEL[s]}</option>`).join('')}</select>
+        <button class="btn" type="button" data-csv="problems">Download spreadsheet</button></div>` : ''}</div>
+      <div id="tProblems">${problemsTable()}</div>${locked(`${t.problems_total - t.problems.length} more problem${t.problems_total - t.problems.length === 1 ? '' : 's'}`)}</section>
+    ${full ? '' : `<section class="panel"><div class="offer"><div><h2>The Parallax Terminal</h2><p style="margin:0;color:var(--ink2)">For investors, funders, analysts and journalists who need the whole picture, not one goal at a time.</p>
+      <ul><li>Every goal side by side: progress, countdowns, bottlenecks and momentum</li><li>Every open problem, filterable by what holds it back</li><li>How past promises held up, goal by goal</li><li>Spreadsheet downloads of everything</li></ul></div>
+      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:42px" type="button" data-sub>Subscribe</button></div></div></section>`}`;
+  box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
+  const bill = box.querySelector('#tBill');
+  if (bill) bill.onclick = () => manageBilling(bill);
+  box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
+  box.addEventListener('click', (e) => {
+    const h = e.target.closest('th[data-sort]');
+    if (!h) return;
+    const [table, key] = h.dataset.sort.split(':');
+    const s = termSort[table];
+    termSort[table] = { key, dir: s.key === key ? -s.dir : typeof (term[table][0] || {})[key] === 'string' ? 1 : -1 };
+    box.querySelector(table === 'goals' ? '#tGoals' : '#tProblems').innerHTML = table === 'goals' ? goalsTable() : problemsTable();
+  });
+  const refilter = () => {
+    termFilter = { q: box.querySelector('#tQ').value.trim(), status: box.querySelector('#tStatus').value, kind: box.querySelector('#tKind').value };
+    box.querySelector('#tProblems').innerHTML = problemsTable();
+  };
+  box.querySelector('#tQ')?.addEventListener('input', refilter);
+  box.querySelector('#tStatus')?.addEventListener('change', refilter);
+  box.querySelector('#tKind')?.addEventListener('change', refilter);
+}
+
+async function terminalView(welcome = false) {
+  view.innerHTML = `<div id="term"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
+  const box = $('#term');
+  await authReady;
+  if (!box.isConnected) return;
+  // Right after checkout, Stripe's confirmation can take a few seconds to arrive.
+  for (let i = 0; i < (welcome ? 10 : 1); i++) {
+    if (welcome && i) {
+      box.innerHTML = note('Setting up your Terminal', 'Your payment went through. Switching on your access, this takes a few seconds.', '<p><span class="spin" style="display:inline-block"></span></p>');
+      await new Promise((r) => setTimeout(r, 2500));
+      if (!box.isConnected) return;
+    }
+    term = await callFn('terminal').catch((e) => ({ error: e.message }));
+    if (!box.isConnected) return;
+    if (term.error || term.access === 'full') break;
+  }
+  if (term.error) { box.innerHTML = note('The Terminal could not load', esc(term.error), '<p><button class="btn" type="button" onclick="terminalView()">Try again</button></p>'); return; }
+  renderTerminal(box);
+  if (welcome) {
+    history.replaceState(null, '', location.pathname + '#/terminal');
+    toast(term.access === 'full' ? 'Welcome to the Parallax Terminal' : 'Payment received. Access can take a minute, reload soon.');
+  }
+}
+
 // ------------------------------------------------------------ motion
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let pointer = { x: 0, y: 0 };
@@ -1476,10 +1723,12 @@ function route() {
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
+  document.body.classList.toggle('wide', parts[0] === 'terminal');
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
+  if (parts[0] === 'terminal') return terminalView(parts[1] === 'welcome');
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
