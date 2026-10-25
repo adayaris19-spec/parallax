@@ -470,6 +470,44 @@ a.sw-s:hover{background:rgba(255,255,255,.14)}
 .sw-card .sw-text{right:20px}
 @media (max-width:760px){.sw-bar{top:12px}}
 @media (prefers-reduced-motion:reduce){.sw-hint{animation:none}}
+
+/* goal story (full-screen sections) */
+body.goalstory .sw{width:min(720px,100vw)}
+body.goalstory .sw-bar{width:min(720px,100vw)}
+.sw-x{display:grid;place-items:center;text-decoration:none}
+.sw-tabs{margin-left:auto;display:flex;gap:4px;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:999px;padding:3px}
+.sw-tabs a{color:rgba(255,255,255,.75);text-decoration:none;font-size:12.5px;font-weight:500;padding:6px 10px;border-radius:999px}
+.sw-tabs a.on{background:#fff;color:#0B0C14}
+.mc{position:absolute;left:20px;right:20px;top:76px;bottom:44px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px}
+.mc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mc-built{font-size:11.5px;color:rgba(255,255,255,.65)}
+.mc h1{font-size:clamp(32px,8.4vw,52px);line-height:1.02;letter-spacing:-.04em;margin:0;color:#fff;max-width:14ch}
+.mc-tag{margin:0;color:rgba(255,255,255,.82);font-size:15.5px;line-height:1.5;max-width:46ch}
+.mc-row{display:flex;align-items:center;gap:18px}
+.mc-ring{position:relative;width:92px;height:92px;flex:none}
+.mc-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:21px;font-weight:500;color:#fff}
+.mc-eta{font-size:clamp(30px,8vw,40px);letter-spacing:-.05em;line-height:1;color:#fff}
+.mc-s{font-size:12.5px;color:rgba(255,255,255,.65);margin-top:4px}
+.mc-hard{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,120,120,.35);border-radius:18px;padding:13px 15px;color:#fff}
+.mc-hard > span{display:block;font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#FF9A9A}
+.mc-hard > b{display:block;font-size:16.5px;line-height:1.3;margin-top:5px}
+.mc-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:10px;overflow:hidden}
+.mc-bar i{display:block;height:100%;background:#6EE7A8}
+.mc-money{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:rgba(255,255,255,.75)}
+.sw-cta.sm{height:36px;padding:0 16px;font-size:14px;margin-top:0}
+.mc-dots{display:flex;flex-wrap:wrap;gap:6px}
+.mc-dots .gd{width:12px;height:12px;border-radius:50%;display:block;background:var(--open)}
+.mc-dots.big{gap:9px;margin-top:18px}
+.mc-dots.big .gd{width:20px;height:20px}
+.gd.st-solved{background:var(--solved)}.gd.st-in_progress{background:var(--progress)}.gd.st-blocked{background:var(--blocked)}.gd.st-open{background:#4A4F60}
+.bk{margin-top:16px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff}
+.bk b{font-weight:500;line-height:1.45;display:block}
+.pscore{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.pscore div{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.09)}
+.pscore b{display:block;font-size:34px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.pscore span{font-size:13px;color:rgba(255,255,255,.7)}
+.sw .sw-s span{display:block}
+@media (max-width:760px){.mc{top:64px;bottom:40px;left:18px;right:18px;gap:12px}.sw-tabs a{padding:6px 8px;font-size:12px}}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -1482,10 +1520,93 @@ async function goalView(slug, tab, focusKey) {
     body = help + stand + news + map + prom;
   }
 
+  if (tab === 'story') {
+    const st = goalStory({ g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN });
+    document.body.classList.add('swipe', 'goalstory');
+    view.innerHTML = `<div class="sw-wrap"><div class="sw-bar"><a class="sw-x" href="#/" aria-label="Back to the feed">←</a><span class="sw-who">@${esc(g.handle)}</span>
+      <nav class="sw-tabs">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', 'Posts', `${base}/posts`], ['promises', 'Promises', `${base}/promises`]].map(([id, label, href]) => `<a href="${href}" class="${id === 'story' ? 'on' : ''}">${label}</a>`).join('')}</nav></div>
+      <div class="sw" id="sw">${st.html}</div></div>`;
+    refreshFollowers();
+    if (focusKey) openLeaf(focusKey, false);
+    return;
+  }
   document.body.classList.add('goalpage');
   view.innerHTML = hero + tabs + `<div class="gbody">${body}</div>`;
   refreshFollowers();
   if (focusKey) openLeaf(focusKey, false);
+}
+
+// The goal as full-screen sections you scroll through. The first screen is mission control:
+// everything that matters at a glance.
+function goalStory(c) {
+  const { g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN } = c;
+  const base = `#/g/${encodeURIComponent(g.slug)}`;
+  const seed = g.slug;
+  const fs1 = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
+  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
+  const bnListing = bn && fundState.listings.find((x) => x.node_key === bn.key);
+  const bnRaised = bn && fundState.perListing[bnListing?.id]?.raised_cents || 0;
+  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
+  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 4);
+  const ups = posts.filter((p) => p.kind === 'advance' || p.kind === 'solved').length, downs = posts.filter((p) => p.kind === 'setback').length;
+  const pc = (s) => promises.filter((p) => p.status === s).length;
+  const R = 38, C = 2 * Math.PI * R;
+  const ring = (size, stroke) => `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${pctN}% of the way"><circle cx="48" cy="48" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="${stroke}"/><circle cx="48" cy="48" r="${R}" fill="none" stroke="#fff" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 48 48)"/></svg>`;
+  const dots = leaves.map((l) => `<a class="gd st-${esc(l.status || 'open')}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" aria-label="${esc(l.title)}"></a>`).join('');
+
+  const s1 = `<section class="sw-card gs1">${bgMedia(g.media, seed)}<div class="sw-shade"></div>
+    <div class="mc">
+      <div class="mc-top"><span class="sw-chip"><i style="background:#fff"></i>@${esc(g.handle)}</span>${g.papers_count ? `<span class="mc-built mono">Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
+      <h1>${esc(g.name)}</h1>
+      ${g.tagline ? `<p class="mc-tag">${esc(g.tagline)}</p>` : ''}
+      <div class="mc-row"><div class="mc-ring">${ring(92, 9)}<b class="mono">${pctN}%</b></div>
+        <div>${horizon ? `<div class="mc-eta mono">${esc(horizon)} yrs</div><div class="mc-s">to go, at today’s pace</div>` : ''}${ups || downs ? `<div class="mc-s" style="color:#6EE7A8;margin-top:6px">▲ ${ups} step${ups === 1 ? '' : 's'} forward · ${downs} setback${downs === 1 ? '' : 's'}</div>` : ''}</div></div>
+      ${bn ? `<div class="mc-hard"><span>The hardest part</span><b>${esc(bn.title)}</b>
+        ${bnListing ? `<div class="mc-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><div class="mc-money"><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span><button type="button" class="sw-cta sm" data-back="${bnListing.id}">Back it</button></div>`
+          : `<div class="mc-money"><span>No team raising yet</span><button type="button" class="sw-cta sm ghost" data-leaf="${esc(bn.key)}">Explore it</button></div>`}</div>` : ''}
+      <div class="mc-dots">${dots}</div>
+      <div class="sw-hint">Scroll ↓</div>
+    </div>
+    ${g.media && g.media.url ? `<div class="sw-credit">${g.media.kind === 'video' ? 'Video' : 'Photo'}: ${esc(g.media.credit)} · ${esc(g.media.license)}</div>` : ''}</section>`;
+
+  const s2 = bn ? `<section class="sw-card">${bgMedia(null, seed + 'b')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:var(--blocked)"></i>The hardest part</span>
+      <h2 style="font-size:clamp(28px,7vw,40px)">${esc(bn.title)}</h2>
+      ${bn.why ? `<p class="lg">${esc(bn.why)}</p>` : ''}${bn.blocker ? `<p>${esc(fs1(bn.blocker))}</p>` : ''}
+      <div class="sw-acts"><button type="button" class="sw-cta" data-leaf="${esc(bn.key)}">See the research</button></div></div></section>` : '';
+
+  const s3 = `<section class="sw-card">${bgMedia(null, seed + 'm')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#6EE7A8"></i>Back the work</span>
+      ${bnListing ? `<h2>${esc(bnListing.teams.name)} is working on the hardest part.</h2>
+        <div class="bk"><b>${esc(bnListing.plan)}</b>${bnListing.target_cents ? `<div class="mc-bar"><i style="width:${Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1)}%"></i></div><div class="mono" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,.75)">${money(bnRaised)} of ${money(bnListing.target_cents)}</div>` : ''}</div>
+        <div class="sw-acts"><button type="button" class="sw-cta" data-back="${bnListing.id}">Back with $25</button><a class="sw-cta ghost" href="${base}/map">Other problems</a></div>
+        <p style="font-size:13px">95% goes to the team. 5% keeps Parallax running.</p>`
+      : teams.length ? `<h2>${totalRaised ? `${money(totalRaised)} raised so far.` : `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money.`}</h2><p>${teams.map((t) => esc(t.name)).join(', ')}. 95% of every backing goes to the team.</p><div class="sw-acts"><a class="sw-cta" href="${base}/map">See where to back</a></div>`
+      : `<h2>No team is raising money for this goal yet.</h2><p class="lg">Labs, nonprofits and researchers working on one of these ${leaves.length} problems can raise money here. Backers fund them directly, and see exactly what their money does.</p>
+        <div class="sw-acts"><a class="sw-cta" href="#/team">Raise money for your team</a><button type="button" class="sw-cta ghost" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow to hear first'}</button></div>`}
+    </div></section>`;
+
+  const s4 = recent.length ? `<section class="sw-card">${bgMedia(null, seed + 'c')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#AEB4FF"></i>What changed lately</span>
+      <h2>${ups || downs ? `${ups} step${ups === 1 ? '' : 's'} forward, ${downs} setback${downs === 1 ? '' : 's'}.` : 'The latest.'}</h2>
+      <div class="sw-src">${recent.map((p) => `<a class="sw-s" href="#/p/${p.id}"><span style="margin:0 0 4px">${esc(KIND_WORD[p.kind] || p.kind)} · ${esc(whenAgo(p.created_at))}</span><b>${esc(p.headline)}</b></a>`).join('')}</div>
+      <a class="sw-go" href="${base}/posts">All ${posts.length} posts →</a></div></section>` : '';
+
+  const s5 = promises.length ? `<section class="sw-card">${bgMedia(null, seed + 'p')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#F5C76B"></i>Promises</span>
+      <h2>What we were told, and what happened.</h2>
+      <div class="pscore">${[['kept', 'Kept', '#6EE7A8'], ['partly', 'Partly kept', '#F5C76B'], ['broken', 'Broken', '#FF8A8A'], ['pending', 'Not due yet', '#fff']].map(([k, label, col]) => `<div><b class="mono" style="color:${col}">${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
+      <a class="sw-go" href="${base}/promises">Every promise, with quotes and sources →</a></div></section>` : '';
+
+  const s6 = `<section class="sw-card">${bgMedia(null, seed + 'e')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#fff"></i>Explore</span>
+      <h2>Every problem, at a glance.</h2>
+      <p>${leaves.length} problems in ${branches.length} chapters: ${solved} solved, ${going} moving, ${blocked} blocked, ${openN} barely started. Tap a dot.</p>
+      <div class="mc-dots big">${dots}</div>
+      <div class="sw-acts"><a class="sw-cta" href="${base}/map">Open the map</a><a class="sw-cta ghost" href="${base}/posts">Posts</a><a class="sw-cta ghost" href="${base}/promises">Promises</a></div></div></section>`;
+
+  const screens = [s1, s2, s3, s4, s5, s6].filter(Boolean);
+  return { html: screens.join(''), count: screens.length };
 }
 
 // ------------------------------------------------------------ problem sheet
@@ -2446,171 +2567,11 @@ async function teamView(sub, rest_) {
   if (sub === 'ready') toast(t.payouts_ready ? 'Payouts are set up' : 'Stripe still needs a few details');
 }
 
-// ------------------------------------------------------------ swipe feed
-// One moment of progress per screen, like a short-video feed: a real picture, one sentence,
-// one number. Card types: a goal's countdown, a post, a promise to flip (then vs now), a guess.
+// ------------------------------------------------------------ full-screen views
 const KIND_WORD = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'The hardest part', forgotten: 'Old idea, back', promise: 'Then vs now', mapped: 'New goal' };
 const KIND_DOT = { advance: 'var(--solved)', solved: 'var(--solved)', setback: 'var(--blocked)', bottleneck: 'var(--progress)', forgotten: '#AEB4FF', promise: '#AEB4FF', mapped: '#fff' };
-const deviceId = () => {
-  try { let d = localStorage.getItem('px.dev'); if (!d) { d = crypto.randomUUID(); localStorage.setItem('px.dev', d); } return d; } catch { return 'anon'; }
-};
-const myGuess = { get(id) { try { return JSON.parse(localStorage.getItem('px.guess') || '{}')[id]; } catch { return undefined; } }, set(id, v) { try { const m = JSON.parse(localStorage.getItem('px.guess') || '{}'); m[id] = v; localStorage.setItem('px.guess', JSON.stringify(m)); } catch {} } };
-let deck = { cards: [], goals: [], guesses: {}, promises: {} };
-
-function picture(media, seed) {
-  const hasImg = media && media.url;
-  const h = hue(seed);
-  return `<div class="sw-bg" style="background:radial-gradient(120% 80% at 70% 15%, hsl(${h} 45% 22%) 0%, #05060B 62%)">${hasImg ? `<img src="${esc(media.url)}" alt="" loading="lazy" onerror="if(!this.dataset.f&&'${esc(media.thumb || '')}'){this.dataset.f=1;this.src='${esc(media.thumb || '')}'}else{this.remove()}">` : ''}</div>`;
-}
-function credit(media) {
-  if (!media || !media.url) return '';
-  const u = safeUrl(media.source_url);
-  return `<div class="sw-credit">Photo: ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(media.credit)}</a>` : esc(media.credit)} · ${esc(media.license)}</div>`;
-}
-const yearsFrom = (g) => { const base = new Date(g.mapped_at || Date.now()).getFullYear(); return g.horizon_low == null ? null : [base + g.horizon_low, base + (g.horizon_high ?? g.horizon_low)]; };
-
-function cardHtml(c, i) {
-  const g = c.g, h = `@${esc(g.handle)}`;
-  const rail = `<div class="sw-rail">
-    <a class="sw-av" href="#/g/${encodeURIComponent(g.slug)}" aria-label="Open @${esc(g.handle)}" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>
-    <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
-    ${c.post ? `<a class="sw-b" href="#/g/${encodeURIComponent(g.slug)}/posts" aria-label="Sources"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h10l4 4v12H5zM14 4v5h5"/></svg></a><span>${(c.post.sources || []).length} sources</span>` : ''}
-    <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
-  </div>`;
-  const chip = (kind, extra = '') => `<span class="sw-chip"><i style="background:${KIND_DOT[kind] || '#fff'}"></i>${esc(KIND_WORD[kind] || kind)} · ${h}${extra}</span>`;
-  let body = '';
-  if (c.type === 'hook') {
-    const y = yearsFrom(g), lo = g.horizon_low, hi = g.horizon_high;
-    body = `<div class="sw-text">
-      <span class="sw-chip"><i style="background:#fff"></i>Countdown · ${h}</span>
-      ${lo != null ? `<div class="sw-num mono">${lo === hi ? `~${lo}` : `${lo}–${hi}`}<small>years</small></div>` : ''}
-      <h2>${esc(g.name)}</h2>
-      ${g.tagline ? `<p>${esc(g.tagline)}</p>` : ''}
-      <div class="sw-meta">${y ? `<span>Around ${y[0]}–${y[1]}</span>` : ''}${g.papers_count ? `<span>Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
-      <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}">See where it stands →</a></div>`;
-  } else if (c.type === 'promise') {
-    const pr = c.promise, p = c.post;
-    const st = (p.meta && p.meta.status) || (pr && pr.status) || '';
-    body = `<div class="sw-text">${chip('promise')}
-      <div class="sw-flip" data-flip>
-        <div class="front"><div class="sw-num mono" style="color:#AEB4FF">${esc(p.meta?.made_year ?? '')}</div>
-          <h2>“${esc(pr?.claim || p.headline)}”</h2><p>Promised for ${esc(p.meta?.due_year ?? '')}. Quoted from a research paper.</p>
-          <button type="button" class="sw-cta" data-reveal>Did it happen? Tap to see</button></div>
-        <div class="back"><div class="sw-num mono" style="color:${st === 'kept' ? '#6EE7A8' : st === 'partly' ? '#F5C76B' : '#FF8A8A'}">${new Date().getFullYear()}</div>
-          <h2>${esc(PSTATUS[st] || 'Checked')}: ${esc(p.headline)}</h2>${p.body ? `<p>${esc(p.body)}</p>` : ''}
-          <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}/promises">Every promise for ${h} →</a></div>
-      </div></div>`;
-  } else if (c.type === 'guess') {
-    const y = yearsFrom(g), mine = myGuess.get(g.id), tot = deck.guesses[g.id];
-    const start = mine || (y ? Math.round((y[0] + y[1]) / 2) : 2050);
-    body = `<div class="sw-text" data-guess="${g.id}">
-      <span class="sw-chip"><i style="background:#F5C76B"></i>Your guess · ${h}</span>
-      <h2>When will this happen: ${esc(lowerFirst(g.name))}?</h2>
-      <div class="sw-num mono" data-gyear>${start}</div>
-      <input type="range" min="${new Date().getFullYear() + 1}" max="2125" value="${start}" data-gslider aria-label="Your guess, year">
-      <div class="sw-res${mine ? '' : ' hide'}" data-gres>${guessResult(g, mine, tot)}</div>
-      <button type="button" class="sw-cta${mine ? ' hide' : ''}" data-glock>Lock in my guess</button></div>`;
-  } else {
-    const p = c.post;
-    body = `<div class="sw-text">${chip(p.kind)}
-      <h2>${esc(p.headline)}</h2>${p.body ? `<p>${esc(firstSentenceOf(p.body))}</p>` : ''}
-      <div class="sw-meta">${(p.independent_sources || 0) >= 2 ? `<span>✓ ${p.independent_sources} independent sources</span>` : `<span>${(p.sources || []).length} sources</span>`}<span>${esc(whenAgo(p.created_at))}</span></div>
-      <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}${p.node_key ? `/tree/${encodeURIComponent(p.node_key)}` : ''}">Why it matters →</a></div>`;
-  }
-  const media = c.type === 'hook' || c.type === 'guess' ? g.media : (c.post && c.post.media && c.post.media.url ? c.post.media : g.media);
-  return `<section class="sw-card" data-i="${i}">${picture(media, g.slug + i)}<div class="sw-shade"></div>${body}${rail}${credit(media)}</section>`;
-}
 const lowerFirst = (t) => String(t || '').charAt(0).toLowerCase() + String(t || '').slice(1);
 const firstSentenceOf = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
-function guessResult(g, mine, tot) {
-  const y = yearsFrom(g);
-  return `<div><span>You</span><b class="mono">${mine ?? '—'}</b></div>
-    <div><span>Everyone${tot ? ` · ${tot.people} ${tot.people === 1 ? 'guess' : 'guesses'}` : ''}</span><b class="mono">${tot ? tot.median : '—'}</b></div>
-    <div class="pa"><span>Parallax, from the research</span><b class="mono">${y ? `${y[0]}–${y[1]}` : '—'}</b></div>`;
-}
-
-// Mix the goals so the same goal rarely shows twice in a row: each goal's countdown comes just
-// before its first post, and a guess appears every few cards.
-function buildDeck(list, posts, promises) {
-  const ready = list.filter((g) => g.status === 'ready');
-  const byGoal = new Map(ready.map((g) => [g.id, []]));
-  for (const p of posts) {
-    const q = byGoal.get(p.goal_id);
-    if (!q || p.kind === 'mapped') continue;
-    q.push(p.kind === 'promise' ? { type: 'promise', post: p, promise: promises[p.meta?.promise_id] } : { type: 'post', post: p });
-  }
-  const queues = ready.map((g) => ({ g, q: byGoal.get(g.id) })).filter((x) => x.q.length);
-  const seen = new Set(), out = [], guessFor = [...queues.map((x) => x.g)];
-  let sinceGuess = 0;
-  while (queues.some((x) => x.q.length)) {
-    for (const x of queues) {
-      if (!x.q.length) continue;
-      if (!seen.has(x.g.id)) { seen.add(x.g.id); out.push({ type: 'hook', g: x.g }); sinceGuess++; }
-      out.push({ ...x.q.shift(), g: x.g }); sinceGuess++;
-      if (sinceGuess >= 6 && guessFor.length) { const g = guessFor.shift(); if (out[out.length - 1].g.id !== g.id) { out.push({ type: 'guess', g }); sinceGuess = 0; } else guessFor.push(g); }
-    }
-  }
-  return out;
-}
-
-async function swipeView(tab) {
-  document.body.classList.add('swipe');
-  view.innerHTML = `<div class="sw-wrap"><div class="sw-top"><a href="#/following" class="${tab === 'following' ? 'on' : ''}">Following</a><a href="#/" class="${tab === 'all' ? 'on' : ''}">For you</a></div>
-    <div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div>
-    <div class="sw-nav"><button type="button" class="btn icon" data-swn="-1" aria-label="Previous">↑</button><button type="button" class="btn icon" data-swn="1" aria-label="Next">↓</button></div></div>`;
-  const box = $('#sw');
-  let list;
-  try { list = await goals(); } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
-  let ids = list.filter((g) => g.status === 'ready').map((g) => g.id);
-  if (tab === 'following') ids = list.filter((g) => follows.has(g.slug) && g.status === 'ready').map((g) => g.id);
-  if (!ids.length) {
-    box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>${tab === 'following' ? 'Follow a goal to fill this feed' : 'No goals mapped yet'}</h2><p>${tab === 'following' ? 'Swipe the For you feed and tap + on goals you care about.' : 'Search for any goal to map the first one.'}</p><a class="sw-go" href="#/">Go to For you →</a></div></section>`;
-    return;
-  }
-  try {
-    const [posts, proms, tots] = await Promise.all([
-      rest(`posts?select=${POST_COLS}&goal_id=in.(${ids.join(',')})&order=created_at.desc&limit=120`),
-      rest(`promises?goal_id=in.(${ids.join(',')})&select=id,claim,status,made_year,due_year&limit=500`).catch(() => []),
-      rest(`guess_totals?goal_id=in.(${ids.join(',')})`).catch(() => []),
-    ]);
-    deck.promises = Object.fromEntries(proms.map((p) => [p.id, p]));
-    deck.guesses = Object.fromEntries(tots.map((t) => [t.goal_id, t]));
-    deck.cards = buildDeck(list, posts, deck.promises);
-  } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
-  if (!box.isConnected) return;
-  box.innerHTML = deck.cards.map(cardHtml).join('') + `<section class="sw-card sw-end"><div class="sw-text"><h2>You’re all caught up.</h2><p>New research lands every day. Explore every goal, or search for one that’s missing.</p><a class="sw-go" href="#/explore">Explore goals →</a></div></section>`;
-  wireSwipe(box);
-}
-
-function wireSwipe(box) {
-  box.addEventListener('click', async (e) => {
-    const rev = e.target.closest('[data-reveal]');
-    if (rev) { rev.closest('[data-flip]').classList.add('flipped'); return; }
-    const lock = e.target.closest('[data-glock]');
-    if (lock) {
-      const wrap = lock.closest('[data-guess]'), id = Number(wrap.dataset.guess), yr = Number(wrap.querySelector('[data-gslider]').value);
-      lock.disabled = true;
-      const { data, error } = sb ? await sb.rpc('guess', { goal: id, yr, device: deviceId() }) : { error: { message: 'offline' } };
-      if (error) { lock.disabled = false; toast('Could not save your guess. Try again.'); return; }
-      myGuess.set(id, yr);
-      deck.guesses[id] = { people: data.people, median: data.median };
-      const g = deck.cards.find((c) => c.g.id === id).g;
-      wrap.querySelector('[data-gres]').innerHTML = guessResult(g, yr, deck.guesses[id]);
-      wrap.querySelector('[data-gres]').classList.remove('hide');
-      lock.classList.add('hide');
-    }
-  });
-  box.addEventListener('input', (e) => {
-    const s = e.target.closest('[data-gslider]');
-    if (s) s.closest('[data-guess]').querySelector('[data-gyear]').textContent = s.value;
-  });
-}
-document.addEventListener('click', (e) => {
-  const n = e.target.closest('[data-swn]');
-  if (!n) return;
-  const box = $('#sw');
-  if (box) box.scrollBy({ top: Number(n.dataset.swn) * box.clientHeight, behavior: REDUCED ? 'auto' : 'smooth' });
-});
 
 // ------------------------------------------------------------ post story (tap a post)
 // A post opens as a short story you scroll through, one screen at a time: what happened, why it
@@ -2780,7 +2741,7 @@ function route() {
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
-  document.body.classList.remove('goalpage', 'noscroll', 'swipe');
+  document.body.classList.remove('goalpage', 'noscroll', 'swipe', 'goalstory');
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
