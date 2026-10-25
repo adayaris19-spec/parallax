@@ -542,6 +542,21 @@ video.rl-media{width:100%;height:100%;object-fit:cover}
 .rl-dive{position:absolute;left:22px;right:22px;bottom:44px;z-index:3;height:50px;border-radius:999px;background:#fff;color:#0B0C14;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;text-decoration:none}
 .rl .sw-credit{bottom:16px;z-index:3}
 @media (prefers-reduced-motion:reduce){.rl-grad,.rl-scene.on .rl-img{animation:none}}
+
+/* reel layouts */
+.ly-center .rl-text{top:80px;bottom:300px;display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
+.ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
+.ly-center .rl-shade{background:rgba(5,6,11,.45)}
+.ly-top .rl-text{top:108px;bottom:auto}
+.ly-top .rl-shade{background:linear-gradient(180deg,rgba(5,6,11,.9) 0%,rgba(5,6,11,.55) 35%,rgba(5,6,11,0) 60%,rgba(5,6,11,.6) 100%)}
+.ly-number .rl-text{top:80px;bottom:290px;display:flex;flex-direction:column;justify-content:center;left:24px;right:24px}
+.ly-number .rl-stat{font-size:clamp(96px,30vw,150px)}
+.ly-number .rl-statl{font-size:17px}
+.ly-quote .rl-text{top:80px;bottom:300px;display:flex;flex-direction:column;justify-content:center;left:30px;right:30px}
+.ly-quote .rl-text h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-style:italic;font-size:clamp(28px,7.4vw,36px);line-height:1.25;letter-spacing:-.01em}
+.ly-quote .rl-text p{font-family:var(--m);font-size:13px;letter-spacing:.04em;color:rgba(255,255,255,.7)}
+.ly-quote .rl-shade{background:rgba(5,6,11,.55)}
+.rl-scene.has-visual .rl-grad{display:none}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -2703,35 +2718,51 @@ async function storyView(id) {
 const REEL_KIND = { intro: 'Meet the goal', breakthrough: 'Breakthrough', setback: 'Setback', promise: 'Promise vs reality', people: 'Who is working on it' };
 let watchState = { reels: [], timers: [], obs: null };
 
-// Music made in the browser (no licences needed): slow, soft chords that change every few seconds.
+// Music made in the browser (no licences needed). Each reel has a mood, and each goal its own key:
+// epic, uplifting, tense, bittersweet, mysterious or calm, each with its own chords, pace and sounds.
+const MOODS = {
+  epic:        { scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 5, 2, 6], bar: 4.8, pad: 'sawtooth', cut: 700, arp: 0, pulse: 2.4, bell: 0 },
+  uplifting:   { scale: [0, 2, 4, 5, 7, 9, 11], prog: [0, 4, 5, 3], bar: 3.4, pad: 'triangle', cut: 1600, arp: 8, pulse: 0, bell: 0 },
+  tense:       { scale: [0, 1, 3, 5, 6, 8, 10], prog: [0, 1, 0, 6], bar: 3.2, pad: 'sawtooth', cut: 520, arp: 0, pulse: 0.8, bell: 0 },
+  bittersweet: { scale: [0, 2, 3, 5, 7, 8, 10], prog: [5, 3, 0, 4], bar: 5.2, pad: 'triangle', cut: 1100, arp: 0, pulse: 0, bell: 3 },
+  mysterious:  { scale: [0, 2, 4, 6, 7, 9, 11], prog: [0, 1, 0, 6], bar: 6, pad: 'sine', cut: 2200, arp: 0, pulse: 0, bell: 2 },
+  calm:        { scale: [0, 2, 4, 5, 7, 9, 11], prog: [0, 3, 5, 4], bar: 6, pad: 'sine', cut: 1300, arp: 0, pulse: 0, bell: 1 },
+};
 const music = {
-  ctx: null, out: null, on: false, step: 0, timer: 0,
+  ctx: null, out: null, on: false, step: 0, timer: 0, mood: MOODS.calm, root: 110,
   get wanted() { try { return localStorage.getItem('px.sound') === '1'; } catch { return false; } },
   set wanted(v) { try { localStorage.setItem('px.sound', v ? '1' : '0'); } catch {} },
-  start(seed = 0) {
-    if (this.on) return;
+  start(seed = 0, mood = 'calm') {
+    this.stop(true);
     try {
       this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
       this.ctx.resume();
+      this.mood = MOODS[mood] || MOODS.calm;
+      this.root = 98 * Math.pow(2, (seed % 12) / 12); // each goal sits in its own key
       this.out = this.ctx.createGain(); this.out.gain.value = 0; this.out.connect(this.ctx.destination);
-      this.out.gain.linearRampToValueAtTime(0.16, this.ctx.currentTime + 2);
-      this.on = true; this.step = seed % 4; this.chord(); this.timer = setInterval(() => this.chord(), 5200);
+      this.out.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 1.5);
+      this.on = true; this.step = 0; this.bar(); this.timer = setInterval(() => this.bar(), this.mood.bar * 1000);
     } catch { /* no audio on this device */ }
   },
-  chord() {
-    const roots = [220, 196, 174.6, 196], root = roots[this.step++ % roots.length], t = this.ctx.currentTime;
-    for (const ratio of [1, 1.26, 1.5, 2]) {
-      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), f = this.ctx.createBiquadFilter();
-      o.type = ratio === 2 ? 'sine' : 'triangle'; o.frequency.value = root * ratio * (1 + (Math.random() - 0.5) * 0.004);
-      f.type = 'lowpass'; f.frequency.value = 900;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.09 / ratio, t + 1.6); g.gain.linearRampToValueAtTime(0, t + 6.5);
-      o.connect(f); f.connect(g); g.connect(this.out); o.start(t); o.stop(t + 6.6);
-    }
+  note(freq, t, len, type, vol, cut) {
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain(), f = this.ctx.createBiquadFilter();
+    o.type = type; o.frequency.value = freq * (1 + (Math.random() - 0.5) * 0.004);
+    f.type = 'lowpass'; f.frequency.value = cut;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(1.2, len * 0.3)); g.gain.exponentialRampToValueAtTime(0.0008, t + len);
+    o.connect(f); f.connect(g); g.connect(this.out); o.start(t); o.stop(t + len + 0.05);
   },
-  stop() {
+  pitch(degree, oct = 0) { const sc = this.mood.scale, n = sc.length; const st = sc[((degree % n) + n) % n] + 12 * (Math.floor(degree / n) + oct); return this.root * Math.pow(2, st / 12); },
+  bar() {
+    const m = this.mood, t = this.ctx.currentTime + 0.05, deg = m.prog[this.step++ % m.prog.length], len = m.bar + 1.2;
+    for (const [d, o, v] of [[deg, 0, 0.07], [deg + 2, 0, 0.05], [deg + 4, 0, 0.05], [deg, -1, 0.06]]) this.note(this.pitch(d, o), t, len, m.pad, v, m.cut);
+    if (m.arp) for (let i = 0; i < m.arp; i++) this.note(this.pitch(deg + [0, 2, 4, 7][i % 4], 1), t + i * m.bar / m.arp, 0.5, 'triangle', 0.035, 3000);
+    if (m.pulse) for (let x = 0; x < m.bar; x += m.pulse) this.note(this.root / 2, t + x, 0.6, 'sine', 0.12, 200);
+    for (let i = 0; i < m.bell; i++) this.note(this.pitch(deg + [4, 6, 2][i % 3], 2), t + (i + 0.5) * m.bar / (m.bell + 1), 2.4, 'sine', 0.025, 6000);
+  },
+  stop(quick) {
     if (!this.on) return;
     clearInterval(this.timer); this.on = false;
-    try { this.out.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4); } catch {}
+    try { this.out.gain.cancelScheduledValues(this.ctx.currentTime); this.out.gain.linearRampToValueAtTime(0, this.ctx.currentTime + (quick ? 0.15 : 0.4)); } catch {}
   },
 };
 
@@ -2756,10 +2787,10 @@ function sceneBg(s, seed, k) {
 function reelCard(r, g, i) {
   const scenes = r.scenes || [];
   return `<section class="sw-card rl" data-reel="${i}">
-    ${scenes.map((s, k) => `<div class="rl-scene${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
+    ${scenes.map((s, k) => { const ly = ['bottom', 'center', 'top', 'number', 'quote'].includes(s.layout) ? s.layout : (s.stat && !s.visual ? 'number' : 'bottom'); return `<div class="rl-scene ly-${ly}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
       <div class="rl-text">${s.stat ? `<div class="rl-stat mono" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{4,}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
-        <h2>${esc(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
-      ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`).join('')}
+        <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : esc(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
+      ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
       <div class="rl-who"><a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a><b>@${esc(g.handle)}</b><span>${esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
@@ -2831,7 +2862,7 @@ async function watchView() {
   const box = $('#sw');
   let list, reels;
   try {
-    [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score&order=created_at.desc&limit=200')]);
+    [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score,mood&order=created_at.desc&limit=200')]);
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
   const ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
@@ -2847,7 +2878,7 @@ async function watchView() {
         if (current !== i) { if (current >= 0) players[current].reset(); players[i].reset(); }
         current = i; players[i].play();
         const g = list.find((x) => x.id === ordered[i].goal_id);
-        if (music.wanted) { music.stop(); music.start(hue(g.slug)); }
+        if (music.wanted) music.start(hue(g.slug), ordered[i].mood || ({ setback: 'tense', promise: 'bittersweet', breakthrough: 'uplifting', intro: 'epic' }[ordered[i].kind]));
       } else if (i === current && e.intersectionRatio < 0.3) players[i].pause();
     }
   }, { root: box, threshold: [0, 0.3, 0.6, 1] });
@@ -2861,7 +2892,7 @@ async function watchView() {
     const snd = e.target.closest('[data-sound]');
     if (snd) {
       music.wanted = !music.wanted;
-      if (music.wanted) music.start(); else music.stop();
+      if (music.wanted) { const r = ordered[Number(card.dataset.reel)], g = list.find((x) => x.id === r.goal_id); music.start(hue(g.slug), r.mood || 'calm'); } else music.stop();
       box.querySelectorAll('[data-sound]').forEach((b) => { b.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; });
     }
   });

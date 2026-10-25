@@ -9,7 +9,7 @@
 //
 // Every 2 hours, one goal per call, header x-parallax-admin: <ADMIN_TOKEN>.
 //   POST {}  the goal whose reels are oldest (or missing) · POST {"slug": "mars"}  one goal now
-// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL.
+// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL. Optional: PEXELS_API_KEY.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
@@ -117,17 +117,46 @@ async function asBlock(u: string) {
   } catch { return null; }
 }
 
+
+// Pexels: free, high-quality stock videos and photos (Pexels License: free to use; we credit the
+// creator and Pexels). Used only when PEXELS_API_KEY is set.
+const PEXELS = Deno.env.get("PEXELS_API_KEY") ?? "";
+async function pexelsVideos(q: string): Promise<Cand[]> {
+  if (!PEXELS) return [];
+  const r = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&orientation=portrait&size=medium&per_page=6`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`pexels answered ${r.status}`);
+  const d = await r.json();
+  // deno-lint-ignore no-explicit-any
+  return (d.videos ?? []).map((v: any) => {
+    // deno-lint-ignore no-explicit-any
+    const files = (v.video_files ?? []).filter((f: any) => f.file_type === "video/mp4" && f.height >= 960 && f.height <= 1920 && f.width < f.height).sort((a: any, b: any) => a.height - b.height);
+    const f = files[0];
+    if (!f || !v.image || (v.duration ?? 0) < 5) return null;
+    return { kind: "video", url: f.link, poster: v.image, credit: `${String(v.user?.name ?? "Pexels creator").slice(0, 50)} via Pexels`, license: "Pexels License", source_url: v.url, source: "pexels" };
+  }).filter(Boolean).slice(0, 2);
+}
+async function pexelsPhotos(q: string): Promise<Cand[]> {
+  if (!PEXELS) return [];
+  const r = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&orientation=portrait&per_page=6`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`pexels answered ${r.status}`);
+  const d = await r.json();
+  // deno-lint-ignore no-explicit-any
+  return (d.photos ?? []).slice(0, 2).map((p: any) => ({ kind: "image", url: p.src?.large2x ?? p.src?.large, poster: p.src?.medium ?? p.src?.large, credit: `${String(p.photographer ?? "Pexels photographer").slice(0, 50)} via Pexels`, license: "Pexels License", source_url: p.url, source: "pexels" }));
+}
+
 const Scene = z.object({
   caption: z.string().describe("At most 10 words. Big text on screen. Plain, punchy, true."),
   sub: z.string().describe("Optional second line, at most 18 words. Empty if not needed."),
   stat_value: z.string().describe("Optional striking number from the facts, like 354 or 48% or 15-35. Empty if none."),
   stat_label: z.string().describe("What the number means, at most 6 words. Empty if no number."),
-  visual: z.string().describe("2-4 concrete words naming footage or a photo to show (a machine, place, test, mission). Empty for a text-only scene."),
+  visual: z.string().describe("3-6 words for cinematic footage or a photo to show behind this scene: a dramatic, wide or moody shot (a launch at night, Earth from orbit, the lunar horizon, a reactor glow, a vast landscape). Give one for almost every scene; leave empty only for a 'number' scene."),
+  layout: z.enum(["bottom", "center", "top", "number", "quote"]).describe("bottom: text low over the visual (default). center: one short bold statement in the middle. top: a headline at the top, visual below. number: a huge number fills the screen. quote: words someone wrote, in quote style. Vary layouts across the reel."),
 });
 const Plan = z.object({
   space: z.boolean().describe("True if the goal is about space, so NASA footage is the best source."),
   reels: z.array(z.object({
     kind: z.enum(["intro", "breakthrough", "setback", "promise", "people"]),
+    mood: z.enum(["epic", "uplifting", "tense", "bittersweet", "mysterious", "calm"]).describe("The feeling of this reel, for its music."),
     post_id: z.number().describe("The post this reel is about, or 0 for intro and people."),
     title: z.string().describe("At most 8 words."),
     strength: z.number().describe("1-10: how likely this reel is to make a stranger stop scrolling."),
@@ -136,7 +165,7 @@ const Plan = z.object({
 });
 const Verdict = z.object({ items: z.array(z.object({ id: z.string(), pick: z.number(), score: z.number() })) });
 
-async function run(slug?: string) {
+async function run(slug?: string, fresh = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
   const g = slug ? goals[0] : goals.find((x: { reels_at: string | null }) => !x.reels_at || Date.now() - new Date(x.reels_at).getTime() > 7 * DAY);
   if (!g) return { note: "every goal has fresh reels" };
@@ -164,7 +193,7 @@ Promises from older research: ${pc("kept")} kept, ${pc("partly")} partly kept, $
 Teams raising money: ${teams.filter((x: { teams: unknown }) => x.teams).map((x: { teams: { name: string }; node_title: string; plan: string }) => `${x.teams.name} on "${x.node_title}": ${x.plan}`).join(" | ") || "none yet"}
 POSTS (id, kind, text):
 ${posts.map((p: { id: number; kind: string; plain_headline: string | null; headline: string; plain_body: string | null; body: string | null; meta: { made_year?: number; due_year?: number; status?: string } | null }) => `[${p.id}] ${p.kind}${p.meta?.made_year ? ` (${p.meta.made_year} -> ${p.meta.due_year}, ${p.meta.status})` : ""}: ${p.plain_headline || p.headline}. ${p.plain_body || p.body || ""}`).join("\n")}
-Already made (skip these): ${[...done].join(", ") || "none"}`;
+Already made (skip these): ${fresh ? "none" : [...done].join(", ") || "none"}`;
 
   const plan = (await claude.beta.messages.stream({
     model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
@@ -175,22 +204,25 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
     messages: [{ role: "user", content: facts }],
   }).finalMessage()).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
-  const reels = plan.reels.filter((r) => !done.has(`${r.kind}:${r.post_id || 0}`) || r.kind === "intro").slice(0, 4);
+  const reels = plan.reels.filter((r) => fresh || !done.has(`${r.kind}:${r.post_id || 0}`) || r.kind === "intro").slice(0, 4);
+  if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
 
   // Visuals: find candidates for each scene that wants one, then let Claude keep only good ones.
   const wants: { r: number; s: number; q: string }[] = [];
-  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim()) wants.push({ r: ri, s: si, q: s.visual }); }));
+  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim() && s.layout !== "number") wants.push({ r: ri, s: si, q: s.visual }); }));
   const errors: string[] = [];
   const cands: Cand[][] = await Promise.all(wants.map(async (w) => {
     const list: Cand[] = [];
     const add = async (f: () => Promise<Cand[]>) => { try { list.push(...await f()); } catch (e) { errors.push(e instanceof Error ? e.message : String(e)); } };
-    if (plan.space) { await add(() => nasaVideos(w.q)); if (list.length < 2) await add(() => nasaImages(w.q)); }
-    if (!plan.space || list.length < 1) await add(() => commons(w.q));
-    return list.slice(0, 2);
+    await add(() => pexelsVideos(w.q));
+    if (plan.space) { await add(() => nasaVideos(w.q)); if (list.length < 3) await add(() => nasaImages(w.q)); }
+    if (list.length < 3) await add(() => pexelsPhotos(w.q));
+    if (list.length < 2) await add(() => commons(w.q));
+    return list.slice(0, 4);
   }));
   const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.poster)))));
   // deno-lint-ignore no-explicit-any
-  const content: any[] = [{ type: "text", text: "For each scene, pick the candidate that clearly and beautifully shows what the scene is about, as a full-screen vertical background. Reject (-1) anything blurry, off-topic, a chart or document, a logo, or misleading. Score 1-10." }];
+  const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Prefer video when it is as good. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
   wants.forEach((w, i) => {
     content.push({ type: "text", text: `\nScene ${i}: "${reels[w.r].scenes[w.s].caption}" (looking for: ${w.q})` });
     cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind})` }); content.push(blocks[i][k]); } });
@@ -211,7 +243,7 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   const visual: Record<string, Cand> = {};
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
-    const c = v && v.pick >= 0 && v.score >= 7 && blocks[i][v.pick] ? cands[i][v.pick] : null;
+    const c = v && v.pick >= 0 && v.score >= 8 && blocks[i][v.pick] ? cands[i][v.pick] : null;
     if (!c) continue;
     let url = c.url;
     if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
@@ -226,10 +258,11 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
       caption: s.caption.trim().slice(0, 120), sub: s.sub.trim().slice(0, 200) || null,
       stat: s.stat_value.trim() ? { value: s.stat_value.trim().slice(0, 16), label: s.stat_label.trim().slice(0, 60) } : null,
       visual: visual[`${ri}:${si}`] ?? null,
+      layout: s.layout,
     }));
     const postId = r.post_id && posts.some((p: { id: number }) => p.id === r.post_id) ? r.post_id : null;
     if (r.kind === "intro" || r.kind === "people") await db(`reels?goal_id=eq.${g.id}&kind=eq.${r.kind}`, { method: "DELETE", prefer: "return=minimal" });
-    await db("reels", { method: "POST", prefer: "return=minimal", body: { goal_id: g.id, post_id: r.kind === "intro" || r.kind === "people" ? null : postId, kind: r.kind, title: r.title.slice(0, 120), scenes, score: r.strength } }).catch((e) => errors.push(String(e).slice(0, 120)));
+    await db("reels", { method: "POST", prefer: "return=minimal", body: { goal_id: g.id, post_id: r.kind === "intro" || r.kind === "people" ? null : postId, kind: r.kind, title: r.title.slice(0, 120), scenes, score: r.strength, mood: r.mood } }).catch((e) => errors.push(String(e).slice(0, 120)));
     saved++;
   }
   await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: new Date().toISOString() } });
@@ -241,7 +274,7 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
-    return json(await run(body.slug));
+    return json(await run(body.slug, !!body.fresh));
   } catch (e) {
     console.error("reels failed:", e instanceof Error ? e.message : e);
     return json({ error: e instanceof Error ? e.message.slice(0, 200) : "failed" }, 500);
