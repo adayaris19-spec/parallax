@@ -231,6 +231,17 @@ Commons are searched. Pixabay files are copied into the public Storage bucket `r
 rules forbid hotlinking); Unsplash photos load from Unsplash with credit, as their rules require. A photo editor prompt scores every candidate and keeps only 8/10 or better.
 To redo a goal's reels: `POST /functions/v1/reels` with `{"slug":"<slug>","fresh":true}` and the admin header.
 
+## 17. What it would take (cost estimates)
+
+Run `schema-costs.sql` and deploy the `costs` function (Verify JWT on). Every hour it takes the next
+goal with problems lacking a recent estimate (monthly refresh), two chapters per call. For each
+problem Claude searches the web for real budgets, contracts and grants, then writes: the next concrete
+step and its cost range and time, what solving it for this goal would cost, who pays for it today,
+what the figures rest on, a confidence level, and up to 3 sources (only pages the search returned).
+Web search costs $10 per 1,000 searches; one goal is roughly 60 searches. The goal page shows the
+estimates in Right now, the problem panel, the research sheet, and a "What it would take" section.
+To redo a goal: `POST /functions/v1/costs` with `{"slug":"<slug>","fresh":true}` and the admin header.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the

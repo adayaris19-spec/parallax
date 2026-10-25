@@ -664,6 +664,38 @@ body.goalpage main{max-width:1120px}
   .mv{grid-template-columns:1fr;gap:18px}
 }
 
+/* what it would take */
+.wt{margin-top:18px;padding:16px 18px;border-radius:16px;background:var(--sunk)}
+.wt .kick{margin-bottom:10px}
+.wt-l{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.wt-next b{display:block;font-size:15.5px;line-height:1.4;font-weight:600}
+.wt-n{display:block;font-size:14px;margin-top:4px}
+.wt-solve{margin-top:12px}
+.wt-who{margin:12px 0 0;font-size:14px;line-height:1.45;color:var(--ink2)}
+.wt-how{margin-top:12px;font-size:13.5px}
+.wt-how summary{cursor:pointer;color:var(--muted)}
+.wt-how p{margin:8px 0 0;line-height:1.55;color:var(--ink2)}
+.wt-note{font-size:12.5px;color:var(--muted)!important}
+.conf.high{color:var(--solved)} .conf.medium{color:var(--progress)} .conf.low{color:var(--blocked)}
+.rn-cost{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--sunk);display:grid;grid-template-columns:1fr auto;gap:2px 16px;align-items:baseline;max-width:720px}
+.rn-cost .wt-l{grid-column:1/-1}
+.rn-cost b{font-size:15.5px;line-height:1.4}
+.rn-cost .mono{font-size:15px;font-weight:500;white-space:nowrap}
+.rn-cost small{grid-column:1/-1;color:var(--muted);font-size:13px;margin-top:6px}
+.fs-cost{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.fs-cost .kick{margin-bottom:6px}
+.fs-cost p{font-size:14px!important}
+.fs-cn{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+.fs-cn small{display:block;font-size:11.5px;color:var(--muted)}
+.fs-cn b{font-size:15px;font-weight:500}
+.take{margin-top:6px}
+.take-row{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;width:100%;padding:13px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.take-t b{display:block;font-size:15.5px;font-weight:500;line-height:1.35}
+.take-t small{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+.take-n{font-size:15px;font-weight:500;white-space:nowrap}
+.take-row:hover b{text-decoration:underline}
+@media (max-width:760px){.rn-cost{grid-template-columns:1fr}.rn-cost .mono{margin-top:4px}}
+
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
 .ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
@@ -1575,7 +1607,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null;
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {};
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1586,12 +1618,13 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`node_years?goal_id=eq.${g.id}&select=node_key,year,n`).catch(() => []),
       rest(`node_links?goal_id=eq.${g.id}&select=a,b,n`).catch(() => []),
       rest(`reels?goal_id=eq.${g.id}&select=kind,scenes&order=score.desc&limit=6`).catch(() => []),
-    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); return r; });
+      rest(`node_costs?goal_id=eq.${g.id}&select=node_key,next_step,next_low,next_high,next_time,solve_low,solve_high,funders,basis,confidence,sources`).catch(() => []),
+    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); return r; });
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab };
+  goalCtx = { g, leaves, branches, helpers, tab, costs };
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
   const lower = (t) => t ? t.charAt(0).toLowerCase() + t.slice(1).replace(/\.$/, '') : '';
@@ -1647,6 +1680,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const now = bn ? `<section class="rn"><div class="kick red">Right now</div>
       <h2>Everything waits on one problem: <a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc(lowerFirst(bn.title).replace(/\.$/, ''))}</a>.</h2>
       ${bn.blocker ? `<p>${esc(firstSentence(bn.blocker))}</p>` : ''}
+      ${costs[bn.key] ? `<div class="rn-cost"><span class="wt-l">Next step</span><b>${esc(costs[bn.key].next_step)}</b><span class="mono">${esc(usdRange(costs[bn.key].next_low, costs[bn.key].next_high))}${costs[bn.key].next_time ? ` · ${esc(costs[bn.key].next_time)}` : ''}</span>${costs[bn.key].funders ? `<small>Paid for today by ${esc(lowerFirst(costs[bn.key].funders))}</small>` : ''}</div>` : ''}
       <div class="rn-m">${bnListing
         ? `<div class="rn-money"><b>${esc(bnListing.teams.name)}</b> is raising money for it.<div class="rn-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span></div><div class="rn-act"><button class="btn primary" type="button" data-back="${bnListing.id}">Back it</button><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div>`
         : `<div class="rn-money muted">${teams.length ? `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money for other problems here${totalRaised ? ` (${money(totalRaised)} so far)` : ''}. Nobody is raising for this one yet.` : 'No team is raising money for this yet. Labs and researchers working on it can raise here.'}</div><div class="rn-act"><button class="btn primary" type="button" data-leaf="${esc(bn.key)}">The research</button><a class="btn" href="#/team">Raise money for it</a></div>`}</div></section>` : '';
@@ -1660,9 +1694,20 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     <div class="fx-list hide" id="fxList">${branches.map((b, i) => {
       const kids = leaves.filter((l) => l.parent_key === b.key);
       return `<section class="chap"><div class="chap-h"><span class="mono">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(firstSentence(b.why))}</p>` : ''}</div></div>
-        <div class="tiles">${kids.map((l) => { const f = fundState.perNode[l.key]; return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${f ? ` · ${money(f.raised_cents)}` : ''}</span></a>`; }).join('')}</div></section>`;
+        <div class="tiles">${kids.map((l) => { const f = fundState.perNode[l.key]; return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${costs[l.key]?.next_high ? ` · next step ${esc(usdRange(costs[l.key].next_low, costs[l.key].next_high))}` : ''}${f ? ` · ${money(f.raised_cents)} raised` : ''}</span></a>`; }).join('')}</div></section>`;
     }).join('')}</div>
     <div class="fx-legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span><span><i class="ring-l"></i>Biggest bottleneck</span></div></section>`;
+
+  // What it would take: the price of the next step on every problem, and where a little goes far.
+  const priced = leaves.filter((l) => costs[l.key] && l.status !== 'solved' && costs[l.key].next_high);
+  const sumOf = (f) => priced.reduce((a, l) => a + (costs[l.key][f] || 0), 0);
+  const cheap = [...priced].sort((a, b) => costs[a.key].next_high - costs[b.key].next_high).slice(0, 5);
+  const take = priced.length >= 3 ? `<section class="gs" id="take"><div class="kick">What it would take</div>
+      <h2 class="big">About ${esc(usdRange(sumOf('next_low'), sumOf('next_high')))} would fund the next step on ${priced.length === leaves.length ? 'every problem' : `${priced.length} of ${leaves.length} problems`}.</h2>
+      <p class="cap">Solving them all for this goal: roughly ${esc(usdRange(sumOf('solve_low'), sumOf('solve_high')))}. Every figure is a range built from public budgets and contracts, with its sources.</p>
+      <div class="kick" style="margin-top:26px">Where a little money goes far</div>
+      <div class="take">${cheap.map((l) => { const c = costs[l.key]; return `<button type="button" class="take-row" data-pick="${esc(l.key)}"><span class="take-t"><b>${esc(c.next_step)}</b><small>${esc(l.title)}</small></span><span class="take-n mono">${esc(usdRange(c.next_low, c.next_high))}</span></button>`; }).join('')}</div>
+    </section>` : '';
 
   // 3. Where the research is moving.
   const momRow = (l) => { const m = momOf(l.key); return `<button type="button" class="mom" data-pick="${esc(l.key)}"><span>${esc(l.title)}</span><b class="mono">×${m.toFixed(1)}</b></button>`; };
@@ -1710,7 +1755,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = now + field + moving + news + prom;
+    body = now + field + take + moving + news + prom;
   }
 
   document.body.classList.add('goalpage');
@@ -1792,6 +1837,7 @@ function fieldPanel(key) {
     <div class="fs-res"><div class="fs-rh"><span class="kick">Research per year</span><b class="mono ${word === 'Heating up' ? 'up' : word === 'Going quiet' ? 'down' : ''}">${word}${total >= 6 ? ` · ×${m.toFixed(1)}` : ''}</b></div>
       <div class="fs-cols" aria-hidden="true">${vals.map((v, i) => `<i style="height:${Math.max(3, v / vmax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div>
       <div class="fs-ax mono"><span>${years[0]}</span><span>${total.toLocaleString()} papers in the library</span><span>${years[years.length - 1]}</span></div></div>
+    ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : ''; })()}
     ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
     <div class="fs-money">${listing ? `<span><b>${esc(listing.teams.name)}</b> · <span class="mono">${money(raised)}${listing.target_cents ? ` of ${money(listing.target_cents)}` : ''}</span></span>` : '<span class="muted">No team raising money for this yet</span>'}</div>
     <div class="fs-act"><button class="btn primary" type="button" data-leaf="${esc(l.key)}">Open the research</button>${listing ? `<button class="btn" type="button" data-back="${listing.id}">Back it</button>` : ''}</div>`;
@@ -1847,6 +1893,7 @@ function openLeaf(key, push = true) {
     ${l.blocker ? `<div class="blk"><div class="kick">${l.status === 'solved' ? 'What was done' : 'What stands in the way'}${why ? ` · ${esc(why)}` : ''}</div><p>${esc(l.blocker)}</p></div>` : ''}
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
     <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
+    ${costBlock(goalCtx.costs?.[l.key], l)}
     ${fundBlock(g, l)}
   </aside>`;
   document.body.appendChild(back);
@@ -2622,6 +2669,28 @@ function raisedNote(key) {
   return f ? ` · ${money(f.raised_cents)} raised` : '';
 }
 
+// ------------------------------------------------------------ what it would take
+// Cost estimates per problem (Parallax's research with public figures). Always shown as ranges.
+const usdShort = (n) => n == null ? '?' : n >= 1e9 ? `$${+(n / 1e9).toFixed(n >= 1e10 ? 0 : 1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
+function usdRange(lo, hi) {
+  if (lo == null && hi == null) return '';
+  if (lo == null || hi == null || lo === hi) return usdShort(lo ?? hi);
+  const a = usdShort(lo), b = usdShort(hi), ua = a.slice(-1), ub = b.slice(-1);
+  return ua === ub && /[KMB]/.test(ua) ? `${a.slice(0, -1)}–${b.slice(1)}` : `${a}–${b}`;
+}
+const CONF = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' };
+function costBlock(c, l) {
+  if (!c) return '';
+  const src = (c.sources || []).map((x) => { const u = safeUrl(x.url); return u ? `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title || u)}</a></li>` : ''; }).join('');
+  return `<div class="wt"><div class="kick">What it would take</div>
+    <div class="wt-next"><span class="wt-l">Next step</span><b>${esc(c.next_step)}</b><span class="wt-n mono">${esc(usdRange(c.next_low, c.next_high))}${c.next_time ? ` · ${esc(c.next_time)}` : ''}</span></div>
+    ${l?.status !== 'solved' && (c.solve_low || c.solve_high) ? `<div class="wt-solve"><span class="wt-l">To solve it for this goal</span><span class="wt-n mono">${esc(usdRange(c.solve_low, c.solve_high))}</span></div>` : ''}
+    ${c.funders ? `<p class="wt-who"><span class="wt-l">Paid for today by</span>${esc(c.funders)}</p>` : ''}
+    <details class="wt-how"><summary>How we estimated this · <span class="conf ${esc(c.confidence || 'low')}">${esc(CONF[c.confidence] || 'Low confidence')}</span></summary>
+      ${c.basis ? `<p>${esc(c.basis)}</p>` : ''}${src ? `<ul class="srcs">${src}</ul>` : ''}
+      <p class="wt-note">Parallax estimate from public budgets and contracts, updated monthly. Treat it as a rough range, not a quote.</p></details></div>`;
+}
+
 function fundBlock(g, l) {
   if (l.status === 'solved') return '';
   const list = fundState.listings.filter((x) => x.node_key === l.key);
@@ -2784,7 +2853,7 @@ async function teamView(sub, rest_) {
 // ------------------------------------------------------------ full-screen views
 const KIND_WORD = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'The hardest part', forgotten: 'Old idea, back', promise: 'Then vs now', mapped: 'New goal' };
 const KIND_DOT = { advance: 'var(--solved)', solved: 'var(--solved)', setback: 'var(--blocked)', bottleneck: 'var(--progress)', forgotten: '#AEB4FF', promise: '#AEB4FF', mapped: '#fff' };
-const lowerFirst = (t) => String(t || '').charAt(0).toLowerCase() + String(t || '').slice(1);
+const lowerFirst = (t) => { const x = String(t || ''); return /^[A-Z][A-Z0-9]/.test(x) ? x : x.charAt(0).toLowerCase() + x.slice(1); }; // keeps acronyms like NASA
 const firstSentenceOf = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
 
 // ------------------------------------------------------------ post story (tap a post)
