@@ -274,7 +274,6 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 
 
 /* ---------- goal page: a story, one idea per section ---------- */
-body.goalpage main{max-width:780px}
 body.noscroll{overflow:hidden}
 .gh2{position:relative;isolation:isolate;overflow:hidden;border-radius:28px;margin-top:20px;padding:34px 34px 30px;min-height:min(72vh,620px);display:flex;flex-direction:column;justify-content:flex-end}
 .gh2 > canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
@@ -542,6 +541,128 @@ video.rl-media{width:100%;height:100%;object-fit:cover}
 .rl-dive{position:absolute;left:22px;right:22px;bottom:44px;z-index:3;height:50px;border-radius:999px;background:#fff;color:#0B0C14;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;text-decoration:none}
 .rl .sw-credit{bottom:16px;z-index:3}
 @media (prefers-reduced-motion:reduce){.rl-grad,.rl-scene.on .rl-img{animation:none}}
+
+/* ---------- goal page: the instrument ---------- */
+.gbody.narrow{max-width:780px;margin:0 auto}
+body.goalpage main{max-width:1120px}
+.gx{position:relative;isolation:isolate;overflow:hidden;border-radius:28px;margin-top:20px;background:#05060B;color:var(--ink)}
+.gx > canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.gx-bg{position:absolute;inset:0;z-index:-1}
+.gx-bg .sw-bg{position:absolute;inset:0}
+.gx-bg img,.gx-bg video{width:100%;height:100%;object-fit:cover;opacity:.5}
+.gx-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,6,11,.92) 0%,rgba(5,6,11,.6) 55%,rgba(5,6,11,.35) 100%),linear-gradient(0deg,rgba(5,6,11,.95) 0%,rgba(5,6,11,0) 55%)}
+.gx-in{padding:30px 36px 26px}
+.gx-who{display:flex;gap:12px;align-items:center}
+.gx-who .handle{font-weight:600;color:#fff}
+.gx-who .followers{color:var(--muted);font-size:13px}
+.gx h1{font-size:clamp(34px,5.4vw,58px);line-height:1.02;letter-spacing:-.045em;margin:26px 0 12px;color:#fff;max-width:16ch}
+.gx .sum{margin:0;color:var(--ink2);font-size:17px;line-height:1.5;max-width:52ch}
+.gx-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.gx .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#fff;gap:7px}
+.gx .btn.primary{background:#fff;color:#05060B;border-color:#fff}
+.gx .btn.following{background:rgba(143,150,255,.18);color:#fff;border-color:transparent}
+.ro{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:30px;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.08)}
+.ro-c{background:rgba(8,9,16,.82);padding:16px 18px 16px;display:flex;flex-direction:column;min-width:0}
+.ro-l{font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ro-c b{font-size:clamp(28px,3.4vw,38px);font-weight:500;letter-spacing:-.04em;line-height:1;color:#fff;margin-top:12px}
+.ro-c b em{font-style:normal;font-size:15px;color:var(--muted);letter-spacing:0}
+.ro-c small{font-size:12.5px;color:var(--muted);margin-top:8px}
+.ro-c small.up{color:var(--solved)} .ro-c small.down{color:var(--progress)}
+.ro-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.14);margin-top:12px;overflow:hidden}
+.ro-bar i{display:block;height:100%;background:#fff;border-radius:2px}
+.ro-cols{display:flex;align-items:flex-end;gap:2px;height:38px;margin-top:12px}
+.ro-cols i{flex:1;background:rgba(255,255,255,.28);border-radius:2px 2px 0 0}
+.ro-cols i.on{background:#fff}
+.ro-st{display:flex;gap:2px;height:4px;margin-top:12px}
+.ro-st i{display:block;height:100%;border-radius:2px}
+.ro-st .st-solved{background:var(--solved)} .ro-st .st-in_progress{background:var(--progress)} .ro-st .st-blocked{background:var(--blocked)} .ro-st .st-open{background:var(--open)}
+.gx-built{font-size:11.5px;color:var(--faint);margin-top:14px}
+
+.rn{margin-top:18px;padding:26px 28px;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.rn h2{font-size:clamp(24px,3.4vw,34px);line-height:1.15;letter-spacing:-.03em;margin:0 0 10px;max-width:30ch}
+.rn-t{cursor:pointer;color:var(--blocked);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;text-decoration-color:color-mix(in srgb,var(--blocked) 35%,transparent)}
+.rn-t:hover{text-decoration-color:var(--blocked)}
+.rn-t:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.rn p{margin:0;color:var(--ink2);font-size:16px;line-height:1.55;max-width:62ch}
+.rn-m{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.rn-money{font-size:14.5px;min-width:240px;flex:1}
+.rn-money .mono{font-size:13px;color:var(--muted)}
+.rn-money.muted,.muted{color:var(--muted)}
+.rn-bar{height:6px;border-radius:3px;background:var(--sunk);margin:10px 0 6px;max-width:360px;overflow:hidden}
+.rn-bar i{display:block;height:100%;background:var(--solved);border-radius:3px}
+.rn-act{display:flex;gap:8px;flex-wrap:wrap}
+
+.fx{padding:56px 0 8px}
+.fx-h{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.fx-h h2.big{max-width:26ch}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--sunk);flex:none}
+.seg button{border:0;background:transparent;height:32px;padding:0 14px;border-radius:999px;font:500 13.5px var(--f);color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.fx-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;margin-top:20px;align-items:start}
+.fx-map{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;min-height:300px}
+.fx-map svg{display:block}
+.fx-e path{fill:none;stroke:var(--ink);stroke-opacity:.07;stroke-width:1}
+.fx-e.on path{stroke:var(--accent);stroke-opacity:.55;stroke-linecap:round}
+.fx-n{cursor:pointer;outline:none}
+.fx-n .hit{fill:transparent}
+.fx-n .dotc{fill:var(--open);transition:opacity .2s;stroke:var(--card);stroke-width:1.5}
+.fx-n.st-solved .dotc{fill:var(--solved)} .fx-n.st-in_progress .dotc{fill:var(--progress)} .fx-n.st-blocked .dotc{fill:var(--blocked)}
+.fx-n .bring{fill:none;stroke:var(--blocked);stroke-width:2;stroke-dasharray:3 3}
+.fx-n.dim .dotc{opacity:.32}
+.fx-n.sel .dotc{stroke:var(--ink);stroke-width:3}
+.fx-n:hover .dotc,.fx-n:focus-visible .dotc{stroke:var(--ink);stroke-width:2}
+.fx-lab{position:absolute;text-align:center;padding:3px 0;background:color-mix(in srgb,var(--card) 88%,transparent);font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.3;pointer-events:none}
+.fx-sel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;position:sticky;top:116px}
+.fs-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fs-top .kick{margin:0 auto 0 0;width:100%}
+.fx-sel h3{font-size:22px;line-height:1.2;letter-spacing:-.02em;margin:10px 0 8px}
+.fx-sel p{margin:0;color:var(--ink2);font-size:15px;line-height:1.55}
+.fs-res{margin-top:18px}
+.fs-rh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.fs-rh .kick{margin:0}
+.fs-rh b{font-size:12.5px;font-weight:500}
+.fs-rh b.up{color:var(--solved)} .fs-rh b.down{color:var(--progress)}
+.fs-cols{display:flex;align-items:flex-end;gap:3px;height:64px;margin-top:10px;border-bottom:1px solid var(--line2)}
+.fs-cols i{flex:1;background:var(--line2);border-radius:2px 2px 0 0}
+.fs-cols i.on{background:var(--ink)}
+.fs-ax{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:5px}
+.fs-links{margin-top:16px}
+.fs-links .kick{margin-bottom:4px}
+.fs-links button{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;width:100%;padding:9px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;font:inherit;font-size:14px;line-height:1.35;color:var(--ink)}
+.fs-links button b{font-size:12px;font-weight:500;color:var(--accent)}
+.fs-links button:hover span{text-decoration:underline}
+.fs-money{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
+.fs-money .mono{font-size:13px}
+.fs-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.fx-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:12px}
+.fx-legend span{display:inline-flex;align-items:center;gap:6px}
+.ring-l{width:12px;height:12px;border-radius:50%;border:2px dashed var(--blocked);display:inline-block}
+.fx-list{margin-top:10px}
+
+.mv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;margin-top:20px}
+.mv-h{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.mv-h.up{color:var(--solved)} .mv-h.down{color:var(--progress)}
+.mom{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;width:100%;padding:11px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;font:inherit;font-size:15px;line-height:1.35;color:var(--ink)}
+.mom b{font-weight:500;font-size:13px;color:var(--muted)}
+.mom:hover span{text-decoration:underline}
+
+@media (max-width:900px){
+  .fx-grid{grid-template-columns:1fr}
+  .fx-sel{position:static}
+}
+@media (max-width:760px){
+  .gx{border-radius:22px}
+  .gx-in{padding:22px 18px 20px}
+  .gx h1{margin-top:20px}
+  .gx .sum{font-size:16px}
+  .ro{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:22px}
+  .ro-c{padding:14px}
+  .rn{padding:20px 18px;border-radius:20px}
+  .fx{padding-top:44px}
+  .fx-map{border-radius:18px;margin:0 -4px}
+  .fx-sel{padding:18px;border-radius:18px}
+  .mv{grid-template-columns:1fr;gap:18px}
+}
 
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
@@ -1428,7 +1549,7 @@ function leafStatusLabel(s) {
 }
 const BLOCK = { knowledge: 'we do not know how yet', materials: 'missing materials', instruments: 'missing instruments or tools', funding: 'missing funding', attention: 'few people are working on it', none: '' };
 
-async function goalView(slug, tab, focusKey) {
+async function goalView(slug, tab, focusKey, scrollField = false) {
   clearTimeout(pollTimer);
   view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
   let g;
@@ -1454,7 +1575,7 @@ async function goalView(slug, tab, focusKey) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [];
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null;
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1462,7 +1583,10 @@ async function goalView(slug, tab, focusKey) {
       rest(`promises?goal_id=eq.${g.id}&select=${PROMISE_COLS}&order=due_year.asc&limit=100`).catch(() => []),
       rest(`node_contributors?goal_id=eq.${g.id}&select=node_key,people`).catch(() => []),
       loadFunding(g),
-    ]);
+      rest(`node_years?goal_id=eq.${g.id}&select=node_key,year,n`).catch(() => []),
+      rest(`node_links?goal_id=eq.${g.id}&select=a,b,n`).catch(() => []),
+      rest(`reels?goal_id=eq.${g.id}&select=kind,scenes&order=score.desc&limit=6`).catch(() => []),
+    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); return r; });
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
@@ -1478,81 +1602,97 @@ async function goalView(slug, tab, focusKey) {
   const base = `#/g/${encodeURIComponent(g.slug)}`;
   const firstSentence = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
 
-  const hero = `<section class="gh2 space${tab === 'story' ? '' : ' compact'}"><canvas class="stars" aria-hidden="true"></canvas>
-      <div class="gh2-top">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
-      <h1>${esc(g.name)}</h1>
-      ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
-      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button>${g.papers_count ? `<span class="built mono">Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
-    </section>`;
-
-  const tabs = `<nav class="tabs gtabs" role="tablist">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', `Posts`, `${base}/posts`], ['promises', `Promises${promises.length ? ` · ${promises.length}` : ''}`, `${base}/promises`]]
-    .map(([id, label, href]) => `<a class="tab" role="tab" href="${href}" aria-selected="${tab === id}">${label}</a>`).join('')}</nav>`;
-
-  // A ring for progress: solved counts fully, in-progress counts half.
-  const R = 54, C = 2 * Math.PI * R;
-  const ring = `<svg class="ring" viewBox="0 0 128 128" role="img" aria-label="${pctN}% of the way"><circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--line2)" stroke-width="10"/>
-    <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--ink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 64 64)"/></svg>`;
-  const stand = `<section class="gs"><div class="kick">How close we are</div><h2 class="big">${pctN}% of the way there.${horizon ? `<span class="when2">About ${esc(horizon)} years to go.</span>` : ''}</h2>
-    <div class="standing"><div class="ringbox">${ring}<div class="rnum"><span data-count="${pctN}">${pctN}</span><small>%</small></div></div>
-      <div class="counts">${[['solved', solved, 'Solved'], ['in_progress', going, 'Moving'], ['blocked', blocked, 'Blocked'], ['open', openN, 'Barely started']].map(([k, n, label]) =>
-        `<div><b data-count="${n}">${n}</b><span><i class="dot st-${k}"></i>${label}</span></div>`).join('')}</div></div>
-    <p class="cap">${leaves.length} problems stand between us and this goal. <button class="linkish" type="button" data-how>How do we know?</button></p>
-    <p class="cap how hide">Progress counts solved problems, and half of those still in progress. The years are Parallax’s estimate at today’s pace${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></section>`;
-
-  const map = `<section class="gs"><div class="kick">The map</div><h2 class="big">Every problem, at a glance.</h2><p class="cap">Each dot is one problem. Tap one to see it.</p>
-    <div class="cmap space"><canvas class="stars" aria-hidden="true"></canvas>
-      <div class="cmap-h"><div class="legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span></div></div>
-      ${branches.map((b) => {
-        const kids = leaves.filter((l) => l.parent_key === b.key);
-        return `<div class="crow"><div class="bn">${esc(b.title)}<small>${kids.filter((k) => k.status === 'solved').length}/${kids.length} solved</small></div><div class="dots">${kids.map((l) =>
-          `<a class="cdot st-${esc(l.status || 'open')}${l.key === g.bottleneck_key ? ' bneck-dot' : ''}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" data-tip="${esc(l.title)}" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}"></a>`).join('')}</div></div>`;
-      }).join('')}</div></section>`;
-
   const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
   const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
   const bnListing = bn && fundState.listings.find((x) => x.node_key === bn.key);
-  const help = `<section class="help"><div class="kick">Help make this happen</div>
-    ${bn ? `<div class="help-bn"><span class="lbl2">The hardest part right now</span><h2>${esc(bn.title)}</h2><p>${esc(firstSentence(bn.blocker))}</p></div>` : ''}
-    <div class="help-row">
-      ${teams.length ? `<div class="help-money"><b class="mono">${totalRaised ? money(totalRaised) : teams.length}</b><span>${totalRaised ? `raised by ${teams.length} team${teams.length === 1 ? '' : 's'}` : `team${teams.length === 1 ? ' is' : 's are'} raising money`}</span></div>` : '<div class="help-money none"><span>No team is raising money for this goal yet.</span></div>'}
-      <div class="help-act">${bnListing ? `<button class="btn primary" type="button" data-back="${bnListing.id}">Back the hardest part</button>` : teams.length ? `<a class="btn primary" href="${base}/map">See where to back</a>` : ''}
-        ${bn ? `<button class="btn" type="button" data-leaf="${esc(bn.key)}">Explore it</button>` : ''}
-        ${teams.length ? '' : '<a class="btn" href="#/team">Raise money for your team</a>'}</div>
+  const bnRaised = (bnListing && fundState.perListing[bnListing.id]?.raised_cents) || 0;
+
+  // Research per problem per year, from Parallax's own library.
+  const yearNow = new Date().getFullYear(), Y1 = yearNow - 1; // last full year
+  const yrs = {};
+  for (const r of nodeYears) (yrs[r.node_key] ||= {})[r.year] = r.n;
+  const sumY = (k, a, b) => { let s = 0; for (let y = a; y <= b; y++) s += yrs[k]?.[y] || 0; return s; };
+  const recentOf = (k) => sumY(k, Y1 - 3, Y1), earlyOf = (k) => sumY(k, Y1 - 7, Y1 - 4);
+  const goalRatio = leaves.reduce((a, l) => a + recentOf(l.key), 0) / Math.max(1, leaves.reduce((a, l) => a + earlyOf(l.key), 0));
+  const momOf = (k) => (recentOf(k) + 1) / (earlyOf(k) + 1) / Math.max(0.2, goalRatio); // vs the goal as a whole
+  const momWord = (m) => (m >= 1.25 ? 'Heating up' : m <= 0.8 ? 'Going quiet' : 'Steady');
+  const withData = leaves.filter((l) => recentOf(l.key) + earlyOf(l.key) >= 6);
+  const byMom = [...withData].sort((a, b) => momOf(b.key) - momOf(a.key));
+  const hot = byMom.filter((l) => momOf(l.key) >= 1.25).slice(0, 4), cold = byMom.filter((l) => momOf(l.key) <= 0.8).reverse().slice(0, 4);
+  const libYears = Array.from({ length: 12 }, (_, i) => Y1 - 11 + i).map((y) => ({ y, n: leaves.reduce((a, l) => a + (yrs[l.key]?.[y] || 0), 0) }));
+  const libGrowth = Math.round((goalRatio - 1) * 100);
+  goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1 };
+
+  const ring = `<div class="ro-bar"><i style="width:${pctN}%"></i></div>`;
+  const ymax = Math.max(1, ...libYears.map((x) => x.n));
+  const hero = `<section class="gx space"><canvas class="stars" aria-hidden="true"></canvas>${(heroMedia || g.media)?.url ? `<div class="gx-bg">${bgMedia(heroMedia || g.media, g.slug)}</div>` : ''}
+    <div class="gx-in">
+      <div class="gx-who">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
+      <h1>${esc(g.name)}</h1>
+      ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
+      <div class="gx-act">${followBtn(g.slug)}<a class="btn" href="#/watch/${encodeURIComponent(g.slug)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Watch</a><button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
+      <div class="ro">
+        <div class="ro-c"><span class="ro-l">Progress</span><b class="mono"><span data-count="${pctN}">${pctN}</span>%</b>${ring}<small>${solved} of ${leaves.length} problems solved</small></div>
+        <div class="ro-c"><span class="ro-l">Time to go</span><b class="mono">${horizon ? esc(horizon) : '—'}<em> yrs</em></b><small>at today’s pace</small></div>
+        <div class="ro-c"><span class="ro-l">Research per year</span><div class="ro-cols" aria-hidden="true">${libYears.map((x, i) => `<i style="height:${Math.max(4, x.n / ymax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div><small class="${libGrowth >= 0 ? 'up' : 'down'}">${libGrowth >= 0 ? '▲' : '▼'} ${Math.abs(libGrowth)}% in 4 years</small></div>
+        <div class="ro-c"><span class="ro-l">Problems</span><b class="mono">${leaves.length}</b><div class="ro-st" aria-hidden="true">${[['solved', solved], ['in_progress', going], ['blocked', blocked], ['open', openN]].map(([k, n]) => (n ? `<i class="st-${k}" style="flex:${n}"></i>` : '')).join('')}</div><small>${going} moving · ${blocked} blocked</small></div>
+      </div>
+      ${g.papers_count ? `<div class="gx-built mono">Built on ${g.papers_count.toLocaleString()} papers · updated ${esc(whenAgo(g.pulsed_at || g.mapped_at))}</div>` : ''}
     </div></section>`;
 
-  // Real movement first; promise checks have their own section below.
-  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 4);
+  const tabs = `<nav class="tabs gtabs" role="tablist">${[['overview', 'Overview', base], ['posts', `Posts`, `${base}/posts`], ['promises', `Promises${promises.length ? ` · ${promises.length}` : ''}`, `${base}/promises`]]
+    .map(([id, label, href]) => `<a class="tab" role="tab" href="${href}" aria-selected="${tab === id}">${label}</a>`).join('')}</nav>`;
+
+  // 1. Right now: the one thing everything waits on, and the money for it.
+  const now = bn ? `<section class="rn"><div class="kick red">Right now</div>
+      <h2>Everything waits on one problem: <a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc(lowerFirst(bn.title).replace(/\.$/, ''))}</a>.</h2>
+      ${bn.blocker ? `<p>${esc(firstSentence(bn.blocker))}</p>` : ''}
+      <div class="rn-m">${bnListing
+        ? `<div class="rn-money"><b>${esc(bnListing.teams.name)}</b> is raising money for it.<div class="rn-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span></div><div class="rn-act"><button class="btn primary" type="button" data-back="${bnListing.id}">Back it</button><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div>`
+        : `<div class="rn-money muted">${teams.length ? `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money for other problems here${totalRaised ? ` (${money(totalRaised)} so far)` : ''}. Nobody is raising for this one yet.` : 'No team is raising money for this yet. Labs and researchers working on it can raise here.'}</div><div class="rn-act"><button class="btn primary" type="button" data-leaf="${esc(bn.key)}">The research</button><a class="btn" href="#/team">Raise money for it</a></div>`}</div></section>` : '';
+
+  // 2. The problem field: every problem, sized by recent research, linked by shared papers.
+  const field = `<section class="fx" id="field"><div class="fx-h"><div><div class="kick">The problem field</div>
+      <h2 class="big">${leaves.length} problems. ${hot.length ? `${hot.length} heating up` : 'None heating up'}${cold.length ? `, ${cold.length} going quiet` : ''}${blocked ? `, ${blocked} blocked` : ''}.</h2>
+      <p class="cap">Bigger dot = more research in the last 4 years. Lines = problems that share papers. Tap a dot.</p></div>
+      <div class="seg" role="tablist"><button type="button" class="on" data-fview="field">Field</button><button type="button" data-fview="list">List</button></div></div>
+    <div class="fx-grid"><div class="fx-map" id="fxMap"></div><aside class="fx-sel" id="fxSel" aria-live="polite"></aside></div>
+    <div class="fx-list hide" id="fxList">${branches.map((b, i) => {
+      const kids = leaves.filter((l) => l.parent_key === b.key);
+      return `<section class="chap"><div class="chap-h"><span class="mono">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(firstSentence(b.why))}</p>` : ''}</div></div>
+        <div class="tiles">${kids.map((l) => { const f = fundState.perNode[l.key]; return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${f ? ` · ${money(f.raised_cents)}` : ''}</span></a>`; }).join('')}</div></section>`;
+    }).join('')}</div>
+    <div class="fx-legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span><span><i class="ring-l"></i>Biggest bottleneck</span></div></section>`;
+
+  // 3. Where the research is moving.
+  const momRow = (l) => { const m = momOf(l.key); return `<button type="button" class="mom" data-pick="${esc(l.key)}"><span>${esc(l.title)}</span><b class="mono">×${m.toFixed(1)}</b></button>`; };
+  const moving = hot.length || cold.length ? `<section class="gs"><div class="kick">Where the research is moving</div>
+      <h2 class="big">${hot[0] ? `Fastest rising: ${esc(lowerFirst(hot[0].title).replace(/\.$/, ''))}.` : 'Research is spread evenly.'}</h2>
+      <div class="mv"><div><div class="mv-h up">Heating up</div>${hot.map(momRow).join('') || '<p class="cap">Nothing stands out.</p>'}</div>
+        <div><div class="mv-h down">Going quiet</div>${cold.map(momRow).join('') || '<p class="cap">Nothing stands out.</p>'}</div></div>
+      <p class="cap">Papers in ${Y1 - 3}–${Y1} compared with ${Y1 - 7}–${Y1 - 4}, relative to the goal as a whole (×1.0 = same pace as everything else).</p></section>` : '';
+
+  // 4. What changed lately, and promises.
+  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 5);
   const ups = posts.filter((p) => p.kind === 'advance' || p.kind === 'solved').length, downs = posts.filter((p) => p.kind === 'setback').length;
   const SIGN = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'Bottleneck', forgotten: 'Old idea', promise: 'Promise check', mapped: 'New' };
   const news = recent.length ? `<section class="gs"><div class="kick">What changed lately</div>
     <h2 class="big">${ups || downs ? `${ups} step${ups === 1 ? '' : 's'} forward, ${downs} setback${downs === 1 ? '' : 's'}.` : 'Here is the latest.'}</h2>
-    <div class="chg">${recent.map((p) => `<a class="chg-row" href="${base}/posts"><span class="sig ${esc(p.kind)}">${SIGN[p.kind] || esc(p.kind)}</span><b>${esc(p.headline)}</b><span class="t mono">${esc(whenAgo(p.created_at))}</span></a>`).join('')}</div>
+    <div class="chg">${recent.map((p) => `<a class="chg-row" href="#/p/${p.id}"><span class="sig ${esc(p.kind)}">${SIGN[p.kind] || esc(p.kind)}</span><b>${esc(p.headline)}</b><span class="t mono">${esc(whenAgo(p.created_at))}</span></a>`).join('')}</div>
     <a class="more" href="${base}/posts">All ${posts.length} posts →</a></section>` : '';
 
   const pc = (s) => promises.filter((p) => p.status === s).length;
   const checked = promises.filter((p) => !['pending', 'unclear'].includes(p.status)).sort((a, b) => b.due_year - a.due_year);
   const promRow = `gp-${g.id}`;
-  const prom = promises.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Promises</div><h2 class="big">What we were told, and what happened.</h2></div>
+  const prom = promises.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Promises</div><h2 class="big">${pc('broken') > pc('kept') ? `${pc('broken')} of ${checked.length} checked promises were broken.` : 'What we were told, and what happened.'}</h2></div>
       ${checked.length > 1 ? `<div class="arrows"><button class="btn icon sbtn" type="button" data-slide="${promRow}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${promRow}" data-dir="1" aria-label="Next">›</button></div>` : ''}</div>
     <div class="score">${[['kept', 'Kept'], ['partly', 'Partly kept'], ['broken', 'Broken'], ['pending', 'Not due yet']].map(([k, label]) => `<div class="sc ${k}"><b>${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
     ${checked.length ? `<div class="slides" id="${promRow}">${checked.map((p) => `<article class="pcard"><div class="yrs mono">${esc(p.made_year)} <span>→</span> ${esc(p.due_year)}</div><span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span><p>${esc(p.claim)}</p></article>`).join('')}</div>` : ''}
     <a class="more" href="${base}/promises">Every promise, with quotes and sources →</a></section>` : '';
 
   let body;
-  if (tab === 'map') {
-    body = `<p class="cap" style="margin-top:18px">${leaves.length} problems in ${branches.length} chapters. Tap one for the details, the research and who is working on it.</p>` +
-      branches.map((b, i) => {
-        const kids = leaves.filter((l) => l.parent_key === b.key);
-        const seg = ['solved', 'in_progress', 'blocked', 'open'].map((s) => { const n = kids.filter((k) => (k.status || 'open') === s).length; return n ? `<i class="st-${s}" style="flex:${n}"></i>` : ''; }).join('');
-        return `<section class="chap"><div class="chap-h"><span class="mono">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(firstSentence(b.why))}</p>` : ''}</div></div>
-          <div class="mini" aria-hidden="true">${seg}</div>
-          <div class="tiles">${kids.map((l) => {
-            const f = fundState.perNode[l.key];
-            return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b>
-              <span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${f ? ` · ${money(f.raised_cents)}` : ''}</span></a>`;
-          }).join('')}</div></section>`;
-      }).join('');
-  } else if (tab === 'promises') {
+  if (tab === 'promises') {
+
     const card = (p) => {
       const leaf = leaves.find((l) => l.key === p.node_key);
       const vs = (p.verdict_sources || []).slice(0, 3).map((s) => { const u = safeUrl(s.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}${s.year ? ` <span>(${esc(s.year)})</span>` : ''}</li>`; }).join('');
@@ -1570,97 +1710,117 @@ async function goalView(slug, tab, focusKey) {
   } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = help + stand + news + map + prom;
+    body = now + field + moving + news + prom;
   }
 
-  if (tab === 'story') {
-    const st = goalStory({ g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN });
-    document.body.classList.add('swipe', 'goalstory');
-    view.innerHTML = `<div class="sw-wrap"><div class="sw-bar"><a class="sw-x" href="#/" aria-label="Back to the feed">←</a><span class="sw-who">@${esc(g.handle)}</span>
-      <nav class="sw-tabs">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', 'Posts', `${base}/posts`], ['promises', 'Promises', `${base}/promises`]].map(([id, label, href]) => `<a href="${href}" class="${id === 'story' ? 'on' : ''}">${label}</a>`).join('')}</nav></div>
-      <div class="sw" id="sw">${st.html}</div></div>`;
-    refreshFollowers();
-    if (focusKey) openLeaf(focusKey, false);
-    return;
-  }
   document.body.classList.add('goalpage');
-  view.innerHTML = hero + tabs + `<div class="gbody">${body}</div>`;
+  view.innerHTML = hero + tabs + `<div class="gbody${tab === 'overview' ? '' : ' narrow'}">${body}</div>`;
   refreshFollowers();
+  if (tab === 'overview') { drawField(focusKey); fieldW = $('#fxMap')?.clientWidth || 0; if (scrollField) $('#field')?.scrollIntoView(); }
   if (focusKey) openLeaf(focusKey, false);
 }
 
-// The goal as full-screen sections you scroll through. The first screen is mission control:
-// everything that matters at a glance.
-function goalStory(c) {
-  const { g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN } = c;
-  const base = `#/g/${encodeURIComponent(g.slug)}`;
-  const seed = g.slug;
-  const fs1 = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
-  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
-  const bnListing = bn && fundState.listings.find((x) => x.node_key === bn.key);
-  const bnRaised = bn && fundState.perListing[bnListing?.id]?.raised_cents || 0;
-  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
-  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 4);
-  const ups = posts.filter((p) => p.kind === 'advance' || p.kind === 'solved').length, downs = posts.filter((p) => p.kind === 'setback').length;
-  const pc = (s) => promises.filter((p) => p.status === s).length;
-  const R = 38, C = 2 * Math.PI * R;
-  const ring = (size, stroke) => `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${pctN}% of the way"><circle cx="48" cy="48" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="${stroke}"/><circle cx="48" cy="48" r="${R}" fill="none" stroke="#fff" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 48 48)"/></svg>`;
-  const dots = leaves.map((l) => `<a class="gd st-${esc(l.status || 'open')}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" aria-label="${esc(l.title)}"></a>`).join('');
-
-  const s1 = `<section class="sw-card gs1">${bgMedia(g.media, seed)}<div class="sw-shade"></div>
-    <div class="mc">
-      <div class="mc-top"><span class="sw-chip"><i style="background:#fff"></i>@${esc(g.handle)}</span>${g.papers_count ? `<span class="mc-built mono">Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
-      <h1>${esc(g.name)}</h1>
-      ${g.tagline ? `<p class="mc-tag">${esc(g.tagline)}</p>` : ''}
-      <div class="mc-row"><div class="mc-ring">${ring(92, 9)}<b class="mono">${pctN}%</b></div>
-        <div>${horizon ? `<div class="mc-eta mono">${esc(horizon)} yrs</div><div class="mc-s">to go, at today’s pace</div>` : ''}${ups || downs ? `<div class="mc-s" style="color:#6EE7A8;margin-top:6px">▲ ${ups} step${ups === 1 ? '' : 's'} forward · ${downs} setback${downs === 1 ? '' : 's'}</div>` : ''}</div></div>
-      ${bn ? `<div class="mc-hard"><span>The hardest part</span><b>${esc(bn.title)}</b>
-        ${bnListing ? `<div class="mc-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><div class="mc-money"><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span><button type="button" class="sw-cta sm" data-back="${bnListing.id}">Back it</button></div>`
-          : `<div class="mc-money"><span>No team raising yet</span><button type="button" class="sw-cta sm ghost" data-leaf="${esc(bn.key)}">Explore it</button></div>`}</div>` : ''}
-      <div class="mc-dots">${dots}</div>
-      <div class="sw-hint">Scroll ↓</div>
-    </div>
-    ${g.media && g.media.url ? `<div class="sw-credit">${g.media.kind === 'video' ? 'Video' : 'Photo'}: ${esc(g.media.credit)} · ${esc(g.media.license)}</div>` : ''}</section>`;
-
-  const s2 = bn ? `<section class="sw-card">${bgMedia(null, seed + 'b')}<div class="sw-shade"></div><div class="sw-text">
-      <span class="sw-chip"><i style="background:var(--blocked)"></i>The hardest part</span>
-      <h2 style="font-size:clamp(28px,7vw,40px)">${esc(bn.title)}</h2>
-      ${bn.why ? `<p class="lg">${esc(bn.why)}</p>` : ''}${bn.blocker ? `<p>${esc(fs1(bn.blocker))}</p>` : ''}
-      <div class="sw-acts"><button type="button" class="sw-cta" data-leaf="${esc(bn.key)}">See the research</button></div></div></section>` : '';
-
-  const s3 = `<section class="sw-card">${bgMedia(null, seed + 'm')}<div class="sw-shade"></div><div class="sw-text">
-      <span class="sw-chip"><i style="background:#6EE7A8"></i>Back the work</span>
-      ${bnListing ? `<h2>${esc(bnListing.teams.name)} is working on the hardest part.</h2>
-        <div class="bk"><b>${esc(bnListing.plan)}</b>${bnListing.target_cents ? `<div class="mc-bar"><i style="width:${Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1)}%"></i></div><div class="mono" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,.75)">${money(bnRaised)} of ${money(bnListing.target_cents)}</div>` : ''}</div>
-        <div class="sw-acts"><button type="button" class="sw-cta" data-back="${bnListing.id}">Back with $25</button><a class="sw-cta ghost" href="${base}/map">Other problems</a></div>
-        <p style="font-size:13px">95% goes to the team. 5% keeps Parallax running.</p>`
-      : teams.length ? `<h2>${totalRaised ? `${money(totalRaised)} raised so far.` : `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money.`}</h2><p>${teams.map((t) => esc(t.name)).join(', ')}. 95% of every backing goes to the team.</p><div class="sw-acts"><a class="sw-cta" href="${base}/map">See where to back</a></div>`
-      : `<h2>No team is raising money for this goal yet.</h2><p class="lg">Labs, nonprofits and researchers working on one of these ${leaves.length} problems can raise money here. Backers fund them directly, and see exactly what their money does.</p>
-        <div class="sw-acts"><a class="sw-cta" href="#/team">Raise money for your team</a><button type="button" class="sw-cta ghost" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow to hear first'}</button></div>`}
-    </div></section>`;
-
-  const s4 = recent.length ? `<section class="sw-card">${bgMedia(null, seed + 'c')}<div class="sw-shade"></div><div class="sw-text">
-      <span class="sw-chip"><i style="background:#AEB4FF"></i>What changed lately</span>
-      <h2>${ups || downs ? `${ups} step${ups === 1 ? '' : 's'} forward, ${downs} setback${downs === 1 ? '' : 's'}.` : 'The latest.'}</h2>
-      <div class="sw-src">${recent.map((p) => `<a class="sw-s" href="#/p/${p.id}"><span style="margin:0 0 4px">${esc(KIND_WORD[p.kind] || p.kind)} · ${esc(whenAgo(p.created_at))}</span><b>${esc(p.headline)}</b></a>`).join('')}</div>
-      <a class="sw-go" href="${base}/posts">All ${posts.length} posts →</a></div></section>` : '';
-
-  const s5 = promises.length ? `<section class="sw-card">${bgMedia(null, seed + 'p')}<div class="sw-shade"></div><div class="sw-text">
-      <span class="sw-chip"><i style="background:#F5C76B"></i>Promises</span>
-      <h2>What we were told, and what happened.</h2>
-      <div class="pscore">${[['kept', 'Kept', '#6EE7A8'], ['partly', 'Partly kept', '#F5C76B'], ['broken', 'Broken', '#FF8A8A'], ['pending', 'Not due yet', '#fff']].map(([k, label, col]) => `<div><b class="mono" style="color:${col}">${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
-      <a class="sw-go" href="${base}/promises">Every promise, with quotes and sources →</a></div></section>` : '';
-
-  const s6 = `<section class="sw-card">${bgMedia(null, seed + 'e')}<div class="sw-shade"></div><div class="sw-text">
-      <span class="sw-chip"><i style="background:#fff"></i>Explore</span>
-      <h2>Every problem, at a glance.</h2>
-      <p>${leaves.length} problems in ${branches.length} chapters: ${solved} solved, ${going} moving, ${blocked} blocked, ${openN} barely started. Tap a dot.</p>
-      <div class="mc-dots big">${dots}</div>
-      <div class="sw-acts"><a class="sw-cta" href="${base}/map">Open the map</a><a class="sw-cta ghost" href="${base}/posts">Posts</a><a class="sw-cta ghost" href="${base}/promises">Promises</a></div></div></section>`;
-
-  const screens = [s1, s2, s3, s4, s5, s6].filter(Boolean);
-  return { html: screens.join(''), count: screens.length };
+// The header shows the goal's best visual from its videos (already judged for beauty): a photo
+// first, since it loads fast; footage if there is no photo.
+function pickHero(reels) {
+  const vis = [...reels].sort((a, b) => (a.kind === 'intro' ? -1 : b.kind === 'intro' ? 1 : 0)).flatMap((r) => (r.scenes || []).map((s) => s.visual).filter((v) => v?.url));
+  return vis.find((v) => v.kind === 'image') || vis[0] || null;
 }
+
+// ------------------------------------------------------------ problem field
+// Each chapter is a cluster; each problem a dot sized by research in the last 4 years and coloured
+// by status. Lines join problems that share papers. Drawn at real pixel size so labels stay legible.
+function drawField(selKey) {
+  const box = $('#fxMap'); if (!box || !goalCtx?.field) return;
+  const { g, leaves, branches } = goalCtx, F = goalCtx.field;
+  const W = box.clientWidth, cols = W < 560 ? 2 : 3, rows = Math.ceil(branches.length / cols);
+  const cw = W / cols, ch = W < 560 ? 186 : 214, H = rows * ch;
+  const maxR = Math.max(1, ...leaves.map((l) => F.recentOf(l.key)));
+  const pos = {};
+  branches.forEach((b, i) => {
+    const kids = leaves.filter((l) => l.parent_key === b.key);
+    const c = i % cols, r = Math.floor(i / cols);
+    const cx = cw * c + cw / 2, cy = ch * r + ch / 2 - 22, rad = Math.min(cw, ch) * (kids.length > 5 ? 0.27 : 0.23);
+    kids.forEach((l, j) => {
+      const a = -Math.PI / 2 + (j * 2 * Math.PI) / kids.length;
+      pos[l.key] = kids.length === 1 ? [cx, cy] : [cx + Math.cos(a) * rad, cy + Math.sin(a) * rad * 0.82];
+    });
+    b._lab = [cx, ch * r + ch - 40, cw - 16];
+  });
+  const sel = selKey || goalCtx.fieldSel || g.bottleneck_key || leaves[0]?.key;
+  goalCtx.fieldSel = sel;
+  const links = F.links.filter((e) => pos[e.a] && pos[e.b]);
+  const top = [...links].sort((a, b) => b.n - a.n).slice(0, 40);
+  const mine = links.filter((e) => e.a === sel || e.b === sel).sort((a, b) => b.n - a.n).slice(0, 8);
+  const near = new Set(mine.flatMap((e) => [e.a, e.b]));
+  const maxN = Math.max(1, ...links.map((e) => e.n));
+  const curve = (e) => { const [x1, y1] = pos[e.a], [x2, y2] = pos[e.b]; const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - Math.abs(x2 - x1) * 0.12; return `M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`; };
+  const scale = W < 560 ? 0.8 : 1;
+  box.style.height = `${H}px`;
+  box.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Map of ${leaves.length} problems">
+    <g class="fx-e">${top.filter((e) => !(e.a === sel || e.b === sel)).map((e) => `<path d="${curve(e)}"/>`).join('')}</g>
+    <g class="fx-e on">${mine.map((e) => `<path d="${curve(e)}" style="stroke-width:${(1 + 4 * e.n / maxN).toFixed(1)}"/>`).join('')}</g>
+    ${leaves.filter((l) => pos[l.key]).map((l) => {
+      const [x, y] = pos[l.key], d = (12 + 26 * Math.sqrt(F.recentOf(l.key) / maxR)) * scale, on = l.key === sel;
+      const dim = sel && !on && !near.has(l.key);
+      return `<g class="fx-n st-${esc(l.status || 'open')}${on ? ' sel' : ''}${dim ? ' dim' : ''}${l.key === g.bottleneck_key ? ' bn' : ''}" data-pick="${esc(l.key)}" tabindex="0" role="button" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}">
+        <circle class="hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${Math.max(d / 2 + 4, 15)}"/>
+        ${l.key === g.bottleneck_key ? `<circle class="bring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(d / 2 + 5).toFixed(1)}"/>` : ''}
+        <circle class="dotc" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(d / 2).toFixed(1)}"/></g>`;
+    }).join('')}</svg>
+    ${branches.map((b) => `<div class="fx-lab" style="left:${(b._lab[0] - b._lab[2] / 2).toFixed(0)}px;top:${b._lab[1].toFixed(0)}px;width:${b._lab[2].toFixed(0)}px">${esc(b.title)}</div>`).join('')}`;
+  fieldPanel(sel);
+}
+
+function fieldPanel(key) {
+  const box = $('#fxSel'); if (!box) return;
+  const { g, leaves, branches } = goalCtx, F = goalCtx.field;
+  const l = leaves.find((x) => x.key === key); if (!l) return;
+  const b = branches.find((x) => x.key === l.parent_key);
+  const years = Array.from({ length: 12 }, (_, i) => F.Y1 - 11 + i);
+  const vals = years.map((y) => F.yrs[l.key]?.[y] || 0), vmax = Math.max(1, ...vals);
+  const total = Object.values(F.yrs[l.key] || {}).reduce((a, n) => a + n, 0);
+  const m = F.momOf(l.key), word = F.momWord(m);
+  const linked = F.links.filter((e) => e.a === key || e.b === key).sort((a, c) => c.n - a.n).slice(0, 3)
+    .map((e) => ({ k: e.a === key ? e.b : e.a, n: e.n })).map((x) => ({ ...x, l: leaves.find((y) => y.key === x.k) })).filter((x) => x.l);
+  const listing = fundState.listings.find((x) => x.node_key === key);
+  const raised = fundState.perNode[key]?.raised_cents || 0;
+  const text = l.status === 'solved' ? l.blocker || l.why : l.blocker ? firstSentenceOf(l.blocker) : l.why;
+  box.innerHTML = `<div class="fs-top">${b ? `<span class="kick">${esc(b.title)}</span>` : ''}<span class="chip2"><i class="dot st-${esc(l.status || 'open')}"></i>${esc(leafStatusLabel(l.status))}</span>${l.key === g.bottleneck_key ? '<span class="chip2 red">Biggest bottleneck</span>' : ''}</div>
+    <h3>${esc(l.title)}</h3>
+    ${text ? `<p>${esc(text)}</p>` : ''}
+    <div class="fs-res"><div class="fs-rh"><span class="kick">Research per year</span><b class="mono ${word === 'Heating up' ? 'up' : word === 'Going quiet' ? 'down' : ''}">${word}${total >= 6 ? ` · ×${m.toFixed(1)}` : ''}</b></div>
+      <div class="fs-cols" aria-hidden="true">${vals.map((v, i) => `<i style="height:${Math.max(3, v / vmax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div>
+      <div class="fs-ax mono"><span>${years[0]}</span><span>${total.toLocaleString()} papers in the library</span><span>${years[years.length - 1]}</span></div></div>
+    ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
+    <div class="fs-money">${listing ? `<span><b>${esc(listing.teams.name)}</b> · <span class="mono">${money(raised)}${listing.target_cents ? ` of ${money(listing.target_cents)}` : ''}</span></span>` : '<span class="muted">No team raising money for this yet</span>'}</div>
+    <div class="fs-act"><button class="btn primary" type="button" data-leaf="${esc(l.key)}">Open the research</button>${listing ? `<button class="btn" type="button" data-back="${listing.id}">Back it</button>` : ''}</div>`;
+}
+
+document.addEventListener('click', (e) => {
+  const p = e.target.closest('[data-pick]');
+  if (p && goalCtx?.field) {
+    e.preventDefault();
+    drawField(p.dataset.pick);
+    const map = $('#field');
+    if (map && !p.closest('#field')) map.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else if (window.innerWidth < 900 && !p.closest('#fxSel')) $('#fxSel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  const v = e.target.closest('[data-fview]');
+  if (v) {
+    v.parentElement.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === v));
+    const list = v.dataset.fview === 'list';
+    $('#fxList')?.classList.toggle('hide', !list);
+    document.querySelector('.fx-grid')?.classList.toggle('hide', list);
+  }
+});
+document.addEventListener('keydown', (e) => {
+  const p = e.target.closest?.('.fx-n[data-pick]');
+  if (p && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); drawField(p.dataset.pick); }
+});
+let fieldW = 0;
+window.addEventListener('resize', () => { const box = $('#fxMap'); if (box && box.clientWidth !== fieldW) { fieldW = box.clientWidth; drawField(); } });
 
 // ------------------------------------------------------------ problem sheet
 // A problem opens in a side panel (a bottom sheet on phones) instead of a long expanding list.
@@ -1695,7 +1855,7 @@ function openLeaf(key, push = true) {
     back.classList.add('out');
     setTimeout(() => back.remove(), 180);
     document.body.classList.remove('noscroll');
-    const tabPath = goalCtx.tab === 'story' ? '' : `/${goalCtx.tab}`;
+    const tabPath = goalCtx.tab === 'overview' ? '' : `/${goalCtx.tab}`;
     history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(g.slug)}${tabPath}`);
     document.removeEventListener('keydown', onKey);
   };
@@ -2859,7 +3019,7 @@ function reelPlayer(card) {
   };
 }
 
-async function watchView() {
+async function watchView(slug) {
   document.body.classList.add('swipe');
   view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
@@ -2869,6 +3029,8 @@ async function watchView() {
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
   const ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
+  const want = slug && list.find((g) => g.slug === slug);
+  if (want) { const mine = ordered.filter((r) => r.goal_id === want.id); ordered.splice(0, ordered.length, ...mine, ...ordered.filter((r) => r.goal_id !== want.id)); }
   if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>Videos are on their way.</h2><p>Parallax is making short videos for every goal. Check back soon.</p><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
   watchState.reels = ordered;
   box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i)).join('');
@@ -2982,7 +3144,7 @@ function route() {
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
-  document.body.classList.remove('goalpage', 'noscroll', 'swipe', 'goalstory');
+  document.body.classList.remove('goalpage', 'noscroll', 'swipe');
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
@@ -2995,11 +3157,11 @@ function route() {
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
-  if (parts[0] === 'watch') return watchView();
+  if (parts[0] === 'watch') return watchView(parts[1]);
   if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
-  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { tree: 'map', map: 'map', posts: 'posts', promises: 'promises' }[parts[2]] || 'story', parts[2] === 'tree' ? parts[3] : undefined);
+  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { posts: 'posts', promises: 'promises' }[parts[2]] || 'overview', parts[2] === 'tree' ? parts[3] : undefined, parts[2] === 'map');
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
