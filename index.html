@@ -45,8 +45,9 @@ button{font:inherit;color:inherit}
 .navlink:hover{color:var(--ink)}
 
 main{max-width:680px;margin:0 auto;padding:0 16px 80px}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
-.tab{appearance:none;border:0;background:none;padding:14px 12px 12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;text-decoration:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;flex:none;appearance:none;border:0;background:none;padding:14px 12px 12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;text-decoration:none}
 .tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
 
 /* posts */
@@ -179,6 +180,7 @@ details.leaf.target summary{background:var(--accent-soft)}
   .navlink.x{display:none}
   .brand-word{display:none}
   .check{flex-basis:100%}
+  .tab{padding:14px 9px 12px;font-size:14.5px}
   .goal-h h1{font-size:21px}
   .stats{grid-template-columns:1fr}
 }
@@ -350,6 +352,7 @@ function toggleMenu(force) {
   const h = me.profile ? me.profile.handle : '';
   m.innerHTML = `<div class="who2">Signed in as <b>@${esc(h)}</b></div>
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
+    <a href="#/branch" role="menuitem">Your branch</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
@@ -522,6 +525,7 @@ async function feedView(tab) {
   view.innerHTML = `<nav class="tabs" role="tablist">
       <a class="tab" role="tab" href="#/" aria-selected="${tab === 'all'}">Everything</a>
       <a class="tab" role="tab" href="#/following" aria-selected="${tab === 'following'}">Following</a>
+      <a class="tab" role="tab" href="#/branch" aria-selected="false">Your branch</a>
       <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a>
     </nav><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
@@ -828,7 +832,7 @@ async function profileView(handle) {
       ${p.bio ? `<p class="sum">${esc(p.bio)}</p>` : ''}
       ${(p.skills || []).length ? `<div class="chips">${p.skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="followers">Joined ${esc(joined)}</div>
-      <div class="act">${own ? '<a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
+      <div class="act">${own ? '<a class="btn primary" href="#/branch">Your branch</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
     </div></div>
     <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
     ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
@@ -891,6 +895,65 @@ async function settingsView(welcome) {
   };
 }
 
+function branchCard(it) {
+  const g = it.goal;
+  const papers = (it.papers || []).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)}${e.first_author ? `, ${esc(e.first_author)}` : ''})</span>` : ''}</li>`; }).join('');
+  return `<article class="post">
+    <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div></div>
+    <span class="kind advance">Fits your skill: ${esc(it.skill_used)}</span>
+    <h3><i class="dot st-${esc(it.node.status || 'open')}" style="display:inline-block;margin:0 8px 1px 0;vertical-align:middle"></i>${esc(it.node.title)}</h3>
+    <p><b>Why you:</b> ${esc(it.why_you)}</p>
+    <p><b>A first step:</b> ${esc(it.first_step)}</p>
+    ${papers ? `<ul class="srcs">${papers}</ul>` : ''}
+    <div class="post-f"><span class="check"></span><a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(it.node.key)}">See the problem</a>${followBtn(g.slug)}</div>
+  </article>`;
+}
+
+async function branchView(refresh = false) {
+  const tabs = `<nav class="tabs" role="tablist">
+      <a class="tab" role="tab" href="#/" aria-selected="false">Everything</a>
+      <a class="tab" role="tab" href="#/following" aria-selected="false">Following</a>
+      <a class="tab" role="tab" href="#/branch" aria-selected="true">Your branch</a>
+      <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a></nav>`;
+  view.innerHTML = tabs + `<div id="br"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
+  await authReady;
+  const box = $('#br');
+  if (!box) return;
+  if (!sb || !me) {
+    box.innerHTML = note('Find where you can help', 'Sign in and tell Parallax what you are good at. It will find the problems, across every goal, where someone like you can make a difference.', '<p><button class="btn primary" type="button" id="brIn">Sign in</button></p>');
+    $('#brIn').onclick = () => openSignIn('Sign in to find the problems where your skills can help.');
+    return;
+  }
+  const skills = (me.profile && me.profile.skills) || [];
+  if (!skills.length) {
+    box.innerHTML = note('Add what you can help with', 'Parallax matches your skills to the problems that need them. Add a few, like nursing, coding, statistics or Spanish.', '<p><a class="btn primary" href="#/settings">Add your skills</a></p>');
+    return;
+  }
+  box.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span><h2 style="margin-top:12px">Finding where your skills fit</h2><div>Parallax is reading every open problem across every goal. This takes about 20 seconds.</div></div>`;
+  let data = {};
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const r = await fetch(`${SUPA_URL}/functions/v1/branch`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session ? session.access_token : SUPA_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(refresh ? { refresh: true } : {}),
+    });
+    data = await r.json().catch(() => ({ error: `Parallax answered ${r.status}` }));
+  } catch (e) { data = { error: e.message }; }
+  if (!$('#br')) return;
+  if (data.needs === 'skills') { location.hash = '#/settings'; return; }
+  if (data.error && !data.items) { box.innerHTML = note('Could not find your matches', esc(data.error), '<p><button class="btn" type="button" onclick="branchView()">Try again</button></p>'); return; }
+  const items = data.items || [];
+  const when = data.generated_at ? ago(data.generated_at) : '';
+  box.innerHTML = `<h1 style="font-size:22px;margin:22px 0 4px">Your branch</h1>
+    <p style="color:var(--muted);margin:0">Problems where someone with your skills can help. Based on:</p>
+    <div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}<a class="chip" href="#/settings" style="background:none;text-decoration:underline">Edit</a></div>
+    ${data.note ? `<p style="color:var(--muted)">${esc(data.note)}</p>` : ''}
+    ${items.length ? items.map(branchCard).join('') : note('No close matches yet', 'Try adding more skills, or check back as more goals are mapped.')}
+    <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:16px">${when ? `Matched ${esc(when === 'now' ? 'just now' : /^\d/.test(when) ? `${when} ago` : `on ${when}`)} · ` : ''}<button class="btn" type="button" id="brNew">Find new matches</button></p>`;
+  $('#brNew').onclick = () => branchView(true);
+}
+
 // ------------------------------------------------------------ router
 function route() {
   clearTimeout(pollTimer);
@@ -900,6 +963,7 @@ function route() {
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
+  if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], ['tree', 'promises'].includes(parts[2]) ? parts[2] : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
