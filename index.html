@@ -147,6 +147,29 @@ details.leaf.target summary{background:var(--accent-soft)}
 .idle{width:14px;height:14px;border:2px solid var(--line2);border-radius:50%;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.spin{animation:none}}
+.acct{width:36px;height:36px;border-radius:50%;padding:0;justify-content:center;font-weight:700;flex:none}
+.acct.out{width:auto;border-radius:18px;padding:6px 14px}
+.menu{position:absolute;right:16px;top:54px;background:var(--card);border:1px solid var(--line2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);min-width:200px;overflow:hidden;z-index:20}
+.menu a,.menu button{display:block;width:100%;text-align:left;padding:10px 14px;text-decoration:none;border:0;background:none;cursor:pointer;font-size:14.5px}
+.menu a:hover,.menu button:hover{background:var(--accent-soft)}
+.menu .who2{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:30}
+.modal{background:var(--card);border-radius:16px;max-width:400px;width:100%;padding:22px 22px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h2{margin:0 0 6px;font-size:20px}
+.modal p{margin:0 0 14px;color:var(--ink2)}
+.modal .wide{width:100%;justify-content:center;padding:10px 14px;font-size:15px;margin-top:6px}
+.modal .fine{font-size:12.5px;color:var(--muted);margin:12px 0 0}
+.field{display:block;margin:14px 0}
+.field > span{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
+.field small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
+.field input,.field textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field textarea{min-height:80px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:3px 10px;font-size:13px;font-weight:600}
+.err{color:var(--blocked);font-size:13.5px;margin-top:8px}
+.danger{color:var(--blocked)!important;border-color:color-mix(in srgb,var(--blocked) 40%,transparent)!important}
+.followers{color:var(--muted);font-size:14px;margin-top:4px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .foot{max-width:680px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:12.5px;text-align:center}
@@ -174,7 +197,9 @@ details.leaf.target summary{background:var(--accent-soft)}
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
     <a class="navlink x" href="#/explore">Explore</a>
+    <button class="btn acct out" id="acct" type="button">Sign in</button>
   </div>
+  <div class="menu hide" id="menu" role="menu"></div>
 </header>
 
 <main id="view" aria-live="polite"></main>
@@ -184,6 +209,7 @@ details.leaf.target summary{background:var(--accent-soft)}
 </footer>
 <div class="toast" id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script>
 'use strict';
 // ------------------------------------------------------------ config
@@ -234,17 +260,199 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
 }
 
-// Follows live on this device until accounts arrive.
-const follows = {
+// ------------------------------------------------------------ accounts
+// Sign-in is Supabase Auth. Google is live; the email code turns on once an email
+// service is connected in Supabase (Authentication -> Emails -> SMTP).
+const EMAIL_CODE_SIGNIN = false;
+const sb = window.supabase
+  ? window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
+  : null;
+let me = null; // { id, profile } while signed in
+let resolveAuth;
+const authReady = new Promise((r) => { resolveAuth = r; });
+if (!sb) resolveAuth();
+
+// Follows are kept on the device for speed, and in the account when signed in.
+const localFollows = {
   get() { try { return JSON.parse(localStorage.getItem('px.follow') || '[]'); } catch { return []; } },
-  has(slug) { return this.get().includes(slug); },
-  toggle(slug) {
-    const list = this.get();
-    const next = list.includes(slug) ? list.filter((s) => s !== slug) : [...list, slug];
-    try { localStorage.setItem('px.follow', JSON.stringify(next)); } catch {}
-    return next.includes(slug);
+  set(list) { try { localStorage.setItem('px.follow', JSON.stringify(list)); } catch {} },
+};
+const follows = {
+  has(slug) { return localFollows.get().includes(slug); },
+  async toggle(slug) {
+    const before = localFollows.get();
+    const on = !before.includes(slug);
+    localFollows.set(on ? [...before, slug] : before.filter((x) => x !== slug));
+    if (me && sb) {
+      const g = (await goals()).find((x) => x.slug === slug);
+      if (g) {
+        const { error } = on
+          ? await sb.from('follows').upsert({ user_id: me.id, goal_id: g.id }, { onConflict: 'user_id,goal_id', ignoreDuplicates: true })
+          : await sb.from('follows').delete().eq('user_id', me.id).eq('goal_id', g.id);
+        if (error) { localFollows.set(before); throw new Error('Could not save that follow. Try again.'); }
+      }
+    }
+    return on;
   },
 };
+
+async function syncFollows() {
+  const list = await goals();
+  const { data: rows, error } = await sb.from('follows').select('goal_id').eq('user_id', me.id);
+  if (error) return;
+  const mine = new Set(rows.map((r) => r.goal_id));
+  const local = localFollows.get();
+  const missing = list.filter((g) => local.includes(g.slug) && !mine.has(g.id));
+  if (missing.length) {
+    await sb.from('follows').upsert(missing.map((g) => ({ user_id: me.id, goal_id: g.id })), { onConflict: 'user_id,goal_id', ignoreDuplicates: true });
+  }
+  localFollows.set([...new Set([...local, ...list.filter((g) => mine.has(g.id)).map((g) => g.slug)])]);
+}
+
+const PROFILE_COLS = 'id,handle,display_name,bio,skills,created_at';
+async function setSession(session) {
+  if (!session) { me = null; renderAcct(); return; }
+  const { data: profile } = await sb.from('profiles').select(PROFILE_COLS).eq('id', session.user.id).maybeSingle();
+  me = { id: session.user.id, profile };
+  renderAcct();
+  await syncFollows().catch(() => {});
+}
+
+function personAvatar(p, big = false) {
+  const name = (p && (p.display_name || p.handle)) || '?';
+  const initials = name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  return `<span class="av${big ? ' lg' : ''}" style="background:hsl(${hue(p ? p.handle : '')} 45% 38%)" aria-hidden="true">${esc(initials)}</span>`;
+}
+
+function renderAcct() {
+  const b = $('#acct');
+  if (!sb) { b.classList.add('hide'); return; }
+  if (me) {
+    const name = me.profile ? (me.profile.display_name || me.profile.handle) : 'You';
+    b.className = 'btn acct';
+    b.style.background = `hsl(${hue(me.profile ? me.profile.handle : '')} 45% 38%)`;
+    b.style.color = '#fff';
+    b.style.borderColor = 'transparent';
+    b.textContent = name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+    b.setAttribute('aria-label', 'Your account');
+  } else {
+    b.className = 'btn acct out';
+    b.style.background = b.style.color = b.style.borderColor = '';
+    b.textContent = 'Sign in';
+    b.removeAttribute('aria-label');
+  }
+}
+
+function toggleMenu(force) {
+  const m = $('#menu');
+  const open = force ?? m.classList.contains('hide');
+  if (!open || !me) { m.classList.add('hide'); return; }
+  const h = me.profile ? me.profile.handle : '';
+  m.innerHTML = `<div class="who2">Signed in as <b>@${esc(h)}</b></div>
+    ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
+    <a href="#/following" role="menuitem">Goals you follow</a>
+    <a href="#/settings" role="menuitem">Settings</a>
+    <button type="button" id="signOut" role="menuitem">Sign out</button>`;
+  m.classList.remove('hide');
+  $('#signOut').onclick = async () => { toggleMenu(false); await sb.auth.signOut(); };
+}
+
+let providerCache = null;
+async function providers() {
+  if (!providerCache) {
+    try {
+      const r = await fetch(`${SUPA_URL}/auth/v1/settings`, { headers: { apikey: SUPA_KEY } });
+      providerCache = r.ok ? ((await r.json()).external || {}) : {};
+    } catch { providerCache = {}; }
+  }
+  return providerCache;
+}
+
+function closeModal() { $('.modal-back')?.remove(); }
+async function openSignIn(reason) {
+  if (!sb) { toast('Sign-in could not load. Check your connection and reload.'); return; }
+  closeModal();
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="siT">
+    <h2 id="siT">Sign in to Parallax</h2>
+    <p>${esc(reason || 'Keep the goals you follow on every device, and build your profile.')}</p>
+    <div id="siBody"><div class="note" style="padding:12px"><span class="spin" style="display:inline-block"></span></div></div>
+    <p class="fine">Parallax only uses your name and email to run your account. You can delete it any time in Settings.</p>
+    <button class="btn wide" type="button" id="siClose" style="margin-top:12px">Not now</button></div>`;
+  document.body.appendChild(back);
+  back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
+  $('#siClose').onclick = closeModal;
+  const ext = await providers();
+  const body = $('#siBody');
+  if (!body) return;
+  let html = ext.google
+    ? `<button class="btn primary wide" type="button" id="siGoogle">Continue with Google</button>`
+    : `<p class="fine" style="margin-top:0">Google sign-in is being switched on. Check back soon.</p>`;
+  if (EMAIL_CODE_SIGNIN && ext.email) {
+    html += `<label class="field"><span>Or get a code by email</span><input id="siEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+      <button class="btn wide" type="button" id="siSend">Email me a code</button>
+      <div id="siCode" class="hide"><label class="field"><span>Enter the code from your email</span><input id="siTok" inputmode="numeric" autocomplete="one-time-code"></label>
+      <button class="btn primary wide" type="button" id="siVerify">Sign in</button></div><div class="err" id="siErr"></div>`;
+  }
+  body.innerHTML = html;
+  const g = $('#siGoogle');
+  if (g) g.onclick = async () => {
+    g.disabled = true;
+    try { sessionStorage.setItem('px.return', location.hash || '#/'); } catch {}
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+    if (error) { g.disabled = false; toast(error.message); }
+  };
+  const send = $('#siSend');
+  if (send) {
+    send.onclick = async () => {
+      const email = $('#siEmail').value.trim();
+      send.disabled = true;
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      send.disabled = false;
+      if (error) { $('#siErr').textContent = error.message; return; }
+      $('#siCode').classList.remove('hide');
+      $('#siErr').textContent = '';
+    };
+    $('#siVerify').onclick = async () => {
+      const { error } = await sb.auth.verifyOtp({ email: $('#siEmail').value.trim(), token: $('#siTok').value.trim(), type: 'email' });
+      if (error) { $('#siErr').textContent = error.message; return; }
+      closeModal();
+    };
+  }
+}
+
+async function afterSignIn() {
+  closeModal();
+  let back = '#/';
+  try { back = sessionStorage.getItem('px.return') || location.hash || '#/'; sessionStorage.removeItem('px.return'); } catch {}
+  if (location.search) history.replaceState(null, '', location.pathname + back);
+  const p = me && me.profile;
+  const isNew = p && Date.now() - new Date(p.created_at).getTime() < 10 * 60_000 && !p.bio && !(p.skills || []).length;
+  if (isNew) { location.hash = '#/settings/welcome'; return; }
+  if (location.hash !== back) location.hash = back; else route();
+  if (p) toast(`Signed in as @${p.handle}`);
+}
+
+if (sb) {
+  // A sign-in that failed comes back with an error in the address.
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('error_description')) {
+    setTimeout(() => toast(`Sign-in failed: ${qs.get('error_description')}`), 300);
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+  let first = true;
+  sb.auth.onAuthStateChange((event, session) => {
+    // Run outside the callback: Supabase calls inside it can deadlock.
+    setTimeout(async () => {
+      const prev = me ? me.id : null;
+      await setSession(session);
+      if (first) { first = false; resolveAuth(); }
+      if (event === 'SIGNED_IN' && session && prev !== session.user.id) afterSignIn();
+      if (event === 'SIGNED_OUT') { localFollows.set([]); toast('Signed out'); route(); }
+    }, 0);
+  });
+}
 function followBtn(slug) {
   const on = follows.has(slug);
   return `<button class="btn ${on ? 'following' : 'primary'}" data-follow="${esc(slug)}">${on ? 'Following' : 'Follow'}</button>`;
@@ -398,7 +606,7 @@ async function goalView(slug, tab, focusKey) {
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
 
   const head = `<div class="goal-h">${avatar(g, true)}<div style="min-width:0;flex:1">
-      <h1>${esc(g.name)}</h1><div class="handle">@${esc(g.handle)}</div>
+      <h1>${esc(g.name)}</h1><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div>
       ${g.summary ? `<p class="sum">${esc(g.summary)}</p>` : ''}
       <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
     </div></div>`;
@@ -482,6 +690,7 @@ async function goalView(slug, tab, focusKey) {
   }
 
   view.innerHTML = head + stats + tabs + body;
+  refreshFollowers();
   if (focusKey) $(`#leaf-${CSS.escape(focusKey)}`)?.scrollIntoView({ block: 'center' });
 }
 
@@ -570,32 +779,134 @@ $('#searchForm').addEventListener('submit', (e) => {
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.search')) sug.classList.add('hide');
   if (e.target.closest('.suggest a')) { sug.classList.add('hide'); qInput.value = ''; }
+  if (e.target.closest('#acct')) { if (me) toggleMenu(); else openSignIn(); return; }
+  if (!e.target.closest('#menu')) toggleMenu(false);
   const f = e.target.closest('[data-follow]');
   if (f) {
     const slug = f.dataset.follow;
-    const on = follows.toggle(slug);
-    document.querySelectorAll(`[data-follow="${CSS.escape(slug)}"]`).forEach((b) => {
+    const paint = (on) => document.querySelectorAll(`[data-follow="${CSS.escape(slug)}"]`).forEach((b) => {
       b.textContent = on ? 'Following' : 'Follow';
       b.className = `btn ${on ? 'following' : 'primary'}`;
     });
-    toast(on ? 'Following. Its posts now fill your Following tab.' : 'Unfollowed');
+    const was = follows.has(slug);
+    paint(!was);
+    follows.toggle(slug).then((on) => {
+      if (on && !me && sb) toast('Following on this device. Sign in to keep it everywhere.');
+      else toast(on ? 'Following. Its posts now fill your Following tab.' : 'Unfollowed');
+      refreshFollowers();
+    }).catch((err) => { paint(was); toast(err.message); });
   }
   const s = e.target.closest('[data-share]');
   if (s) share(s.dataset.share, s.dataset.title);
 });
 
+async function refreshFollowers() {
+  const el = $('#followers');
+  if (!el) return;
+  try {
+    const r = await rest(`goal_followers?goal_id=eq.${el.dataset.goal}&select=followers`);
+    const n = r.length ? r[0].followers : 0;
+    el.textContent = n ? `${n.toLocaleString()} ${n === 1 ? 'follower' : 'followers'}` : 'No followers yet. Be the first.';
+  } catch { el.textContent = ''; }
+}
+
+async function profileView(handle) {
+  view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
+  let p, rows, list;
+  try {
+    p = (await rest(`profiles?handle=eq.${encodeURIComponent(handle)}&select=${PROFILE_COLS}`))[0];
+    if (!p) { view.innerHTML = note('No one here', 'There is no Parallax profile with this name.'); return; }
+    [rows, list] = await Promise.all([rest(`follows?user_id=eq.${p.id}&select=goal_id`), goals()]);
+  } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
+  const ids = new Set(rows.map((r) => r.goal_id));
+  const mine = list.filter((g) => ids.has(g.id));
+  await authReady;
+  const own = me && me.id === p.id;
+  const joined = new Date(p.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  view.innerHTML = `<div class="goal-h">${personAvatar(p, true)}<div style="min-width:0;flex:1">
+      <h1>${esc(p.display_name || p.handle)}</h1><div class="handle">@${esc(p.handle)}</div>
+      ${p.bio ? `<p class="sum">${esc(p.bio)}</p>` : ''}
+      ${(p.skills || []).length ? `<div class="chips">${p.skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
+      <div class="followers">Joined ${esc(joined)}</div>
+      <div class="act">${own ? '<a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
+    </div></div>
+    <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
+    ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
+      : `<p style="color:var(--muted)">${own ? 'Follow goals and they will show here.' : 'Not following any goals yet.'}</p>`}
+    <div class="prom-h">Impact</div><p style="color:var(--muted);margin-top:4px">Problems ${own ? 'you help' : 'they help'} move forward will show here.</p>`;
+}
+
+async function settingsView(welcome) {
+  view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
+  await authReady;
+  if (!sb) { view.innerHTML = note('Accounts could not load', 'Check your connection and reload the page.'); return; }
+  if (!me) {
+    view.innerHTML = note('Sign in to edit your profile', 'Your profile shows the goals you follow and what you can help with.', '<p><button class="btn primary" type="button" id="needSignIn">Sign in</button></p>');
+    $('#needSignIn').onclick = () => openSignIn();
+    return;
+  }
+  const p = me.profile || { handle: '', display_name: '', bio: '', skills: [] };
+  view.innerHTML = `<h1 style="font-size:22px;margin:22px 0 4px">${welcome ? 'Welcome to Parallax' : 'Settings'}</h1>
+    <p style="color:var(--muted);margin:0">${welcome ? 'Pick your name on Parallax and tell people what you can help with. You can change this any time.' : 'This is what people see on your profile.'}</p>
+    <form id="pf" class="post" style="margin-top:16px">
+      <label class="field"><span>Name</span><input id="pfName" maxlength="60" value="${esc(p.display_name)}"></label>
+      <label class="field"><span>Handle</span><input id="pfHandle" maxlength="20" value="${esc(p.handle)}" autocapitalize="off" spellcheck="false"><small>3 to 20 letters, numbers or _. Your profile lives at @handle.</small></label>
+      <label class="field"><span>Bio</span><textarea id="pfBio" maxlength="280">${esc(p.bio)}</textarea><small><span id="pfCount">${(p.bio || '').length}</span>/280</small></label>
+      <label class="field"><span>What you can help with</span><input id="pfSkills" value="${esc((p.skills || []).join(', '))}" placeholder="coding, nursing, Portuguese, chemistry"><small>Separate with commas. Parallax will use these to show you the problems that need someone like you.</small></label>
+      <button class="btn primary" type="submit" id="pfSave">${welcome ? 'Save and continue' : 'Save'}</button>
+      <div class="err" id="pfErr"></div>
+    </form>
+    ${welcome ? '' : `<div class="post"><h3 style="margin-top:2px">Account</h3>
+      <div class="post-f" style="margin-top:4px"><button class="btn" type="button" id="pfOut">Sign out</button><button class="btn danger" type="button" id="pfDel">Delete my account</button></div>
+      <p class="fine" style="color:var(--muted);font-size:13px">Deleting removes your profile and follows for good.</p></div>`}`;
+  $('#pfBio').oninput = () => { $('#pfCount').textContent = $('#pfBio').value.length; };
+  $('#pf').onsubmit = async (e) => {
+    e.preventDefault();
+    const handle = $('#pfHandle').value.trim();
+    const err = $('#pfErr');
+    err.textContent = '';
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(handle)) { err.textContent = 'Handles use 3 to 20 letters, numbers or _.'; return; }
+    const skills = [...new Set($('#pfSkills').value.split(',').map((x) => x.trim().slice(0, 40)).filter(Boolean))].slice(0, 12);
+    $('#pfSave').disabled = true;
+    const { data, error } = await sb.from('profiles')
+      .update({ handle, display_name: $('#pfName').value.trim().slice(0, 60), bio: $('#pfBio').value.trim().slice(0, 280), skills })
+      .eq('id', me.id).select(PROFILE_COLS).single();
+    $('#pfSave').disabled = false;
+    if (error) { err.textContent = error.code === '23505' ? 'That handle is taken. Try another.' : `Could not save: ${error.message}`; return; }
+    me.profile = data;
+    renderAcct();
+    toast('Saved');
+    location.hash = `#/u/${encodeURIComponent(data.handle)}`;
+  };
+  const out = $('#pfOut');
+  if (out) out.onclick = () => sb.auth.signOut();
+  const del = $('#pfDel');
+  if (del) del.onclick = async () => {
+    if (!confirm('Delete your Parallax account? Your profile and follows will be removed. This cannot be undone.')) return;
+    del.disabled = true;
+    const { error } = await sb.rpc('delete_my_account');
+    if (error) { del.disabled = false; toast(`Could not delete: ${error.message}`); return; }
+    await sb.auth.signOut();
+    location.hash = '#/';
+  };
+}
+
 // ------------------------------------------------------------ router
 function route() {
   clearTimeout(pollTimer);
+  toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
+  if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
+  if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], ['tree', 'promises'].includes(parts[2]) ? parts[2] : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
+renderAcct();
 route();
 </script>
 </body>
