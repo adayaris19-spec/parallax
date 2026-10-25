@@ -314,6 +314,7 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .jump .ln{color:var(--muted);font-size:13px;line-height:1.45;flex:1}
 .jump .go{font-size:13px;font-weight:500;color:var(--accent)}
 .jump .lk{color:var(--accent)}
+.jump.lockd b{color:var(--ink2)}
 .nexttab{text-align:right;margin:6px 0 0}
 @media (max-width:900px){.jumps{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.jumps{grid-template-columns:1fr}.ttabs{top:53px}}
@@ -1726,6 +1727,7 @@ function briefPanel(t) {
   if (!b) return '';
   const full = t.access === 'full';
   const list = (items, problem) => `<ul>${items.map((x) => `<li><b>${esc(x.goal)}</b> ${problem ? `<b>· ${esc(x.problem)}.</b> ` : ''}${esc(x.text)}</li>`).join('')}</ul>`;
+  if (!full) return `<section class="panel"><div class="panel-h"><h2>Weekly brief</h2><span class="lbl">Subscribers only</span></div>${lockGate('This week’s brief', 'What moved, what to watch next, and where money would matter most. Written every Monday from the week’s research.')}</section>`;
   return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))}</span>
       <h3>${esc(b.headline)}</h3><p class="sum">${esc(b.summary)}</p></div>
     ${full ? `<div class="brief3"><div><span class="lbl">What moved</span>${list(b.moved)}</div><div><span class="lbl">What to watch</span>${list(b.watch)}</div><div><span class="lbl">Where money would matter</span>${list(b.money, true)}</div></div>`
@@ -1735,7 +1737,7 @@ function briefPanel(t) {
 function oppPanel(t) {
   const c = t.opportunity_counts;
   const head = `<div class="panel-h"><h2>Opportunities</h2><span class="lbl">Where attention or money would move things</span></div>`;
-  if (t.access !== 'full') return `<section class="panel">${head}${lockGate(`${c.funding} funding gaps · ${c.quiet} quiet problems · ${c.hot} heating up`, 'Problems held back only by money, problems research has gone quiet on, and problems seeing a burst of new work.')}</section>`;
+  if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Opportunities', 'Problems held back only by money, problems research has gone quiet on, and problems seeing a burst of new work.')}</section>`;
   const o = t.opportunities;
   const col = (title, desc, items, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${items.length}</small></h3><div class="d">${desc}</div>
     ${items.length ? items.slice(0, 6).map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('') : '<div class="d">None right now.</div>'}</div>`;
@@ -1747,7 +1749,7 @@ function oppPanel(t) {
 }
 
 function fieldsPanel(t) {
-  const head = `<div class="panel-h"><h2>Who is leading <small>${t.fields_total}</small></h2><span class="lbl">Each goal’s whole research field, last 3 full years</span></div>`;
+  const head = `<div class="panel-h"><h2>Who is leading ${t.access === 'full' ? `<small>${t.fields_total}</small>` : ''}</h2><span class="lbl">Each goal’s whole research field, last 3 full years</span></div>`;
   if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Institutions and countries, goal by goal', 'Who publishes the most on each goal, which countries lead, and how fast each field is growing.')}</section>`;
   if (!t.fields.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Field data is being gathered. Check back in a few hours.</div></section>`;
   const y = new Date().getFullYear();
@@ -1795,16 +1797,26 @@ const TTABS = [
 // Overview cards: one per tab, each with the single most useful fact from it.
 function overviewCards(t) {
   const full = t.access === 'full';
-  const lock = full ? '' : '<span class="lk" aria-label="Subscribers only">Locked</span>';
+  const card = (tab, title, big, line, locked) => `<a class="jump${locked ? ' lockd' : ''}" href="#/terminal/${tab}"><span class="lbl">${title}${locked ? ' · <span class="lk">Locked</span>' : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${locked ? 'See what’s inside →' : 'Open →'}</span></a>`;
+  const signals = card('signals', 'Signals', t.tape[0] ? esc(t.tape[0].headline) : 'No signals yet', `${t.tape_total} advances, setbacks and promises · latest ${t.tape[0] ? esc(whenAgo(t.tape[0].at)) : ''}`, false);
+  if (!full) {
+    return `<div class="jumps">
+      ${card('brief', 'Weekly brief', 'What moved this week, and what to watch', 'An analyst’s read on every goal, written every Monday from the week’s research.', true)}
+      ${card('opportunities', 'Opportunities', 'Where money or attention would move things', 'Problems held back only by money, problems research has gone quiet on, and problems heating up.', true)}
+      ${card('leaders', 'Who is leading', 'The institutions and countries ahead on each goal', 'And how fast each research field is growing.', true)}
+      ${card('bottlenecks', 'Bottlenecks', 'What holds each goal back', 'The bottleneck board and the stuck map across every goal.', true)}
+      ${signals}
+      ${card('data', 'All data', 'Every goal and problem, in tables', 'Sort, filter and download everything as CSV.', true)}
+    </div>`;
+  }
   const o = t.opportunities, c = t.opportunity_counts;
-  const fastest = full && t.fields.length ? [...t.fields].sort((a, b) => (b.growth ?? -9) - (a.growth ?? -9))[0] : null;
-  const card = (tab, title, big, line) => `<a class="jump" href="#/terminal/${tab}"><span class="lbl">${title}${lock && tab !== 'signals' ? ` · ${lock}` : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">Open →</span></a>`;
+  const fastest = t.fields.length ? [...t.fields].sort((a, b) => (b.growth ?? -9) - (a.growth ?? -9))[0] : null;
   return `<div class="jumps">
     ${t.brief ? card('brief', 'Weekly brief', esc(t.brief.headline), `Week of ${esc(new Date(t.brief.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))} · what moved, what to watch, where money matters`) : ''}
-    ${card('opportunities', 'Opportunities', `${c.funding} funding gaps · ${c.quiet} gone quiet · ${c.hot} heating up`, full && o.funding[0] ? `Top gap: ${esc(o.funding[0].title)} (@${esc(o.funding[0].goal)})` : 'Where money or attention would move things')}
+    ${card('opportunities', 'Opportunities', `${c.funding} funding gaps · ${c.quiet} gone quiet · ${c.hot} heating up`, o.funding[0] ? `Top gap: ${esc(o.funding[0].title)} (@${esc(o.funding[0].goal)})` : 'Where money or attention would move things')}
     ${card('leaders', 'Who is leading', fastest ? `@${esc(fastest.goal)} research ${growthTxt(fastest.growth)} in 3 years` : `${t.fields_total} research fields tracked`, fastest ? `Fastest-growing field. Led by ${esc(fastest.institutions[0]?.name ?? '—')}` : 'Top institutions and countries for every goal')}
-    ${card('bottlenecks', 'Bottlenecks', `${t.bottlenecks_total} goals held back · ${t.kpis.blocked} problems blocked`, full && t.bottlenecks[0] ? `e.g. ${esc(t.bottlenecks[0].title)} (@${esc(t.bottlenecks[0].goal)})` : 'What holds each goal back, and the stuck map')}
-    ${card('signals', 'Signals', t.tape[0] ? esc(t.tape[0].headline) : 'No signals yet', `${t.tape_total} advances, setbacks and promises · latest ${t.tape[0] ? esc(whenAgo(t.tape[0].at)) : ''}`)}
+    ${card('bottlenecks', 'Bottlenecks', `${t.bottlenecks_total} goals held back · ${t.kpis.blocked} problems blocked`, t.bottlenecks[0] ? `e.g. ${esc(t.bottlenecks[0].title)} (@${esc(t.bottlenecks[0].goal)})` : 'What holds each goal back, and the stuck map')}
+    ${signals}
     ${card('data', 'All data', `${t.goals_total} goals · ${t.problems_total} open problems`, 'Sortable tables, filters and CSV downloads')}
   </div>`;
 }
@@ -1835,13 +1847,13 @@ function renderTerminal(box, tab = 'overview') {
     brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
     opportunities: () => oppPanel(t),
     leaders: () => fieldsPanel(t),
-    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board <small>${t.bottlenecks_total}</small></h2><span class="lbl">The one problem holding back each goal</span></div>
-        ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : lockGate(`${t.bottlenecks_total} bottlenecks`, 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
+    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>
+        ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
       <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
     signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
         <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with the Terminal. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
-    data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate(`${t.goals_total} goals · ${t.problems_total} open problems`, 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
+    data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate('Every goal and every problem', 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
         <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
         <div id="tGoals">${goalsTable()}</div></section>
       <section class="panel"><div class="panel-h"><h2>Open problems <small>${full ? t.problems_total : `${t.problems.length} of ${t.problems_total}`}</small></h2>
@@ -1850,7 +1862,7 @@ function renderTerminal(box, tab = 'overview') {
           <select id="tKind" aria-label="Held back by"><option value="">Anything</option>${Object.keys(KIND_LABEL).map((s) => `<option value="${s}"${termFilter.kind === s ? ' selected' : ''}>${KIND_LABEL[s]}</option>`).join('')}</select>
           <button class="btn" type="button" data-csv="problems">Download CSV</button></div>` : ''}</div>
         <div id="tProblems">${problemsTable()}</div>
-        ${full ? '' : lockGate(`${t.problems_total - t.problems.length} more problems`, 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>`,
+        ${full ? '' : lockGate('Every open problem', 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>`,
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>A weekly analyst brief on every goal</li><li>Funding gaps, problems research has gone quiet on, and problems heating up</li><li>The institutions and countries leading each field, and how fast each field grows</li><li>The bottleneck board, the stuck map and every signal with its sources</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
