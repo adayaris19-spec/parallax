@@ -1802,7 +1802,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`goal_giving?goal_id=eq.${g.id}&select=raised_cents,gifts,last_at`).catch(() => []),
       rest(`recent_gifts?goal_id=eq.${g.id}&select=org_name,amount_cents,who,created_at&limit=5`).catch(() => []),
       siteConfig(),
-    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); giving = { orgs: r[11], total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+      rest(`goal_fundraisers?goal_id=eq.${g.id}&select=ein,url`).catch(() => []),
+    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
@@ -3103,7 +3104,7 @@ function giveBox(g, gv) {
       <div class="gv-k">Support this goal</div>
       <div class="gv-num"><b class="mono">${money(raised)}</b><span>raised of a <b class="mono">${money(target)}</b> community goal</span></div>
       <div class="gv-bar"><i style="width:${Math.max(pctDone, raised ? 1.5 : 0).toFixed(1)}%"></i></div>
-      <div class="gv-meta">${gv.total.gifts ? `${gv.total.gifts} donation${gv.total.gifts === 1 ? '' : 's'} · last ${esc(whenAgo(gv.total.last_at))}` : 'No donations yet. Yours can be the first.'}${raised ? ` · when it’s reached, the next goal is ${money(stepGoal(target))}` : ''}</div>
+      <div class="gv-meta">${gv.total.gifts ? `${gv.total.gifts} supporter${gv.total.gifts === 1 ? '' : 's'}${gv.total.last_at ? ` · last gift ${esc(whenAgo(gv.total.last_at))}` : ''}` : 'No donations yet. Yours can be the first.'}${raised ? ` · when it’s reached, the next goal is ${money(stepGoal(target))}` : ''}</div>
       ${gv.recent.length ? `<ul class="gv-recent">${gv.recent.slice(0, 3).map((x) => `<li><b>${esc(x.who)}</b> gave <span class="mono">${money(x.amount_cents)}</span> to ${esc(x.org_name || 'an organisation')} <time>${esc(whenAgo(x.created_at))}</time></li>`).join('')}</ul>`
         : `<ol class="gv-how"><li><b>Pick an organisation</b> working on this goal.</li><li><b>Give through Every.org</b>, any amount, once or monthly.</li><li><b>It reaches them</b> with your tax receipt, and counts toward this goal’s total here.</li></ol>`}
     </div>

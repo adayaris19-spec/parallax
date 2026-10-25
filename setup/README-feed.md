@@ -276,7 +276,11 @@ Run `schema-giving.sql`, deploy `orgs` (Verify JWT on) and `every-webhook` (Veri
   in steps ($10K, $25K, $50K, ...), recent gifts, and the organisations with Donate buttons. Donate
   opens Every.org, which takes the gift, pays the nonprofit and sends the receipt. Parallax never
   holds money and takes no cut.
-- Live totals: ask Every.org (partners@every.org) for a partner webhook pointing at
+- Live totals without any approval: the `giving` function (every 10 minutes, no AI) creates one Every.org
+  fundraiser per goal and organisation with Parallax's own Every.org API keys (public key in the code,
+  private key as the `EVERY_PRIVATE_KEY` secret), points the Donate buttons at them, and reads each
+  fundraiser's total and supporters. Increases between checks show as recent gifts ("Someone gave $25").
+- Optional, for donor first names in recent gifts: ask Every.org (partners@every.org) for a partner webhook pointing at
   `https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/every-webhook?key=<app_config.every_webhook_key>`.
   Put the token they issue in `site_config` (`every_webhook_token`); it is added to donate links.
 
