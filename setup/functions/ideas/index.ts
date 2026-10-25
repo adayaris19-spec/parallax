@@ -9,6 +9,8 @@
 // The research step is slow (deep thinking plus web searches), so it runs as an Anthropic message
 // batch: one call submits it, a later call collects the results and structures them. No time limit,
 // half price. Runs hourly: collect finished batches, then submit the next goal's problems (up to 4).
+// Ideas come automatically for each goal's 6 most important problems (refreshed every 120 days);
+// any other problem gets ideas when someone asks for them on the site (idea_requests), first in line.
 //   POST {}  · POST {"slug": "mars"}  that goal · POST {"slug": "mars", "key": "b3.1"}  one problem
 // Header x-parallax-admin: <ADMIN_TOKEN>. Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL.
 
@@ -22,9 +24,28 @@ const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const DAY = 86_400_000;
 const PER_BATCH = 4;
+const AUTO_PER_GOAL = 6; // problems per goal that get ideas automatically; others when someone asks
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+// Cost log: every AI call's tokens and an estimated price go to ai_usage (see schema-usage.sql).
+// List prices per million tokens; batches are half price on tokens; web search is $10 per 1,000.
+const PRICE: Record<string, [number, number]> = { "claude-opus-5-5": [4, 20], "claude-sonnet-5-5": [2, 10], "claude-haiku-5-5": [0.1, 0.5], "claude-opus-5": [5, 25], "claude-opus-4-8": [5, 25], "claude-fable-5-1": [10, 50] };
+// deno-lint-ignore no-explicit-any
+function track<T>(job: string, batch = false): (m: T) => T {
+  return (m: T) => {
+    // deno-lint-ignore no-explicit-any
+    const msg = m as any, u = msg?.usage ?? {};
+    const [pi, po] = PRICE[String(msg?.model ?? "").replace(/-\d{8}$/, "")] ?? PRICE["claude-opus-5-5"];
+    const inp = u.input_tokens ?? 0, out = u.output_tokens ?? 0, cr = u.cache_read_input_tokens ?? 0, cw = u.cache_creation_input_tokens ?? 0;
+    const searches = u.server_tool_use?.web_search_requests ?? 0;
+    const tokens = (inp * pi + out * po + cr * pi * 0.1 + cw * pi * 1.25) / 1e6;
+    const cost = tokens * (batch ? 0.5 : 1) + searches * 0.01;
+    db("ai_usage", { method: "POST", prefer: "return=minimal", body: { job, model: msg?.model ?? null, input_tokens: inp, output_tokens: out, cache_read: cr, cache_write: cw, searches, batch, cost_usd: Number(cost.toFixed(5)) } }).catch(() => {});
+    return m;
+  };
+}
 
 async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
   const r = await fetch(`${SB}/rest/v1/${path}`, {
@@ -103,7 +124,7 @@ ${papers.map((p, i) => `${i}. ${p.title}`).join("\n")}
 SOURCES found by the search (cite by number):
 ${pages.map((p, i) => `${i}. ${p.title} — ${p.url}`).join("\n")}`,
     }],
-  }).finalMessage();
+  }).finalMessage().then(track("ideas"));
   return msg.parsed_output?.ideas ?? [];
 }
 
@@ -136,7 +157,10 @@ async function save(goalId: number, key: string, notes: string, papers: Paper[],
       novelty: i.novelty, novelty_note: i.novelty_note.trim().slice(0, 300) || null, risk: i.risk.trim().slice(0, 240) || null,
     };
   });
-  if (rows.length) await db("ideas", { method: "POST", prefer: "return=minimal", body: rows });
+  if (rows.length) {
+    await db("ideas", { method: "POST", prefer: "return=minimal", body: rows });
+    await db(`idea_requests?goal_id=eq.${goalId}&node_key=eq.${encodeURIComponent(key)}`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+  }
   return rows.length;
 }
 
@@ -154,6 +178,7 @@ async function collect() {
     for await (const r of await claude.messages.batches.results(j.batch_id)) {
       const key = j.keys[Number(r.custom_id.slice(1))] ?? r.custom_id;
       if (r.result.type !== "succeeded") { errors.push(`${key}: ${r.result.type}`); continue; }
+      track("ideas", true)(r.result.message);
       const { text, pages } = readResearch(r.result.message.content);
       if (!text.trim()) { errors.push(`${key}: no notes`); continue; }
       work.push(save(j.goal_id, key, text, j.context[key] ?? [], pages).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
@@ -172,18 +197,28 @@ async function submit(slug?: string, key?: string) {
   const pending = await db(`idea_jobs?status=eq.pending&select=keys,goal_id`);
   if (!slug && pending.length) return { note: "a batch is still running" };
   const busy = new Set(pending.flatMap((p: { goal_id: number; keys: string[] }) => p.keys.map((k) => `${p.goal_id}:${k}`)));
+  const requests = await db(`idea_requests?select=goal_id,node_key`).catch(() => []);
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,bottleneck_key,ideas_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=ideas_at.asc.nullsfirst`);
   const all = await db(`nodes?parent_key=not.is.null&select=goal_id,title,plain_title`);
+  const wanted = new Set(requests.map((r: { goal_id: number }) => r.goal_id));
+  goals.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)));
   for (const g of goals) {
     const [nodes, have] = await Promise.all([
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status&order=position.asc`),
       db(`ideas?goal_id=eq.${g.id}&select=node_key,created_at`),
     ]);
-    const recent = new Set(have.filter((h: { created_at: string }) => Date.now() - new Date(h.created_at).getTime() < 60 * DAY).map((h: { node_key: string }) => h.node_key));
+    const recent = new Set(have.filter((h: { created_at: string }) => Date.now() - new Date(h.created_at).getTime() < 120 * DAY).map((h: { node_key: string }) => h.node_key));
+    const covered = new Set(have.map((h: { node_key: string }) => h.node_key));
+    const asked = new Set(requests.filter((r: { goal_id: number }) => r.goal_id === g.id).map((r: { node_key: string }) => r.node_key));
     const leaves = (nodes as Node[]).filter((n) => n.parent_key && n.status !== "solved" && !busy.has(`${g.id}:${n.key}`));
-    const todo = (key ? leaves.filter((n) => n.key === key) : leaves.filter((n) => !recent.has(n.key)))
-      .sort((a, b) => (a.key === g.bottleneck_key ? -1 : b.key === g.bottleneck_key ? 1 : (ORDER[a.status] ?? 5) - (ORDER[b.status] ?? 5)))
-      .slice(0, PER_BATCH);
+    const ranked = leaves.sort((a, b) => (a.key === g.bottleneck_key ? -1 : b.key === g.bottleneck_key ? 1 : (ORDER[a.status] ?? 5) - (ORDER[b.status] ?? 5)));
+    // Someone asked first; then the goal's most important problems, up to AUTO_PER_GOAL of them.
+    const room = Math.max(0, AUTO_PER_GOAL - covered.size);
+    const todo = key ? leaves.filter((n) => n.key === key) : [
+      ...ranked.filter((n) => asked.has(n.key) && !recent.has(n.key)),
+      ...ranked.filter((n) => !asked.has(n.key) && !covered.has(n.key)).slice(0, room),
+      ...ranked.filter((n) => covered.has(n.key) && !recent.has(n.key) && !asked.has(n.key)), // refresh after 120 days
+    ].slice(0, PER_BATCH);
     if (todo.length < PER_BATCH && !key) await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { ideas_at: new Date().toISOString() } });
     if (!todo.length) continue;
     const other = all.filter((x: { goal_id: number }) => x.goal_id !== g.id).sort(() => Math.random() - 0.5).slice(0, 40).map((x: Node) => x.plain_title || x.title).join("; ");

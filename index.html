@@ -753,6 +753,9 @@ body.labpage main{max-width:900px}
 .nt-who a{color:inherit}
 .idea.compact .react{margin-top:14px;padding-top:12px}
 .sh-ideas{margin-top:18px}
+.sh-ideas.ask{padding:16px 18px;border-radius:16px;background:var(--sunk)}
+.sh-ideas.ask p{margin:0 0 12px;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.sh-ideas.ask .kick{margin-bottom:8px}
 .sh-ideas a{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14.5px}
 .sh-ideas a .mono{font-size:12.5px;color:var(--muted);white-space:nowrap}
 .sh-ideas a:hover b{text-decoration:underline}
@@ -1675,7 +1678,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [];
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [];
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1688,14 +1691,15 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`reels?goal_id=eq.${g.id}&select=kind,scenes&order=score.desc&limit=6`).catch(() => []),
       rest(`node_costs?goal_id=eq.${g.id}&select=node_key,next_step,next_low,next_high,next_time,solve_low,solve_high,funders,basis,confidence,sources`).catch(() => []),
       rest(`ideas?goal_id=eq.${g.id}&status=eq.open&select=${IDEA_COLS}&order=created_at.desc`).catch(() => []),
-    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+      rest(`idea_requests?goal_id=eq.${g.id}&select=node_key`).catch(() => []),
+    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas };
+  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas };
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
@@ -1974,7 +1978,10 @@ function openLeaf(key, push = true) {
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
     <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
     ${costBlock(goalCtx.costs?.[l.key], l)}
-    ${(() => { const li = (goalCtx.ideas || []).filter((i) => i.node_key === l.key); return li.length ? `<div class="sh-ideas"><div class="kick">Ideas to try · ${li.length}</div>${li.map((i) => `<a href="#/idea/${i.id}"><b>${esc(i.title)}</b>${i.test_high ? `<span class="mono">test ${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</a>`).join('')}</div>` : ''; })()}
+    ${(() => { const li = (goalCtx.ideas || []).filter((i) => i.node_key === l.key); return li.length ? `<div class="sh-ideas"><div class="kick">Ideas to try · ${li.length}</div>${li.map((i) => `<a href="#/idea/${i.id}"><b>${esc(i.title)}</b>${i.test_high ? `<span class="mono">test ${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</a>`).join('')}</div>`
+      : l.status === 'solved' ? '' : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
+        ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
+        : `<p>No ideas for this problem yet. Parallax can research it and propose some, each checked against earlier work.</p><button class="btn" type="button" data-askideas="${esc(l.key)}">Ask for ideas</button>`}</div>`; })()}
     ${fundBlock(g, l)}
   </aside>`;
   document.body.appendChild(back);
@@ -2841,6 +2848,18 @@ document.addEventListener('click', (e) => {
   const n = e.target.closest('[data-note]');
   if (n) { const card = n.closest('[data-idea]'); if (card) saveNote(card); }
 });
+
+async function askIdeas(btn) {
+  if (!me) return openSignIn('Sign in to ask for ideas.');
+  const key = btn.dataset.askideas, g = goalCtx?.g;
+  if (!g) return;
+  btn.disabled = true;
+  const { error } = await sb.from('idea_requests').insert({ goal_id: g.id, node_key: key, user_id: me.id });
+  if (error && error.code !== '23505') { btn.disabled = false; return toast('Could not send that. Try again.'); } // 23505: someone already asked
+  goalCtx.asked = [...(goalCtx.asked || []), key];
+  btn.closest('.sh-ideas').innerHTML = '<div class="kick">Ideas to try</div><p>Asked. Parallax is researching this problem; ideas usually arrive within a few hours.</p>';
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-askideas]'); if (b) askIdeas(b); });
 
 const ideaRank = (i) => { const s = labState.scores[i.id] || {}; return (s.promising || 0) * 2 + (s.test || 0) * 3 - (s.flawed || 0) - (s.tried || 0) * 2; };
 
