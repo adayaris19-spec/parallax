@@ -140,6 +140,13 @@ async function saveChapter(g: { id: number }, probs: Node[], text: string, pages
 // A problem's estimate is redone after 6 months, or sooner when the problem itself changed.
 const STALE_DAYS = 180;
 
+// Attention: followers and recent visits (goal_attention). Goals nobody follows or visited in the
+// last 30 days get no expensive extras until someone does; the most-watched go first.
+async function attention(): Promise<Map<number, number>> {
+  const rows = await db(`goal_attention?select=goal_id,score`).catch(() => []);
+  return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
+}
+
 async function collect() {
   const jobs = await db(`cost_jobs?status=eq.pending&select=batch_id,goal_id,chapters,created_at`);
   const out = [];
@@ -169,7 +176,9 @@ async function collect() {
 async function submit(slug?: string, fresh = false) {
   const pending = await db(`cost_jobs?status=eq.pending&select=goal_id`);
   if (!slug && pending.length) return { note: "a batch is still running" };
-  const goals = await db(`goals?status=eq.ready&select=id,slug,name${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=id.asc`);
+  const all = await db(`goals?status=eq.ready&select=id,slug,name${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=id.asc`);
+  const att = await attention();
+  const goals = slug ? all : all.filter((g: { id: number }) => (att.get(g.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
   for (const g of goals) {
     if (pending.some((p: { goal_id: number }) => p.goal_id === g.id)) continue;
     const [nodes, have] = await Promise.all([

@@ -1700,6 +1700,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
   goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas };
+  // Count one visit per goal per browser session; AI spend follows what people look at.
+  try { const k = `px.v.${g.id}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
