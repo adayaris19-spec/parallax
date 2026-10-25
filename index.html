@@ -6,183 +6,276 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Parallax</title>
 <meta name="description" content="Follow humanity's goals. See what is really blocking them, and what moved today.">
+<meta name="theme-color" content="#FAFAF9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0B0D" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Parallax">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
+/* ============================================================
+   Parallax — clean and premium. One accent, precise hairlines,
+   Geist for words, Geist Mono for numbers.
+   ============================================================ */
 :root{
-  --bg:#f7f7f5; --card:#ffffff; --ink:#151515; --ink2:#3d3d3d; --muted:#6e6e6a; --line:#e6e5e1; --line2:#d6d4cf;
-  --accent:#2f54d8; --accent-ink:#ffffff; --accent-soft:rgba(47,84,216,.10);
-  --solved:#15803d; --progress:#b45309; --blocked:#b42318; --open:#8a8a85;
-  --shadow:0 1px 2px rgba(0,0,0,.04);
-  --f:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --bg:#FAFAF9; --card:#FFFFFF; --sunk:#F2F2F0; --ink:#111214; --ink2:#3C3F45; --muted:#73767E; --faint:#A3A6AD;
+  --line:#ECECE9; --line2:#DCDCD7;
+  --accent:#3D4BF2; --accent-ink:#FFFFFF; --accent-soft:rgba(61,75,242,.08); --accent-line:rgba(61,75,242,.30);
+  --solved:#14955F; --progress:#D08A12; --blocked:#E0484E; --open:#C2C5CB;
+  --shadow:0 1px 1px rgba(16,17,20,.03),0 8px 24px -14px rgba(16,17,20,.12);
+  --shadow-lg:0 24px 60px -20px rgba(16,17,20,.28);
+  --f:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --m:"Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:18px; --navh:0px;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0f1012; --card:#17181b; --ink:#f1f1ef; --ink2:#cfcfcb; --muted:#9a9a95; --line:#2a2b2f; --line2:#3a3b40;
-    --accent:#7d97ff; --accent-ink:#0f1012; --accent-soft:rgba(125,151,255,.14);
-    --solved:#4ade80; --progress:#fbbf24; --blocked:#f87171; --open:#8f8f8a;
-    --shadow:none;
+    --bg:#0B0B0D; --card:#141417; --sunk:#1C1C20; --ink:#F3F3F4; --ink2:#C8CAD0; --muted:#8C8F98; --faint:#5E616A;
+    --line:#222226; --line2:#303137;
+    --accent:#8B95FF; --accent-ink:#0B0B0D; --accent-soft:rgba(139,149,255,.12); --accent-line:rgba(139,149,255,.36);
+    --solved:#3DD68C; --progress:#F5B83D; --blocked:#FF6369; --open:#4A4D55;
+    --shadow:0 0 0 1px rgba(255,255,255,.015);
+    --shadow-lg:0 24px 60px -20px rgba(0,0,0,.7);
+    color-scheme:dark;
   }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.55 var(--f);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 a{color:inherit}
 button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-weight:600;letter-spacing:-.018em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+::selection{background:var(--accent-soft)}
+.mono{font-family:var(--m);font-feature-settings:"tnum"}
 
-/* top bar */
-.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.top-in{max-width:680px;margin:0 auto;padding:10px 16px;display:flex;gap:12px;align-items:center}
-.brand{font-weight:750;letter-spacing:.02em;text-decoration:none;font-size:17px;white-space:nowrap;display:flex;align-items:center;gap:8px}
-.brand-mark{width:22px;height:22px;flex:none}
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto;padding:11px 20px;display:flex;gap:14px;align-items:center}
+.brand{font-weight:600;letter-spacing:-.025em;text-decoration:none;font-size:17.5px;white-space:nowrap;display:flex;align-items:center;gap:9px}
+.brand-mark{width:26px;height:26px;flex:none}
 .search{flex:1;position:relative}
-.search input{width:100%;height:38px;border-radius:19px;border:1px solid var(--line2);background:var(--card);color:var(--ink);padding:0 14px 0 36px;font:inherit;outline:none}
-.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.search svg{position:absolute;left:12px;top:11px;width:16px;height:16px;color:var(--muted)}
-.suggest{position:absolute;top:44px;left:0;right:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.12)}
-.suggest a,.suggest button{display:flex;width:100%;gap:10px;align-items:center;padding:10px 12px;text-decoration:none;border:0;background:none;text-align:left;cursor:pointer}
-.suggest a:hover,.suggest button:hover,.suggest .on{background:var(--accent-soft)}
-.navlink{text-decoration:none;color:var(--muted);font-weight:600;font-size:14px;white-space:nowrap}
+.search input{width:100%;height:38px;border-radius:12px;border:1px solid transparent;background:var(--sunk);color:var(--ink);padding:0 14px 0 38px;font:inherit;font-size:14.5px;outline:none;transition:background .15s,border-color .15s,box-shadow .15s}
+.search input::placeholder{color:var(--muted)}
+.search input:focus{background:var(--card);border-color:var(--accent-line);box-shadow:0 0 0 4px var(--accent-soft)}
+.search svg{position:absolute;left:13px;top:11px;width:16px;height:16px;color:var(--muted)}
+.suggest{position:absolute;top:46px;left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg)}
+.suggest a,.suggest button{display:flex;width:100%;gap:10px;align-items:center;padding:10px 14px;text-decoration:none;border:0;background:none;text-align:left;cursor:pointer;font-size:14.5px}
+.suggest a:hover,.suggest button:hover,.suggest .on{background:var(--sunk)}
+.navlink{text-decoration:none;color:var(--muted);font-weight:500;font-size:14.5px;white-space:nowrap;transition:color .15s}
 .navlink:hover{color:var(--ink)}
 
-main{max-width:680px;margin:0 auto;padding:0 16px 80px}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+main{max-width:680px;margin:0 auto;padding:0 20px 96px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:0 -20px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{white-space:nowrap;flex:none;appearance:none;border:0;background:none;padding:14px 12px 12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;text-decoration:none}
-.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab{white-space:nowrap;flex:none;appearance:none;border:0;background:none;padding:15px 12px 13px;font-weight:500;font-size:14.5px;color:var(--muted);cursor:pointer;border-bottom:1.5px solid transparent;margin-bottom:-1px;text-decoration:none;transition:color .15s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
+.page-h{margin:30px 0 4px;font-size:28px;line-height:1.15;letter-spacing:-.03em}
+.page-sub{color:var(--muted);margin:0}
 
-/* posts */
-.post{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:var(--shadow)}
-.post-h{display:flex;gap:10px;align-items:center;min-width:0}
-.av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;text-decoration:none}
-.av.lg{width:64px;height:64px;font-size:22px}
-.who{min-width:0;line-height:1.25}
+/* ---------- avatars: an orb per goal ---------- */
+.av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:12.5px;letter-spacing:.01em;text-decoration:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -10px 18px rgba(0,0,0,.14);text-shadow:0 1px 1px rgba(0,0,0,.18)}
+.av.lg{width:56px;height:56px;font-size:18px}
+
+/* ---------- posts ---------- */
+.post{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin:14px 0;box-shadow:var(--shadow)}
+.post-h{display:flex;gap:11px;align-items:center;min-width:0}
+.who{min-width:0;line-height:1.3}
 .who a{text-decoration:none}
-.who .h{font-weight:700}
+.who .h{font-weight:600;font-size:15px}
 .who .n{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.when{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap;align-self:flex-start}
-.kind{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 2px}
-.kind.bottleneck{color:var(--blocked)} .kind.advance,.kind.solved{color:var(--solved)} .kind.setback{color:var(--progress)}
-.kind.forgotten{color:var(--accent)} .kind.mapped{color:var(--muted)} .kind.promise{color:var(--ink2)}
-.quote{margin:8px 0 10px;padding:10px 12px;border-left:3px solid var(--line2);background:color-mix(in srgb,var(--line) 45%,transparent);border-radius:0 10px 10px 0;font-size:14px;color:var(--ink2)}
-.quote cite{display:block;margin-top:6px;font-style:normal;font-size:12.5px;color:var(--muted)}
+.when{margin-left:auto;color:var(--faint);font-size:12.5px;white-space:nowrap;align-self:flex-start;font-family:var(--m)}
+.kind{--k:var(--faint);display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:var(--muted);margin:15px 0 5px;letter-spacing:.005em}
+.kind::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--k);flex:none}
+.kind.bottleneck{--k:var(--blocked)} .kind.advance,.kind.solved{--k:var(--solved)} .kind.setback{--k:var(--progress)}
+.kind.forgotten{--k:var(--accent)} .kind.mapped{--k:var(--ink)} .kind.promise{--k:var(--ink2)}
+.post h3{font-size:18.5px;line-height:1.32;margin:0 0 8px;letter-spacing:-.016em}
+.post p{margin:0 0 10px;color:var(--ink2);font-size:15px}
+.quote{margin:10px 0 12px;padding:12px 14px;border-left:2px solid var(--ink);background:var(--sunk);border-radius:0 12px 12px 0;font-size:14.5px;color:var(--ink2);line-height:1.5}
+.quote cite{display:block;margin-top:8px;font-style:normal;font-size:12.5px;color:var(--muted)}
 .quote cite a{color:inherit}
-.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;margin-left:6px;vertical-align:1px;text-transform:none;letter-spacing:0}
-.pill.kept{background:color-mix(in srgb,var(--solved) 16%,transparent);color:var(--solved)}
-.pill.partly{background:color-mix(in srgb,var(--progress) 16%,transparent);color:var(--progress)}
-.pill.broken{background:color-mix(in srgb,var(--blocked) 14%,transparent);color:var(--blocked)}
-.pill.pending,.pill.unclear{background:var(--line);color:var(--muted)}
-.prom-h{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:22px 0 4px}
-.post h3{font-size:17px;line-height:1.35;margin:2px 0 6px}
-.post p{margin:0 0 8px;color:var(--ink2)}
-.srcs{margin:10px 0 0;padding:0;list-style:none;border-top:1px solid var(--line);padding-top:8px}
-.srcs li{font-size:13px;color:var(--muted);margin:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.srcs a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line2)}
-.srcs a:hover{color:var(--accent);border-color:var(--accent)}
-.post-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.check{font-size:12.5px;color:var(--muted);display:inline-flex;gap:5px;align-items:center;margin-right:auto}
+.pill{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;margin-left:8px;letter-spacing:.01em}
+.pill.kept{background:color-mix(in srgb,var(--solved) 13%,transparent);color:var(--solved)}
+.pill.partly{background:color-mix(in srgb,var(--progress) 15%,transparent);color:var(--progress)}
+.pill.broken{background:color-mix(in srgb,var(--blocked) 12%,transparent);color:var(--blocked)}
+.pill.pending,.pill.unclear{background:var(--sunk);color:var(--muted)}
+.prom-h{font-size:12.5px;font-weight:500;color:var(--muted);margin:30px 0 6px;letter-spacing:.01em}
+.srcs{margin:12px 0 0;padding:12px 0 0;list-style:none;border-top:1px solid var(--line)}
+.srcs li{font-size:12.5px;color:var(--faint);margin:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srcs a{color:var(--muted);text-decoration:none;transition:color .15s}
+.srcs a:hover{color:var(--accent)}
+.post-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.check{font-size:12.5px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;margin-right:auto}
 .check.two{color:var(--solved)}
-.btn{appearance:none;border:1px solid var(--line2);background:var(--card);border-radius:18px;padding:6px 14px;font-weight:600;font-size:13.5px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
-.btn:hover{border-color:var(--ink2)}
+.btn{appearance:none;border:1px solid var(--line2);background:var(--card);border-radius:999px;height:34px;padding:0 15px;font-weight:500;font-size:13.5px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center;justify-content:center;transition:background .15s,border-color .15s,opacity .15s;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.btn.primary:hover{opacity:.9}
+.btn.primary:hover{opacity:.88}
 .btn.following{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
-.btn:disabled{opacity:.55;cursor:default}
+.btn.icon{width:34px;padding:0}
+.btn.icon svg{width:16px;height:16px}
+.btn:disabled{opacity:.5;cursor:default}
 
-/* goal page */
-.goal-h{padding:22px 0 10px;display:flex;gap:16px;align-items:flex-start}
-.goal-h h1{font-size:24px;line-height:1.2;margin:0}
-.goal-h .handle{color:var(--muted);font-weight:600}
-.goal-h .sum{margin:8px 0 0;color:var(--ink2)}
-.goal-h .act{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 4px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
-.stat .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.stat .v{font-size:22px;font-weight:750;margin-top:2px}
-.stat .s{font-size:13px;color:var(--muted)}
-.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;background:var(--solved);border-radius:4px}
-.bneck{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--blocked);border-radius:14px;padding:12px 14px;margin:12px 0}
-.bneck .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--blocked)}
-.bneck h3{margin:4px 0;font-size:16px}
-.bneck p{margin:0;color:var(--ink2);font-size:14px}
-.branch{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
-.branch-h{padding:12px 14px;border-bottom:1px solid var(--line)}
-.branch-h h3{margin:0;font-size:15.5px}
-.branch-h p{margin:2px 0 0;font-size:13px;color:var(--muted)}
-.mini{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:8px;background:var(--line)}
-.mini i{display:block;height:100%}
+/* ---------- goal page ---------- */
+.goal-h{padding:30px 0 6px}
+.gh-top{display:flex;align-items:center;gap:14px}
+.gh-top .handle{font-weight:600;font-size:15px}
+.gh-top .followers{margin:0}
+.goal-h h1{font-size:38px;line-height:1.06;letter-spacing:-.034em;margin:20px 0 12px;max-width:16ch}
+.goal-h .sum{margin:0;color:var(--ink2);font-size:16.5px;line-height:1.55;max-width:58ch}
+.goal-h .act{margin-top:20px;display:flex;gap:8px;flex-wrap:wrap}
+.followers{color:var(--muted);font-size:13.5px;margin-top:2px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin:26px 0 14px;overflow:hidden}
+.metric{padding:18px 20px 16px;min-width:0}
+.metric + .metric{border-left:1px solid var(--line)}
+.metric .l{font-size:12.5px;color:var(--muted);font-weight:500}
+.metric .v{font-family:var(--m);font-size:30px;font-weight:500;letter-spacing:-.03em;line-height:1.15;margin-top:6px;white-space:nowrap}
+.metric .v small{font-size:15px;color:var(--muted);margin-left:3px;letter-spacing:0}
+.metric .s{font-size:12.5px;color:var(--muted);margin-top:6px}
+.segbar{display:flex;gap:2px;height:4px;margin-top:12px}
+.segbar i{display:block;height:100%;border-radius:2px;min-width:2px}
+.metrics .note2{grid-column:1/-1;border-top:1px solid var(--line);padding:11px 20px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.note2 summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.note2 summary::-webkit-details-marker{display:none}
+.note2 summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+.note2[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.note2 summary:hover{color:var(--ink)}
+.note2 p{margin:8px 0 2px}
+.cmap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px 8px;margin:14px 0}
+.cmap-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cmap-h h2{font-size:15.5px;margin:0}
+.crow{display:grid;grid-template-columns:minmax(0,190px) 1fr;gap:18px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.cmap-h + .crow{margin-top:12px}
+.crow .bn{font-size:13.5px;color:var(--ink2);line-height:1.35}
+.crow .bn small{display:block;color:var(--faint);font-family:var(--m);font-size:11.5px;margin-top:2px}
+.dots{display:flex;flex-wrap:wrap;gap:9px}
+.cdot{--sc:var(--open);width:18px;height:18px;border-radius:50%;background:var(--sc);display:block;position:relative;transition:transform .15s,box-shadow .15s;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.cdot:hover,.cdot:focus-visible{transform:scale(1.22)}
+.cdot.st-solved{--sc:var(--solved)} .cdot.st-in_progress{--sc:var(--progress)} .cdot.st-blocked{--sc:var(--blocked)} .cdot.st-open{--sc:var(--open)}
+.cdot.bneck-dot{box-shadow:0 0 0 3px var(--card),0 0 0 4.5px var(--blocked)}
+.cdot.bneck-dot::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1.5px solid var(--blocked);opacity:0;animation:ping 2.4s cubic-bezier(.2,.6,.3,1) infinite}
+@keyframes ping{0%{transform:scale(.7);opacity:.55}100%{transform:scale(1.5);opacity:0}}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;gap:7px;align-items:center}
+.legend .dot{margin:0;width:8px;height:8px}
+.bneck{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin:14px 0;position:relative;overflow:hidden}
+.bneck::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blocked)}
+.bneck .l{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:var(--blocked)}
+.bneck .l::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--blocked)}
+.bneck h3{margin:8px 0 6px;font-size:18px;line-height:1.3}
+.bneck p{margin:0;color:var(--ink2);font-size:14.5px}
+.arrow-link{display:inline-flex;gap:6px;align-items:center;margin-top:12px;color:var(--accent);text-decoration:none;font-weight:500;font-size:14px}
+.arrow-link:hover{text-decoration:underline}
+.branch{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin:14px 0;overflow:hidden;box-shadow:var(--shadow)}
+.branch-h{padding:16px 18px;border-bottom:1px solid var(--line)}
+.branch-h h3{margin:0;font-size:16px}
+.branch-h p{margin:3px 0 0;font-size:13.5px;color:var(--muted)}
+.mini{display:flex;gap:2px;height:4px;margin-top:12px}
+.mini i{display:block;height:100%;border-radius:2px}
 details.leaf{border-top:1px solid var(--line)}
 details.leaf:first-of-type{border-top:0}
-details.leaf summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;gap:10px;align-items:flex-start}
+details.leaf summary{list-style:none;cursor:pointer;padding:13px 18px;display:flex;gap:12px;align-items:flex-start;transition:background .15s}
+details.leaf summary:hover{background:var(--sunk)}
 details.leaf summary::-webkit-details-marker{display:none}
-details.leaf[open] summary{background:var(--accent-soft)}
-details.leaf.target summary{background:var(--accent-soft)}
-.dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:6px}
+details.leaf[open] summary,details.leaf.target summary{background:var(--accent-soft)}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:7px}
 .st-solved{background:var(--solved)} .st-in_progress{background:var(--progress)} .st-blocked{background:var(--blocked)} .st-open{background:var(--open)}
 .leaf-t{flex:1;min-width:0}
-.leaf-t b{font-weight:600}
-.leaf-t span{display:block;font-size:12.5px;color:var(--muted)}
-.leaf-body{padding:0 14px 12px 34px;font-size:14px;color:var(--ink2)}
-.leaf-body p{margin:6px 0}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:12px 0 0}
-.legend span{display:inline-flex;gap:6px;align-items:center}
-.legend .dot{margin:0;width:8px;height:8px}
+.leaf-t b{font-weight:500}
+.leaf-t span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.leaf-body{padding:2px 18px 16px 39px;font-size:14.5px;color:var(--ink2)}
+.leaf-body p{margin:8px 0}
 
-/* misc */
-.note{color:var(--muted);text-align:center;padding:36px 10px}
-.note h2{color:var(--ink);font-size:18px;margin:0 0 6px}
-.more{display:block;margin:16px auto}
-.grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+/* ---------- lists, notes, misc ---------- */
+.note{color:var(--muted);text-align:center;padding:48px 12px}
+.note h2{color:var(--ink);font-size:19px;margin:0 0 8px}
+.more{display:flex;margin:18px auto}
+.grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px}
 @media (min-width:560px){.grid{grid-template-columns:1fr 1fr}}
-.gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;display:flex;gap:12px;align-items:flex-start}
-.gcard:hover{border-color:var(--line2)}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;text-decoration:none;display:flex;gap:13px;align-items:flex-start;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.gcard:hover{border-color:var(--line2);transform:translateY(-1px)}
 .gcard .t{min-width:0;flex:1}
-.gcard b{display:block}
-.gcard small{color:var(--muted);display:block}
-.steps{list-style:none;padding:0;margin:18px auto;max-width:360px;text-align:left}
-.steps li{display:flex;gap:10px;align-items:center;padding:6px 0;color:var(--muted)}
+.gcard b{display:block;font-weight:600}
+.gcard small{color:var(--muted);display:block;font-size:13px}
+.gcard .gp{display:flex;align-items:center;gap:10px;margin-top:10px}
+.gcard .gp .segbar{flex:1;margin:0}
+.gcard .gp span{font-family:var(--m);font-size:12px;color:var(--muted)}
+.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--solved);border-radius:2px}
+.steps{list-style:none;padding:0;margin:22px auto;max-width:360px;text-align:left}
+.steps li{display:flex;gap:11px;align-items:center;padding:7px 0;color:var(--muted)}
 .steps li.done{color:var(--ink)}
-.steps li.now{color:var(--ink);font-weight:600}
-.spin{width:14px;height:14px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;flex:none}
-.tick{width:14px;height:14px;flex:none;color:var(--solved)}
-.idle{width:14px;height:14px;border:2px solid var(--line2);border-radius:50%;flex:none}
+.steps li.now{color:var(--ink);font-weight:500}
+.spin{width:15px;height:15px;border:1.5px solid var(--line2);border-top-color:var(--ink);border-radius:50%;animation:sp .8s linear infinite;flex:none}
+.tick{width:15px;height:15px;flex:none;color:var(--solved)}
+.idle{width:15px;height:15px;border:1.5px solid var(--line2);border-radius:50%;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion: reduce){.spin{animation:none}}
-.acct{width:36px;height:36px;border-radius:50%;padding:0;justify-content:center;font-weight:700;flex:none}
-.acct.out{width:auto;border-radius:18px;padding:6px 14px}
-.menu{position:absolute;right:16px;top:54px;background:var(--card);border:1px solid var(--line2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);min-width:200px;overflow:hidden;z-index:20}
-.menu a,.menu button{display:block;width:100%;text-align:left;padding:10px 14px;text-decoration:none;border:0;background:none;cursor:pointer;font-size:14.5px}
-.menu a:hover,.menu button:hover{background:var(--accent-soft)}
-.menu .who2{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
-.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:30}
-.modal{background:var(--card);border-radius:16px;max-width:400px;width:100%;padding:22px 22px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.modal h2{margin:0 0 6px;font-size:20px}
-.modal p{margin:0 0 14px;color:var(--ink2)}
-.modal .wide{width:100%;justify-content:center;padding:10px 14px;font-size:15px;margin-top:6px}
-.modal .fine{font-size:12.5px;color:var(--muted);margin:12px 0 0}
-.field{display:block;margin:14px 0}
-.field > span{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
-.field small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
-.field input,.field textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;outline:none}
-.field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.field textarea{min-height:80px;resize:vertical}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:3px 10px;font-size:13px;font-weight:600}
+@media (prefers-reduced-motion: reduce){.spin,.cdot.bneck-dot::after{animation:none}*{transition:none!important}}
+.acct{width:34px;height:34px;border-radius:50%;padding:0;font-weight:600;font-size:12.5px;flex:none}
+.acct.out{width:auto;padding:0 15px}
+.menu{position:absolute;right:20px;top:58px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);min-width:210px;overflow:hidden;z-index:20;padding:4px}
+.menu a,.menu button{display:block;width:100%;text-align:left;padding:9px 12px;text-decoration:none;border:0;background:none;cursor:pointer;font-size:14.5px;border-radius:10px}
+.menu a:hover,.menu button:hover{background:var(--sunk)}
+.menu .who2{padding:9px 12px 10px;margin-bottom:4px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.modal-back{position:fixed;inset:0;background:rgba(10,10,12,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:30;animation:fade .15s ease-out}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:22px;max-width:400px;width:100%;padding:26px 24px 20px;box-shadow:var(--shadow-lg);animation:rise .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0}} @keyframes rise{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.modal h2{margin:0 0 8px;font-size:21px;letter-spacing:-.025em}
+.modal p{margin:0 0 16px;color:var(--ink2)}
+.modal .wide{width:100%;height:42px;font-size:15px;margin-top:8px}
+.modal .fine{font-size:12.5px;color:var(--muted);margin:14px 0 0}
+.field{display:block;margin:16px 0}
+.field > span{display:block;font-weight:500;font-size:14px;margin-bottom:6px}
+.field small{display:block;color:var(--muted);font-size:12.5px;margin-top:5px}
+.field input,.field textarea{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px 13px;outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field textarea:focus{border-color:var(--accent-line);box-shadow:0 0 0 4px var(--accent-soft)}
+.field textarea{min-height:88px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{background:var(--sunk);color:var(--ink2);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500;text-decoration:none}
 .err{color:var(--blocked);font-size:13.5px;margin-top:8px}
 .danger{color:var(--blocked)!important;border-color:color-mix(in srgb,var(--blocked) 40%,transparent)!important}
-.followers{color:var(--muted);font-size:14px;margin-top:4px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
-.toast.on{opacity:1}
-.foot{max-width:680px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:12.5px;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(28px + var(--navh));transform:translate(-50%,6px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px);text-align:center;z-index:40}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.foot{max-width:680px;margin:0 auto;padding:8px 20px calc(44px + var(--navh));color:var(--faint);font-size:12.5px;text-align:center;line-height:1.6}
 .foot a{color:var(--muted)}
 .hide{display:none!important}
-@media (max-width:520px){
+
+/* ---------- phone: app-like bottom bar ---------- */
+.bnav{display:none}
+@media (max-width:760px){
+  :root{--navh:calc(62px + env(safe-area-inset-bottom))}
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;height:var(--navh);padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid var(--line)}
+  .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+  .bnav svg{width:23px;height:23px}
+  .bnav .on{color:var(--ink)}
+  .feedtabs{display:none}
+  .acct.out{display:none}
+  main{padding-bottom:calc(40px + var(--navh))}
   .navlink.x{display:none}
+}
+@media (max-width:520px){
+  .top-in{padding:10px 16px;gap:10px}
+  main{padding-left:16px;padding-right:16px}
+  .tabs{margin:0 -16px;padding:0 16px}
   .brand-word{display:none}
+  .post{padding:16px 16px;border-radius:16px}
   .check{flex-basis:100%}
-  .tab{padding:14px 9px 12px;font-size:14.5px}
-  .goal-h h1{font-size:21px}
-  .stats{grid-template-columns:1fr}
+  .tab{padding:14px 10px 12px}
+  .goal-h h1{font-size:30px}
+  .metric{padding:14px 14px 12px}
+  .metric .v{font-size:21px}
+  .metric .v small{font-size:12px}
+  .metrics .note2{padding:11px 14px}
+  .crow{grid-template-columns:1fr;gap:9px}
+  .cmap,.bneck{padding:16px}
+  .page-h{font-size:24px}
 }
 </style>
 </head>
@@ -190,7 +283,7 @@ details.leaf.target summary{background:var(--accent-soft)}
 <header class="top">
   <div class="top-in">
     <a class="brand" href="#/" aria-label="Parallax home">
-      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="12" r="6.5" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>
+      <svg class="brand-mark" viewBox="0 0 26 26" aria-hidden="true"><line x1="5" y1="20.5" x2="21" y2="20.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="0.1 3.2" opacity=".55"/><line x1="5" y1="20.5" x2="13" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/><line x1="21" y1="20.5" x2="13" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/><circle cx="5" cy="20.5" r="2.6" fill="currentColor"/><circle cx="21" cy="20.5" r="2.6" fill="currentColor"/><circle cx="13" cy="5.5" r="3.4" fill="var(--accent)"/></svg>
       <span class="brand-word">Parallax</span>
     </a>
     <form class="search" id="searchForm" role="search" autocomplete="off">
@@ -210,6 +303,13 @@ details.leaf.target summary{background:var(--accent-soft)}
   <br><a href="instruments.html">The original Parallax instruments</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
+<nav class="bnav" id="bnav" aria-label="Main">
+  <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
+  <a href="#/following" data-nav="following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/></svg>Following</a>
+  <a href="#/branch" data-nav="branch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Branch</a>
+  <a href="#/explore" data-nav="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Explore</a>
+  <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script>
@@ -248,9 +348,14 @@ function hue(str) {
   for (const c of String(str)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return h % 360;
 }
+// Each goal gets an orb: a soft gradient sphere in its own hue.
+function orb(seed, sat = 78) {
+  const h = hue(seed), h2 = (h + 34) % 360;
+  return `background:radial-gradient(120% 120% at 28% 18%,hsl(${h} ${sat}% 74%) 0%,hsl(${h} ${sat - 6}% 54%) 42%,hsl(${h2} ${sat - 12}% 34%) 100%)`;
+}
 function avatar(g, big = false) {
   const initials = String(g.handle || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
-  return `<a class="av${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="background:hsl(${hue(g.slug)} 55% 42%)" aria-label="@${esc(g.handle)}">${esc(initials)}</a>`;
+  return `<a class="av${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="${orb(g.slug)}" aria-label="@${esc(g.handle)}">${esc(initials)}</a>`;
 }
 
 let toastTimer;
@@ -323,7 +428,7 @@ async function setSession(session) {
 function personAvatar(p, big = false) {
   const name = (p && (p.display_name || p.handle)) || '?';
   const initials = name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
-  return `<span class="av${big ? ' lg' : ''}" style="background:hsl(${hue(p ? p.handle : '')} 45% 38%)" aria-hidden="true">${esc(initials)}</span>`;
+  return `<span class="av${big ? ' lg' : ''}" style="${orb(p ? p.handle : '', 40)}" aria-hidden="true">${esc(initials)}</span>`;
 }
 
 function renderAcct() {
@@ -332,15 +437,17 @@ function renderAcct() {
   if (me) {
     const name = me.profile ? (me.profile.display_name || me.profile.handle) : 'You';
     b.className = 'btn acct';
-    b.style.background = `hsl(${hue(me.profile ? me.profile.handle : '')} 45% 38%)`;
+    b.setAttribute('style', orb(me.profile ? me.profile.handle : '', 40));
     b.style.color = '#fff';
     b.style.borderColor = 'transparent';
+    $('#navMeLabel').textContent = 'You';
     b.textContent = name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?';
     b.setAttribute('aria-label', 'Your account');
   } else {
     b.className = 'btn acct out';
-    b.style.background = b.style.color = b.style.borderColor = '';
+    b.removeAttribute('style');
     b.textContent = 'Sign in';
+    $('#navMeLabel').textContent = 'Sign in';
     b.removeAttribute('aria-label');
   }
 }
@@ -509,7 +616,7 @@ function postCard(p, g) {
     ${p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : ''}
     ${p.body ? `<p>${esc(p.body)}</p>` : ''}
     ${srcs ? `<ul class="srcs">${srcs}</ul>` : ''}
-    <div class="post-f">${check}${treeLink}${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share">Share</button></div>
+    <div class="post-f">${check}${treeLink}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
 }
 
@@ -522,7 +629,7 @@ function failNote(e, retry) {
 }
 
 async function feedView(tab) {
-  view.innerHTML = `<nav class="tabs" role="tablist">
+  view.innerHTML = `<nav class="tabs feedtabs" role="tablist">
       <a class="tab" role="tab" href="#/" aria-selected="${tab === 'all'}">Everything</a>
       <a class="tab" role="tab" href="#/following" aria-selected="${tab === 'following'}">Following</a>
       <a class="tab" role="tab" href="#/branch" aria-selected="false">Your branch</a>
@@ -575,7 +682,7 @@ async function feedView(tab) {
 }
 
 async function exploreView() {
-  view.innerHTML = `<h1 style="font-size:22px;margin:22px 0 4px">Explore goals</h1><p style="color:var(--muted);margin:0">Every goal Parallax has mapped. Search for one that is missing and it will be mapped.</p><div id="grid" class="grid"></div>`;
+  view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped.</p><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   if (!list.length) { $('#grid').outerHTML = note('No goals yet', 'Search for any goal to map the first one.'); return; }
@@ -584,7 +691,7 @@ async function exploreView() {
     const sub = g.status === 'mapping' ? 'Being mapped now' : `${pct}% of its problems solved`;
     return `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}">${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}
       <span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small>
-      ${g.status === 'ready' ? `<span class="bar"><i style="width:${pct}%"></i></span>` : ''}<small style="margin-top:4px">${esc(sub)}</small></span></a>`;
+      ${g.status === 'ready' ? `<span class="gp"><span class="segbar" style="background:var(--line);border-radius:2px"><i style="width:${pct}%;background:var(--solved)"></i></span><span>${pct}%</span></span>` : `<small style="margin-top:8px">${esc(sub)}</small>`}</span></a>`;
   }).join('');
 }
 
@@ -609,11 +716,12 @@ async function goalView(slug, tab, focusKey) {
   try { g = (await rest(`goals?slug=eq.${encodeURIComponent(slug)}&select=${GOAL_COLS}`))[0]; } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
 
-  const head = `<div class="goal-h">${avatar(g, true)}<div style="min-width:0;flex:1">
-      <h1>${esc(g.name)}</h1><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div>
+  const head = `<div class="goal-h">
+      <div class="gh-top">${avatar(g, true)}<div style="min-width:0"><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
+      <h1>${esc(g.name)}</h1>
       ${g.summary ? `<p class="sum">${esc(g.summary)}</p>` : ''}
-      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
-    </div></div>`;
+      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>Share</button></div>
+    </div>`;
 
   if (g.status !== 'ready') {
     if (g.status === 'failed') {
@@ -645,13 +753,31 @@ async function goalView(slug, tab, focusKey) {
   const pct = Math.round((g.progress || 0) * 100);
   const bn = leaves.find((l) => l.key === g.bottleneck_key);
 
-  const stats = `<div class="stats">
-    <div class="stat"><div class="l">Progress</div><div class="v">${pct}%</div><div class="bar"><i style="width:${pct}%"></i></div><div class="s" style="margin-top:6px">${solved} of ${leaves.length} problems solved, ${going} in progress (counted as half)</div></div>
-    <div class="stat"><div class="l">Countdown</div><div class="v">${esc(horizonText(g))}</div><div class="s">at the current pace. An estimate${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</div></div>
+  const blocked = leaves.filter((l) => l.status === 'blocked').length;
+  const openN = leaves.length - solved - going - blocked;
+  const seg = [['solved', solved], ['in_progress', going], ['blocked', blocked], ['open', openN]]
+    .filter(([, n]) => n).map(([k, n]) => `<i class="st-${k}" style="flex:${n}"></i>`).join('');
+  const lo = g.horizon_low, hi = g.horizon_high;
+  const horizon = lo == null ? '—' : lo === hi ? `~${lo}` : `${lo}–${hi}`;
+  const treeUrl = (k) => `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(k)}`;
+  const stats = `<div class="metrics">
+    <div class="metric"><div class="l">Progress</div><div class="v">${pct}<small>%</small></div><div class="segbar" aria-hidden="true">${seg}</div></div>
+    <div class="metric"><div class="l">Countdown</div><div class="v">${esc(horizon)}${lo == null ? '' : '<small>yrs</small>'}</div><div class="s">at the current pace</div></div>
+    <div class="metric"><div class="l">Problems</div><div class="v">${leaves.length}</div><div class="s">${solved} solved · ${going} moving</div></div>
+    <details class="note2"><summary>How these are measured</summary><p>Progress counts solved problems, and half of those in progress. The countdown is an estimate${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></details>
   </div>
-  ${bn ? `<div class="bneck"><div class="l">Biggest bottleneck</div><h3>${esc(bn.title)}</h3><p>${esc(bn.blocker)}</p><p style="margin-top:6px"><a href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(bn.key)}">See it in the tree</a></p></div>` : ''}`;
+  <section class="cmap" aria-label="Map of every problem">
+    <div class="cmap-h"><h2>The map</h2><div class="legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span></div></div>
+    ${branches.map((b) => {
+      const kids = leaves.filter((l) => l.parent_key === b.key);
+      const done = kids.filter((k) => k.status === 'solved').length;
+      return `<div class="crow"><div class="bn">${esc(b.title)}<small>${done}/${kids.length} solved</small></div><div class="dots">${kids.map((l) =>
+        `<a class="cdot st-${esc(l.status || 'open')}${l.key === g.bottleneck_key ? ' bneck-dot' : ''}" href="${treeUrl(l.key)}" title="${esc(l.title)} · ${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · biggest bottleneck' : ''}" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}"></a>`).join('')}</div></div>`;
+    }).join('')}
+  </section>
+  ${bn ? `<div class="bneck"><div class="l">Biggest bottleneck</div><h3>${esc(bn.title)}</h3><p>${esc(bn.blocker)}</p><a class="arrow-link" href="${treeUrl(bn.key)}">See it in the tree <span aria-hidden="true">→</span></a></div>` : ''}`;
 
-  const tabs = `<nav class="tabs" role="tablist" style="margin-top:8px">
+  const tabs = `<nav class="tabs" role="tablist" style="margin-top:18px">
       <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}" aria-selected="${tab === 'posts'}">Posts</a>
       <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/tree" aria-selected="${tab === 'tree'}">The tree</a>
       <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/promises" aria-selected="${tab === 'promises'}">Promises${promises.length ? ` (${promises.length})` : ''}</a></nav>`;
@@ -662,7 +788,7 @@ async function goalView(slug, tab, focusKey) {
       branches.map((b) => {
         const kids = leaves.filter((l) => l.parent_key === b.key);
         const count = (s) => kids.filter((k) => k.status === s).length;
-        const seg = ['solved', 'in_progress', 'blocked', 'open'].map((s) => count(s) ? `<i class="st-${s}" style="width:${(100 * count(s)) / kids.length}%"></i>` : '').join('');
+        const seg = ['solved', 'in_progress', 'blocked', 'open'].map((s) => count(s) ? `<i class="st-${s}" style="flex:${count(s)}"></i>` : '').join('');
         return `<section class="branch"><div class="branch-h"><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(b.why)}</p>` : ''}<div class="mini" aria-hidden="true">${seg}</div></div>
           ${kids.map((l) => {
             const ev = (l.evidence || []).slice(0, 6).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)})</span>` : ''}</li>`; }).join('');
@@ -704,7 +830,7 @@ function searchView(q) {
   const box = $('#sres');
   goals().then((list) => {
     const hits = match(list, q);
-    box.innerHTML = `<h1 style="font-size:20px;margin:22px 0 10px">Goals matching “${esc(q)}”</h1>` +
+    box.innerHTML = `<h1 class="page-h" style="margin-bottom:14px">Goals matching “${esc(q)}”</h1>` +
       (hits.length ? `<div class="grid" style="margin-top:0">${hits.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>` : '<p style="color:var(--muted)">No goal on Parallax matches that yet.</p>') +
       `<div class="post" style="text-align:center;margin-top:20px"><h3 style="margin-top:4px">Not what you meant?</h3><p>Parallax can map “${esc(q)}” as a new goal: what stands between us and it, what is blocking it, and what moves it forward.</p><button class="btn primary" id="mapIt">Map this goal</button><p id="mapMsg" style="margin-top:10px"></p></div>`;
     $('#mapIt').onclick = () => mapGoal(q);
@@ -882,7 +1008,7 @@ async function settingsView(welcome) {
     return;
   }
   const p = me.profile || { handle: '', display_name: '', bio: '', skills: [] };
-  view.innerHTML = `<h1 style="font-size:22px;margin:22px 0 4px">${welcome ? 'Welcome to Parallax' : 'Settings'}</h1>
+  view.innerHTML = `<h1 class="page-h">${welcome ? 'Welcome to Parallax' : 'Settings'}</h1>
     <p style="color:var(--muted);margin:0">${welcome ? 'Pick your name on Parallax and tell people what you can help with. You can change this any time.' : 'This is what people see on your profile.'}</p>
     <form id="pf" class="post" style="margin-top:16px">
       <label class="field"><span>Name</span><input id="pfName" maxlength="60" value="${esc(p.display_name)}"></label>
@@ -943,18 +1069,18 @@ function branchCard(it, i, done) {
 }
 
 async function branchView(refresh = false) {
-  const tabs = `<nav class="tabs" role="tablist">
+  const tabs = `<nav class="tabs feedtabs" role="tablist">
       <a class="tab" role="tab" href="#/" aria-selected="false">Everything</a>
       <a class="tab" role="tab" href="#/following" aria-selected="false">Following</a>
       <a class="tab" role="tab" href="#/branch" aria-selected="true">Your branch</a>
       <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a></nav>`;
   view.innerHTML = tabs + `<div id="br"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
-  await authReady;
   const box = $('#br');
-  if (!box) return;
+  await authReady;
+  if (!box.isConnected) return;
   if (!sb || !me) {
     box.innerHTML = note('Find where you can help', 'Sign in and tell Parallax what you are good at. It will find the problems, across every goal, where someone like you can make a difference.', '<p><button class="btn primary" type="button" id="brIn">Sign in</button></p>');
-    $('#brIn').onclick = () => openSignIn('Sign in to find the problems where your skills can help.');
+    box.querySelector('#brIn').onclick = () => openSignIn('Sign in to find the problems where your skills can help.');
     return;
   }
   const skills = (me.profile && me.profile.skills) || [];
@@ -973,7 +1099,7 @@ async function branchView(refresh = false) {
     });
     data = await r.json().catch(() => ({ error: `Parallax answered ${r.status}` }));
   } catch (e) { data = { error: e.message }; }
-  if (!$('#br')) return;
+  if (!box.isConnected) return; // the person moved on, or a newer load replaced this one
   if (data.needs === 'skills') { location.hash = '#/settings'; return; }
   if (data.error && !data.items) { box.innerHTML = note('Could not find your matches', esc(data.error), '<p><button class="btn" type="button" onclick="branchView()">Try again</button></p>'); return; }
   const items = data.items || [];
@@ -983,14 +1109,15 @@ async function branchView(refresh = false) {
     const { data: rows } = await sb.from('contributions').select('goal_id,node_key').eq('user_id', me.id);
     for (const r of rows || []) done.add(`${r.goal_id}/${r.node_key}`);
   } catch {}
+  if (!box.isConnected) return;
   const when = data.generated_at ? ago(data.generated_at) : '';
-  box.innerHTML = `<h1 style="font-size:22px;margin:22px 0 4px">Your branch</h1>
-    <p style="color:var(--muted);margin:0">Problems where someone with your skills can help. Based on:</p>
+  box.innerHTML = `<h1 class="page-h">Your branch</h1>
+    <p class="page-sub">Problems where someone with your skills can help. Based on:</p>
     <div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}<a class="chip" href="#/settings" style="background:none;text-decoration:underline">Edit</a></div>
     ${data.note ? `<p style="color:var(--muted)">${esc(data.note)}</p>` : ''}
     ${items.length ? items.map((it, i) => branchCard(it, i, done.has(`${it.goal.id}/${it.node.key}`))).join('') : note('No close matches yet', 'Try adding more skills, or check back as more goals are mapped.')}
     <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:16px">${when ? `Matched ${esc(when === 'now' ? 'just now' : /^\d/.test(when) ? `${when} ago` : `on ${when}`)} · ` : ''}<button class="btn" type="button" id="brNew">Find new matches</button></p>`;
-  $('#brNew').onclick = () => branchView(true);
+  box.querySelector('#brNew').onclick = () => branchView(true);
   box.addEventListener('click', (e) => {
     const b = e.target.closest('[data-did]');
     if (b) openDidIt(branchItems[Number(b.dataset.did)], b);
@@ -1029,10 +1156,24 @@ function openDidIt(it, btn) {
 }
 
 // ------------------------------------------------------------ router
+function setNav(parts) {
+  const key = { '': 'home', following: 'following', branch: 'branch', explore: 'explore', u: 'me', settings: 'me' }[parts[0]] ?? '';
+  document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
+    const on = el.dataset.nav === key;
+    el.classList.toggle('on', on);
+    if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
+  });
+}
+$('#navMe').addEventListener('click', () => {
+  if (me && me.profile) location.hash = `#/u/${encodeURIComponent(me.profile.handle)}`;
+  else openSignIn();
+});
+
 function route() {
   clearTimeout(pollTimer);
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  setNav(parts);
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
