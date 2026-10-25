@@ -287,7 +287,9 @@ body.noscroll{overflow:hidden}
 .eta .n{font-family:var(--m);font-size:clamp(36px,6vw,54px);letter-spacing:-.05em;color:#fff;line-height:1}
 .eta .u{font-size:20px;color:#fff;font-weight:500}
 .eta .c{flex-basis:100%;color:var(--muted);font-size:13px}
-.gh2 .act{margin-top:22px;display:flex;gap:8px}
+.gh2 .act{margin-top:22px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gh2 .built{font-size:12px;color:var(--muted);margin-left:6px}
+.srcb{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:5px;background:var(--sunk);color:var(--muted);margin-left:4px}
 .gh2.compact{min-height:0;padding-top:84px}
 .gh2.compact h1{font-size:clamp(26px,4vw,34px);max-width:none;margin-bottom:0}
 .gh2.compact .sum,.gh2.compact .eta{display:none}
@@ -799,7 +801,7 @@ body{background:var(--bg)}
 // ------------------------------------------------------------ config
 const SUPA_URL = 'https://zfmjjazkmolvywvayjzj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
-const GOAL_COLS = 'id,slug,handle,name,summary,tagline,plain_summary,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
+const GOAL_COLS = 'id,slug,handle,name,summary,tagline,plain_summary,papers_count,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
 const POST_COLS = 'id,goal_id,node_key,kind,headline,body,plain_headline,plain_body,sources,independent_sources,expert_reviewed,reviewer,created_at,meta';
 const PROMISE_COLS = 'id,node_key,claim,quote,made_year,due_year,source,status,verdict,verdict_sources,independent_sources,checked_at';
 const PAGE = 30;
@@ -1314,7 +1316,7 @@ async function goalView(slug, tab, focusKey) {
       <div class="gh2-top">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
       <h1>${esc(g.name)}</h1>
       ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
-      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
+      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button>${g.papers_count ? `<span class="built mono">Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
     </section>`;
 
   const tabs = `<nav class="tabs gtabs" role="tablist">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', `Posts`, `${base}/posts`], ['promises', `Promises${promises.length ? ` · ${promises.length}` : ''}`, `${base}/promises`]]
@@ -1434,7 +1436,7 @@ function openLeaf(key, push = true) {
     ${l.why ? `<div class="blk"><div class="kick">Why it matters</div><p>${esc(l.why)}</p></div>` : ''}
     ${l.blocker ? `<div class="blk"><div class="kick">${l.status === 'solved' ? 'What was done' : 'What stands in the way'}${why ? ` · ${esc(why)}` : ''}</div><p>${esc(l.blocker)}</p></div>` : ''}
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
-    ${ev ? `<details class="papers"><summary>The research · ${(l.evidence || []).length} paper${(l.evidence || []).length === 1 ? '' : 's'}</summary><ul class="srcs">${ev}</ul></details>` : ''}
+    <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
     ${fundBlock(g, l)}
   </aside>`;
   document.body.appendChild(back);
@@ -1452,6 +1454,24 @@ function openLeaf(key, push = true) {
   back.addEventListener('click', (e) => { if (e.target === back || e.target.closest('[data-close]')) close(); });
   back.querySelector('[data-close]').focus();
   if (push) history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(l.key)}`);
+  loadLibrary(g, l, back);
+}
+
+// The problem's slice of the library: how many papers and reports, and the most relevant ones.
+const SRC_LABEL = { ntrs: 'NASA report', pubmed: 'PubMed' };
+async function loadLibrary(g, l, back) {
+  try {
+    const path = `node_papers?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(l.key)}&select=rank,papers(id,title,year,url,venue,source)&order=rank.asc&limit=12`;
+    const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'count=exact' } });
+    if (!r.ok || !back.isConnected) return;
+    const total = Number((r.headers.get('content-range') || '').split('/')[1]) || 0;
+    const rows = (await r.json()).filter((x) => x.papers);
+    if (!total) return;
+    const cited = new Set((l.evidence || []).map((e) => e.id));
+    const more = rows.filter((x) => !cited.has(x.papers.id)).slice(0, 8);
+    back.querySelector('#shCount').textContent = total.toLocaleString();
+    back.querySelector('#shMore').innerHTML = `<div class="kick" style="margin-top:12px">More from the library</div><ul class="srcs">${more.map((x) => { const p = x.papers; const u = safeUrl(p.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)}${p.year ? ` <span>(${esc(p.year)})</span>` : ''}${SRC_LABEL[p.source] ? ` <span class="srcb">${SRC_LABEL[p.source]}</span>` : ''}</li>`; }).join('')}</ul>`;
+  } catch { /* the key papers still show */ }
 }
 document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-leaf]');
@@ -2053,8 +2073,8 @@ function renderTerminal(box, tab = 'overview') {
         <div class="stats"><div><b>${k.goals}</b><span>goals</span></div><div><b>${pct(k.solved_share)}</b><span>problems solved</span></div><div><b>${k.promise_score == null ? '—' : pct(k.promise_score)}</b><span>promises kept</span></div></div>
       </section>
       <section class="panel pad"><div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><b>Research behind the map</b>${t.research.growth == null ? '' : `<span class="mono up" style="font-size:12.5px">${growthTxt(t.research.growth)} in the last 5 years</span>`}</div>
-        <div style="color:var(--muted);font-size:12.5px;margin-top:3px">${t.research.papers} papers Parallax relies on, by year published.</div>
-        ${colsChart(t.research.years, thisYear - 4, true)}</section>
+        <div style="color:var(--muted);font-size:12.5px;margin-top:3px">${t.research.papers.toLocaleString()} papers and reports in Parallax’s library, by year published.</div>
+        ${colsChart(t.research.years, thisYear - 5, true)}</section>
     </div>
     ${overviewCards(t)}`;
   const panes = {

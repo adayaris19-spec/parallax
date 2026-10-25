@@ -196,6 +196,15 @@ problem and post. Correct technical terms stay; everything around them gets shor
 originals are kept, and the site shows the plain version when there is one.
 To redo one goal now: POST `{"slug": "mars", "all": true}` with the admin header.
 
+## 14. The research library
+
+Run `schema-library.sql` and deploy the `library` function (Verify JWT on). Every 2 hours it grows
+the library of the goal checked longest ago (monthly per goal): for every problem, the 200 most
+relevant OpenAlex papers and the 100 most relevant from the last 5 years, plus NASA technical
+reports (NTRS) and PubMed. OpenAlex charges per search, not per result, so this costs about 2
+searches per problem. The AI still reads only the most relevant handful.
+Test the sources: POST `{"probe": "lunar night power"}` with the admin header.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
