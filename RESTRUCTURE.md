@@ -1,0 +1,209 @@
+# PARALLAX V2 — The Restructure
+
+**Decision:** PARALLAX restructures around Plays 1 + 2 + 3 — PROSPECT, GROUND TRUTH and
+CONSENSUS — as **one product**, not three. This document is the blueprint: what the product
+becomes, what happens to every existing part, the data model, and the sequence.
+
+---
+
+## 0. Why all three at once is not three products
+
+The three plays looked separate on the strategy page. They are not:
+
+- An **OBJECT** (101955 Bennu, the lunar south pole, a returned sample) is described by claims.
+- A **CLAIM** ("Bennu contains all five nucleobases") rests on evidence — papers, datasets,
+  aliquots, laboratories — and either supports or contradicts other claims.
+- A **VALUE** (Bennu's bulk density, lunar polar ice concentration) is nothing but the adopted
+  synthesis of a claim series over time, with an uncertainty.
+
+That is **one graph with three kinds of node**, and the provenance palette —
+measured / calculated / assumed / proposed / claim — is the type system of its edges. PROSPECT is
+the graph read from an object. GROUND TRUTH is the graph read from a claim. CONSENSUS is the graph
+read from a parameter. Build the graph once and all three products are *views*.
+
+The name already says this. Parallax is how you measure distance by looking from two places at
+once. The graph is the set of sightlines; the dossiers are what triangulation returns.
+
+> **The unit of the product changes: from the *question* to the *dossier*.**
+> V1 asks "what does the literature say about my question?"
+> V2 maintains "what does humanity actually know about this object / claim / number —
+> on what evidence, resting on which assumptions, and what would change it?"
+
+---
+
+## 1. What V2 is
+
+**PARALLAX — the state-of-knowledge instrument.** Three dossier types over one typed claim graph:
+
+| Sightline | Unit | The standing question it answers | Was |
+|---|---|---|---|
+| **OBJECT** | A body, site, sample or mission | What is measured about this thing, what is merely inferred, which assumption chains hold it up, and what one observation would de-risk it | PROSPECT |
+| **CLAIM** | An assertion in the record | What does this claim rest on — aliquot, lab, technique, paper, replication — what contradicts it, and what is its current standing | GROUND TRUTH |
+| **VALUE** | A parameter with a number | The full measurement history, the spread, the adopted value with uncertainty, and a watch that fires when new data moves it | CONSENSUS |
+
+Everything a dossier shows is typed by provenance, everything cites down to evidence, and the
+**materiality gate** — surface only what changes an assumption, a bound or a conclusion — runs
+over all three. WATCH stops meaning "watch a question" and starts meaning "subscribe to a dossier."
+
+## 2. What happens to every V1 part
+
+Nothing valuable is discarded; the engine is repointed.
+
+| V1 part | V2 fate |
+|---|---|
+| The perimeter (18 archives, 124 passes, era ladder) | **Kept as-is** — it is the evidence engine. Gains *data-archive* adapters (SBDB, MPC, PDS, PSA, MAST) in worker v11 |
+| The relevance gate (Claude scores every abstract) | **Extended** — from scoring relevance to *extracting typed claims* into the graph |
+| Provenance palette (5 classes) | **Promoted** — from a colour system to the edge-type system of the graph |
+| Materiality gate | **Kept** — becomes the firing rule for dossier watches |
+| WATCH mode | **Becomes** dossier subscriptions (object, claim or value) |
+| MODEL mode | **Becomes** the OBJECT dossier — "the live model" of a body. The Sgr A* black-hole demo is archived as a worked example |
+| ANALYZE mode (adjudication) | **Kept whole** — two claims side by side, plus the discriminating observation. First mode absorbed into v2, because it is already graph-shaped |
+| MEMORY mode | **Dissolved into the graph** — every claim and value carries its own time axis natively |
+| CLAIM mode (grade a draft) | **Becomes** the LEDGER — the field's record, against which your draft is still gradeable |
+| REASON / console | **Kept** — plain language over the graph |
+| The simulated counters (`AMBIENT`, `S.counters`) | **Die.** V2's liveness is real by construction: a value that moved because data landed is a pulse that is not a facade. This finishes the honesty arc that started when b71 deleted the scanning line |
+| Design system (per `DESIGN_HANDOFF.md`) | **Kept whole** — one room, instrument chrome, honest figures |
+
+## 3. The data model
+
+`setup/schema-v2.sql`, additive next to the v1 tables (`records` stays; evidence references it).
+
+```
+objects        a body, site, sample, mission or instrument
+claims         a typed assertion, optionally about an object
+evidence       a paper (→ records), dataset, or analysis: lab, technique, aliquot, instrument
+claim_edges    claim ↔ evidence (supports / contradicts / replicates)
+               claim ↔ claim   (rests-on — the assumption chains)
+value_series   parameter × object: every historical determination, one adopted
+```
+
+Provenance is a column, not a convention. A dossier is a query, not a document.
+
+## 4. The worker (v10 → v11)
+
+Same sharded-perimeter pattern, three additions:
+
+1. **Data adapters.** JPL Small-Body Database first (simple JSON, no auth), then MPC, PDS. A
+   question returns papers *plus the datasets and instruments underneath them*.
+2. **Typed extraction.** The gate stops returning only `relevance` and starts returning claims:
+   `{statement, object, provenance, value?, uncertainty?, stance}` — written to the graph.
+3. **Dossier assembly.** A dossier view is a read over the graph; the worker's job ends at
+   honest rows.
+
+## 5. The sequence
+
+| Phase | Ships | Exit criterion |
+|---|---|---|
+| **P1 — shipped** | `/v2/` prototype: the three dossier views with real, hand-curated content | You can click through OBJECT · CLAIM · VALUE and every number on screen is true and typed |
+| **P1.5 — shipped** | The views are **assembled by code from an embedded seed graph** — five objects, a three-entry ledger, seven adopted values with figures drawn from series data, dossier watches stored in the browser, and the v1 front door recontextualized to the dossier identity | The screens are code over graph rows; swapping the seed for worker output changes no view code |
+| **P1.6 — shipped** | **The night pass**: V2 gets its own visual identity — the operations-console dark ground, the luminous instrument palette, the knowledge spectrum, the grading calendar, small-multiple value figures and evidence chains drawn as chains | V2 no longer reads as a restyled v1 page; every new visual is computed from the graph |
+| **P1.7 — shipped** | **The Dark Catalog**: the map inverts from what humanity knows to what it has not touched. Five new shelves beyond asteroids (Planet Nine, Earth's interior, the deep seafloor, the dark proteome, the unmade materials), the **Touch Index** on every dossier, the grading calendar generalized into the **Docket**, and **ghost discs** — every object drawn only as well as it is known | The catalog reads as three shelves — graded, on the docket, untouched — and every new mechanic is computed from the graph |
+| **P2** | Worker v11: SBDB adapter + typed claim extraction; schema-v2 live in Supabase | A Bennu query returns graph rows, not just papers |
+| **P3** | Dossiers assemble from the graph; watch gate fires on dossiers | Subscribe to Bennu; a new paper that moves a claim's standing notifies you |
+| **P4** | V1 modes absorbed: ANALYZE first, then CLAIM→LEDGER, MEMORY dissolves | The Sgr A* demo is reachable only as an archived worked example |
+| **P5** | `/v2/` becomes `/`; the question bar remains as one way to *open* a dossier | One product |
+
+**Order rationale:** OBJECT first because Bennu grades us — 121.6 g of ground truth exists to
+score the dossier against, publicly. CLAIM second because the public adjudication layer is the
+marketing engine and the prompt that started this strategy contained its demo. VALUE last because
+adopted values need graph mass to be trustworthy, and by P4 the graph has it.
+
+## The Dark Catalog — the idea, in plain terms
+
+Maps of what humanity knows exist everywhere — every encyclopedia, every search engine, every
+chatbot. **Nobody has ever made the map of what humanity doesn't know.** That is the product.
+
+Four simple pieces:
+
+1. **A dossier for everything named but barely measured.** Not just asteroids: a predicted planet
+   nobody has seen, the inside of our own planet (drilled to 0.19% of the way down), the seafloor
+   (~26% properly mapped), millions of proteins with no known function, hundreds of thousands of
+   predicted materials never synthesized. Each dossier says plainly: this is measured, this is
+   calculated, this is assumed, this is just proposed.
+2. **The Touch Index.** One number per dossier: of the claims we make about this thing, what share
+   rests on actual measurement? Nobody publishes that number, for anything. PARALLAX publishes it
+   for everything.
+3. **The Docket.** The calendar of days reality reports in — sample returns, flybys, arrivals,
+   survey milestones. Every verdict PARALLAX holds carries a countdown to the day it gets graded
+   in public. The asteroid shelf is the proof this works: Bennu already graded us.
+4. **Ghost rendering.** Every object is drawn exactly as well as it is known — Bennu sharp because
+   we laser-mapped it, Planet Nine as haze because it *is* haze. No artist's impressions, ever.
+
+Who pays: everyone whose job is **allocation** — telescope committees choosing follow-up targets,
+materials and pharma teams choosing what to synthesize out of an ML flood, funders drawing gap
+maps by hand, planetary defense triaging rocks. The asteroid shelf stays as shelf one and the
+calibration set, because it is the only shelf that grades itself in public on a known date.
+
+Why it cannot be a copycat: everyone else summarizes the known, racing over the same corpus. In a
+world where every answer about the known is instant, **the scarce asset is the map of where
+knowledge ends** — and it compounds, because every dossier, diagnosis and graded verdict makes the
+graph harder to rebuild from scratch.
+
+## V2 visual identity — the night pass
+
+V1 keeps its daylight-library face; V2 does not inherit it. The rationale is the product's own
+lineage: **v1 had exactly one dark surface — the aperture the black hole occupied. V2 is the
+product stepping through it.** Every object in this catalog is observed at night, and the screens
+that observe them are dark consoles; the luminous palette v1 retired when it went daylight (the
+cyan, the violet, the hot amber of its hologram era) is deliberately reclaimed.
+
+| Token | Night value | Note |
+|---|---|---|
+| Ground | `#05090f → #0a1424` + faint airglow + sparse static starfield | never pure black |
+| Panel | `rgba(14,24,39,.72)` on 1px `rgba(126,166,206,.14)` lines | |
+| Ink | `#dceafa` / `#a9bfd4` / dim `#6e88a0` | |
+| measured | `#3fd0ff` | also the **chrome accent** — every action moves a claim toward measured |
+| calculated | `#8fb4dc` | |
+| assumed | `#ffb454` | amber now means assumed and *nothing else* — the v1 double-duty ends |
+| proposed | `#b08af5` | |
+| claim | `#cfdce8` | pale, hollow — a human assertion |
+| ok / bad | `#3ecf95` / `#ff6b5e` | |
+
+Type: system stack at 850 weight for object names (the display voice), the mono chain at large
+sizes for readouts — big tabular numerals are the product's hero image. Micro-labels stay, one
+size up from v1 for dark-ground legibility. Single visual world, painted explicitly; no theme
+toggle, because a catalog of night objects in a light theme would be a costume.
+
+New visuals, all computed from the graph, none decorative:
+
+- **The knowledge spectrum** — per object, the claim census as a typed bar: how much of what we
+  "know" is measured versus assumed, at a glance.
+- **The grading calendar** — the decade on one axis: Ryugu 2020, Bennu 2023, then Apophis and
+  Psyche in 2029, with NOW marked. The thesis as a figure.
+- **Small-multiple value figures** — every value card carries its own measurement history.
+- **Evidence chains drawn as chains** — connected nodes from aliquot to replication, not
+  key-value prose.
+- **Verdict glyphs** — held ● broke ✕ exceeded ▲, so the scoreboard reads without color.
+
+## 6. What has shipped (P1 → P1.5, honestly labelled)
+
+`/v2/index.html` — static, one file, the product's own design system:
+
+- **OBJECT — 101955 Bennu.** The dossier as it will look: readout header, provenance-typed
+  inventory, and the **graded-predictions table** — what the pre-arrival assumption chains said
+  against what the mission and the sample actually measured, including the chain that broke
+  (thermal inertia → fine regolith: the surface was boulders).
+- **CLAIM — "DNA in asteroids."** The ledger entry: the claim as heard (not supported), the four
+  real claims underneath it with their chains down to aliquot, lab, technique and paper, the
+  replication across Ryugu and Murchison, and the era ladder back to Berzelius burning pieces of
+  the Alais meteorite in 1834.
+- **VALUE — bulk density of Bennu.** The measurement history drawn as an instrument figure:
+  the assumed analog band, the 2014 Yarkovsky determination, the 2019 spacecraft measurement,
+  the adopted value — uncertainty shrinking by an order of magnitude per method change.
+
+At P1.5 those screens stopped being markup: the catalog (Bennu, Ryugu, Apophis, Psyche, the
+lunar south pole), the ledger (the DNA garble, the Apophis impact scare dying properly, the
+$10-quintillion valuation) and the values registry are all rendered from a seed graph that
+mirrors `schema-v2.sql`, with hash-routed dossiers, an OPEN bar, and local watches. Every
+number is still from the published record, and the page still says which hands curated it.
+P2 replaces the seed with the worker.
+
+## 7. Risks, named
+
+- **Three products badly instead of one well.** The guard is structural: one spine (the graph),
+  three views, shipped strictly in the order the evidence allows (§5).
+- **Graph cold start.** Solved dossier-at-a-time: each shipped dossier is complete and useful
+  alone; nobody is sold an empty graph.
+- **Being wrong in public.** The product's entire value is epistemic honesty, so every claim it
+  publishes carries its chain. The prototype already follows the rule: nothing on screen without
+  provenance.

@@ -12,7 +12,7 @@ dashboard except step 5, which runs one command on your computer.
 | `functions/map-goal/index.ts` | Turns any goal into a goal account: tree, evidence, bottleneck, countdown, first posts |
 | `functions/pulse/index.ts` | Checks new research for one goal per run and posts when something changes |
 | `seed.mjs` | Maps the starting list of goals |
-| `../index.html` | The feed itself (the old page now lives at `instrument.html`) |
+| `../index.html` | The feed itself (the previous front page now lives at `instruments.html`) |
 
 ## 1. Create the tables
 
