@@ -339,20 +339,24 @@ body{background:var(--bg)}
 .cmap-h h2{color:var(--muted)}
 .when{font-size:11.5px;letter-spacing:.04em}
 
-/* post covers: a lit glass plate in the goal's hue, with a fine instrument grid */
-.cover{background:
-  radial-gradient(120% 150% at 0% 0%,hsl(var(--h) 95% 70% / .30),transparent 55%),
-  radial-gradient(120% 150% at 100% 100%,hsl(var(--h2) 92% 70% / .24),transparent 60%),
-  linear-gradient(rgba(16,17,40,.04) 1px,transparent 1px) 0 0/24px 24px,
-  linear-gradient(90deg,rgba(16,17,40,.04) 1px,transparent 1px) 0 0/24px 24px,
-  rgba(255,255,255,.55);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 0 1px rgba(255,255,255,.5),0 16px 34px -22px hsl(var(--h) 80% 45% / .55)}
-@media (prefers-color-scheme: dark){.cover{background:
-  radial-gradient(120% 150% at 0% 0%,hsl(var(--h) 80% 55% / .28),transparent 55%),
-  radial-gradient(120% 150% at 100% 100%,hsl(var(--h2) 80% 55% / .20),transparent 60%),
-  linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px) 0 0/24px 24px,
-  linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/24px 24px,
-  rgba(255,255,255,.03);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px -22px hsl(var(--h) 80% 45% / .6)}}
+/* post covers: always a dark, glowing glass plate (a small space window), even on the light page */
+.cover{--ink:#F1F2FF;--ink2:#C9CDE2;--muted:#9AA0BC;--faint:#6A7090;--sunk:rgba(255,255,255,.08);--line:rgba(255,255,255,.1);
+  --solved:#3DD68C;--progress:#F5B83D;--blocked:#FF6369;--accent:#9AA2FF;color:var(--ink);
+  background:
+    radial-gradient(1px 1px at 18% 30%,rgba(255,255,255,.55),transparent 60%),
+    radial-gradient(1px 1px at 72% 18%,rgba(255,255,255,.45),transparent 60%),
+    radial-gradient(1.5px 1.5px at 86% 64%,rgba(200,210,255,.5),transparent 60%),
+    radial-gradient(1px 1px at 40% 82%,rgba(255,255,255,.35),transparent 60%),
+    radial-gradient(120% 150% at 0% 0%,hsl(var(--h) 85% 55% / .42),transparent 55%),
+    radial-gradient(120% 150% at 100% 100%,hsl(var(--h2) 85% 55% / .30),transparent 60%),
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(160deg,#151729 0%,#0A0B14 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 0 1px rgba(255,255,255,.06),0 18px 38px -22px hsl(var(--h) 80% 40% / .7)}
+.cover .kind{color:var(--muted)}
+.cover .big .arr{color:var(--faint)}
+.cover .big .lbl{color:var(--muted)}
+.cover h3{color:#fff}
 
 /* goals as planets: rim light and a glow in their own color */
 .av{box-shadow:inset -6px -9px 14px rgba(0,0,0,.28),inset 5px 6px 10px rgba(255,255,255,.38),0 8px 22px -8px var(--glow,rgba(0,0,0,.35))}
