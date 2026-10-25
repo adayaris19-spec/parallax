@@ -17,7 +17,7 @@ const DAY = 86_400_000;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) =>
@@ -49,13 +49,14 @@ Deno.serve(async (req) => {
     const uid = await userId(req);
     const sub = uid ? (await db(`subscriptions?user_id=eq.${uid}&select=status,current_period_end`))[0] : null;
     const status: string = sub?.status ?? "none";
-    const full = PAID.includes(status);
+    const admin = Deno.env.get("ADMIN_TOKEN");
+    const full = PAID.includes(status) || (!!admin && req.headers.get("x-admin-token") === admin); // admin: for testing the full view
 
     const since90 = new Date(Date.now() - 90 * DAY).toISOString();
     const [goals, nodes, posts, promises, followers, contributions, history] = await Promise.all([
       db("goals?status=eq.ready&select=id,slug,handle,name,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
-      db("nodes?select=goal_id,key,parent_key,title,status,blocker_kind,blocker,independent_sources,updated_at&limit=50000"),
-      db(`posts?created_at=gte.${since90}&select=goal_id,kind,created_at&limit=50000`),
+      db("nodes?select=goal_id,key,parent_key,title,status,blocker_kind,blocker,independent_sources,updated_at,evidence&limit=50000"),
+      db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
       db("promises?select=goal_id,status&limit=50000"),
       db("goal_followers?select=goal_id,followers"),
       db("contributions?select=goal_id,user_id&limit=50000"),
@@ -70,12 +71,23 @@ Deno.serve(async (req) => {
     for (const g of goals) byGoal.set(g.id, blank());
     const titles = new Map<string, string>();
     const blockers: Record<string, number> = {};
-    const problems = [];
+    // deno-lint-ignore no-explicit-any
+    const problems: any[] = [];
     const slugOf = new Map(goals.map((g) => [g.id, g]));
 
+    const papers = new Map<string, number>(); // paper id -> year, counted once across all goals
+    const goalPapers = new Map<number, Set<string>>();
+    const matrix: Record<string, Record<string, number>> = {};
     for (const n of nodes) {
       const s = byGoal.get(n.goal_id);
       if (!s) continue;
+      for (const e of n.evidence ?? []) {
+        const id = String(e.id ?? e.url ?? e.title ?? "");
+        if (!id) continue;
+        if (Number.isInteger(e.year)) papers.set(id, e.year);
+        if (!goalPapers.has(n.goal_id)) goalPapers.set(n.goal_id, new Set());
+        goalPapers.get(n.goal_id)!.add(id);
+      }
       titles.set(`${n.goal_id}/${n.key}`, n.title);
       if (!n.parent_key) continue; // branches group leaves; the leaves are the problems
       s.leaves++;
@@ -85,6 +97,7 @@ Deno.serve(async (req) => {
         const kind = n.blocker_kind && n.blocker_kind !== "none" ? n.blocker_kind : "unknown";
         blockers[kind] = (blockers[kind] ?? 0) + 1;
         const g = slugOf.get(n.goal_id)!;
+        (matrix[g.slug] ??= {})[kind] = (matrix[g.slug]?.[kind] ?? 0) + 1;
         problems.push({
           goal: g.handle, slug: g.slug, key: n.key, title: n.title, status: st,
           blocker_kind: kind, blocker: n.blocker ?? "", sources: n.independent_sources ?? 0,
@@ -122,7 +135,7 @@ Deno.serve(async (req) => {
         momentum: s.advances30 - s.setbacks30, advances30: s.advances30, setbacks30: s.setbacks30, posts30: s.posts30,
         promises_kept: s.kept, promises_partly: s.partly, promises_broken: s.broken, promises_pending: s.pending,
         promise_score: judged ? round((s.kept + 0.5 * s.partly) / judged, 2) : null,
-        followers: s.followers, contributors: s.contributors.size,
+        followers: s.followers, contributors: s.contributors.size, papers: goalPapers.get(g.id)?.size ?? 0,
         mapped_at: g.mapped_at, checked_at: g.pulsed_at ?? g.mapped_at,
       };
     });
@@ -145,6 +158,35 @@ Deno.serve(async (req) => {
       promises_judged: kept + partly + broken,
     };
 
+    // Research activity: distinct papers behind the map, by year published.
+    const thisYear = new Date().getUTCFullYear();
+    const years: { year: number; papers: number }[] = [];
+    for (let y = thisYear - 24; y <= thisYear; y++) years.push({ year: y, papers: 0 });
+    for (const y of papers.values()) { const row = years.find((r) => r.year === y); if (row) row.papers++; }
+    const sum = (a: number, b: number) => years.filter((r) => r.year >= a && r.year <= b).reduce((t, r) => t + r.papers, 0);
+    const recent = sum(thisYear - 4, thisYear), before = sum(thisYear - 9, thisYear - 5);
+    const research = { years, papers: papers.size, recent5: recent, prior5: before, growth: before ? round(recent / before - 1, 2) : null };
+
+    // The Parallax Index: average progress across every goal, 0-100.
+    const index = rows.length ? round(rows.reduce((a, r) => a + (r.progress ?? 0), 0) / rows.length * 100, 1) : 0;
+    const snapDays = [...new Set(history.map((h: { day: string }) => h.day))].sort();
+    const indexHistory = snapDays.map((day) => {
+      const pts = history.filter((h: { day: string }) => h.day === day);
+      return { day, value: round(pts.reduce((a: number, p: { progress: number }) => a + (p.progress ?? 0), 0) / Math.max(1, pts.length) * 100, 1) };
+    });
+
+    const goalBy = new Map(goals.map((g) => [g.id, g]));
+    const tape = posts.filter((p) => p.kind !== "mapped").slice(0, 60).map((p) => ({
+      kind: p.kind, headline: p.headline, sources: p.independent_sources ?? 0, at: p.created_at,
+      goal: goalBy.get(p.goal_id)?.handle ?? "", slug: goalBy.get(p.goal_id)?.slug ?? "", key: p.node_key,
+    })).filter((p) => p.slug);
+
+    const bottlenecks = rows.filter((r) => r.bottleneck).map((r) => {
+      const pr = problems.find((p) => p.slug === r.slug && p.bottleneck);
+      return { goal: r.handle, slug: r.slug, title: r.bottleneck, kind: pr?.blocker_kind ?? "unknown", why: pr?.blocker ?? "", sources: pr?.sources ?? 0,
+        status: pr?.status ?? "open", horizon_low: r.horizon_low, horizon_high: r.horizon_high, key: pr?.key ?? null };
+    });
+
     const byMomentum = [...rows].sort((a, b) => b.momentum - a.momentum || b.posts30 - a.posts30);
     return json({
       access: full ? "full" : "preview",
@@ -159,6 +201,13 @@ Deno.serve(async (req) => {
       problems: full ? problems : problems.slice(0, PREVIEW_PROBLEMS),
       problems_total: problems.length,
       history: full ? history : [],
+      index, index_history: full ? indexHistory : [],
+      research,
+      tape: full ? tape : tape.slice(0, 4),
+      tape_total: tape.length,
+      matrix: full ? matrix : {},
+      bottlenecks: full ? bottlenecks : [],
+      bottlenecks_total: bottlenecks.length,
     });
   } catch (e) {
     console.error("terminal failed:", e instanceof Error ? e.message : e);
