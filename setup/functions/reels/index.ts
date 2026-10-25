@@ -217,6 +217,24 @@ async function attention(): Promise<Map<number, number>> {
   return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
 }
 
+// Visual library: photos and videos the photo editor already approved (8/10+), shared by all goals.
+// A scene that asks for the same kind of shot reuses one: no search, no judging.
+const STOP = new Set("a an the of and or in on at to for with from by over under into through near far its it this that very".split(" "));
+const words = (t: string) => new Set(String(t).toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOP.has(w)).map((w) => w.replace(/(ing|es|s)$/, "")));
+type LibVisual = { id: number; url: string; poster: string | null; kind: "video" | "image"; credit: string; license: string; source_url: string; source: string; query: string; caption: string | null; uses: number };
+async function fromLibrary(q: string, avoid: Set<string>): Promise<LibVisual | null> {
+  const hits: LibVisual[] = await db("rpc/parallax_match_visuals", { method: "POST", body: { q, n: 8 } }).catch(() => []);
+  const want = words(q);
+  if (want.size < 2) return null;
+  for (const h of hits) {
+    if (avoid.has(h.url) || h.uses >= 4) continue; // keep the feed varied
+    const have = words(`${h.query} ${h.caption ?? ""}`);
+    const shared = [...want].filter((w) => have.has(w)).length;
+    if (shared >= 2 && shared / want.size >= 0.6) return h;
+  }
+  return null;
+}
+
 async function run(slug?: string, fresh = false, live = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
   // Remake a goal's videos only when there is something new (at most weekly), or monthly otherwise.
@@ -271,6 +289,16 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   const wants: { r: number; s: number; q: string }[] = [];
   reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim()) wants.push({ r: ri, s: si, q: s.visual }); }));
   const errors: string[] = [];
+  // Library first: scenes whose shot is already in the visual library skip search and judging.
+  const used = new Set<string>((await db(`reels?goal_id=eq.${g.id}&select=scenes`)).flatMap((r: { scenes: { visual?: { url: string } }[] }) => r.scenes.map((x) => x.visual?.url).filter(Boolean)) as string[]);
+  const pre: Record<string, Cand & { lib?: number }> = {};
+  for (const w of [...wants]) {
+    const h = await fromLibrary(w.q, used);
+    if (!h) continue;
+    used.add(h.url);
+    pre[`${w.r}:${w.s}`] = { kind: h.kind, url: h.url, poster: h.poster ?? h.url, credit: h.credit, license: h.license, source_url: h.source_url, source: h.source, lib: h.id };
+    wants.splice(wants.indexOf(w), 1);
+  }
   const cands: Cand[][] = await Promise.all(wants.map(async (w) => {
     const list: Cand[] = [];
     const add = async (f: () => Promise<Cand[]>) => { try { list.push(...await f()); } catch (e) { errors.push(e instanceof Error ? e.message : String(e)); } };
@@ -293,13 +321,14 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   const postIds = reels.map((r) => (r.post_id && posts.some((p: { id: number }) => p.id === r.post_id) ? r.post_id : null));
   // The photo editor's judgement goes through the Message Batches API (half price, same model and
   // standards); a later call applies it. {"live": true} judges at once instead.
-  if (!live && present.some((b) => b.some(Boolean))) {
+  if (!present.some((b) => b.some(Boolean))) return finalize(g, reels, wants, cands, present, postIds, null, fresh, errors, pre);
+  if (!live) {
     const fmt = betaZodOutputFormat(Verdict);
     const batch = await claude.messages.batches.create({ requests: [{ custom_id: "judge", params: {
       model: MODEL, max_tokens: 16000, output_config: { effort: "low", format: { type: "json_schema", schema: fmt.schema } },
       messages: [{ role: "user", content }],
     } }] });
-    await db("reel_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, slug: g.slug, fresh, reels, wants, cands, present, post_ids: postIds } });
+    await db("reel_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, slug: g.slug, fresh, reels, wants, cands, present, post_ids: postIds, pre } });
     await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: new Date().toISOString() } });
     return { slug: g.slug, submitted: batch.id, wanted: wants.length, errors: [...new Set(errors)].slice(0, 4) };
   }
@@ -315,14 +344,20 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
       try { verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content: slim }] }).finalMessage().then(track("reels"))).parsed_output; } catch { /* text-only scenes this time */ }
     }
   }
-  return finalize(g, reels, wants, cands, present, postIds, verdict, fresh, errors);
+  return finalize(g, reels, wants, cands, present, postIds, verdict, fresh, errors, pre);
 }
 
 type Reel = z.infer<typeof Plan>["reels"][number];
 // Keep the visuals the photo editor approved (8/10 or better), copy Pixabay files, save the reels.
-async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[]) {
+async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[], pre: Record<string, Cand & { lib?: number }> = {}) {
   if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
   const visual: Record<string, Cand> = {};
+  for (const [k, v] of Object.entries(pre)) {
+    const { lib, ...c } = v;
+    visual[k] = c;
+    if (lib) db(`rpc/parallax_visual_used`, { method: "POST", body: { vid: lib } }).catch(() => {});
+  }
+  const fresh_: { url: string; poster: string; kind: string; credit: string; license: string; source_url: string; source: string; query: string; caption: string; score: number }[] = [];
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
     const c = v && v.pick >= 0 && v.score >= 8 && present[i]?.[v.pick] ? cands[i][v.pick] : null;
@@ -338,7 +373,10 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
     }
     if (c.ping) fetch(c.ping, { headers: { Authorization: `Client-ID ${UNSPLASH}` } }).then((r) => r.body?.cancel()).catch(() => {});
     visual[`${wants[i].r}:${wants[i].s}`] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source };
+    fresh_.push({ url, poster, kind: c.kind, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source, query: wants[i].q, caption: reels[wants[i].r].scenes[wants[i].s].caption, score: v?.score ?? 8 });
   }
+  // Every newly approved shot joins the shared library.
+  if (fresh_.length) await db("visuals?on_conflict=url", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: fresh_ }).catch((e) => errors.push(`library: ${String(e).slice(0, 80)}`));
 
   let saved = 0;
   for (let ri = 0; ri < reels.length; ri++) {
@@ -378,7 +416,7 @@ async function collect() {
       out.push({ slug: j.slug, note: "judgement failed; will retry" });
       continue;
     }
-    out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, []));
+    out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, [], j.pre ?? {}));
     await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
   }
   return out;

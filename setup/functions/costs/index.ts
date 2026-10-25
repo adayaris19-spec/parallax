@@ -68,13 +68,23 @@ const Estimate = z.object({
   confidence: z.enum(["low", "medium", "high"]).describe("high: close comparables with public budgets. medium: rough comparables. low: little to go on."),
   sources: z.array(z.number()).describe("Numbers of the sources (from the list) that support the figures. Up to 3."),
 });
-const Estimates = z.object({ items: z.array(Estimate) });
+const Fact = z.object({
+  fact: z.string().describe("One concrete cost figure as a standalone sentence: who paid or will pay how much, for what, and when. E.g. 'NASA awarded SpaceX $2.89B for the Starship lunar lander (2021).'"),
+  amount_usd: z.number().describe("The amount in US dollars (convert if needed)."),
+  year: z.number().describe("The year of the figure; 0 if unknown."),
+  source: z.number().describe("Number of the source it comes from; -1 if none."),
+});
+const Estimates = z.object({
+  items: z.array(Estimate),
+  facts: z.array(Fact).describe("Every concrete, sourced cost figure in the notes (budgets, contracts, grants, raises, cost studies), for reuse by other estimates. Only figures with a source."),
+});
+type Known = { fact: string; source_title: string | null; source_url: string | null };
 
 // Step 1: research with live web search. Runs as an Anthropic message batch (half price, no time
 // limit): one call submits every stale chapter of a goal, a later call collects and structures them.
 const SYSTEM = "You are a research analyst estimating what scientific and engineering problems would cost to solve. You search for real budgets and costs and you never invent figures.";
-function researchPrompt(goal: string, chapter: string, probs: Node[]) {
-  return `Goal: ${goal}
+function researchPrompt(goal: string, chapter: string, probs: Node[], known: Known[] = []) {
+  return `${known.length ? `FIGURES ALREADY KNOWN (from earlier research, with sources; use them and only search for what they do not cover):\n${known.map((k) => `- ${k.fact}`).join("\n")}\n\n` : ""}Goal: ${goal}
 Chapter: ${chapter}
 Problems:
 ${probs.map((p) => `- [${p.key}] ${p.plain_title || p.title} (status: ${p.status}). ${p.blocker ? `In the way: ${p.blocker}` : ""}`).join("\n")}
@@ -115,13 +125,22 @@ SOURCES (cite by number):
 ${pages.map((p, i) => `${i}. ${p.title} — ${p.url}`).join("\n")}`,
     }],
   }).finalMessage().then(track("costs"));
-  return msg.parsed_output?.items ?? [];
+  return { items: msg.parsed_output?.items ?? [], facts: msg.parsed_output?.facts ?? [] };
 }
 
 const usd = (n: number) => (Number.isFinite(n) && n > 0 ? Math.round(n) : null);
 
-async function saveChapter(g: { id: number }, probs: Node[], text: string, pages: { url: string; title: string }[]) {
-  const items = await structure(probs, text, pages);
+async function saveChapter(g: { id: number }, probs: Node[], text: string, found: { url: string; title: string }[], known: Known[] = []) {
+  // Figures already in the budget library count as sources too, with their original links.
+  const pages = [...found, ...known.filter((k) => k.source_url).map((k) => ({ url: k.source_url as string, title: k.source_title ?? k.source_url as string }))];
+  const notes = known.length ? `${text}\n\nFIGURES ALREADY KNOWN FROM EARLIER RESEARCH:\n${known.map((k) => `- ${k.fact}${k.source_url ? ` (source: ${k.source_title ?? k.source_url})` : ""}`).join("\n")}` : text;
+  const { items, facts } = await structure(probs, notes, pages);
+  // Every new sourced figure joins the shared budget library.
+  const newFacts = facts.filter((f) => f.source >= 0 && pages[f.source] && f.fact.trim().length > 15).map((f) => ({
+    fact: f.fact.trim().slice(0, 400), amount_usd: Number.isFinite(f.amount_usd) && f.amount_usd > 0 ? Math.round(f.amount_usd) : null, year: f.year > 1900 ? Math.round(f.year) : null,
+    source_title: pages[f.source].title.slice(0, 300), source_url: pages[f.source].url, goal_id: g.id,
+  }));
+  if (newFacts.length) await db("budget_facts?on_conflict=fact", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: newFacts }).catch(() => {});
   const rows = items.filter((e) => probs.some((p) => p.key === e.key)).map((e) => {
     let [nl, nh, sl, sh] = [usd(e.next_low_usd), usd(e.next_high_usd), usd(e.solve_low_usd), usd(e.solve_high_usd)];
     if (nl && nh && nl > nh) [nl, nh] = [nh, nl];
@@ -148,7 +167,7 @@ async function attention(): Promise<Map<number, number>> {
 }
 
 async function collect() {
-  const jobs = await db(`cost_jobs?status=eq.pending&select=batch_id,goal_id,chapters,created_at`);
+  const jobs = await db(`cost_jobs?status=eq.pending&select=batch_id,goal_id,chapters,known,created_at`);
   const out = [];
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);
@@ -164,7 +183,7 @@ async function collect() {
       const { text, pages } = readResearch(r.result.message.content);
       const probs = (j.chapters[r.custom_id] ?? []).map((k: string) => nodes.find((n) => n.key === k)).filter(Boolean);
       if (!text.trim() || !probs.length) { errors.push(`${r.custom_id}: no notes`); continue; }
-      work.push(saveChapter({ id: j.goal_id }, probs, text, pages).catch((e) => { errors.push(String(e).slice(0, 120)); return 0; }));
+      work.push(saveChapter({ id: j.goal_id }, probs, text, pages, j.known?.[r.custom_id] ?? []).catch((e) => { errors.push(String(e).slice(0, 120)); return 0; }));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
     await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
@@ -192,6 +211,8 @@ async function submit(slug?: string, fresh = false) {
     };
     const chapters = (nodes as Node[]).filter((n) => !n.parent_key).map((c) => ({ c, probs: (nodes as Node[]).filter((n) => n.parent_key === c.key && !ok(n)) })).filter((x) => x.probs.length);
     if (!chapters.length) continue;
+    // Start from the budget library: figures other estimates already found.
+    const known: Known[][] = await Promise.all(chapters.map((x) => db("rpc/parallax_match_facts", { method: "POST", body: { q: [x.c.title, ...x.probs.map((p) => p.plain_title || p.title)].join(" "), n: 25 } }).then((r: Known[]) => r.map((k) => ({ fact: k.fact, source_title: k.source_title, source_url: k.source_url }))).catch(() => [])));
     const batch = await claude.messages.batches.create({
       requests: chapters.map((x, i) => ({
         custom_id: `c${i}`,
@@ -199,15 +220,43 @@ async function submit(slug?: string, fresh = false) {
           model: MODEL, max_tokens: 64000, output_config: { effort: "medium" }, system: SYSTEM,
           // Cache what the model has read: each search step re-reads earlier results at 10% of the price.
           cache_control: { type: "ephemeral" },
-          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 10 }],
-          messages: [{ role: "user", content: researchPrompt(g.name, x.c.title, x.probs) }],
+          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: known[i].length >= 15 ? 4 : known[i].length >= 6 ? 7 : 10 }],
+          messages: [{ role: "user", content: researchPrompt(g.name, x.c.title, x.probs, known[i]) }],
         },
       })),
     });
-    await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, chapters: Object.fromEntries(chapters.map((x, i) => [`c${i}`, x.probs.map((p) => p.key)])) } });
+    await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, chapters: Object.fromEntries(chapters.map((x, i) => [`c${i}`, x.probs.map((p) => p.key)])), known: Object.fromEntries(chapters.map((_, i) => [`c${i}`, known[i]])) } });
     return { submitted: batch.id, slug: g.slug, chapters: chapters.length };
   }
   return { note: "every problem has a recent estimate" };
+}
+
+// One-off: pull the figures out of estimates made before the budget library existed.
+async function backfill() {
+  const rows = await db(`node_costs?select=goal_id,node_key,basis,sources&basis=not.is.null`);
+  const byGoal = new Map<number, typeof rows>();
+  for (const r of rows) byGoal.set(r.goal_id, [...(byGoal.get(r.goal_id) ?? []), r]);
+  const FactsOnly = z.object({ facts: z.array(Fact) });
+  let added = 0;
+  for (const [goalId, list] of byGoal) {
+    const pages: { url: string; title: string }[] = [];
+    const notes = list.map((r: { basis: string; sources: { url: string; title: string }[] }) => {
+      const idx = (r.sources ?? []).map((src) => { pages.push(src); return pages.length - 1; });
+      return `- ${r.basis} [sources: ${idx.join(", ") || "none"}]`;
+    }).join("\n");
+    const msg = await claude.beta.messages.stream({
+      model: MODEL, max_tokens: 32000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      output_config: { effort: "low", format: betaZodOutputFormat(FactsOnly) },
+      messages: [{ role: "user", content: `List every concrete cost figure in these notes as a standalone fact, with the number of its source. Skip estimates and judgements; keep only real budgets, contracts, grants, raises and published costs.\n\nNOTES:\n${notes}\n\nSOURCES:\n${pages.map((p, i) => `${i}. ${p.title} — ${p.url}`).join("\n")}` }],
+    }).finalMessage().then(track("costs"));
+    const facts = (msg.parsed_output?.facts ?? []).filter((f) => f.source >= 0 && pages[f.source] && f.fact.trim().length > 15).map((f) => ({
+      fact: f.fact.trim().slice(0, 400), amount_usd: Number.isFinite(f.amount_usd) && f.amount_usd > 0 ? Math.round(f.amount_usd) : null, year: f.year > 1900 ? Math.round(f.year) : null,
+      source_title: pages[f.source].title.slice(0, 300), source_url: pages[f.source].url, goal_id: goalId,
+    }));
+    if (facts.length) await db("budget_facts?on_conflict=fact", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: facts });
+    added += facts.length;
+  }
+  return { added };
 }
 
 async function run(slug?: string, fresh = false) {
@@ -219,6 +268,7 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
+    if (body.action === "backfill") return json(await backfill());
     return json(await run(body.slug, !!body.fresh));
   } catch (e) {
     console.error("costs failed:", e instanceof Error ? e.message : e);
