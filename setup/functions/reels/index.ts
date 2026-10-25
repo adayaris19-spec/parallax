@@ -175,8 +175,8 @@ const Scene = z.object({
   sub: z.string().describe("Optional second line, at most 18 words. Empty if not needed."),
   stat_value: z.string().describe("Optional striking number from the facts, like 354 or 48% or 15-35. Empty if none."),
   stat_label: z.string().describe("What the number means, at most 6 words. Empty if no number."),
-  visual: z.string().describe("3-6 words for cinematic footage or a photo to show behind this scene: a dramatic, wide or moody shot (a launch at night, Earth from orbit, the lunar horizon, a reactor glow, a vast landscape). Give one for almost every scene; leave empty only for a 'number' scene."),
-  layout: z.enum(["bottom", "center", "top", "number", "quote"]).describe("bottom: text low over the visual (default). center: one short bold statement in the middle. top: a headline at the top, visual below. number: a huge number fills the screen. quote: words someone wrote, in quote style. Vary layouts across the reel."),
+  visual: z.string().describe("3-6 words for cinematic footage or a photo to show behind this scene: a dramatic, wide or moody shot (a launch at night, Earth from orbit, the lunar horizon, a reactor glow, a vast landscape). Give one for every scene, including number scenes (shown dimmed behind the number)."),
+  layout: z.enum(["bottom", "center", "top", "number", "quote"]).describe("bottom: text low over the visual (default). center: one short bold statement in the middle. top: a headline at the top, visual below. number: a huge number fills the screen (at most once per reel; other layouts can show a number too). quote: words someone wrote, in quote style. Vary layouts across the reel."),
 });
 const Plan = z.object({
   space: z.boolean().describe("True if the goal is about space, so NASA footage is the best source."),
@@ -235,7 +235,7 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
 
   // Visuals: find candidates for each scene that wants one, then let Claude keep only good ones.
   const wants: { r: number; s: number; q: string }[] = [];
-  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim() && s.layout !== "number") wants.push({ r: ri, s: si, q: s.visual }); }));
+  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim()) wants.push({ r: ri, s: si, q: s.visual }); }));
   const errors: string[] = [];
   const cands: Cand[][] = await Promise.all(wants.map(async (w) => {
     const list: Cand[] = [];
