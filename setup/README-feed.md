@@ -242,6 +242,20 @@ Web search costs $10 per 1,000 searches; one goal is roughly 60 searches. The go
 estimates in Right now, the problem panel, the research sheet, and a "What it would take" section.
 To redo a goal: `POST /functions/v1/costs` with `{"slug":"<slug>","fresh":true}` and the admin header.
 
+## 18. Ideas lab
+
+Run `schema-ideas.sql` and deploy the `ideas` function (Verify JWT on). Every hour it collects
+finished research batches, then submits the next goal's problems (4 at a time, the bottleneck and
+blocked problems first) as an Anthropic message batch: no time limit, half price. For each problem
+Claude reads its top 30 library papers, related problems, its next-step cost and problems from other
+goals, proposes 3 testable ideas, and searches the web for prior art. A second call structures them:
+pitch, why it might work, cheapest first test and its cost, what it borrows from, papers it builds on
+(only from the library), what the prior-art search found (only pages it returned), and the main risk.
+Ideas are refreshed every 60 days. Signed-in people react (Promising, Has a flaw, Already tried, I
+could test this) with an optional note. Pages: `#/lab`, `#/lab/<goal>`, `#/idea/<id>`, a section
+on each goal page, and the problem sheet.
+One problem now: `POST /functions/v1/ideas` with `{"slug":"<slug>","key":"b3.1"}` and the admin header.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
