@@ -13,6 +13,7 @@ dashboard except step 5, which runs one command on your computer.
 | `functions/pulse/index.ts` | Checks new research for one goal per run and posts when something changes |
 | `functions/promises/index.ts` | The promise keeper: finds dated promises in older research and checks them |
 | `schema-promises.sql` | The table for promises |
+| `schema-accounts.sql` | Profiles, follows and account deletion |
 | `seed-queue.sql` | Maps the starting goals a few a day, within the free OpenAlex budget |
 | `seed.mjs` | Maps the starting list of goals |
 | `../index.html` | The feed itself (the previous front page now lives at `instruments.html`) |
@@ -98,6 +99,26 @@ quotes them word for word, and checks them once the deadline passes.
 Each run handles one goal: it checks up to 4 promises whose deadline has passed, or, if none
 are due, searches a goal's older research for new promises (each goal about once a month).
 A promise is only shown as kept with two independent sources.
+
+## 8. Accounts
+
+Profiles, follows saved to accounts, follower counts and account deletion.
+
+1. SQL Editor: run all of `schema-accounts.sql`.
+2. Authentication -> URL Configuration: Site URL `https://adayaris19-spec.github.io/parallax/`, and add the
+   same address followed by `**` under Redirect URLs.
+3. Turn on Google sign-in (one time, about 10 minutes):
+   1. Go to https://console.cloud.google.com/ and create a project named "Parallax".
+   2. APIs & Services -> OAuth consent screen: choose External, app name "Parallax", your email as
+      support and developer contact, then save. Under Audience, press Publish app so anyone can sign in.
+   3. APIs & Services -> Credentials -> Create credentials -> OAuth client ID -> Web application.
+      Under Authorized redirect URIs add `https://zfmjjazkmolvywvayjzj.supabase.co/auth/v1/callback`. Create.
+   4. Copy the Client ID and Client secret into Supabase: Authentication -> Sign In / Providers -> Google.
+      Turn it on and save.
+   The site shows "Continue with Google" as soon as the provider is on; no code change is needed.
+4. Email codes (later): connect an email service under Authentication -> Emails -> SMTP Settings
+   (Supabase's built-in sender only reaches your own team), then set `EMAIL_CODE_SIGNIN = true`
+   in `index.html`.
 
 ## Expert review
 
