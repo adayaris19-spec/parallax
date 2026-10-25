@@ -271,6 +271,12 @@ One problem now: `POST /functions/v1/ideas` with `{"slug":"<slug>","key":"b3.1"}
   within the hour. Cost estimates cache what the model has read between search steps.
 - The research check runs daily for watched goals and weekly for the rest (nothing is missed).
 - Videos judge candidate photos from small previews (about 320-640 px) that each source provides.
+- Shared libraries (`schema-libraries.sql`), so work done once is reused by every goal:
+  `visuals` keeps every photo or video the photo editor approved; a new scene that asks for the same
+  kind of shot reuses one (no search, no judging; at most 4 uses each, never twice in one goal).
+  `budget_facts` keeps every sourced cost figure found; a new estimate starts from the known figures
+  and searches the web less (4-10 searches per chapter depending on what is known). One-off fill from
+  existing estimates: `POST /functions/v1/costs` with `{"action":"backfill"}`.
 - Work is only redone when something changed: cost estimates after 6 months or when the problem
   changes; ideas for each goal's 6 most important problems (refreshed every 120 days), and for any
   other problem when someone asks; videos when there are new posts (at most weekly), else monthly.

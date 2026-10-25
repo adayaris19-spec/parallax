@@ -47,3 +47,5 @@ create table if not exists reel_jobs (
 alter table reel_jobs enable row level security;
 -- Hourly, so finished videos appear within the hour.
 select cron.alter_job((select jobid from cron.job where jobname = 'parallax-reels'), schedule := '51 * * * *');
+alter table reel_jobs add column if not exists pre jsonb not null default '{}';
+alter table cost_jobs add column if not exists known jsonb not null default '{}';
