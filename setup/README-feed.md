@@ -15,6 +15,7 @@ dashboard except step 5, which runs one command on your computer.
 | `schema-promises.sql` | The table for promises |
 | `schema-accounts.sql` | Profiles, follows and account deletion |
 | `functions/branch/index.ts` and `schema-branch.sql` | Your branch: matches people's skills to problems |
+| `schema-impact.sql` | Impact: steps people report taking on a problem |
 | `seed-queue.sql` | Maps the starting goals a few a day, within the free OpenAlex budget |
 | `seed.mjs` | Maps the starting list of goals |
 | `../index.html` | The feed itself (the previous front page now lives at `instruments.html`) |
@@ -131,6 +132,19 @@ Matches each signed-in person's skills to the problems where they can help, with
 Matches are saved per person and reused until their skills, bio or follows change. Each person can
 ask for new matches up to 4 times a day; `BRANCHES_PER_DAY` (default 300) caps new matches across
 everyone. One match costs about one model call.
+
+## 10. Impact ("I did this")
+
+People mark a first step from Your branch as done, optionally saying what they did. It shows on
+their public profile (marked self-reported), and each problem in a tree shows how many people
+took a step on it. SQL Editor: run all of `schema-impact.sql`. No function is needed.
+
+## If the AI is unavailable
+
+If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
+feed, trees and promises keep showing. New searches say "try again later", the pulse and promise
+keeper skip a goal until the next day instead of retrying (which would spend the day's OpenAlex
+searches), and the seeding job retries failed or lost goals up to 3 times on later runs.
 
 ## Expert review
 

@@ -204,6 +204,10 @@ Deno.serve(async (req) => {
     });
     return json({ items, generated_at: now, cached: false });
   } catch (e) {
+    console.error("branch failed:", e instanceof Error ? e.message : e);
+    if (e instanceof Anthropic.APIError || (e instanceof Error && /model|anthropic|credit/i.test(e.message))) {
+      return json({ error: "Parallax can't find new matches right now. Please try again later." }, 503);
+    }
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });
