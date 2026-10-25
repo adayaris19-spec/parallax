@@ -238,12 +238,14 @@ async function fromLibrary(q: string, avoid: Set<string>): Promise<LibVisual | n
 async function run(slug?: string, fresh = false, live = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
   // Remake a goal's videos only when there is something new (at most weekly), or monthly otherwise.
-  const latest = slug ? [] : await db(`posts?kind=neq.mapped&select=goal_id,created_at&order=created_at.desc&limit=500`);
-  const newest = (id: number) => latest.find((p: { goal_id: number }) => p.goal_id === id)?.created_at;
+  // A big moment (a problem solved, a new bottleneck) gets its video right away: it becomes the
+  // goal's story for the next 48 hours.
+  const latest = slug ? [] : await db(`posts?kind=neq.mapped&select=goal_id,kind,created_at&order=created_at.desc&limit=500`);
+  const newest = (id: number, kinds?: string[]) => latest.find((p: { goal_id: number; kind: string }) => p.goal_id === id && (!kinds || kinds.includes(p.kind)))?.created_at;
   const due = (x: { id: number; reels_at: string | null }) => {
     if (!x.reels_at) return true;
-    const age = Date.now() - new Date(x.reels_at).getTime(), n = newest(x.id);
-    return age > 30 * DAY || (age > 7 * DAY && !!n && n > x.reels_at);
+    const age = Date.now() - new Date(x.reels_at).getTime(), n = newest(x.id), big = newest(x.id, ["solved", "bottleneck"]);
+    return age > 30 * DAY || (age > 7 * DAY && !!n && n > x.reels_at) || (!!big && big > x.reels_at && Date.now() - new Date(big).getTime() < 2 * DAY);
   };
   const att = slug ? new Map() : await attention();
   const g = slug ? goals[0] : goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);

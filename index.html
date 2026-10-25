@@ -766,6 +766,16 @@ body.labpage main{max-width:900px}
   .rx{height:34px;padding:0 11px;font-size:13px}
 }
 
+/* stories */
+.story.st .ring{display:block;padding:3px;border-radius:50%;background:var(--line2)}
+.story.st .ring .av{width:54px;height:54px;box-shadow:0 0 0 2.5px var(--bg)}
+.story.st.new .ring{background:conic-gradient(from 200deg,#7C83FF,#5EEAD4,#F5C76B,#FF7A8A,#7C83FF);animation:stspin 6s linear infinite}
+.story.st.new .ring .av{animation:stspin 6s linear infinite reverse}
+.story.st.new span:last-child{color:var(--ink);font-weight:600}
+@keyframes stspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.story.st.new .ring,.story.st.new .ring .av{animation:none}}
+.st-x{position:fixed;top:92px;right:max(16px,calc(50% - 220px));z-index:20;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.45);color:#fff;text-decoration:none;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
 .ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
@@ -1543,15 +1553,6 @@ function goalRow(g, posts) {
   </section>`;
 }
 
-function storiesRow(list) {
-  const ready = list.filter((g) => g.status === 'ready');
-  const fol = ready.filter((g) => follows.has(g.slug)), rest = ready.filter((g) => !follows.has(g.slug));
-  const orbOf = (g) => avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '');
-  return `<div class="stories" aria-label="Goals">
-    <button class="story" type="button" id="storyNew"><span class="plus" aria-hidden="true">+</span><span>Any goal</span></button>
-    ${[...fol, ...rest].map((g) => `<a class="story${follows.has(g.slug) ? ' fol' : ''}" href="#/g/${encodeURIComponent(g.slug)}">${orbOf(g)}<span>${esc(g.handle)}</span></a>`).join('')}
-  </div>`;
-}
 
 // ------------------------------------------------------------ views
 function note(title, text, extra = '') {
@@ -1605,7 +1606,8 @@ async function feedView(tab) {
       box.innerHTML = note('Nothing posted yet', 'The goals are still being mapped. Their first posts appear here as soon as they are ready.');
       return;
     }
-    box.innerHTML = (tab === 'all' ? storiesRow(list) : '') + first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    const stories = tab === 'all' ? await loadStories(list).catch(() => []) : [];
+    box.innerHTML = (tab === 'all' ? storiesRow(list, stories) : '') + first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
     const sn = $('#storyNew');
     if (sn) sn.onclick = () => { qInput.focus(); toast('Type any goal, like "cure malaria"'); };
     const wire = () => {
@@ -3236,6 +3238,84 @@ const music = {
   },
 };
 
+// ------------------------------------------------------------ stories
+// When something real happens to a goal (a step forward, a setback, a problem solved, a promise
+// checked), it becomes a story for 48 hours: a ring around the goal at the top of the feed. Stories
+// play in the Watch player. They are built from the post Parallax already wrote, with a visual from
+// the shared photo library, so they cost nothing to make. A big moment that already has a video
+// (the videos job makes one for solved problems and new bottlenecks) plays that video instead.
+const STORY_KINDS = ['solved', 'advance', 'setback', 'bottleneck', 'promise'];
+const STORY_MOOD = { solved: 'epic', advance: 'uplifting', setback: 'tense', bottleneck: 'tense', promise: 'bittersweet' };
+Object.assign(REEL_KIND, { solved: 'Solved', advance: 'Step forward', setback: 'Setback', bottleneck: 'New bottleneck', promise: 'Promise check' });
+const storyState = { list: null, at: 0 };
+const seenStories = () => { try { return new Set(JSON.parse(localStorage.getItem('px.seen') || '[]')); } catch { return new Set(); } };
+function markSeen(id) { try { const s = seenStories(); s.add(id); localStorage.setItem('px.seen', JSON.stringify([...s].slice(-400))); } catch { /* private mode */ } }
+
+async function loadStories(list) {
+  if (storyState.list && Date.now() - storyState.at < 120_000) return storyState.list;
+  const since = new Date(Date.now() - 48 * 3600_000).toISOString();
+  const posts = await rest(`posts?created_at=gte.${since}&kind=in.(${STORY_KINDS.join(',')})&select=${POST_COLS}&order=created_at.desc&limit=80`).catch(() => []);
+  // One story per goal per day: the most important post of that day.
+  const rank = (p) => STORY_KINDS.indexOf(p.kind);
+  const pick = new Map();
+  for (const p of posts) {
+    if (!list.some((g) => g.id === p.goal_id)) continue;
+    const k = `${p.goal_id}:${p.created_at.slice(0, 10)}`, cur = pick.get(k);
+    if (!cur || rank(p) < rank(cur)) pick.set(k, p);
+  }
+  const chosen = [...pick.values()];
+  if (!chosen.length) return (storyState.list = [], storyState.at = Date.now(), []);
+  const goalIds = [...new Set(chosen.map((p) => p.goal_id))];
+  const [nodes, reels] = await Promise.all([
+    rest(`nodes?goal_id=in.(${goalIds.join(',')})&parent_key=not.is.null&select=goal_id,key,title,plain_title,status`).catch(() => []),
+    rest(`reels?goal_id=in.(${goalIds.join(',')})&select=id,goal_id,post_id,kind,title,scenes,score,mood`).catch(() => []),
+  ]);
+  // Fallback visuals: each goal's own approved shots from its videos.
+  const own = new Map(goalIds.map((id) => [id, reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url))]));
+  const visuals = await Promise.all(chosen.map((p) => {
+    const n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
+    return fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: `${n?.title || ''} ${p.headline}`, n: 2 }) })
+      .then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  }));
+  const out = chosen.map((p, i) => {
+    const g = list.find((x) => x.id === p.goal_id), n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
+    const rich = reels.find((r) => r.post_id === p.id && (r.scenes || []).length);
+    if (rich) return { ...rich, id: `s${p.id}`, story: p.id, created_at: p.created_at };
+    const mine = own.get(p.goal_id) || [], shift = p.id % Math.max(1, mine.length);
+    const v = [...(visuals[i] || []), ...mine.slice(shift), ...mine.slice(0, shift)], vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
+    const sentences = String(p.body || '').match(/[^.!?]+[.!?]+/g) || [p.body || ''];
+    const why = (sentences[1] || sentences[0] || '').trim();
+    const pct = Math.round((g.progress || 0) * 100);
+    const scenes = [
+      { caption: p.headline, sub: null, stat: null, visual: vis(v[0]), layout: 'bottom' },
+      why ? { caption: why, sub: n ? n.title : null, stat: null, visual: vis(v[1] || v[0]), layout: 'center' } : null,
+      { caption: n ? `${n.title}: ${lowerFirst(leafStatusLabel(n.status))}` : g.name, sub: g.horizon_low != null ? `About ${horizonText(g).replace(' yrs', ' years')} to go at today’s pace.` : null, stat: { value: `${pct}%`, label: `of the way to ${lowerFirst(g.name)}` }, visual: vis(v[2] || v[0]), layout: 'number' },
+    ].filter(Boolean);
+    return { id: `s${p.id}`, story: p.id, goal_id: p.goal_id, post_id: p.id, kind: p.kind, mood: STORY_MOOD[p.kind] || 'calm', scenes, created_at: p.created_at };
+  });
+  storyState.list = out; storyState.at = Date.now();
+  return out;
+}
+
+// The circles at the top of the feed: goals with unseen stories first (bright ring), then watched
+// stories (grey ring), then every other goal (opens the goal page).
+function storiesRow(list, stories = []) {
+  const ready = list.filter((g) => g.status === 'ready');
+  const seen = seenStories();
+  const has = new Map();
+  for (const s of stories) { const x = has.get(s.goal_id) || { unseen: 0, n: 0 }; x.n++; if (!seen.has(s.story)) x.unseen++; has.set(s.goal_id, x); }
+  const order = (g) => (has.get(g.id)?.unseen ? 0 : has.has(g.id) ? 1 : follows.has(g.slug) ? 2 : 3);
+  const orbOf = (g) => avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '');
+  return `<div class="stories" aria-label="Goals and their stories">
+    <button class="story" type="button" id="storyNew"><span class="plus" aria-hidden="true">+</span><span>Any goal</span></button>
+    ${[...ready].sort((a, b) => order(a) - order(b)).map((g) => {
+      const h = has.get(g.id);
+      return h ? `<a class="story st${h.unseen ? ' new' : ' seen'}" href="#/stories/${encodeURIComponent(g.slug)}" aria-label="@${esc(g.handle)}: ${h.unseen ? `${h.unseen} new stor${h.unseen === 1 ? 'y' : 'ies'}` : 'stories you have seen'}"><span class="ring">${orbOf(g)}</span><span>${esc(g.handle)}</span></a>`
+        : `<a class="story${follows.has(g.slug) ? ' fol' : ''}" href="#/g/${encodeURIComponent(g.slug)}">${orbOf(g)}<span>${esc(g.handle)}</span></a>`;
+    }).join('')}
+  </div>`;
+}
+
 function reelOrder(reels) {
   const by = new Map();
   for (const r of reels) { if (!by.has(r.goal_id)) by.set(r.goal_id, []); by.get(r.goal_id).push(r); }
@@ -3271,7 +3351,7 @@ function reelCard(r, g, i) {
       <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
       <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
     </div>
-    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`} <span aria-hidden="true">→</span></a>
+    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">${r.story ? 'Read the research' : `Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`}`} <span aria-hidden="true">→</span></a>
   </section>`;
 }
 const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
@@ -3326,21 +3406,31 @@ function reelPlayer(card) {
   };
 }
 
-async function watchView(slug) {
+async function watchView(slug, storiesMode = false) {
   document.body.classList.add('swipe');
-  view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
+  view.innerHTML = `<div class="sw-wrap">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
   let list, reels;
   try {
     [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score,mood&order=created_at.desc&limit=200')]);
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
-  const ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
-  const want = slug && list.find((g) => g.slug === slug);
+  let ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
+  if (storiesMode) {
+    // Stories: this goal's first, then other goals with unseen stories, then the rest; oldest first within a goal.
+    const st = await loadStories(list).catch(() => []), seen = seenStories();
+    const byGoal = new Map();
+    for (const s of [...st].sort((a, b) => a.created_at.localeCompare(b.created_at))) byGoal.set(s.goal_id, [...(byGoal.get(s.goal_id) || []), s]);
+    const start = list.find((g) => g.slug === slug);
+    const goalsOrder = [...byGoal.keys()].sort((a, b) => (a === start?.id ? -1 : b === start?.id ? 1 : Number(byGoal.get(b).some((s) => !seen.has(s.story))) - Number(byGoal.get(a).some((s) => !seen.has(s.story)))));
+    ordered = goalsOrder.flatMap((id) => byGoal.get(id));
+    if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>No new stories right now.</h2><p>When a goal moves forward or hits a setback, it shows up here for 48 hours.</p><a class="sw-go" href="#/watch">Watch videos instead →</a></div></section>`; return; }
+  }
+  const want = !storiesMode && slug && list.find((g) => g.slug === slug);
   if (want) { const mine = ordered.filter((r) => r.goal_id === want.id); ordered.splice(0, ordered.length, ...mine, ...ordered.filter((r) => r.goal_id !== want.id)); }
   if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>Videos are on their way.</h2><p>Parallax is making short videos for every goal. Check back soon.</p><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
   watchState.reels = ordered;
-  box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i)).join('');
+  box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i)).join('') + (storiesMode ? `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>You’re all caught up.</h2><p>New stories appear when goals move forward or hit a setback.</p><div class="sw-acts"><a class="sw-cta" href="#/">Back to the feed</a><a class="sw-cta ghost" href="#/watch">Watch videos</a></div></div></section>` : '');
   const players = [...box.querySelectorAll('.rl')].map(reelPlayer);
   let current = -1;
   const obs = new IntersectionObserver((entries) => {
@@ -3349,6 +3439,7 @@ async function watchView(slug) {
       if (e.isIntersecting && e.intersectionRatio > 0.6) {
         if (current !== i) { if (current >= 0) players[current].reset(); players[i].reset(); }
         current = i; players[i].play();
+        if (ordered[i].story) markSeen(ordered[i].story);
         const g = list.find((x) => x.id === ordered[i].goal_id);
         if (music.wanted) music.start(hue(g.slug), ordered[i].mood || ({ setback: 'tense', promise: 'bittersweet', breakthrough: 'uplifting', intro: 'epic' }[ordered[i].kind]));
       } else if (i === current && e.intersectionRatio < 0.3) players[i].pause();
@@ -3466,6 +3557,7 @@ function route() {
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'watch') return watchView(parts[1]);
+  if (parts[0] === 'stories') return watchView(parts[1], true);
   if (parts[0] === 'lab') return labView(parts[1], query === 'new' ? 'new' : 'top');
   if (parts[0] === 'idea' && parts[1]) return ideaView(parts[1]);
   if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
