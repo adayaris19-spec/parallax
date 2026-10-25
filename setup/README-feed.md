@@ -267,7 +267,7 @@ One problem now: `POST /functions/v1/ideas` with `{"slug":"<slug>","key":"b3.1"}
   session; cost estimates, ideas and videos go to goals with followers or visits in the last 30 days,
   most-watched first. A goal nobody looks at gets them once someone visits or follows it.
 - Ideas check prior work in OpenAlex (free, real papers, short abstracts) instead of web search.
-- Videos judge candidate photos as 320 px previews, a fraction of the tokens of full-size images.
+- Videos judge candidate photos from small previews (about 320-640 px) that each source provides.
 - Work is only redone when something changed: cost estimates after 6 months or when the problem
   changes; ideas for each goal's 6 most important problems (refreshed every 120 days), and for any
   other problem when someone asks; videos when there are new posts (at most weekly), else monthly.
