@@ -14,6 +14,7 @@ dashboard except step 5, which runs one command on your computer.
 | `functions/promises/index.ts` | The promise keeper: finds dated promises in older research and checks them |
 | `schema-promises.sql` | The table for promises |
 | `schema-accounts.sql` | Profiles, follows and account deletion |
+| `functions/branch/index.ts` and `schema-branch.sql` | Your branch: matches people's skills to problems |
 | `seed-queue.sql` | Maps the starting goals a few a day, within the free OpenAlex budget |
 | `seed.mjs` | Maps the starting list of goals |
 | `../index.html` | The feed itself (the previous front page now lives at `instruments.html`) |
@@ -119,6 +120,17 @@ Profiles, follows saved to accounts, follower counts and account deletion.
 4. Email codes (later): connect an email service under Authentication -> Emails -> SMTP Settings
    (Supabase's built-in sender only reaches your own team), then set `EMAIL_CODE_SIGNIN = true`
    in `index.html`.
+
+## 9. Your branch
+
+Matches each signed-in person's skills to the problems where they can help, with a first step.
+
+1. SQL Editor: run all of `schema-branch.sql`.
+2. Deploy a function named `branch` with `functions/branch/index.ts` (Verify JWT on).
+
+Matches are saved per person and reused until their skills, bio or follows change. Each person can
+ask for new matches up to 4 times a day; `BRANCHES_PER_DAY` (default 300) caps new matches across
+everyone. One match costs about one model call.
 
 ## Expert review
 
