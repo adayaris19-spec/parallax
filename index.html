@@ -3271,10 +3271,12 @@ async function loadStories(list) {
     rest(`reels?goal_id=in.(${goalIds.join(',')})&select=id,goal_id,post_id,kind,title,scenes,score,mood`).catch(() => []),
   ]);
   // Fallback visuals: each goal's own approved shots from its videos.
-  const own = new Map(goalIds.map((id) => [id, reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url))]));
+  const uniq = (arr) => [...new Map(arr.map((v) => [v.url, v])).values()];
+  const videosFirst = (arr) => [...arr].sort((a, b) => Number(b.kind === 'video') - Number(a.kind === 'video'));
+  const own = new Map(goalIds.map((id) => [id, videosFirst(uniq(reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url))))]));
   const visuals = await Promise.all(chosen.map((p) => {
     const n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
-    return fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: `${n?.title || ''} ${p.headline}`, n: 2 }) })
+    return fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: `${n?.title || ''} ${p.headline}`, n: 6 }) })
       .then((r) => (r.ok ? r.json() : [])).catch(() => []);
   }));
   const out = chosen.map((p, i) => {
@@ -3282,7 +3284,8 @@ async function loadStories(list) {
     const rich = reels.find((r) => r.post_id === p.id && (r.scenes || []).length);
     if (rich) return { ...rich, id: `s${p.id}`, story: p.id, created_at: p.created_at };
     const mine = own.get(p.goal_id) || [], shift = p.id % Math.max(1, mine.length);
-    const v = [...(visuals[i] || []), ...mine.slice(shift), ...mine.slice(0, shift)], vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
+    const rot = [...mine.slice(shift), ...mine.slice(0, shift)];
+    const v = videosFirst(uniq([...(visuals[i] || []), ...rot])), vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
     const sentences = String(p.body || '').match(/[^.!?]+[.!?]+/g) || [p.body || ''];
     const why = (sentences[1] || sentences[0] || '').trim();
     const pct = Math.round((g.progress || 0) * 100);
