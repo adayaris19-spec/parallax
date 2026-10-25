@@ -421,8 +421,9 @@ ${cited.map(recLine).join("\n")}
    - "advance" posts for real recent progress (records from the last few years),
    - a "setback" post if the evidence shows something that failed or got harder,
    - a "forgotten" post if an older record holds an idea that looks overlooked today.
-   headline: at most 14 words, a fact, no clickbait. body: 2 to 4 short sentences a teenager
-   could follow, ending with why it matters for the goal. source_ids: the ids of the records
+   headline: at most 12 words, a striking fact that makes someone stop scrolling, never clickbait or
+   exaggeration. body: at most 2 short sentences (under 45 words) a teenager could follow, the second
+   saying why it matters for the goal. source_ids: the ids of the records
    the post rests on (at least one, from the list above). Do not state anything the records
    and the tree do not support.`,
     "high",
@@ -465,7 +466,7 @@ ${cited.map(recLine).join("\n")}
       goal_id: goal.id, node_key: null, kind: "mapped",
       headline: `@${goal.handle} is now on Parallax`,
       body: `Parallax mapped ${work.leaves.length} problems across ${work.branches.length} branches that stand between us and this goal. ` +
-        `${solved} ${solved === 1 ? "is" : "are"} solved. The biggest bottleneck right now: ${bn.title.charAt(0).toLowerCase() + bn.title.slice(1)}. ${out.bottleneck_why}`,
+        `${solved} ${solved === 1 ? "is" : "are"} solved. The biggest bottleneck: ${bn.title.charAt(0).toLowerCase() + bn.title.slice(1)}.`,
       sources: [], independent_sources: 0,
     },
     ...out.posts.map((p) => {

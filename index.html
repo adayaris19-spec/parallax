@@ -123,6 +123,31 @@ main{max-width:680px;margin:0 auto;padding:0 20px 96px}
 .btn.icon svg{width:16px;height:16px}
 .btn:disabled{opacity:.5;cursor:default}
 
+/* ---------- glanceable post cards ---------- */
+.cover{--h:220;--h2:250;display:block;text-decoration:none;color:var(--ink);margin:14px 0 0;padding:18px 18px 20px;border-radius:14px;background:linear-gradient(135deg,hsl(var(--h) 92% 96.5%) 0%,hsl(var(--h2) 88% 92%) 100%);box-shadow:inset 0 0 0 1px hsl(var(--h) 60% 50% / .08)}
+@media (prefers-color-scheme: dark){.cover{background:linear-gradient(135deg,hsl(var(--h) 45% 15%) 0%,hsl(var(--h2) 50% 10%) 100%);box-shadow:inset 0 0 0 1px hsl(var(--h) 70% 70% / .10)}}
+.cover .kind{margin:0 0 10px}
+.cover h3{font-size:22px;line-height:1.24;letter-spacing:-.024em;margin:0}
+.cover .big{display:flex;align-items:baseline;gap:10px;font-family:var(--m);font-size:34px;font-weight:500;letter-spacing:-.04em;line-height:1;margin:2px 0 14px}
+.cover .big .arr{color:var(--faint);font-size:24px}
+.cover .big .pill{font-family:var(--f);font-size:13px;padding:4px 11px;margin-left:4px;align-self:center;letter-spacing:0}
+.cover .big .lbl{font-family:var(--f);font-size:14px;color:var(--muted);letter-spacing:0;font-weight:500}
+details.more{margin-top:10px}
+details.more + .post-f{margin-top:6px}
+details.more > summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500;color:var(--muted);padding:4px 0}
+details.more > summary::-webkit-details-marker{display:none}
+details.more > summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+details.more[open] > summary::after{transform:rotate(-135deg) translateY(-1px)}
+details.more > summary:hover{color:var(--ink)}
+details.more[open] > summary{margin-bottom:6px}
+.stories{display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:18px 20px 6px}
+.stories::-webkit-scrollbar{display:none}
+.story{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;font-size:11.5px;font-weight:500;color:var(--ink2);text-align:center;background:none;border:0;padding:0;cursor:pointer}
+.story .av{width:60px;height:60px;font-size:17px;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--line2),inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -12px 20px rgba(0,0,0,.14)}
+.story.fol .av{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--accent),inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -12px 20px rgba(0,0,0,.14)}
+.story span:last-child{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story .plus{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;border:1.5px dashed var(--line2);color:var(--muted);font-size:24px;font-weight:300}
+
 /* ---------- goal page ---------- */
 .goal-h{padding:30px 0 6px}
 .gh-top{display:flex;align-items:center;gap:14px}
@@ -266,7 +291,9 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
   .tabs{margin:0 -16px;padding:0 16px}
   .brand-word{display:none}
   .post{padding:16px 16px;border-radius:16px}
-  .check{flex-basis:100%}
+  .cover{padding:16px 16px 18px}
+  .cover h3{font-size:20px}
+  .stories{margin:0 -16px;padding:16px 16px 4px}
   .tab{padding:14px 10px 12px}
   .goal-h h1{font-size:30px}
   .metric{padding:14px 14px 12px}
@@ -595,29 +622,52 @@ function quoteBlock(q, paper, made) {
 }
 
 function postCard(p, g) {
-  const srcs = (p.sources || []).slice(0, 4).map((s) => {
-    const url = safeUrl(s.url);
-    const meta = [s.year, s.venue].filter(Boolean).join(', ');
-    const t = esc(s.title);
+  const srcs = (p.sources || []).slice(0, 4).map((x) => {
+    const url = safeUrl(x.url);
+    const meta = [x.year, x.venue].filter(Boolean).join(', ');
+    const t = esc(x.title);
     return `<li>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${t}</a>` : t}${meta ? ` <span>(${esc(meta)})</span>` : ''}</li>`;
   }).join('');
-  let check = '';
+  let check = '<span class="check"></span>';
   if (p.kind !== 'mapped') {
     check = p.independent_sources >= 2
       ? `<span class="check two" title="At least two papers by different first authors back this post">✓ ${p.independent_sources} independent sources</span>`
       : `<span class="check" title="One research group backs this post so far">One source so far</span>`;
     if (p.expert_reviewed) check = check.replace('</span>', ' · expert reviewed</span>');
-  } else check = '<span class="check"></span>';
-  const treeLink = p.node_key ? `<a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(p.node_key)}">In the tree</a>` : '';
+  }
+  const h = hue(g.slug), h2 = (h + 34) % 360;
+  const kindLabel = `<span class="kind ${esc(p.kind)}">${esc(KIND[p.kind] || p.kind)}</span>`;
+  let big = '';
+  if (p.kind === 'promise' && p.meta && p.meta.made_year) {
+    const st = p.meta.status;
+    big = `<div class="big">${esc(p.meta.made_year)}<span class="arr">→</span>${esc(p.meta.due_year)}${st ? `<span class="pill ${esc(st)}">${esc(PSTATUS[st] || st)}</span>` : ''}</div>`;
+  } else if (p.kind === 'mapped') {
+    const m = /mapped (\d+) problems across (\d+) branches/.exec(p.body || '');
+    if (m) big = `<div class="big">${esc(m[1])}<span class="lbl">problems mapped</span></div>`;
+  }
+  const target = p.node_key ? `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(p.node_key)}` : `#/g/${encodeURIComponent(g.slug)}`;
+  const nPapers = (p.sources || []).length;
+  const detail = [
+    p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : '',
+    p.body ? `<p>${esc(p.body)}</p>` : '',
+    srcs ? `<ul class="srcs">${srcs}</ul>` : '',
+  ].join('');
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
-    <span class="kind ${esc(p.kind)}">${esc(KIND[p.kind] || p.kind)}${p.kind === 'promise' && p.meta?.status ? `<span class="pill ${esc(p.meta.status)}">${esc(PSTATUS[p.meta.status] || p.meta.status)}</span>` : ''}</span>
-    <h3>${esc(p.headline)}</h3>
-    ${p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : ''}
-    ${p.body ? `<p>${esc(p.body)}</p>` : ''}
-    ${srcs ? `<ul class="srcs">${srcs}</ul>` : ''}
-    <div class="post-f">${check}${treeLink}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
+    <a class="cover" href="${target}" style="--h:${h};--h2:${h2}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    ${detail ? `<details class="more"><summary>Read more${nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : ''}
+    <div class="post-f">${check}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
+}
+
+function storiesRow(list) {
+  const ready = list.filter((g) => g.status === 'ready');
+  const fol = ready.filter((g) => follows.has(g.slug)), rest = ready.filter((g) => !follows.has(g.slug));
+  const orbOf = (g) => avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '');
+  return `<div class="stories" aria-label="Goals">
+    <button class="story" type="button" id="storyNew"><span class="plus" aria-hidden="true">+</span><span>Any goal</span></button>
+    ${[...fol, ...rest].map((g) => `<a class="story${follows.has(g.slug) ? ' fol' : ''}" href="#/g/${encodeURIComponent(g.slug)}">${orbOf(g)}<span>${esc(g.handle)}</span></a>`).join('')}
+  </div>`;
 }
 
 // ------------------------------------------------------------ views
@@ -664,7 +714,9 @@ async function feedView(tab) {
       box.innerHTML = note('Nothing posted yet', 'The goals are still being mapped. Their first posts appear here as soon as they are ready.');
       return;
     }
-    box.innerHTML = first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    box.innerHTML = (tab === 'all' ? storiesRow(list) : '') + first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    const sn = $('#storyNew');
+    if (sn) sn.onclick = () => { qInput.focus(); toast('Type any goal, like "cure malaria"'); };
     const wire = () => {
       const m = $('#more');
       if (!m) return;
