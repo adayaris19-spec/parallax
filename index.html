@@ -441,6 +441,73 @@ body.swipe .foot{display:none}
   .sw{--h:calc(100dvh - 53px - var(--navh));width:100vw;border-radius:0}
   .sw-nav{display:none}
 }
+
+/* post story extras */
+.sw-bar{position:absolute;top:24px;left:50%;transform:translateX(-50%);width:min(460px,100vw);z-index:6;display:flex;align-items:center;gap:10px;padding:0 14px;box-sizing:border-box;pointer-events:none}
+.sw-bar > *{pointer-events:auto}
+.sw-x{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:15px;cursor:pointer}
+.sw-who{color:#fff;font-weight:600;font-size:14px;text-decoration:none;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.sw-dots{margin-left:auto;display:flex;gap:5px}
+.sw-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s,transform .2s}
+.sw-dots i.on{background:#fff;transform:scale(1.25)}
+.sw-bg video{width:100%;height:100%;object-fit:cover;display:block}
+.sw-text p.lg{font-size:18px;color:rgba(255,255,255,.88);line-height:1.5}
+.sw-hint{margin-top:22px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);font-family:var(--m);animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+.sw-q{margin:16px 0 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.08);font-size:15px;line-height:1.55;color:rgba(255,255,255,.9)}
+.sw-q span{display:block;margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.6)}
+.sw-src{display:grid;gap:8px;margin-top:16px}
+.sw-s{display:block;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.08);text-decoration:none;color:#fff}
+.sw-s b{display:block;font-weight:500;font-size:14px;line-height:1.35}
+.sw-s span{display:block;font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+a.sw-s:hover{background:rgba(255,255,255,.14)}
+.sw-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.sw-acts .sw-cta{margin-top:0;display:inline-flex;align-items:center;text-decoration:none}
+.sw-cta.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.sw-next{display:block;margin-top:26px;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.18);text-decoration:none;color:#fff}
+.sw-next span{display:block;font-family:var(--m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.sw-next b{display:block;font-weight:500;margin-top:4px}
+.sw-card .sw-text{right:20px}
+@media (max-width:760px){.sw-bar{top:12px}}
+@media (prefers-reduced-motion:reduce){.sw-hint{animation:none}}
+
+/* goal story (full-screen sections) */
+body.goalstory .sw{width:min(720px,100vw)}
+body.goalstory .sw-bar{width:min(720px,100vw)}
+.sw-x{display:grid;place-items:center;text-decoration:none}
+.sw-tabs{margin-left:auto;display:flex;gap:4px;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:999px;padding:3px}
+.sw-tabs a{color:rgba(255,255,255,.75);text-decoration:none;font-size:12.5px;font-weight:500;padding:6px 10px;border-radius:999px}
+.sw-tabs a.on{background:#fff;color:#0B0C14}
+.mc{position:absolute;left:20px;right:20px;top:76px;bottom:44px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px}
+.mc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mc-built{font-size:11.5px;color:rgba(255,255,255,.65)}
+.mc h1{font-size:clamp(32px,8.4vw,52px);line-height:1.02;letter-spacing:-.04em;margin:0;color:#fff;max-width:14ch}
+.mc-tag{margin:0;color:rgba(255,255,255,.82);font-size:15.5px;line-height:1.5;max-width:46ch}
+.mc-row{display:flex;align-items:center;gap:18px}
+.mc-ring{position:relative;width:92px;height:92px;flex:none}
+.mc-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:21px;font-weight:500;color:#fff}
+.mc-eta{font-size:clamp(30px,8vw,40px);letter-spacing:-.05em;line-height:1;color:#fff}
+.mc-s{font-size:12.5px;color:rgba(255,255,255,.65);margin-top:4px}
+.mc-hard{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,120,120,.35);border-radius:18px;padding:13px 15px;color:#fff}
+.mc-hard > span{display:block;font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#FF9A9A}
+.mc-hard > b{display:block;font-size:16.5px;line-height:1.3;margin-top:5px}
+.mc-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:10px;overflow:hidden}
+.mc-bar i{display:block;height:100%;background:#6EE7A8}
+.mc-money{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:rgba(255,255,255,.75)}
+.sw-cta.sm{height:36px;padding:0 16px;font-size:14px;margin-top:0}
+.mc-dots{display:flex;flex-wrap:wrap;gap:6px}
+.mc-dots .gd{width:12px;height:12px;border-radius:50%;display:block;background:var(--open)}
+.mc-dots.big{gap:9px;margin-top:18px}
+.mc-dots.big .gd{width:20px;height:20px}
+.gd.st-solved{background:var(--solved)}.gd.st-in_progress{background:var(--progress)}.gd.st-blocked{background:var(--blocked)}.gd.st-open{background:#4A4F60}
+.bk{margin-top:16px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff}
+.bk b{font-weight:500;line-height:1.45;display:block}
+.pscore{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.pscore div{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.09)}
+.pscore b{display:block;font-size:34px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.pscore span{font-size:13px;color:rgba(255,255,255,.7)}
+.sw .sw-s span{display:block}
+@media (max-width:760px){.mc{top:64px;bottom:40px;left:18px;right:18px;gap:12px}.sw-tabs a{padding:6px 8px;font-size:12px}}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -1162,7 +1229,7 @@ function postCard(p, g, compact = false) {
     const m = /mapped (\d+) problems across (\d+) branches/.exec(p.body || '');
     if (m) big = `<div class="big">${esc(m[1])}<span class="lbl">problems mapped</span></div>`;
   }
-  const target = p.node_key ? `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(p.node_key)}` : `#/g/${encodeURIComponent(g.slug)}`;
+  const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : `#/p/${p.id}`; // a post opens as its story
   const nPapers = (p.sources || []).length;
   const detail = [
     p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : '',
@@ -1453,10 +1520,93 @@ async function goalView(slug, tab, focusKey) {
     body = help + stand + news + map + prom;
   }
 
+  if (tab === 'story') {
+    const st = goalStory({ g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN });
+    document.body.classList.add('swipe', 'goalstory');
+    view.innerHTML = `<div class="sw-wrap"><div class="sw-bar"><a class="sw-x" href="#/" aria-label="Back to the feed">←</a><span class="sw-who">@${esc(g.handle)}</span>
+      <nav class="sw-tabs">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', 'Posts', `${base}/posts`], ['promises', 'Promises', `${base}/promises`]].map(([id, label, href]) => `<a href="${href}" class="${id === 'story' ? 'on' : ''}">${label}</a>`).join('')}</nav></div>
+      <div class="sw" id="sw">${st.html}</div></div>`;
+    refreshFollowers();
+    if (focusKey) openLeaf(focusKey, false);
+    return;
+  }
   document.body.classList.add('goalpage');
   view.innerHTML = hero + tabs + `<div class="gbody">${body}</div>`;
   refreshFollowers();
   if (focusKey) openLeaf(focusKey, false);
+}
+
+// The goal as full-screen sections you scroll through. The first screen is mission control:
+// everything that matters at a glance.
+function goalStory(c) {
+  const { g, leaves, branches, posts, promises, pctN, horizon, bn, solved, going, blocked, openN } = c;
+  const base = `#/g/${encodeURIComponent(g.slug)}`;
+  const seed = g.slug;
+  const fs1 = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
+  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
+  const bnListing = bn && fundState.listings.find((x) => x.node_key === bn.key);
+  const bnRaised = bn && fundState.perListing[bnListing?.id]?.raised_cents || 0;
+  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
+  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 4);
+  const ups = posts.filter((p) => p.kind === 'advance' || p.kind === 'solved').length, downs = posts.filter((p) => p.kind === 'setback').length;
+  const pc = (s) => promises.filter((p) => p.status === s).length;
+  const R = 38, C = 2 * Math.PI * R;
+  const ring = (size, stroke) => `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${pctN}% of the way"><circle cx="48" cy="48" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="${stroke}"/><circle cx="48" cy="48" r="${R}" fill="none" stroke="#fff" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 48 48)"/></svg>`;
+  const dots = leaves.map((l) => `<a class="gd st-${esc(l.status || 'open')}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" aria-label="${esc(l.title)}"></a>`).join('');
+
+  const s1 = `<section class="sw-card gs1">${bgMedia(g.media, seed)}<div class="sw-shade"></div>
+    <div class="mc">
+      <div class="mc-top"><span class="sw-chip"><i style="background:#fff"></i>@${esc(g.handle)}</span>${g.papers_count ? `<span class="mc-built mono">Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
+      <h1>${esc(g.name)}</h1>
+      ${g.tagline ? `<p class="mc-tag">${esc(g.tagline)}</p>` : ''}
+      <div class="mc-row"><div class="mc-ring">${ring(92, 9)}<b class="mono">${pctN}%</b></div>
+        <div>${horizon ? `<div class="mc-eta mono">${esc(horizon)} yrs</div><div class="mc-s">to go, at today’s pace</div>` : ''}${ups || downs ? `<div class="mc-s" style="color:#6EE7A8;margin-top:6px">▲ ${ups} step${ups === 1 ? '' : 's'} forward · ${downs} setback${downs === 1 ? '' : 's'}</div>` : ''}</div></div>
+      ${bn ? `<div class="mc-hard"><span>The hardest part</span><b>${esc(bn.title)}</b>
+        ${bnListing ? `<div class="mc-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><div class="mc-money"><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span><button type="button" class="sw-cta sm" data-back="${bnListing.id}">Back it</button></div>`
+          : `<div class="mc-money"><span>No team raising yet</span><button type="button" class="sw-cta sm ghost" data-leaf="${esc(bn.key)}">Explore it</button></div>`}</div>` : ''}
+      <div class="mc-dots">${dots}</div>
+      <div class="sw-hint">Scroll ↓</div>
+    </div>
+    ${g.media && g.media.url ? `<div class="sw-credit">${g.media.kind === 'video' ? 'Video' : 'Photo'}: ${esc(g.media.credit)} · ${esc(g.media.license)}</div>` : ''}</section>`;
+
+  const s2 = bn ? `<section class="sw-card">${bgMedia(null, seed + 'b')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:var(--blocked)"></i>The hardest part</span>
+      <h2 style="font-size:clamp(28px,7vw,40px)">${esc(bn.title)}</h2>
+      ${bn.why ? `<p class="lg">${esc(bn.why)}</p>` : ''}${bn.blocker ? `<p>${esc(fs1(bn.blocker))}</p>` : ''}
+      <div class="sw-acts"><button type="button" class="sw-cta" data-leaf="${esc(bn.key)}">See the research</button></div></div></section>` : '';
+
+  const s3 = `<section class="sw-card">${bgMedia(null, seed + 'm')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#6EE7A8"></i>Back the work</span>
+      ${bnListing ? `<h2>${esc(bnListing.teams.name)} is working on the hardest part.</h2>
+        <div class="bk"><b>${esc(bnListing.plan)}</b>${bnListing.target_cents ? `<div class="mc-bar"><i style="width:${Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1)}%"></i></div><div class="mono" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,.75)">${money(bnRaised)} of ${money(bnListing.target_cents)}</div>` : ''}</div>
+        <div class="sw-acts"><button type="button" class="sw-cta" data-back="${bnListing.id}">Back with $25</button><a class="sw-cta ghost" href="${base}/map">Other problems</a></div>
+        <p style="font-size:13px">95% goes to the team. 5% keeps Parallax running.</p>`
+      : teams.length ? `<h2>${totalRaised ? `${money(totalRaised)} raised so far.` : `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money.`}</h2><p>${teams.map((t) => esc(t.name)).join(', ')}. 95% of every backing goes to the team.</p><div class="sw-acts"><a class="sw-cta" href="${base}/map">See where to back</a></div>`
+      : `<h2>No team is raising money for this goal yet.</h2><p class="lg">Labs, nonprofits and researchers working on one of these ${leaves.length} problems can raise money here. Backers fund them directly, and see exactly what their money does.</p>
+        <div class="sw-acts"><a class="sw-cta" href="#/team">Raise money for your team</a><button type="button" class="sw-cta ghost" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow to hear first'}</button></div>`}
+    </div></section>`;
+
+  const s4 = recent.length ? `<section class="sw-card">${bgMedia(null, seed + 'c')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#AEB4FF"></i>What changed lately</span>
+      <h2>${ups || downs ? `${ups} step${ups === 1 ? '' : 's'} forward, ${downs} setback${downs === 1 ? '' : 's'}.` : 'The latest.'}</h2>
+      <div class="sw-src">${recent.map((p) => `<a class="sw-s" href="#/p/${p.id}"><span style="margin:0 0 4px">${esc(KIND_WORD[p.kind] || p.kind)} · ${esc(whenAgo(p.created_at))}</span><b>${esc(p.headline)}</b></a>`).join('')}</div>
+      <a class="sw-go" href="${base}/posts">All ${posts.length} posts →</a></div></section>` : '';
+
+  const s5 = promises.length ? `<section class="sw-card">${bgMedia(null, seed + 'p')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#F5C76B"></i>Promises</span>
+      <h2>What we were told, and what happened.</h2>
+      <div class="pscore">${[['kept', 'Kept', '#6EE7A8'], ['partly', 'Partly kept', '#F5C76B'], ['broken', 'Broken', '#FF8A8A'], ['pending', 'Not due yet', '#fff']].map(([k, label, col]) => `<div><b class="mono" style="color:${col}">${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
+      <a class="sw-go" href="${base}/promises">Every promise, with quotes and sources →</a></div></section>` : '';
+
+  const s6 = `<section class="sw-card">${bgMedia(null, seed + 'e')}<div class="sw-shade"></div><div class="sw-text">
+      <span class="sw-chip"><i style="background:#fff"></i>Explore</span>
+      <h2>Every problem, at a glance.</h2>
+      <p>${leaves.length} problems in ${branches.length} chapters: ${solved} solved, ${going} moving, ${blocked} blocked, ${openN} barely started. Tap a dot.</p>
+      <div class="mc-dots big">${dots}</div>
+      <div class="sw-acts"><a class="sw-cta" href="${base}/map">Open the map</a><a class="sw-cta ghost" href="${base}/posts">Posts</a><a class="sw-cta ghost" href="${base}/promises">Promises</a></div></div></section>`;
+
+  const screens = [s1, s2, s3, s4, s5, s6].filter(Boolean);
+  return { html: screens.join(''), count: screens.length };
 }
 
 // ------------------------------------------------------------ problem sheet
@@ -2417,171 +2567,98 @@ async function teamView(sub, rest_) {
   if (sub === 'ready') toast(t.payouts_ready ? 'Payouts are set up' : 'Stripe still needs a few details');
 }
 
-// ------------------------------------------------------------ swipe feed
-// One moment of progress per screen, like a short-video feed: a real picture, one sentence,
-// one number. Card types: a goal's countdown, a post, a promise to flip (then vs now), a guess.
+// ------------------------------------------------------------ full-screen views
 const KIND_WORD = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'The hardest part', forgotten: 'Old idea, back', promise: 'Then vs now', mapped: 'New goal' };
 const KIND_DOT = { advance: 'var(--solved)', solved: 'var(--solved)', setback: 'var(--blocked)', bottleneck: 'var(--progress)', forgotten: '#AEB4FF', promise: '#AEB4FF', mapped: '#fff' };
-const deviceId = () => {
-  try { let d = localStorage.getItem('px.dev'); if (!d) { d = crypto.randomUUID(); localStorage.setItem('px.dev', d); } return d; } catch { return 'anon'; }
-};
-const myGuess = { get(id) { try { return JSON.parse(localStorage.getItem('px.guess') || '{}')[id]; } catch { return undefined; } }, set(id, v) { try { const m = JSON.parse(localStorage.getItem('px.guess') || '{}'); m[id] = v; localStorage.setItem('px.guess', JSON.stringify(m)); } catch {} } };
-let deck = { cards: [], goals: [], guesses: {}, promises: {} };
-
-function picture(media, seed) {
-  const hasImg = media && media.url;
-  const h = hue(seed);
-  return `<div class="sw-bg" style="background:radial-gradient(120% 80% at 70% 15%, hsl(${h} 45% 22%) 0%, #05060B 62%)">${hasImg ? `<img src="${esc(media.url)}" alt="" loading="lazy" onerror="if(!this.dataset.f&&'${esc(media.thumb || '')}'){this.dataset.f=1;this.src='${esc(media.thumb || '')}'}else{this.remove()}">` : ''}</div>`;
-}
-function credit(media) {
-  if (!media || !media.url) return '';
-  const u = safeUrl(media.source_url);
-  return `<div class="sw-credit">Photo: ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(media.credit)}</a>` : esc(media.credit)} · ${esc(media.license)}</div>`;
-}
-const yearsFrom = (g) => { const base = new Date(g.mapped_at || Date.now()).getFullYear(); return g.horizon_low == null ? null : [base + g.horizon_low, base + (g.horizon_high ?? g.horizon_low)]; };
-
-function cardHtml(c, i) {
-  const g = c.g, h = `@${esc(g.handle)}`;
-  const rail = `<div class="sw-rail">
-    <a class="sw-av" href="#/g/${encodeURIComponent(g.slug)}" aria-label="Open @${esc(g.handle)}" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>
-    <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
-    ${c.post ? `<a class="sw-b" href="#/g/${encodeURIComponent(g.slug)}/posts" aria-label="Sources"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h10l4 4v12H5zM14 4v5h5"/></svg></a><span>${(c.post.sources || []).length} sources</span>` : ''}
-    <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
-  </div>`;
-  const chip = (kind, extra = '') => `<span class="sw-chip"><i style="background:${KIND_DOT[kind] || '#fff'}"></i>${esc(KIND_WORD[kind] || kind)} · ${h}${extra}</span>`;
-  let body = '';
-  if (c.type === 'hook') {
-    const y = yearsFrom(g), lo = g.horizon_low, hi = g.horizon_high;
-    body = `<div class="sw-text">
-      <span class="sw-chip"><i style="background:#fff"></i>Countdown · ${h}</span>
-      ${lo != null ? `<div class="sw-num mono">${lo === hi ? `~${lo}` : `${lo}–${hi}`}<small>years</small></div>` : ''}
-      <h2>${esc(g.name)}</h2>
-      ${g.tagline ? `<p>${esc(g.tagline)}</p>` : ''}
-      <div class="sw-meta">${y ? `<span>Around ${y[0]}–${y[1]}</span>` : ''}${g.papers_count ? `<span>Built on ${g.papers_count.toLocaleString()} papers</span>` : ''}</div>
-      <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}">See where it stands →</a></div>`;
-  } else if (c.type === 'promise') {
-    const pr = c.promise, p = c.post;
-    const st = (p.meta && p.meta.status) || (pr && pr.status) || '';
-    body = `<div class="sw-text">${chip('promise')}
-      <div class="sw-flip" data-flip>
-        <div class="front"><div class="sw-num mono" style="color:#AEB4FF">${esc(p.meta?.made_year ?? '')}</div>
-          <h2>“${esc(pr?.claim || p.headline)}”</h2><p>Promised for ${esc(p.meta?.due_year ?? '')}. Quoted from a research paper.</p>
-          <button type="button" class="sw-cta" data-reveal>Did it happen? Tap to see</button></div>
-        <div class="back"><div class="sw-num mono" style="color:${st === 'kept' ? '#6EE7A8' : st === 'partly' ? '#F5C76B' : '#FF8A8A'}">${new Date().getFullYear()}</div>
-          <h2>${esc(PSTATUS[st] || 'Checked')}: ${esc(p.headline)}</h2>${p.body ? `<p>${esc(p.body)}</p>` : ''}
-          <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}/promises">Every promise for ${h} →</a></div>
-      </div></div>`;
-  } else if (c.type === 'guess') {
-    const y = yearsFrom(g), mine = myGuess.get(g.id), tot = deck.guesses[g.id];
-    const start = mine || (y ? Math.round((y[0] + y[1]) / 2) : 2050);
-    body = `<div class="sw-text" data-guess="${g.id}">
-      <span class="sw-chip"><i style="background:#F5C76B"></i>Your guess · ${h}</span>
-      <h2>When will this happen: ${esc(lowerFirst(g.name))}?</h2>
-      <div class="sw-num mono" data-gyear>${start}</div>
-      <input type="range" min="${new Date().getFullYear() + 1}" max="2125" value="${start}" data-gslider aria-label="Your guess, year">
-      <div class="sw-res${mine ? '' : ' hide'}" data-gres>${guessResult(g, mine, tot)}</div>
-      <button type="button" class="sw-cta${mine ? ' hide' : ''}" data-glock>Lock in my guess</button></div>`;
-  } else {
-    const p = c.post;
-    body = `<div class="sw-text">${chip(p.kind)}
-      <h2>${esc(p.headline)}</h2>${p.body ? `<p>${esc(firstSentenceOf(p.body))}</p>` : ''}
-      <div class="sw-meta">${(p.independent_sources || 0) >= 2 ? `<span>✓ ${p.independent_sources} independent sources</span>` : `<span>${(p.sources || []).length} sources</span>`}<span>${esc(whenAgo(p.created_at))}</span></div>
-      <a class="sw-go" href="#/g/${encodeURIComponent(g.slug)}${p.node_key ? `/tree/${encodeURIComponent(p.node_key)}` : ''}">Why it matters →</a></div>`;
-  }
-  const media = c.type === 'hook' || c.type === 'guess' ? g.media : (c.post && c.post.media && c.post.media.url ? c.post.media : g.media);
-  return `<section class="sw-card" data-i="${i}">${picture(media, g.slug + i)}<div class="sw-shade"></div>${body}${rail}${credit(media)}</section>`;
-}
 const lowerFirst = (t) => String(t || '').charAt(0).toLowerCase() + String(t || '').slice(1);
 const firstSentenceOf = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
-function guessResult(g, mine, tot) {
-  const y = yearsFrom(g);
-  return `<div><span>You</span><b class="mono">${mine ?? '—'}</b></div>
-    <div><span>Everyone${tot ? ` · ${tot.people} ${tot.people === 1 ? 'guess' : 'guesses'}` : ''}</span><b class="mono">${tot ? tot.median : '—'}</b></div>
-    <div class="pa"><span>Parallax, from the research</span><b class="mono">${y ? `${y[0]}–${y[1]}` : '—'}</b></div>`;
+
+// ------------------------------------------------------------ post story (tap a post)
+// A post opens as a short story you scroll through, one screen at a time: what happened, why it
+// matters, the evidence, where the problem stands, and how to help.
+function bgMedia(media, seed) {
+  const h = hue(seed);
+  const base = `background:radial-gradient(120% 80% at 70% 15%, hsl(${h} 45% 22%) 0%, #05060B 62%)`;
+  if (!media || !media.url) return `<div class="sw-bg" style="${base}"></div>`;
+  if (media.kind === 'video') return `<div class="sw-bg" style="${base}"><video src="${esc(media.url)}" poster="${esc(media.poster || '')}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>`;
+  return `<div class="sw-bg" style="${base}"><img src="${esc(media.url)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
 }
 
-// Mix the goals so the same goal rarely shows twice in a row: each goal's countdown comes just
-// before its first post, and a guess appears every few cards.
-function buildDeck(list, posts, promises) {
-  const ready = list.filter((g) => g.status === 'ready');
-  const byGoal = new Map(ready.map((g) => [g.id, []]));
-  for (const p of posts) {
-    const q = byGoal.get(p.goal_id);
-    if (!q || p.kind === 'mapped') continue;
-    q.push(p.kind === 'promise' ? { type: 'promise', post: p, promise: promises[p.meta?.promise_id] } : { type: 'post', post: p });
-  }
-  const queues = ready.map((g) => ({ g, q: byGoal.get(g.id) })).filter((x) => x.q.length);
-  const seen = new Set(), out = [], guessFor = [...queues.map((x) => x.g)];
-  let sinceGuess = 0;
-  while (queues.some((x) => x.q.length)) {
-    for (const x of queues) {
-      if (!x.q.length) continue;
-      if (!seen.has(x.g.id)) { seen.add(x.g.id); out.push({ type: 'hook', g: x.g }); sinceGuess++; }
-      out.push({ ...x.q.shift(), g: x.g }); sinceGuess++;
-      if (sinceGuess >= 6 && guessFor.length) { const g = guessFor.shift(); if (out[out.length - 1].g.id !== g.id) { out.push({ type: 'guess', g }); sinceGuess = 0; } else guessFor.push(g); }
-    }
-  }
-  return out;
-}
-
-async function swipeView(tab) {
+async function storyView(id) {
   document.body.classList.add('swipe');
-  view.innerHTML = `<div class="sw-wrap"><div class="sw-top"><a href="#/following" class="${tab === 'following' ? 'on' : ''}">Following</a><a href="#/" class="${tab === 'all' ? 'on' : ''}">For you</a></div>
-    <div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div>
-    <div class="sw-nav"><button type="button" class="btn icon" data-swn="-1" aria-label="Previous">↑</button><button type="button" class="btn icon" data-swn="1" aria-label="Next">↓</button></div></div>`;
+  view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
-  let list;
-  try { list = await goals(); } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
-  let ids = list.filter((g) => g.status === 'ready').map((g) => g.id);
-  if (tab === 'following') ids = list.filter((g) => follows.has(g.slug) && g.status === 'ready').map((g) => g.id);
-  if (!ids.length) {
-    box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>${tab === 'following' ? 'Follow a goal to fill this feed' : 'No goals mapped yet'}</h2><p>${tab === 'following' ? 'Swipe the For you feed and tap + on goals you care about.' : 'Search for any goal to map the first one.'}</p><a class="sw-go" href="#/">Go to For you →</a></div></section>`;
-    return;
-  }
+  let p, g, node, total = 0, listing = null, nextPost = null;
   try {
-    const [posts, proms, tots] = await Promise.all([
-      rest(`posts?select=${POST_COLS}&goal_id=in.(${ids.join(',')})&order=created_at.desc&limit=120`),
-      rest(`promises?goal_id=in.(${ids.join(',')})&select=id,claim,status,made_year,due_year&limit=500`).catch(() => []),
-      rest(`guess_totals?goal_id=in.(${ids.join(',')})`).catch(() => []),
+    p = (await rest(`posts?id=eq.${Number(id)}&select=${POST_COLS}`))[0];
+    if (!p) { box.innerHTML = `<section class="sw-card"><div class="sw-text"><h2>This post is gone.</h2><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
+    g = (await rest(`goals?id=eq.${p.goal_id}&select=${GOAL_COLS}`))[0];
+    const [nodes, lst, others] = await Promise.all([
+      p.node_key ? rest(`nodes?goal_id=eq.${g.id}&key=eq.${encodeURIComponent(p.node_key)}&select=key,title,why,status,blocker_kind,blocker,independent_sources,plain_title,plain_why,plain_blocker`) : [],
+      p.node_key ? rest(`team_problems?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(p.node_key)}&status=eq.active&select=id,node_key,node_title,plan,target_cents,teams(id,name,kind,website,country,about)&limit=1`).catch(() => []) : [],
+      rest(`posts?goal_id=eq.${g.id}&id=neq.${p.id}&kind=neq.mapped&select=id,headline,plain_headline,created_at&order=created_at.desc&limit=1&created_at=lte.${encodeURIComponent(p.created_at)}`).catch(() => []),
     ]);
-    deck.promises = Object.fromEntries(proms.map((p) => [p.id, p]));
-    deck.guesses = Object.fromEntries(tots.map((t) => [t.goal_id, t]));
-    deck.cards = buildDeck(list, posts, deck.promises);
+    node = nodes[0]; listing = lst.find((x) => x.teams) || null; nextPost = others[0] || null;
+    if (node) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/node_papers?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(node.key)}&select=paper_id&limit=1`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'count=exact' } });
+      total = Number((r.headers.get('content-range') || '').split('/')[1]) || 0;
+    }
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
-  box.innerHTML = deck.cards.map(cardHtml).join('') + `<section class="sw-card sw-end"><div class="sw-text"><h2>You’re all caught up.</h2><p>New research lands every day. Explore every goal, or search for one that’s missing.</p><a class="sw-go" href="#/explore">Explore goals →</a></div></section>`;
-  wireSwipe(box);
-}
+  if (listing) fundState = { goal: g, listings: [listing], perNode: {}, perListing: {} };
 
-function wireSwipe(box) {
-  box.addEventListener('click', async (e) => {
-    const rev = e.target.closest('[data-reveal]');
-    if (rev) { rev.closest('[data-flip]').classList.add('flipped'); return; }
-    const lock = e.target.closest('[data-glock]');
-    if (lock) {
-      const wrap = lock.closest('[data-guess]'), id = Number(wrap.dataset.guess), yr = Number(wrap.querySelector('[data-gslider]').value);
-      lock.disabled = true;
-      const { data, error } = sb ? await sb.rpc('guess', { goal: id, yr, device: deviceId() }) : { error: { message: 'offline' } };
-      if (error) { lock.disabled = false; toast('Could not save your guess. Try again.'); return; }
-      myGuess.set(id, yr);
-      deck.guesses[id] = { people: data.people, median: data.median };
-      const g = deck.cards.find((c) => c.g.id === id).g;
-      wrap.querySelector('[data-gres]').innerHTML = guessResult(g, yr, deck.guesses[id]);
-      wrap.querySelector('[data-gres]').classList.remove('hide');
-      lock.classList.add('hide');
-    }
-  });
-  box.addEventListener('input', (e) => {
-    const s = e.target.closest('[data-gslider]');
-    if (s) s.closest('[data-guess]').querySelector('[data-gyear]').textContent = s.value;
-  });
+  const media = p.media && p.media.url ? p.media : (g.media && g.media.url ? g.media : null);
+  const seed = g.slug + p.id;
+  const goalLink = `#/g/${encodeURIComponent(g.slug)}`;
+  const dot = KIND_DOT[p.kind] || '#fff';
+  const srcs = (p.sources || []).slice(0, 4);
+  const st = node ? (node.status || 'open') : null;
+  const scr = (inner, bg = '') => `<section class="sw-card">${bg || bgMedia(null, seed)}<div class="sw-shade"></div>${inner}</section>`;
+
+  const s1 = `<section class="sw-card">${bgMedia(media, seed)}<div class="sw-shade"></div>
+    <div class="sw-text"><span class="sw-chip"><i style="background:${dot}"></i>${esc(KIND_WORD[p.kind] || p.kind)} · @${esc(g.handle)}</span>
+      ${p.kind === 'promise' && p.meta?.made_year ? `<div class="sw-num mono" style="font-size:52px">${esc(p.meta.made_year)} <span style="opacity:.5">→</span> ${esc(p.meta.due_year)}</div>` : ''}
+      <h2 style="font-size:clamp(28px,7.6vw,36px)">${esc(p.headline)}</h2>
+      ${p.body ? `<p>${esc(firstSentenceOf(p.body))}</p>` : ''}
+      <div class="sw-hint">Scroll ↓</div></div>
+    ${media ? `<div class="sw-credit">${media.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(media.source_url) ? `<a href="${esc(media.source_url)}" target="_blank" rel="noopener">${esc(media.credit)}</a>` : esc(media.credit)} · ${esc(media.license)}</div>` : ''}</section>`;
+
+  const s2 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span>
+      <h2>${esc(node.title)}</h2>${node.why ? `<p class="lg">${esc(node.why)}</p>` : ''}
+      <p>One of the problems standing between us and <b>${esc(lowerFirst(g.name))}</b>.</p></div>`)
+    : scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span><h2>${esc(g.name)}</h2>${g.tagline ? `<p class="lg">${esc(g.tagline)}</p>` : ''}</div>`);
+
+  const s3 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:var(--solved)"></i>The evidence</span>
+      ${(() => { const n = p.independent_sources || srcs.length || 0; return `<div class="sw-num mono">${n}<small>${(p.independent_sources || 0) >= 2 ? 'independent sources' : n === 1 ? 'source so far' : 'sources'}</small></div>`; })()}
+      ${p.kind === 'promise' && p.meta?.quote ? `<blockquote class="sw-q">“${esc(p.meta.quote)}”<span>${esc(p.meta.paper?.title || '')}${p.meta.paper?.year ? `, ${esc(p.meta.paper.year)}` : ''}</span></blockquote>` : ''}
+      <div class="sw-src">${srcs.map((x) => { const u = safeUrl(x.url); return `<${u ? `a href="${esc(u)}" target="_blank" rel="noopener"` : 'div'} class="sw-s"><b>${esc(x.title)}</b><span>${esc([x.first_author, x.venue, x.year].filter(Boolean).join(' · '))}</span></${u ? 'a' : 'div'}>`; }).join('')}</div>
+      ${total ? `<p>${total.toLocaleString()} papers and reports on this problem in Parallax’s library.</p>` : ''}</div>`);
+
+  const s4 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:${st === 'blocked' ? 'var(--blocked)' : st === 'solved' ? 'var(--solved)' : 'var(--progress)'}"></i>Where it stands · ${esc(leafStatusLabel(st))}</span>
+      <h2>${st === 'solved' ? 'What was done' : 'What’s in the way'}</h2>${node.blocker ? `<p class="lg">${esc(node.blocker)}</p>` : ''}
+      ${node.key === g.bottleneck_key ? '<p><b>This is the biggest bottleneck for the whole goal.</b></p>' : ''}</div>`) : '';
+
+  const s5 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#fff"></i>Help make it happen</span>
+      <h2>${listing ? `${esc(listing.teams.name)} is working on this.` : `Follow @${esc(g.handle)} to see what happens next.`}</h2>
+      ${listing ? `<p>${esc(listing.plan)}</p>` : `<p>${g.horizon_low != null ? `About ${esc(g.horizon_low === g.horizon_high ? `${g.horizon_low}` : `${g.horizon_low}–${g.horizon_high}`)} years to go at today’s pace.` : ''}</p>`}
+      <div class="sw-acts">${listing ? `<button type="button" class="sw-cta" data-back="${listing.id}">Back this team</button>` : ''}
+        <button type="button" class="sw-cta${listing ? ' ghost' : ''}" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow'}</button>
+        <a class="sw-cta ghost" href="${goalLink}">Open @${esc(g.handle)}</a></div>
+      ${!listing && node ? `<a class="sw-go" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(node.key)}">Working on this? Raise money for your team →</a>` : ''}
+      ${nextPost ? `<a class="sw-next" href="#/p/${nextPost.id}"><span>Next story</span><b>${esc(nextPost.plain_headline || nextPost.headline)}</b></a>` : ''}</div>`);
+
+  const screens = [s1, s2, s3, s4, s5].filter(Boolean);
+  box.innerHTML = screens.join('');
+  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar"><button type="button" class="sw-x" data-close aria-label="Close">✕</button><a href="${goalLink}" class="sw-who">@${esc(g.handle)}</a><div class="sw-dots">${screens.map((_, i) => `<i data-d="${i}"${i ? '' : ' class="on"'}></i>`).join('')}</div></div>`);
+  const wrap = box.parentElement;
+  wrap.querySelector('[data-close]').onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
+  box.addEventListener('scroll', () => {
+    const i = Math.round(box.scrollTop / box.clientHeight);
+    wrap.querySelectorAll('.sw-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+  }, { passive: true });
+  // Follow buttons here are plain pill buttons: keep their look when followed.
+  box.addEventListener('click', (e) => { const f = e.target.closest('.sw-cta[data-follow]'); if (f) setTimeout(() => { f.className = 'sw-cta' + (listing ? ' ghost' : ''); f.textContent = follows.has(g.slug) ? 'Following' : 'Follow'; }, 0); });
 }
-document.addEventListener('click', (e) => {
-  const n = e.target.closest('[data-swn]');
-  if (!n) return;
-  const box = $('#sw');
-  if (box) box.scrollBy({ top: Number(n.dataset.swn) * box.clientHeight, behavior: REDUCED ? 'auto' : 'smooth' });
-});
 
 // ------------------------------------------------------------ motion
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2664,7 +2741,7 @@ function route() {
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
-  document.body.classList.remove('goalpage', 'noscroll', 'swipe');
+  document.body.classList.remove('goalpage', 'noscroll', 'swipe', 'goalstory');
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
@@ -2677,6 +2754,7 @@ function route() {
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
+  if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { tree: 'map', map: 'map', posts: 'posts', promises: 'promises' }[parts[2]] || 'story', parts[2] === 'tree' ? parts[3] : undefined);
