@@ -183,7 +183,8 @@ Return a change only when a record really moves a leaf: a demonstrated result ("
 or new obstacle ("setback"), a leaf now done ("solved"), or an older idea resurfacing that looks
 overlooked ("forgotten"). Ignore reviews that only restate known work, and off-topic records.
 For each change: node_key, kind, new_status for the leaf ("unchanged" if its status stays),
-a headline of at most 14 words that states the fact, a body of 2 to 4 short sentences ending with
+a headline of at most 12 words that states the fact in a way that makes someone stop scrolling (never
+clickbait or exaggeration), a body of at most 2 short sentences (under 45 words), the second saying
 why it matters for the goal, and source_ids from the records listed under that leaf.
 Write about the research and the world, never about "records" or this search.
 "solved" needs at least two records from different research groups. At most 3 changes.`,

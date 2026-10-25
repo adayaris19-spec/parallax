@@ -275,9 +275,9 @@ Judge whether the promise was kept by its deadline:
 - "partly": real progress, but less than promised or clearly later.
 - "broken": it has not happened.
 - "unclear": the evidence here is not enough to say.
-verdict: 2 or 3 plain sentences on what actually happened, fair to the original authors. Write about
+verdict: at most 2 short plain sentences (under 45 words) on what actually happened, fair to the original authors. Write about
 the world only: never mention "the papers above", "the list", "these sources" or Parallax's map.
-headline: at most 16 words, in the form "In ${p.made_year}, researchers expected ... by ${p.due_year}. ..." ending
+headline: at most 14 words, in the form "In ${p.made_year}, researchers expected ... by ${p.due_year}. ..." ending
 with what happened, e.g. "It hasn't happened yet." No clickbait.
 source_ids: the ids of the papers above your verdict rests on.`,
         "medium",
