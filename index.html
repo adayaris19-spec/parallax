@@ -696,6 +696,73 @@ body.goalpage main{max-width:1120px}
 .take-row:hover b{text-decoration:underline}
 @media (max-width:760px){.rn-cost{grid-template-columns:1fr}.rn-cost .mono{margin-top:4px}}
 
+/* ideas lab */
+body.labpage main{max-width:900px}
+.idea{min-width:0;overflow-wrap:anywhere}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.lab-h{padding:40px 0 8px}
+.lab-h h1{font-size:clamp(30px,4.6vw,46px);line-height:1.08;letter-spacing:-.04em;margin:0 0 12px;max-width:22ch}
+.lab-h p{margin:0;color:var(--ink2);font-size:16.5px;line-height:1.55;max-width:62ch}
+.lab-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:22px 0 4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip3{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;text-decoration:none;color:var(--ink2);background:var(--card)}
+.chip3.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg a{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;font:500 13.5px var(--f);color:var(--muted);text-decoration:none}
+.seg a.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.ideas{display:grid;gap:14px;margin-top:16px}
+.ideas.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ideas.one{max-width:760px}
+.idea{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 24px;box-shadow:var(--shadow)}
+.idea-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.idea-prob{font-size:13px;color:var(--muted);text-decoration:none;font-weight:500}
+.idea-prob:hover{color:var(--ink)}
+.nov{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:var(--sunk);color:var(--ink2)}
+.nov.new{background:color-mix(in srgb,var(--solved) 14%,transparent);color:var(--solved)}
+.nov.tried{background:color-mix(in srgb,var(--blocked) 12%,transparent);color:var(--blocked)}
+.idea h3{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:12px 0 8px}
+.idea h3 a{color:inherit;text-decoration:none}
+.idea h3 a:hover{text-decoration:underline}
+.idea-pitch{margin:0;color:var(--ink2);font-size:15.5px;line-height:1.55}
+.idea-dl{margin:16px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px}
+.idea-dl div{min-width:0}
+.idea-dl dt{font-size:12.5px;color:var(--muted);margin-bottom:3px}
+.idea-dl dt .mono{color:var(--ink);font-weight:500}
+.idea-dl dd{margin:0;font-size:14.5px;line-height:1.5}
+.idea-src{margin-top:14px;font-size:14px}
+.idea-src summary{cursor:pointer;color:var(--muted)}
+.idea-src .kick{margin:12px 0 4px}
+.idea-src p{margin:4px 0 0;line-height:1.5;color:var(--ink2)}
+.idea-test{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.idea-test .mono{color:var(--ink)}
+.react{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.rx{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;font:500 13.5px var(--f);color:var(--ink2);cursor:pointer}
+.rx b{font-family:var(--m);font-weight:500;font-size:12.5px;color:var(--muted)}
+.rx:hover{border-color:var(--ink2)}
+.rx.on{color:#fff;border-color:transparent}
+.rx.on b{color:rgba(255,255,255,.8)}
+.rx.promising.on{background:var(--solved)} .rx.flawed.on{background:var(--progress)} .rx.tried.on{background:var(--blocked)} .rx.test.on{background:var(--accent)}
+.rx-note{display:flex;gap:8px;align-items:flex-end;margin-top:12px}
+.rx-note label{flex:1}
+.rx-note textarea{width:100%;box-sizing:border-box;border:1px solid var(--line2);border-radius:14px;padding:10px 12px;font:14.5px/1.45 var(--f);background:var(--bg);color:var(--ink);resize:vertical}
+.notes{margin-top:14px;display:grid;gap:10px}
+.nt{padding:12px 14px;border-radius:14px;background:var(--sunk)}
+.nt-k{font-size:12px;font-weight:600}
+.nt-k.promising{color:var(--solved)} .nt-k.flawed{color:var(--progress)} .nt-k.tried{color:var(--blocked)} .nt-k.test{color:var(--accent)}
+.nt p{margin:4px 0;font-size:14.5px;line-height:1.5}
+.nt-who{font-size:12.5px;color:var(--muted)}
+.nt-who a{color:inherit}
+.idea.compact .react{margin-top:14px;padding-top:12px}
+.sh-ideas{margin-top:18px}
+.sh-ideas a{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14.5px}
+.sh-ideas a .mono{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sh-ideas a:hover b{text-decoration:underline}
+@media (max-width:760px){
+  .ideas.two{grid-template-columns:1fr}
+  .idea{padding:18px;border-radius:18px}
+  .idea-dl{grid-template-columns:1fr}
+  .rx{height:34px;padding:0 11px;font-size:13px}
+}
+
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
 .ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
@@ -1093,6 +1160,7 @@ body{background:var(--bg)}
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
     <a class="navlink x" href="#/watch">Watch</a>
+    <a class="navlink x" href="#/lab">Ideas</a>
     <a class="navlink x" href="#/explore">Explore</a>
     <a class="navlink x" href="#/terminal">Terminal</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
@@ -1607,7 +1675,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {};
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [];
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1619,12 +1687,16 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`node_links?goal_id=eq.${g.id}&select=a,b,n`).catch(() => []),
       rest(`reels?goal_id=eq.${g.id}&select=kind,scenes&order=score.desc&limit=6`).catch(() => []),
       rest(`node_costs?goal_id=eq.${g.id}&select=node_key,next_step,next_low,next_high,next_time,solve_low,solve_high,funders,basis,confidence,sources`).catch(() => []),
-    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); return r; });
+      rest(`ideas?goal_id=eq.${g.id}&status=eq.open&select=${IDEA_COLS}&order=created_at.desc`).catch(() => []),
+    ]).then((r) => { nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+    labState.ideas = goalIdeas;
+    await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab, costs };
+  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas };
+  for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
   const lower = (t) => t ? t.charAt(0).toLowerCase() + t.slice(1).replace(/\.$/, '') : '';
@@ -1709,6 +1781,14 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       <div class="take">${cheap.map((l) => { const c = costs[l.key]; return `<button type="button" class="take-row" data-pick="${esc(l.key)}"><span class="take-t"><b>${esc(c.next_step)}</b><small>${esc(l.title)}</small></span><span class="take-n mono">${esc(usdRange(c.next_low, c.next_high))}</span></button>`; }).join('')}</div>
     </section>` : '';
 
+  // Ideas lab: the ideas people rate highest (or newest), with a way in.
+  const topIdeas = [...goalIdeas].sort((a, b) => ideaRank(b) - ideaRank(a) || b.id - a.id).slice(0, 2);
+  const lab = goalIdeas.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Ideas lab</div>
+      <h2 class="big">${goalIdeas.length} idea${goalIdeas.length === 1 ? '' : 's'} to try. Which are worth testing?</h2>
+      <p class="cap">Proposed by Parallax’s AI from the research, each checked for prior art. Judge them.</p></div></div>
+      <div class="ideas two">${topIdeas.map((i) => ideaCard(i, g, { full: false }).replace('class="idea"', 'class="idea compact"')).join('')}</div>
+      <a class="more" href="#/lab/${encodeURIComponent(g.slug)}">All ${goalIdeas.length} ideas, with the evidence →</a></section>` : '';
+
   // 3. Where the research is moving.
   const momRow = (l) => { const m = momOf(l.key); return `<button type="button" class="mom" data-pick="${esc(l.key)}"><span>${esc(l.title)}</span><b class="mono">×${m.toFixed(1)}</b></button>`; };
   const moving = hot.length || cold.length ? `<section class="gs"><div class="kick">Where the research is moving</div>
@@ -1755,7 +1835,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = now + field + take + moving + news + prom;
+    body = now + field + take + lab + moving + news + prom;
   }
 
   document.body.classList.add('goalpage');
@@ -1894,6 +1974,7 @@ function openLeaf(key, push = true) {
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
     <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
     ${costBlock(goalCtx.costs?.[l.key], l)}
+    ${(() => { const li = (goalCtx.ideas || []).filter((i) => i.node_key === l.key); return li.length ? `<div class="sh-ideas"><div class="kick">Ideas to try · ${li.length}</div>${li.map((i) => `<a href="#/idea/${i.id}"><b>${esc(i.title)}</b>${i.test_high ? `<span class="mono">test ${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</a>`).join('')}</div>` : ''; })()}
     ${fundBlock(g, l)}
   </aside>`;
   document.body.appendChild(back);
@@ -2669,6 +2750,142 @@ function raisedNote(key) {
   return f ? ` · ${money(f.raised_cents)} raised` : '';
 }
 
+// ------------------------------------------------------------ ideas lab
+// Parallax proposes ideas for each problem (grounded in its library, checked for prior art); people
+// judge them: promising, has a flaw, already tried, or "I could test this", each with an optional note.
+const IDEA_COLS = 'id,goal_id,node_key,title,pitch,mechanism,first_test,test_low,test_high,borrowed_from,builds_on,prior_art,novelty,novelty_note,risk,created_at';
+const REACT = [['promising', 'Promising'], ['flawed', 'Has a flaw'], ['tried', 'Already tried'], ['test', 'I could test this']];
+const NOVELTY = { new: ['New', 'No one seems to have tried this'], partly: ['Partly explored', 'Related work exists, but not this'], tried: ['Tried before', 'Something like this has been done'] };
+const labState = { ideas: [], scores: {}, notes: {}, mine: {}, nodes: {} };
+
+async function loadIdeaExtras(ids) {
+  if (!ids.length) return;
+  const list = ids.join(',');
+  const [scores, notes] = await Promise.all([
+    rest(`idea_scores?idea_id=in.(${list})&select=idea_id,promising,flawed,tried,test`).catch(() => []),
+    rest(`idea_notes?idea_id=in.(${list})&select=idea_id,kind,note,created_at,handle,display_name&order=created_at.desc`).catch(() => []),
+  ]);
+  for (const s of scores) labState.scores[s.idea_id] = s;
+  for (const id of ids) labState.notes[id] = notes.filter((n) => n.idea_id === id);
+  if (me) {
+    try {
+      const { data } = await sb.from('idea_reactions').select('idea_id,kind,note').eq('user_id', me.id).in('idea_id', ids);
+      for (const r of data || []) labState.mine[r.idea_id] = r;
+    } catch { /* counts still show */ }
+  }
+}
+
+function ideaCard(i, g, { full = true, problem = true } = {}) {
+  const s = labState.scores[i.id] || {}, mine = labState.mine[i.id], nv = NOVELTY[i.novelty];
+  const node = labState.nodes[`${i.goal_id}:${i.node_key}`];
+  const link = (x) => { const u = safeUrl(x.url); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title || u)}</a>` : esc(x.title || ''); };
+  const notes = labState.notes[i.id] || [];
+  return `<article class="idea" id="idea-${i.id}" data-idea="${i.id}">
+    <div class="idea-top">${problem && g ? `<a class="idea-prob" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">@${esc(g.handle)}${node ? ` · ${esc(node)}` : ''}</a>` : ''}
+      ${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}</div>
+    <h3><a href="#/idea/${i.id}">${esc(i.title)}</a></h3>
+    <p class="idea-pitch">${esc(i.pitch)}</p>
+    ${full ? `<dl class="idea-dl">
+      ${i.mechanism ? `<div><dt>Why it might work</dt><dd>${esc(i.mechanism)}</dd></div>` : ''}
+      ${i.first_test ? `<div><dt>Cheapest first test${i.test_high ? ` · <span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</dt><dd>${esc(i.first_test)}</dd></div>` : ''}
+      ${i.borrowed_from ? `<div><dt>Borrowed from</dt><dd>${esc(i.borrowed_from)}</dd></div>` : ''}
+      ${i.risk ? `<div><dt>Main risk</dt><dd>${esc(i.risk)}</dd></div>` : ''}
+    </dl>
+    <details class="idea-src"><summary>Builds on ${(i.builds_on || []).length} paper${(i.builds_on || []).length === 1 ? '' : 's'} · prior-art check</summary>
+      ${(i.builds_on || []).length ? `<div class="kick">Builds on</div><ul class="srcs">${i.builds_on.map((p) => `<li>${link(p)}${p.year ? ` <span>(${esc(p.year)})</span>` : ''}</li>`).join('')}</ul>` : ''}
+      <div class="kick">Has it been tried?</div>${i.novelty_note ? `<p>${esc(i.novelty_note)}</p>` : ''}
+      ${(i.prior_art || []).length ? `<ul class="srcs">${i.prior_art.map((p) => `<li>${link(p)}</li>`).join('')}</ul>` : ''}
+      <p class="wt-note">Proposed by Parallax’s AI from the research library, then checked with a web search. It is a starting point for experts, not a finding.</p></details>`
+    : i.first_test && i.test_high ? `<p class="idea-test">First test: <span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span></p>` : ''}
+    <div class="react" role="group" aria-label="Your verdict">${REACT.map(([k, label]) => `<button type="button" class="rx ${k}${mine?.kind === k ? ' on' : ''}" data-react="${k}" aria-pressed="${mine?.kind === k}">${label}<b>${s[k] || 0}</b></button>`).join('')}</div>
+    ${full ? `<div class="rx-note${mine ? '' : ' hide'}"><label><span class="sr">Add a note</span><textarea maxlength="600" rows="2" placeholder="${mine?.kind === 'flawed' ? 'What is the flaw?' : mine?.kind === 'tried' ? 'Where was it tried? A link helps.' : mine?.kind === 'test' ? 'What could you test, and how?' : 'Why? (optional)'}">${esc(mine?.note || '')}</textarea></label><button type="button" class="btn sm" data-note>Save note</button></div>
+    ${notes.length ? `<div class="notes">${notes.slice(0, 6).map((n) => `<div class="nt"><span class="nt-k ${esc(n.kind)}">${esc((REACT.find((r) => r[0] === n.kind) || [, ''])[1])}</span><p>${esc(n.note)}</p><span class="nt-who"><a href="#/u/${esc(n.handle)}">@${esc(n.handle)}</a> · ${esc(whenAgo(n.created_at))}</span></div>`).join('')}</div>` : ''}` : ''}
+  </article>`;
+}
+
+async function react(card, kind) {
+  if (!me) return openSignIn('Sign in to judge ideas.');
+  const id = Number(card.dataset.idea), mine = labState.mine[id], s = (labState.scores[id] ||= { promising: 0, flawed: 0, tried: 0, test: 0 });
+  try {
+    if (mine?.kind === kind) {
+      const { error } = await sb.from('idea_reactions').delete().eq('idea_id', id).eq('user_id', me.id); if (error) throw error;
+      s[kind] = Math.max(0, (s[kind] || 0) - 1); delete labState.mine[id];
+    } else {
+      const { error } = await sb.from('idea_reactions').upsert({ idea_id: id, user_id: me.id, kind, note: mine?.note || '' }, { onConflict: 'idea_id,user_id' }); if (error) throw error;
+      if (mine) s[mine.kind] = Math.max(0, (s[mine.kind] || 0) - 1);
+      s[kind] = (s[kind] || 0) + 1; labState.mine[id] = { idea_id: id, kind, note: mine?.note || '' };
+    }
+  } catch { return toast('Could not save that. Try again.'); }
+  const i = labState.ideas.find((x) => x.id === id), g = (await goals()).find((x) => x.id === i?.goal_id);
+  if (i) { const full = !card.classList.contains('compact'); const html = ideaCard(i, g, { full, problem: !card.closest('[data-noprob]') }); card.outerHTML = full ? html : html.replace('class="idea"', 'class="idea compact"'); }
+  if (labState.mine[id]) document.querySelector(`#idea-${id} textarea`)?.focus();
+}
+
+async function saveNote(card) {
+  const id = Number(card.dataset.idea), mine = labState.mine[id];
+  if (!me || !mine) return;
+  const note = card.querySelector('textarea').value.trim().slice(0, 600);
+  const { error } = await sb.from('idea_reactions').update({ note }).eq('idea_id', id).eq('user_id', me.id);
+  if (error) return toast('Could not save the note.');
+  mine.note = note;
+  const others = (labState.notes[id] || []).filter((n) => n.handle !== me.profile?.handle);
+  labState.notes[id] = note ? [{ idea_id: id, kind: mine.kind, note, created_at: new Date().toISOString(), handle: me.profile?.handle || 'you' }, ...others] : others;
+  const i = labState.ideas.find((x) => x.id === id), g = (await goals()).find((x) => x.id === i?.goal_id);
+  card.outerHTML = ideaCard(i, g, { problem: !card.closest('[data-noprob]') });
+  toast('Note saved.');
+}
+
+document.addEventListener('click', (e) => {
+  const r = e.target.closest('[data-react]');
+  if (r) { const card = r.closest('[data-idea]'); if (card) react(card, r.dataset.react); return; }
+  const n = e.target.closest('[data-note]');
+  if (n) { const card = n.closest('[data-idea]'); if (card) saveNote(card); }
+});
+
+const ideaRank = (i) => { const s = labState.scores[i.id] || {}; return (s.promising || 0) * 2 + (s.test || 0) * 3 - (s.flawed || 0) - (s.tried || 0) * 2; };
+
+// #/lab, #/lab/<goal>: every idea, filter by goal, sort by verdicts or newest.
+async function labView(slug, sort = 'top') {
+  view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
+  let list, ideas, nodes;
+  try {
+    list = await goals();
+    const g = slug && list.find((x) => x.slug === slug);
+    [ideas, nodes] = await Promise.all([
+      rest(`ideas?status=eq.open${g ? `&goal_id=eq.${g.id}` : ''}&select=${IDEA_COLS}&order=created_at.desc&limit=200`),
+      rest(`nodes?parent_key=not.is.null${g ? `&goal_id=eq.${g.id}` : ''}&select=goal_id,key,title,plain_title`),
+    ]);
+  } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
+  for (const n of nodes) labState.nodes[`${n.goal_id}:${n.key}`] = n.title;
+  labState.ideas = ideas;
+  await loadIdeaExtras(ideas.map((i) => i.id));
+  const shown = sort === 'new' ? ideas : [...ideas].sort((a, b) => ideaRank(b) - ideaRank(a) || b.id - a.id);
+  const withIdeas = list.filter((g) => ideas.some((i) => i.goal_id === g.id) || g.slug === slug);
+  const voters = Object.values(labState.scores).reduce((a, s) => a + s.promising + s.flawed + s.tried + s.test, 0);
+  const base = slug ? `#/lab/${encodeURIComponent(slug)}` : '#/lab';
+  document.body.classList.add('labpage');
+  view.innerHTML = `<section class="lab-h"><div class="kick">Ideas lab</div>
+      <h1>${ideas.length} idea${ideas.length === 1 ? '' : 's'} to try${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
+      <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
+    <div class="lab-bar"><div class="chips">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
+      <div class="seg"><a class="${sort === 'top' ? 'on' : ''}" href="${base}">Most promising</a><a class="${sort === 'new' ? 'on' : ''}" href="${base}?new">Newest</a></div></div>
+    <div class="ideas">${shown.map((i) => ideaCard(i, list.find((g) => g.id === i.goal_id))).join('') || note('No ideas yet', 'Parallax adds new ideas every hour, starting with each goal’s hardest problems.')}</div>`;
+}
+
+async function ideaView(id) {
+  view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
+  let list, i;
+  try { [list, [i]] = await Promise.all([goals(), rest(`ideas?id=eq.${Number(id)}&select=${IDEA_COLS}`)]); } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
+  if (!i) { view.innerHTML = note('Idea not found', 'It may have been archived.'); return; }
+  const n = (await rest(`nodes?goal_id=eq.${i.goal_id}&key=eq.${encodeURIComponent(i.node_key)}&select=title,plain_title`).catch(() => []))[0];
+  if (n) labState.nodes[`${i.goal_id}:${i.node_key}`] = n.title;
+  labState.ideas = [i];
+  await loadIdeaExtras([i.id]);
+  const g = list.find((x) => x.id === i.goal_id);
+  document.body.classList.add('labpage');
+  view.innerHTML = `<a class="more" href="#/lab${g ? `/${encodeURIComponent(g.slug)}` : ''}" style="display:inline-block;margin:18px 0 0">← Ideas lab</a><div class="ideas one">${ideaCard(i, g)}</div>`;
+}
+
 // ------------------------------------------------------------ what it would take
 // Cost estimates per problem (Parallax's research with public figures). Always shown as ranges.
 const usdShort = (n) => n == null ? '?' : n >= 1e9 ? `$${+(n / 1e9).toFixed(n >= 1e10 ? 0 : 1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
@@ -3213,9 +3430,10 @@ function route() {
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
-  document.body.classList.remove('goalpage', 'noscroll', 'swipe');
+  document.body.classList.remove('goalpage', 'labpage', 'noscroll', 'swipe');
   toggleMenu(false);
-  const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  const query = location.hash.includes('?') ? location.hash.split('?')[1] : '';
+  const parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').map(decodeURIComponent);
   setNav(parts);
   document.body.classList.toggle('wide', parts[0] === 'terminal');
   window.scrollTo(0, 0);
@@ -3227,6 +3445,8 @@ function route() {
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'watch') return watchView(parts[1]);
+  if (parts[0] === 'lab') return labView(parts[1], query === 'new' ? 'new' : 'top');
+  if (parts[0] === 'idea' && parts[1]) return ideaView(parts[1]);
   if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
