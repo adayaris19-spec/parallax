@@ -265,7 +265,22 @@ wrote, with visuals from the shared photo library or the goal's own approved sho
 problem solved or a new bottleneck gets a full video from the videos job within the hour, and that
 video plays as the story. Watched stories are remembered in the browser.
 
-## 20. Keeping AI costs down
+## 20. Support a goal (donations through Every.org)
+
+Run `schema-giving.sql`, deploy `orgs` (Verify JWT on) and `every-webhook` (Verify JWT **off**).
+- `orgs` (hourly, watched goals, refreshed every 90 days): Claude proposes US nonprofits working on the
+  goal; each must be a registered 501(c)(3) in IRS data (ProPublica Nonprofit Explorer) and have
+  donations enabled on Every.org (its public nonprofit API). Up to 6 are kept, mission-focused first;
+  universities are marked, because a gift goes to the whole university.
+- The goal page shows a "Support this goal" box: the live total toward a community goal that grows
+  in steps ($10K, $25K, $50K, ...), recent gifts, and the organisations with Donate buttons. Donate
+  opens Every.org, which takes the gift, pays the nonprofit and sends the receipt. Parallax never
+  holds money and takes no cut.
+- Live totals: ask Every.org (partners@every.org) for a partner webhook pointing at
+  `https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/every-webhook?key=<app_config.every_webhook_key>`.
+  Put the token they issue in `site_config` (`every_webhook_token`); it is added to donate links.
+
+## 21. Keeping AI costs down
 
 - Every AI call is logged in `ai_usage` (tokens, web searches, estimated price; `schema-usage.sql`).
   Spend by job and day: `select * from ai_spend;` in the SQL editor.
