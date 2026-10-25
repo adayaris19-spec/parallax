@@ -223,6 +223,12 @@ breakthroughs, setbacks, promise checks or teams. Each reel is 4-6 scenes (a cap
 from the data, and NASA footage or an openly licensed photo checked by Claude). The site plays them at
 `#/watch` with captions and music generated in the browser (no licences needed). No voice.
 
+Each reel has a mood (epic, uplifting, tense, bittersweet, mysterious, calm) that picks its music, and
+each scene a layout (bottom, center, top, big number, quote). For real footage, add a free Pexels key
+as the Edge Function secret `PEXELS_API_KEY` (pexels.com/api). Without it, only NASA and Wikimedia
+Commons are searched. A photo editor prompt scores every candidate and keeps only 8/10 or better.
+To redo a goal's reels: `POST /functions/v1/reels` with `{"slug":"<slug>","fresh":true}` and the admin header.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
