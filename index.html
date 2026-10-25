@@ -851,6 +851,35 @@ body.labpage main{max-width:1080px}
 .fp-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .btn.ghost{background:transparent}
 
+/* support this goal */
+.gv{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
+.gv-top{padding:24px 26px;background:color-mix(in srgb,var(--solved) 7%,var(--card));border-right:1px solid var(--line)}
+.gv-list{padding:22px 24px}
+.gv-k{font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.gv-num b{display:block;font-size:42px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.gv-num span{display:block;font-size:14.5px;color:var(--ink2);margin-top:6px}
+.gv-num span b{display:inline;font-size:inherit;letter-spacing:0;font-weight:500}
+.gv-bar{height:10px;border-radius:5px;background:var(--line);margin-top:16px;overflow:hidden}
+.gv-bar i{display:block;height:100%;background:var(--solved);border-radius:5px}
+.gv-meta{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
+.gv-recent{list-style:none;margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line);display:grid;gap:8px;font-size:13.5px;color:var(--ink2)}
+.gv-recent time{color:var(--faint);font-size:12px;margin-left:4px}
+.gv-how{margin:18px 0 0;padding:14px 0 0 18px;border-top:1px solid var(--line);display:grid;gap:8px;font-size:13.5px;line-height:1.45;color:var(--ink2)}
+.gv-how b{color:var(--ink);font-weight:600}
+.gv-org{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.gv-org:first-of-type{border-top:0;padding-top:0}
+.gv-logo{position:relative;width:40px;height:40px;border-radius:10px;background:var(--sunk);overflow:hidden}
+.gv-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#fff}
+.gv-ini{display:grid;place-items:center;font-weight:600;color:var(--ink2)}
+.gv-main b{display:block;font-size:15px}
+.gv-main span{display:block;font-size:13.5px;line-height:1.45;color:var(--ink2);margin-top:2px}
+.gv-main small{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.gv-more{margin-top:10px;font-size:13.5px}
+.gv-fine{grid-column:1/-1;margin:0;padding:14px 26px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.5;color:var(--muted);background:var(--bg)}
+.gv-fine a{color:inherit}
+@media (max-width:860px){.gv{grid-template-columns:1fr}.gv-top{border-right:0;border-bottom:1px solid var(--line)}}
+@media (max-width:640px){.gv-top,.gv-list{padding:18px}.gv-fine{padding:12px 18px}.gv-num b{font-size:34px}}
+
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
 .ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
@@ -1755,7 +1784,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [];
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1769,14 +1798,18 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`node_costs?goal_id=eq.${g.id}&select=node_key,next_step,next_low,next_high,next_time,solve_low,solve_high,funders,basis,confidence,sources`).catch(() => []),
       rest(`ideas?goal_id=eq.${g.id}&status=eq.open&select=${IDEA_COLS}&order=created_at.desc`).catch(() => []),
       rest(`idea_requests?goal_id=eq.${g.id}&select=node_key`).catch(() => []),
-    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+      rest(`goal_orgs?goal_id=eq.${g.id}&select=ein,name,city,state,website,why,focused,claimed,logo_url,donate_url&order=position.asc`).catch(() => []),
+      rest(`goal_giving?goal_id=eq.${g.id}&select=raised_cents,gifts,last_at`).catch(() => []),
+      rest(`recent_gifts?goal_id=eq.${g.id}&select=org_name,amount_cents,who,created_at&limit=5`).catch(() => []),
+      siteConfig(),
+    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); giving = { orgs: r[11], total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas };
+  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas, giving };
   // Count one visit per goal per browser session; AI spend follows what people look at.
   try { const k = `px.v.${g.id}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
@@ -1851,6 +1884,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     }).join('')}</div>
     <div class="fx-legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span><span><i class="ring-l"></i>Biggest bottleneck</span></div></section>`;
 
+  const give = giveBox(g, giving);
+
   // What it would take: the price of the next step on every problem, and where a little goes far.
   const priced = leaves.filter((l) => costs[l.key] && l.status !== 'solved' && costs[l.key].next_high);
   const sumOf = (f) => priced.reduce((a, l) => a + (costs[l.key][f] || 0), 0);
@@ -1916,7 +1951,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = now + field + take + lab + moving + news + prom;
+    body = now + give + field + take + lab + moving + news + prom;
   }
 
   document.body.classList.add('goalpage');
@@ -3037,6 +3072,50 @@ function costBlock(c, l) {
       <p class="wt-note">Parallax estimate from public budgets and contracts, updated monthly. Treat it as a rough range, not a quote.</p></details></div>`;
 }
 
+// ------------------------------------------------------------ giving
+// Support a goal by donating to registered US nonprofits working on it, through Every.org (it takes the
+// gift, pays the nonprofit and sends the receipt; Parallax never holds money and takes no cut).
+// The community goal grows in steps, so the bar always shows real progress.
+let siteCfg = null;
+async function siteConfig() {
+  if (siteCfg) return siteCfg;
+  const rows = await rest('site_config?select=key,value').catch(() => []);
+  return (siteCfg = Object.fromEntries(rows.map((r) => [r.key, r.value])));
+}
+const STEPS = [1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9]; // cents: $10K … $10M
+const stepGoal = (raised) => STEPS.find((x) => x > raised) || raised * 2;
+function donateUrl(o, g, token) {
+  const meta = btoa(JSON.stringify({ goal: g.slug }));
+  const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+  const back = `${location.origin}${location.pathname}#/g/${encodeURIComponent(g.slug)}`;
+  return `${o.donate_url}#/donate?partner_donation_id=${id}&partner_metadata=${encodeURIComponent(meta)}${token ? `&webhook_token=${encodeURIComponent(token)}` : ''}&success_url=${encodeURIComponent(back)}`;
+}
+function giveBox(g, gv) {
+  if (!gv.orgs.length) return '';
+  const raised = gv.total.raised_cents || 0, target = stepGoal(raised), pctDone = Math.min(100, raised / target * 100);
+  const orgRow = (o, hidden) => `<div class="gv-org${hidden ? ' hide' : ''}">
+      <span class="gv-logo gv-ini" aria-hidden="true">${esc(o.name.replace(/^the\s+/i, '').slice(0, 1))}${o.logo_url ? `<img src="${esc(o.logo_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>
+      <div class="gv-main"><b>${esc(o.name)}</b><span>${esc(o.why)}</span>
+        <small>${[o.city && o.state ? `${o.city}, ${o.state}` : '', o.focused ? 'Works on this full-time' : 'A university or broad charity: gifts support the whole organisation'].filter(Boolean).map(esc).join(' · ')}</small></div>
+      <a class="btn sm" href="${esc(donateUrl(o, g, gv.token))}" target="_blank" rel="noopener">Donate</a></div>`;
+  return `<section class="gv" id="give">
+    <div class="gv-top">
+      <div class="gv-k">Support this goal</div>
+      <div class="gv-num"><b class="mono">${money(raised)}</b><span>raised of a <b class="mono">${money(target)}</b> community goal</span></div>
+      <div class="gv-bar"><i style="width:${Math.max(pctDone, raised ? 1.5 : 0).toFixed(1)}%"></i></div>
+      <div class="gv-meta">${gv.total.gifts ? `${gv.total.gifts} donation${gv.total.gifts === 1 ? '' : 's'} · last ${esc(whenAgo(gv.total.last_at))}` : 'No donations yet. Yours can be the first.'}${raised ? ` · when it’s reached, the next goal is ${money(stepGoal(target))}` : ''}</div>
+      ${gv.recent.length ? `<ul class="gv-recent">${gv.recent.slice(0, 3).map((x) => `<li><b>${esc(x.who)}</b> gave <span class="mono">${money(x.amount_cents)}</span> to ${esc(x.org_name || 'an organisation')} <time>${esc(whenAgo(x.created_at))}</time></li>`).join('')}</ul>`
+        : `<ol class="gv-how"><li><b>Pick an organisation</b> working on this goal.</li><li><b>Give through Every.org</b>, any amount, once or monthly.</li><li><b>It reaches them</b> with your tax receipt, and counts toward this goal’s total here.</li></ol>`}
+    </div>
+    <div class="gv-list"><div class="gv-k">Give to an organisation working on it</div>
+      ${gv.orgs.map((o, i) => orgRow(o, i >= 3)).join('')}
+      ${gv.orgs.length > 3 ? `<button type="button" class="linkish gv-more" data-gvmore>Show all ${gv.orgs.length} organisations</button>` : ''}
+    </div>
+    <p class="gv-fine">Donations go through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit donation platform: it takes your gift, pays the organisation and emails your tax receipt. Parallax never holds your money and takes no cut. Every organisation listed is a registered US charity, checked against IRS records.</p>
+  </section>`;
+}
+document.addEventListener('click', (e) => { const t = e.target.closest('[data-togive]'); if (t) { e.preventDefault(); document.querySelector('.sheet-back')?.remove(); document.body.classList.remove('noscroll'); document.getElementById('give')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; } const b = e.target.closest('[data-gvmore]'); if (b) { b.closest('.gv-list').querySelectorAll('.gv-org.hide').forEach((x) => x.classList.remove('hide')); b.remove(); } });
+
 // ------------------------------------------------------------ funding
 // One clear block wherever money comes up: who gets it, what it is for, how much and how far along,
 // and where it goes. When nobody is raising yet, say so plainly and show what the work would cost.
@@ -3063,7 +3142,8 @@ function fundingPanel(g, l, { compact = false } = {}) {
   return `<div class="fp none${compact ? ' compact' : ''}">${head}
     <div class="fp-none">
       ${c?.next_high ? `<div class="fp-num"><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b><span>${c.next_time ? `${esc(c.next_time)} · ` : ''}what the next step would cost</span></div>${c.next_step ? `<p class="fp-step">Next step: ${esc(c.next_step.replace(/\.$/, ''))}.${c.funders && !compact ? ` <span>Paid for today by ${esc(lowerFirst(c.funders))}.</span>` : ''}</p>` : ''}` : ''}
-      <p><b>No team is raising money for this yet.</b> ${compact ? '' : 'When a lab, nonprofit or researcher working on it posts a plan and a target here, you can back them directly.'}</p>
+      <p><b>No team is raising money for this problem yet.</b> ${compact ? '' : 'When a lab, nonprofit or researcher working on it posts a plan and a target here, you can back them directly.'}</p>
+      ${goalCtx?.giving?.orgs?.length ? `<p class="fp-step"><a href="#give" data-togive>You can already support organisations working on this goal ↓</a></p>` : ''}
     </div>
     ${compact ? '' : `<p class="fp-fee">${FEE_NOTE}</p>`}
     <div class="fp-act"><button class="btn sm${follows.has(g.slug) ? ' following' : ''}" type="button" data-follow="${esc(g.slug)}" data-off="Tell me when a team raises" data-on="Following: we’ll tell you">${follows.has(g.slug) ? 'Following: we’ll tell you' : 'Tell me when a team raises'}</button><a class="btn sm ghost" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(l.key)}">Working on this? Raise money</a></div>
