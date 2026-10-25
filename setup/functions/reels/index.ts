@@ -14,6 +14,7 @@
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
 import { z } from "npm:zod@4.6.7";
+import { decode, Image } from "npm:imagescript@1.3.0";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -121,13 +122,24 @@ async function commons(q: string): Promise<Cand[]> {
   }).filter(Boolean).slice(0, 3) as Cand[];
 }
 
-// Pictures go to Claude as data (some sites do not let others fetch them).
+// Pictures go to Claude as data (some sites do not let others fetch them), shrunk to 320 px wide:
+// enough to judge beauty and fit, at a fraction of the tokens of a full-size image.
+async function shrink(buf: Uint8Array): Promise<Uint8Array | null> {
+  try {
+    const img = await decode(buf);
+    if (!(img instanceof Image)) return null;
+    if (img.width > 320) img.resize(320, Image.RESIZE_AUTO);
+    return await img.encodeJPEG(75);
+  } catch { return null; }
+}
 async function asBlock(u: string) {
   try {
     const r = await fetch(u, { headers: { "User-Agent": `Parallax/1.0 (${MAIL})` }, signal: AbortSignal.timeout(12000) });
-    const type = (r.headers.get("content-type") ?? "").split(";")[0];
+    let type = (r.headers.get("content-type") ?? "").split(";")[0];
     if (!r.ok || !/^image\/(jpeg|png|gif|webp)$/.test(type)) return null;
-    const buf = new Uint8Array(await r.arrayBuffer());
+    let buf: Uint8Array = new Uint8Array(await r.arrayBuffer());
+    const small = type === "image/gif" ? null : await shrink(buf);
+    if (small) { buf = small; type = "image/jpeg"; }
     if (buf.length > 1_500_000) return null; // keep each picture small
     let bin = "";
     for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
@@ -209,6 +221,13 @@ const Plan = z.object({
 });
 const Verdict = z.object({ items: z.array(z.object({ id: z.string(), pick: z.number(), score: z.number() })) });
 
+// Attention: followers and recent visits (goal_attention). Goals nobody follows or visited in the
+// last 30 days get no expensive extras until someone does; the most-watched go first.
+async function attention(): Promise<Map<number, number>> {
+  const rows = await db(`goal_attention?select=goal_id,score`).catch(() => []);
+  return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
+}
+
 async function run(slug?: string, fresh = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
   // Remake a goal's videos only when there is something new (at most weekly), or monthly otherwise.
@@ -219,7 +238,8 @@ async function run(slug?: string, fresh = false) {
     const age = Date.now() - new Date(x.reels_at).getTime(), n = newest(x.id);
     return age > 30 * DAY || (age > 7 * DAY && !!n && n > x.reels_at);
   };
-  const g = slug ? goals[0] : goals.find(due);
+  const att = slug ? new Map() : await attention();
+  const g = slug ? goals[0] : goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);
   if (!g) return { note: "every goal has fresh reels" };
   const [nodes, posts, proms, intel, teams, have] = await Promise.all([
     db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&select=key,title,plain_title,status,plain_blocker,blocker,plain_why,why`),

@@ -2,17 +2,18 @@
 //
 // For a problem, Claude reads its research library (the most relevant papers), the problems it shares
 // research with, the cost of its next step, and problems from other goals (ideas often come from
-// another field). It proposes concrete ideas, then searches the web for prior art so nothing is sold
-// as new that was tried before. A second call structures the ideas. Papers cited are only from the
-// library list given; prior-art links are only pages the search returned. People then react on the site.
+// another field), and proposes 3 concrete, testable ideas, each with a precise literature search.
+// The code then runs those searches in OpenAlex (250M+ scholarly works, free), and a short second
+// call judges each idea's novelty against the papers found. Papers cited are only from the library
+// or from those search results. People then react on the site.
 //
-// The research step is slow (deep thinking plus web searches), so it runs as an Anthropic message
-// batch: one call submits it, a later call collects the results and structures them. No time limit,
-// half price. Runs hourly: collect finished batches, then submit the next goal's problems (up to 4).
+// Cost: proposing runs as an Anthropic message batch (half price, no time limit); prior-art checks
+// read short abstracts instead of whole web pages. One call submits, a later call collects.
 // Ideas come automatically for each goal's 6 most important problems (refreshed every 120 days);
 // any other problem gets ideas when someone asks for them on the site (idea_requests), first in line.
 //   POST {}  · POST {"slug": "mars"}  that goal · POST {"slug": "mars", "key": "b3.1"}  one problem
-// Header x-parallax-admin: <ADMIN_TOKEN>. Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL.
+// Header x-parallax-admin: <ADMIN_TOKEN>. Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL,
+// CONTACT_EMAIL, OPENALEX_API_KEY.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
@@ -22,6 +23,8 @@ const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
+const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
+const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
 const DAY = 86_400_000;
 const PER_BATCH = 4;
 const AUTO_PER_GOAL = 6; // problems per goal that get ideas automatically; others when someone asks
@@ -61,7 +64,7 @@ async function db(path: string, init: { method?: string; body?: unknown; prefer?
 type Node = { key: string; parent_key: string | null; title: string; plain_title: string | null; why: string | null; blocker: string | null; status: string };
 type Paper = { id: string; title: string; year: number | null; url: string | null };
 
-const Idea = z.object({
+const Draft = z.object({
   title: z.string().describe("The idea in at most 12 words. Concrete, not a slogan."),
   pitch: z.string().describe("2-3 plain sentences: what to do and what it would change."),
   mechanism: z.string().describe("Why it might work, at most 50 words. Keep correct technical terms, explain uncommon ones."),
@@ -70,14 +73,42 @@ const Idea = z.object({
   test_high_usd: z.number().describe("High end in US dollars."),
   borrowed_from: z.string().describe("The field, technology or other goal this idea borrows from, at most 10 words. Empty if none."),
   builds_on: z.array(z.number()).describe("Numbers of the library papers (from the PAPERS list) the idea builds on. 1 to 3."),
-  novelty: z.enum(["new", "partly", "tried"]).describe("new: no one seems to have tried it. partly: related work exists but not this. tried: it has been done."),
-  novelty_note: z.string().describe("What the prior-art search found, at most 35 words."),
-  prior_art: z.array(z.number()).describe("Numbers of the SOURCES (search results) that are the closest existing work. Up to 3."),
   risk: z.string().describe("The main reason it could fail, at most 25 words."),
+  search_query: z.string().describe("3 to 8 keywords to search the scientific literature for anyone who already tried this exact idea."),
 });
-const Ideas = z.object({ ideas: z.array(Idea) });
+const Drafts = z.object({ ideas: z.array(Draft) });
+const DRAFT_FMT = betaZodOutputFormat(Drafts);
+const Verdicts = z.object({ items: z.array(z.object({
+  idea: z.number().describe("The idea's number."),
+  novelty: z.enum(["new", "partly", "tried"]).describe("new: none of the papers does this. partly: related work, but not this. tried: a paper already did it."),
+  novelty_note: z.string().describe("What the closest papers did, in plain words, at most 35 words. Name them in words, never by number."),
+  prior_art: z.array(z.number()).describe("Numbers of the closest papers from this idea's list. Up to 3."),
+})) });
 
-const SYSTEM = "You are an inventive, rigorous research scientist. You propose ideas that experts would find worth testing, you are honest about prior work, and you never invent papers, results or figures.";
+type Work = { id: string; title: string; year: number | null; url: string; abstract: string };
+function abstractFrom(inv: Record<string, number[]> | null | undefined): string {
+  if (!inv) return "";
+  const words: string[] = [];
+  for (const [w, idx] of Object.entries(inv)) for (const i of idx) words[i] = w;
+  return words.filter(Boolean).join(" ").slice(0, 450);
+}
+// Prior-art search in OpenAlex: the most relevant works with abstracts.
+async function openAlex(q: string): Promise<Work[]> {
+  const params = new URLSearchParams({ search: q, "per-page": "8", filter: "has_abstract:true,type:article|review|preprint", select: "id,doi,title,publication_year,primary_location,abstract_inverted_index" });
+  if (MAIL) params.set("mailto", MAIL);
+  if (OA_KEY) params.set("api_key", OA_KEY);
+  try {
+    const r = await fetch(`https://api.openalex.org/works?${params}`, { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) return [];
+    // deno-lint-ignore no-explicit-any
+    return ((await r.json()).results ?? []).map((w: any) => ({
+      id: String(w.id ?? "").split("/").pop() ?? "", title: String(w.title ?? "").slice(0, 250), year: w.publication_year ?? null,
+      url: w.doi ?? w.primary_location?.landing_page_url ?? String(w.id ?? ""), abstract: abstractFrom(w.abstract_inverted_index),
+    })).filter((x: Work) => x.id && x.title);
+  } catch { return []; }
+}
+
+const SYSTEM = "You are an inventive, rigorous research scientist. You propose ideas that experts would find worth testing, and you never invent papers, results or figures.";
 function prompt(goal: string, n: Node, papers: Paper[], related: string[], cost: string, elsewhere: string) {
   return `GOAL: ${goal}
 PROBLEM: ${n.plain_title || n.title} (status: ${n.status})
@@ -91,41 +122,8 @@ PAPERS in this problem's library:
 ${papers.map((p, i) => `${i}. ${p.title}${p.year ? ` (${p.year})` : ""}`).join("\n")}
 
 Propose 3 ideas that could move this problem forward. Good ideas are specific and testable: a new combination of known things, a method borrowed from another field or goal, an old idea worth reviving with today's tools, or a cheaper way to test something. Avoid ideas that are only "more funding" or "more research".
-Before you settle on them, search the web for each idea to see whether it has been tried. Replace any idea that has clearly been done, unless you can name what is still new about yours.
-For each final idea write: what to do, why it might work, the cheapest first test and roughly what it costs, what it borrows from, which library papers it builds on (by number), what the search found, and the main risk.`;
-}
-
-// Text and the pages the searches returned, from a finished research message.
-// deno-lint-ignore no-explicit-any
-function readResearch(content: any[]) {
-  let text = "";
-  const pages = new Map<string, string>();
-  for (const b of content) {
-    if (b.type === "text") text += b.text;
-    if (b.type === "web_search_tool_result" && Array.isArray(b.content)) for (const r of b.content) if (r.url) pages.set(r.url, r.title ?? r.url);
-  }
-  return { text, pages: [...pages].map(([url, title]) => ({ url, title })) };
-}
-
-async function structure(notes: string, papers: Paper[], pages: { url: string; title: string }[]) {
-  const msg = await claude.beta.messages.stream({
-    model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
-    output_config: { effort: "low", format: betaZodOutputFormat(Ideas) },
-    messages: [{
-      role: "user",
-      content: `Turn these notes into the final ideas (up to 3). Keep only what the notes support. Write in plain words anyone can follow, keeping correct technical terms. Never write 'I' or 'author'. In the text, never refer to papers or sources by their numbers; name them in words. If some searches failed, say the check is incomplete.
-
-NOTES:
-${notes}
-
-PAPERS (cite by number):
-${papers.map((p, i) => `${i}. ${p.title}`).join("\n")}
-
-SOURCES found by the search (cite by number):
-${pages.map((p, i) => `${i}. ${p.title} — ${p.url}`).join("\n")}`,
-    }],
-  }).finalMessage().then(track("ideas"));
-  return msg.parsed_output?.ideas ?? [];
+Prefer ideas you do not recognise from the literature; each will be checked against published work afterwards, so give a precise search for it.
+Write in plain words anyone can follow, keeping correct technical terms. In the text, never refer to papers by their numbers. Never write "I" or "author".`;
 }
 
 const usd = (n: number) => (Number.isFinite(n) && n > 0 ? Math.round(n) : null);
@@ -144,17 +142,28 @@ async function contextFor(g: { id: number; name: string }, n: Node, nodes: Node[
   return { papers, text: prompt(g.name, n, papers, related, costTxt, other) };
 }
 
-async function save(goalId: number, key: string, notes: string, papers: Paper[], pages: { url: string; title: string }[]) {
-  const ideas = await structure(notes, papers, pages);
-  const rows = ideas.slice(0, 3).map((i) => {
-    let [lo, hi] = [usd(i.test_low_usd), usd(i.test_high_usd)];
+// Check each drafted idea against the literature, then save the ideas.
+async function save(goalId: number, key: string, drafts: z.infer<typeof Draft>[], papers: Paper[]) {
+  const found = await Promise.all(drafts.map((d) => openAlex(d.search_query)));
+  let verdicts: z.infer<typeof Verdicts>["items"] = [];
+  try {
+    const msg = await claude.beta.messages.stream({
+      model: MODEL, max_tokens: 16000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      output_config: { effort: "low", format: betaZodOutputFormat(Verdicts) },
+      messages: [{ role: "user", content: `For each idea, judge whether the papers found already did it. Be strict: "tried" only if a paper really did this idea; "new" only if none comes close.\n\n${drafts.map((d, i) => `IDEA ${i}: ${d.title}. ${d.pitch}\nPapers found:\n${found[i].map((w, k) => `  ${k}. ${w.title} (${w.year ?? "n.d."}): ${w.abstract}`).join("\n") || "  none"}`).join("\n\n")}` }],
+    }).finalMessage().then(track("ideas"));
+    verdicts = msg.parsed_output?.items ?? [];
+  } catch { /* save without a novelty verdict rather than lose the ideas */ }
+  const rows = drafts.slice(0, 3).map((d, i) => {
+    let [lo, hi] = [usd(d.test_low_usd), usd(d.test_high_usd)];
     if (lo && hi && lo > hi) [lo, hi] = [hi, lo];
+    const v = verdicts.find((x) => x.idea === i);
     return {
-      goal_id: goalId, node_key: key, title: i.title.trim().slice(0, 140), pitch: i.pitch.trim().slice(0, 600), mechanism: i.mechanism.trim().slice(0, 500) || null,
-      first_test: i.first_test.trim().slice(0, 300) || null, test_low: lo, test_high: hi, borrowed_from: i.borrowed_from.trim().slice(0, 120) || null,
-      builds_on: [...new Set(i.builds_on)].map((k) => papers[k]).filter(Boolean).slice(0, 3).map((p) => ({ id: p.id, title: p.title, year: p.year, url: p.url })),
-      prior_art: [...new Set(i.prior_art)].map((k) => pages[k]).filter(Boolean).slice(0, 3),
-      novelty: i.novelty, novelty_note: i.novelty_note.trim().slice(0, 300) || null, risk: i.risk.trim().slice(0, 240) || null,
+      goal_id: goalId, node_key: key, title: d.title.trim().slice(0, 140), pitch: d.pitch.trim().slice(0, 600), mechanism: d.mechanism.trim().slice(0, 500) || null,
+      first_test: d.first_test.trim().slice(0, 300) || null, test_low: lo, test_high: hi, borrowed_from: d.borrowed_from.trim().slice(0, 120) || null,
+      builds_on: [...new Set(d.builds_on)].map((k) => papers[k]).filter(Boolean).slice(0, 3).map((p) => ({ id: p.id, title: p.title, year: p.year, url: p.url })),
+      prior_art: [...new Set(v?.prior_art ?? [])].map((k) => found[i][k]).filter(Boolean).slice(0, 3).map((w) => ({ title: `${w.title}${w.year ? ` (${w.year})` : ""}`, url: w.url })),
+      novelty: v?.novelty ?? null, novelty_note: v?.novelty_note.trim().slice(0, 300) || (v ? null : "Not checked yet."), risk: d.risk.trim().slice(0, 240) || null,
     };
   });
   if (rows.length) {
@@ -179,9 +188,10 @@ async function collect() {
       const key = j.keys[Number(r.custom_id.slice(1))] ?? r.custom_id;
       if (r.result.type !== "succeeded") { errors.push(`${key}: ${r.result.type}`); continue; }
       track("ideas", true)(r.result.message);
-      const { text, pages } = readResearch(r.result.message.content);
-      if (!text.trim()) { errors.push(`${key}: no notes`); continue; }
-      work.push(save(j.goal_id, key, text, j.context[key] ?? [], pages).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
+      let drafts: z.infer<typeof Draft>[] = [];
+      try { drafts = DRAFT_FMT.parse(r.result.message.content.map((c) => (c.type === "text" ? c.text : "")).join("")).ideas; } catch { /* unreadable */ }
+      if (!drafts.length) { errors.push(`${key}: no ideas`); continue; }
+      work.push(save(j.goal_id, key, drafts, j.context[key] ?? []).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
     await db(`idea_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done", note: errors.join(" | ").slice(0, 500) || null } });
@@ -193,6 +203,13 @@ async function collect() {
 // Problems that most need ideas come first: the bottleneck, then blocked, barely started, moving.
 const ORDER: Record<string, number> = { blocked: 1, open: 2, in_progress: 3, solved: 9 };
 
+// Attention: followers and recent visits (goal_attention). Goals nobody follows or visited in the
+// last 30 days get no expensive extras until someone does; the most-watched go first.
+async function attention(): Promise<Map<number, number>> {
+  const rows = await db(`goal_attention?select=goal_id,score`).catch(() => []);
+  return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
+}
+
 async function submit(slug?: string, key?: string) {
   const pending = await db(`idea_jobs?status=eq.pending&select=keys,goal_id`);
   if (!slug && pending.length) return { note: "a batch is still running" };
@@ -201,8 +218,11 @@ async function submit(slug?: string, key?: string) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,bottleneck_key,ideas_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=ideas_at.asc.nullsfirst`);
   const all = await db(`nodes?parent_key=not.is.null&select=goal_id,title,plain_title`);
   const wanted = new Set(requests.map((r: { goal_id: number }) => r.goal_id));
-  goals.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)));
-  for (const g of goals) {
+  const att = await attention();
+  // Asked-for problems first, then goals people follow or visit; unwatched goals wait.
+  const goalsInScope = slug ? goals : goals.filter((g: { id: number }) => wanted.has(g.id) || (att.get(g.id) ?? 0) > 0);
+  goalsInScope.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
+  for (const g of goalsInScope) {
     const [nodes, have] = await Promise.all([
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status&order=position.asc`),
       db(`ideas?goal_id=eq.${g.id}&select=node_key,created_at`),
@@ -227,8 +247,8 @@ async function submit(slug?: string, key?: string) {
       requests: todo.map((n, i) => ({
         custom_id: `p${i}`, // ids allow only letters, digits, _ and -; maps back to keys[i]
         params: {
-          model: MODEL, max_tokens: 64000, output_config: { effort: "high" }, system: SYSTEM,
-          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 8 }],
+          model: MODEL, max_tokens: 64000, system: SYSTEM,
+          output_config: { effort: "high", format: { type: "json_schema", schema: DRAFT_FMT.schema } },
           messages: [{ role: "user", content: ctx[i].text }],
         },
       })),
@@ -239,9 +259,9 @@ async function submit(slug?: string, key?: string) {
   return { note: "every problem has recent ideas" };
 }
 
-async function run(slug?: string, key?: string) {
+async function run(slug?: string, key?: string, collectOnly = false) {
   const collected = await collect();
-  const submitted = await submit(slug, key);
+  const submitted = collectOnly ? null : await submit(slug, key);
   return { collected, submitted };
 }
 
@@ -250,7 +270,7 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
-    return json(await run(body.slug, body.key));
+    return json(await run(body.slug, body.key, body.collect_only === true));
   } catch (e) {
     console.error("ideas failed:", e instanceof Error ? e.message : e);
     return json({ error: e instanceof Error ? e.message.slice(0, 200) : "failed" }, 500);
