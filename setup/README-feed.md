@@ -215,6 +215,14 @@ Guesses ("When will this happen?") are stored through the `guess` function, one 
 per goal; only totals are public (`guess_totals`).
 The old list feed is still at `#/list`.
 
+## 16. Watch (short videos)
+
+Run `schema-reels.sql` and deploy the `reels` function (Verify JWT on). Every 2 hours it writes short
+vertical videos for the goal whose reels are oldest (weekly per goal): an intro, and the strongest
+breakthroughs, setbacks, promise checks or teams. Each reel is 4-6 scenes (a caption, maybe one number
+from the data, and NASA footage or an openly licensed photo checked by Claude). The site plays them at
+`#/watch` with captions and music generated in the browser (no licences needed). No voice.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the

@@ -508,6 +508,40 @@ body.goalstory .sw-bar{width:min(720px,100vw)}
 .pscore span{font-size:13px;color:rgba(255,255,255,.7)}
 .sw .sw-s span{display:block}
 @media (max-width:760px){.mc{top:64px;bottom:40px;left:18px;right:18px;gap:12px}.sw-tabs a{padding:6px 8px;font-size:12px}}
+
+/* watch (short videos) */
+.rl-scene{position:absolute;inset:0;opacity:0;transition:opacity .5s ease;pointer-events:none}
+.rl-scene.on{opacity:1}
+.rl-bg,.rl-media{position:absolute;inset:0}
+.rl-grad{background:radial-gradient(90% 70% at 30% 20%, hsl(var(--h) 55% 24%) 0%, transparent 60%),radial-gradient(80% 60% at 80% 85%, hsl(calc(var(--h) + 40) 50% 18%) 0%, transparent 65%),#05060B;background-size:140% 140%;animation:drift2 14s ease-in-out infinite alternate}
+@keyframes drift2{to{background-position:100% 60%}}
+video.rl-media{width:100%;height:100%;object-fit:cover}
+.rl-img{background-size:cover;background-position:center;transform:scale(1.04)}
+.rl-scene.on .rl-img{animation:kb 9s ease-out forwards}
+@keyframes kb{to{transform:scale(1.16) translate(-2%,-2%)}}
+.rl-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,6,11,.55) 0%,rgba(5,6,11,0) 25%,rgba(5,6,11,.1) 45%,rgba(5,6,11,.85) 78%,rgba(5,6,11,.95) 100%)}
+.rl-text{position:absolute;left:22px;right:86px;bottom:112px;color:#fff}
+.rl-scene.on .rl-text > *{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.rl-scene.on .rl-text > *:nth-child(2){animation-delay:.12s}.rl-scene.on .rl-text > *:nth-child(3){animation-delay:.24s}.rl-scene.on .rl-text > *:nth-child(4){animation-delay:.36s}
+.rl-text h2{font-size:clamp(28px,7.6vw,38px);line-height:1.08;letter-spacing:-.03em;margin:0;text-wrap:balance}
+.rl-text p{font-size:16.5px;line-height:1.45;color:rgba(255,255,255,.85);margin:12px 0 0}
+.rl-stat{font-size:clamp(64px,18vw,96px);letter-spacing:-.06em;line-height:.95}
+.rl-statl{font-size:14px;color:rgba(255,255,255,.7);margin:6px 0 14px}
+.rl-top{position:absolute;top:14px;left:14px;right:14px;z-index:3}
+.rl-bars{display:flex;gap:4px}
+.rl-bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.28);overflow:hidden}
+.rl-bars b{display:block;height:100%;width:0;background:#fff}
+.rl-who{display:flex;align-items:center;gap:9px;margin-top:12px;color:#fff;font-size:14px}
+.rl-who span{color:rgba(255,255,255,.7);font-size:13px}
+.rl-av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:600;text-decoration:none}
+.rl-tap{position:absolute;top:80px;bottom:150px;border:0;background:transparent;z-index:2;cursor:pointer;padding:0}
+.rl-tap.prev{left:0;width:28%}.rl-tap.mid{left:28%;width:44%}.rl-tap.next{right:0;width:28%}
+.rl.paused .rl-tap.mid::after{content:"Paused";position:absolute;top:40%;left:50%;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.5);color:#fff;font:600 13px var(--f)}
+.rl-rail{position:absolute;right:12px;bottom:130px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rl-rail span{font-size:11px;color:rgba(255,255,255,.8);margin-bottom:10px}
+.rl-dive{position:absolute;left:22px;right:22px;bottom:44px;z-index:3;height:50px;border-radius:999px;background:#fff;color:#0B0C14;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;text-decoration:none}
+.rl .sw-credit{bottom:16px;z-index:3}
+@media (prefers-reduced-motion:reduce){.rl-grad,.rl-scene.on .rl-img{animation:none}}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -697,7 +731,7 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
   .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
-  .feedtabs{display:none}
+  .feedtabs .tab:nth-child(n+3){display:none}
   .acct.out{display:none}
   main{padding-bottom:calc(40px + var(--navh))}
   .navlink.x{display:none}
@@ -887,6 +921,7 @@ body{background:var(--bg)}
       <input id="q" type="search" placeholder="Search any goal: Mars, fusion, Alzheimer's…" aria-label="Search any goal" maxlength="160">
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
+    <a class="navlink x" href="#/watch">Watch</a>
     <a class="navlink x" href="#/explore">Explore</a>
     <a class="navlink x" href="#/terminal">Terminal</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
@@ -902,7 +937,7 @@ body{background:var(--bg)}
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
-  <a href="#/following" data-nav="following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/></svg>Following</a>
+  <a href="#/watch" data-nav="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/></svg>Watch</a>
   <a href="#/branch" data-nav="branch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Branch</a>
   <a href="#/explore" data-nav="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Explore</a>
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
@@ -1618,6 +1653,7 @@ function openLeaf(key, push = true) {
   const l = leaves.find((x) => x.key === key);
   if (!l) return;
   document.querySelector('.sheet-back')?.remove();
+  music.stop(); watchState.obs?.disconnect();
   const b = branches.find((x) => x.key === l.parent_key);
   const h = helpers.find((x) => x.node_key === l.key);
   const ev = (l.evidence || []).slice(0, 8).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)})</span>` : ''}</li>`; }).join('');
@@ -2660,6 +2696,177 @@ async function storyView(id) {
   box.addEventListener('click', (e) => { const f = e.target.closest('.sw-cta[data-follow]'); if (f) setTimeout(() => { f.className = 'sw-cta' + (listing ? ' ghost' : ''); f.textContent = follows.has(g.slug) ? 'Following' : 'Follow'; }, 0); });
 }
 
+// ------------------------------------------------------------ watch (short videos)
+// Lean back: short vertical videos, one goal after another. Each reel is a few scenes played like
+// a video: footage or a photo, a big caption, maybe one number counting up. Captions and music.
+// Tap "Dive in" to study the goal.
+const REEL_KIND = { intro: 'Meet the goal', breakthrough: 'Breakthrough', setback: 'Setback', promise: 'Promise vs reality', people: 'Who is working on it' };
+let watchState = { reels: [], timers: [], obs: null };
+
+// Music made in the browser (no licences needed): slow, soft chords that change every few seconds.
+const music = {
+  ctx: null, out: null, on: false, step: 0, timer: 0,
+  get wanted() { try { return localStorage.getItem('px.sound') === '1'; } catch { return false; } },
+  set wanted(v) { try { localStorage.setItem('px.sound', v ? '1' : '0'); } catch {} },
+  start(seed = 0) {
+    if (this.on) return;
+    try {
+      this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx.resume();
+      this.out = this.ctx.createGain(); this.out.gain.value = 0; this.out.connect(this.ctx.destination);
+      this.out.gain.linearRampToValueAtTime(0.16, this.ctx.currentTime + 2);
+      this.on = true; this.step = seed % 4; this.chord(); this.timer = setInterval(() => this.chord(), 5200);
+    } catch { /* no audio on this device */ }
+  },
+  chord() {
+    const roots = [220, 196, 174.6, 196], root = roots[this.step++ % roots.length], t = this.ctx.currentTime;
+    for (const ratio of [1, 1.26, 1.5, 2]) {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), f = this.ctx.createBiquadFilter();
+      o.type = ratio === 2 ? 'sine' : 'triangle'; o.frequency.value = root * ratio * (1 + (Math.random() - 0.5) * 0.004);
+      f.type = 'lowpass'; f.frequency.value = 900;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.09 / ratio, t + 1.6); g.gain.linearRampToValueAtTime(0, t + 6.5);
+      o.connect(f); f.connect(g); g.connect(this.out); o.start(t); o.stop(t + 6.6);
+    }
+  },
+  stop() {
+    if (!this.on) return;
+    clearInterval(this.timer); this.on = false;
+    try { this.out.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4); } catch {}
+  },
+};
+
+function reelOrder(reels) {
+  const by = new Map();
+  for (const r of reels) { if (!by.has(r.goal_id)) by.set(r.goal_id, []); by.get(r.goal_id).push(r); }
+  for (const q of by.values()) q.sort((a, b) => (a.kind === 'intro' ? -1 : b.kind === 'intro' ? 1 : b.score - a.score));
+  const qs = [...by.values()].sort(() => Math.random() - 0.5), out = [];
+  while (qs.some((q) => q.length)) for (const q of qs) if (q.length) out.push(q.shift());
+  return out;
+}
+
+function sceneBg(s, seed, k) {
+  const h = (hue(seed) + k * 23) % 360;
+  const base = `<div class="rl-bg rl-grad" style="--h:${h}"></div>`;
+  const v = s.visual;
+  if (!v || !v.url) return base;
+  if (v.kind === 'video') return base + `<video class="rl-media" src="${esc(v.url)}" poster="${esc(v.poster || '')}" muted loop playsinline preload="none"></video>`;
+  return base + `<div class="rl-media rl-img" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
+}
+
+function reelCard(r, g, i) {
+  const scenes = r.scenes || [];
+  return `<section class="sw-card rl" data-reel="${i}">
+    ${scenes.map((s, k) => `<div class="rl-scene${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
+      <div class="rl-text">${s.stat ? `<div class="rl-stat mono" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{4,}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
+        <h2>${esc(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
+      ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`).join('')}
+    <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
+      <div class="rl-who"><a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a><b>@${esc(g.handle)}</b><span>${esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
+    <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
+    <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
+    <button type="button" class="rl-tap next" data-rl="next" aria-label="Next scene"></button>
+    <div class="rl-rail">
+      <button type="button" class="sw-b" data-sound aria-label="Sound">${music.wanted ? SOUND_ON : SOUND_OFF}</button><span>Sound</span>
+      <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
+      <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
+    </div>
+    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`} <span aria-hidden="true">→</span></a>
+  </section>`;
+}
+const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
+const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6"/></svg>';
+
+// One player per reel: shows a scene, fills its bar, then moves on; loops at the end.
+function reelPlayer(card) {
+  const scenes = [...card.querySelectorAll('.rl-scene')], bars = [...card.querySelectorAll('.rl-bars i b')];
+  let k = 0, t0 = 0, left = 0, timer = 0, raf = 0, paused = true;
+  const dur = (i) => (scenes[i].querySelector('p') ? 5200 : 4200);
+  const countUp = (el) => {
+    const m = /^([^0-9]*)([0-9][0-9,.]*)(.*)$/.exec(el.dataset.stat || '');
+    if (!m || REDUCED) return;
+    const target = Number(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length, s0 = performance.now();
+    const fmt = (v) => (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US'));
+    const step = (t) => { const p = Math.min(1, (t - s0) / 900), e = 1 - Math.pow(1 - p, 3); el.textContent = m[1] + fmt(target * e) + m[3]; if (p < 1 && el.isConnected) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  };
+  const show = (i) => {
+    k = (i + scenes.length) % scenes.length;
+    scenes.forEach((s, j) => {
+      s.classList.toggle('on', j === k);
+      const v = s.querySelector('video');
+      if (v) { if (j === k && !paused) { v.preload = 'auto'; v.play().catch(() => {}); } else v.pause(); }
+    });
+    bars.forEach((b, j) => { b.style.transition = 'none'; b.style.width = j < k ? '100%' : '0%'; });
+    const st = scenes[k].querySelector('[data-stat]');
+    if (st) countUp(st);
+    left = dur(k);
+    if (!paused) run();
+  };
+  const run = () => {
+    clearTimeout(timer); cancelAnimationFrame(raf);
+    t0 = performance.now();
+    const b = bars[k];
+    if (b) { const done = 1 - left / dur(k); b.style.transition = 'none'; b.style.width = `${done * 100}%`; requestAnimationFrame(() => { b.style.transition = `width ${left}ms linear`; b.style.width = '100%'; }); }
+    timer = setTimeout(() => show(k + 1), left);
+  };
+  const stop = () => {
+    clearTimeout(timer);
+    left = Math.max(0, left - (performance.now() - t0));
+    const b = bars[k]; if (b) { const w = getComputedStyle(b).width; b.style.transition = 'none'; b.style.width = w; }
+    scenes[k].querySelector('video')?.pause();
+  };
+  return {
+    play() { if (!paused) return; paused = false; card.classList.remove('paused'); scenes[k].querySelector('video')?.play().catch(() => {}); run(); },
+    pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
+    reset() { this.pause(); left = 0; show(0); },
+    next() { stop(); show(k + 1); },
+    prev() { stop(); show(k - 1); },
+    toggle() { paused ? this.play() : this.pause(); },
+  };
+}
+
+async function watchView() {
+  document.body.classList.add('swipe');
+  view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
+  const box = $('#sw');
+  let list, reels;
+  try {
+    [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score&order=created_at.desc&limit=200')]);
+  } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
+  if (!box.isConnected) return;
+  const ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
+  if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>Videos are on their way.</h2><p>Parallax is making short videos for every goal. Check back soon.</p><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
+  watchState.reels = ordered;
+  box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i)).join('');
+  const players = [...box.querySelectorAll('.rl')].map(reelPlayer);
+  let current = -1;
+  const obs = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const i = Number(e.target.dataset.reel);
+      if (e.isIntersecting && e.intersectionRatio > 0.6) {
+        if (current !== i) { if (current >= 0) players[current].reset(); players[i].reset(); }
+        current = i; players[i].play();
+        const g = list.find((x) => x.id === ordered[i].goal_id);
+        if (music.wanted) { music.stop(); music.start(hue(g.slug)); }
+      } else if (i === current && e.intersectionRatio < 0.3) players[i].pause();
+    }
+  }, { root: box, threshold: [0, 0.3, 0.6, 1] });
+  box.querySelectorAll('.rl').forEach((c) => obs.observe(c));
+  watchState.obs = obs;
+  box.addEventListener('click', (e) => {
+    const card = e.target.closest('.rl'); if (!card) return;
+    const p = players[Number(card.dataset.reel)];
+    const t = e.target.closest('[data-rl]');
+    if (t) { p[t.dataset.rl === 'pause' ? 'toggle' : t.dataset.rl](); return; }
+    const snd = e.target.closest('[data-sound]');
+    if (snd) {
+      music.wanted = !music.wanted;
+      if (music.wanted) music.start(); else music.stop();
+      box.querySelectorAll('[data-sound]').forEach((b) => { b.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; });
+    }
+  });
+}
+
 // ------------------------------------------------------------ motion
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let pointer = { x: 0, y: 0 };
@@ -2725,7 +2932,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'following', branch: 'branch', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'branch', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
@@ -2754,6 +2961,7 @@ function route() {
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
+  if (parts[0] === 'watch') return watchView();
   if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
