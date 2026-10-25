@@ -273,6 +273,17 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .hide{display:none!important}
 
 /* ---------- terminal (same look as the rest of the site) ---------- */
+.ttabs{position:sticky;top:57px;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin-bottom:6px}
+.jumps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
+.jump{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;text-decoration:none;transition:border-color .15s,transform .15s}
+.jump:hover{border-color:var(--line2);transform:translateY(-1px)}
+.jump b{font-size:15.5px;line-height:1.35;font-weight:600;letter-spacing:-.01em}
+.jump .ln{color:var(--muted);font-size:13px;line-height:1.45;flex:1}
+.jump .go{font-size:13px;font-weight:500;color:var(--accent)}
+.jump .lk{color:var(--accent)}
+.nexttab{text-align:right;margin:6px 0 0}
+@media (max-width:900px){.jumps{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.jumps{grid-template-columns:1fr}.ttabs{top:53px}}
 body.wide main{max-width:1120px}
 .tm{padding-bottom:20px}
 .tm .lbl{font-family:var(--m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -1564,7 +1575,7 @@ async function subscribe(btn) {
   const data = await callFn('billing', { action: 'checkout' });
   if (data.url) { location.href = data.url; return; }
   if (btn) btn.disabled = false;
-  if (data.already) { toast('You already have the Terminal'); terminalView(); return; }
+  if (data.already) { toast('You already have the Terminal'); termAt = 0; terminalView(); return; }
   toast(data.error || 'Could not start checkout. Try again.');
 }
 async function manageBilling(btn) {
@@ -1740,58 +1751,78 @@ function heatMap(t) {
   <div class="legend2"><span>Cells: unsolved problems by what they wait on. Darker means more.</span><span><i style="background:var(--solved)"></i>Solved</span><span><i style="background:var(--progress)"></i>In progress</span><span><i style="background:var(--blocked)"></i>Blocked</span><span><i style="background:var(--open)"></i>Open</span></div>`;
 }
 
-function renderTerminal(box) {
+const TTABS = [
+  ['overview', 'Overview'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
+  ['leaders', 'Who is leading'], ['bottlenecks', 'Bottlenecks'], ['signals', 'Signals'], ['data', 'All data'],
+];
+
+// Overview cards: one per tab, each with the single most useful fact from it.
+function overviewCards(t) {
+  const full = t.access === 'full';
+  const lock = full ? '' : '<span class="lk" aria-label="Subscribers only">Locked</span>';
+  const o = t.opportunities, c = t.opportunity_counts;
+  const fastest = full && t.fields.length ? [...t.fields].sort((a, b) => (b.growth ?? -9) - (a.growth ?? -9))[0] : null;
+  const card = (tab, title, big, line) => `<a class="jump" href="#/terminal/${tab}"><span class="lbl">${title}${lock && tab !== 'signals' ? ` · ${lock}` : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">Open →</span></a>`;
+  return `<div class="jumps">
+    ${t.brief ? card('brief', 'Weekly brief', esc(t.brief.headline), `Week of ${esc(new Date(t.brief.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))} · what moved, what to watch, where money matters`) : ''}
+    ${card('opportunities', 'Opportunities', `${c.funding} funding gaps · ${c.quiet} gone quiet · ${c.hot} heating up`, full && o.funding[0] ? `Top gap: ${esc(o.funding[0].title)} (@${esc(o.funding[0].goal)})` : 'Where money or attention would move things')}
+    ${card('leaders', 'Who is leading', fastest ? `@${esc(fastest.goal)} research ${growthTxt(fastest.growth)} in 3 years` : `${t.fields_total} research fields tracked`, fastest ? `Fastest-growing field. Led by ${esc(fastest.institutions[0]?.name ?? '—')}` : 'Top institutions and countries for every goal')}
+    ${card('bottlenecks', 'Bottlenecks', `${t.bottlenecks_total} goals held back · ${t.kpis.blocked} problems blocked`, full && t.bottlenecks[0] ? `e.g. ${esc(t.bottlenecks[0].title)} (@${esc(t.bottlenecks[0].goal)})` : 'What holds each goal back, and the stuck map')}
+    ${card('signals', 'Signals', t.tape[0] ? esc(t.tape[0].headline) : 'No signals yet', `${t.tape_total} advances, setbacks and promises · latest ${t.tape[0] ? esc(whenAgo(t.tape[0].at)) : ''}`)}
+    ${card('data', 'All data', `${t.goals_total} goals · ${t.problems_total} open problems`, 'Sortable tables, filters and CSV downloads')}
+  </div>`;
+}
+
+function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
+  if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   const idxChange = t.index_history.length > 1 ? t.index - t.index_history[0].value : null;
   const thisYear = new Date().getFullYear();
-  box.innerHTML = `<div class="tm">
-    <div class="term-h"><div><h1 class="page-h">Parallax Terminal</h1>
+  const head = `<div class="term-h"><div><h1 class="page-h">Parallax Terminal</h1>
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
-    <div class="top2">
+    <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
+  const overview = `<div class="top2">
       <section class="panel idx"><span class="lbl">The Parallax Index</span>
         <div class="v">${t.index.toFixed(1)}<small>/ 100</small></div>
         <p>How far humanity is toward every goal on Parallax, on average. It moves when research solves, advances or blocks a problem.</p>
         <div class="chg">${idxChange == null ? 'Daily history began this week' : `<span class="${idxChange >= 0 ? 'up' : 'down'}">${idxChange >= 0 ? '▲' : '▼'} ${Math.abs(idxChange).toFixed(1)}</span> since ${esc(t.index_history[0].day)}`}</div>
-        <div class="stats"><div><b>${k.goals}</b><span>goals</span></div><div><b>${k.problems}</b><span>problems</span></div><div><b>${k.blocked}</b><span>blocked</span></div></div>
+        <div class="stats"><div><b>${k.goals}</b><span>goals</span></div><div><b>${pct(k.solved_share)}</b><span>problems solved</span></div><div><b>${k.promise_score == null ? '—' : pct(k.promise_score)}</b><span>promises kept</span></div></div>
       </section>
       <section class="panel pad"><div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><b>Research behind the map</b>${t.research.growth == null ? '' : `<span class="mono up" style="font-size:12.5px">${growthTxt(t.research.growth)} in the last 5 years</span>`}</div>
         <div style="color:var(--muted);font-size:12.5px;margin-top:3px">${t.research.papers} papers Parallax relies on, by year published.</div>
         ${colsChart(t.research.years, thisYear - 4, true)}</section>
     </div>
-    <div class="kpis">
-      <div class="metric"><div class="l">Goals</div><div class="v">${k.goals}</div></div>
-      <div class="metric"><div class="l">Problems</div><div class="v">${k.problems}</div></div>
-      <div class="metric"><div class="l">Solved</div><div class="v">${pct(k.solved_share)}</div></div>
-      <div class="metric"><div class="l">Blocked</div><div class="v">${k.blocked}</div></div>
-      <div class="metric"><div class="l">Net moves 30d</div><div class="v">${signed(k.advances30 - k.setbacks30)}</div><div class="s">${k.advances30} up · ${k.setbacks30} down</div></div>
-      <div class="metric"><div class="l">Promises kept</div><div class="v">${k.promise_score == null ? '—' : pct(k.promise_score)}</div><div class="s">${k.promises_judged} judged</div></div>
-    </div>
-    ${briefPanel(t)}
-    ${oppPanel(t)}
-    ${fieldsPanel(t)}
-    <div class="grid2">
-      <section class="panel"><div class="panel-h"><h2>Bottleneck board <small>${t.bottlenecks_total}</small></h2><span class="lbl">What holds each goal back</span></div>
+    ${overviewCards(t)}`;
+  const panes = {
+    overview: () => overview,
+    brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
+    opportunities: () => oppPanel(t),
+    leaders: () => fieldsPanel(t),
+    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board <small>${t.bottlenecks_total}</small></h2><span class="lbl">The one problem holding back each goal</span></div>
         ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : lockGate(`${t.bottlenecks_total} bottlenecks`, 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
-      <section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks, promises</span></div>
-        <div class="feed2">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with the Terminal.</div>`}</section>
-    </div>
-    <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
-      ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>
-    <section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
-      <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
-      <div id="tGoals">${goalsTable()}</div></section>
-    <section class="panel"><div class="panel-h"><h2>Open problems <small>${full ? t.problems_total : `${t.problems.length} of ${t.problems_total}`}</small></h2>
-      ${full ? `<div class="tools"><input id="tQ" type="search" placeholder="Search problems" value="${esc(termFilter.q)}" aria-label="Search problems">
-        <select id="tStatus" aria-label="Status"><option value="">Any status</option>${['blocked', 'open', 'in_progress'].map((s) => `<option value="${s}"${termFilter.status === s ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select>
-        <select id="tKind" aria-label="Held back by"><option value="">Anything</option>${Object.keys(KIND_LABEL).map((s) => `<option value="${s}"${termFilter.kind === s ? ' selected' : ''}>${KIND_LABEL[s]}</option>`).join('')}</select>
-        <button class="btn" type="button" data-csv="problems">Download CSV</button></div>` : ''}</div>
-      <div id="tProblems">${problemsTable()}</div>
-      ${full ? '' : lockGate(`${t.problems_total - t.problems.length} more problems`, 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>
-    ${full ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
+      <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
+        ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
+    signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
+        <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with the Terminal. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
+    data: () => `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
+        <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
+        <div id="tGoals">${goalsTable()}</div></section>
+      <section class="panel"><div class="panel-h"><h2>Open problems <small>${full ? t.problems_total : `${t.problems.length} of ${t.problems_total}`}</small></h2>
+        ${full ? `<div class="tools"><input id="tQ" type="search" placeholder="Search problems" value="${esc(termFilter.q)}" aria-label="Search problems">
+          <select id="tStatus" aria-label="Status"><option value="">Any status</option>${['blocked', 'open', 'in_progress'].map((s) => `<option value="${s}"${termFilter.status === s ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select>
+          <select id="tKind" aria-label="Held back by"><option value="">Anything</option>${Object.keys(KIND_LABEL).map((s) => `<option value="${s}"${termFilter.kind === s ? ' selected' : ''}>${KIND_LABEL[s]}</option>`).join('')}</select>
+          <button class="btn" type="button" data-csv="problems">Download CSV</button></div>` : ''}</div>
+        <div id="tProblems">${problemsTable()}</div>
+        ${full ? '' : lockGate(`${t.problems_total - t.problems.length} more problems`, 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>`,
+  };
+  const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>A weekly analyst brief on every goal</li><li>Funding gaps, problems research has gone quiet on, and problems heating up</li><li>The institutions and countries leading each field, and how fast each field grows</li><li>The bottleneck board, the stuck map and every signal with its sources</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
-      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe</button></div></div></section>`}
-  </div>`;
+      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe</button></div></div></section>`;
+  const i = TTABS.findIndex(([id]) => id === tab);
+  const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
+  box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
+  box.querySelector('.ttabs [aria-selected=true]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
@@ -1831,7 +1862,15 @@ document.addEventListener('pointerover', (e) => {
 });
 addEventListener('scroll', () => tipEl.classList.remove('on'), { passive: true });
 
-async function terminalView(welcome = false) {
+let termAt = 0, termWho = null;
+async function terminalView(tab = 'overview') {
+  const welcome = tab === 'welcome';
+  // Switching tabs reuses the data loaded in the last 5 minutes, so it is instant.
+  if (!welcome && term && !term.error && Date.now() - termAt < 300_000 && termWho === (me ? me.id : null)) {
+    view.innerHTML = '<div id="term"></div>';
+    renderTerminal($('#term'), tab);
+    return;
+  }
   view.innerHTML = `<div id="term"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#term');
   await authReady;
@@ -1848,7 +1887,8 @@ async function terminalView(welcome = false) {
     if (term.error || term.access === 'full') break;
   }
   if (term.error) { box.innerHTML = note('The Terminal could not load', esc(term.error), '<p><button class="btn" type="button" onclick="terminalView()">Try again</button></p>'); return; }
-  renderTerminal(box);
+  termAt = Date.now(); termWho = me ? me.id : null;
+  renderTerminal(box, welcome ? 'overview' : tab);
   if (welcome) {
     history.replaceState(null, '', location.pathname + '#/terminal');
     toast(term.access === 'full' ? 'Welcome to the Parallax Terminal' : 'Payment received. Access can take a minute, reload soon.');
@@ -1942,7 +1982,7 @@ function route() {
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
-  if (parts[0] === 'terminal') return terminalView(parts[1] === 'welcome');
+  if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
