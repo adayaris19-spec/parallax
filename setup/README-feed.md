@@ -256,7 +256,16 @@ could test this) with an optional note. Pages: `#/lab`, `#/lab/<goal>`, `#/idea/
 on each goal page, and the problem sheet.
 One problem now: `POST /functions/v1/ideas` with `{"slug":"<slug>","key":"b3.1"}` and the admin header.
 
-## 19. Keeping AI costs down
+## 19. Stories
+
+When a goal has news (a step forward, a setback, a problem solved, a new bottleneck, a promise checked),
+it shows as a ring at the top of the feed for 48 hours (one story per goal per day). Stories play in
+the Watch player (`#/stories/<goal>`). Most are built in the browser from the post Parallax already
+wrote, with visuals from the shared photo library or the goal's own approved shots: no AI cost. A
+problem solved or a new bottleneck gets a full video from the videos job within the hour, and that
+video plays as the story. Watched stories are remembered in the browser.
+
+## 20. Keeping AI costs down
 
 - Every AI call is logged in `ai_usage` (tokens, web searches, estimated price; `schema-usage.sql`).
   Spend by job and day: `select * from ai_spend;` in the SQL editor.
