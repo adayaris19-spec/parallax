@@ -61,7 +61,16 @@ main{max-width:680px;margin:0 auto;padding:0 16px 80px}
 .when{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap;align-self:flex-start}
 .kind{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 2px}
 .kind.bottleneck{color:var(--blocked)} .kind.advance,.kind.solved{color:var(--solved)} .kind.setback{color:var(--progress)}
-.kind.forgotten{color:var(--accent)} .kind.mapped{color:var(--muted)}
+.kind.forgotten{color:var(--accent)} .kind.mapped{color:var(--muted)} .kind.promise{color:var(--ink2)}
+.quote{margin:8px 0 10px;padding:10px 12px;border-left:3px solid var(--line2);background:color-mix(in srgb,var(--line) 45%,transparent);border-radius:0 10px 10px 0;font-size:14px;color:var(--ink2)}
+.quote cite{display:block;margin-top:6px;font-style:normal;font-size:12.5px;color:var(--muted)}
+.quote cite a{color:inherit}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;margin-left:6px;vertical-align:1px;text-transform:none;letter-spacing:0}
+.pill.kept{background:color-mix(in srgb,var(--solved) 16%,transparent);color:var(--solved)}
+.pill.partly{background:color-mix(in srgb,var(--progress) 16%,transparent);color:var(--progress)}
+.pill.broken{background:color-mix(in srgb,var(--blocked) 14%,transparent);color:var(--blocked)}
+.pill.pending,.pill.unclear{background:var(--line);color:var(--muted)}
+.prom-h{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:22px 0 4px}
 .post h3{font-size:17px;line-height:1.35;margin:2px 0 6px}
 .post p{margin:0 0 8px;color:var(--ink2)}
 .srcs{margin:10px 0 0;padding:0;list-style:none;border-top:1px solid var(--line);padding-top:8px}
@@ -181,7 +190,8 @@ details.leaf.target summary{background:var(--accent-soft)}
 const SUPA_URL = 'https://zfmjjazkmolvywvayjzj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
 const GOAL_COLS = 'id,slug,handle,name,summary,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
-const POST_COLS = 'id,goal_id,node_key,kind,headline,body,sources,independent_sources,expert_reviewed,reviewer,created_at';
+const POST_COLS = 'id,goal_id,node_key,kind,headline,body,sources,independent_sources,expert_reviewed,reviewer,created_at,meta';
+const PROMISE_COLS = 'id,node_key,claim,quote,made_year,due_year,source,status,verdict,verdict_sources,independent_sources,checked_at';
 const PAGE = 30;
 
 // ------------------------------------------------------------ helpers
@@ -258,7 +268,13 @@ async function goals(force = false) {
 const goalById = (list, id) => list.find((g) => g.id === id);
 
 // ------------------------------------------------------------ post card
-const KIND = { mapped: 'New goal', bottleneck: 'Bottleneck', advance: 'Advance', setback: 'Setback', solved: 'Branch solved', forgotten: 'Forgotten idea' };
+const KIND = { mapped: 'New goal', bottleneck: 'Bottleneck', advance: 'Advance', setback: 'Setback', solved: 'Branch solved', forgotten: 'Forgotten idea', promise: 'Promise check' };
+const PSTATUS = { kept: 'Kept', partly: 'Partly kept', broken: 'Broken', pending: 'Not due yet', unclear: 'Unclear' };
+function quoteBlock(q, paper, made) {
+  const u = safeUrl(paper && paper.url);
+  const t = paper ? esc(paper.title) : '';
+  return `<blockquote class="quote">“${esc(q)}”<cite>${esc(made)} · ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${t}</a>` : t}</cite></blockquote>`;
+}
 
 function postCard(p, g) {
   const srcs = (p.sources || []).slice(0, 4).map((s) => {
@@ -277,8 +293,9 @@ function postCard(p, g) {
   const treeLink = p.node_key ? `<a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(p.node_key)}">In the tree</a>` : '';
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
-    <span class="kind ${esc(p.kind)}">${esc(KIND[p.kind] || p.kind)}</span>
+    <span class="kind ${esc(p.kind)}">${esc(KIND[p.kind] || p.kind)}${p.kind === 'promise' && p.meta?.status ? `<span class="pill ${esc(p.meta.status)}">${esc(PSTATUS[p.meta.status] || p.meta.status)}</span>` : ''}</span>
     <h3>${esc(p.headline)}</h3>
+    ${p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : ''}
     ${p.body ? `<p>${esc(p.body)}</p>` : ''}
     ${srcs ? `<ul class="srcs">${srcs}</ul>` : ''}
     <div class="post-f">${check}${treeLink}${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share">Share</button></div>
@@ -398,11 +415,12 @@ async function goalView(slug, tab, focusKey) {
     return;
   }
 
-  let nodes, posts;
+  let nodes, posts, promises = [];
   try {
-    [nodes, posts] = await Promise.all([
+    [nodes, posts, promises] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources&order=position.asc`),
       rest(`posts?goal_id=eq.${g.id}&select=${POST_COLS}&order=created_at.desc&limit=50`),
+      rest(`promises?goal_id=eq.${g.id}&select=${PROMISE_COLS}&order=due_year.asc&limit=100`).catch(() => []),
     ]);
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
@@ -421,8 +439,9 @@ async function goalView(slug, tab, focusKey) {
   ${bn ? `<div class="bneck"><div class="l">Biggest bottleneck</div><h3>${esc(bn.title)}</h3><p>${esc(bn.blocker)}</p><p style="margin-top:6px"><a href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(bn.key)}">See it in the tree</a></p></div>` : ''}`;
 
   const tabs = `<nav class="tabs" role="tablist" style="margin-top:8px">
-      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}" aria-selected="${tab !== 'tree'}">Posts</a>
-      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/tree" aria-selected="${tab === 'tree'}">The tree</a></nav>`;
+      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}" aria-selected="${tab === 'posts'}">Posts</a>
+      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/tree" aria-selected="${tab === 'tree'}">The tree</a>
+      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/promises" aria-selected="${tab === 'promises'}">Promises${promises.length ? ` (${promises.length})` : ''}</a></nav>`;
 
   let body;
   if (tab === 'tree') {
@@ -442,6 +461,22 @@ async function goalView(slug, tab, focusKey) {
                 <p style="color:var(--muted);font-size:12.5px">${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</p></div></details>`;
           }).join('')}</section>`;
       }).join('');
+  } else if (tab === 'promises') {
+    const card = (p) => {
+      const leaf = leaves.find((l) => l.key === p.node_key);
+      const vs = (p.verdict_sources || []).slice(0, 3).map((s) => { const u = safeUrl(s.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}${s.year ? ` <span>(${esc(s.year)})</span>` : ''}</li>`; }).join('');
+      return `<article class="post"><span class="kind promise">Due ${esc(p.due_year)}<span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span></span>
+        <h3>${esc(p.claim)}</h3>${quoteBlock(p.quote, p.source, `Written in ${p.made_year}`)}
+        ${p.verdict ? `<p><b>What happened:</b> ${esc(p.verdict)}</p>` : ''}${vs ? `<ul class="srcs">${vs}</ul>` : ''}
+        ${leaf ? `<div class="post-f"><span class="check"></span><a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(leaf.key)}">In the tree</a></div>` : ''}</article>`;
+    };
+    const checked = promises.filter((p) => p.status !== 'pending').sort((a, b) => b.due_year - a.due_year);
+    const coming = promises.filter((p) => p.status === 'pending');
+    body = promises.length
+      ? `<p style="color:var(--muted);margin:14px 0 0">Dated promises from older research about this goal, quoted word for word, and checked once their deadline passes.</p>` +
+        (checked.length ? `<div class="prom-h">Checked</div>${checked.map(card).join('')}` : '') +
+        (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
+      : note('No promises found yet', 'Parallax searches older research on this goal for dated promises once a month.');
   } else {
     body = posts.length ? posts.map((p) => postCard(p, g)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   }
@@ -557,7 +592,7 @@ function route() {
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
-  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], parts[2] === 'tree' ? 'tree' : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
+  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], ['tree', 'promises'].includes(parts[2]) ? parts[2] : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
