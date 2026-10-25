@@ -441,6 +441,35 @@ body.swipe .foot{display:none}
   .sw{--h:calc(100dvh - 53px - var(--navh));width:100vw;border-radius:0}
   .sw-nav{display:none}
 }
+
+/* post story extras */
+.sw-bar{position:absolute;top:24px;left:50%;transform:translateX(-50%);width:min(460px,100vw);z-index:6;display:flex;align-items:center;gap:10px;padding:0 14px;box-sizing:border-box;pointer-events:none}
+.sw-bar > *{pointer-events:auto}
+.sw-x{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:15px;cursor:pointer}
+.sw-who{color:#fff;font-weight:600;font-size:14px;text-decoration:none;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.sw-dots{margin-left:auto;display:flex;gap:5px}
+.sw-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s,transform .2s}
+.sw-dots i.on{background:#fff;transform:scale(1.25)}
+.sw-bg video{width:100%;height:100%;object-fit:cover;display:block}
+.sw-text p.lg{font-size:18px;color:rgba(255,255,255,.88);line-height:1.5}
+.sw-hint{margin-top:22px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);font-family:var(--m);animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+.sw-q{margin:16px 0 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.08);font-size:15px;line-height:1.55;color:rgba(255,255,255,.9)}
+.sw-q span{display:block;margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.6)}
+.sw-src{display:grid;gap:8px;margin-top:16px}
+.sw-s{display:block;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.08);text-decoration:none;color:#fff}
+.sw-s b{display:block;font-weight:500;font-size:14px;line-height:1.35}
+.sw-s span{display:block;font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+a.sw-s:hover{background:rgba(255,255,255,.14)}
+.sw-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.sw-acts .sw-cta{margin-top:0;display:inline-flex;align-items:center;text-decoration:none}
+.sw-cta.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.sw-next{display:block;margin-top:26px;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.18);text-decoration:none;color:#fff}
+.sw-next span{display:block;font-family:var(--m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.sw-next b{display:block;font-weight:500;margin-top:4px}
+.sw-card .sw-text{right:20px}
+@media (max-width:760px){.sw-bar{top:12px}}
+@media (prefers-reduced-motion:reduce){.sw-hint{animation:none}}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -1162,7 +1191,7 @@ function postCard(p, g, compact = false) {
     const m = /mapped (\d+) problems across (\d+) branches/.exec(p.body || '');
     if (m) big = `<div class="big">${esc(m[1])}<span class="lbl">problems mapped</span></div>`;
   }
-  const target = p.node_key ? `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(p.node_key)}` : `#/g/${encodeURIComponent(g.slug)}`;
+  const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : `#/p/${p.id}`; // a post opens as its story
   const nPapers = (p.sources || []).length;
   const detail = [
     p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : '',
@@ -2583,6 +2612,93 @@ document.addEventListener('click', (e) => {
   if (box) box.scrollBy({ top: Number(n.dataset.swn) * box.clientHeight, behavior: REDUCED ? 'auto' : 'smooth' });
 });
 
+// ------------------------------------------------------------ post story (tap a post)
+// A post opens as a short story you scroll through, one screen at a time: what happened, why it
+// matters, the evidence, where the problem stands, and how to help.
+function bgMedia(media, seed) {
+  const h = hue(seed);
+  const base = `background:radial-gradient(120% 80% at 70% 15%, hsl(${h} 45% 22%) 0%, #05060B 62%)`;
+  if (!media || !media.url) return `<div class="sw-bg" style="${base}"></div>`;
+  if (media.kind === 'video') return `<div class="sw-bg" style="${base}"><video src="${esc(media.url)}" poster="${esc(media.poster || '')}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>`;
+  return `<div class="sw-bg" style="${base}"><img src="${esc(media.url)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
+}
+
+async function storyView(id) {
+  document.body.classList.add('swipe');
+  view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
+  const box = $('#sw');
+  let p, g, node, total = 0, listing = null, nextPost = null;
+  try {
+    p = (await rest(`posts?id=eq.${Number(id)}&select=${POST_COLS}`))[0];
+    if (!p) { box.innerHTML = `<section class="sw-card"><div class="sw-text"><h2>This post is gone.</h2><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
+    g = (await rest(`goals?id=eq.${p.goal_id}&select=${GOAL_COLS}`))[0];
+    const [nodes, lst, others] = await Promise.all([
+      p.node_key ? rest(`nodes?goal_id=eq.${g.id}&key=eq.${encodeURIComponent(p.node_key)}&select=key,title,why,status,blocker_kind,blocker,independent_sources,plain_title,plain_why,plain_blocker`) : [],
+      p.node_key ? rest(`team_problems?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(p.node_key)}&status=eq.active&select=id,node_key,node_title,plan,target_cents,teams(id,name,kind,website,country,about)&limit=1`).catch(() => []) : [],
+      rest(`posts?goal_id=eq.${g.id}&id=neq.${p.id}&kind=neq.mapped&select=id,headline,plain_headline,created_at&order=created_at.desc&limit=1&created_at=lte.${encodeURIComponent(p.created_at)}`).catch(() => []),
+    ]);
+    node = nodes[0]; listing = lst.find((x) => x.teams) || null; nextPost = others[0] || null;
+    if (node) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/node_papers?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(node.key)}&select=paper_id&limit=1`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'count=exact' } });
+      total = Number((r.headers.get('content-range') || '').split('/')[1]) || 0;
+    }
+  } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
+  if (!box.isConnected) return;
+  if (listing) fundState = { goal: g, listings: [listing], perNode: {}, perListing: {} };
+
+  const media = p.media && p.media.url ? p.media : (g.media && g.media.url ? g.media : null);
+  const seed = g.slug + p.id;
+  const goalLink = `#/g/${encodeURIComponent(g.slug)}`;
+  const dot = KIND_DOT[p.kind] || '#fff';
+  const srcs = (p.sources || []).slice(0, 4);
+  const st = node ? (node.status || 'open') : null;
+  const scr = (inner, bg = '') => `<section class="sw-card">${bg || bgMedia(null, seed)}<div class="sw-shade"></div>${inner}</section>`;
+
+  const s1 = `<section class="sw-card">${bgMedia(media, seed)}<div class="sw-shade"></div>
+    <div class="sw-text"><span class="sw-chip"><i style="background:${dot}"></i>${esc(KIND_WORD[p.kind] || p.kind)} · @${esc(g.handle)}</span>
+      ${p.kind === 'promise' && p.meta?.made_year ? `<div class="sw-num mono" style="font-size:52px">${esc(p.meta.made_year)} <span style="opacity:.5">→</span> ${esc(p.meta.due_year)}</div>` : ''}
+      <h2 style="font-size:clamp(28px,7.6vw,36px)">${esc(p.headline)}</h2>
+      ${p.body ? `<p>${esc(firstSentenceOf(p.body))}</p>` : ''}
+      <div class="sw-hint">Scroll ↓</div></div>
+    ${media ? `<div class="sw-credit">${media.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(media.source_url) ? `<a href="${esc(media.source_url)}" target="_blank" rel="noopener">${esc(media.credit)}</a>` : esc(media.credit)} · ${esc(media.license)}</div>` : ''}</section>`;
+
+  const s2 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span>
+      <h2>${esc(node.title)}</h2>${node.why ? `<p class="lg">${esc(node.why)}</p>` : ''}
+      <p>One of the problems standing between us and <b>${esc(lowerFirst(g.name))}</b>.</p></div>`)
+    : scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span><h2>${esc(g.name)}</h2>${g.tagline ? `<p class="lg">${esc(g.tagline)}</p>` : ''}</div>`);
+
+  const s3 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:var(--solved)"></i>The evidence</span>
+      ${(() => { const n = p.independent_sources || srcs.length || 0; return `<div class="sw-num mono">${n}<small>${(p.independent_sources || 0) >= 2 ? 'independent sources' : n === 1 ? 'source so far' : 'sources'}</small></div>`; })()}
+      ${p.kind === 'promise' && p.meta?.quote ? `<blockquote class="sw-q">“${esc(p.meta.quote)}”<span>${esc(p.meta.paper?.title || '')}${p.meta.paper?.year ? `, ${esc(p.meta.paper.year)}` : ''}</span></blockquote>` : ''}
+      <div class="sw-src">${srcs.map((x) => { const u = safeUrl(x.url); return `<${u ? `a href="${esc(u)}" target="_blank" rel="noopener"` : 'div'} class="sw-s"><b>${esc(x.title)}</b><span>${esc([x.first_author, x.venue, x.year].filter(Boolean).join(' · '))}</span></${u ? 'a' : 'div'}>`; }).join('')}</div>
+      ${total ? `<p>${total.toLocaleString()} papers and reports on this problem in Parallax’s library.</p>` : ''}</div>`);
+
+  const s4 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:${st === 'blocked' ? 'var(--blocked)' : st === 'solved' ? 'var(--solved)' : 'var(--progress)'}"></i>Where it stands · ${esc(leafStatusLabel(st))}</span>
+      <h2>${st === 'solved' ? 'What was done' : 'What’s in the way'}</h2>${node.blocker ? `<p class="lg">${esc(node.blocker)}</p>` : ''}
+      ${node.key === g.bottleneck_key ? '<p><b>This is the biggest bottleneck for the whole goal.</b></p>' : ''}</div>`) : '';
+
+  const s5 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#fff"></i>Help make it happen</span>
+      <h2>${listing ? `${esc(listing.teams.name)} is working on this.` : `Follow @${esc(g.handle)} to see what happens next.`}</h2>
+      ${listing ? `<p>${esc(listing.plan)}</p>` : `<p>${g.horizon_low != null ? `About ${esc(g.horizon_low === g.horizon_high ? `${g.horizon_low}` : `${g.horizon_low}–${g.horizon_high}`)} years to go at today’s pace.` : ''}</p>`}
+      <div class="sw-acts">${listing ? `<button type="button" class="sw-cta" data-back="${listing.id}">Back this team</button>` : ''}
+        <button type="button" class="sw-cta${listing ? ' ghost' : ''}" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow'}</button>
+        <a class="sw-cta ghost" href="${goalLink}">Open @${esc(g.handle)}</a></div>
+      ${!listing && node ? `<a class="sw-go" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(node.key)}">Working on this? Raise money for your team →</a>` : ''}
+      ${nextPost ? `<a class="sw-next" href="#/p/${nextPost.id}"><span>Next story</span><b>${esc(nextPost.plain_headline || nextPost.headline)}</b></a>` : ''}</div>`);
+
+  const screens = [s1, s2, s3, s4, s5].filter(Boolean);
+  box.innerHTML = screens.join('');
+  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar"><button type="button" class="sw-x" data-close aria-label="Close">✕</button><a href="${goalLink}" class="sw-who">@${esc(g.handle)}</a><div class="sw-dots">${screens.map((_, i) => `<i data-d="${i}"${i ? '' : ' class="on"'}></i>`).join('')}</div></div>`);
+  const wrap = box.parentElement;
+  wrap.querySelector('[data-close]').onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
+  box.addEventListener('scroll', () => {
+    const i = Math.round(box.scrollTop / box.clientHeight);
+    wrap.querySelectorAll('.sw-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+  }, { passive: true });
+  // Follow buttons here are plain pill buttons: keep their look when followed.
+  box.addEventListener('click', (e) => { const f = e.target.closest('.sw-cta[data-follow]'); if (f) setTimeout(() => { f.className = 'sw-cta' + (listing ? ' ghost' : ''); f.textContent = follows.has(g.slug) ? 'Following' : 'Follow'; }, 0); });
+}
+
 // ------------------------------------------------------------ motion
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let pointer = { x: 0, y: 0 };
@@ -2677,6 +2793,7 @@ function route() {
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
+  if (parts[0] === 'p' && parts[1]) return storyView(parts[1]);
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { tree: 'map', map: 'map', posts: 'posts', promises: 'promises' }[parts[2]] || 'story', parts[2] === 'tree' ? parts[3] : undefined);
