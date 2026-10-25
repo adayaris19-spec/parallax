@@ -822,6 +822,35 @@ body.labpage main{max-width:1080px}
 @media (max-width:860px){.ip-grid{grid-template-columns:1fr}.ip-evgrid{grid-template-columns:1fr}.ip-people{order:2}.ip-col:nth-child(2){order:3}}
 @media (max-width:640px){.itiles{grid-template-columns:1fr}.itile{padding:16px}.ip-col{padding:18px}}
 
+/* funding block */
+.fp{margin-top:18px;padding:18px 20px;border-radius:18px;background:color-mix(in srgb,var(--solved) 6%,var(--card));border:1px solid color-mix(in srgb,var(--solved) 22%,var(--line))}
+.fp.none{background:var(--sunk);border-color:var(--line)}
+.fp.compact{padding:14px 16px;margin-top:14px}
+.fp-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.fp-k{font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fp-ok{font-size:12px;font-weight:600;color:var(--solved)}
+.fp-team + .fp-team{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.fp-who b{display:block;font-size:16px}
+.fp-who span{font-size:13px;color:var(--muted)}
+.fp-who a{color:inherit}
+.fp .fp-plan{margin:10px 0 0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.fp-plan span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.fp-num{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fp-num > b{font-size:26px;font-weight:500;letter-spacing:-.03em}
+.fp.compact .fp-num > b{font-size:20px}
+.fp-num span{font-size:13.5px;color:var(--ink2)}
+.fp-num span b{font-weight:500}
+.fp-bar{height:6px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.fp-bar i{display:block;height:100%;background:var(--solved);border-radius:3px}
+.fp .fp-none p{margin:10px 0 0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.fp-none .fp-num{margin-top:0}
+.fp .fp-fee{margin:12px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted);max-width:none}
+.fp p{max-width:62ch}
+.fp .fp-step{margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--ink2)}
+.fp .fp-step span{color:var(--muted)}
+.fp-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn.ghost{background:transparent}
+
 /* reel layouts */
 .ly-center .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;text-align:center;left:28px;right:28px}
 .ly-center .rl-text h2{font-size:clamp(32px,9vw,46px)}
@@ -1806,10 +1835,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const now = bn ? `<section class="rn"><div class="kick red">Right now</div>
       <h2>Everything waits on one problem: <a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc(lowerFirst(bn.title).replace(/\.$/, ''))}</a>.</h2>
       ${bn.blocker ? `<p>${esc(firstSentence(bn.blocker))}</p>` : ''}
-      ${costs[bn.key] ? `<div class="rn-cost"><span class="wt-l">Next step</span><b>${esc(costs[bn.key].next_step)}</b><span class="mono">${esc(usdRange(costs[bn.key].next_low, costs[bn.key].next_high))}${costs[bn.key].next_time ? ` · ${esc(costs[bn.key].next_time)}` : ''}</span>${costs[bn.key].funders ? `<small>Paid for today by ${esc(lowerFirst(costs[bn.key].funders))}</small>` : ''}</div>` : ''}
-      <div class="rn-m">${bnListing
-        ? `<div class="rn-money"><b>${esc(bnListing.teams.name)}</b> is raising money for it.<div class="rn-bar"><i style="width:${bnListing.target_cents ? Math.min(100, bnRaised / bnListing.target_cents * 100).toFixed(1) : 0}%"></i></div><span class="mono">${money(bnRaised)}${bnListing.target_cents ? ` of ${money(bnListing.target_cents)}` : ''}</span></div><div class="rn-act"><button class="btn primary" type="button" data-back="${bnListing.id}">Back it</button><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div>`
-        : `<div class="rn-money muted">${teams.length ? `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money for other problems here${totalRaised ? ` (${money(totalRaised)} so far)` : ''}. Nobody is raising for this one yet.` : 'No team is raising money for this yet. Labs and researchers working on it can raise here.'}</div><div class="rn-act"><button class="btn primary" type="button" data-leaf="${esc(bn.key)}">The research</button><a class="btn" href="#/team">Raise money for it</a></div>`}</div></section>` : '';
+      ${fundingPanel(g, bn)}
+      <div class="rn-act" style="margin-top:14px"><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div></section>` : '';
 
   // 2. The problem field: every problem, sized by recent research, linked by shared papers.
   const field = `<section class="fx" id="field"><div class="fx-h"><div><div class="kick">The problem field</div>
@@ -1973,8 +2000,8 @@ function fieldPanel(key) {
       <div class="fs-ax mono"><span>${years[0]}</span><span>${total.toLocaleString()} papers in the library</span><span>${years[years.length - 1]}</span></div></div>
     ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : ''; })()}
     ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
-    <div class="fs-money">${listing ? `<span><b>${esc(listing.teams.name)}</b> · <span class="mono">${money(raised)}${listing.target_cents ? ` of ${money(listing.target_cents)}` : ''}</span></span>` : '<span class="muted">No team raising money for this yet</span>'}</div>
-    <div class="fs-act"><button class="btn primary" type="button" data-leaf="${esc(l.key)}">Open the research</button>${listing ? `<button class="btn" type="button" data-back="${listing.id}">Back it</button>` : ''}</div>`;
+    ${fundingPanel(g, l, { compact: true })}
+    <div class="fs-act"><button class="btn" type="button" data-leaf="${esc(l.key)}">Open the research</button></div>`;
 }
 
 document.addEventListener('click', (e) => {
@@ -2032,7 +2059,7 @@ function openLeaf(key, push = true) {
       : l.status === 'solved' ? '' : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
         ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
         : `<p>No ideas for this problem yet. Parallax can research it and propose some, each checked against earlier work.</p><button class="btn" type="button" data-askideas="${esc(l.key)}">Ask for ideas</button>`}</div>`; })()}
-    ${fundBlock(g, l)}
+    ${fundingPanel(g, l)}
   </aside>`;
   document.body.appendChild(back);
   document.body.classList.add('noscroll');
@@ -2171,6 +2198,7 @@ document.addEventListener('click', (e) => {
         if (b.nextElementSibling) b.nextElementSibling.textContent = on ? 'Following' : 'Follow';
         return;
       }
+      if (b.dataset.off) { b.textContent = on ? b.dataset.on : b.dataset.off; b.className = `btn sm${on ? ' following' : ''}`; return; } // buttons with their own wording
       b.textContent = on ? 'Following' : 'Follow';
       b.className = `btn ${on ? 'following' : 'primary'}`;
     });
@@ -3009,22 +3037,39 @@ function costBlock(c, l) {
       <p class="wt-note">Parallax estimate from public budgets and contracts, updated monthly. Treat it as a rough range, not a quote.</p></details></div>`;
 }
 
-function fundBlock(g, l) {
-  if (l.status === 'solved') return '';
+// ------------------------------------------------------------ funding
+// One clear block wherever money comes up: who gets it, what it is for, how much and how far along,
+// and where it goes. When nobody is raising yet, say so plainly and show what the work would cost.
+const FEE_NOTE = '95% goes straight to the team through Stripe. 5% keeps Parallax running. Parallax checks every team before it can raise.';
+function fundingPanel(g, l, { compact = false } = {}) {
+  if (!l || l.status === 'solved') return '';
   const list = fundState.listings.filter((x) => x.node_key === l.key);
-  const f = fundState.perNode[l.key];
-  return `<div class="fund"><div class="fund-h"><b>Back this problem</b>${f ? `<span class="mono">${money(f.raised_cents)} from ${f.backers} backer${f.backers === 1 ? '' : 's'}</span>` : ''}</div>
-    ${list.length ? list.map((x) => {
-      const t = fundState.perListing[x.id];
-      const raised = t ? t.raised_cents : 0;
-      const site = safeUrl(x.teams.website);
-      return `<div class="fteam"><div class="ft-main"><div class="ft-name"><b>${esc(x.teams.name)}</b><span>${esc(TEAM_KIND[x.teams.kind] || '')}${site ? ` · <a href="${esc(site)}" target="_blank" rel="noopener">website</a>` : ''}</span></div>
-        <p>${esc(x.plan)}</p>
-        ${x.target_cents ? `<div class="ft-bar"><i style="width:${Math.min(100, raised / x.target_cents * 100).toFixed(1)}%"></i></div><div class="ft-num mono">${money(raised)} of ${money(x.target_cents)}</div>` : raised ? `<div class="ft-num mono">${money(raised)} raised</div>` : ''}</div>
-        <button class="btn primary" type="button" data-back="${x.id}">Back</button></div>`;
-    }).join('') : '<p class="ft-none">No verified team is raising money for this problem yet.</p>'}
-    <a class="ft-claim" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(l.key)}">Working on this? Raise money for your team →</a></div>`;
+  const c = goalCtx?.costs?.[l.key];
+  const head = `<div class="fp-h"><span class="fp-k">Funding</span>${list.length ? `<span class="fp-ok">✓ Verified team${list.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+  if (list.length) {
+    return `<div class="fp${compact ? ' compact' : ''}">${head}${list.map((x) => {
+      const t = fundState.perListing[x.id] || { raised_cents: 0, backers: 0 }, site = safeUrl(x.teams.website);
+      const pctDone = x.target_cents ? Math.min(100, t.raised_cents / x.target_cents * 100) : 0;
+      return `<div class="fp-team">
+        <div class="fp-who"><b>${esc(x.teams.name)}</b><span>${esc(TEAM_KIND[x.teams.kind] || '')}${x.teams.country ? ` · ${esc(countryName(x.teams.country))}` : ''}${site ? ` · <a href="${esc(site)}" target="_blank" rel="noopener">website</a>` : ''}</span></div>
+        <p class="fp-plan"><span>What the money does</span>${esc(x.plan)}</p>
+        ${c?.next_high && !compact ? `<p class="fp-step">This is part of the next step on this problem, which Parallax estimates at ${esc(usdRange(c.next_low, c.next_high))} in total.</p>` : ''}
+        <div class="fp-num"><b class="mono">${money(t.raised_cents)}</b><span>raised${x.target_cents ? ` of <b class="mono">${money(x.target_cents)}</b> goal` : ''} · ${t.backers} backer${t.backers === 1 ? '' : 's'}</span></div>
+        ${x.target_cents ? `<div class="fp-bar"><i style="width:${pctDone.toFixed(1)}%"></i></div>` : ''}
+        <div class="fp-act"><button class="btn primary" type="button" data-back="${x.id}">Back ${esc(x.teams.name)}</button></div>
+      </div>`;
+    }).join('')}<p class="fp-fee">${FEE_NOTE}</p></div>`;
+  }
+  return `<div class="fp none${compact ? ' compact' : ''}">${head}
+    <div class="fp-none">
+      ${c?.next_high ? `<div class="fp-num"><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b><span>${c.next_time ? `${esc(c.next_time)} · ` : ''}what the next step would cost</span></div>${c.next_step ? `<p class="fp-step">Next step: ${esc(c.next_step.replace(/\.$/, ''))}.${c.funders && !compact ? ` <span>Paid for today by ${esc(lowerFirst(c.funders))}.</span>` : ''}</p>` : ''}` : ''}
+      <p><b>No team is raising money for this yet.</b> ${compact ? '' : 'When a lab, nonprofit or researcher working on it posts a plan and a target here, you can back them directly.'}</p>
+    </div>
+    ${compact ? '' : `<p class="fp-fee">${FEE_NOTE}</p>`}
+    <div class="fp-act"><button class="btn sm${follows.has(g.slug) ? ' following' : ''}" type="button" data-follow="${esc(g.slug)}" data-off="Tell me when a team raises" data-on="Following: we’ll tell you">${follows.has(g.slug) ? 'Following: we’ll tell you' : 'Tell me when a team raises'}</button><a class="btn sm ghost" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(l.key)}">Working on this? Raise money</a></div>
+  </div>`;
 }
+
 
 function openBack(id) {
   const x = fundState.listings.find((l) => l.id === Number(id));
