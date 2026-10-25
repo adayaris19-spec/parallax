@@ -33,6 +33,8 @@
 //   SEARCHES_PER_HOUR   optional, default 60. Caps how many public searches per hour
 //                       reach the model at all (rejections and duplicates cost a call too).
 //   CONTACT_EMAIL       optional; OpenAlex answers faster with one.
+//   OPENALEX_API_KEY    strongly recommended; free at openalex.org. Without it OpenAlex
+//                       limits searches per day across everyone sharing the server's IP.
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
@@ -48,6 +50,8 @@ const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const PER_HOUR = Number(Deno.env.get("NEW_GOALS_PER_HOUR") ?? "10");
 const SEARCHES_PER_HOUR = Number(Deno.env.get("SEARCHES_PER_HOUR") ?? "60");
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
+const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
+let oaLastError = "";
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 
@@ -121,11 +125,15 @@ async function openAlex(q: string, opts: { per: number; from?: string; to?: stri
   });
   if (opts.cited) params.set("sort", "cited_by_count:desc");
   if (MAIL) params.set("mailto", MAIL);
+  if (OA_KEY) params.set("api_key", OA_KEY);
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 15000);
   try {
     const r = await fetch(`https://api.openalex.org/works?${params}`, { signal: ctl.signal });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      oaLastError = `OpenAlex answered ${r.status}${r.status === 429 ? " (daily search budget used up; set OPENALEX_API_KEY)" : ""}`;
+      return [];
+    }
     const data = await r.json();
     // deno-lint-ignore no-explicit-any
     return (data.results ?? []).map((w: any): Rec => ({
@@ -324,7 +332,7 @@ async function stageEvidence(slug: string, work: Work) {
       if (!byLeaf[j.leaf].includes(r.id)) byLeaf[j.leaf].push(r.id);
     }
   });
-  if (Object.keys(records).length === 0) throw new Error("OpenAlex returned nothing for any part of the tree");
+  if (Object.keys(records).length === 0) throw new Error(oaLastError || "OpenAlex returned nothing for any part of the tree");
   await saveGoal(slug, { stage: "assess", work: { ...work, records, byLeaf } });
 }
 

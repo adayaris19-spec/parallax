@@ -16,7 +16,7 @@
 // Request: POST {} with header x-parallax-admin: <ADMIN_TOKEN>
 //          optionally {"slug": "mars"} to pulse one goal now.
 //
-// Secrets: the same as map-goal (ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL).
+// Secrets: the same as map-goal (ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL, OPENALEX_API_KEY).
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
@@ -29,6 +29,7 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
+const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
 const PULSE_EVERY_HOURS = 20;
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
@@ -77,6 +78,7 @@ async function openAlexSince(q: string, from: string): Promise<Rec[]> {
     select: "id,doi,title,publication_year,primary_location,authorships,abstract_inverted_index",
   });
   if (MAIL) params.set("mailto", MAIL);
+  if (OA_KEY) params.set("api_key", OA_KEY);
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 15000);
   try {

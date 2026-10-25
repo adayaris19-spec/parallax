@@ -26,6 +26,7 @@ Dashboard -> Edge Functions -> Secrets. Add:
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Your key from console.anthropic.com (already there if the old `ingest` function works) |
 | `ADMIN_TOKEN` | A long random string you make up, e.g. 40 random letters and digits. Keep it private. |
+| `OPENALEX_API_KEY` | Strongly recommended. Free key from OpenAlex (https://help.openalex.org/api/authentication/). Without it, OpenAlex allows only a small number of searches a day shared by everyone on the same server address, and mapping fails with "OpenAlex answered 429". |
 | `CONTACT_EMAIL` | Optional. Your email; OpenAlex answers faster for polite callers. |
 | `PARALLAX_MODEL` | Optional. Defaults to `claude-opus-5-5`. Set `claude-sonnet-5-5` to cut model costs roughly in half. |
 | `NEW_GOALS_PER_HOUR` | Optional. Defaults to 10. The most new goals the public search can create in an hour. |
