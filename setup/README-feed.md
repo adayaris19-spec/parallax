@@ -205,6 +205,16 @@ reports (NTRS) and PubMed. OpenAlex charges per search, not per result, so this 
 searches per problem. The AI still reads only the most relevant handful.
 Test the sources: POST `{"probe": "lunar night power"}` with the admin header.
 
+## 15. Pictures and guesses (the swipe feed)
+
+Run `schema-media.sql` and deploy the `media` function (Verify JWT on). Hourly it finds a free picture
+for each goal and post: NASA's Image Library (NASA media is generally not copyrighted; never imply NASA
+endorses Parallax) and Openverse images under CC0, public domain, CC BY or CC BY-SA. Every picture is
+shown with its credit and license, and is only kept if the file really loads.
+Guesses ("When will this happen?") are stored through the `guess` function, one per person or device
+per goal; only totals are public (`guess_totals`).
+The old list feed is still at `#/list`.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
