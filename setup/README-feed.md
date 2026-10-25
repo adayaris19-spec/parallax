@@ -11,6 +11,9 @@ dashboard except step 5, which runs one command on your computer.
 | `schema-feed.sql` | The tables for goals, their trees and posts |
 | `functions/map-goal/index.ts` | Turns any goal into a goal account: tree, evidence, bottleneck, countdown, first posts |
 | `functions/pulse/index.ts` | Checks new research for one goal per run and posts when something changes |
+| `functions/promises/index.ts` | The promise keeper: finds dated promises in older research and checks them |
+| `schema-promises.sql` | The table for promises |
+| `seed-queue.sql` | Maps the starting goals a few a day, within the free OpenAlex budget |
 | `seed.mjs` | Maps the starting list of goals |
 | `../index.html` | The feed itself (the previous front page now lives at `instruments.html`) |
 
@@ -81,6 +84,20 @@ To add your own instead: `ADMIN_TOKEN=... node setup/seed.mjs "your goal" "anoth
 `index.html` is the whole site: one file, no build step. Publish it the same way the old
 page was published. Anyone can now search for a goal, and if it is not there yet,
 press "Map this goal".
+
+## 7. The promise keeper
+
+The promise keeper finds dated promises in older research ("we expect X by 2015"),
+quotes them word for word, and checks them once the deadline passes.
+
+1. SQL Editor: run all of `schema-promises.sql`.
+2. Deploy a third function named `promises` with `functions/promises/index.ts` (Verify JWT on).
+3. Schedule it hourly, the same way as the pulse in step 4, with the URL ending in
+   `/functions/v1/promises`, the job name `parallax-promises` and the schedule `41 * * * *`.
+
+Each run handles one goal: it checks up to 4 promises whose deadline has passed, or, if none
+are due, searches a goal's older research for new promises (each goal about once a month).
+A promise is only shown as kept with two independent sources.
 
 ## Expert review
 
