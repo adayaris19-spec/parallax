@@ -24,7 +24,7 @@ const LOOKUP = "parallax_terminal_monthly";
 
 // Made on first use: the library refuses to start without a key, and the key may not be set yet.
 let client: Stripe | null = null;
-const stripeApi = () => (client ??= new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stripe.createFetchHttpClient() }));
+const stripeApi = () => (client ??= new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!.trim(), { httpClient: Stripe.createFetchHttpClient() }));
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -86,6 +86,16 @@ async function customerFor(user: { id: string; email: string }): Promise<string>
   return c.id;
 }
 
+// A short, safe description of a Stripe failure (never includes the key).
+// deno-lint-ignore no-explicit-any
+function stripeProblem(e: any): string {
+  const key = (Deno.env.get("STRIPE_SECRET_KEY") ?? "").trim();
+  if (!/^(sk|rk)_(test|live)_/.test(key)) return "the saved key is not a secret key (it should start with sk_test_)";
+  if (e?.type === "StripeAuthenticationError") return "Stripe did not accept the key";
+  if (e?.type === "StripePermissionError") return "the key is missing permissions";
+  return `${e?.type ?? "error"}: ${String(e?.message ?? e).replace(/(sk|rk|pk)_(test|live)_\w+/g, "[key]").slice(0, 160)}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -94,7 +104,12 @@ Deno.serve(async (req) => {
     const user = await userFrom(req);
     if (body.action === "status") {
       const row = user ? (await db(`subscriptions?user_id=eq.${user.id}&select=status,current_period_end`))?.[0] : null;
-      return json({ status: row?.status ?? "none", current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS) });
+      // `stripe` says whether payments can work right now, without exposing anything secret.
+      let stripe = "missing key";
+      if (Deno.env.get("STRIPE_SECRET_KEY")) {
+        try { await stripeApi().balance.retrieve(); stripe = "ok"; } catch (e) { stripe = stripeProblem(e); }
+      }
+      return json({ status: row?.status ?? "none", current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), stripe });
     }
     if (!user) return json({ error: "Sign in first." }, 401);
     if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ error: "Payments are not switched on yet." }, 503);
@@ -123,7 +138,7 @@ Deno.serve(async (req) => {
     }
     return json({ error: "Unknown action." }, 400);
   } catch (e) {
-    console.error("billing failed:", e instanceof Error ? e.message : e);
+    console.error("billing failed:", stripeProblem(e));
     return json({ error: "Billing is unavailable right now. Please try again later." }, 500);
   }
 });
