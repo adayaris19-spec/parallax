@@ -2670,8 +2670,7 @@ function route() {
   setNav(parts);
   document.body.classList.toggle('wide', parts[0] === 'terminal');
   window.scrollTo(0, 0);
-  if (parts[0] === 'following') return swipeView('following');
-  if (parts[0] === 'list') return feedView('all');
+  if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
@@ -2681,7 +2680,7 @@ function route() {
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { tree: 'map', map: 'map', posts: 'posts', promises: 'promises' }[parts[2]] || 'story', parts[2] === 'tree' ? parts[3] : undefined);
-  return swipeView('all');
+  return feedView('all');
 }
 window.addEventListener('hashchange', route);
 renderAcct();
