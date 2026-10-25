@@ -2,8 +2,10 @@
 -- OpenAlex key ($1 of searches a day) is never exhausted by seeding alone.
 --
 -- Each tick does ONE thing:
---   1. if a goal failed because OpenAlex's daily budget ran out, retry it, else
+--   1. if a goal failed (budget ran out, model unavailable...), retry it (at most 3 times), else
 --   2. map the next goal waiting in the queue.
+-- A queued goal whose request never produced a goal (the model was down when it was
+-- understood) goes back in the queue, at most 3 times.
 -- Scheduled every 4 hours (6 goals a day). Run in the SQL Editor after replacing
 -- <ANON_KEY> and <ADMIN_TOKEN>. To stop it: select cron.unschedule('parallax-seed');
 
@@ -12,6 +14,8 @@ create table if not exists seed_queue (
   query text not null unique,
   sent_at timestamptz
 );
+alter table seed_queue add column if not exists attempts int not null default 0;
+alter table goals add column if not exists retries int not null default 0;
 alter table seed_queue enable row level security; -- no policies: not public
 
 insert into seed_queue (query) values
@@ -63,10 +67,15 @@ declare
   stuck   text;
   nxt     record;
 begin
+  update seed_queue q set sent_at = null
+   where q.sent_at < now() - interval '90 minutes' and q.attempts < 3
+     and not exists (select 1 from goals g where g.requested_as = q.query);
+
   select slug into stuck from goals
-   where status = 'failed' and error like '%429%'
+   where status = 'failed' and retries < 3 and updated_at < now() - interval '3 hours'
    order by updated_at asc limit 1;
   if stuck is not null then
+    update goals set retries = retries + 1 where slug = stuck;
     perform net.http_post(url := fn_url, headers := hdrs,
       body := jsonb_build_object('continue', stuck, 'retry', true), timeout_milliseconds := 150000);
     return 'retried ' || stuck;
@@ -76,7 +85,7 @@ begin
   if nxt.id is null then
     return 'queue empty';
   end if;
-  update seed_queue set sent_at = now() where id = nxt.id;
+  update seed_queue set sent_at = now(), attempts = attempts + 1 where id = nxt.id;
   perform net.http_post(url := fn_url, headers := hdrs,
     body := jsonb_build_object('query', nxt.query), timeout_milliseconds := 150000);
   return 'sent ' || nxt.query;

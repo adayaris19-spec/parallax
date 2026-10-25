@@ -573,7 +573,8 @@ async function handle(req: Request): Promise<Response> {
     tree = await draftTree(query, existing);
   } catch (e) {
     if (e instanceof Refused) return json({ rejected: "Parallax can't map that one." });
-    return json({ error: `Could not understand that goal: ${e instanceof Error ? e.message : e}` }, 502);
+    console.error("draftTree failed:", e instanceof Error ? e.message : e);
+    return json({ error: "Parallax can't map new goals right now. Please try again later." }, 503);
   }
 
   if (tree.verdict === "reject") return json({ rejected: tree.reject_reason || "That isn't a goal Parallax can map." });

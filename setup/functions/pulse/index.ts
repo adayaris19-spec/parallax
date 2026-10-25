@@ -159,7 +159,11 @@ async function pulseGoal(goal: { id: number; slug: string; name: string; handle:
     }).join("\n")
   ).join("\n\n");
 
-  const msg = await claude.beta.messages.stream({
+  // If the model is unavailable (no credit, outage), skip this goal until tomorrow instead of
+  // retrying it every ten minutes and spending the day's archive searches on it.
+  let msg;
+  try {
+  msg = await claude.beta.messages.stream({
     model: MODEL,
     max_tokens: 64000,
     betas: ["server-side-fallback-2026-07-01"],
@@ -185,6 +189,10 @@ Write about the research and the world, never about "records" or this search.
 "solved" needs at least two records from different research groups. At most 3 changes.`,
     }],
   }).finalMessage();
+  } catch (e) {
+    await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
+    return { slug: goal.slug, new_records: Object.keys(recs).length, posts: 0, note: `model unavailable: ${e instanceof Error ? e.message.slice(0, 120) : e}` };
+  }
   if (msg.stop_reason === "refusal" || msg.parsed_output == null) {
     await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
     return { slug: goal.slug, new_records: Object.keys(recs).length, posts: 0, note: msg.stop_reason };

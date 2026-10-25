@@ -349,8 +349,15 @@ Deno.serve(async (req) => {
     let harvested = null;
     const due = !goal.promises_checked_at || new Date(goal.promises_checked_at).getTime() < Date.now() - HARVEST_EVERY_DAYS * 864e5;
     if (due || body.harvest) {
-      harvested = await harvest(goal, leaves);
-      await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { promises_checked_at: new Date().toISOString() } });
+      try {
+        harvested = await harvest(goal, leaves);
+        await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { promises_checked_at: new Date().toISOString() } });
+      } catch (e) {
+        // Try this goal again tomorrow rather than every hour (each try spends archive searches).
+        const tomorrow = new Date(Date.now() - (HARVEST_EVERY_DAYS - 1) * 864e5).toISOString();
+        await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { promises_checked_at: tomorrow } });
+        throw e;
+      }
     }
     // A call that harvested stops there to stay inside the platform's time limit; the next
     // call checks whatever came due.
