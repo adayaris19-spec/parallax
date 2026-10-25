@@ -375,6 +375,24 @@ h2.big{font-size:clamp(28px,4.4vw,40px);line-height:1.1;letter-spacing:-.035em;m
   .sheet-grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 12px}
   @keyframes slideup{from{transform:translateY(40px);opacity:0}}
 }
+
+.help{margin:18px 0 0;padding:24px 26px;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.help .kick{color:var(--accent)}
+.help-bn .lbl2{display:block;font-size:13px;color:var(--blocked);font-weight:500;margin-bottom:6px}
+.help-bn h2{font-size:clamp(22px,3.4vw,30px);line-height:1.15;letter-spacing:-.03em;margin:0 0 8px}
+.help-bn p{margin:0;color:var(--ink2);font-size:16px;line-height:1.55;max-width:52ch}
+.help-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.help-money b{font-size:28px;letter-spacing:-.03em;margin-right:8px}
+.help-money span{color:var(--muted);font-size:14px}
+.help-act{display:flex;gap:8px;flex-wrap:wrap}
+.when2{display:block;color:var(--muted);font-size:.62em;letter-spacing:-.02em;margin-top:6px}
+.chg{display:grid;margin-top:18px;border-top:1px solid var(--line)}
+.chg-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;padding:14px 4px;border-bottom:1px solid var(--line);text-decoration:none}
+.chg-row:hover{background:var(--sunk)}
+.chg-row b{font-weight:500;font-size:15.5px;line-height:1.4}
+.chg-row .t{color:var(--faint);font-size:12px;white-space:nowrap}
+.chg-row .sig{white-space:nowrap}
+@media (max-width:760px){.help{padding:20px 18px;border-radius:20px}.chg-row{grid-template-columns:1fr auto}.chg-row .sig{grid-column:1/-1;justify-self:start}}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -781,8 +799,8 @@ body{background:var(--bg)}
 // ------------------------------------------------------------ config
 const SUPA_URL = 'https://zfmjjazkmolvywvayjzj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
-const GOAL_COLS = 'id,slug,handle,name,summary,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
-const POST_COLS = 'id,goal_id,node_key,kind,headline,body,sources,independent_sources,expert_reviewed,reviewer,created_at,meta';
+const GOAL_COLS = 'id,slug,handle,name,summary,tagline,plain_summary,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
+const POST_COLS = 'id,goal_id,node_key,kind,headline,body,plain_headline,plain_body,sources,independent_sources,expert_reviewed,reviewer,created_at,meta';
 const PROMISE_COLS = 'id,node_key,claim,quote,made_year,due_year,source,status,verdict,verdict_sources,independent_sources,checked_at';
 const PAGE = 30;
 
@@ -795,7 +813,18 @@ const view = $('#view');
 async function rest(path) {
   const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
   if (!r.ok) throw new Error(`Parallax's data answered ${r.status}`);
-  return r.json();
+  const rows = await r.json();
+  return Array.isArray(rows) ? rows.map(plain) : rows;
+}
+// Show the plain-language version of a goal, problem or post when there is one (see the simplify function).
+function plain(x) {
+  if (!x || typeof x !== 'object') return x;
+  if (x.plain_title) x.title = x.plain_title;
+  if (x.plain_why) x.why = x.plain_why;
+  if (x.plain_blocker) x.blocker = x.plain_blocker;
+  if (x.plain_headline) { x.headline = x.plain_headline; x.body = x.plain_body ?? x.body; }
+  if (x.plain_summary) x.summary = x.plain_summary;
+  return x;
 }
 
 function ago(iso) {
@@ -1260,7 +1289,7 @@ async function goalView(slug, tab, focusKey) {
   let nodes, posts, promises = [], helpers = [];
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
-      rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources&order=position.asc`),
+      rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
       rest(`posts?goal_id=eq.${g.id}&select=${POST_COLS}&order=created_at.desc&limit=50`),
       rest(`promises?goal_id=eq.${g.id}&select=${PROMISE_COLS}&order=due_year.asc&limit=100`).catch(() => []),
       rest(`node_contributors?goal_id=eq.${g.id}&select=node_key,people`).catch(() => []),
@@ -1284,8 +1313,7 @@ async function goalView(slug, tab, focusKey) {
   const hero = `<section class="gh2 space${tab === 'story' ? '' : ' compact'}"><canvas class="stars" aria-hidden="true"></canvas>
       <div class="gh2-top">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
       <h1>${esc(g.name)}</h1>
-      ${g.summary ? `<p class="sum">${esc(firstSentence(g.summary))}</p>` : ''}
-      ${horizon ? `<div class="eta"><span class="n">${esc(horizon)}</span><span class="u">years away</span><span class="c">Parallax’s estimate at today’s pace</span></div>` : ''}
+      ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
       <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
     </section>`;
 
@@ -1296,12 +1324,12 @@ async function goalView(slug, tab, focusKey) {
   const R = 54, C = 2 * Math.PI * R;
   const ring = `<svg class="ring" viewBox="0 0 128 128" role="img" aria-label="${pctN}% of the way"><circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--line2)" stroke-width="10"/>
     <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--ink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 64 64)"/></svg>`;
-  const stand = `<section class="gs"><div class="kick">Where it stands</div><h2 class="big">${pctN}% of the way there.</h2>
+  const stand = `<section class="gs"><div class="kick">How close we are</div><h2 class="big">${pctN}% of the way there.${horizon ? `<span class="when2">About ${esc(horizon)} years to go.</span>` : ''}</h2>
     <div class="standing"><div class="ringbox">${ring}<div class="rnum"><span data-count="${pctN}">${pctN}</span><small>%</small></div></div>
       <div class="counts">${[['solved', solved, 'Solved'], ['in_progress', going, 'Moving'], ['blocked', blocked, 'Blocked'], ['open', openN, 'Barely started']].map(([k, n, label]) =>
         `<div><b data-count="${n}">${n}</b><span><i class="dot st-${k}"></i>${label}</span></div>`).join('')}</div></div>
-    <p class="cap">${leaves.length} problems stand between us and this goal. <button class="linkish" type="button" data-how>How is this measured?</button></p>
-    <p class="cap how hide">Progress counts solved problems, and half of those in progress. The countdown is an estimate${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></section>`;
+    <p class="cap">${leaves.length} problems stand between us and this goal. <button class="linkish" type="button" data-how>How do we know?</button></p>
+    <p class="cap how hide">Progress counts solved problems, and half of those still in progress. The years are Parallax’s estimate at today’s pace${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></section>`;
 
   const map = `<section class="gs"><div class="kick">The map</div><h2 class="big">Every problem, at a glance.</h2><p class="cap">Each dot is one problem. Tap one to see it.</p>
     <div class="cmap space"><canvas class="stars" aria-hidden="true"></canvas>
@@ -1312,17 +1340,25 @@ async function goalView(slug, tab, focusKey) {
           `<a class="cdot st-${esc(l.status || 'open')}${l.key === g.bottleneck_key ? ' bneck-dot' : ''}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" data-tip="${esc(l.title)}" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}"></a>`).join('')}</div></div>`;
       }).join('')}</div></section>`;
 
-  const listing = bn && fundState.listings.find((x) => x.node_key === bn.key);
-  const raised = bn && fundState.perNode[bn.key];
-  const hold = bn ? `<section class="gs hold"><div class="kick red">What’s holding it back</div>
-    <h2 class="big">${esc(bn.title)}</h2><p class="lead">${esc(firstSentence(bn.blocker))}</p>
-    <div class="act"><button class="btn primary" type="button" data-leaf="${esc(bn.key)}">Explore this problem</button>${listing ? `<button class="btn" type="button" data-back="${listing.id}">Back the team working on it</button>` : ''}${raised ? `<span class="mono" style="color:var(--muted);font-size:13px;align-self:center">${money(raised.raised_cents)} raised</span>` : ''}</div></section>` : '';
+  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
+  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
+  const bnListing = bn && fundState.listings.find((x) => x.node_key === bn.key);
+  const help = `<section class="help"><div class="kick">Help make this happen</div>
+    ${bn ? `<div class="help-bn"><span class="lbl2">The hardest part right now</span><h2>${esc(bn.title)}</h2><p>${esc(firstSentence(bn.blocker))}</p></div>` : ''}
+    <div class="help-row">
+      ${teams.length ? `<div class="help-money"><b class="mono">${totalRaised ? money(totalRaised) : teams.length}</b><span>${totalRaised ? `raised by ${teams.length} team${teams.length === 1 ? '' : 's'}` : `team${teams.length === 1 ? ' is' : 's are'} raising money`}</span></div>` : '<div class="help-money none"><span>No team is raising money for this goal yet.</span></div>'}
+      <div class="help-act">${bnListing ? `<button class="btn primary" type="button" data-back="${bnListing.id}">Back the hardest part</button>` : teams.length ? `<a class="btn primary" href="${base}/map">See where to back</a>` : ''}
+        ${bn ? `<button class="btn" type="button" data-leaf="${esc(bn.key)}">Explore it</button>` : ''}
+        ${teams.length ? '' : '<a class="btn" href="#/team">Raise money for your team</a>'}</div>
+    </div></section>`;
 
-  const latest = posts.slice(0, 8);
-  const rowId = `gl-${g.id}`;
-  const news = latest.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Latest</div><h2 class="big">What changed.</h2></div>
-      <div class="arrows"><button class="btn icon sbtn" type="button" data-slide="${rowId}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${rowId}" data-dir="1" aria-label="Next">›</button></div></div>
-    <div class="slides" id="${rowId}">${latest.map((p) => postCard(p, g, true)).join('')}</div>
+  // Real movement first; promise checks have their own section below.
+  const recent = [...posts.filter((p) => !['mapped', 'promise'].includes(p.kind)), ...posts.filter((p) => p.kind === 'promise')].slice(0, 4);
+  const ups = posts.filter((p) => p.kind === 'advance' || p.kind === 'solved').length, downs = posts.filter((p) => p.kind === 'setback').length;
+  const SIGN = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'Bottleneck', forgotten: 'Old idea', promise: 'Promise check', mapped: 'New' };
+  const news = recent.length ? `<section class="gs"><div class="kick">What changed lately</div>
+    <h2 class="big">${ups || downs ? `${ups} step${ups === 1 ? '' : 's'} forward, ${downs} setback${downs === 1 ? '' : 's'}.` : 'Here is the latest.'}</h2>
+    <div class="chg">${recent.map((p) => `<a class="chg-row" href="${base}/posts"><span class="sig ${esc(p.kind)}">${SIGN[p.kind] || esc(p.kind)}</span><b>${esc(p.headline)}</b><span class="t mono">${esc(whenAgo(p.created_at))}</span></a>`).join('')}</div>
     <a class="more" href="${base}/posts">All ${posts.length} posts →</a></section>` : '';
 
   const pc = (s) => promises.filter((p) => p.status === s).length;
@@ -1333,15 +1369,6 @@ async function goalView(slug, tab, focusKey) {
     <div class="score">${[['kept', 'Kept'], ['partly', 'Partly kept'], ['broken', 'Broken'], ['pending', 'Not due yet']].map(([k, label]) => `<div class="sc ${k}"><b>${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
     ${checked.length ? `<div class="slides" id="${promRow}">${checked.map((p) => `<article class="pcard"><div class="yrs mono">${esc(p.made_year)} <span>→</span> ${esc(p.due_year)}</div><span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span><p>${esc(p.claim)}</p></article>`).join('')}</div>` : ''}
     <a class="more" href="${base}/promises">Every promise, with quotes and sources →</a></section>` : '';
-
-  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
-  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
-  const fundSec = `<section class="gs"><div class="kick">Back the work</div>
-    ${teams.length ? `<h2 class="big">${totalRaised ? `${money(totalRaised)} raised so far.` : `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money.`}</h2>
-      <p class="cap">${teams.map((t) => esc(t.name)).join(', ')} ${teams.length === 1 ? 'is' : 'are'} working on problems in this goal. 95% of every backing goes to the team.</p>
-      <div class="act"><a class="btn primary" href="${base}/map">See where to back</a></div>`
-      : `<h2 class="big">No one is raising money here yet.</h2><p class="cap">Working on one of these problems? Teams raise money on Parallax, and backers fund them directly.</p>
-      <div class="act"><a class="btn" href="#/team">Raise money for your team</a></div>`}</section>`;
 
   let body;
   if (tab === 'map') {
@@ -1375,7 +1402,7 @@ async function goalView(slug, tab, focusKey) {
   } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = stand + map + hold + news + prom + fundSec;
+    body = help + stand + news + map + prom;
   }
 
   document.body.classList.add('goalpage');
@@ -2302,7 +2329,7 @@ async function teamView(sub, rest_) {
     nSel.disabled = true; nSel.innerHTML = '<option value="">Loading…</option>';
     const g = all.find((x) => x.slug === slug);
     if (!g) { nSel.innerHTML = '<option value="">Choose a goal first</option>'; return; }
-    const leaves = await rest(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&status=neq.solved&select=key,title&order=position.asc`).catch(() => []);
+    const leaves = await rest(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&status=neq.solved&select=key,title,plain_title&order=position.asc`).catch(() => []);
     nSel.innerHTML = '<option value="">Choose a problem</option>' + leaves.map((l) => `<option value="${esc(l.key)}"${l.key === pick ? ' selected' : ''}>${esc(l.title)}</option>`).join('');
     nSel.disabled = false;
   };

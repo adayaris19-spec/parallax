@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
     const since90 = new Date(Date.now() - 90 * DAY).toISOString();
     const [goals, nodes, posts, promises, followers, contributions, history, intel, briefs] = await Promise.all([
       db("goals?status=eq.ready&select=id,slug,handle,name,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
-      db("nodes?select=goal_id,key,parent_key,title,status,blocker_kind,blocker,independent_sources,updated_at,evidence&limit=50000"),
-      db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
+      db("nodes?select=goal_id,key,parent_key,title,plain_title,status,blocker_kind,blocker,plain_blocker,independent_sources,updated_at,evidence&limit=50000"),
+      db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,plain_headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
       db("promises?select=goal_id,status&limit=50000"),
       db("goal_followers?select=goal_id,followers"),
       db("contributions?select=goal_id,user_id&limit=50000"),
@@ -87,6 +87,9 @@ Deno.serve(async (req) => {
     const goalPapers = new Map<number, Set<string>>();
     const matrix: Record<string, Record<string, number>> = {};
     for (const n of nodes) {
+      // Plain-language versions first (see the simplify function).
+      n.title = n.plain_title || n.title;
+      n.blocker = n.plain_blocker || n.blocker;
       const s = byGoal.get(n.goal_id);
       if (!s) continue;
       for (const e of n.evidence ?? []) {
@@ -186,7 +189,7 @@ Deno.serve(async (req) => {
 
     const goalBy = new Map(goals.map((g) => [g.id, g]));
     const tape = posts.filter((p) => p.kind !== "mapped").slice(0, 60).map((p) => ({
-      kind: p.kind, headline: p.headline, sources: p.independent_sources ?? 0, at: p.created_at,
+      kind: p.kind, headline: p.plain_headline || p.headline, sources: p.independent_sources ?? 0, at: p.created_at,
       goal: goalBy.get(p.goal_id)?.handle ?? "", slug: goalBy.get(p.goal_id)?.slug ?? "", key: p.node_key,
     })).filter((p) => p.slug);
 
