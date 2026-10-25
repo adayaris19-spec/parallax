@@ -11,8 +11,6 @@
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "4900");
-const PREVIEW_GOALS = 3;
-const PREVIEW_PROBLEMS = 6;
 const DAY = 86_400_000;
 
 const CORS = {
@@ -217,7 +215,6 @@ Deno.serve(async (req) => {
     }
     const brief = briefs[0] ? { week: briefs[0].week, signals: briefs[0].signals, ...briefs[0].content } : null;
 
-    const byMomentum = [...rows].sort((a, b) => b.momentum - a.momentum || b.posts30 - a.posts30);
     return json({
       access: full ? "full" : "preview",
       signed_in: !!uid,
@@ -226,9 +223,9 @@ Deno.serve(async (req) => {
       generated_at: new Date().toISOString(),
       kpis,
       blockers: Object.entries(blockers).map(([kind, count]) => ({ kind, count })).sort((a, b) => b.count - a.count),
-      goals: full ? rows : byMomentum.slice(0, PREVIEW_GOALS),
+      goals: full ? rows : [], // the tables are for subscribers only
       goals_total: rows.length,
-      problems: full ? problems : problems.slice(0, PREVIEW_PROBLEMS),
+      problems: full ? problems : [],
       problems_total: problems.length,
       history: full ? history : [],
       index, index_history: full ? indexHistory : [],

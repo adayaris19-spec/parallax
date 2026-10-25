@@ -3,11 +3,12 @@
 //
 // Keeps the `subscriptions` table in step with Stripe: a finished checkout, a
 // renewal, a failed payment or a cancellation all update the person's status.
+// Also marks backings ("Back a problem") paid, or refunded.
 //
 // In Stripe: Developers -> Webhooks -> Add endpoint
 //   URL:    https://<project>.supabase.co/functions/v1/stripe-webhook
 //   Events: checkout.session.completed, customer.subscription.created,
-//           customer.subscription.updated, customer.subscription.deleted
+//           customer.subscription.updated, customer.subscription.deleted, charge.refunded
 // Then copy the endpoint's signing secret into the Supabase secret STRIPE_WEBHOOK_SECRET.
 //
 // Secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET.
@@ -74,10 +75,24 @@ Deno.serve(async (req) => {
     let note = "ignored";
     if (event.type === "checkout.session.completed") {
       const s = event.data.object as Stripe.Checkout.Session;
-      if (s.mode === "subscription" && s.subscription) {
+      if (s.mode === "payment" && s.metadata?.kind === "backing") {
+        // A backer paid for a problem: mark it paid so it counts toward the problem's total.
+        const id = Number(s.metadata.backing_id);
+        if (s.payment_status === "paid" && id) {
+          await db(`backings?id=eq.${id}&status=eq.pending`, {
+            method: "PATCH", prefer: "return=minimal",
+            body: { status: "paid", paid_at: new Date().toISOString(), stripe_payment_intent: typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null },
+          });
+          note = `backing ${id} paid`;
+        }
+      } else if (s.mode === "subscription" && s.subscription) {
         const sub = await stripeApi().subscriptions.retrieve(typeof s.subscription === "string" ? s.subscription : s.subscription.id);
         note = await record(sub, s.client_reference_id);
       }
+    } else if (event.type === "charge.refunded") {
+      const c = event.data.object as Stripe.Charge;
+      const pi = typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id;
+      if (pi && c.refunded) { await db(`backings?stripe_payment_intent=eq.${pi}`, { method: "PATCH", prefer: "return=minimal", body: { status: "refunded" } }); note = "backing refunded"; }
     } else if (event.type.startsWith("customer.subscription.")) {
       note = await record(event.data.object);
     }

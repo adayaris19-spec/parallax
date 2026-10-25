@@ -249,8 +249,8 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .menu a,.menu button{display:block;width:100%;text-align:left;padding:9px 12px;text-decoration:none;border:0;background:none;cursor:pointer;font-size:14.5px;border-radius:10px}
 .menu a:hover,.menu button:hover{background:var(--sunk)}
 .menu .who2{padding:9px 12px 10px;margin-bottom:4px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
-.modal-back{position:fixed;inset:0;background:rgba(10,10,12,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:30;animation:fade .15s ease-out}
-.modal{background:var(--card);border:1px solid var(--line);border-radius:22px;max-width:400px;width:100%;padding:26px 24px 20px;box-shadow:var(--shadow-lg);animation:rise .2s cubic-bezier(.2,.8,.2,1)}
+.modal-back{position:fixed;inset:0;background:rgba(10,10,12,.5);display:grid;place-items:center;padding:16px;z-index:30;animation:fade .15s ease-out}
+.modal{background:var(--bg);border:1px solid var(--line);border-radius:22px;max-width:400px;width:100%;padding:26px 24px 20px;box-shadow:var(--shadow-lg);animation:rise .2s cubic-bezier(.2,.8,.2,1)}
 @keyframes fade{from{opacity:0}} @keyframes rise{from{opacity:0;transform:translateY(8px) scale(.98)}}
 .modal h2{margin:0 0 8px;font-size:21px;letter-spacing:-.025em}
 .modal p{margin:0 0 16px;color:var(--ink2)}
@@ -271,6 +271,39 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .foot{max-width:680px;margin:0 auto;padding:8px 20px calc(44px + var(--navh));color:var(--faint);font-size:12.5px;text-align:center;line-height:1.6}
 .foot a{color:var(--muted)}
 .hide{display:none!important}
+
+/* ---------- back a problem ---------- */
+.fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
+.fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.fund-h span{font-size:12.5px;color:var(--ink2)}
+.fteam{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.ft-main{min-width:0;flex:1}
+.ft-name b{display:block}
+.ft-name span{font-size:12.5px;color:var(--muted)}
+.fteam p{margin:6px 0;font-size:13.5px}
+.ft-bar{height:4px;border-radius:2px;background:var(--sunk);overflow:hidden;margin-top:8px}
+.ft-bar i{display:block;height:100%;background:var(--solved)}
+.ft-num{font-size:12px;color:var(--muted);margin-top:4px}
+.ft-none{color:var(--muted);font-size:13.5px;margin:8px 0}
+.ft-claim{display:inline-block;margin-top:10px;font-size:13px;font-weight:500;color:var(--accent);text-decoration:none}
+.amts{display:flex;gap:8px;flex-wrap:wrap}
+.amts .chip{appearance:none;border:1px solid var(--line2);background:var(--card);border-radius:999px;height:36px;padding:0 16px;font-weight:500;cursor:pointer;font-family:var(--m)}
+.amts .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.check2{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--ink2);margin:10px 0}
+.split{font-size:12.5px;color:var(--ink2);background:var(--sunk);border-radius:10px;padding:9px 11px;line-height:1.6}
+.how{margin:16px 0 8px;padding-left:20px;color:var(--ink2);line-height:1.6}
+.how li{margin:6px 0}
+.fine2{color:var(--muted);font-size:13px;margin:8px 0 18px}
+.tstep .panel-h h2{align-items:center}
+.sn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--sunk);font-family:var(--m);font-size:12px;margin-right:2px}
+.sn.ok{background:var(--solved);color:#fff}
+.grid-f{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field select{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px 13px;height:44px}
+.lst{display:grid;gap:8px;margin-bottom:16px}
+.lrow{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.lrow span{display:block;font-size:12.5px;color:var(--muted)}
+.addp{border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:520px){.grid-f{grid-template-columns:1fr}.fteam{flex-direction:column}}
 
 /* ---------- terminal (same look as the rest of the site) ---------- */
 .ttabs{position:sticky;top:57px;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin-bottom:6px}
@@ -328,16 +361,16 @@ body.wide main{max-width:1120px}
 .opp a .m{display:block;margin-top:3px;color:var(--muted);font-size:12px}
 .opp a .m b{font-family:var(--m);font-weight:500;color:var(--ink2)}
 .fields{display:grid;grid-template-columns:repeat(2,1fr)}
-.field{padding:16px 18px;border-top:1px solid var(--line)}
-.field:nth-child(-n+2){border-top:0}
-.field:nth-child(even){border-left:1px solid var(--line)}
-.field .fh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.field .fh a{font-weight:600;text-decoration:none}
-.field .gr{font-family:var(--m);font-size:12.5px}
-.field .sub2{color:var(--muted);font-size:12px;margin-top:2px}
-.field .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
-.field ol{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink2)}
-.field ol li span{color:var(--muted);font-family:var(--m);font-size:11.5px}
+.fld{padding:16px 18px;border-top:1px solid var(--line)}
+.fld:nth-child(-n+2){border-top:0}
+.fld:nth-child(even){border-left:1px solid var(--line)}
+.fld .fh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.fld .fh a{font-weight:600;text-decoration:none}
+.fld .gr{font-family:var(--m);font-size:12.5px}
+.fld .sub2{color:var(--muted);font-size:12px;margin-top:2px}
+.fld .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.fld ol{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink2)}
+.fld ol li span{color:var(--muted);font-family:var(--m);font-size:11.5px}
 .cbar{display:grid;grid-template-columns:28px 1fr 38px;gap:8px;align-items:center;font-size:12px;margin-top:6px}
 .cbar .t{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
 .cbar .t i{display:block;height:100%;background:var(--ink);border-radius:3px}
@@ -416,8 +449,8 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
 .offer .price{font-family:var(--m);font-size:38px;letter-spacing:-.04em}
 .offer .price small{font-size:14px;color:var(--muted)}
 .spark{vertical-align:middle}
-@media (max-width:900px){.top2,.grid2{grid-template-columns:1fr}.brief3,.opp{grid-template-columns:1fr}.brief3 > div + div,.opp > div + div{border-left:0;border-top:1px solid var(--line)}.fields{grid-template-columns:1fr}.field:nth-child(even){border-left:0}.field:nth-child(2){border-top:1px solid var(--line)}.kpis{grid-template-columns:repeat(3,1fr)}.kpis .metric:nth-child(4){border-left:0}.kpis .metric:nth-child(n+4){border-top:1px solid var(--line)}.offer{grid-template-columns:1fr}}
-@media (max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}.kpis .metric{border-left:1px solid var(--line)!important;border-top:1px solid var(--line)}.kpis .metric:nth-child(odd){border-left:0!important}.kpis .metric:nth-child(-n+2){border-top:0}.idx .v{font-size:46px}.field .two{grid-template-columns:1fr}}
+@media (max-width:900px){.top2,.grid2{grid-template-columns:1fr}.brief3,.opp{grid-template-columns:1fr}.brief3 > div + div,.opp > div + div{border-left:0;border-top:1px solid var(--line)}.fields{grid-template-columns:1fr}.fld:nth-child(even){border-left:0}.fld:nth-child(2){border-top:1px solid var(--line)}.kpis{grid-template-columns:repeat(3,1fr)}.kpis .metric:nth-child(4){border-left:0}.kpis .metric:nth-child(n+4){border-top:1px solid var(--line)}.offer{grid-template-columns:1fr}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}.kpis .metric{border-left:1px solid var(--line)!important;border-top:1px solid var(--line)}.kpis .metric:nth-child(odd){border-left:0!important}.kpis .metric:nth-child(-n+2){border-top:0}.idx .v{font-size:46px}.fld .two{grid-template-columns:1fr}}
 
 /* ---------- phone: app-like bottom bar ---------- */
 .bnav{display:none}
@@ -475,7 +508,8 @@ body{background:var(--bg)}
 @media (prefers-color-scheme: dark){.sheen{opacity:.35}}
 
 /* frosted glass surfaces with a light-catching iridescent edge */
-.post,.metrics,.bneck,.branch,.gcard,.modal,.menu,.suggest{background:var(--glass);border-color:var(--glass-edge);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-shadow:inset 0 1px 0 var(--glass-line),0 1px 1px rgba(16,17,40,.03),0 14px 40px -24px rgba(40,44,120,.28)}
+.post,.metrics,.bneck,.branch,.gcard,.menu,.suggest{background:var(--glass);border-color:var(--glass-edge);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-shadow:inset 0 1px 0 var(--glass-line),0 1px 1px rgba(16,17,40,.03),0 14px 40px -24px rgba(40,44,120,.28)}
+.modal{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}
 .post,.gcard,.bneck,.metrics{position:relative}
 .post::after,.gcard::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:var(--iri);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s;pointer-events:none}
 .post:hover::after,.gcard:hover::after{opacity:.85}
@@ -626,7 +660,7 @@ body{background:var(--bg)}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/terminal">Parallax Terminal</a> · <a href="instruments.html">The original Parallax instruments</a>
+  <br><a href="#/terminal">Parallax Terminal</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -789,6 +823,7 @@ function toggleMenu(force) {
     <a href="#/branch" role="menuitem">Your branch</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/terminal" role="menuitem">Parallax Terminal</a>
+    <a href="#/team" role="menuitem">Raise money for your team</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
   m.classList.remove('hide');
@@ -1125,6 +1160,7 @@ async function goalView(slug, tab, focusKey) {
       rest(`posts?goal_id=eq.${g.id}&select=${POST_COLS}&order=created_at.desc&limit=50`),
       rest(`promises?goal_id=eq.${g.id}&select=${PROMISE_COLS}&order=due_year.asc&limit=100`).catch(() => []),
       rest(`node_contributors?goal_id=eq.${g.id}&select=node_key,people`).catch(() => []),
+      loadFunding(g),
     ]);
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
@@ -1177,10 +1213,10 @@ async function goalView(slug, tab, focusKey) {
             const ev = (l.evidence || []).slice(0, 6).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)})</span>` : ''}</li>`; }).join('');
             const why = BLOCK[l.blocker_kind] ? ` · ${BLOCK[l.blocker_kind]}` : '';
             return `<details class="leaf${l.key === focusKey ? ' target' : ''}" id="leaf-${esc(l.key)}"${l.key === focusKey ? ' open' : ''}>
-              <summary><i class="dot st-${esc(l.status || 'open')}" title="${esc(leafStatusLabel(l.status))}"></i><span class="leaf-t"><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${esc(why)}${l.key === g.bottleneck_key ? ' · biggest bottleneck' : ''}${(() => { const h = helpers.find((x) => x.node_key === l.key); return h ? ` · ${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here` : ''; })()}</span></span></summary>
+              <summary><i class="dot st-${esc(l.status || 'open')}" title="${esc(leafStatusLabel(l.status))}"></i><span class="leaf-t"><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${esc(why)}${l.key === g.bottleneck_key ? ' · biggest bottleneck' : ''}${(() => { const h = helpers.find((x) => x.node_key === l.key); return h ? ` · ${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here` : ''; })()}${esc(raisedNote(l.key))}</span></span></summary>
               <div class="leaf-body">${l.why ? `<p><b>Why it matters:</b> ${esc(l.why)}</p>` : ''}${l.blocker ? `<p><b>${l.status === 'solved' ? 'What was done' : 'What stands in the way'}:</b> ${esc(l.blocker)}</p>` : ''}
                 ${ev ? `<ul class="srcs">${ev}</ul>` : '<p style="color:var(--muted)">No papers found for this yet.</p>'}
-                <p style="color:var(--muted);font-size:12.5px">${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</p></div></details>`;
+                <p style="color:var(--muted);font-size:12.5px">${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</p>${fundBlock(g, l)}</div></details>`;
           }).join('')}</section>`;
       }).join('');
   } else if (tab === 'promises') {
@@ -1717,7 +1753,7 @@ function fieldsPanel(t) {
   const y = new Date().getFullYear();
   return `<section class="panel">${head}<div class="fields">${t.fields.map((f) => {
     const maxShare = Math.max(0.01, ...f.countries.map((c) => c.share));
-    return `<div class="field"><div class="fh"><a href="#/g/${encodeURIComponent(f.slug)}">@${esc(f.goal)}</a><span class="gr ${f.growth > 0 ? 'up' : f.growth < 0 ? 'down' : ''}" data-tip="Papers in the last 3 full years vs the 3 before">${growthTxt(f.growth)} in 3 years</span></div>
+    return `<div class="fld"><div class="fh"><a href="#/g/${encodeURIComponent(f.slug)}">@${esc(f.goal)}</a><span class="gr ${f.growth > 0 ? 'up' : f.growth < 0 ? 'down' : ''}" data-tip="Papers in the last 3 full years vs the 3 before">${growthTxt(f.growth)} in 3 years</span></div>
       <div class="sub2">${f.papers_3y.toLocaleString()} papers in the last 3 full years</div>
       ${colsChart(f.years, y - 3)}
       <div class="two"><div><span class="lbl">Top institutions</span><ol>${f.institutions.slice(0, 5).map((i) => `<li>${esc(i.name)} <span>${i.papers.toLocaleString()}</span></li>`).join('')}</ol></div>
@@ -1805,7 +1841,7 @@ function renderTerminal(box, tab = 'overview') {
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
     signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
         <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with the Terminal. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
-    data: () => `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
+    data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate(`${t.goals_total} goals · ${t.problems_total} open problems`, 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
         <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
         <div id="tGoals">${goalsTable()}</div></section>
       <section class="panel"><div class="panel-h"><h2>Open problems <small>${full ? t.problems_total : `${t.problems.length} of ${t.problems_total}`}</small></h2>
@@ -1895,6 +1931,194 @@ async function terminalView(tab = 'overview') {
   }
 }
 
+// ------------------------------------------------------------ back a problem
+// Teams raise money for problems; backers pay through Stripe; 95% goes to the team.
+const FEE_PCT = 5;
+const money = (c) => `$${(c / 100).toLocaleString(undefined, { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
+const coverFor = (c) => Math.ceil(c * 0.029 + 30);
+const TEAM_KIND = { lab: 'Lab or university', nonprofit: 'Nonprofit', company: 'Company', individual: 'Independent researcher' };
+let fundState = { goal: null, listings: [], perNode: {}, perListing: {} };
+
+async function loadFunding(g) {
+  fundState = { goal: g, listings: [], perNode: {}, perListing: {} };
+  try {
+    const [listings, perNode] = await Promise.all([
+      rest(`team_problems?goal_id=eq.${g.id}&status=eq.active&select=id,node_key,node_title,plan,target_cents,teams(id,name,kind,website,country,about)&order=created_at.asc`),
+      rest(`problem_funding?goal_id=eq.${g.id}&select=node_key,raised_cents,backers`),
+    ]);
+    fundState.listings = listings.filter((l) => l.teams);
+    for (const r of perNode) fundState.perNode[r.node_key] = r;
+    if (fundState.listings.length) {
+      const tot = await rest(`team_problem_funding?team_problem_id=in.(${fundState.listings.map((l) => l.id).join(',')})&select=team_problem_id,raised_cents,backers`);
+      for (const r of tot) fundState.perListing[r.team_problem_id] = r;
+    }
+  } catch { /* funding is optional; the tree still shows */ }
+}
+
+function raisedNote(key) {
+  const f = fundState.perNode[key];
+  return f ? ` · ${money(f.raised_cents)} raised` : '';
+}
+
+function fundBlock(g, l) {
+  if (l.status === 'solved') return '';
+  const list = fundState.listings.filter((x) => x.node_key === l.key);
+  const f = fundState.perNode[l.key];
+  return `<div class="fund"><div class="fund-h"><b>Back this problem</b>${f ? `<span class="mono">${money(f.raised_cents)} from ${f.backers} backer${f.backers === 1 ? '' : 's'}</span>` : ''}</div>
+    ${list.length ? list.map((x) => {
+      const t = fundState.perListing[x.id];
+      const raised = t ? t.raised_cents : 0;
+      const site = safeUrl(x.teams.website);
+      return `<div class="fteam"><div class="ft-main"><div class="ft-name"><b>${esc(x.teams.name)}</b><span>${esc(TEAM_KIND[x.teams.kind] || '')}${site ? ` · <a href="${esc(site)}" target="_blank" rel="noopener">website</a>` : ''}</span></div>
+        <p>${esc(x.plan)}</p>
+        ${x.target_cents ? `<div class="ft-bar"><i style="width:${Math.min(100, raised / x.target_cents * 100).toFixed(1)}%"></i></div><div class="ft-num mono">${money(raised)} of ${money(x.target_cents)}</div>` : raised ? `<div class="ft-num mono">${money(raised)} raised</div>` : ''}</div>
+        <button class="btn primary" type="button" data-back="${x.id}">Back</button></div>`;
+    }).join('') : '<p class="ft-none">No verified team is raising money for this problem yet.</p>'}
+    <a class="ft-claim" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(l.key)}">Working on this? Raise money for your team →</a></div>`;
+}
+
+function openBack(id) {
+  const x = fundState.listings.find((l) => l.id === Number(id));
+  if (!x) return;
+  closeModal();
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  const name = me && me.profile ? (me.profile.display_name || me.profile.handle) : '';
+  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="bkT">
+    <h2 id="bkT">Back this problem</h2>
+    <p><b>${esc(x.node_title)}</b><br><span style="color:var(--muted)">Your money goes to ${esc(x.teams.name)}.</span></p>
+    <div class="amts" role="radiogroup" aria-label="Amount">${[10, 25, 50, 100, 250].map((a, i) => `<button type="button" class="chip${i === 1 ? ' on' : ''}" data-amt="${a}" role="radio" aria-checked="${i === 1}">$${a}</button>`).join('')}</div>
+    <label class="field"><span>Or another amount (USD)</span><input id="bkAmt" inputmode="decimal" placeholder="25"></label>
+    <label class="check2"><input type="checkbox" id="bkCover" checked> Add card fees so ${esc(x.teams.name)} gets the full amount</label>
+    <div class="split mono" id="bkSplit"></div>
+    <label class="field"><span>Name to show <small style="display:inline;font-weight:400">(optional)</small></span><input id="bkName" maxlength="60" value="${esc(name)}"></label>
+    <label class="check2"><input type="checkbox" id="bkAnon"> Back anonymously</label>
+    <label class="field"><span>A note for the team <small style="display:inline;font-weight:400">(optional)</small></span><textarea id="bkMsg" maxlength="280" rows="2"></textarea></label>
+    <button class="btn primary wide" type="button" id="bkGo">Continue to payment</button>
+    <button class="btn wide" type="button" id="bkNo">Cancel</button>
+    <p class="fine">Payments are handled by Stripe. ${100 - FEE_PCT}% goes to the team and ${FEE_PCT}% keeps Parallax running. Backing a team is not a tax-deductible donation unless the team is a registered nonprofit.</p>
+    <div class="err" id="bkErr"></div></div>`;
+  document.body.appendChild(back);
+  back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
+  $('#bkNo').onclick = closeModal;
+  let amt = 2500;
+  const paint = () => {
+    const cover = $('#bkCover').checked ? coverFor(amt) : 0;
+    const fee = Math.round(amt * FEE_PCT / 100);
+    $('#bkSplit').innerHTML = amt >= 500 ? `You pay <b>${money(amt + cover)}</b> · ${esc(x.teams.name)} gets <b>${money(amt - fee)}</b> · Parallax ${money(fee)}${cover ? ` · card fees ${money(cover)}` : ''}` : 'The smallest amount is $5.';
+    $('#bkGo').disabled = amt < 500 || amt > 1_000_000;
+  };
+  back.querySelectorAll('[data-amt]').forEach((b) => {
+    b.onclick = () => {
+      back.querySelectorAll('[data-amt]').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-checked', String(c === b)); });
+      amt = Number(b.dataset.amt) * 100; $('#bkAmt').value = ''; paint();
+    };
+  });
+  $('#bkAmt').oninput = (e) => {
+    const v = Math.round(parseFloat(e.target.value.replace(/[^0-9.]/g, '')) * 100);
+    back.querySelectorAll('[data-amt]').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-checked', 'false'); });
+    amt = Number.isFinite(v) ? v : 0; paint();
+  };
+  $('#bkCover').onchange = paint;
+  paint();
+  $('#bkGo').onclick = async () => {
+    $('#bkGo').disabled = true;
+    const data = await callFn('fund', { action: 'back', team_problem_id: x.id, amount_cents: amt, cover_fees: $('#bkCover').checked, anonymous: $('#bkAnon').checked, display_name: $('#bkName').value.trim(), message: $('#bkMsg').value.trim() }).catch((e) => ({ error: e.message }));
+    if (data.url) { location.href = data.url; return; }
+    $('#bkGo').disabled = false;
+    $('#bkErr').textContent = data.error || 'Could not start the payment. Try again.';
+  };
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-back]'); if (b) openBack(b.dataset.back); });
+
+// ------------------------------------------------------------ team page
+const COUNTRIES = ['US', 'GB', 'CA', 'AU', 'NZ', 'IE', 'DE', 'FR', 'NL', 'BE', 'LU', 'AT', 'CH', 'ES', 'PT', 'IT', 'GR', 'SE', 'DK', 'NO', 'FI', 'PL', 'CZ', 'SK', 'HU', 'RO', 'BG', 'HR', 'SI', 'EE', 'LV', 'LT', 'CY', 'MT', 'JP', 'SG', 'HK'];
+const countryName = (c) => { try { return new Intl.DisplayNames(undefined, { type: 'region' }).of(c); } catch { return c; } };
+
+async function teamView(sub, rest_) {
+  view.innerHTML = '<div id="tm2"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>';
+  const box = $('#tm2');
+  await authReady;
+  if (!box.isConnected) return;
+  const intro = `<h1 class="page-h">Raise money for your team</h1>
+    <p class="page-sub">For labs, nonprofits, companies and independent researchers working on a problem in a goal’s tree.</p>
+    <ol class="how"><li><b>Tell people who you are.</b> Your team’s name, website and what you do.</li><li><b>Verify with Stripe.</b> Stripe checks your identity and adds your bank account. Money goes straight to you.</li><li><b>List the problems you work on.</b> Say what the money will do. Backers see it on the problem in the tree.</li></ol>
+    <p class="fine2">Parallax keeps ${FEE_PCT}% of each backing. Backers can add card fees on top so you get the full ${100 - FEE_PCT}%. Parallax reviews every new team before its listings go public.</p>`;
+  if (!sb || !me) {
+    box.innerHTML = intro + `<p><button class="btn primary" type="button" id="tmIn">Sign in to start</button></p>`;
+    box.querySelector('#tmIn').onclick = () => openSignIn('Sign in to raise money for your team.');
+    return;
+  }
+  const data = await callFn('fund', { action: 'team_get' }).catch((e) => ({ error: e.message }));
+  if (!box.isConnected) return;
+  if (data.error) { box.innerHTML = intro + note('Could not load your team', esc(data.error), '<p><button class="btn" type="button" onclick="route()">Try again</button></p>'); return; }
+  const t = data.team;
+  const totals = Object.fromEntries((data.totals || []).map((r) => [r.team_problem_id, r]));
+  const step = (n, title, done, html) => `<section class="panel tstep"><div class="panel-h"><h2><span class="sn${done ? ' ok' : ''}">${done ? '✓' : n}</span>${title}</h2></div><div class="pad">${html}</div></section>`;
+  const form = `<div class="grid-f">
+      <label class="field"><span>Team name</span><input id="tName" maxlength="80" value="${esc(t?.name || '')}" placeholder="e.g. Lunar Power Lab, TU Delft"></label>
+      <label class="field"><span>What kind of team</span><select id="tKind">${Object.entries(TEAM_KIND).map(([k, v]) => `<option value="${k}"${(t?.kind || 'lab') === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="field"><span>Website</span><input id="tWeb" maxlength="200" value="${esc(t?.website || '')}" placeholder="https://"></label>
+      <label class="field"><span>Country your bank account is in</span><select id="tCountry"${t?.has_stripe ? ' disabled' : ''}>${COUNTRIES.map((c) => `<option value="${c}"${(t?.country || 'US') === c ? ' selected' : ''}>${esc(countryName(c))}</option>`).join('')}</select></label>
+    </div>
+    <label class="field"><span>About your team</span><textarea id="tAbout" maxlength="600" rows="3" placeholder="Who you are and what you have done so far.">${esc(t?.about || '')}</textarea></label>
+    <button class="btn primary" type="button" id="tSave">${t ? 'Save changes' : 'Create team'}</button><span class="err" id="tErr" style="margin-left:10px"></span>`;
+  const payouts = !t ? '<p style="color:var(--muted);margin:0">Create your team first.</p>'
+    : t.payouts_ready ? `<p style="margin:0 0 12px">Stripe has verified ${esc(t.name)}. Backings arrive in your Stripe balance and pay out to your bank.</p><button class="btn" type="button" id="tDash">Open your Stripe dashboard</button>`
+    : `<p style="margin:0 0 12px">${t.has_stripe ? 'Stripe still needs a few details before it can send you money.' : 'Stripe verifies who you are and where to send the money. It takes about 5 minutes.'}</p><button class="btn primary" type="button" id="tOnb">${t.has_stripe ? 'Finish setting up payouts' : 'Set up payouts with Stripe'}</button>`;
+  const review = !t ? '<p style="color:var(--muted);margin:0">After you create your team.</p>'
+    : t.approved ? `<p style="margin:0">Approved. ${t.payouts_ready ? 'Your listings are public.' : 'Your listings go public once payouts are set up.'}</p>`
+    : '<p style="margin:0">Parallax checks that every team is real before its listings go public, usually within a few days. You can add problems now.</p>';
+  const listings = (data.listings || []).filter((l) => l.status === 'active');
+  const [cSlug, cKey] = sub === 'claim' ? rest_ : [];
+  const list = !t ? '<p style="color:var(--muted);margin:0">After you create your team.</p>' : `
+    ${listings.length ? `<div class="lst">${listings.map((l) => { const r = totals[l.id]; return `<div class="lrow"><div><b>${esc(l.node_title)}</b><span>${r ? `${money(r.raised_cents)} from ${r.backers} backer${r.backers === 1 ? '' : 's'}` : 'No backers yet'}${l.target_cents ? ` · target ${money(l.target_cents)}` : ''}</span></div><button class="btn" type="button" data-unclaim="${l.id}">Stop raising</button></div>`; }).join('')}</div>` : ''}
+    <div class="addp"><b>Add a problem you work on</b>
+      <div class="grid-f"><label class="field"><span>Goal</span><select id="cGoal"><option value="">Choose a goal</option></select></label>
+        <label class="field"><span>Problem</span><select id="cNode" disabled><option value="">Choose a goal first</option></select></label></div>
+      <label class="field"><span>What will the money do?</span><textarea id="cPlan" maxlength="800" rows="3" placeholder="e.g. Build and test a 1 kW prototype through a simulated two-week lunar night."></textarea></label>
+      <label class="field"><span>Target in USD <small style="display:inline;font-weight:400">(optional)</small></span><input id="cTarget" inputmode="numeric" placeholder="20000"></label>
+      <button class="btn primary" type="button" id="cAdd">Add this problem</button><span class="err" id="cErr" style="margin-left:10px"></span></div>`;
+  box.innerHTML = intro + step(1, 'Your team', !!t, form) + step(2, 'Payouts', !!t?.payouts_ready, payouts) + step(3, 'Review by Parallax', !!t?.approved, review) + step(4, 'Problems you are raising for', listings.length > 0, list);
+
+  box.querySelector('#tSave').onclick = async (e) => {
+    e.target.disabled = true;
+    const r = await callFn('fund', { action: 'team_save', name: $('#tName').value, kind: $('#tKind').value, website: $('#tWeb').value.trim(), country: $('#tCountry').value, about: $('#tAbout').value });
+    e.target.disabled = false;
+    if (r.error) { $('#tErr').textContent = r.error; return; }
+    toast(t ? 'Saved' : 'Team created'); teamView(sub, rest_);
+  };
+  const onb = box.querySelector('#tOnb');
+  if (onb) onb.onclick = async () => { onb.disabled = true; const r = await callFn('fund', { action: 'team_onboard' }); if (r.url) { location.href = r.url; return; } onb.disabled = false; toast(r.error || 'Could not reach Stripe. Try again.'); };
+  const dash = box.querySelector('#tDash');
+  if (dash) dash.onclick = async () => { dash.disabled = true; const r = await callFn('fund', { action: 'team_dashboard' }); dash.disabled = false; if (r.url) window.open(r.url, '_blank', 'noopener'); else toast(r.error || 'Could not open Stripe.'); };
+  box.querySelectorAll('[data-unclaim]').forEach((b) => { b.onclick = async () => { b.disabled = true; const r = await callFn('fund', { action: 'unclaim', id: Number(b.dataset.unclaim) }); if (r.error) { b.disabled = false; toast(r.error); return; } toast('Stopped raising for that problem'); teamView(); }; });
+  if (!t) return;
+
+  const gSel = $('#cGoal'), nSel = $('#cNode');
+  const all = (await goals()).filter((g) => g.status === 'ready');
+  gSel.innerHTML += all.map((g) => `<option value="${esc(g.slug)}">@${esc(g.handle)} · ${esc(g.name)}</option>`).join('');
+  const loadNodes = async (slug, pick) => {
+    nSel.disabled = true; nSel.innerHTML = '<option value="">Loading…</option>';
+    const g = all.find((x) => x.slug === slug);
+    if (!g) { nSel.innerHTML = '<option value="">Choose a goal first</option>'; return; }
+    const leaves = await rest(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&status=neq.solved&select=key,title&order=position.asc`).catch(() => []);
+    nSel.innerHTML = '<option value="">Choose a problem</option>' + leaves.map((l) => `<option value="${esc(l.key)}"${l.key === pick ? ' selected' : ''}>${esc(l.title)}</option>`).join('');
+    nSel.disabled = false;
+  };
+  gSel.onchange = () => loadNodes(gSel.value);
+  if (cSlug) { gSel.value = cSlug; await loadNodes(cSlug, cKey); $('#cPlan').focus(); }
+  $('#cAdd').onclick = async (e) => {
+    const dollars = parseFloat(($('#cTarget').value || '').replace(/[^0-9.]/g, ''));
+    e.target.disabled = true;
+    const r = await callFn('fund', { action: 'claim', slug: gSel.value, node_key: nSel.value, plan: $('#cPlan').value, target_cents: Number.isFinite(dollars) ? Math.round(dollars * 100) : null });
+    e.target.disabled = false;
+    if (r.error) { $('#cErr').textContent = r.error; return; }
+    toast('Added. Backers will see it once your team is approved.'); location.hash = '#/team';
+  };
+  if (sub === 'ready') toast(t.payouts_ready ? 'Payouts are set up' : 'Stripe still needs a few details');
+}
+
 // ------------------------------------------------------------ motion
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let pointer = { x: 0, y: 0 };
@@ -1960,7 +2184,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'following', branch: 'branch', explore: 'explore', u: 'me', settings: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'following', branch: 'branch', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
@@ -1974,6 +2198,7 @@ $('#navMe').addEventListener('click', () => {
 
 function route() {
   clearTimeout(pollTimer);
+  closeModal();
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
@@ -1986,6 +2211,8 @@ function route() {
   if (parts[0] === 'branch') return branchView();
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
+  if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
+  if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], ['tree', 'promises'].includes(parts[2]) ? parts[2] : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
   return feedView('all');
 }
