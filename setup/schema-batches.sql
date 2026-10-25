@@ -34,3 +34,16 @@ create policy "requests are public" on idea_requests for select using (true);
 create policy "people ask for themselves" on idea_requests for insert with check (auth.uid() = user_id);
 grant select on idea_requests to anon;
 grant select, insert on idea_requests to authenticated;
+
+-- Videos: the photo editor's judgement runs as a batch; a later call saves the videos.
+create table if not exists reel_jobs (
+  batch_id text primary key,
+  goal_id bigint not null references goals(id) on delete cascade,
+  slug text not null, fresh boolean not null default false,
+  reels jsonb not null, wants jsonb not null, cands jsonb not null, present jsonb not null, post_ids jsonb not null,
+  status text not null default 'pending' check (status in ('pending', 'done', 'failed')),
+  created_at timestamptz not null default now()
+);
+alter table reel_jobs enable row level security;
+-- Hourly, so finished videos appear within the hour.
+select cron.alter_job((select jobid from cron.job where jobname = 'parallax-reels'), schedule := '51 * * * *');

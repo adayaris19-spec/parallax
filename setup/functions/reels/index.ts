@@ -217,7 +217,7 @@ async function attention(): Promise<Map<number, number>> {
   return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
 }
 
-async function run(slug?: string, fresh = false) {
+async function run(slug?: string, fresh = false, live = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
   // Remake a goal's videos only when there is something new (at most weekly), or monthly otherwise.
   const latest = slug ? [] : await db(`posts?kind=neq.mapped&select=goal_id,created_at&order=created_at.desc&limit=500`);
@@ -266,7 +266,6 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   }).finalMessage().then(track("reels"))).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
   const reels = plan.reels.filter((r) => fresh || !done.has(`${r.kind}:${r.post_id || 0}`) || r.kind === "intro").slice(0, 4);
-  if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
 
   // Visuals: find candidates for each scene that wants one, then let Claude keep only good ones.
   const wants: { r: number; s: number; q: string }[] = [];
@@ -290,6 +289,20 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
     cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind}${c.landscape ? ", landscape: the centre will be cropped to a tall phone screen" : ""})` }); content.push(blocks[i][k]); } });
   });
   content.push({ type: "text", text: "One entry per scene; id = the scene number." });
+  const present = blocks.map((b) => b.map(Boolean));
+  const postIds = reels.map((r) => (r.post_id && posts.some((p: { id: number }) => p.id === r.post_id) ? r.post_id : null));
+  // The photo editor's judgement goes through the Message Batches API (half price, same model and
+  // standards); a later call applies it. {"live": true} judges at once instead.
+  if (!live && present.some((b) => b.some(Boolean))) {
+    const fmt = betaZodOutputFormat(Verdict);
+    const batch = await claude.messages.batches.create({ requests: [{ custom_id: "judge", params: {
+      model: MODEL, max_tokens: 16000, output_config: { effort: "low", format: { type: "json_schema", schema: fmt.schema } },
+      messages: [{ role: "user", content }],
+    } }] });
+    await db("reel_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, slug: g.slug, fresh, reels, wants, cands, present, post_ids: postIds } });
+    await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: new Date().toISOString() } });
+    return { slug: g.slug, submitted: batch.id, wanted: wants.length, errors: [...new Set(errors)].slice(0, 4) };
+  }
   let verdict: z.infer<typeof Verdict> | null = null;
   if (blocks.some((b) => b.some(Boolean))) {
     try {
@@ -302,10 +315,17 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
       try { verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content: slim }] }).finalMessage().then(track("reels"))).parsed_output; } catch { /* text-only scenes this time */ }
     }
   }
+  return finalize(g, reels, wants, cands, present, postIds, verdict, fresh, errors);
+}
+
+type Reel = z.infer<typeof Plan>["reels"][number];
+// Keep the visuals the photo editor approved (8/10 or better), copy Pixabay files, save the reels.
+async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[]) {
+  if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
   const visual: Record<string, Cand> = {};
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
-    const c = v && v.pick >= 0 && v.score >= 8 && blocks[i][v.pick] ? cands[i][v.pick] : null;
+    const c = v && v.pick >= 0 && v.score >= 8 && present[i]?.[v.pick] ? cands[i][v.pick] : null;
     if (!c) continue;
     let url = c.url;
     if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
@@ -329,7 +349,7 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
       visual: visual[`${ri}:${si}`] ?? null,
       layout: s.layout,
     }));
-    const postId = r.post_id && posts.some((p: { id: number }) => p.id === r.post_id) ? r.post_id : null;
+    const postId = postIds[ri];
     if (r.kind === "intro" || r.kind === "people") await db(`reels?goal_id=eq.${g.id}&kind=eq.${r.kind}`, { method: "DELETE", prefer: "return=minimal" });
     await db("reels", { method: "POST", prefer: "return=minimal", body: { goal_id: g.id, post_id: r.kind === "intro" || r.kind === "people" ? null : postId, kind: r.kind, title: r.title.slice(0, 120), scenes, score: r.strength, mood: r.mood } }).catch((e) => errors.push(String(e).slice(0, 120)));
     saved++;
@@ -338,12 +358,40 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   return { slug: g.slug, reels: saved, kinds: reels.map((r) => r.kind), visuals: Object.keys(visual).length, wanted: wants.length, errors: [...new Set(errors)].slice(0, 4) };
 }
 
+// Apply finished photo-editor batches. A failed judgement leaves the old videos in place and retries.
+async function collect() {
+  const jobs = await db(`reel_jobs?status=eq.pending&select=*&order=created_at.asc&limit=5`);
+  const out = [];
+  const fmt = betaZodOutputFormat(Verdict);
+  for (const j of jobs) {
+    const b = await claude.messages.batches.retrieve(j.batch_id);
+    if (b.processing_status !== "ended") continue;
+    let verdict: z.infer<typeof Verdict> | null = null;
+    for await (const r of await claude.messages.batches.results(j.batch_id)) {
+      if (r.result.type !== "succeeded") continue;
+      track("reels", true)(r.result.message);
+      try { verdict = fmt.parse(r.result.message.content.map((c) => (c.type === "text" ? c.text : "")).join("")); } catch { /* unreadable */ }
+    }
+    if (!verdict) {
+      await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      await db(`goals?id=eq.${j.goal_id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: null } });
+      out.push({ slug: j.slug, note: "judgement failed; will retry" });
+      continue;
+    }
+    out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, []));
+    await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
-    return json(await run(body.slug, !!body.fresh));
+    const collected = await collect();
+    if (body.collect_only === true) return json({ collected });
+    return json({ collected, made: await run(body.slug, !!body.fresh, body.live === true) });
   } catch (e) {
     console.error("reels failed:", e instanceof Error ? e.message : e);
     return json({ error: e instanceof Error ? e.message.slice(0, 200) : "failed" }, 500);
