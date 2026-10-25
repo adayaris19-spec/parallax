@@ -430,6 +430,30 @@ body{background:var(--bg)}
 .goal-h.space .btn.following{background:rgba(143,150,255,.16);color:#fff}
 .space{background:radial-gradient(90% 120% at 15% 0%,#191B2E 0%,transparent 60%),#07080D}
 .btn.primary{box-shadow:none}
+
+/* goal rows: one goal per row, its posts swiped sideways */
+.spacer{flex:1}
+.gstack{margin:20px 0 4px}
+.gstack-h{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.gstack-h .who{min-width:0}
+.gstack-h .n{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sbtn{font-size:20px;line-height:1;color:var(--muted)}
+.slides{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:2px 20px 16px;scroll-padding:0 20px;scrollbar-width:none;overscroll-behavior-x:contain}
+.slides::-webkit-scrollbar{display:none}
+.slides .post{flex:0 0 min(84%,380px);scroll-snap-align:start;margin:0;display:flex;flex-direction:column}
+.post.compact{padding:12px 12px 10px}
+.post.compact .cover{margin:0;flex:1;padding:16px 16px 18px}
+.post.compact .cover h3{font-size:18.5px}
+.post.compact .cover .big{font-size:30px;margin-bottom:12px}
+.post.compact .post-f{margin-top:8px;gap:6px;flex-wrap:nowrap}
+.post.compact details.more{margin:0;min-width:0}
+.post.compact details.more[open]{flex-basis:100%}
+.post.compact .post-f:has(details[open]){flex-wrap:wrap}
+.post.compact .when{align-self:center}
+@media (max-width:760px){.sbtn{display:none}}
+.pill{white-space:nowrap}
+@media (min-width:761px){.slides{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent)}}
+@media (max-width:520px){.slides{margin:0 -16px;padding:2px 16px 14px;scroll-padding:0 16px}.gstack{margin-top:16px}}
 </style>
 </head>
 <body>
@@ -749,7 +773,7 @@ function quoteBlock(q, paper, made) {
   return `<blockquote class="quote">“${esc(q)}”<cite>${esc(made)} · ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${t}</a>` : t}</cite></blockquote>`;
 }
 
-function postCard(p, g) {
+function postCard(p, g, compact = false) {
   const srcs = (p.sources || []).slice(0, 4).map((x) => {
     const url = safeUrl(x.url);
     const meta = [x.year, x.venue].filter(Boolean).join(', ');
@@ -780,12 +804,34 @@ function postCard(p, g) {
     p.body ? `<p>${esc(p.body)}</p>` : '',
     srcs ? `<ul class="srcs">${srcs}</ul>` : '',
   ].join('');
+  const shareBtn = `<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>`;
+  const more = detail ? `<details class="more"><summary>Read more${nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : '';
+  if (compact) {
+    // Inside a goal's row or on its own page: the goal is already named above, so no header.
+    return `<article class="post compact">
+    <a class="cover" href="${target}" style="--h:${h};--h2:${h2}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    <div class="post-f">${more || '<span></span>'}<span class="spacer"></span><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time>${shareBtn}</div>
+  </article>`;
+  }
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
     <a class="cover" href="${target}" style="--h:${h};--h2:${h2}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
-    ${detail ? `<details class="more"><summary>Read more${nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : ''}
+    ${more}
     <div class="post-f">${check}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
+}
+
+// One row per goal: its newest posts side by side, swiped sideways.
+function goalRow(g, posts) {
+  if (posts.length === 1) return postCard(posts[0], g);
+  const id = `row-${g.id}-${Math.random().toString(36).slice(2, 7)}`;
+  return `<section class="gstack" aria-label="@${esc(g.handle)}">
+    <div class="gstack-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${posts.length} new · ${esc(g.name)}</span></div>
+      <span class="spacer"></span>
+      <button class="btn icon sbtn" type="button" data-slide="${id}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${id}" data-dir="1" aria-label="Next">›</button>
+      ${followBtn(g.slug)}</div>
+    <div class="slides" id="${id}">${posts.map((p) => postCard(p, g, true)).join('')}</div>
+  </section>`;
 }
 
 function storiesRow(list) {
@@ -832,7 +878,15 @@ async function feedView(tab) {
   let before = null;
   const load = async () => {
     const page = await rest(`posts?select=${POST_COLS}${filter}${before ? `&created_at=lt.${encodeURIComponent(before)}` : ''}&order=created_at.desc&limit=${PAGE}`);
-    const html = page.map((p) => { const g = goalById(list, p.goal_id); return g ? postCard(p, g) : ''; }).join('');
+    // Group the page by goal, in order of each goal's newest post.
+    const groups = new Map();
+    for (const p of page) {
+      const g = goalById(list, p.goal_id);
+      if (!g) continue;
+      if (!groups.has(g.id)) groups.set(g.id, { g, posts: [] });
+      groups.get(g.id).posts.push(p);
+    }
+    const html = [...groups.values()].map(({ g, posts }) => goalRow(g, posts)).join('');
     before = page.length ? page[page.length - 1].created_at : before;
     return { html, more: page.length === PAGE };
   };
@@ -997,7 +1051,7 @@ async function goalView(slug, tab, focusKey) {
         (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
       : note('No promises found yet', 'Parallax searches older research on this goal for dated promises once a month.');
   } else {
-    body = posts.length ? posts.map((p) => postCard(p, g)).join('') : note('No posts yet', 'New research on this goal will appear here.');
+    body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
   }
 
   view.innerHTML = head + stats + tabs + body;
@@ -1106,6 +1160,11 @@ document.addEventListener('click', (e) => {
       else toast(on ? 'Following. Its posts now fill your Following tab.' : 'Unfollowed');
       refreshFollowers();
     }).catch((err) => { paint(was); toast(err.message); });
+  }
+  const sl = e.target.closest('[data-slide]');
+  if (sl) {
+    const row = document.getElementById(sl.dataset.slide);
+    if (row) row.scrollBy({ left: Number(sl.dataset.dir) * row.clientWidth * 0.85, behavior: REDUCED ? 'auto' : 'smooth' });
   }
   const s = e.target.closest('[data-share]');
   if (s) share(s.dataset.share, s.dataset.title);
