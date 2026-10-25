@@ -40,6 +40,14 @@ async function userId(req: Request): Promise<string | null> {
 }
 
 const PAID = ["active", "trialing", "comp"];
+
+// How fresh the research behind a problem is: its newest paper, and how many came out in the last 3 years.
+// deno-lint-ignore no-explicit-any
+function paperAges(evidence: any[] | null) {
+  const years = (evidence ?? []).map((e) => e?.year).filter((y) => Number.isInteger(y)) as number[];
+  const now = new Date().getUTCFullYear();
+  return { papers: years.length, newest: years.length ? Math.max(...years) : null, recent: years.filter((y) => y >= now - 2).length };
+}
 const round = (x: number, d = 3) => Math.round(x * 10 ** d) / 10 ** d;
 
 Deno.serve(async (req) => {
@@ -53,7 +61,7 @@ Deno.serve(async (req) => {
     const full = PAID.includes(status) || (!!admin && req.headers.get("x-admin-token") === admin); // admin: for testing the full view
 
     const since90 = new Date(Date.now() - 90 * DAY).toISOString();
-    const [goals, nodes, posts, promises, followers, contributions, history] = await Promise.all([
+    const [goals, nodes, posts, promises, followers, contributions, history, intel, briefs] = await Promise.all([
       db("goals?status=eq.ready&select=id,slug,handle,name,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
       db("nodes?select=goal_id,key,parent_key,title,status,blocker_kind,blocker,independent_sources,updated_at,evidence&limit=50000"),
       db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
@@ -61,6 +69,8 @@ Deno.serve(async (req) => {
       db("goal_followers?select=goal_id,followers"),
       db("contributions?select=goal_id,user_id&limit=50000"),
       db(`goal_snapshots?day=gte.${since90.slice(0, 10)}&select=goal_id,day,progress,solved,blocked,leaves&order=day.asc&limit=50000`).catch(() => []),
+      db("goal_intel?select=goal_id,years,growth,papers_3y,institutions,countries,updated_at").catch(() => []),
+      db("briefs?select=week,content,signals,created_at&order=id.desc&limit=1").catch(() => []),
     ]);
 
     const byGoal = new Map<number, ReturnType<typeof blank>>();
@@ -103,6 +113,7 @@ Deno.serve(async (req) => {
           blocker_kind: kind, blocker: n.blocker ?? "", sources: n.independent_sources ?? 0,
           bottleneck: g.bottleneck_key === n.key || (g.bottleneck_key && n.key.startsWith(`${g.bottleneck_key}.`)) ? true : false,
           updated_at: n.updated_at,
+          ...paperAges(n.evidence),
         });
       }
     }
@@ -187,6 +198,25 @@ Deno.serve(async (req) => {
         status: pr?.status ?? "open", horizon_low: r.horizon_low, horizon_high: r.horizon_high, key: pr?.key ?? null };
     });
 
+    // Opportunities, from the problems' own research.
+    const thisYr = new Date().getUTCFullYear();
+    const funding = problems.filter((p) => p.blocker_kind === "funding").slice(0, 12);
+    const quiet = problems.filter((p) => p.newest != null && p.newest <= thisYr - 5 && p.papers >= 1)
+      .sort((a, b) => a.newest - b.newest).slice(0, 12);
+    const hot = problems.filter((p) => p.recent >= 2).sort((a, b) => b.recent - a.recent || b.sources - a.sources).slice(0, 12);
+
+    // Who leads each field (whole-field OpenAlex counts, refreshed weekly).
+    // deno-lint-ignore no-explicit-any
+    const fields: any[] = intel.map((i: { goal_id: number; years: { year: number; papers: number }[]; growth: number | null; papers_3y: number; institutions: unknown[]; countries: unknown[]; updated_at: string }) => {
+      const g = goalBy.get(i.goal_id);
+      return g ? { goal: g.handle, slug: g.slug, growth: i.growth, papers_3y: i.papers_3y, years: i.years, institutions: i.institutions.slice(0, 6), countries: i.countries.slice(0, 6), updated_at: i.updated_at } : null;
+    }).filter(Boolean).sort((a, b) => b!.papers_3y - a!.papers_3y);
+    for (const r of rows) {
+      const f = fields.find((x) => x.slug === r.slug);
+      Object.assign(r, { field_growth: f?.growth ?? null, field_papers_3y: f?.papers_3y ?? null });
+    }
+    const brief = briefs[0] ? { week: briefs[0].week, signals: briefs[0].signals, ...briefs[0].content } : null;
+
     const byMomentum = [...rows].sort((a, b) => b.momentum - a.momentum || b.posts30 - a.posts30);
     return json({
       access: full ? "full" : "preview",
@@ -208,6 +238,11 @@ Deno.serve(async (req) => {
       matrix: full ? matrix : {},
       bottlenecks: full ? bottlenecks : [],
       bottlenecks_total: bottlenecks.length,
+      brief: brief ? (full ? brief : { week: brief.week, headline: brief.headline, summary: brief.summary }) : null,
+      opportunities: full ? { funding, quiet, hot } : null,
+      opportunity_counts: { funding: funding.length, quiet: quiet.length, hot: hot.length },
+      fields: full ? fields : [],
+      fields_total: fields.length,
     });
   } catch (e) {
     console.error("terminal failed:", e instanceof Error ? e.message : e);

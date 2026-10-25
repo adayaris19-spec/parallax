@@ -167,6 +167,13 @@ The product and its $49/month price are created in Stripe on the first checkout
 price before that. Complimentary access: set a person's `subscriptions.status` to
 `comp` (see the comment in `schema-billing.sql`).
 
+### Terminal intelligence
+
+Run `schema-intel.sql` and deploy the `intel` function (Verify JWT on). It schedules two jobs:
+- every 2 hours, field data for the goal checked longest ago: research volume per year, the top
+  institutions and countries in the last 3 full years (OpenAlex, 3 searches per goal, weekly per goal);
+- every Monday at 06:47 UTC, the weekly analyst brief (one Claude call).
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
