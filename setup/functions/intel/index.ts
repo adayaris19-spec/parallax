@@ -171,8 +171,10 @@ async function weeklyBrief() {
     fallbacks: "default",
     output_config: { effort: "medium", format: betaZodOutputFormat(BriefSchema) },
     system: `You are the analyst behind the Parallax Terminal, read by investors, funders and journalists who follow
-humanity's big goals. Write plainly and precisely. Use only the facts given; never invent numbers, papers, people or events.
-Refer to goals by their @handle. If little happened, say so; do not inflate.`,
+humanity's big goals. Use only the facts given; never invent numbers, papers, people or events.
+Refer to goals by their @handle. If little happened, say so; do not inflate.
+Write so anyone can follow: keep correct technical terms, but explain uncommon ones in a few plain words; short
+sentences, one idea each; everyday words; concrete beats vague; no filler words like "significantly" or "robust".`,
     messages: [{ role: "user", content: `The goals:\n${goalLines}\n\nSignals from the last 7 days:\n${signalLines}\n\nUnsolved problems held back by funding:\n${funding || "(none)"}\n\nWrite this week's brief.` }],
   }).finalMessage();
   if (msg.stop_reason === "refusal" || msg.parsed_output == null) return { note: `no brief: ${msg.stop_reason}` };

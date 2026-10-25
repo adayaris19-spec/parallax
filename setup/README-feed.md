@@ -188,6 +188,14 @@ gets the full 95%.
    `update teams set approved = true where id = '<team id>';`
 5. Backers press **Back** on a problem in the tree and pay through Stripe Checkout.
 
+## 13. Plain language
+
+Run `schema-plain.sql` and deploy the `simplify` function (Verify JWT on). Every hour it rewrites the
+goal that most needs it in plain words: a one-line story of where the goal stands, and every
+problem and post. Correct technical terms stay; everything around them gets short and clear. The
+originals are kept, and the site shows the plain version when there is one.
+To redo one goal now: POST `{"slug": "mars", "all": true}` with the admin header.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
