@@ -272,6 +272,109 @@ details.leaf[open] summary,details.leaf.target summary{background:var(--accent-s
 .foot a{color:var(--muted)}
 .hide{display:none!important}
 
+
+/* ---------- goal page: a story, one idea per section ---------- */
+body.goalpage main{max-width:780px}
+body.noscroll{overflow:hidden}
+.gh2{position:relative;isolation:isolate;overflow:hidden;border-radius:28px;margin-top:20px;padding:34px 34px 30px;min-height:min(72vh,620px);display:flex;flex-direction:column;justify-content:flex-end}
+.gh2 > canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.gh2-top{position:absolute;top:26px;left:34px;right:34px;display:flex;gap:12px;align-items:center}
+.gh2 .handle{font-weight:600;color:#fff}
+.gh2 .followers{color:var(--muted)}
+.gh2 h1{font-size:clamp(40px,7vw,68px);line-height:1.02;letter-spacing:-.045em;margin:0 0 14px;color:#fff;max-width:13ch}
+.gh2 .sum{margin:0;color:var(--ink2);font-size:18px;line-height:1.5;max-width:44ch}
+.eta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line2)}
+.eta .n{font-family:var(--m);font-size:clamp(36px,6vw,54px);letter-spacing:-.05em;color:#fff;line-height:1}
+.eta .u{font-size:20px;color:#fff;font-weight:500}
+.eta .c{flex-basis:100%;color:var(--muted);font-size:13px}
+.gh2 .act{margin-top:22px;display:flex;gap:8px}
+.gh2.compact{min-height:0;padding-top:84px}
+.gh2.compact h1{font-size:clamp(26px,4vw,34px);max-width:none;margin-bottom:0}
+.gh2.compact .sum,.gh2.compact .eta{display:none}
+.gh2.compact .act{margin-top:16px}
+.gh2 .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#fff}
+.gh2 .btn.primary{background:#fff;color:#05060B;border-color:#fff}
+.gh2 .btn.following{background:rgba(143,150,255,.18);color:#fff;border-color:transparent}
+.gtabs{position:sticky;top:57px;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin-top:10px}
+.gs{padding:64px 0 8px}
+.gs + .gs{border-top:1px solid var(--line);margin-top:56px}
+.kick{font-family:var(--m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.kick.red{color:var(--blocked)}
+h2.big{font-size:clamp(28px,4.4vw,40px);line-height:1.1;letter-spacing:-.035em;margin:0 0 12px;max-width:20ch}
+.cap{color:var(--muted);font-size:15px;line-height:1.55;margin:10px 0 0;max-width:56ch}
+.lead{font-size:clamp(17px,2.2vw,20px);line-height:1.5;color:var(--ink2);margin:0;max-width:46ch}
+.linkish{appearance:none;border:0;background:none;padding:0;color:var(--accent);font:inherit;cursor:pointer}
+.standing{display:flex;gap:40px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.ringbox{position:relative;width:180px;height:180px;flex:none}
+.ring{width:100%;height:100%}
+.ring circle:last-child{transition:stroke-dasharray 1s cubic-bezier(.2,.8,.2,1)}
+.ringbox .rnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--m);font-size:44px;letter-spacing:-.05em}
+.ringbox .rnum small{font-size:18px;color:var(--muted)}
+.counts{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:22px 40px}
+.counts b{display:block;font-family:var(--m);font-size:40px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.counts span{display:inline-flex;gap:7px;align-items:center;color:var(--muted);font-size:13.5px;margin-top:6px}
+.counts .dot{margin:0}
+.gs .cmap{margin-top:22px}
+.hold h2.big{max-width:22ch}
+.hold .act,.gs .act{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.gs-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.gs-h .arrows{display:flex;gap:6px;margin-bottom:14px}
+.gs .slides{margin-top:18px}
+.more{display:inline-block;margin-top:6px;font-weight:500;font-size:14.5px;color:var(--accent);text-decoration:none}
+.score{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.sc{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--card)}
+.sc b{display:block;font-family:var(--m);font-size:34px;font-weight:500;letter-spacing:-.04em;line-height:1}
+.sc span{font-size:13px;color:var(--muted)}
+.sc.kept b{color:var(--solved)} .sc.partly b{color:var(--progress)} .sc.broken b{color:var(--blocked)}
+.pcard{flex:0 0 min(78%,300px);scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.pcard .yrs{font-size:22px;letter-spacing:-.03em}
+.pcard .yrs span{color:var(--faint)}
+.pcard p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.pcard .pill{align-self:flex-start}
+.chap{margin:26px 0 8px}
+.chap-h{display:flex;gap:14px;align-items:flex-start}
+.chap-h .mono{color:var(--faint);font-size:13px;margin-top:4px}
+.chap-h h3{margin:0;font-size:20px;letter-spacing:-.02em}
+.chap-h p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.chap .mini{display:flex;gap:2px;height:4px;margin:14px 0 12px}
+.chap .mini i{display:block;height:100%;border-radius:2px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-decoration:none;transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--line2);transform:translateY(-1px)}
+.tile .dot{margin-top:6px}
+.tile b{font-weight:500;font-size:14.5px;line-height:1.35}
+.tile span{grid-column:2;color:var(--muted);font-size:12.5px}
+.sheet-back{position:fixed;inset:0;z-index:35;background:rgba(10,10,12,.42);display:flex;justify-content:flex-end;animation:fade .15s ease-out}
+.sheet{width:min(460px,100%);height:100%;overflow-y:auto;background:var(--bg);border-left:1px solid var(--line);padding:20px 24px 40px;box-shadow:var(--shadow-lg);animation:slidein .22s cubic-bezier(.2,.8,.2,1)}
+.sheet-back.out{opacity:0;transition:opacity .18s}
+@keyframes slidein{from{transform:translateX(30px);opacity:0}}
+.sheet-grab{display:none}
+.sheet-top{display:flex;gap:8px;align-items:center;margin-bottom:18px}
+.sheet-top .btn{margin-left:auto}
+.chip2{display:inline-flex;gap:6px;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--sunk);font-size:12.5px;font-weight:500}
+.chip2 .dot{margin:0}
+.chip2.red{color:var(--blocked)}
+.sheet h2{font-size:26px;line-height:1.15;letter-spacing:-.03em;margin:0 0 18px}
+.sheet .blk{margin:0 0 18px}
+.sheet .blk p{margin:0;color:var(--ink2);line-height:1.6}
+.sheet .facts{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px;margin-bottom:12px}
+.papers summary{cursor:pointer;font-weight:500;padding:10px 0;border-top:1px solid var(--line)}
+@media (max-width:760px){
+  .gtabs{top:53px}
+  .gh2{padding:26px 22px 24px;border-radius:22px;min-height:min(78vh,580px)}
+  .gh2-top{top:20px;left:22px;right:22px}
+  .gs{padding:44px 0 4px}.gs + .gs{margin-top:36px}
+  .standing{gap:24px}.ringbox{width:140px;height:140px}.ringbox .rnum{font-size:34px}
+  .counts{gap:18px 26px}.counts b{font-size:32px}
+  .score{grid-template-columns:repeat(2,1fr)}
+  .tiles{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 8px;scroll-padding:0 16px;scrollbar-width:none;gap:10px}
+  .tiles::-webkit-scrollbar{display:none}
+  .tile{flex:0 0 72%;scroll-snap-align:start}
+  .sheet-back{align-items:flex-end}
+  .sheet{width:100%;height:auto;max-height:88vh;border-left:0;border-radius:22px 22px 0 0;padding:10px 20px calc(30px + env(safe-area-inset-bottom));animation:slideup .25s cubic-bezier(.2,.8,.2,1)}
+  .sheet-grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 12px}
+  @keyframes slideup{from{transform:translateY(40px);opacity:0}}
+}
 /* ---------- back a problem ---------- */
 .fund{margin:14px 0 2px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);padding:12px 14px}
 .fund-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
@@ -1167,58 +1270,92 @@ async function goalView(slug, tab, focusKey) {
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  const solved = leaves.filter((l) => l.status === 'solved').length;
-  const going = leaves.filter((l) => l.status === 'in_progress').length;
+  goalCtx = { g, leaves, branches, helpers, tab };
+  const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
+  const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
   const lower = (t) => t ? t.charAt(0).toLowerCase() + t.slice(1).replace(/\.$/, '') : '';
-  const pct = Math.round((g.progress || 0) * 100);
+  const pctN = Math.round((g.progress || 0) * 100);
   const bn = leaves.find((l) => l.key === g.bottleneck_key);
-
-  const blocked = leaves.filter((l) => l.status === 'blocked').length;
-  const openN = leaves.length - solved - going - blocked;
-  const seg = [['solved', solved], ['in_progress', going], ['blocked', blocked], ['open', openN]]
-    .filter(([, n]) => n).map(([k, n]) => `<i class="st-${k}" style="flex:${n}"></i>`).join('');
   const lo = g.horizon_low, hi = g.horizon_high;
-  const horizon = lo == null ? '—' : lo === hi ? `~${lo}` : `${lo}–${hi}`;
-  const treeUrl = (k) => `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(k)}`;
-  const stats = `<div class="metrics">
-    <div class="metric"><div class="l">Progress</div><div class="v"><span data-count="${pct}">${pct}</span><small>%</small></div><div class="segbar" aria-hidden="true">${seg}</div></div>
-    <div class="metric"><div class="l">Countdown</div><div class="v">${esc(horizon)}${lo == null ? '' : '<small>yrs</small>'}</div><div class="s">at the current pace</div></div>
-    <div class="metric"><div class="l">Problems</div><div class="v"><span data-count="${leaves.length}">${leaves.length}</span></div><div class="s">${solved} solved · ${going} moving</div></div>
-    <details class="note2"><summary>How these are measured</summary><p>Progress counts solved problems, and half of those in progress. The countdown is an estimate${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></details>
-  </div>
-  <section class="cmap space" aria-label="Map of every problem"><canvas class="stars" aria-hidden="true"></canvas>
-    <div class="cmap-h"><h2>The map</h2><div class="legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span></div></div>
-    ${branches.map((b) => {
-      const kids = leaves.filter((l) => l.parent_key === b.key);
-      const done = kids.filter((k) => k.status === 'solved').length;
-      return `<div class="crow"><div class="bn">${esc(b.title)}<small>${done}/${kids.length} solved</small></div><div class="dots">${kids.map((l) =>
-        `<a class="cdot st-${esc(l.status || 'open')}${l.key === g.bottleneck_key ? ' bneck-dot' : ''}" href="${treeUrl(l.key)}" title="${esc(l.title)} · ${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · biggest bottleneck' : ''}" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}"></a>`).join('')}</div></div>`;
-    }).join('')}
-  </section>
-  ${bn ? `<div class="bneck"><div class="l">Biggest bottleneck</div><h3>${esc(bn.title)}</h3><p>${esc(bn.blocker)}</p><a class="arrow-link" href="${treeUrl(bn.key)}">See it in the tree <span aria-hidden="true">→</span></a></div>` : ''}`;
+  const horizon = lo == null ? '' : lo === hi ? `~${lo}` : `${lo}–${hi}`;
+  const base = `#/g/${encodeURIComponent(g.slug)}`;
+  const firstSentence = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
 
-  const tabs = `<nav class="tabs" role="tablist" style="margin-top:18px">
-      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}" aria-selected="${tab === 'posts'}">Posts</a>
-      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/tree" aria-selected="${tab === 'tree'}">The tree</a>
-      <a class="tab" role="tab" href="#/g/${encodeURIComponent(g.slug)}/promises" aria-selected="${tab === 'promises'}">Promises${promises.length ? ` (${promises.length})` : ''}</a></nav>`;
+  const hero = `<section class="gh2 space${tab === 'story' ? '' : ' compact'}"><canvas class="stars" aria-hidden="true"></canvas>
+      <div class="gh2-top">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
+      <h1>${esc(g.name)}</h1>
+      ${g.summary ? `<p class="sum">${esc(firstSentence(g.summary))}</p>` : ''}
+      ${horizon ? `<div class="eta"><span class="n">${esc(horizon)}</span><span class="u">years away</span><span class="c">Parallax’s estimate at today’s pace</span></div>` : ''}
+      <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
+    </section>`;
+
+  const tabs = `<nav class="tabs gtabs" role="tablist">${[['story', 'Story', base], ['map', 'Map', `${base}/map`], ['posts', `Posts`, `${base}/posts`], ['promises', `Promises${promises.length ? ` · ${promises.length}` : ''}`, `${base}/promises`]]
+    .map(([id, label, href]) => `<a class="tab" role="tab" href="${href}" aria-selected="${tab === id}">${label}</a>`).join('')}</nav>`;
+
+  // A ring for progress: solved counts fully, in-progress counts half.
+  const R = 54, C = 2 * Math.PI * R;
+  const ring = `<svg class="ring" viewBox="0 0 128 128" role="img" aria-label="${pctN}% of the way"><circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--line2)" stroke-width="10"/>
+    <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--ink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(C * pctN / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 64 64)"/></svg>`;
+  const stand = `<section class="gs"><div class="kick">Where it stands</div><h2 class="big">${pctN}% of the way there.</h2>
+    <div class="standing"><div class="ringbox">${ring}<div class="rnum"><span data-count="${pctN}">${pctN}</span><small>%</small></div></div>
+      <div class="counts">${[['solved', solved, 'Solved'], ['in_progress', going, 'Moving'], ['blocked', blocked, 'Blocked'], ['open', openN, 'Barely started']].map(([k, n, label]) =>
+        `<div><b data-count="${n}">${n}</b><span><i class="dot st-${k}"></i>${label}</span></div>`).join('')}</div></div>
+    <p class="cap">${leaves.length} problems stand between us and this goal. <button class="linkish" type="button" data-how>How is this measured?</button></p>
+    <p class="cap how hide">Progress counts solved problems, and half of those in progress. The countdown is an estimate${g.horizon_note ? `: ${esc(lower(g.horizon_note))}` : ''}.</p></section>`;
+
+  const map = `<section class="gs"><div class="kick">The map</div><h2 class="big">Every problem, at a glance.</h2><p class="cap">Each dot is one problem. Tap one to see it.</p>
+    <div class="cmap space"><canvas class="stars" aria-hidden="true"></canvas>
+      <div class="cmap-h"><div class="legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span></div></div>
+      ${branches.map((b) => {
+        const kids = leaves.filter((l) => l.parent_key === b.key);
+        return `<div class="crow"><div class="bn">${esc(b.title)}<small>${kids.filter((k) => k.status === 'solved').length}/${kids.length} solved</small></div><div class="dots">${kids.map((l) =>
+          `<a class="cdot st-${esc(l.status || 'open')}${l.key === g.bottleneck_key ? ' bneck-dot' : ''}" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}" data-tip="${esc(l.title)}" aria-label="${esc(l.title)}, ${esc(leafStatusLabel(l.status))}"></a>`).join('')}</div></div>`;
+      }).join('')}</div></section>`;
+
+  const listing = bn && fundState.listings.find((x) => x.node_key === bn.key);
+  const raised = bn && fundState.perNode[bn.key];
+  const hold = bn ? `<section class="gs hold"><div class="kick red">What’s holding it back</div>
+    <h2 class="big">${esc(bn.title)}</h2><p class="lead">${esc(firstSentence(bn.blocker))}</p>
+    <div class="act"><button class="btn primary" type="button" data-leaf="${esc(bn.key)}">Explore this problem</button>${listing ? `<button class="btn" type="button" data-back="${listing.id}">Back the team working on it</button>` : ''}${raised ? `<span class="mono" style="color:var(--muted);font-size:13px;align-self:center">${money(raised.raised_cents)} raised</span>` : ''}</div></section>` : '';
+
+  const latest = posts.slice(0, 8);
+  const rowId = `gl-${g.id}`;
+  const news = latest.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Latest</div><h2 class="big">What changed.</h2></div>
+      <div class="arrows"><button class="btn icon sbtn" type="button" data-slide="${rowId}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${rowId}" data-dir="1" aria-label="Next">›</button></div></div>
+    <div class="slides" id="${rowId}">${latest.map((p) => postCard(p, g, true)).join('')}</div>
+    <a class="more" href="${base}/posts">All ${posts.length} posts →</a></section>` : '';
+
+  const pc = (s) => promises.filter((p) => p.status === s).length;
+  const checked = promises.filter((p) => !['pending', 'unclear'].includes(p.status)).sort((a, b) => b.due_year - a.due_year);
+  const promRow = `gp-${g.id}`;
+  const prom = promises.length ? `<section class="gs"><div class="gs-h"><div><div class="kick">Promises</div><h2 class="big">What we were told, and what happened.</h2></div>
+      ${checked.length > 1 ? `<div class="arrows"><button class="btn icon sbtn" type="button" data-slide="${promRow}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${promRow}" data-dir="1" aria-label="Next">›</button></div>` : ''}</div>
+    <div class="score">${[['kept', 'Kept'], ['partly', 'Partly kept'], ['broken', 'Broken'], ['pending', 'Not due yet']].map(([k, label]) => `<div class="sc ${k}"><b>${pc(k)}</b><span>${label}</span></div>`).join('')}</div>
+    ${checked.length ? `<div class="slides" id="${promRow}">${checked.map((p) => `<article class="pcard"><div class="yrs mono">${esc(p.made_year)} <span>→</span> ${esc(p.due_year)}</div><span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span><p>${esc(p.claim)}</p></article>`).join('')}</div>` : ''}
+    <a class="more" href="${base}/promises">Every promise, with quotes and sources →</a></section>` : '';
+
+  const totalRaised = Object.values(fundState.perNode).reduce((a, r) => a + r.raised_cents, 0);
+  const teams = [...new Map(fundState.listings.map((x) => [x.teams.id, x.teams])).values()];
+  const fundSec = `<section class="gs"><div class="kick">Back the work</div>
+    ${teams.length ? `<h2 class="big">${totalRaised ? `${money(totalRaised)} raised so far.` : `${teams.length} team${teams.length === 1 ? ' is' : 's are'} raising money.`}</h2>
+      <p class="cap">${teams.map((t) => esc(t.name)).join(', ')} ${teams.length === 1 ? 'is' : 'are'} working on problems in this goal. 95% of every backing goes to the team.</p>
+      <div class="act"><a class="btn primary" href="${base}/map">See where to back</a></div>`
+      : `<h2 class="big">No one is raising money here yet.</h2><p class="cap">Working on one of these problems? Teams raise money on Parallax, and backers fund them directly.</p>
+      <div class="act"><a class="btn" href="#/team">Raise money for your team</a></div>`}</section>`;
 
   let body;
-  if (tab === 'tree') {
-    body = `<div class="legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>In progress</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span></div>` +
-      branches.map((b) => {
+  if (tab === 'map') {
+    body = `<p class="cap" style="margin-top:18px">${leaves.length} problems in ${branches.length} chapters. Tap one for the details, the research and who is working on it.</p>` +
+      branches.map((b, i) => {
         const kids = leaves.filter((l) => l.parent_key === b.key);
-        const count = (s) => kids.filter((k) => k.status === s).length;
-        const seg = ['solved', 'in_progress', 'blocked', 'open'].map((s) => count(s) ? `<i class="st-${s}" style="flex:${count(s)}"></i>` : '').join('');
-        return `<section class="branch"><div class="branch-h"><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(b.why)}</p>` : ''}<div class="mini" aria-hidden="true">${seg}</div></div>
-          ${kids.map((l) => {
-            const ev = (l.evidence || []).slice(0, 6).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)})</span>` : ''}</li>`; }).join('');
-            const why = BLOCK[l.blocker_kind] ? ` · ${BLOCK[l.blocker_kind]}` : '';
-            return `<details class="leaf${l.key === focusKey ? ' target' : ''}" id="leaf-${esc(l.key)}"${l.key === focusKey ? ' open' : ''}>
-              <summary><i class="dot st-${esc(l.status || 'open')}" title="${esc(leafStatusLabel(l.status))}"></i><span class="leaf-t"><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${esc(why)}${l.key === g.bottleneck_key ? ' · biggest bottleneck' : ''}${(() => { const h = helpers.find((x) => x.node_key === l.key); return h ? ` · ${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here` : ''; })()}${esc(raisedNote(l.key))}</span></span></summary>
-              <div class="leaf-body">${l.why ? `<p><b>Why it matters:</b> ${esc(l.why)}</p>` : ''}${l.blocker ? `<p><b>${l.status === 'solved' ? 'What was done' : 'What stands in the way'}:</b> ${esc(l.blocker)}</p>` : ''}
-                ${ev ? `<ul class="srcs">${ev}</ul>` : '<p style="color:var(--muted)">No papers found for this yet.</p>'}
-                <p style="color:var(--muted);font-size:12.5px">${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</p>${fundBlock(g, l)}</div></details>`;
-          }).join('')}</section>`;
+        const seg = ['solved', 'in_progress', 'blocked', 'open'].map((s) => { const n = kids.filter((k) => (k.status || 'open') === s).length; return n ? `<i class="st-${s}" style="flex:${n}"></i>` : ''; }).join('');
+        return `<section class="chap"><div class="chap-h"><span class="mono">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(firstSentence(b.why))}</p>` : ''}</div></div>
+          <div class="mini" aria-hidden="true">${seg}</div>
+          <div class="tiles">${kids.map((l) => {
+            const f = fundState.perNode[l.key];
+            return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b>
+              <span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${f ? ` · ${money(f.raised_cents)}` : ''}</span></a>`;
+          }).join('')}</div></section>`;
       }).join('');
   } else if (tab === 'promises') {
     const card = (p) => {
@@ -1227,23 +1364,74 @@ async function goalView(slug, tab, focusKey) {
       return `<article class="post"><span class="kind promise">Due ${esc(p.due_year)}<span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span></span>
         <h3>${esc(p.claim)}</h3>${quoteBlock(p.quote, p.source, `Written in ${p.made_year}`)}
         ${p.verdict ? `<p><b>What happened:</b> ${esc(p.verdict)}</p>` : ''}${vs ? `<ul class="srcs">${vs}</ul>` : ''}
-        ${leaf ? `<div class="post-f"><span class="check"></span><a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(leaf.key)}">In the tree</a></div>` : ''}</article>`;
+        ${leaf ? `<div class="post-f"><span class="check"></span><button class="btn" type="button" data-leaf="${esc(leaf.key)}">See the problem</button></div>` : ''}</article>`;
     };
-    const checked = promises.filter((p) => p.status !== 'pending').sort((a, b) => b.due_year - a.due_year);
     const coming = promises.filter((p) => p.status === 'pending');
+    const done = promises.filter((p) => p.status !== 'pending').sort((a, b) => b.due_year - a.due_year);
     body = promises.length
-      ? `<p style="color:var(--muted);margin:14px 0 0">Dated promises from older research about this goal, quoted word for word, and checked once their deadline passes.</p>` +
-        (checked.length ? `<div class="prom-h">Checked</div>${checked.map(card).join('')}` : '') +
-        (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
+      ? `<p class="cap" style="margin-top:18px">Dated promises from older research, quoted word for word, and checked once their deadline passes.</p>` +
+        (done.length ? `<div class="prom-h">Checked</div>${done.map(card).join('')}` : '') + (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
       : note('No promises found yet', 'Parallax searches older research on this goal for dated promises once a month.');
-  } else {
+  } else if (tab === 'posts') {
     body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
+  } else {
+    body = stand + map + hold + news + prom + fundSec;
   }
 
-  view.innerHTML = head + stats + tabs + body;
+  document.body.classList.add('goalpage');
+  view.innerHTML = hero + tabs + `<div class="gbody">${body}</div>`;
   refreshFollowers();
-  if (focusKey) $(`#leaf-${CSS.escape(focusKey)}`)?.scrollIntoView({ block: 'center' });
+  if (focusKey) openLeaf(focusKey, false);
 }
+
+// ------------------------------------------------------------ problem sheet
+// A problem opens in a side panel (a bottom sheet on phones) instead of a long expanding list.
+let goalCtx = null;
+function openLeaf(key, push = true) {
+  if (!goalCtx) return;
+  const { g, leaves, branches, helpers } = goalCtx;
+  const l = leaves.find((x) => x.key === key);
+  if (!l) return;
+  document.querySelector('.sheet-back')?.remove();
+  const b = branches.find((x) => x.key === l.parent_key);
+  const h = helpers.find((x) => x.node_key === l.key);
+  const ev = (l.evidence || []).slice(0, 8).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)})</span>` : ''}</li>`; }).join('');
+  const why = BLOCK[l.blocker_kind];
+  const back = document.createElement('div');
+  back.className = 'sheet-back';
+  back.innerHTML = `<aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <div class="sheet-top"><span class="chip2"><i class="dot st-${esc(l.status || 'open')}"></i>${esc(leafStatusLabel(l.status))}</span>${l.key === g.bottleneck_key ? '<span class="chip2 red">Biggest bottleneck</span>' : ''}<button class="btn icon" type="button" data-close aria-label="Close">✕</button></div>
+    ${b ? `<div class="kick">${esc(b.title)}</div>` : ''}
+    <h2 id="shT">${esc(l.title)}</h2>
+    ${l.why ? `<div class="blk"><div class="kick">Why it matters</div><p>${esc(l.why)}</p></div>` : ''}
+    ${l.blocker ? `<div class="blk"><div class="kick">${l.status === 'solved' ? 'What was done' : 'What stands in the way'}${why ? ` · ${esc(why)}` : ''}</div><p>${esc(l.blocker)}</p></div>` : ''}
+    <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
+    ${ev ? `<details class="papers"><summary>The research · ${(l.evidence || []).length} paper${(l.evidence || []).length === 1 ? '' : 's'}</summary><ul class="srcs">${ev}</ul></details>` : ''}
+    ${fundBlock(g, l)}
+  </aside>`;
+  document.body.appendChild(back);
+  document.body.classList.add('noscroll');
+  const close = () => {
+    back.classList.add('out');
+    setTimeout(() => back.remove(), 180);
+    document.body.classList.remove('noscroll');
+    const tabPath = goalCtx.tab === 'story' ? '' : `/${goalCtx.tab}`;
+    history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(g.slug)}${tabPath}`);
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  back.addEventListener('click', (e) => { if (e.target === back || e.target.closest('[data-close]')) close(); });
+  back.querySelector('[data-close]').focus();
+  if (push) history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(l.key)}`);
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-leaf]');
+  if (a && goalCtx && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openLeaf(a.dataset.leaf); return; }
+  const how = e.target.closest('[data-how]');
+  if (how) how.closest('.gs').querySelector('.how')?.classList.toggle('hide');
+});
 
 function searchView(q) {
   view.innerHTML = `<div id="sres"></div>`;
@@ -2211,6 +2399,8 @@ $('#navMe').addEventListener('click', () => {
 function route() {
   clearTimeout(pollTimer);
   closeModal();
+  document.querySelector('.sheet-back')?.remove();
+  document.body.classList.remove('goalpage', 'noscroll');
   toggleMenu(false);
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   setNav(parts);
@@ -2225,7 +2415,7 @@ function route() {
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'team') return teamView(parts[1], parts.slice(2));
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
-  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], ['tree', 'promises'].includes(parts[2]) ? parts[2] : 'posts', parts[2] === 'tree' ? parts[3] : undefined);
+  if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { tree: 'map', map: 'map', posts: 'posts', promises: 'promises' }[parts[2]] || 'story', parts[2] === 'tree' ? parts[3] : undefined);
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
