@@ -364,6 +364,8 @@ For each leaf return:
   make what it needs), "instruments" (we cannot measure or build the tool), "funding",
   "attention" (it could be done but few are working on it), or "none" if solved.
 - blocker: one or two plain sentences on exactly what stands in the way, or what was done if solved.
+  Describe the state of the world, not this search: never mention "records", "search results",
+  or what was or was not found in the list.
 - evidence_ids: the ids of the records (from the list under that leaf) that support your
   judgement, most relevant first. Only ids that appear in the list. Can be empty.
 
@@ -440,8 +442,10 @@ ${cited.map(recLine).join("\n")}
   // Nodes: branches carry no status of their own; the site derives it from their leaves.
   await db(`nodes?goal_id=eq.${goal.id}`, { method: "DELETE" });
   const nodeRows = [
+    // Every row in one insert must carry the same keys, so branches spell out the leaf fields too.
     ...work.branches.map((b, i) => ({
       goal_id: goal.id, key: b.key, parent_key: null, position: i, title: b.title, why: b.why,
+      status: null, blocker_kind: null, blocker: null, query: null, evidence: [], independent_sources: 0,
     })),
     ...work.leaves.map((l, i) => {
       const ev = (l.evidence_ids ?? []).map(pub).filter(Boolean);

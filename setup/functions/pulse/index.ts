@@ -181,6 +181,7 @@ overlooked ("forgotten"). Ignore reviews that only restate known work, and off-t
 For each change: node_key, kind, new_status for the leaf ("unchanged" if its status stays),
 a headline of at most 14 words that states the fact, a body of 2 to 4 short sentences ending with
 why it matters for the goal, and source_ids from the records listed under that leaf.
+Write about the research and the world, never about "records" or this search.
 "solved" needs at least two records from different research groups. At most 3 changes.`,
     }],
   }).finalMessage();
