@@ -139,6 +139,34 @@ People mark a first step from Your branch as done, optionally saying what they d
 their public profile (marked self-reported), and each problem in a tree shows how many people
 took a step on it. SQL Editor: run all of `schema-impact.sql`. No function is needed.
 
+## 11. The Parallax Terminal (payments)
+
+The Terminal (`#/terminal`) is the paid view: every goal side by side, every open
+problem, how past promises held up, and spreadsheet downloads. Anyone can see a
+preview; subscribers see everything. The feed stays free.
+
+1. Run `schema-billing.sql`. It adds the `subscriptions` table and a daily snapshot
+   of every goal (`goal_snapshots`, filled at 23:53 UTC) for the trend lines.
+2. Deploy three functions: `terminal` and `billing` with Verify JWT on, and
+   `stripe-webhook` with Verify JWT **off** (Stripe calls it and signs each call).
+3. In Stripe, in **test mode** first:
+   - Developers -> API keys: copy the secret key (`sk_test_...`) into the Supabase
+     secret `STRIPE_SECRET_KEY`.
+   - Developers -> Webhooks -> Add endpoint:
+     `https://<project>.supabase.co/functions/v1/stripe-webhook`, events
+     `checkout.session.completed`, `customer.subscription.created`,
+     `customer.subscription.updated`, `customer.subscription.deleted`. Copy its
+     signing secret (`whsec_...`) into `STRIPE_WEBHOOK_SECRET`.
+   - Settings -> Billing -> Customer portal: press Save once, so "Manage billing" works.
+4. Subscribe on the site with the test card `4242 4242 4242 4242`, any future date,
+   any CVC. The Terminal unlocks within a few seconds.
+5. To go live, repeat step 3 in live mode with the live keys.
+
+The product and its $49/month price are created in Stripe on the first checkout
+(lookup key `parallax_terminal_monthly`). Set `TERMINAL_PRICE_CENTS` to change the
+price before that. Complimentary access: set a person's `subscriptions.status` to
+`comp` (see the comment in `schema-billing.sql`).
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
