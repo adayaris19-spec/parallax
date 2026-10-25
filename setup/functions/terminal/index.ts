@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
     const since90 = new Date(Date.now() - 90 * DAY).toISOString();
     const [goals, nodes, posts, promises, followers, contributions, history, intel, briefs] = await Promise.all([
-      db("goals?status=eq.ready&select=id,slug,handle,name,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
+      db("goals?status=eq.ready&select=id,slug,handle,name,papers_count,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
       db("nodes?select=goal_id,key,parent_key,title,plain_title,status,blocker_kind,blocker,plain_blocker,independent_sources,updated_at,evidence&limit=50000"),
       db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,plain_headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
       db("promises?select=goal_id,status&limit=50000"),
@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
         momentum: s.advances30 - s.setbacks30, advances30: s.advances30, setbacks30: s.setbacks30, posts30: s.posts30,
         promises_kept: s.kept, promises_partly: s.partly, promises_broken: s.broken, promises_pending: s.pending,
         promise_score: judged ? round((s.kept + 0.5 * s.partly) / judged, 2) : null,
-        followers: s.followers, contributors: s.contributors.size, papers: goalPapers.get(g.id)?.size ?? 0,
+        followers: s.followers, contributors: s.contributors.size, papers: g.papers_count ?? goalPapers.get(g.id)?.size ?? 0,
         mapped_at: g.mapped_at, checked_at: g.pulsed_at ?? g.mapped_at,
       };
     });
@@ -174,10 +174,14 @@ Deno.serve(async (req) => {
     const thisYear = new Date().getUTCFullYear();
     const years: { year: number; papers: number }[] = [];
     for (let y = thisYear - 24; y <= thisYear; y++) years.push({ year: y, papers: 0 });
-    for (const y of papers.values()) { const row = years.find((r) => r.year === y); if (row) row.papers++; }
+    // The whole library (see the library function); falls back to the papers the map cites.
+    const lib: { year: number; papers: number }[] = await db("library_years?select=year,papers").catch(() => []);
+    if (lib.length) for (const r of lib) { const row = years.find((x) => x.year === r.year); if (row) row.papers = r.papers; }
+    else for (const y of papers.values()) { const row = years.find((r) => r.year === y); if (row) row.papers++; }
+    const libTotal = lib.reduce((t, r) => t + r.papers, 0);
     const sum = (a: number, b: number) => years.filter((r) => r.year >= a && r.year <= b).reduce((t, r) => t + r.papers, 0);
-    const recent = sum(thisYear - 4, thisYear), before = sum(thisYear - 9, thisYear - 5);
-    const research = { years, papers: papers.size, recent5: recent, prior5: before, growth: before ? round(recent / before - 1, 2) : null };
+    const recent = sum(thisYear - 5, thisYear - 1), before = sum(thisYear - 10, thisYear - 6); // full years only
+    const research = { years, papers: libTotal || papers.size, recent5: recent, prior5: before, growth: before ? round(recent / before - 1, 2) : null };
 
     // The Parallax Index: average progress across every goal, 0-100.
     const index = rows.length ? round(rows.reduce((a, r) => a + (r.progress ?? 0), 0) / rows.length * 100, 1) : 0;
