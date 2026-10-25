@@ -234,10 +234,10 @@ Deno.serve(async (req) => {
       tape_total: tape.length,
       matrix: full ? matrix : {},
       bottlenecks: full ? bottlenecks : [],
-      bottlenecks_total: bottlenecks.length,
-      brief: brief ? (full ? brief : { week: brief.week, headline: brief.headline, summary: brief.summary }) : null,
+      bottlenecks_total: full ? bottlenecks.length : null,
+      brief: brief ? (full ? brief : { week: brief.week }) : null, // locked sections reveal nothing
       opportunities: full ? { funding, quiet, hot } : null,
-      opportunity_counts: { funding: funding.length, quiet: quiet.length, hot: hot.length },
+      opportunity_counts: full ? { funding: funding.length, quiet: quiet.length, hot: hot.length } : null,
       fields: full ? fields : [],
       fields_total: fields.length,
     });
