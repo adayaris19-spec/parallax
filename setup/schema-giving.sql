@@ -63,3 +63,34 @@ alter table app_config enable row level security;
 insert into app_config (key, value) values ('every_webhook_key', encode(gen_random_bytes(18), 'hex')) on conflict (key) do nothing;
 -- Every.org's partner webhook token goes on donate links once Every.org issues it.
 insert into site_config (key, value) values ('every_webhook_token', '') on conflict (key) do nothing;
+
+-- One Every.org fundraiser per goal and organisation, created by the `giving` function with Parallax's
+-- Every.org API keys. Its total is read every 10 minutes (no webhook needed).
+create table if not exists goal_fundraisers (
+  goal_id bigint not null references goals(id) on delete cascade,
+  ein text not null,
+  nonprofit_id uuid not null,
+  fundraiser_id uuid not null unique,
+  url text not null,
+  raised_cents bigint not null default 0,
+  supporters int not null default 0,
+  checked_at timestamptz,
+  primary key (goal_id, ein)
+);
+alter table goal_fundraisers enable row level security;
+drop policy if exists "fundraisers are public" on goal_fundraisers;
+create policy "fundraisers are public" on goal_fundraisers for select using (true);
+grant select on goal_fundraisers to anon, authenticated;
+
+-- Totals come from the fundraisers (every gift counts, whoever made it); recent gifts from the
+-- donations table (webhook gifts, or increases seen between checks).
+create or replace view goal_giving as
+  select f.goal_id, sum(f.raised_cents)::bigint as raised_cents, sum(f.supporters)::int as gifts,
+    (select max(d.created_at) from donations d where d.goal_id = f.goal_id and d.status = 'completed') as last_at
+  from goal_fundraisers f group by f.goal_id;
+grant select on goal_giving to anon, authenticated;
+
+-- Every 10 minutes (no AI, just Every.org's totals).
+select cron.unschedule('parallax-giving') where exists (select 1 from cron.job where jobname = 'parallax-giving');
+select cron.schedule('parallax-giving', '*/10 * * * *',
+  replace((select command from cron.job where jobname = 'parallax-promises'), '/functions/v1/promises', '/functions/v1/giving'));
