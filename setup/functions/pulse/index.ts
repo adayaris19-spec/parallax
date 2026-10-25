@@ -336,8 +336,12 @@ Deno.serve(async (req) => {
     if (typeof body.slug === "string") {
       goal = (await db(`goals?slug=eq.${encodeURIComponent(body.slug)}&status=eq.ready&select=${cols}`))?.[0];
     } else {
+      // Watched goals (followers or visits in 30 days) are checked daily; the rest weekly. A weekly
+      // check still reads every paper since the last one, so nothing is missed, only bundled.
       const due = new Date(Date.now() - PULSE_EVERY_HOURS * 3600_000).toISOString();
-      goal = (await db(`goals?status=eq.ready&or=(pulsed_at.is.null,pulsed_at.lt.${due})&select=${cols}&order=pulsed_at.asc.nullsfirst&limit=1`))?.[0];
+      const candidates = await db(`goals?status=eq.ready&or=(pulsed_at.is.null,pulsed_at.lt.${due})&select=${cols}&order=pulsed_at.asc.nullsfirst&limit=50`);
+      const att = new Map<number, number>((await db(`goal_attention?select=goal_id,score`).catch(() => [])).map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
+      goal = candidates.find((g: { id: number; pulsed_at: string | null }) => !g.pulsed_at || (att.get(g.id) ?? 0) > 0 || Date.now() - new Date(g.pulsed_at).getTime() > 7 * 86_400_000);
     }
     if (!goal) return json({ pulsed: null, collected, restarted });
     const result = await pulseGoal(goal, body.live === true);

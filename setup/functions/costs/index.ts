@@ -197,6 +197,8 @@ async function submit(slug?: string, fresh = false) {
         custom_id: `c${i}`,
         params: {
           model: MODEL, max_tokens: 64000, output_config: { effort: "medium" }, system: SYSTEM,
+          // Cache what the model has read: each search step re-reads earlier results at 10% of the price.
+          cache_control: { type: "ephemeral" },
           tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 10 }],
           messages: [{ role: "user", content: researchPrompt(g.name, x.c.title, x.probs) }],
         },
