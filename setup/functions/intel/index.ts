@@ -28,6 +28,24 @@ const DAY = 86_400_000;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
+// Cost log: every AI call's tokens and an estimated price go to ai_usage (see schema-usage.sql).
+// List prices per million tokens; batches are half price on tokens; web search is $10 per 1,000.
+const PRICE: Record<string, [number, number]> = { "claude-opus-5-5": [4, 20], "claude-sonnet-5-5": [2, 10], "claude-haiku-5-5": [0.1, 0.5], "claude-opus-5": [5, 25], "claude-opus-4-8": [5, 25], "claude-fable-5-1": [10, 50] };
+// deno-lint-ignore no-explicit-any
+function track<T>(job: string, batch = false): (m: T) => T {
+  return (m: T) => {
+    // deno-lint-ignore no-explicit-any
+    const msg = m as any, u = msg?.usage ?? {};
+    const [pi, po] = PRICE[String(msg?.model ?? "").replace(/-\d{8}$/, "")] ?? PRICE["claude-opus-5-5"];
+    const inp = u.input_tokens ?? 0, out = u.output_tokens ?? 0, cr = u.cache_read_input_tokens ?? 0, cw = u.cache_creation_input_tokens ?? 0;
+    const searches = u.server_tool_use?.web_search_requests ?? 0;
+    const tokens = (inp * pi + out * po + cr * pi * 0.1 + cw * pi * 1.25) / 1e6;
+    const cost = tokens * (batch ? 0.5 : 1) + searches * 0.01;
+    db("ai_usage", { method: "POST", prefer: "return=minimal", body: { job, model: msg?.model ?? null, input_tokens: inp, output_tokens: out, cache_read: cr, cache_write: cw, searches, batch, cost_usd: Number(cost.toFixed(5)) } }).catch(() => {});
+    return m;
+  };
+}
+
 async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
   const r = await fetch(`${SB}/rest/v1/${path}`, {
     method: init.method ?? "GET",
@@ -83,7 +101,7 @@ Aim for a few thousand papers a year: specific enough that, for example, a Mars 
 
 Goal: ${goal.name}
 Problems in its tree: ${leaves.map((l: { title: string }) => l.title).join("; ").slice(0, 2500)}${feedback}` }],
-    }).finalMessage();
+    }).finalMessage().then(track("intel"));
     const q = msg.parsed_output?.query?.trim();
     const ops = (q?.match(/\b(AND|OR|NOT)\b/g) ?? []).length;
     if (q && q.length <= 300 && ops <= 4) return q;
@@ -176,7 +194,7 @@ Refer to goals by their @handle. If little happened, say so; do not inflate.
 Write so anyone can follow: keep correct technical terms, but explain uncommon ones in a few plain words; short
 sentences, one idea each; everyday words; concrete beats vague; no filler words like "significantly" or "robust".`,
     messages: [{ role: "user", content: `The goals:\n${goalLines}\n\nSignals from the last 7 days:\n${signalLines}\n\nUnsolved problems held back by funding:\n${funding || "(none)"}\n\nWrite this week's brief.` }],
-  }).finalMessage();
+  }).finalMessage().then(track("intel"));
   if (msg.stop_reason === "refusal" || msg.parsed_output == null) return { note: `no brief: ${msg.stop_reason}` };
   const week = new Date().toISOString().slice(0, 10);
   await db("briefs", { method: "POST", prefer: "return=minimal", body: { week, content: msg.parsed_output, signals: posts.length } });

@@ -27,6 +27,24 @@ type Cand = { kind: "video" | "image"; url: string; poster: string; credit: stri
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
+// Cost log: every AI call's tokens and an estimated price go to ai_usage (see schema-usage.sql).
+// List prices per million tokens; batches are half price on tokens; web search is $10 per 1,000.
+const PRICE: Record<string, [number, number]> = { "claude-opus-5-5": [4, 20], "claude-sonnet-5-5": [2, 10], "claude-haiku-5-5": [0.1, 0.5], "claude-opus-5": [5, 25], "claude-opus-4-8": [5, 25], "claude-fable-5-1": [10, 50] };
+// deno-lint-ignore no-explicit-any
+function track<T>(job: string, batch = false): (m: T) => T {
+  return (m: T) => {
+    // deno-lint-ignore no-explicit-any
+    const msg = m as any, u = msg?.usage ?? {};
+    const [pi, po] = PRICE[String(msg?.model ?? "").replace(/-\d{8}$/, "")] ?? PRICE["claude-opus-5-5"];
+    const inp = u.input_tokens ?? 0, out = u.output_tokens ?? 0, cr = u.cache_read_input_tokens ?? 0, cw = u.cache_creation_input_tokens ?? 0;
+    const searches = u.server_tool_use?.web_search_requests ?? 0;
+    const tokens = (inp * pi + out * po + cr * pi * 0.1 + cw * pi * 1.25) / 1e6;
+    const cost = tokens * (batch ? 0.5 : 1) + searches * 0.01;
+    db("ai_usage", { method: "POST", prefer: "return=minimal", body: { job, model: msg?.model ?? null, input_tokens: inp, output_tokens: out, cache_read: cr, cache_write: cw, searches, batch, cost_usd: Number(cost.toFixed(5)) } }).catch(() => {});
+    return m;
+  };
+}
+
 async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
   const r = await fetch(`${SB}/rest/v1/${path}`, {
     method: init.method ?? "GET",
@@ -193,7 +211,15 @@ const Verdict = z.object({ items: z.array(z.object({ id: z.string(), pick: z.num
 
 async function run(slug?: string, fresh = false) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=reels_at.asc.nullsfirst`);
-  const g = slug ? goals[0] : goals.find((x: { reels_at: string | null }) => !x.reels_at || Date.now() - new Date(x.reels_at).getTime() > 7 * DAY);
+  // Remake a goal's videos only when there is something new (at most weekly), or monthly otherwise.
+  const latest = slug ? [] : await db(`posts?kind=neq.mapped&select=goal_id,created_at&order=created_at.desc&limit=500`);
+  const newest = (id: number) => latest.find((p: { goal_id: number }) => p.goal_id === id)?.created_at;
+  const due = (x: { id: number; reels_at: string | null }) => {
+    if (!x.reels_at) return true;
+    const age = Date.now() - new Date(x.reels_at).getTime(), n = newest(x.id);
+    return age > 30 * DAY || (age > 7 * DAY && !!n && n > x.reels_at);
+  };
+  const g = slug ? goals[0] : goals.find(due);
   if (!g) return { note: "every goal has fresh reels" };
   const [nodes, posts, proms, intel, teams, have] = await Promise.all([
     db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&select=key,title,plain_title,status,plain_blocker,blocker,plain_why,why`),
@@ -228,7 +254,7 @@ Already made (skip these): ${fresh ? "none" : [...done].join(", ") || "none"}`;
 Write like the best science channels: concrete, surprising, honest. Keep correct technical terms; explain uncommon ones in a few words.
 Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers on screen must appear in the facts.`,
     messages: [{ role: "user", content: facts }],
-  }).finalMessage()).parsed_output;
+  }).finalMessage().then(track("reels"))).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
   const reels = plan.reels.filter((r) => fresh || !done.has(`${r.kind}:${r.post_id || 0}`) || r.kind === "intro").slice(0, 4);
   if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
@@ -258,13 +284,13 @@ Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers 
   let verdict: z.infer<typeof Verdict> | null = null;
   if (blocks.some((b) => b.some(Boolean))) {
     try {
-      verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content }] }).finalMessage()).parsed_output;
+      verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output;
     } catch (e) {
       // One picture can spoil the whole call (an odd format or size): try again with the first candidate of each scene only.
       errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 120) : e}`);
       blocks.forEach((b) => b.splice(1));
       const slim = content.filter((c, i, all) => !(c.type === "image" && /candidate [1-9]/.test(String(all[i - 1]?.text ?? ""))) && !(c.type === "text" && /candidate [1-9]/.test(String(c.text))));
-      try { verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content: slim }] }).finalMessage()).parsed_output; } catch { /* text-only scenes this time */ }
+      try { verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content: slim }] }).finalMessage().then(track("reels"))).parsed_output; } catch { /* text-only scenes this time */ }
     }
   }
   const visual: Record<string, Cand> = {};

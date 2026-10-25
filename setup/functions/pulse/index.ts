@@ -37,6 +37,24 @@ const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" }
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
+// Cost log: every AI call's tokens and an estimated price go to ai_usage (see schema-usage.sql).
+// List prices per million tokens; batches are half price on tokens; web search is $10 per 1,000.
+const PRICE: Record<string, [number, number]> = { "claude-opus-5-5": [4, 20], "claude-sonnet-5-5": [2, 10], "claude-haiku-5-5": [0.1, 0.5], "claude-opus-5": [5, 25], "claude-opus-4-8": [5, 25], "claude-fable-5-1": [10, 50] };
+// deno-lint-ignore no-explicit-any
+function track<T>(job: string, batch = false): (m: T) => T {
+  return (m: T) => {
+    // deno-lint-ignore no-explicit-any
+    const msg = m as any, u = msg?.usage ?? {};
+    const [pi, po] = PRICE[String(msg?.model ?? "").replace(/-\d{8}$/, "")] ?? PRICE["claude-opus-5-5"];
+    const inp = u.input_tokens ?? 0, out = u.output_tokens ?? 0, cr = u.cache_read_input_tokens ?? 0, cw = u.cache_creation_input_tokens ?? 0;
+    const searches = u.server_tool_use?.web_search_requests ?? 0;
+    const tokens = (inp * pi + out * po + cr * pi * 0.1 + cw * pi * 1.25) / 1e6;
+    const cost = tokens * (batch ? 0.5 : 1) + searches * 0.01;
+    db("ai_usage", { method: "POST", prefer: "return=minimal", body: { job, model: msg?.model ?? null, input_tokens: inp, output_tokens: out, cache_read: cr, cache_write: cw, searches, batch, cost_usd: Number(cost.toFixed(5)) } }).catch(() => {});
+    return m;
+  };
+}
+
 async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
   const r = await fetch(`${SB}/rest/v1/${path}`, {
     method: init.method ?? "GET",
@@ -128,11 +146,15 @@ const ChangeSchema = z.object({
 // deno-lint-ignore no-explicit-any
 type Node = any;
 
-async function pulseGoal(goal: { id: number; slug: string; name: string; handle: string; pulsed_at: string | null; mapped_at: string | null; bottleneck_key: string | null }) {
+type Goal = { id: number; slug: string; name: string; handle: string; pulsed_at: string | null; mapped_at: string | null; bottleneck_key: string | null };
+
+// The research check runs through the Message Batches API (half price, same model and prompt):
+// one call gathers new research and submits it; a later call (10 minutes on) applies the answer.
+// {"slug": "...", "live": true} runs it at once instead, for testing.
+async function pulseGoal(goal: Goal, live = false) {
   const nodes: Node[] = await db(`nodes?goal_id=eq.${goal.id}&select=*&order=position.asc`);
   const leaves = nodes.filter((n) => n.parent_key);
   const since = (goal.pulsed_at ?? goal.mapped_at ?? new Date(Date.now() - 14 * 864e5).toISOString()).slice(0, 10);
-
   const known = new Set(leaves.flatMap((l) => (l.evidence ?? []).map((e: { id?: string }) => e.id)).filter(Boolean));
   const found = await pool(leaves, 5, (l) => openAlexSince(l.query || l.title, since));
   const recs: Record<string, Rec> = {};
@@ -144,13 +166,11 @@ async function pulseGoal(goal: { id: number; slug: string; name: string; handle:
       (byLeaf[l.key] ??= []).push(r.id);
     }
   });
-
   const now = new Date().toISOString();
   if (Object.keys(recs).length === 0) {
     await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
     return { slug: goal.slug, new_records: 0, posts: 0 };
   }
-
   const blocks = leaves.filter((l) => byLeaf[l.key]?.length).map((l) =>
     `LEAF ${l.key} [${l.status}; ${l.blocker_kind}] ${l.title}\nWhat blocks it: ${l.blocker}\nNew records:\n` +
     byLeaf[l.key].map((id) => {
@@ -158,23 +178,10 @@ async function pulseGoal(goal: { id: number; slug: string; name: string; handle:
       return `[${r.id}] ${r.title} (${r.year ?? "n.d."}; ${r.first_author || "unknown author"}; ${r.venue || "unknown venue"}) ${r.abstract}`;
     }).join("\n")
   ).join("\n\n");
-
-  // If the model is unavailable (no credit, outage), skip this goal until tomorrow instead of
-  // retrying it every ten minutes and spending the day's archive searches on it.
-  let msg;
-  try {
-  msg = await claude.beta.messages.stream({
-    model: MODEL,
-    max_tokens: 64000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "medium", format: betaZodOutputFormat(ChangeSchema) },
-    system: `You work for Parallax, a public feed of human progress. People follow goals the way they
+  const system = `You work for Parallax, a public feed of human progress. People follow goals the way they
 follow accounts. Write plainly for a curious non-expert. Never invent facts, numbers, papers or people.
-Most new papers change nothing: posting nothing is the right answer most days.`,
-    messages: [{
-      role: "user",
-      content: `Goal: ${goal.name} (@${goal.handle})
+Most new papers change nothing: posting nothing is the right answer most days.`;
+  const content = `Goal: ${goal.name} (@${goal.handle})
 Research published since ${since} on the problems in this goal's tree:
 
 ${blocks}
@@ -187,9 +194,30 @@ a headline of at most 12 words that states the fact in a way that makes someone 
 clickbait or exaggeration), a body of at most 2 short sentences (under 45 words), the second saying
 why it matters for the goal, and source_ids from the records listed under that leaf.
 Write about the research and the world, never about "records" or this search.
-"solved" needs at least two records from different research groups. At most 3 changes.`,
-    }],
-  }).finalMessage();
+"solved" needs at least two records from different research groups. At most 3 changes.`;
+  const fmt = betaZodOutputFormat(ChangeSchema);
+  if (!live) {
+    try {
+      const batch = await claude.messages.batches.create({ requests: [{ custom_id: `g${goal.id}`, params: {
+        model: MODEL, max_tokens: 64000, output_config: { effort: "medium", format: { type: "json_schema", schema: fmt.schema } },
+        system, messages: [{ role: "user", content }],
+      } }] });
+      await db("pulse_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: goal.id, recs, by_leaf: byLeaf } });
+    } catch (e) {
+      // If the model is unavailable (no credit, outage), skip this goal until tomorrow instead of
+      // retrying it every ten minutes and spending the day's archive searches on it.
+      await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
+      return { slug: goal.slug, new_records: Object.keys(recs).length, posts: 0, note: `model unavailable: ${e instanceof Error ? e.message.slice(0, 120) : e}` };
+    }
+    await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
+    return { slug: goal.slug, new_records: Object.keys(recs).length, submitted: true };
+  }
+  let msg;
+  try {
+    msg = await claude.beta.messages.stream({
+      model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      output_config: { effort: "medium", format: fmt }, system, messages: [{ role: "user", content }],
+    }).finalMessage().then(track("pulse"));
   } catch (e) {
     await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
     return { slug: goal.slug, new_records: Object.keys(recs).length, posts: 0, note: `model unavailable: ${e instanceof Error ? e.message.slice(0, 120) : e}` };
@@ -198,13 +226,47 @@ Write about the research and the world, never about "records" or this search.
     await db(`goals?id=eq.${goal.id}`, { method: "PATCH", body: { pulsed_at: now, updated_at: now } });
     return { slug: goal.slug, new_records: Object.keys(recs).length, posts: 0, note: msg.stop_reason };
   }
+  return applyChanges(goal, leaves, recs, byLeaf, msg.parsed_output.changes);
+}
 
+// Collect finished research checks and apply them.
+async function collect() {
+  const jobs = await db(`pulse_jobs?status=eq.pending&select=batch_id,goal_id,recs,by_leaf,created_at&order=created_at.asc&limit=20`);
+  const out = [];
+  const fmt = betaZodOutputFormat(ChangeSchema);
+  for (const j of jobs) {
+    const b = await claude.messages.batches.retrieve(j.batch_id);
+    if (b.processing_status !== "ended") {
+      if (Date.now() - new Date(j.created_at).getTime() > 26 * 3600_000) await db(`pulse_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      continue;
+    }
+    let result: unknown = { note: "no result" };
+    for await (const r of await claude.messages.batches.results(j.batch_id)) {
+      if (r.result.type !== "succeeded") { result = { note: r.result.type }; continue; }
+      const m = r.result.message;
+      track("pulse", true)(m);
+      const text = m.content.map((c) => (c.type === "text" ? c.text : "")).join("");
+      try {
+        const parsed = fmt.parse(text);
+        const goal = (await db(`goals?id=eq.${j.goal_id}&select=id,slug,name,handle,pulsed_at,mapped_at,bottleneck_key`))[0];
+        const nodes: Node[] = await db(`nodes?goal_id=eq.${j.goal_id}&select=*&order=position.asc`);
+        if (goal) result = await applyChanges(goal, nodes.filter((n) => n.parent_key), j.recs, j.by_leaf, parsed.changes);
+      } catch (e) { result = { note: `could not read the answer: ${String(e).slice(0, 100)}` }; }
+    }
+    await db(`pulse_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
+    out.push(result);
+  }
+  return out;
+}
+
+async function applyChanges(goal: Goal, leaves: Node[], recs: Record<string, Rec>, byLeaf: Record<string, string[]>, changes: z.infer<typeof ChangeSchema>["changes"]) {
+  const now = new Date().toISOString();
   const leafByKey = new Map(leaves.map((l) => [l.key, l]));
   const pub = (r: Rec) => ({ id: r.id, title: r.title, url: r.url, year: r.year, venue: r.venue, first_author: r.first_author });
   const authors = (ids: string[]) => new Set(ids.map((id) => recs[id]?.first_author?.toLowerCase().trim()).filter(Boolean)).size;
 
   const posts = [];
-  for (const c of msg.parsed_output.changes.slice(0, 3)) {
+  for (const c of changes.slice(0, 3)) {
     const leaf = leafByKey.get(c.node_key);
     if (!leaf) continue;
     const ids = c.source_ids.filter((id) => (byLeaf[c.node_key] ?? []).includes(id));
@@ -268,6 +330,7 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const body: any = await req.json().catch(() => ({}));
     const restarted = await restartStuck();
+    const collected = await collect().catch((e) => [{ error: String(e).slice(0, 120) }]);
     const cols = "id,slug,name,handle,pulsed_at,mapped_at,bottleneck_key";
     let goal;
     if (typeof body.slug === "string") {
@@ -276,9 +339,9 @@ Deno.serve(async (req) => {
       const due = new Date(Date.now() - PULSE_EVERY_HOURS * 3600_000).toISOString();
       goal = (await db(`goals?status=eq.ready&or=(pulsed_at.is.null,pulsed_at.lt.${due})&select=${cols}&order=pulsed_at.asc.nullsfirst&limit=1`))?.[0];
     }
-    if (!goal) return json({ pulsed: null, restarted });
-    const result = await pulseGoal(goal);
-    return json({ pulsed: result, restarted });
+    if (!goal) return json({ pulsed: null, collected, restarted });
+    const result = await pulseGoal(goal, body.live === true);
+    return json({ pulsed: result, collected, restarted });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
