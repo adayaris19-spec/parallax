@@ -174,6 +174,20 @@ Run `schema-intel.sql` and deploy the `intel` function (Verify JWT on). It sched
   institutions and countries in the last 3 full years (OpenAlex, 3 searches per goal, weekly per goal);
 - every Monday at 06:47 UTC, the weekly analyst brief (one Claude call).
 
+## 12. Back a problem (funding)
+
+Teams (labs, nonprofits, companies, independent researchers) raise money for problems in a goal's
+tree. Each team gets its own Stripe account through Stripe Connect, so money goes straight to them;
+Parallax keeps 5% (`PARALLAX_FEE_BPS`, default 500). Backers can add card fees on top so the team
+gets the full 95%.
+
+1. Run `schema-funding.sql` and deploy the `fund` function (Verify JWT on). Redeploy `stripe-webhook`.
+2. In Stripe: **Connect -> Get started** once, as a platform, so teams can be onboarded.
+3. Add `charge.refunded` to the webhook's events (refunds then show on the site).
+4. A team signs up at `#/team`, verifies with Stripe, and lists problems. Approve it after checking it is real:
+   `update teams set approved = true where id = '<team id>';`
+5. Backers press **Back** on a problem in the tree and pay through Stripe Checkout.
+
 ## If the AI is unavailable
 
 If the Anthropic account runs out of credit or the API is down, nothing breaks for visitors: the
