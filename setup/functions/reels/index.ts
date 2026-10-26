@@ -469,11 +469,16 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
 
 // Apply finished photo-editor batches. A failed judgement leaves the old videos in place and retries.
 async function collect() {
-  const jobs = await db(`reel_jobs?status=eq.pending&select=*&order=created_at.asc&limit=5`);
+  // Look at every pending batch (a few slow ones must not hide finished ones behind them), and
+  // finish up to 3 per run: saving a goal's videos takes a while.
+  const jobs = await db(`reel_jobs?status=eq.pending&select=*&order=created_at.asc&limit=40`);
   const out = [];
   const fmt = betaZodOutputFormat(Verdict);
+  const t0 = Date.now();
+  let finished = 0;
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);
+    if (b.processing_status === "ended" && (finished >= 3 || Date.now() - t0 > 90_000)) continue;
     if (b.processing_status !== "ended") {
       // Stuck: nothing finished after 4 hours (Anthropic sometimes leaves a batch queued), or never
       // ended. Cancel it (unfinished requests aren't billed) so the next run submits it again.
@@ -481,8 +486,8 @@ async function collect() {
       if ((age > 4 * 3600_000 && (b.request_counts?.succeeded ?? 0) === 0) || age > 26 * 3600_000) {
         if (b.processing_status === "in_progress") await claude.messages.batches.cancel(j.batch_id).catch(() => {});
         await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
-        // Let the goal be picked again on the next run.
-        await db(`goals?id=eq.${j.goal_id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: null } });
+        // Submit the goal again right away, as the same kind of run (a full remake stays a full remake).
+        await run(j.slug, !!j.fresh).catch(async () => { await db(`goals?id=eq.${j.goal_id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: null } }); });
       }
       continue;
     }
@@ -498,6 +503,7 @@ async function collect() {
       out.push({ slug: j.slug, note: "judgement failed; will retry" });
       continue;
     }
+    finished++;
     out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, [], j.pre ?? {}));
     await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
   }
@@ -583,6 +589,10 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
+    if (body.action === "batch_status") {
+      const jobs = await db(`reel_jobs?status=eq.pending&select=batch_id,slug,created_at,fresh`);
+      return json(await Promise.all(jobs.map(async (j: { batch_id: string; slug: string; created_at: string; fresh: boolean }) => { const b = await claude.messages.batches.retrieve(j.batch_id); return { slug: j.slug, fresh: j.fresh, created_at: j.created_at, status: b.processing_status, counts: b.request_counts }; })));
+    }
     if (body.action === "move_media") return json(await moveMedia());
     if (body.action === "r2_check") {
       if (!r2) return json({ ok: false, why: R2_PUBLIC.includes("r2.cloudflarestorage.com") ? "R2_PUBLIC_URL is the API endpoint; use the bucket's public URL (pub-….r2.dev)" : "R2 secrets missing" });
