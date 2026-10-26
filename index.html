@@ -1531,6 +1531,44 @@ svg.gl .wedge.back{display:none}
 svg.gl.flat{cursor:default}
 svg.gl.flat .wnode.back{opacity:1}svg.gl.flat .wnode.back text{display:inline}svg.gl.flat .wedge.back{display:inline}
 .gl-sphere,.gl-grid{transition:none}
+/* Pro on phones: the same five layouts, stacked */
+@media (max-width:760px){
+  .mr-keys,.mr-rips,.st-board,.st-movers,.tl-main,.tl-side,.mk-panel{min-width:0}
+  .fp-head{padding:16px 0 14px}.fp-h{font-size:26px}
+  .fp-lede{grid-template-columns:1fr;gap:10px}
+  .fp-cols{grid-template-columns:minmax(0,1fr);gap:22px}
+  .fp-row{grid-template-columns:18px 30px minmax(0,1fr) 52px;gap:8px}
+  .fp-row .fp-bar,.fp-row .fp-hz{display:none}
+  .fp-av{width:30px;height:30px}
+  .fp-next{grid-template-columns:1fr 1fr;gap:10px}
+  .mr-low{grid-template-columns:minmax(0,1fr);gap:18px}
+  .mr-map .webwrap{min-height:0;padding:8px}
+  .mr-strip{grid-auto-columns:78%}
+  .xsearch{height:44px;font-size:16px}
+  .mk-stats{grid-template-columns:1fr 1fr}
+  .mk-stats>div:nth-child(3){border-left:0}.mk-stats>div:nth-child(n+3){border-top:1px solid var(--line)}
+  .mk-stats b{font-size:22px}.mk-stats>div{padding:12px 14px}
+  .mk-panel .mrows:not(.all)>.mrow:nth-child(n+4),.pks:not(.all)>.pk:nth-child(n+3){display:none}
+  .mk-panel .opp>div>a:nth-of-type(n+3){display:none}
+  .mr-map .webside .xlink:nth-of-type(n+4){display:none}
+  .mk-cols{grid-template-columns:minmax(0,1fr);gap:18px}
+  .mk-bar{grid-template-columns:26px minmax(0,1fr) 54px 50px;gap:8px;padding:6px 4px}
+  .mk-bar .mk-t{grid-column:2/5;grid-row:2}
+  .mk-panel .pks,.pks{grid-template-columns:1fr;padding-left:0;padding-right:0}
+  .st-top{grid-template-columns:minmax(0,1fr);gap:20px}
+  .st-pod{gap:6px}.st-p b{font-size:12.5px}.st-place{font-size:18px}
+  .st-p.p1 .st-block{height:80px}.st-p.p2 .st-block{height:56px}.st-p.p3 .st-block{height:40px}
+  .st-rest{grid-template-columns:1fr}
+  .st-lanes{border-radius:16px}
+  .st-lane-row{grid-template-columns:repeat(7,150px);overflow-x:auto;scroll-snap-type:x mandatory}
+  .st-lane{scroll-snap-align:start;min-height:0}
+  .tl{grid-template-columns:minmax(0,1fr);gap:18px}
+  .tl-track{grid-auto-columns:78%}
+  .gl-flip{top:2px;right:2px}
+  .grow{gap:8px}.grow-bar{flex-basis:70px}
+}
+/* Phones: a finger on the globe or the graph still scrolls the page up and down; sideways turns it. */
+@media (pointer:coarse){svg.gl,svg.gsim{touch-action:pan-y}}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3891,7 +3929,7 @@ function marketScreen(t) {
       <div><span class="lbl">Biggest</span><b class="mono">${big ? usdShort(big.amount) : '—'}</b><small>${big ? `${esc(big.recipient)} · @${esc(big.goal)}` : ''}</small></div><div><span class="lbl">Goals with rising funding</span><b class="mono">${up}<small> / ${m.goals.length}</small></b></div></div>
     ${tape ? `<div class="mk-tape" aria-label="Latest grants"><div class="mk-tape-in">${tape}${tape}</div></div>` : ''}
     <div class="mk-cols"><section class="mk-panel"><div class="fp-ch"><h3>Funding, last 12 months</h3><span>tap a goal to filter the grants · change vs the year before</span></div><div class="mk-bars">${bars}</div></section>
-      <section class="mk-panel"><div class="fp-ch"><h3>${sel ? `@${esc(m.goals.find((g) => g.slug === sel)?.goal || sel)} grants` : 'Latest big grants'}</h3><span>${list.length} · largest first</span></div><div class="mrows">${awardRows(shown) || '<p class="gnote">None in the last 90 days.</p>'}</div>
+      <section class="mk-panel"><div class="fp-ch"><h3>${sel ? `@${esc(m.goals.find((g) => g.slug === sel)?.goal || sel)} grants` : 'Latest big grants'}</h3><span>${list.length} · largest first</span></div><div class="mrows${termSel.moneyAll ? ' all' : ''}">${awardRows(shown) || '<p class="gnote">None in the last 90 days.</p>'}</div>
         ${list.length > shown.length ? `<p class="mk-more"><button class="btn sm" type="button" data-tsel="moneyAll" data-v="1">Show all ${list.length}</button></p>` : ''}</section></div>
     <div class="mk-cols mk-low"><section class="mk-panel">${radarPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Where money would go furthest</h3><span>research growing faster than typical, on less money than typical</span></div>')}</section>
       <section class="mk-panel">${oppPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Gaps and quiet problems</h3><span>where attention or money would move things</span></div>')}</section></div></div>`;
@@ -4061,7 +4099,7 @@ function radarPanel(t) {
       <div class="pk-act"><a class="btn primary sm" href="${page}">Fund it</a><a class="linkish" href="#/lab/${encodeURIComponent(p.slug)}">Ideas</a></div></article>`;
   };
   return `<section class="panel">${head}${answerBox([`${picks.length} problems are growing faster than typical on less money than typical.`, full && shown[0] ? `Top pick: ${shown[0].title} (@${shown[0].goal}).` : null].filter(Boolean))}
-    <div class="pks">${shown.map(card).join('')}</div>
+    <div class="pks${termSel.radarAll ? ' all' : ''}">${shown.map(card).join('')}</div>
     ${full && !termSel.radarAll && picks.length > shown.length ? `<p class="mk-more" style="padding:0 18px"><button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${picks.length}</button></p>` : ''}
     <p class="radar-note" style="padding:0 18px 14px">“Typical” is the middle problem among the ${funded.length} unsolved problems with matched US federal grants (research growth ${my >= 0 ? '+' : ''}${Math.round(my * 100)}%, ${usdShort(mx)} in grants). Picks grow faster and get less; top picks are in the fastest third and the least-funded third.</p>
     ${full ? '' : moreGate(`${picks.length} problems are growing faster than typical on less money. Subscribers see every one, the cheapest way in, and alerts when new ones appear.`)}</section>`;
@@ -4165,7 +4203,7 @@ function renderTerminal(box, tab = 'overview') {
       <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
     </section>`;
   // Subscribers on a wide screen get a distinct layout per tab; phones and visitors get sections.
-  const own = full && WIDE.matches;
+  const own = full; // subscribers get each tab's own layout on every screen (phones: stacked)
   const overview = own ? frontPage(t, kstrip) : `${kstrip}
     ${sections(t, 'overview')}
     ${full ? `<p class="csvrow"><span class="lbl">Download</span><button class="btn sm" type="button" data-csv="goals">Every goal (CSV)</button><button class="btn sm" type="button" data-csv="problems">Every open problem (CSV)</button></p>` : ''}`;
