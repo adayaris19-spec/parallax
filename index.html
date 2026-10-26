@@ -673,6 +673,24 @@ body.goalpage main{max-width:1120px}
   .mv{grid-template-columns:1fr;gap:18px}
 }
 
+/* real funding and trials */
+.fs-ev{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:10px}
+.fs-ev .kick{margin-bottom:4px;display:block}
+.fs-ev p{margin:0;font-size:14px!important;color:var(--ink2)}
+.fs-ev b{color:var(--ink);font-size:15px}
+.ev{margin-top:18px;display:grid;gap:14px}
+.ev-s{padding:16px 18px;border-radius:16px;border:1px solid var(--line)}
+.ev-s .kick{margin-bottom:8px}
+.ev-n{margin:0;font-size:15px;line-height:1.45;color:var(--ink2)}
+.ev-n b{font-size:22px;color:var(--ink);letter-spacing:-.02em;margin-right:2px}
+.ev-ag{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ev-ag span{font-size:12.5px;padding:4px 9px;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.ev-l{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.ev-l li{font-size:14px;line-height:1.4}
+.ev-l a{color:var(--ink);text-decoration:none}.ev-l a:hover{text-decoration:underline}
+.ev-l small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.ev-src{margin:12px 0 0;font-size:12px;color:var(--faint)}
+.ev-src a{color:inherit}
 /* what it would take */
 .wt{margin-top:18px;padding:16px 18px;border-radius:16px;background:var(--sunk)}
 .wt .kick{margin-bottom:10px}
@@ -1795,7 +1813,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], fieldReal = false, nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], fieldReal = false, evidence = {}, nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1815,14 +1833,15 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       siteConfig(),
       rest(`goal_fundraisers?goal_id=eq.${g.id}&select=ein,url`).catch(() => []),
       rest(`node_field_years?goal_id=eq.${g.id}&year=gte.${new Date().getFullYear() - 13}&select=node_key,year,n`).catch(() => []),
-    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+      rest(`node_evidence?goal_id=eq.${g.id}&select=node_key,source,count,amount_cents,since_year,top,extra`).catch(() => []),
+    ]).then((r) => { for (const e of r[17]) (evidence[e.node_key] ||= {})[e.source] = e; askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas, giving };
+  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas, giving, evidence };
   // Count one visit per goal per browser session; AI spend follows what people look at.
   try { const k = `px.v.${g.id}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
@@ -2048,6 +2067,7 @@ function fieldPanel(key) {
       <div class="fs-cols" aria-hidden="true">${vals.map((v, i) => `<i style="height:${Math.max(3, v / vmax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div>
       <div class="fs-ax mono"><span>${years[0]}</span><span>${F.real && total ? `${(F.yrs[l.key]?.[F.Y1] || 0).toLocaleString()} papers published in ${F.Y1}` : total ? `${total.toLocaleString()} papers in the library` : F.any ? 'No papers found for this problem yet' : 'Building the research library…'}</span><span>${years[years.length - 1]}</span></div></div>
     ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : l.status === 'solved' ? '' : `<div class="fs-cost"><span class="kick">What it would take</span><p class="muted">Parallax is researching the cost of the next step and of solving it. Estimates appear here within a few hours.</p></div>`; })()}
+    ${evidenceBrief(goalCtx.evidence?.[l.key])}
     ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
     ${fundingPanel(g, l, { compact: true })}
     <div class="fs-act"><button class="btn" type="button" data-leaf="${esc(l.key)}">Open the research</button></div>`;
@@ -2104,6 +2124,7 @@ function openLeaf(key, push = true) {
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
     <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
     ${costBlock(goalCtx.costs?.[l.key], l)}
+    ${evidenceBlock(goalCtx.evidence?.[l.key])}
     ${(() => { const li = (goalCtx.ideas || []).filter((i) => i.node_key === l.key); return li.length ? `<div class="sh-ideas"><div class="kick">Ideas to try · ${li.length}</div>${li.map((i) => `<a href="#/idea/${i.id}"><b>${esc(i.title)}</b>${i.test_high ? `<span class="mono">test ${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</a>`).join('')}</div>`
       : l.status === 'solved' ? '' : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
         ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
@@ -3072,6 +3093,39 @@ function usdRange(lo, hi) {
   if (lo == null || hi == null || lo === hi) return usdShort(lo ?? hi);
   const a = usdShort(lo), b = usdShort(hi), ua = a.slice(-1), ub = b.slice(-1);
   return ua === ub && /[KMB]/.test(ua) ? `${a.slice(0, -1)}–${b.slice(1)}` : `${a}–${b}`;
+}
+// Real funding and trials (evidence function): federal grants from USAspending.gov, active studies
+// from ClinicalTrials.gov.
+const AGENCY = { 'Department of Health and Human Services': 'NIH & HHS', 'National Science Foundation': 'NSF', 'Department of Energy': 'Energy Dept.', 'National Aeronautics and Space Administration': 'NASA', 'Department of Defense': 'Defense Dept.', 'Department of Agriculture': 'USDA', 'Department of Commerce': 'Commerce Dept.', 'Environmental Protection Agency': 'EPA', 'Department of Veterans Affairs': 'Veterans Affairs' };
+const agencyName = (n) => AGENCY[n] || n.replace(/^Department of (the )?/, '') ;
+function phaseLine(ph) {
+  const n = (k) => ph?.[k] || 0, parts = [];
+  if (n('PHASE3') + n('PHASE4')) parts.push(`${n('PHASE3') + n('PHASE4')} in Phase 3+`);
+  if (n('PHASE2')) parts.push(`${n('PHASE2')} in Phase 2`);
+  if (n('PHASE1') + n('EARLY_PHASE1')) parts.push(`${n('PHASE1') + n('EARLY_PHASE1')} in Phase 1`);
+  return parts.join(', ');
+}
+function evidenceBrief(ev) {
+  if (!ev || (!ev.grants && !ev.trials)) return '';
+  const gr = ev.grants, tr = ev.trials;
+  return `<div class="fs-ev">${gr ? `<div><span class="kick">Public funding since ${gr.since_year}</span><p><b class="mono">${esc(usdShort(Math.round(gr.amount_cents / 100)))}</b> in ${gr.count.toLocaleString()} federal grant${gr.count === 1 ? '' : 's'}${(gr.extra?.agencies || []).length ? ` · ${(gr.extra.agencies).slice(0, 2).map((a) => esc(agencyName(a.name))).join(', ')}` : ''}</p></div>` : ''}
+    ${tr ? `<div><span class="kick">Clinical trials</span><p><b class="mono">${tr.count.toLocaleString()}</b> active${phaseLine(tr.extra?.phases) ? ` · ${esc(phaseLine(tr.extra.phases))}` : ''}</p></div>` : ''}</div>`;
+}
+function evidenceBlock(ev) {
+  if (!ev || (!ev.grants && !ev.trials)) return '';
+  const gr = ev.grants, tr = ev.trials;
+  const item = (x, meta) => { const u = safeUrl(x.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title)}</a>` : esc(x.title)}<small>${meta}</small></li>`; };
+  return `<div class="ev">
+    ${gr ? `<div class="ev-s"><div class="kick">Who’s funding it</div>
+      <p class="ev-n"><b class="mono">${esc(usdShort(Math.round(gr.amount_cents / 100)))}</b> in ${gr.count.toLocaleString()} federal grant${gr.count === 1 ? '' : 's'} since ${gr.since_year}</p>
+      ${(gr.extra?.agencies || []).length ? `<div class="ev-ag">${gr.extra.agencies.slice(0, 4).map((a) => `<span>${esc(agencyName(a.name))} <b class="mono">${esc(usdShort(a.amount))}</b></span>`).join('')}</div>` : ''}
+      <ul class="ev-l">${(gr.top || []).map((x) => item(x, `${esc(x.who)}${x.amount ? ` · <span class="mono">${esc(usdShort(x.amount))}</span> total award` : ''}`)).join('')}</ul>
+      <p class="ev-src">US federal grants from <a href="https://www.usaspending.gov" target="_blank" rel="noopener">USAspending.gov</a>, matching “${esc(gr.extra?.terms || '')}”. Private and non-US funding isn’t included.</p></div>` : ''}
+    ${tr ? `<div class="ev-s"><div class="kick">In clinical trials</div>
+      <p class="ev-n"><b class="mono">${tr.count.toLocaleString()}</b> active stud${tr.count === 1 ? 'y' : 'ies'}${tr.extra?.recruiting ? `, ${tr.extra.recruiting} recruiting now` : ''}${phaseLine(tr.extra?.phases) ? ` · ${esc(phaseLine(tr.extra.phases))}` : ''}</p>
+      <ul class="ev-l">${(tr.top || []).map((x) => item(x, `${esc(x.who)}${x.phase ? ` · ${esc(x.phase)}` : ''}${x.status ? ` · ${esc(x.status)}` : ''}`)).join('')}</ul>
+      <p class="ev-src">From <a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a>, matching “${esc(tr.extra?.terms || '')}”.</p></div>` : ''}
+  </div>`;
 }
 const CONF = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' };
 function costBlock(c, l) {

@@ -356,3 +356,20 @@ downloaded). The `library` function refreshes one goal's counts per run (monthly
 after growing a library; `POST {"counts": true, "slug": "..."}` counts one goal now. The goal page's
 research bars, momentum and dot sizes use these counts, falling back to the library sample
 (`node_years`) for goals not yet counted. Free: about 25 OpenAlex requests per goal per month.
+
+## 24. Real funding and clinical trials
+
+`schema-evidence.sql` adds `node_evidence` (plus `node_evidence_checks` for resuming) and the
+`parallax-evidence` cron (at :07, :27 and :47). The `evidence` function (no AI, free public APIs)
+checks each problem:
+- **Federal grants** from USAspending.gov (last 3 years, all agencies): count, dollars obligated,
+  by agency, and the largest awards. USAspending matches phrases, so it tries the first three search
+  words, then phrases containing the goal's key words, then the first two words. A phrase is kept
+  only if enough of its largest grants carry it in their title, and, for mostly-health grants
+  without the goal's key word, only if they name the goal's subject.
+- **Clinical trials** from ClinicalTrials.gov (active or recruiting), for health problems only, with
+  the full search words. Studies naming the goal's subject are listed first; if none of the first 20
+  do, nothing is shown.
+One goal per run (resumable), refreshed monthly. `POST {"slug": "..."}` runs one goal now,
+`{"probe": "search words"}` tests a search, `{"redo": true}` re-checks every goal.
+The goal page shows a summary in the field panel and the detail in each problem's research sheet.
