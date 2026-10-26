@@ -88,7 +88,7 @@ async function nasaVideos(q: string): Promise<Cand[]> {
     if (!m.nasa_id || !poster || !it.href) continue;
     try {
       const files: string[] = await getJson(it.href);
-      const mp4 = ["~mobile.mp4", "~small.mp4", "~preview.mp4", "~medium.mp4"].map((s) => files.find((f) => f.endsWith(s))).find(Boolean);
+      const mp4 = ["~medium.mp4", "~small.mp4", "~mobile.mp4", "~preview.mp4"].map((s) => files.find((f) => f.endsWith(s))).find(Boolean);
       if (!mp4) continue;
       out.push({ kind: "video", url: fix(mp4), poster: fix(poster), credit: nasaCredit(m), license: "NASA media (not copyrighted)", source_url: `https://images.nasa.gov/details/${encodeURIComponent(m.nasa_id)}`, source: "nasa" });
     } catch { /* skip this one */ }
@@ -109,7 +109,7 @@ async function nasaImages(q: string): Promise<Cand[]> {
 
 // Wikimedia Commons, directly: open licenses only, at least 1200 px wide.
 async function commons(q: string): Promise<Cand[]> {
-  const p = new URLSearchParams({ action: "query", format: "json", origin: "*", generator: "search", gsrsearch: `${q} filetype:bitmap`, gsrnamespace: "6", gsrlimit: "12", prop: "imageinfo", iiprop: "url|size|extmetadata|mime", iiurlwidth: "1600" });
+  const p = new URLSearchParams({ action: "query", format: "json", origin: "*", generator: "search", gsrsearch: `${q} filetype:bitmap`, gsrnamespace: "6", gsrlimit: "12", prop: "imageinfo", iiprop: "url|size|extmetadata|mime", iiurlwidth: "2400" });
   const d = await getJson(`https://commons.wikimedia.org/w/api.php?${p}`, 20000);
   const strip = (h: unknown) => String(h ?? "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
   // deno-lint-ignore no-explicit-any
@@ -142,14 +142,27 @@ async function asBlock(u: string) {
 // we credit anyway). Their API rules forbid permanent hotlinking, so chosen files are copied into
 // Supabase Storage (public bucket "reels-media"). Used only when PIXABAY_API_KEY is set.
 const PIXABAY = Deno.env.get("PIXABAY_API_KEY") ?? "";
+// The sharpest file up to 1080p (4K is too heavy for phones). On a phone held upright a landscape
+// clip is cropped and enlarged, so 1080p looks clearly sharper than 720p.
+// deno-lint-ignore no-explicit-any
+function bestPixabayFile(vs: any): { url: string; width: number; height: number; thumbnail?: string } | undefined {
+  // deno-lint-ignore no-explicit-any
+  return [vs.large, vs.medium, vs.small].filter((x: any) => x?.url && (x.size ?? 0) < 45_000_000)
+    // deno-lint-ignore no-explicit-any
+    .map((x: any) => ({ ...x, short: Math.min(x.width ?? 0, x.height ?? 0) }))
+    // deno-lint-ignore no-explicit-any
+    .filter((x: any) => x.short >= 540 && x.short <= 1080)
+    // deno-lint-ignore no-explicit-any
+    .sort((a: any, b: any) => b.short - a.short)[0];
+}
 async function pixabayVideos(q: string): Promise<Cand[]> {
   if (!PIXABAY) return [];
   const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&safesearch=true&per_page=8`);
   // deno-lint-ignore no-explicit-any
   return (d.hits ?? []).map((v: any) => {
     const vs = v.videos ?? {};
-    const f = [vs.medium, vs.small, vs.large].find((x) => x?.url && (x.size ?? 0) < 25_000_000 && (x.height ?? 0) >= 540);
-    const thumb = f?.thumbnail || vs.medium?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
+    const f = bestPixabayFile(vs);
+    const thumb = vs.medium?.thumbnail || f?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
     return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.small?.thumbnail || thumb };
   }).filter(Boolean).slice(0, 3);
@@ -173,7 +186,7 @@ async function unsplashPhotos(q: string): Promise<Cand[]> {
   const d = await r.json();
   // deno-lint-ignore no-explicit-any
   return (d.results ?? []).filter((p: any) => p.urls?.raw && !p.premium).slice(0, 3).map((p: any) => ({
-    kind: "image", url: `${p.urls.raw}&w=1080&h=1920&fit=crop&crop=entropy&q=80&fm=jpg`, poster: `${p.urls.raw}&w=320&q=70&fm=jpg`,
+    kind: "image", url: `${p.urls.raw}&w=1440&h=2560&fit=crop&crop=entropy&q=80&fm=jpg`, poster: `${p.urls.raw}&w=320&q=70&fm=jpg`,
     credit: `${String(p.user?.name ?? "Unsplash photographer").slice(0, 50)} on Unsplash`, license: "Unsplash License",
     source_url: `${p.links?.html ?? "https://unsplash.com"}?${UTM}`, source: "unsplash", ping: p.links?.download_location,
   }));
@@ -308,7 +321,12 @@ Already made (skip these): ${fresh ? "none" : [...done].join(", ") || "none"}`;
     output_config: { effort: "medium", format: betaZodOutputFormat(Plan) },
     system: `You write short vertical videos for Parallax, a feed of humanity's big goals. Captions only, no voice.
 Write like the best science channels: concrete, surprising, honest. Keep correct technical terms; explain uncommon ones in a few words.
-Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers on screen must appear in the facts.`,
+Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers on screen must appear in the facts.
+Craft:
+- Scene 1 must stop a scroll in under 2 seconds: the most surprising concrete fact, a stark contrast, or a question the reel answers. Never open with the goal's name or a definition.
+- One idea per scene. Each scene should make the viewer want the next: hook, then stakes, then the turn (what changed or what's in the way), then why it matters or what happens next.
+- Short, spoken words. No hype or filler: never "revolutionary", "game-changer", "unlock", "the future of", "imagine a world".
+- Visual: describe a real, filmable shot that stock libraries have, using concrete nouns and action ("scientist pipetting into test tubes, close-up", "wind turbines in fog at dawn", "rocket engine test fire, night"). Never abstract ideas like "hope" or "the future of medicine". Vary scale across a reel: wide, close-up, people, places.`,
     messages: [{ role: "user", content: facts }],
   }).finalMessage().then(track("reels"))).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
@@ -503,6 +521,33 @@ async function moveMedia() {
   }
   return { in_supabase: todo.length, copied, already_there: skipped, errors: errors.slice(0, 5), done: copied + skipped === todo.length, old_prefix: OLD_PREFIX, new_prefix: `${R2_PUBLIC}/` };
 }
+// Re-save existing Pixabay clips at the sharper size chosen by bestPixabayFile, at the same address.
+// Resumable: a clip already at that size is skipped.
+async function upgradeMedia() {
+  if (!r2 || !PIXABAY) return { error: "R2 or Pixabay not configured" };
+  const t0 = Date.now();
+  const clips = [...new Set((await mediaInUse()).filter((u) => u.startsWith(`${R2_PUBLIC}/`) && /\/pv\d+\.mp4$/.test(u)))];
+  let upgraded = 0, same = 0, left = 0;
+  const errors: string[] = [];
+  for (const u of clips) {
+    if (Date.now() - t0 > 100_000) { left++; continue; }
+    try {
+      const id = /\/pv(\d+)\.mp4$/.exec(u)![1];
+      const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&id=${id}`);
+      const f = bestPixabayFile(d.hits?.[0]?.videos ?? {});
+      if (!f) { same++; continue; }
+      const now = Number((await fetch(u, { method: "HEAD" })).headers.get("content-length") ?? 0);
+      // deno-lint-ignore no-explicit-any
+      if (!((f as any).size > now)) { same++; continue; }
+      const r = await fetch(f.url, { signal: AbortSignal.timeout(60000) });
+      if (!r.ok) throw new Error(`pixabay ${r.status}`);
+      await r2Put(u.slice(R2_PUBLIC.length + 1), await r.arrayBuffer(), "video/mp4");
+      upgraded++;
+    } catch (e) { errors.push(`${u.slice(-30)}: ${e instanceof Error ? e.message : e}`); }
+  }
+  return { clips: clips.length, upgraded, already_sharpest: same, left, errors: errors.slice(0, 5), done: left === 0 };
+}
+
 async function dropOld() {
   if ((await db(`reel_jobs?status=eq.pending&select=batch_id`)).length) return { note: "video batches still running; try again after they finish" };
   const used = new Set((await mediaInUse()).filter((u) => u.startsWith(OLD_PREFIX)).map((u) => u.slice(OLD_PREFIX.length)));
@@ -537,6 +582,7 @@ Deno.serve(async (req) => {
       return json({ sample, ok: put.ok && pub === 200, bucket: R2_BUCKET, upload: put.status, upload_error: put.ok ? null : (await put.text()).slice(0, 160), public_read: pub });
     }
     if (body.action === "drop_old") return json(await dropOld());
+    if (body.action === "upgrade_media") return json(await upgradeMedia());
     const collected = await collect();
     if (body.collect_only === true) return json({ collected });
     return json({ collected, made: await run(body.slug, !!body.fresh, body.live === true) });
