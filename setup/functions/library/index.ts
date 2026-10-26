@@ -125,6 +125,9 @@ async function countGoal(slug?: string) {
   if (!g) return { note: "every goal's counts are fresh" };
   const leaves = await db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&query=not.is.null&select=key,query`);
   const errors: string[] = [];
+  try { await yearCounts(leaves[0]?.query ?? "research", "search"); } catch (e) {
+    if (String(e).includes("429")) return { slug: g.slug, note: "OpenAlex daily limit reached; will retry on a later run" };
+  }
   const counts = await pool(leaves, 4, async (l: { key: string; query: string }) => {
     try { return await yearCounts(l.query, "search"); } catch (e) { errors.push(`${l.key}: ${e instanceof Error ? e.message : e}`); return null; }
   });
@@ -143,6 +146,10 @@ async function grow(slug?: string) {
   const errors: string[] = [];
   const safe = async (label: string, f: () => Promise<Paper[]>) => { try { return await f(); } catch (e) { errors.push(`${label}: ${e instanceof Error ? e.message : e}`); return []; } };
 
+  // OpenAlex refuses everything once its daily allowance is used up: check once before 40+ requests.
+  try { await openAlex(leaves[0]?.query ?? g.name, 1); } catch (e) {
+    if (String(e).includes("429")) return { slug: g.slug, note: "OpenAlex daily limit reached; will retry on a later run" };
+  }
   // OpenAlex first (the bulk), then the specialist sources one at a time, gently.
   const oa = await pool(leaves, 4, async (l: { key: string; query: string }) => [
     ...(await safe("openalex", () => openAlex(l.query, 200))),
@@ -175,7 +182,10 @@ async function grow(slug?: string) {
     await db("node_papers?on_conflict=goal_id,node_key,paper_id", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: links.slice(i, i + 1000) });
   }
   const count = (await db(`rpc/parallax_goal_paper_count`, { method: "POST", body: { gid: g.id } })) ?? papers.size;
-  await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { library_at: new Date().toISOString(), papers_count: count } });
+  // If OpenAlex (the bulk of the library) refused or failed, keep the goal due so the next run retries
+  // it, instead of marking it done for a month with only the smaller sources.
+  const oaFailed = errors.filter((e) => e.startsWith("openalex")).length > leaves.length / 2;
+  await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: oaFailed ? { papers_count: count } : { library_at: new Date().toISOString(), papers_count: count } });
   // The goal page's field (research per year, shared papers) reads stored counts; refresh them now.
   await db("rpc/parallax_refresh_field", { method: "POST", body: {} }).catch((e) => errors.push(`field refresh: ${e instanceof Error ? e.message : e}`));
   const bySource: Record<string, number> = {};
