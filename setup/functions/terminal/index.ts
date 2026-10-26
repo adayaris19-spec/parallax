@@ -96,6 +96,12 @@ Deno.serve(async (req) => {
       db("node_evidence?select=goal_id,node_key,source,count,amount_cents,extra&limit=20000").catch(() => []),
       db(`promises?status=eq.pending&due_year=gte.${Y1 + 1}&due_year=lte.${Y1 + 3}&select=goal_id,node_key,claim,made_year,due_year&order=due_year.asc&limit=500`).catch(() => []),
     ]);
+    // Pro-only data the free site never shows (market and evidence functions).
+    const [money, awardRows, pipeRows] = await Promise.all([
+      db("goal_money?select=goal_id,quarters,recipients,updated_at").catch(() => []),
+      db("grant_awards?select=goal_id,award_id,node_key,recipient,agency,amount,start_date,description,url,first_seen&order=amount.desc&limit=3000").catch(() => []),
+      db("trial_pipeline?select=goal_id,nct,node_key,title,phase,status,sponsor,sponsor_class,completion,enrollment&limit=30000").catch(() => []),
+    ]);
     const fy = new Map<string, { recent: number; prior: number; last: number }>();
     for (const r of fieldYears) {
       const k = `${r.goal_id}/${r.node_key}`, v = fy.get(k) ?? { recent: 0, prior: 0, last: 0 };
@@ -342,6 +348,94 @@ Deno.serve(async (req) => {
       opportunities: [`${funding.length} problems are held back mainly by money, ${quiet.length} have gone quiet, ${hot.length} are heating up.`],
     };
 
+    // ---- Money flows: federal grant money per goal by quarter, and new $1M+ grants (last 90 days).
+    const now = new Date(), m = now.getUTCMonth() + 1;
+    const curFY = m >= 10 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(), curQ = Math.floor(((m - 10 + 12) % 12) / 3) + 1;
+    const qIndex = (fy: number, q: number) => fy * 4 + q;
+    const short = (d: string) => String(d ?? "").split(/ -|PROJECT SUMMARY|ABSTRACT|PURPOSE:/i)[0].replace(/\s+/g, " ").trim().slice(0, 140);
+    // deno-lint-ignore no-explicit-any
+    const moneyGoals: any[] = money.map((mg: { goal_id: number; quarters: { fy: number; q: number; amount: number }[]; recipients: unknown[] }) => {
+      const g = goalOf.get(mg.goal_id); if (!g) return null;
+      // Full quarters only (the current one is still filling up).
+      const qs = [...mg.quarters].filter((x) => qIndex(x.fy, x.q) < qIndex(curFY, curQ)).sort((a, b) => qIndex(a.fy, a.q) - qIndex(b.fy, b.q));
+      const last4 = qs.slice(-4).reduce((t, x) => t + x.amount, 0), prior4 = qs.slice(-8, -4).reduce((t, x) => t + x.amount, 0);
+      const mine = awardRows.filter((a: { goal_id: number }) => a.goal_id === mg.goal_id);
+      return { goal: g.handle, slug: g.slug, quarters: qs.slice(-12).map((x) => ({ label: `FY${String(x.fy).slice(2)} Q${x.q}`, amount: x.amount })),
+        last4, prior4, change: prior4 > 0 && last4 > 0 ? round(last4 / prior4 - 1, 2) : null, new_awards: mine.length, new_sum: mine.reduce((t: number, a: { amount: number }) => t + Number(a.amount), 0) };
+    }).filter(Boolean).sort((a, b) => b!.last4 - a!.last4);
+    // deno-lint-ignore no-explicit-any
+    const awards: any[] = awardRows.map((a: { goal_id: number; node_key: string | null; recipient: string; agency: string; amount: number; start_date: string; description: string; url: string; first_seen: string }) => {
+      const g = goalOf.get(a.goal_id); if (!g) return null;
+      return { goal: g.handle, slug: g.slug, key: a.node_key, problem: a.node_key ? titles.get(`${a.goal_id}/${a.node_key}`) ?? null : null,
+        recipient: String(a.recipient ?? "").replace(/^the /i, "").replace(/,? the$/i, "").split(" - ")[0], agency: a.agency, amount: Number(a.amount), title: short(a.description), url: a.url, first_seen: a.first_seen };
+    }).filter(Boolean);
+
+    // ---- The race: who is putting the most into each goal. Grant money (last 12 months, with rank a
+    // year earlier), active trials they sponsor and papers (last 3 years), one row per organization.
+    const norm = (n: string) => String(n ?? "").toLowerCase().replace(/^(the )?(regents|trustees|board of regents|president and fellows) of (the )?/, "").replace(/,? (the|inc\.?|llc|incorporated)$/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    // deno-lint-ignore no-explicit-any
+    const display = (n: string) => String(n ?? "").replace(/^the /i, "").replace(/,? the$/i, "").split(" - ")[0].replace(/\s+/g, " ").trim();
+    const race: any[] = goals.map((g) => {
+      type Org = { name: string; grants: number; rank: number | null; prior_rank: number | null; trials: number; papers: number };
+      const orgs = new Map<string, Org>();
+      const get = (name: string) => { const k = norm(name); if (!orgs.has(k)) orgs.set(k, { name: display(name), grants: 0, rank: null, prior_rank: null, trials: 0, papers: 0 }); return orgs.get(k)!; };
+      const mg = money.find((x: { goal_id: number }) => x.goal_id === g.id);
+      for (const r of (mg?.recipients ?? []) as { name: string; amount: number; rank: number; prior_rank: number | null }[]) Object.assign(get(r.name), { grants: r.amount, rank: r.rank, prior_rank: r.prior_rank });
+      for (const t of pipeRows) if (t.goal_id === g.id && t.sponsor) get(t.sponsor).trials++;
+      const it = intel.find((i: { goal_id: number }) => i.goal_id === g.id);
+      for (const i of (it?.institutions ?? []) as { name: string; papers: number }[]) get(i.name).papers = i.papers;
+      const list = [...orgs.values()];
+      const tot = { g: list.reduce((t, o) => t + o.grants, 0) || 1, t: list.reduce((t, o) => t + o.trials, 0) || 1, p: list.reduce((t, o) => t + o.papers, 0) || 1 };
+      const scored = list.map((o) => ({ ...o, score: o.grants / tot.g + o.trials / tot.t + o.papers / tot.p, move: o.rank && o.prior_rank ? o.prior_rank - o.rank : null, new_entry: !!o.rank && !o.prior_rank }))
+        .sort((a, b) => b.score - a.score).slice(0, 12).map((o, i) => ({ ...o, place: i + 1, score: round(o.score, 3) }));
+      return scored.length ? { goal: g.handle, slug: g.slug, orgs: scored } : null;
+    }).filter(Boolean);
+    // deno-lint-ignore no-explicit-any
+    const climbers: any[] = race.flatMap((r) => r.orgs.filter((o: any) => o.rank && o.rank <= 10 && (o.new_entry || (o.move ?? 0) >= 5)).map((o: any) => ({ goal: r.goal, slug: r.slug, name: o.name, rank: o.rank, prior_rank: o.prior_rank, grants: o.grants })))
+      .sort((a, b) => ((b.prior_rank ?? 60) - (b.rank ?? 0)) - ((a.prior_rank ?? 60) - (a.rank ?? 0)));
+
+    // ---- The pipeline: every active trial on the health goals, by phase and by who runs it.
+    const PHASES = ["Early phase 1", "Phase 1", "Phase 1/Phase 2", "Phase 2", "Phase 2/Phase 3", "Phase 3", "Phase 4", "Not phased"];
+    const WHO: Record<string, string> = { INDUSTRY: "Companies", OTHER: "Universities and hospitals", NIH: "Government", FED: "Government", OTHER_GOV: "Government", NETWORK: "Research networks" };
+    const phaseRank = (p: string) => { const i = PHASES.indexOf(p); return i < 0 ? -1 : i === PHASES.length - 1 ? -1 : i; };
+    // deno-lint-ignore no-explicit-any
+    const pipeline: any[] = goals.map((g) => {
+      const ts = pipeRows.filter((t: { goal_id: number }) => t.goal_id === g.id);
+      if (!ts.length) return null;
+      const by_phase = PHASES.map((p) => ({ phase: p, n: ts.filter((t: { phase: string }) => t.phase === p).length })).filter((x) => x.n);
+      const who: Record<string, number> = {}, spons: Record<string, number> = {};
+      for (const t of ts) { const w = WHO[t.sponsor_class] ?? "Other"; who[w] = (who[w] ?? 0) + 1; if (t.sponsor) spons[t.sponsor] = (spons[t.sponsor] ?? 0) + 1; }
+      const trials = [...ts].sort((a, b) => phaseRank(b.phase) - phaseRank(a.phase) || String(a.completion ?? "9").localeCompare(String(b.completion ?? "9"))).slice(0, 200)
+        .map((t) => ({ nct: t.nct, title: t.title, phase: t.phase, status: t.status, sponsor: t.sponsor, who: WHO[t.sponsor_class] ?? "Other", completion: t.completion, enrollment: t.enrollment, key: t.node_key,
+          problem: t.node_key ? titles.get(`${g.id}/${t.node_key}`) ?? null : null, url: `https://clinicaltrials.gov/study/${t.nct}` }));
+      return { goal: g.handle, slug: g.slug, total: ts.length, phased: ts.filter((t: { phase: string }) => t.phase !== "Not phased").length, late: ts.filter((t: { phase: string }) => /Phase [34]|Phase 2\/Phase 3/.test(t.phase)).length,
+        by_phase, who: Object.entries(who).map(([who, n]) => ({ who, n })).sort((a, b) => b.n - a.n),
+        sponsors: Object.entries(spons).map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n).slice(0, 8), trials };
+    }).filter(Boolean);
+    const pipeTotal = pipeline.reduce((t, p) => t + p!.total, 0), pipeLate = pipeline.reduce((t, p) => t + p!.late, 0);
+    const pipeCo = pipeline.reduce((t, p) => t + (p.who.find((w: { who: string; n: number }) => w.who === "Companies")?.n ?? 0), 0);
+
+    const usd = (x: number) => x >= 1e9 ? `$${(x / 1e9).toFixed(1)}B` : x >= 1e6 ? `$${(x / 1e6).toFixed(x >= 1e8 ? 0 : 1)}M` : `$${Math.round(x / 1e3)}K`;
+    const newSum: number = awards.reduce((t: number, a) => t + a.amount, 0);
+    const upMost = by(moneyGoals.filter((x) => x.change != null && x.prior4 >= 5e6), (x) => x.change);
+    const downMost = by(moneyGoals.filter((x) => x.change != null && x.prior4 >= 5e6), (x) => -x.change);
+    Object.assign(answers, {
+      money: [
+        awards.length ? `${awards.length} new federal grants of $1M+ in the last 90 days, ${usd(newSum)} in total.` : null,
+        full && awards[0] ? `Biggest: ${usd(awards[0].amount)} to ${awards[0].recipient} (@${awards[0].goal}).` : null,
+        upMost && upMost.change > 0 ? `Funding up most: @${upMost.goal}, ${Math.round(upMost.change * 100)}% more in the last 4 quarters than the 4 before.` : null,
+        downMost && downMost.change < 0 ? `Funding down most: @${downMost.goal}, ${Math.round(downMost.change * 100)}%.` : null,
+      ].filter(Boolean),
+      race: [
+        climbers.length ? `${climbers.length} organizations broke into a top 10 or climbed 5+ places in a year.` : null,
+        full && climbers[0] ? `Biggest climber: ${climbers[0].name}, ${climbers[0].prior_rank ? `#${climbers[0].prior_rank} to #${climbers[0].rank}` : `new at #${climbers[0].rank}`} on @${climbers[0].goal}.` : null,
+      ].filter(Boolean),
+      pipeline: pipeTotal ? [
+        `${pipeTotal} active trials across ${pipeline.length} health goals; ${pipeLate} in Phase 3 or later.`,
+        `Companies run ${Math.round(pipeCo / pipeTotal * 100)}% of them; universities and hospitals run most of the rest.`,
+      ] : [],
+    });
+
     // Remember which problems are in the opportunity corner (for watchlist alerts about new ones).
     const opps = radarPoints(problems).filter((r) => r.opportunity);
     if (opps.length) {
@@ -381,6 +475,10 @@ Deno.serve(async (req) => {
       catalysts: full ? catalysts : [],
       catalysts_total: catalysts.length,
       answers,
+      money: full ? { goals: moneyGoals, awards } : null,
+      race: full ? { goals: race, climbers } : null,
+      pipeline: full ? pipeline : null,
+      market_totals: { awards: awards.length, awards_sum: newSum, climbers: climbers.length, trials: pipeTotal, health_goals: pipeline.length },
       // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
       // cut here on the server so nothing more ever leaves it. Tables and CSV stay subscriber-only.
       preview: full ? null : {
@@ -394,6 +492,10 @@ Deno.serve(async (req) => {
         index: [...rows].sort((a, b) => (b.papers_last ?? 0) - (a.papers_last ?? 0)).slice(0, 3),
         radar: radarPoints(problems).map((r, i) => (i < 2 && r.opportunity ? r : { x: r.x, y: r.y, size: r.size, opportunity: r.opportunity })),
         catalysts: catalysts.slice(0, 2),
+        // Money: the single largest new grant. Race: one goal's top 3 names, no figures. Pipeline: counts only.
+        money: { award: awards[0] ?? null, goals: moneyGoals.length },
+        race: race[0] ? { goal: race[0]!.goal, slug: race[0]!.slug, orgs: race[0].orgs.slice(0, 3).map((o: { name: string; place: number }) => ({ name: o.name, place: o.place })) } : null,
+        pipeline: pipeline.map((p) => ({ goal: p!.goal, slug: p!.slug, total: p!.total, late: p!.late, by_phase: p!.by_phase })),
       },
     });
   } catch (e) {

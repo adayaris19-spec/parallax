@@ -439,3 +439,13 @@ AI); visitors get a sample. `schema-plus.sql`: `predictions` (only paying subscr
 `prediction_counts`, `prediction_results`. Billing: `{"action":"checkout","tier":"plus"}` creates
 Plus prices on first use ($20/month, $200/year; PLUS_PRICE_CENTS / PLUS_YEAR_PRICE_CENTS override);
 the Stripe webhook records `plan = 'plus'` for them; the Terminal and watchlists stay Pro-only.
+
+## 31. Pro-only market data: money, the race, the pipeline
+
+Pro shows data the free site never does:
+
+- **Money** (`market` function, USAspending.gov): each goal's federal grant money by quarter, and every new grant of $1M+ in the last 90 days, matched to a problem. Searches use the phrases already checked for each goal's problems, but only those that carry the goal's subject words; a grant counts only when a phrase is in its description and the subject appears near the start (its title). Weekly per goal, cron `parallax-market` at :19.
+- **The race**: per goal, organizations ranked by combined share of grant money (last 12 months, with rank a year earlier), active trials they sponsor and papers (goal_intel). Biggest movers: broke into a top 10 or climbed 5+ places.
+- **Pipeline** (`evidence` function writes `trial_pipeline`): every active trial on the health goals with phase, sponsor and type, size and results date. `POST evidence {"pipeline":"<slug>"}` refills one goal without redoing grants.
+
+Run `setup/schema-market.sql` once. Previews are cut on the server: one grant, three names, counts only.

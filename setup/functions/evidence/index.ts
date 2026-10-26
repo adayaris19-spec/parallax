@@ -37,6 +37,9 @@ const titleCase = (s: string) => s.toLowerCase().replace(/\b([a-z])/g, (m) => m.
 
 type Item = { title: string; who: string; amount?: number; url: string; phase?: string; status?: string; agency?: string };
 type Found = { source: string; count: number; amount_cents: number | null; since_year: number; top: Item[]; extra: Record<string, unknown> };
+// One active trial for the Pro pipeline (trial_pipeline table).
+type Trial = { nct: string; title: string; phase: string; status: string; sponsor: string; sponsor_class: string; completion: string | null; enrollment: number | null };
+const phaseName = (ph: string[] | undefined) => (ph ?? []).filter((x) => x !== "NA").map((x) => x.replace("EARLY_PHASE1", "Early phase 1").replace("PHASE", "Phase ")).join("/") || "Not phased";
 
 const Y = new Date().getUTCFullYear();
 const SINCE = `${Y - 3}-01-01`;
@@ -126,9 +129,9 @@ async function funding(q: string, anchors: string[] = [], names: string[] = anch
 const ACTIVE = ["RECRUITING", "NOT_YET_RECRUITING", "ACTIVE_NOT_RECRUITING", "ENROLLING_BY_INVITATION"];
 // Trials are searched for health problems (grants mostly health funding, or none found), with the
 // full search words, and listed in ClinicalTrials.gov's relevance order.
-async function trials(q: string, anchors: string[] = []): Promise<Found | null> {
+async function trials(q: string, anchors: string[] = []): Promise<(Found & { pipeline: Trial[] }) | null> {
   for (const k of [q]) {
-    const p = new URLSearchParams({ "query.term": k, "filter.overallStatus": ACTIVE.join(","), countTotal: "true", pageSize: "500", fields: "NCTId,BriefTitle,Phase,OverallStatus,LeadSponsorName,EnrollmentCount,PrimaryCompletionDate" });
+    const p = new URLSearchParams({ "query.term": k, "filter.overallStatus": ACTIVE.join(","), countTotal: "true", pageSize: "500", fields: "NCTId,BriefTitle,Phase,OverallStatus,LeadSponsorName,LeadSponsorClass,EnrollmentCount,PrimaryCompletionDate" });
     const d = await getJson(`https://clinicaltrials.gov/api/v2/studies?${p}`);
     // deno-lint-ignore no-explicit-any
     const st: any[] = d.studies ?? [];
@@ -151,7 +154,15 @@ async function trials(q: string, anchors: string[] = []): Promise<Found | null> 
       const date = String(ps.statusModule?.primaryCompletionDateStruct?.date ?? "").slice(0, 7);
       return { nct: ps.identificationModule?.nctId, title: clean(ps.identificationModule?.briefTitle, 160), sponsor: clean(ps.sponsorCollaboratorsModule?.leadSponsor?.name, 80), phase: (ps.designModule?.phases ?? []).map((p: string) => p.replace("EARLY_PHASE", "Early phase ").replace("PHASE", "Phase ")).join("/"), date };
     }).filter((x) => x.nct && x.date >= now && x.date <= until && /Phase [23]/.test(x.phase)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 8);
-    return { source: "trials", count, amount_cents: null, since_year: Y, top, extra: { terms: k, phases, upcoming, recruiting: st.filter((s) => s.protocolSection?.statusModule?.overallStatus === "RECRUITING").length } };
+    // Every active trial that names the subject, for the Pro pipeline view.
+    // deno-lint-ignore no-explicit-any
+    const pipeline: Trial[] = st.filter(named).map((x: any) => {
+      const ps = x.protocolSection ?? {};
+      return { nct: String(ps.identificationModule?.nctId ?? ""), title: clean(ps.identificationModule?.briefTitle, 200), phase: phaseName(ps.designModule?.phases), status: String(ps.statusModule?.overallStatus ?? "").replace(/_/g, " ").toLowerCase(),
+        sponsor: clean(ps.sponsorCollaboratorsModule?.leadSponsor?.name, 120), sponsor_class: String(ps.sponsorCollaboratorsModule?.leadSponsor?.class ?? "OTHER"),
+        completion: String(ps.statusModule?.primaryCompletionDateStruct?.date ?? "").slice(0, 10) || null, enrollment: Number(ps.designModule?.enrollmentInfo?.count) || null };
+    }).filter((t) => t.nct);
+    return { pipeline, source: "trials", count, amount_cents: null, since_year: Y, top, extra: { terms: k, phases, upcoming, recruiting: st.filter((s) => s.protocolSection?.statusModule?.overallStatus === "RECRUITING").length } };
   }
   return null;
 }
@@ -159,6 +170,31 @@ async function trials(q: string, anchors: string[] = []): Promise<Found | null> 
 async function probe(q: string) {
   const t = async (f: () => Promise<Found | null>) => { try { const r = await f(); return r ? { terms: r.extra.terms, count: r.count, usd: r.amount_cents ? Math.round(r.amount_cents / 100) : null, agencies: r.extra.agencies, phases: r.extra.phases, top: r.top.map((x) => `${x.title} — ${x.who}${x.amount ? ` $${x.amount.toLocaleString()}` : ""}${x.phase ? ` (${x.phase})` : ""}`) } : null; } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; } };
   return { grants: await t(() => funding(q)), trials: await t(() => trials(q)) };
+}
+
+async function savePipeline(goalId: number, key: string, rows: Trial[]) {
+  await db(`trial_pipeline?goal_id=eq.${goalId}&node_key=eq.${encodeURIComponent(key)}`, { method: "DELETE", prefer: "return=minimal" });
+  const seen = new Set<string>(), body = rows.filter((t) => !seen.has(t.nct) && seen.add(t.nct)).map((t) => ({ goal_id: goalId, node_key: key, ...t, checked_at: new Date().toISOString() }));
+  if (body.length) await db("trial_pipeline?on_conflict=goal_id,nct", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body });
+}
+
+// Fill the pipeline for one goal without redoing its grants: re-runs the trial search for the
+// problems that already have trials evidence.
+async function pipelineOnly(slug: string) {
+  const [g] = await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,name`);
+  if (!g) return { error: "no such goal" };
+  const [leaves, ev] = await Promise.all([
+    db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&query=not.is.null&select=key,query`),
+    db(`node_evidence?goal_id=eq.${g.id}&source=eq.trials&select=node_key`),
+  ]);
+  const want = new Set(ev.map((e: { node_key: string }) => e.node_key));
+  const anchors = anchorsOf(g.name, (leaves as { query: string }[]).map((x) => x.query));
+  let trials_saved = 0; const errors: string[] = [];
+  for (const l of (leaves as { key: string; query: string }[]).filter((x) => want.has(x.key))) {
+    try { const tr = await trials(l.query, anchors); await savePipeline(g.id, l.key, tr?.pipeline ?? []); trials_saved += tr?.pipeline.length ?? 0; }
+    catch (e) { errors.push(`${l.key}: ${e instanceof Error ? e.message : e}`); }
+  }
+  return { slug, problems: want.size, trials_saved, errors: errors.slice(0, 5) };
 }
 
 async function run(slug?: string) {
@@ -176,18 +212,19 @@ async function run(slug?: string) {
   for (const l of (leaves as { key: string; query: string; title: string }[]).filter((x) => !fresh.has(x.key))) {
     if (Date.now() - t0 > 100_000) break;
     const now = new Date().toISOString(), found: Found[] = [];
-    let failed = false;
+    let failed = false, pipe: Trial[] = [];
     try {
       const anchors = anchorsOf(g.name, (leaves as { query: string }[]).map((x) => x.query));
       const gr = await funding(l.query, anchors, anchorsOf(g.name));
       if (gr) found.push(gr);
       // deno-lint-ignore no-explicit-any
       const hhs = ((gr?.extra.agencies ?? []) as any[]).find((a) => /health and human services/i.test(a.name))?.amount ?? 0;
-      if (!gr || hhs * 100 >= (gr.amount_cents ?? 0) * 0.5) { const tr = await trials(l.query, anchors); if (tr) found.push(tr); }
+      if (!gr || hhs * 100 >= (gr.amount_cents ?? 0) * 0.5) { const tr = await trials(l.query, anchors); if (tr) { const { pipeline, ...f } = tr; found.push(f); pipe = pipeline; } }
     } catch (e) { failed = true; errors.push(`${l.key}: ${e instanceof Error ? e.message : e}`); }
     if (failed) continue;
     await db(`node_evidence?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(l.key)}`, { method: "DELETE", prefer: "return=minimal" });
     if (found.length) await db("node_evidence", { method: "POST", prefer: "return=minimal", body: found.map((r) => ({ goal_id: g.id, node_key: l.key, ...r, checked_at: now })) });
+    await savePipeline(g.id, l.key, pipe);
     await db("node_evidence_checks?on_conflict=goal_id,node_key", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: { goal_id: g.id, node_key: l.key, checked_at: now } });
     fresh.add(l.key); done++;
   }
@@ -202,6 +239,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   try {
     if (typeof body.probe === "string") return json(await probe(body.probe));
+    if (typeof body.pipeline === "string") return json(await pipelineOnly(body.pipeline));
     if (body.redo === true) { await db("node_evidence_checks?goal_id=gt.0", { method: "DELETE", prefer: "return=minimal" }); await db("goals?evidence_at=not.is.null", { method: "PATCH", prefer: "return=minimal", body: { evidence_at: null } }); return json({ cleared: true }); }
     return json(await run(body.slug));
   } catch (e) {

@@ -1192,6 +1192,40 @@ body.wide main{max-width:1120px}
 .fld .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
 .fld ol{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink2)}
 .fld ol li span{color:var(--muted);font-family:var(--m);font-size:11.5px}
+/* Pro market views: money, the race, the pipeline */
+.mrows .lbl{color:var(--muted)}
+.mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
+.mrows>.mrow:first-child{border-top:0}
+.mrow .amt{font-size:15px;font-weight:600;color:var(--ink)}
+.mrow-t b{font-weight:600}
+.mrow-t p{margin:3px 0 2px;font-size:14px;line-height:1.4}
+.mrow-t p a{color:inherit}
+.mrow-t small{font-size:12.5px;color:var(--muted)}
+.mrow-t small a{color:var(--ink2)}
+.qbars{display:inline-flex;align-items:flex-end;gap:2px;height:26px;vertical-align:middle}
+.qbars i{display:block;width:6px;background:var(--ink2);border-radius:1px;min-height:1px;opacity:.75}
+.qbars i:last-child{opacity:1}
+.rmv{font-family:var(--m);font-size:12.5px;color:var(--muted)} .rmv.up{color:var(--solved)} .rmv.down{color:var(--blocked)}
+table.tt.mtab{min-width:620px}
+.mtab td:first-child.num,.mtab th:first-child{width:36px}
+.mtab .up{color:var(--solved)} .mtab .down{color:var(--blocked)}
+.mtab td{vertical-align:top}
+.rlist{margin:8px 0 0;padding-left:20px;display:grid;gap:4px;font-size:15px}
+.r2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid var(--line)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:14px 18px}
+.pcard{display:block;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+div.pcard{cursor:default}
+.pcard.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.pcard .fh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;font-size:13px}
+.pcard .fh .mono{color:var(--muted);font-size:12px}
+.funnel{display:grid;gap:4px}
+.fn-r{display:grid;grid-template-columns:104px 1fr 30px;gap:8px;align-items:center;font-size:12px;color:var(--ink2)}
+.fn-r .t{height:7px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.fn-r .t i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.fn-r b{font-weight:500;text-align:right}
+.pcard .who{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:12px;color:var(--muted)}
+.pcard .who b{color:var(--ink2);font-weight:500}
+@media (max-width:640px){.mrow{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px 14px}.r2col{grid-template-columns:1fr}.pgrid{padding:12px 14px}}
 .cbar{display:grid;grid-template-columns:28px 1fr 38px;gap:8px;align-items:center;font-size:12px;margin-top:6px}
 .cbar .t{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
 .cbar .t i{display:block;height:100%;background:var(--ink);border-radius:3px}
@@ -2997,29 +3031,6 @@ function oppPanel(t) {
   </div></section>`;
 }
 
-function fieldsPanel(t) {
-  const head = `<div class="panel-h"><h2>Who is leading ${t.access === 'full' ? `<small>${t.fields_total}</small>` : ''}</h2><span class="lbl">Each goal’s whole research field, last 3 full years</span></div>`;
-  if (t.access !== 'full' && t.preview?.fields?.length) {
-    const sample = fieldsPanel({ ...t, access: 'full', fields: t.preview.fields });
-    return sample.replace(/<\/section>$/, `${moreGate(`A sample: one goal of ${t.fields_total}. Subscribers see who leads every goal’s field, which countries, and how fast each is growing.`)}</section>`);
-  }
-  if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Institutions and countries, goal by goal', 'Who publishes the most on each goal, which countries lead, and how fast each field is growing.')}</section>`;
-  if (!t.fields.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Field data is being gathered. Check back in a few hours.</div></section>`;
-  const y = new Date().getFullYear();
-  return `<section class="panel">${head}${answerBox(t.answers?.leaders)}<div class="fields">${t.fields.map((f) => {
-    const maxShare = Math.max(0.01, ...f.countries.map((c) => c.share));
-    return `<div class="fld"><div class="fh"><a href="#/g/${encodeURIComponent(f.slug)}">@${esc(f.goal)}</a><span class="gr ${f.growth > 0 ? 'up' : f.growth < 0 ? 'down' : ''}" data-tip="Papers in the last 3 full years vs the 3 before">${growthTxt(f.growth)} in 3 years</span></div>
-      <div class="sub2">${f.papers_3y.toLocaleString()} papers in the last 3 full years</div>
-      ${colsChart(f.years, y - 3)}
-      <div class="two"><div><span class="lbl">Top institutions</span><ol>${f.institutions.slice(0, 5).map((i) => `<li>${esc(i.name)} <span>${i.papers.toLocaleString()}</span></li>`).join('')}</ol></div>
-        <div><span class="lbl">Share by country</span>${f.countries.slice(0, 5).map((c) => `<div class="cbar"><code>${esc(c.code)}</code><span class="t"><i style="width:${(c.share / maxShare * 100).toFixed(1)}%"></i></span><span class="n" data-tip="${esc(c.name)} · ${c.papers.toLocaleString()} papers">${Math.round(c.share * 100)}%</span></div>`).join('')}</div></div></div>`;
-  }).join('')}</div></section>`;
-}
-
-function signalList(items) {
-  return items.map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}${p.key ? `/tree/${encodeURIComponent(p.key)}` : ''}"><div class="r1"><span class="sig ${esc(p.kind)}">${SIG_LABEL[p.kind] || esc(p.kind)}</span><b style="color:var(--ink2);font-weight:500">@${esc(p.goal)}</b>${p.sources ? `<span>${p.sources} source${p.sources === 1 ? '' : 's'}</span>` : ''}<span class="when">${esc(whenAgo(p.at))}</span></div><div class="hl">${esc(p.headline)}</div></a>`).join('');
-}
-
 function bottleneckBoard(list) {
   return list.map((b) => `<a href="#/g/${encodeURIComponent(b.slug)}${b.key ? `/tree/${encodeURIComponent(b.key)}` : ''}">
     <div><div class="g">@${esc(b.goal)}</div><div class="t">${esc(b.title)}</div></div><div class="h">${horizon(b)}</div>
@@ -3042,34 +3053,145 @@ function heatMap(t) {
   <div class="legend2"><span>Cells: unsolved problems by what they wait on. Darker means more.</span><span><i style="background:var(--solved)"></i>Solved</span><span><i style="background:var(--progress)"></i>In progress</span><span><i style="background:var(--blocked)"></i>Blocked</span><span><i style="background:var(--open)"></i>Open</span></div>`;
 }
 
+// ---- Pro-only market views: money flows, the race, the pipeline. Data the free site never shows.
+const termSel = { money: '', race: '', pipe: '', phase: '', moneyAll: false, pipeAll: false };
+const selChips = (key, items, cur, allLabel) => `<div class="bfilter" role="group">${allLabel ? `<button type="button" class="chip3${cur ? '' : ' on'}" data-tsel="${key}" data-v="">${allLabel}</button>` : ''}${items.map(([v, label]) => `<button type="button" class="chip3${cur === v ? ' on' : ''}" data-tsel="${key}" data-v="${esc(v)}">${esc(label)}</button>`).join('')}</div>`;
+const extLink = (url, text) => { const u = safeUrl(url); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${text}</a>` : text; };
+const goalChip = (x) => `<a class="hchip" href="#/g/${encodeURIComponent(x.slug)}">@${esc(x.goal)}</a>`;
+
+function awardRows(list) {
+  return list.map((a) => `<div class="mrow"><b class="mono amt">${usdShort(a.amount)}</b>
+    <div class="mrow-t"><b>${esc(a.recipient)}</b> ${goalChip(a)}<p>${extLink(a.url, esc(a.title || 'Grant'))}</p>
+    <small>${esc(AGENCY[a.agency] || a.agency || '')}${a.problem ? ` · for <a href="${probLink(a)}">${esc(a.problem)}</a>` : ''}</small></div></div>`).join('');
+}
+function qBars(qs) {
+  const max = Math.max(1, ...qs.map((q) => Math.max(0, q.amount)));
+  return `<span class="qbars" role="img" aria-label="Federal grant money by quarter">${qs.map((q) => `<i style="height:${Math.max(q.amount > 0 ? 6 : 0, Math.max(0, q.amount) / max * 100).toFixed(0)}%" data-tip="${esc(q.label)} · ${q.amount > 0 ? usdShort(q.amount) : 'net $0'}"></i>`).join('')}</span>`;
+}
+function moneyPanel(t) {
+  const full = t.access === 'full', tot = t.market_totals || {};
+  const head = `<div class="panel-h"><h2>Money flows ${full ? `<small>${tot.awards}</small>` : ''}</h2><span class="lbl">US federal grants on each goal · USAspending.gov</span></div>`;
+  if (!full) {
+    const a = t.preview?.money?.award;
+    return `<section class="panel">${head}${answerBox(t.answers?.money)}${a ? `<div class="mrows"><span class="lbl" style="padding:12px 18px 0;display:block">Largest new grant · sample</span>${awardRows([a])}</div>` : ''}
+      ${moreGate(`Subscribers see all ${tot.awards} new grants of $1M+ from the last 90 days (${usdShort(tot.awards_sum)}), who got them and for which problem, plus every goal’s funding by quarter. Not shown anywhere on the free site.`)}</section>`;
+  }
+  const m = t.money || { goals: [], awards: [] };
+  if (!m.goals.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Funding data is being gathered. Check back in a few hours.</div></section>`;
+  const pctTxt = (x) => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${Math.round(Math.abs(x) * 100)}%`);
+  const table = `<div class="tw"><table class="tt mtab"><thead><tr><th class="nosort" scope="col">Goal</th><th class="num nosort" scope="col" title="Last 12 full quarters">By quarter</th><th class="num nosort" scope="col" title="Last 4 full quarters">Last 12 months</th><th class="num nosort" scope="col" title="Last 4 quarters vs the 4 before">Change</th><th class="num nosort" scope="col">New $1M+</th></tr></thead><tbody>
+    ${m.goals.map((g) => `<tr><td><a href="#/g/${encodeURIComponent(g.slug)}"><b>@${esc(g.goal)}</b></a></td><td class="num">${qBars(g.quarters)}</td><td class="num">${g.last4 > 0 ? usdShort(g.last4) : '—'}</td>
+      <td class="num ${g.change > 0 ? 'up' : g.change < 0 ? 'down' : ''}">${pctTxt(g.change)}</td><td class="num">${g.new_awards ? `<button type="button" class="linkish" data-tsel="money" data-v="${esc(g.slug)}">${g.new_awards} · ${usdShort(g.new_sum)}</button>` : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+  const goalsWith = m.goals.filter((g) => g.new_awards).map((g) => [g.slug, `@${g.goal} ${g.new_awards}`]);
+  const list = m.awards.filter((a) => !termSel.money || a.slug === termSel.money);
+  const shown = termSel.moneyAll ? list : list.slice(0, 15);
+  return `<section class="panel">${head}${answerBox(t.answers?.money)}${table}
+    <p class="radar-note" style="padding:8px 18px 14px">Grants matched to each goal by the search phrases checked for its problems. Quarters are US federal fiscal quarters (FY starts in October); negative amounts are money taken back.</p></section>
+    <section class="panel" id="mAwards"><div class="panel-h"><h2>New grants of $1M+ <small>${list.length}</small></h2><span class="lbl">Last 90 days, largest first</span></div>
+    ${selChips('money', goalsWith, termSel.money, `All ${m.awards.length}`)}
+    <div class="mrows">${awardRows(shown) || '<div class="pad" style="color:var(--muted)">None in the last 90 days.</div>'}</div>
+    ${list.length > shown.length ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="moneyAll" data-v="1">Show all ${list.length}</button></p>` : ''}</section>`;
+}
+
+const moveTxt = (o) => (o.new_entry ? '<span class="rmv up" title="Not in the top 50 a year ago">New</span>' : o.move > 0 ? `<span class="rmv up" title="Places climbed in grant money vs a year ago">▲${o.move}</span>` : o.move < 0 ? `<span class="rmv down" title="Places dropped in grant money vs a year ago">▼${-o.move}</span>` : o.rank ? '<span class="rmv">–</span>' : '');
+function racePanel(t) {
+  const full = t.access === 'full', tot = t.market_totals || {};
+  const head = `<div class="panel-h"><h2>The race</h2><span class="lbl">Who is putting the most into each goal: grants, trials and papers</span></div>`;
+  if (!full) {
+    const p = t.preview?.race;
+    return `<section class="panel">${head}${answerBox(t.answers?.race)}${p ? `<div class="pad"><span class="lbl">Sample · top 3 on ${goalChip(p)}</span><ol class="rlist">${p.orgs.map((o) => `<li>${esc(o.name)}</li>`).join('')}</ol></div>` : ''}
+      ${moreGate(`Subscribers see the top 12 on every goal with their grant money, trials and papers, who climbed or fell in the last year, and the ${tot.climbers} biggest movers.`)}</section>`;
+  }
+  const r = t.race || { goals: [], climbers: [] };
+  if (!r.goals.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The race fills in as funding data arrives.</div></section>`;
+  const cur = r.goals.find((g) => g.slug === termSel.race) || r.goals[0];
+  const fld = (t.fields || []).find((f) => f.slug === cur.slug);
+  const maxShare = fld ? Math.max(0.01, ...fld.countries.map((c) => c.share)) : 1;
+  const climbers = r.climbers.slice(0, 8).map((c) => `<div class="mrow"><b class="mono amt">${c.prior_rank ? `#${c.prior_rank}→#${c.rank}` : `New #${c.rank}`}</b><div class="mrow-t"><b>${esc(c.name)}</b> ${goalChip(c)}<small>${usdShort(c.grants)} in federal grants, last 12 months</small></div></div>`).join('');
+  return `<section class="panel">${head}${answerBox(t.answers?.race)}
+    ${selChips('race', r.goals.map((g) => [g.slug, `@${g.goal}`]), cur.slug)}
+    <div class="tw"><table class="tt mtab"><thead><tr><th class="num nosort" scope="col">#</th><th class="nosort" scope="col">Organization</th><th class="num nosort" scope="col" title="US federal grants, last 12 months">Grants</th><th class="num nosort" scope="col" title="Grant rank vs a year ago">Move</th><th class="num nosort" scope="col" title="Active trials they sponsor (health goals)">Trials</th><th class="num nosort" scope="col" title="Papers in the goal's field, last 3 full years">Papers</th></tr></thead><tbody>
+    ${cur.orgs.map((o) => `<tr><td class="num">${o.place}</td><td><b>${esc(o.name)}</b></td><td class="num">${o.grants ? usdShort(o.grants) : '—'}</td><td class="num">${moveTxt(o)}</td><td class="num">${o.trials || '—'}</td><td class="num">${o.papers ? o.papers.toLocaleString() : '—'}</td></tr>`).join('')}</tbody></table></div>
+    ${fld ? `<div class="r2col pad"><div><span class="lbl">Field size</span><p style="margin:6px 0 0"><b class="mono">${fld.papers_3y.toLocaleString()}</b> papers in 3 years, <b class="mono ${fld.growth > 0 ? 'up' : fld.growth < 0 ? 'down' : ''}">${growthTxt(fld.growth)}</b> vs the 3 before</p></div>
+      <div><span class="lbl">Share by country</span>${fld.countries.slice(0, 5).map((c) => `<div class="cbar"><code>${esc(c.code)}</code><span class="t"><i style="width:${(c.share / maxShare * 100).toFixed(1)}%"></i></span><span class="n" data-tip="${esc(c.name)} · ${c.papers.toLocaleString()} papers">${Math.round(c.share * 100)}%</span></div>`).join('')}</div></div>` : ''}
+    <p class="radar-note" style="padding:8px 18px 14px">Ranked by combined share of the goal’s grant money (USAspending.gov), active trials (ClinicalTrials.gov) and papers (OpenAlex). Grants are US federal only; papers are worldwide.</p></section>
+    ${climbers ? `<section class="panel"><div class="panel-h"><h2>Biggest movers <small>${r.climbers.length}</small></h2><span class="lbl">Broke into a top 10, or climbed 5+ places in grant money in a year</span></div><div class="mrows">${climbers}</div></section>` : ''}`;
+}
+
+function phaseBars(byPhase) {
+  const max = Math.max(1, ...byPhase.map((p) => p.n));
+  return `<div class="funnel">${byPhase.map((p) => `<div class="fn-r"><span>${esc(p.phase)}</span><span class="t"><i style="width:${(p.n / max * 100).toFixed(1)}%"></i></span><b class="mono">${p.n}</b></div>`).join('')}</div>`;
+}
+function pipelinePanel(t) {
+  const full = t.access === 'full', tot = t.market_totals || {};
+  const head = `<div class="panel-h"><h2>The pipeline ${full ? `<small>${tot.trials}</small>` : ''}</h2><span class="lbl">Every active trial on the health goals · ClinicalTrials.gov</span></div>`;
+  if (!tot.trials) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">No active trials matched yet. This view covers the health goals.</div></section>`;
+  if (!full) {
+    const pv = t.preview?.pipeline || [];
+    return `<section class="panel">${head}${answerBox(t.answers?.pipeline)}<div class="pgrid">${pv.map((p) => `<div class="pcard"><div class="fh">${goalChip(p)}<span class="mono">${p.total} trials · ${p.late} Phase 3+</span></div>${phaseBars(p.by_phase)}</div>`).join('')}</div>
+      ${moreGate(`Counts only. Subscribers see every trial: what it tests, who runs it, its phase, size and when results are due, filterable by phase.`)}</section>`;
+  }
+  const P = t.pipeline || [];
+  const cur = P.find((p) => p.slug === termSel.pipe) || P[0];
+  const phases = cur.by_phase.map((p) => [p.phase, `${p.phase} ${p.n}`]);
+  const list = cur.trials.filter((x) => !termSel.phase || x.phase === termSel.phase);
+  const shown = termSel.pipeAll ? list : list.slice(0, 25);
+  const when = (d) => (d ? new Date(`${d.length === 7 ? `${d}-15` : d}T12:00:00`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '—');
+  return `<section class="panel">${head}${answerBox(t.answers?.pipeline)}
+    <div class="pgrid">${P.map((p) => `<button type="button" class="pcard${p.slug === cur.slug ? ' on' : ''}" data-tsel="pipe" data-v="${esc(p.slug)}"><div class="fh"><b>@${esc(p.goal)}</b><span class="mono">${p.total} trials · ${p.late} Phase 3+</span></div>${phaseBars(p.by_phase)}
+      <div class="who">${p.who.map((w) => `<span>${esc(w.who)} <b class="mono">${Math.round(w.n / p.total * 100)}%</b></span>`).join('')}</div></button>`).join('')}</div></section>
+    <section class="panel"><div class="panel-h"><h2>@${esc(cur.goal)} trials <small>${list.length}</small></h2><span class="lbl">Furthest along first, then soonest results</span></div>
+    ${selChips('phase', phases, termSel.phase, `All ${cur.trials.length}`)}
+    ${cur.sponsors.length ? `<div class="pad" style="padding-bottom:4px"><span class="lbl">Most active sponsors</span><p style="margin:6px 0 0;font-size:13.5px">${cur.sponsors.slice(0, 5).map((s) => `${esc(s.name)} <b class="mono">${s.n}</b>`).join(' · ')}</p></div>` : ''}
+    <div class="tw"><table class="tt mtab"><thead><tr><th class="nosort" scope="col">Trial</th><th class="nosort" scope="col">Phase</th><th class="nosort" scope="col">Run by</th><th class="num nosort" scope="col" title="Expected primary completion">Results due</th><th class="num nosort" scope="col">People</th></tr></thead><tbody>
+    ${shown.map((x) => `<tr><td>${extLink(x.url, `<b>${esc(x.title)}</b>`)}<span class="sub">${x.problem ? `${esc(x.problem)} · ` : ''}${esc(x.status)}</span></td><td style="white-space:nowrap">${esc(x.phase)}</td><td>${esc(x.sponsor)}<span class="sub">${esc(x.who)}</span></td><td class="num">${when(x.completion)}</td><td class="num">${x.enrollment ? x.enrollment.toLocaleString() : '—'}</td></tr>`).join('')}</tbody></table></div>
+    ${list.length > shown.length ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="pipeAll" data-v="1">Show all ${list.length}</button></p>` : ''}
+    <p class="radar-note" style="padding:8px 18px 14px">Recruiting, active or about to start, from ClinicalTrials.gov, for the problems on each health goal’s map. “Not phased” is mostly observational studies and device or diagnostic studies.</p></section>`;
+}
+const MARKET_PANES = { money: moneyPanel, race: racePanel, pipeline: pipelinePanel };
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tsel]'); if (!b || !term) return;
+  const k = b.dataset.tsel, v = b.dataset.v;
+  if (k === 'moneyAll' || k === 'pipeAll') termSel[k] = true; else termSel[k] = v;
+  if (k === 'money') termSel.moneyAll = false;
+  if (k === 'pipe') { termSel.phase = ''; termSel.pipeAll = false; }
+  if (k === 'phase') termSel.pipeAll = false;
+  const tab = k === 'race' ? 'race' : k === 'money' || k === 'moneyAll' ? 'money' : 'pipeline';
+  const pane = b.closest('.tpane'); if (!pane) return;
+  pane.innerHTML = MARKET_PANES[tab](term);
+  pane.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
+  if (k === 'money' && v) pane.querySelector('#mAwards')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
+
 const TTABS = [
-  ['overview', 'Goal index'], ['radar', 'Radar'], ['calendar', 'Catalysts'], ['watch', 'Watchlist'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
-  ['leaders', 'Who is leading'], ['bottlenecks', 'Bottlenecks'], ['signals', 'Signals'], ['data', 'All data'],
+  ['overview', 'Goal index'], ['money', 'Money'], ['race', 'The race'], ['pipeline', 'Pipeline'], ['radar', 'Radar'], ['calendar', 'Catalysts'],
+  ['watch', 'Watchlist'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'], ['bottlenecks', 'Bottlenecks'], ['data', 'All data'],
 ];
 
 // Overview cards: one per tab, each with the single most useful fact from it.
 function overviewCards(t) {
   const full = t.access === 'full';
   const card = (tab, title, big, line, locked) => `<a class="jump${locked ? ' lockd' : ''}" href="#/terminal/${tab}"><span class="lbl">${title}${locked ? ' · <span class="lk">Preview</span>' : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${locked ? 'See a sample →' : 'Open →'}</span></a>`;
-  const signals = card('signals', 'Signals', t.tape[0] ? esc(t.tape[0].headline) : 'No signals yet', `${t.tape_total} advances, setbacks and promises · latest ${t.tape[0] ? esc(whenAgo(t.tape[0].at)) : ''}`, false);
+  const mt = t.market_totals || {};
   if (!full) {
     return `<div class="jumps">
+      ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants in 90 days`, 'Who got them, for which problem, and every goal’s funding by quarter.', true)}
+      ${card('race', 'The race', 'Who is leading each goal, and who is climbing', 'Grants, trials and papers per organization, with a year’s movement.', true)}
+      ${mt.trials ? card('pipeline', 'Pipeline', `${mt.trials} active trials on the health goals`, 'By phase and sponsor, with when results are due.', true) : ''}
       ${card('brief', 'Weekly brief', 'What moved this week, and what to watch', 'An analyst’s read on every goal, written every Monday from the week’s research.', true)}
       ${card('opportunities', 'Opportunities', 'Where money or attention would move things', 'Problems held back only by money, problems research has gone quiet on, and problems heating up.', true)}
-      ${card('leaders', 'Who is leading', 'The institutions and countries ahead on each goal', 'And how fast each research field is growing.', true)}
-      ${card('bottlenecks', 'Bottlenecks', 'What holds each goal back', 'The bottleneck board and the stuck map across every goal.', true)}
-      ${signals}
       ${card('data', 'All data', 'Every goal and problem, in tables', 'Sort, filter and download everything as CSV.', true)}
     </div>`;
   }
   const o = t.opportunities, c = t.opportunity_counts;
-  const fastest = t.fields.length ? [...t.fields].sort((a, b) => (b.growth ?? -9) - (a.growth ?? -9))[0] : null;
+  const aw = t.money?.awards?.[0], cl = t.race?.climbers?.[0];
   return `<div class="jumps">
     ${t.brief ? card('brief', 'Weekly brief', esc(t.brief.headline), `Week of ${esc(new Date(t.brief.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))} · what moved, what to watch, where money matters`) : ''}
     ${card('opportunities', 'Opportunities', `${c.funding} funding gaps · ${c.quiet} gone quiet · ${c.hot} heating up`, o.funding[0] ? `Top gap: ${esc(o.funding[0].title)} (@${esc(o.funding[0].goal)})` : 'Where money or attention would move things')}
-    ${card('leaders', 'Who is leading', fastest ? `@${esc(fastest.goal)} research ${growthTxt(fastest.growth)} in 3 years` : `${t.fields_total} research fields tracked`, fastest ? `Fastest-growing field. Led by ${esc(fastest.institutions[0]?.name ?? '—')}` : 'Top institutions and countries for every goal')}
+    ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants · ${usdShort(mt.awards_sum || 0)}`, aw ? `Biggest: ${usdShort(aw.amount)} to ${esc(aw.recipient)} (@${esc(aw.goal)})` : 'Federal grant money on every goal, by quarter')}
+    ${card('race', 'The race', `${mt.climbers || 0} organizations on the move`, cl ? `${esc(cl.name)}: ${cl.prior_rank ? `#${cl.prior_rank} → #${cl.rank}` : `new at #${cl.rank}`} on @${esc(cl.goal)}` : 'Who leads each goal on grants, trials and papers')}
+    ${mt.trials ? card('pipeline', 'Pipeline', `${mt.trials} active trials`, `Across ${mt.health_goals} health goals, by phase and sponsor`) : ''}
     ${card('bottlenecks', 'Bottlenecks', `${t.bottlenecks_total} goals held back · ${t.kpis.blocked} problems blocked`, t.bottlenecks[0] ? `e.g. ${esc(t.bottlenecks[0].title)} (@${esc(t.bottlenecks[0].goal)})` : 'What holds each goal back, and the stuck map')}
-    ${signals}
     ${card('data', 'All data', `${t.goals_total} goals · ${t.problems_total} open problems`, 'Sortable tables, filters and CSV downloads')}
   </div>`;
 }
@@ -3195,6 +3317,7 @@ async function wireWatch(box) {
 
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
+  if (tab === 'leaders') tab = 'race'; // old links
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   const thisYear = new Date().getFullYear();
   const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
@@ -3216,13 +3339,13 @@ function renderTerminal(box, tab = 'overview') {
     watch: () => watchPanel(t),
     brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
     opportunities: () => oppPanel(t),
-    leaders: () => fieldsPanel(t),
+    money: () => moneyPanel(t),
+    race: () => racePanel(t),
+    pipeline: () => pipelinePanel(t),
     bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>${answerBox(t.answers?.bottlenecks)}
         ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : t.preview?.bottlenecks?.length ? `<div class="bn">${bottleneckBoard(t.preview.bottlenecks)}</div>${moreGate(`2 of ${t.preview.bottlenecks_total} goals. Subscribers see every goal’s bottleneck, what it waits on, and its countdown.`)}` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
       <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
-    signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
-        <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with Pro. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
     data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate('Every goal and every problem', 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
         <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
         <div id="tGoals">${goalsTable()}</div></section>
@@ -3235,7 +3358,7 @@ function renderTerminal(box, tab = 'overview') {
         ${full ? '' : lockGate('Every open problem', 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>`,
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
-      <ul><li>A weekly analyst brief on every goal</li><li>Funding gaps, problems research has gone quiet on, and problems heating up</li><li>The institutions and countries leading each field, and how fast each field grows</li><li>The bottleneck board, the stuck map and every signal with its sources</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
+      <ul><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
       <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe monthly</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
   const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
