@@ -505,7 +505,7 @@ Deploy `digest` with **verify_jwt false**, because the unsubscribe link is opene
 
 ## 36. Pro free trial
 
-First-time Pro subscribers get a free trial: 7 days by default, set by `PRO_TRIAL_DAYS` (0 turns it off).
+**Off for now** (the default is 0). Set `PRO_TRIAL_DAYS` to 7 to give first-time Pro subscribers a free trial again.
 
 - A card is required upfront (`payment_method_collection: always`), and Stripe charges it when the trial ends. If there's no payment method, the subscription cancels.
 - One trial per person: only for someone with no earlier subscription, either in `subscriptions` or in their Stripe customer's history.

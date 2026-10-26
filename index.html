@@ -2406,7 +2406,7 @@ function howView(section) {
 async function exploreView() {
   view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
     <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
-    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro · 7 days free</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
+    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   try {

@@ -63,7 +63,7 @@ const LOOKUP_YEAR = "parallax_terminal_yearly";
 // Plus ($12/month, $120/year): the weekly video brief, what's coming, predictions. Pro includes it.
 const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "1200");
 // Pro: a free trial for first-time subscribers, card required, charged when it ends unless cancelled.
-const TRIAL_DAYS = Number(Deno.env.get("PRO_TRIAL_DAYS") ?? "7");
+const TRIAL_DAYS = Number(Deno.env.get("PRO_TRIAL_DAYS") ?? "0"); // off for now; set to 7 to bring it back
 const PLUS_YEAR_CENTS = Number(Deno.env.get("PLUS_YEAR_PRICE_CENTS") ?? String(PLUS_CENTS * 10));
 // The current price for a lookup key. When the configured amount changes, a new Stripe price takes the
 // lookup key; existing subscriptions keep the price they signed up at. Every price carries
