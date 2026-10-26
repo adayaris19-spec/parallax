@@ -1364,6 +1364,109 @@ svg.gsim.focus .gn:not(.hl){opacity:.3}svg.gsim.focus .ge:not(.hl){opacity:.15}
 svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 .gnote{font-size:13.5px;line-height:1.5;color:var(--ink2);margin:6px 0 10px}
 .gtitle{font-size:14px;margin:6px 0 12px}.gtitle a{color:var(--ink);text-decoration:none}
+/* Front page (Overview) */
+.fp-head{padding:26px 4px 18px;border-bottom:2px solid var(--ink);margin-bottom:14px}
+.fp-h{font-size:clamp(28px,3.3vw,40px);line-height:1.12;letter-spacing:-.03em;margin:8px 0 14px;max-width:24ch}
+.fp-lede{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.fp-lede p{margin:0;font-size:15px;line-height:1.5;color:var(--ink2);padding-top:10px;border-top:1px solid var(--line2)}
+.fp-more{margin-top:12px;border:0}.fp-more>summary{padding-left:0}
+.fp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;margin-top:20px}
+.fp-ch{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px;border-bottom:1px solid var(--line2);margin-bottom:6px}
+.fp-ch h3{margin:0;font-size:17px;letter-spacing:-.01em}.fp-ch>span{font-size:12.5px;color:var(--muted)}
+.fp-ch .pstrip-a{margin-left:auto}
+.fp-wire .rip{padding:12px 0}
+.fp-link{display:inline-block;margin-top:8px;font-size:13.5px;color:var(--ink2)}
+.fp-idx{display:grid}
+.fp-row{display:grid;grid-template-columns:22px 34px minmax(0,1fr) 120px 56px 70px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+.fp-row:hover{background:var(--sunk)}
+.fp-n{font-family:var(--m);font-size:12px;color:var(--muted);text-align:right}
+.fp-av,.mk-av,.st-av span{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;overflow:hidden;background:var(--sunk);font-size:11px;font-weight:600;color:var(--muted)}
+.fp-av img,.mk-av img,.st-av img{width:100%;height:100%;object-fit:cover}
+.fp-g b{display:block;font-size:14px}.fp-g small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-bar small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+.fp-gr,.fp-hz{font-family:var(--m);font-size:12.5px;text-align:right}.fp-gr.up{color:var(--solved)}.fp-gr.down{color:var(--blocked)}
+.fp-next{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.fp-date{display:grid;gap:6px;align-content:start;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:inherit}
+.fp-date .fp-m{font-family:var(--m);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.fp-date b{font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fp-date small{font-size:12px;color:var(--muted)}
+.fp-date.more{background:var(--sunk);align-content:center}
+/* Map room (Crossovers) */
+.mr-map .panel{border-radius:22px}
+.mr-map .ans{display:none}
+.mr-map .webwrap{min-height:540px;padding:14px}
+.mr-map svg.web{max-width:none}
+.mr-low{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;margin-top:22px}
+.mr-strip{display:grid;grid-auto-flow:column;grid-auto-columns:240px;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 10px;scrollbar-width:thin}
+.mr-key{scroll-snap-align:start;display:grid;gap:6px;align-content:start;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);min-height:190px}
+.mr-kh{display:flex;flex-wrap:wrap;gap:4px}.mr-key b{font-size:14.5px;line-height:1.35}.mr-key p{margin:0;font-size:12.5px;line-height:1.45;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.mr-key small{font-size:11.5px;color:var(--muted);margin-top:auto}
+.mr-rips .rip{padding:10px 0}
+/* Market (Money) */
+.mk-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:18px;background:var(--card);overflow:hidden}
+.mk-stats>div{padding:16px 18px;border-left:1px solid var(--line)}.mk-stats>div:first-child{border-left:0}
+.mk-stats b{display:block;font-size:34px;font-weight:600;letter-spacing:-.02em;margin-top:6px}.mk-stats b small{font-size:16px;color:var(--muted)}.mk-stats>div>small{font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk-tape{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0;padding:9px 0;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.mk-tape-in{display:inline-flex;gap:32px;animation:mktape 70s linear infinite;font-size:13.5px}
+.mk-tape:hover .mk-tape-in{animation-play-state:paused}
+.mk-tape b{font-family:var(--m);font-weight:600}.mk-tape i{font-style:normal;color:var(--muted)}
+@keyframes mktape{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mk-tape-in{animation:none}}
+.mk-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+.mk-low{margin-top:22px}
+.mk-panel{min-width:0}.mk-panel>section.panel{border:0;box-shadow:none;background:none;margin:0}.mk-panel .ans{display:none}
+.mk-bars{display:grid;gap:2px}
+.mk-bar{display:grid;grid-template-columns:30px 140px minmax(0,1fr) 62px 62px;gap:10px;align-items:center;padding:6px 8px;border:0;border-radius:10px;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.mk-bar:hover{background:var(--sunk)}.mk-bar.on{background:var(--accent-soft)}
+.mk-bar .mk-av{width:30px;height:30px}
+.mk-g{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk-t{height:12px;border-radius:4px;background:var(--sunk);overflow:hidden}.mk-t i{display:block;height:100%;background:var(--ink);border-radius:4px}
+.mk-bar.on .mk-t i{background:var(--accent)}
+.mk-bar b{font-size:13px;font-weight:500;text-align:right}
+.mk-ch{font-family:var(--m);font-size:12px;text-align:right;color:var(--muted)}.mk-ch.up{color:var(--solved)}.mk-ch.down{color:var(--blocked)}
+.mk-more{margin:10px 0 0}
+/* Standings (Players) */
+.st-top{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:24px}
+.st-pick{display:flex;gap:10px;overflow-x:auto;padding:6px 0 12px;scrollbar-width:thin}
+.st-av{display:grid;justify-items:center;gap:4px;border:0;background:none;font:inherit;cursor:pointer;opacity:.55;padding:0;flex:0 0 74px;width:74px}
+.st-av span{width:46px;height:46px;border:2px solid transparent}.st-av small{font-size:11px;color:var(--ink2);max-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-av.on{opacity:1}.st-av.on span{border-color:var(--ink)}.st-av:hover{opacity:.9}
+.st-pod{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:end;margin:8px 0 6px}
+.st-p{display:grid;gap:4px;justify-items:center;text-align:center}
+.st-p b{font-size:14px;line-height:1.3}.st-p small{font-size:11.5px;color:var(--muted)}
+.st-place{font-family:var(--m);font-size:22px;font-weight:600}
+.st-block{width:100%;border-radius:12px 12px 0 0;background:var(--sunk);border:1px solid var(--line);border-bottom:0}
+.st-p.p1 .st-block{height:110px;background:linear-gradient(180deg,var(--accent-soft),var(--sunk))}.st-p.p2 .st-block{height:76px}.st-p.p3 .st-block{height:52px}
+.st-rest{border-top:2px solid var(--ink);display:grid;grid-template-columns:1fr 1fr;column-gap:22px}
+.st-row{display:grid;grid-template-columns:28px minmax(0,1fr) 54px;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.st-n{font-family:var(--m);font-size:12.5px;color:var(--muted)}.st-row b{font-size:14px}.st-row small{grid-column:2/4;font-size:12px;color:var(--muted)}.st-mv{text-align:right}
+.st-mover{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid var(--line)}
+.st-jump{font-family:var(--m);font-size:18px;font-weight:600;color:var(--solved)}.st-jump s{color:var(--muted);font-weight:400;font-size:14px}.st-jump em{font-style:normal;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.st-mover b{font-size:14px}.st-mover small{font-size:12px;color:var(--muted)}
+.st-lanes{margin-top:26px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 0 0}
+.st-lanes .fp-ch{padding:0 18px 10px}
+.st-lane-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
+.st-lane{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;overflow:hidden;gap:6px;align-content:start;padding:12px;border-left:1px solid var(--line);min-height:200px;background:linear-gradient(180deg,transparent,var(--sunk))}
+.st-lane:first-child{border-left:0}
+.st-lane>b{font-size:26px;font-weight:600}
+.st-lane a{display:block;font-size:12px;line-height:1.35;color:var(--ink);text-decoration:none;padding:7px 8px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
+.st-lane a{min-width:0;overflow:hidden}
+.st-lane a span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.st-lane a small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.st-lane a small{display:block;color:var(--muted);font-size:11px}
+.st-plus{font-size:11.5px;color:var(--muted)}
+/* Timeline (Calendar) */
+.tl{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.tl-track{display:grid;grid-auto-flow:column;grid-auto-columns:250px;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 0 14px;scrollbar-width:thin;position:relative}
+.tl-col{scroll-snap-align:start;display:grid;gap:10px;align-content:start;padding:0 12px 0 0}
+.tl-m{position:relative;display:flex;align-items:center;gap:8px;font-family:var(--m);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);padding:6px 0 14px;border-top:2px solid var(--ink)}
+.tl-m small{margin-left:auto;margin-right:6px;color:var(--muted)}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--ink);margin-top:-21px}
+.tl-col.first .tl-dot{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.tl-card{display:grid;gap:6px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.tl-card b{font-size:13.5px;line-height:1.35;font-weight:500;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.tl-card b a{color:var(--ink);text-decoration:none}
+.tl-card small{font-size:11.5px;color:var(--muted)}.tl-card small a{color:var(--ink2)}
+.tl-card .sig{justify-self:start}
+.tl-side>section.panel{margin:0}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3487,7 +3590,101 @@ const SECS = {
     { id: 'watch', h: 600, wide: true, title: 'Watchlist', take: () => 'Your goals and the alerts you get', body: (t) => watchPanel(t) },
   ],
 };
+// ---- Distinct desktop layouts, one per Pro tab (subscribers). Phones and visitors use sections().
+const gpic = (slug) => { const g = (goalsCache || []).find((x) => x.slug === slug); const u = g?.pics?.[0] && safeUrl(g.pics[0]); return u ? `<img src="${esc(u)}" alt="" loading="lazy">` : `<span>${esc((g?.handle || slug).slice(0, 2))}</span>`; };
+const monthLabel = (d, long) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: long ? 'long' : 'short', year: 'numeric' }) : d);
+
+// Overview: a front page.
+function frontPage(t, kstrip) {
+  const b = t.brief, rips = t.crossovers?.ripples || [];
+  const fresh = rips.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
+  const rows = [...t.goals].sort((a, c) => (c.papers_last ?? 0) - (a.papers_last ?? 0));
+  const pctTxt = (x) => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${Math.round(Math.abs(x) * 100)}%`);
+  const head = b ? `<header class="fp-head"><span class="lbl">The week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))}</span>
+      <h2 class="fp-h">${esc(b.headline)}</h2>
+      ${b.tldr?.length ? `<div class="fp-lede">${b.tldr.slice(0, 3).map((x) => `<p>${esc(x)}</p>`).join('')}</div>` : ''}
+      <details class="bdet fp-more"><summary>Read the full brief</summary>${(() => { const fb = briefPanel(t); return fb.slice(fb.indexOf('<div class="bfilter"')).replace(/<\/section>$/, ''); })()}</details></header>` : '';
+  const wire = `<section class="fp-col"><div class="fp-ch"><h3>The wire</h3><span>${fresh ? `${fresh} new since your last visit` : 'moves that reach other goals'}</span></div>
+      <div class="rips fp-wire">${rippleRows(rips.slice(0, 3)) || '<p class="gnote">No ripples in the last 30 days.</p>'}</div><a class="fp-link" href="#/terminal/crossovers">All crossovers →</a></section>`;
+  const index = `<section class="fp-col"><div class="fp-ch"><h3>The index</h3><span>research last full year</span></div>
+      <div class="fp-idx">${rows.map((g, i) => `<a class="fp-row" href="#/g/${encodeURIComponent(g.slug)}"><span class="fp-n">${i + 1}</span><span class="fp-av">${gpic(g.slug)}</span>
+        <span class="fp-g"><b>@${esc(g.handle)}</b><small>${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</small></span>
+        <span class="fp-bar">${statusBar({ solved: g.solved, moving: g.in_progress, blocked: g.blocked, open: g.open })}<small>${g.solved}/${g.problems} solved</small></span>
+        <span class="fp-gr ${g.field_growth3 > 0 ? 'up' : g.field_growth3 < 0 ? 'down' : ''}">${pctTxt(g.field_growth3)}</span><span class="fp-hz">${horizon(g)}</span></a>`).join('')}</div></section>`;
+  const next = (t.catalysts || []).slice(0, 3);
+  const dates = next.length ? `<section class="fp-next">${next.map((c) => `<a class="fp-date" href="#/terminal/calendar"><span class="fp-m">${esc(monthLabel(c.date))}</span><b>${esc(c.title)}</b><small>@${esc(c.goal)} · ${c.kind === 'trial' ? 'trial readout' : 'promise due'}</small></a>`).join('')}<a class="fp-date more" href="#/terminal/calendar"><b>${t.catalysts_total} on the calendar</b><small>Open the timeline →</small></a></section>` : '';
+  return `<div class="fp">${head}${kstrip}<div class="fp-cols">${wire}${index}</div>${dates}</div>`;
+}
+
+// Crossovers: the map room.
+function mapRoom(t) {
+  const c = t.crossovers;
+  const web = part(crossPanel(t), 0);
+  const keys = c.keystones.slice(0, 12).map((k) => `<article class="mr-key"><div class="mr-kh">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</div><b>${esc(k.title)}</b>
+      <p>${esc(k.links[0]?.why || '')}</p><small>${k.goals} goals · ${k.members.length} problems${k.funding ? ` · ${usdShort(k.funding)} grants` : ''}</small></article>`).join('');
+  return `<div class="mr"><div class="mr-map">${web}</div>
+    <div class="mr-low"><section class="mr-keys"><div class="fp-ch"><h3>Keystone problems</h3><span>solve once, move several goals · ${c.keystones.length}</span><span class="pstrip-a"><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="1" aria-label="More">›</button></span></div><div class="mr-strip">${keys}</div></section>
+    <section class="mr-rips"><div class="fp-ch"><h3>Ripples</h3><span>last 30 days · ${c.ripples.length}</span></div><div class="rips">${rippleRows(c.ripples.slice(0, 3))}</div></section></div></div>`;
+}
+
+// Money: a market screen.
+function marketScreen(t) {
+  const m = t.money, tot = t.market_totals || {}, sel = termSel.money;
+  const up = m.goals.filter((g) => g.change > 0).length, big = m.awards[0];
+  const tape = m.awards.slice(0, 24).map((a) => `<span><b>${usdShort(a.amount)}</b> ${esc(a.recipient)} <i>@${esc(a.goal)}</i></span>`).join('');
+  const max = Math.max(1, ...m.goals.map((g) => Math.max(0, g.last4)));
+  const bars = m.goals.map((g) => `<button type="button" class="mk-bar${sel === g.slug ? ' on' : ''}" data-tsel="money" data-v="${sel === g.slug ? '' : esc(g.slug)}"><span class="mk-av">${gpic(g.slug)}</span><span class="mk-g">@${esc(g.goal)}</span>
+      <span class="mk-t"><i style="width:${(Math.max(0, g.last4) / max * 100).toFixed(1)}%"></i></span><b class="mono">${g.last4 > 0 ? usdShort(g.last4) : '—'}</b>
+      <span class="mk-ch ${g.change > 0 ? 'up' : g.change < 0 ? 'down' : ''}">${g.change == null ? '—' : `${g.change > 0 ? '▲' : '▼'} ${Math.round(Math.abs(g.change) * 100)}%`}</span></button>`).join('');
+  const list = m.awards.filter((a) => !sel || a.slug === sel), shown = termSel.moneyAll ? list : list.slice(0, 5);
+  return `<div class="mk"><div class="mk-stats"><div><span class="lbl">New grants of $1M+ · 90 days</span><b class="mono">${tot.awards || 0}</b></div><div><span class="lbl">Total</span><b class="mono">${usdShort(tot.awards_sum || 0)}</b></div>
+      <div><span class="lbl">Biggest</span><b class="mono">${big ? usdShort(big.amount) : '—'}</b><small>${big ? `${esc(big.recipient)} · @${esc(big.goal)}` : ''}</small></div><div><span class="lbl">Goals with rising funding</span><b class="mono">${up}<small> / ${m.goals.length}</small></b></div></div>
+    ${tape ? `<div class="mk-tape" aria-label="Latest grants"><div class="mk-tape-in">${tape}${tape}</div></div>` : ''}
+    <div class="mk-cols"><section class="mk-panel"><div class="fp-ch"><h3>Funding, last 12 months</h3><span>tap a goal to filter the grants · change vs the year before</span></div><div class="mk-bars">${bars}</div></section>
+      <section class="mk-panel"><div class="fp-ch"><h3>${sel ? `@${esc(m.goals.find((g) => g.slug === sel)?.goal || sel)} grants` : 'Latest big grants'}</h3><span>${list.length} · largest first</span></div><div class="mrows">${awardRows(shown) || '<p class="gnote">None in the last 90 days.</p>'}</div>
+        ${list.length > shown.length ? `<p class="mk-more"><button class="btn sm" type="button" data-tsel="moneyAll" data-v="1">Show all ${list.length}</button></p>` : ''}</section></div>
+    <div class="mk-cols mk-low"><section class="mk-panel">${radarPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Opportunity radar</h3><span>heating up, little public money</span></div>')}</section>
+      <section class="mk-panel">${oppPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Gaps and quiet problems</h3><span>where attention or money would move things</span></div>')}</section></div></div>`;
+}
+
+// Players: standings.
+function standings(t) {
+  const r = t.race, cur = r.goals.find((g) => g.slug === termSel.race) || r.goals[0];
+  const pick = `<div class="st-pick">${r.goals.map((g) => `<button type="button" class="st-av${g.slug === cur.slug ? ' on' : ''}" data-tsel="race" data-v="${esc(g.slug)}" title="@${esc(g.goal)}"><span>${gpic(g.slug)}</span><small>@${esc(g.goal)}</small></button>`).join('')}</div>`;
+  const top = cur.orgs.slice(0, 3), order = [top[1], top[0], top[2]].filter(Boolean);
+  const stat = (o) => [o.grants ? `${usdShort(o.grants)} grants` : '', o.trials ? `${o.trials} trials` : '', o.papers ? `${o.papers.toLocaleString()} papers` : ''].filter(Boolean).join(' · ');
+  const podium = `<div class="st-pod">${order.map((o) => `<div class="st-p p${o.place}"><span class="st-place">${o.place}</span><b>${esc(o.name)}</b><small>${stat(o)}</small>${moveTxt(o)}<div class="st-block"></div></div>`).join('')}</div>`;
+  const rest = cur.orgs.slice(3).map((o) => `<div class="st-row"><span class="st-n">${o.place}</span><b>${esc(o.name)}</b><span class="st-mv">${moveTxt(o)}</span><small>${stat(o)}</small></div>`).join('');
+  const movers = r.climbers.slice(0, 7).map((c) => `<div class="st-mover"><span class="st-jump">${c.prior_rank ? `<s>#${c.prior_rank}</s> #${c.rank}` : `<em>new</em> #${c.rank}`}</span><b>${esc(c.name)}</b><small>@${esc(c.goal)} · ${usdShort(c.grants)}</small></div>`).join('');
+  // Pipeline lanes.
+  const P = t.pipeline || [], pc = P.find((p) => p.slug === termSel.pipe) || P[0];
+  const LANES = ['Early phase 1', 'Phase 1', 'Phase 1/Phase 2', 'Phase 2', 'Phase 2/Phase 3', 'Phase 3', 'Phase 4'];
+  const lanes = pc ? `<section class="st-lanes"><div class="fp-ch"><h3>Trial pipeline</h3><span>${esc(firstLine(t.answers?.pipeline))}</span></div>
+      ${selChips('pipe', P.map((p) => [p.slug, `@${p.goal} ${p.total}`]), pc.slug)}
+      <div class="st-lane-row">${LANES.map((ph) => { const ts = pc.trials.filter((x) => x.phase === ph); return `<div class="st-lane"><span class="lbl">${esc(ph === 'Early phase 1' ? 'Early' : ph.replaceAll('Phase ', 'P').replace('/', '–'))}</span><b class="mono">${ts.length}</b>${ts.slice(0, 3).map((x) => `<a href="${esc(safeUrl(x.url) || '#')}" target="_blank" rel="noopener" title="${esc(x.title)}"><span>${esc(x.title)}</span><small>${esc(x.sponsor)}</small></a>`).join('')}${ts.length > 3 ? `<small class="st-plus">+${ts.length - 3} more</small>` : ''}</div>`; }).join('')}</div>
+      <p class="gnote" style="padding:0 18px 14px">${(pc.by_phase.find((p) => p.phase === 'Not phased') || { n: 0 }).n} more are observational or device studies (not phased). ${pc.who.map((w) => `${esc(w.who)} ${Math.round(w.n / pc.total * 100)}%`).join(' · ')}</p></section>` : '';
+  return `<div class="st"><div class="st-top"><section class="st-board"><div class="fp-ch"><h3>The race</h3><span>who is putting the most into @${esc(cur.goal)}: grants, trials and papers</span></div>${pick}${podium}<div class="st-rest">${rest}</div></section>
+    <section class="st-movers"><div class="fp-ch"><h3>On the move</h3><span>climbed 5+ places or new in a top 10</span></div>${movers}</section></div>${lanes}</div>`;
+}
+
+// Calendar: a timeline.
+function timeline(t) {
+  const groups = [];
+  for (const c of t.catalysts || []) { const l = monthLabel(c.date, true); if (!groups.length || groups[groups.length - 1].l !== l) groups.push({ l, items: [] }); groups[groups.length - 1].items.push(c); }
+  const cols = groups.map((g, i) => `<div class="tl-col${i === 0 ? ' first' : ''}"><div class="tl-m"><span class="tl-dot"></span>${esc(g.l)}<small>${g.items.length}</small></div>${g.items.map((c) => { const u = safeUrl(c.url);
+    return `<div class="tl-card ${c.kind}"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Readout' : 'Promise'}</span><b>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(c.title)}</a>` : esc(c.title)}</b><small><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</small></div>`; }).join('')}</div>`).join('');
+  return `<div class="tl"><section class="tl-main"><div class="fp-ch"><h3>The next 18 months</h3><span>${esc(firstLine(t.answers?.calendar))}</span><span class="pstrip-a"><button class="btn sm" type="button" data-scroll=".tl-track" data-dir="-1" aria-label="Earlier">‹</button><button class="btn sm" type="button" data-scroll=".tl-track" data-dir="1" aria-label="Later">›</button></span></div>
+      <div class="tl-track">${cols || '<p class="gnote">Nothing due yet.</p>'}</div></section>
+    <aside class="tl-side">${watchPanel(t)}</aside></div>`;
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-scroll]'); if (!b) return;
+  const el = b.closest('section, .tl, .mr')?.querySelector(b.dataset.scroll) || document.querySelector(b.dataset.scroll);
+  if (el) el.scrollBy({ left: Number(b.dataset.dir) * el.clientWidth * 0.8, behavior: 'smooth' });
+});
+
 const SEC_BY_ID = Object.fromEntries(Object.values(SECS).flat().map((x) => [x.id, x]));
+Object.assign(SEC_BY_ID, { 'x-cross': { body: (t) => mapRoom(t) }, 'x-money': { body: (t) => marketScreen(t) }, 'x-players': { body: (t) => standings(t) }, 'x-cal': { body: (t) => timeline(t) } });
 const openSec = (tab) => { try { return localStorage.getItem(`px.sec.${tab}`); } catch { return null; } };
 // Desktop: a grid of tiles side by side, each a fixed height with its own scroll and an Expand
 // button, so a whole tab fits on about one screen. Phones: one section open at a time.
@@ -3695,20 +3892,23 @@ function renderTerminal(box, tab = 'overview') {
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
     <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
-  const overview = `<section class="kstrip">
+  const kstrip = `<section class="kstrip">
       <div><span class="lbl">Problems solved</span><b class="mono">${k.solved ?? 0}<small> / ${k.problems}</small></b>${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}</div>
       <div><span class="lbl">Last 30 days</span><b class="mono"><span class="up">+${k.advances30}</span> <span class="down">−${k.setbacks30}</span></b><small>advances · setbacks</small></div>
       <div><span class="lbl">Catalysts ahead</span><b class="mono">${t.catalysts_total ?? 0}</b><small>trial readouts and promises due</small></div>
       <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
-    </section>
+    </section>`;
+  // Subscribers on a wide screen get a distinct layout per tab; phones and visitors get sections.
+  const own = full && WIDE.matches;
+  const overview = own ? frontPage(t, kstrip) : `${kstrip}
     ${sections(t, 'overview')}
     ${full ? `<p class="csvrow"><span class="lbl">Download</span><button class="btn sm" type="button" data-csv="goals">Every goal (CSV)</button><button class="btn sm" type="button" data-csv="problems">Every open problem (CSV)</button></p>` : ''}`;
   const panes = {
     overview: () => overview,
-    money: () => sections(t, 'money'),
-    players: () => sections(t, 'players'),
-    calendar: () => (WIDE.matches ? '' : watchBar(t)) + sections(t, 'calendar'),
-    crossovers: () => sections(t, 'crossovers'),
+    money: () => (own && t.money?.goals?.length ? `<div data-mp="x-money">${marketScreen(t)}</div>` : sections(t, 'money')),
+    players: () => (own && t.race?.goals?.length ? `<div data-mp="x-players">${standings(t)}</div>` : sections(t, 'players')),
+    calendar: () => (own ? `<div data-mp="x-cal">${timeline(t)}</div>` : (WIDE.matches ? '' : watchBar(t)) + sections(t, 'calendar')),
+    crossovers: () => (own && t.crossovers?.keystones ? `<div data-mp="x-cross">${mapRoom(t)}</div>` : sections(t, 'crossovers')),
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
