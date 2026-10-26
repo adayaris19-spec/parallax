@@ -1467,6 +1467,43 @@ svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 .tl-card small{font-size:11.5px;color:var(--muted)}.tl-card small a{color:var(--ink2)}
 .tl-card .sig{justify-self:start}
 .tl-side>section.panel{margin:0}
+.bf{padding:6px 18px 12px}
+.bf-head,.bf-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:0 10px;align-items:center}
+.bf-head{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 0 8px;border-bottom:1px solid var(--line)}
+.bf-head span:nth-child(2){text-align:right}
+.bf-row{padding:9px 0;border-bottom:1px solid var(--line)}
+.bf-name{min-width:0}.bf-name a{display:block;font-size:13.5px;line-height:1.35;color:var(--ink);text-decoration:none}.bf-name a:hover{text-decoration:underline}.bf-name small{font-size:11.5px;color:var(--muted)}
+.bf-flag{display:inline-block;font-family:var(--m);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:0 6px;margin-bottom:3px}
+.bf-hidden{font-size:12.5px;color:var(--muted);font-style:italic}
+.bf-l,.bf-r{display:flex;align-items:center;gap:6px;height:22px;cursor:default}
+.bf-l{flex-direction:row;justify-content:flex-end;border-right:2px solid var(--ink)}
+.bf-l i,.bf-r i{display:block;height:12px;min-width:2px}
+.bf-l i{background:var(--line2);border-radius:4px 0 0 4px;max-width:calc(100% - 52px)}
+.bf-r i{background:var(--ink2);border-radius:0 4px 4px 0;max-width:calc(100% - 52px)}
+.bf-row.op .bf-r i{background:var(--accent)}
+.bf-v{font-family:var(--m);font-size:11.5px;color:var(--ink2);white-space:nowrap}
+[data-x][hidden]{display:none!important}
+.xs{position:relative;display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.xsearch{flex:1;height:46px;border-radius:14px;border:1px solid var(--line2);background:var(--card);padding:0 16px 0 42px;font:inherit;font-size:15px;color:var(--ink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center}
+.xsearch:focus{outline:2px solid var(--accent-line);border-color:var(--accent)}
+.xs-n{position:absolute;right:16px;font-family:var(--m);font-size:12px;color:var(--muted);pointer-events:none}
+.xs-list{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 18px 10px;margin:0 0 14px;box-shadow:var(--shadow)}
+.panel .xs{margin:12px 18px 6px}.panel .xs-res{margin:0 18px}
+.mr-riplist .rip:nth-child(n+4){display:none}
+.mr-riplist:has(.rip[hidden]) .rip:not([hidden]){display:block}
+svg.web.searching [data-node]:not(.qhit),svg.web.searching [data-ends]:not(.qhit),svg.web.searching .gn:not(.qhit){opacity:.15}
+svg.web.searching .gn.qhit circle{stroke:var(--accent);stroke-width:2.5}
+/* Rings */
+svg.chord .cr{fill:var(--accent);stroke:var(--card);stroke-width:.6;cursor:pointer;transition:fill-opacity .15s,opacity .15s}
+svg.chord .cr:hover{fill-opacity:.9!important}
+svg.chord .cr.on{fill-opacity:.95!important;stroke:var(--accent);stroke-width:1.5}
+svg.chord .cg-arc{fill:var(--ink)}
+svg.chord .cg.alone .cg-arc{fill:var(--line2)}
+.chord-lone{text-align:center;margin:0 0 6px}.chord-lone a{color:var(--ink2)}
+svg.chord .cg-dot{fill:var(--sunk)}
+svg.chord text{font-size:13.5px;font-weight:600;fill:var(--ink)}
+svg.chord .cg.alone text{fill:var(--muted);font-weight:400}
+svg.chord.focus .cr:not(.hl){opacity:.12}svg.chord.focus .cg:not(.hl) .cg-arc{opacity:.35}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3364,7 +3401,7 @@ function rippleRows(list) {
     const [label, cls] = RIP_KIND[r.kind] || [r.kind, ''];
     const isNew = lastSeen && new Date(r.at).getTime() > lastSeen;
     const head = r.post ? `<a href="#/p/${r.post}">${esc(r.headline)}</a>` : r.url ? extLink(r.url, esc(r.headline)) : esc(r.headline);
-    return `<div class="rip"><div class="rip-h"><span class="sig ${cls}">${label}</span>${isNew ? '<span class="rip-new">New</span>' : ''}<span class="hchip">@${esc(r.from.goal)}</span><span class="when">${esc(whenAgo(r.at))}</span></div>
+    return `<div class="rip" data-x="${esc([r.headline, r.from.goal, r.from.title, ...r.affects.flatMap((a) => [a.goal, a.title, a.why])].join(' ').toLowerCase())}"><div class="rip-h"><span class="sig ${cls}">${label}</span>${isNew ? '<span class="rip-new">New</span>' : ''}<span class="hchip">@${esc(r.from.goal)}</span><span class="when">${esc(whenAgo(r.at))}</span></div>
       <div class="rip-t">${head}</div>
       <div class="rip-to">${r.affects.slice(0, 2).map((a) => `<div><span class="rip-arrow" aria-hidden="true">↳</span> <span>also moves <a href="#/g/${encodeURIComponent(a.slug)}/tree/${encodeURIComponent(a.key)}"><span class="hchip">@${esc(a.goal)}</span> ${esc(a.title)}</a>${a.why ? `<small>${esc(a.why)}</small>` : ''}</span></div>`).join('')}${r.affects.length > 2 ? `<div><span></span><small>+${r.affects.length - 2} more linked problem${r.affects.length - 2 === 1 ? '' : 's'}</small></div>` : ''}</div></div>`;
   }).join('');
@@ -3402,7 +3439,7 @@ function webSvg(web, sel) {
 // Hovering a goal lights up its links.
 document.addEventListener('mouseover', (e) => {
   const n = e.target.closest?.('.wnode'), svg = e.target.closest?.('svg.web');
-  if (!svg || svg.classList.contains('gsim')) return; // the problem graph handles its own hover
+  if (!svg || svg.classList.contains('gsim') || svg.classList.contains('chord')) return; // those handle their own hover
   const slug = n?.dataset.node || '';
   svg.classList.toggle('focus', !!slug);
   svg.querySelectorAll('.wedge').forEach((g) => g.classList.toggle('hl', !!slug && g.dataset.ends.split(' ').includes(slug)));
@@ -3513,11 +3550,95 @@ function initWebSim() {
     step();
   });
 }
+// The web as rings: each goal an arc sized by how many problems it shares, ribbons between goals,
+// darker where they share more (one hue, light to dark). Tap a ribbon to see the shared problems.
+function chordSvg(web, sel) {
+  const order = [], seen = new Set();
+  for (const e of web.edges) for (const s of [e.a, e.b]) if (!seen.has(s)) { seen.add(s); order.push(s); }
+  const lone = web.goals.filter((g) => !seen.has(g.slug)); // not linked yet: listed under the rings
+  const W = 760, H = 560, cx = W / 2, cy = H / 2, R = 182, TH = 16, GAP = 0.07;
+  const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
+  const weight = (s) => Math.sqrt(deg[s] || 1), total = order.reduce((t, s) => t + weight(s), 0), span = 2 * Math.PI - GAP * order.length;
+  const arc = {}; let a = -Math.PI / 2;
+  for (const s of order) { const w = (weight(s) / total) * span; arc[s] = { a0: a, a1: a + w, cur: a }; a += w + GAP; }
+  const pos = (s) => order.indexOf(s);
+  // Each goal's arc is split among its ribbons, nearest partners first, to limit crossings.
+  const slot = {};
+  for (const s of order) {
+    const mine = web.edges.filter((e) => e.a === s || e.b === s).sort((x, y) => ((pos(x.a === s ? x.b : x.a) - pos(s) + order.length) % order.length) - ((pos(y.a === s ? y.b : y.a) - pos(s) + order.length) % order.length));
+    for (const e of mine) { const w = (e.n / (deg[s] || 1)) * (arc[s].a1 - arc[s].a0); slot[`${e.a}|${e.b}|${s}`] = [arc[s].cur, arc[s].cur + w]; arc[s].cur += w; }
+  }
+  const P = (ang, r) => [cx + r * Math.cos(ang), cy + r * Math.sin(ang)], f = (n) => n.toFixed(1);
+  const ri = R - TH - 2, maxN = Math.max(1, ...web.edges.map((e) => e.n));
+  const ribbons = web.edges.map((e) => {
+    const [a0, a1] = slot[`${e.a}|${e.b}|${e.a}`], [b0, b1] = slot[`${e.a}|${e.b}|${e.b}`];
+    const p = (x) => P(x, ri), arcTo = (x0, x1) => `A${ri},${ri} 0 ${x1 - x0 > Math.PI ? 1 : 0} 1 ${f(p(x1)[0])},${f(p(x1)[1])}`;
+    const d = `M${f(p(a0)[0])},${f(p(a0)[1])} ${arcTo(a0, a1)} Q${cx},${cy} ${f(p(b0)[0])},${f(p(b0)[1])} ${arcTo(b0, b1)} Q${cx},${cy} ${f(p(a0)[0])},${f(p(a0)[1])}Z`;
+    const op = (0.16 + 0.6 * Math.sqrt(e.n / maxN)).toFixed(2);
+    return `<path class="cr${sel === `${e.a}|${e.b}` ? ' on' : ''}" d="${d}" style="fill-opacity:${op}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" data-ends="${esc(e.a)} ${esc(e.b)}"><title>${e.n} shared problem${e.n === 1 ? '' : 's'}</title></path>`;
+  }).join('');
+  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
+  const arcs = order.map((s, i) => {
+    const { a0, a1 } = arc[s], o = P(a0, R), o2 = P(a1, R), in1 = P(a1, R - TH), in0 = P(a0, R - TH), big = a1 - a0 > Math.PI ? 1 : 0;
+    const d = `M${f(o[0])},${f(o[1])} A${R},${R} 0 ${big} 1 ${f(o2[0])},${f(o2[1])} L${f(in1[0])},${f(in1[1])} A${R - TH},${R - TH} 0 ${big} 0 ${f(in0[0])},${f(in0[1])}Z`;
+    const mid = (a0 + a1) / 2, [px, py] = P(mid, R + 28), [lx, ly] = P(mid, R + 50), right = Math.cos(mid) >= 0, { handle, pic } = info(s);
+    return `<g class="cg${deg[s] ? '' : ' alone'}" data-node="${esc(s)}"><path class="cg-arc" d="${d}"/>
+      <clipPath id="cc${i}"><circle cx="${f(px)}" cy="${f(py)}" r="13"/></clipPath>${pic ? `<image href="${esc(pic)}" x="${f(px - 13)}" y="${f(py - 13)}" width="26" height="26" preserveAspectRatio="xMidYMid slice" clip-path="url(#cc${i})"/>` : `<circle cx="${f(px)}" cy="${f(py)}" r="13" class="cg-dot"/>`}
+      <a href="#/g/${encodeURIComponent(s)}"><text x="${f(lx + (right ? -6 : 6))}" y="${f(ly + 4)}" text-anchor="${right ? 'start' : 'end'}" transform="rotate(0)">@${esc(handle)}${deg[s] ? ` · ${deg[s]}` : ''}</text></a></g>`;
+  }).join('');
+  return `<div class="chordwrap"><svg class="web chord" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals as arcs, linked by the problems they share">${ribbons}${arcs}</svg>${lone.length ? `<p class="gnote chord-lone">Not linked to another goal yet: ${lone.map((g) => `<a href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a>`).join(', ')}</p>` : ''}</div>`;
+}
+// Hovering a goal's arc lights up its ribbons.
+document.addEventListener('mouseover', (e) => {
+  const svg = e.target.closest?.('svg.chord'); if (!svg) return;
+  const g = e.target.closest('.cg'), slug = g?.dataset.node || '';
+  svg.classList.toggle('focus', !!slug);
+  svg.querySelectorAll('.cr').forEach((r) => r.classList.toggle('hl', !!slug && r.dataset.ends.split(' ').includes(slug)));
+  svg.querySelectorAll('.cg').forEach((x) => x.classList.toggle('hl', x === g));
+});
+
+// Search across the crossovers: keystones, ripples and links filter as you type; matching goals and
+// problems stay lit on the map, and the matching links are listed.
+function xSearchBox() {
+  return `<div class="xs"><input type="search" class="xsearch" data-xq placeholder="Search shared problems, goals or keywords: lithium, regulators, dust…" value="${esc(termSel.xq || '')}" aria-label="Search crossovers"><span class="xs-n" aria-live="polite"></span></div><div class="xs-res"></div>`;
+}
+function applyXSearch(root) {
+  root = root || document;
+  const q = (termSel.xq || '').trim().toLowerCase(), c = term?.crossovers;
+  root.querySelectorAll('[data-x]').forEach((el) => { if (el.closest('.webside, .xs-res')) return; el.hidden = !!q && !el.dataset.x.includes(q); });
+  // Say so when a list has nothing left.
+  root.querySelectorAll('.mr-strip, .kcards, .rips').forEach((list) => {
+    let msg = list.querySelector(':scope > .xs-none');
+    const any = [...list.querySelectorAll(':scope > [data-x]')].some((x) => !x.hidden);
+    if (q && !any) { if (!msg) { msg = document.createElement('p'); msg.className = 'gnote xs-none'; list.appendChild(msg); } msg.textContent = `Nothing here matches “${q}”.`; } else msg?.remove();
+  });
+  const res = root.querySelector('.xs-res'), n = root.querySelector('.xs-n');
+  if (!c) return;
+  const links = Object.values(c.links).flat().filter((l) => l.a && l.b);
+  const hit = q ? links.filter((l) => [l.a.title, l.b.title, l.a.goal, l.b.goal, l.why].join(' ').toLowerCase().includes(q)) : [];
+  if (n) n.textContent = q ? `${hit.length} link${hit.length === 1 ? '' : 's'} match` : '';
+  if (res) res.innerHTML = q ? (hit.length ? `<div class="xs-list">${linkRows(hit.slice(0, 6))}${hit.length > 6 ? `<p class="gnote">+${hit.length - 6} more: try a narrower word.</p>` : ''}</div>` : '<p class="gnote">Nothing matches. Try a broader word.</p>') : '';
+  // Map: keep matching goals and problems lit.
+  const goalsHit = new Set(hit.flatMap((l) => [l.a.slug, l.b.slug])), probsHit = new Set(hit.flatMap((l) => [`${l.a.slug}/${l.a.key}`, `${l.b.slug}/${l.b.key}`]));
+  root.querySelectorAll('svg.web').forEach((svg) => {
+    svg.classList.toggle('searching', !!q);
+    svg.querySelectorAll('[data-node]').forEach((el) => el.classList.toggle('qhit', goalsHit.has(el.dataset.node)));
+    svg.querySelectorAll('[data-ends]').forEach((el) => el.classList.toggle('qhit', el.dataset.ends.split(' ').every((x) => goalsHit.has(x)) && hit.some((l) => el.dataset.ends.split(' ').includes(l.a.slug) && el.dataset.ends.split(' ').includes(l.b.slug))));
+    svg.querySelectorAll('.gn.prob').forEach((el) => el.classList.toggle('qhit', probsHit.has(el.dataset.v)));
+    svg.querySelectorAll('.gn.goal').forEach((el) => { const node = term && problemGraph(c).nodes[+el.dataset.n]; el.classList.toggle('qhit', !!node && goalsHit.has(node.slug)); });
+  });
+}
+document.addEventListener('input', (e) => {
+  if (!e.target.matches?.('[data-xq]')) return;
+  termSel.xq = e.target.value;
+  applyXSearch(e.target.closest('.tpane') || document);
+});
+
 function linkRows(links) {
-  return links.map((l) => `<div class="xlink"><div class="xpair">${xref(l.a)}<span class="xeq" aria-hidden="true">⇄</span>${xref(l.b)}</div><p>${esc(l.why || '')}</p><small>${l.source === 'ai' ? 'Found by reading both problems' : `${l.papers} shared papers`}</small></div>`).join('');
+  return links.map((l) => `<div class="xlink" data-x="${esc([l.a?.title, l.b?.title, l.a?.goal, l.b?.goal, l.why].join(' ').toLowerCase())}"><div class="xpair">${xref(l.a)}<span class="xeq" aria-hidden="true">⇄</span>${xref(l.b)}</div><p>${esc(l.why || '')}</p><small>${l.source === 'ai' ? 'Found by reading both problems' : `${l.papers} shared papers`}</small></div>`).join('');
 }
 function keystoneCards(list) {
-  return list.map((k) => `<div class="kcard"><div class="kcard-h"><b>${esc(k.title)}</b><span class="kgoals">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</span></div>
+  return list.map((k) => `<div class="kcard" data-x="${esc([k.title, ...k.handles, ...k.members.map((m) => m.title), ...k.links.map((l) => l.why)].join(' ').toLowerCase())}"><div class="kcard-h"><b>${esc(k.title)}</b><span class="kgoals">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</span></div>
     <div class="kmeta"><span><b class="mono">${k.goals}</b> goals</span><span><b class="mono">${k.members.length}</b> linked problems</span>${k.funding ? `<span><b class="mono">${usdShort(k.funding)}</b> federal grants</span>` : ''}${k.papers_last ? `<span><b class="mono">${k.papers_last.toLocaleString()}</b> papers last year</span>` : ''}<span><b class="mono">${k.moves30}</b> moves in 30 days</span></div>
     <details><summary>How they connect</summary>${linkRows(k.links)}</details></div>`).join('');
 }
@@ -3539,8 +3660,9 @@ function crossPanel(t) {
   const pairSide = sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${pl.length} shared</span>${linkRows(pl.slice(0, termSel.pairAll ? 99 : 5))}${pl.length > 5 && !termSel.pairAll ? `<p style="margin:10px 0 0"><button class="btn sm" type="button" data-tsel="pairAll" data-v="1">Show all ${pl.length}</button></p>` : ''}` : '';
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
-      ${selChips('webmode', [['goals', 'Goals'], ['problems', 'Problems']], termSel.webmode || 'goals')}
-      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
+      ${xSearchBox()}
+      ${selChips('webmode', [['rings', 'Rings'], ['goals', 'Web'], ['problems', 'Problems']], termSel.webmode || 'rings')}
+      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${(termSel.webmode || 'rings') === 'rings' ? chordSvg(c.web, sel) : webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
       <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
       ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
@@ -3619,12 +3741,12 @@ function frontPage(t, kstrip) {
 // Crossovers: the map room.
 function mapRoom(t) {
   const c = t.crossovers;
-  const web = part(crossPanel(t), 0);
-  const keys = c.keystones.slice(0, 12).map((k) => `<article class="mr-key"><div class="mr-kh">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</div><b>${esc(k.title)}</b>
+  const web = part(crossPanel(t), 0).replace(xSearchBox(), '');
+  const keys = c.keystones.map((k) => `<article class="mr-key" data-x="${esc([k.title, ...k.handles, ...k.members.map((m) => m.title), ...k.links.map((l) => l.why)].join(' ').toLowerCase())}"><div class="mr-kh">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</div><b>${esc(k.title)}</b>
       <p>${esc(k.links[0]?.why || '')}</p><small>${k.goals} goals · ${k.members.length} problems${k.funding ? ` · ${usdShort(k.funding)} grants` : ''}</small></article>`).join('');
-  return `<div class="mr"><div class="mr-map">${web}</div>
+  return `<div class="mr">${xSearchBox()}<div class="mr-map">${web}</div>
     <div class="mr-low"><section class="mr-keys"><div class="fp-ch"><h3>Keystone problems</h3><span>solve once, move several goals · ${c.keystones.length}</span><span class="pstrip-a"><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="1" aria-label="More">›</button></span></div><div class="mr-strip">${keys}</div></section>
-    <section class="mr-rips"><div class="fp-ch"><h3>Ripples</h3><span>last 30 days · ${c.ripples.length}</span></div><div class="rips">${rippleRows(c.ripples.slice(0, 3))}</div></section></div></div>`;
+    <section class="mr-rips"><div class="fp-ch"><h3>Ripples</h3><span>last 30 days · ${c.ripples.length}</span></div><div class="rips mr-riplist">${rippleRows(c.ripples)}</div></section></div></div>`;
 }
 
 // Money: a market screen.
@@ -3723,6 +3845,7 @@ document.addEventListener('click', (e) => {
   if (k === 'wnode') { const side = pane.querySelector('.webside'); if (side) side.innerHTML = problemSide(term.crossovers); pane.querySelectorAll('.gn.prob').forEach((x) => x.classList.toggle('on', x.dataset.v === v)); return; }
   pane.innerHTML = SEC_BY_ID[pane.dataset.mp].body(term);
   initWebSim();
+  applyXSearch(pane.closest('.tpane') || pane);
   // a choice in one section can change another's summary or content (the trial list follows the pipeline card)
   if (k === 'pipe') { const tr = document.querySelector('[data-mp="trials"]'); if (tr) tr.innerHTML = SEC_BY_ID.trials.body(term); }
   pane.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
@@ -3781,42 +3904,32 @@ function goalIndex(t) {
 }
 
 // Opportunity radar: each unsolved problem by public funding (across) and research growth (up).
+// Opportunity radar, as a two-sided bar chart: each problem's public funding (left) and research
+// growth (right), both as a rank among all problems with matched funding (0-100, a common scale).
+// A long bar on the right with a short one on the left is the opportunity: heating up, little money.
 function radarPanel(t) {
   const full = t.access === 'full', pts = full ? t.radar : (t.preview?.radar || []);
-  const head = `<div class="panel-h"><h2>Opportunity radar</h2><span class="lbl">Where research is heating up but public money is thin</span></div>`;
-  if (!pts.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
-  const W = 900, H = 440, L = 64, R = 20, T = 20, B = 46;
-  const maxX = Math.max(1, ...pts.map((p) => p.x)), lx = (v) => (v > 0 ? Math.log10(v) : 0), lo = 5; // $100K
-  const hi = Math.max(lo + 1, Math.ceil(lx(maxX)));
-  const X = (v) => (v <= 0 ? L + 18 : L + 78 + (Math.max(lo, lx(v)) - lo) / (hi - lo) * (W - L - R - 78));
-  const ys = pts.map((p) => p.y), yMin = Math.max(-0.75, Math.min(0, ...ys)), yMax = Math.min(4, Math.max(1, ...ys));
-  const Y = (v) => T + (1 - (Math.min(yMax, Math.max(yMin, v)) - yMin) / (yMax - yMin)) * (H - T - B);
-  const maxS = Math.max(1, ...pts.map((p) => p.size || 1)), rad = (s) => 3 + 9 * Math.sqrt((s || 1) / maxS);
-  const opp = pts.filter((p) => p.opportunity);
-  const ticksX = [0, ...Array.from({ length: hi - lo + 1 }, (_, i) => 10 ** (lo + i))];
-  const ticksY = [...new Set([yMin, 0, yMax / 2, yMax].map((v) => Math.round(v * 100) / 100))].filter((v, i, a) => v === 0 || a.every((w) => w === v || Math.abs(w - v) > (yMax - yMin) * 0.08));
-  const dots = pts.map((p) => {
-    const named = !!p.title, link = named ? `#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}` : null;
-    const c = `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${rad(p.size).toFixed(1)}" class="${p.opportunity ? 'op' : ''}${named ? ' nm' : ''}">${named ? `<title>@${esc(p.goal)} · ${esc(p.title)} · research ${p.y >= 0 ? '+' : ''}${Math.round(p.y * 100)}% · ${p.x ? usdShort(p.x) : 'no'} federal grants</title>` : ''}</circle>`;
-    return link ? `<a href="${link}">${c}</a>` : c;
-  }).join('');
-  const svg = `<svg class="radar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Problems by public funding and research growth">
-    <rect class="lane" x="${L}" y="${T}" width="36" height="${(H - T - B).toFixed(0)}"/>
-    ${(() => { // the shaded corner fits around the actual opportunities
-      if (!opp.length) return '';
-      const x1 = Math.max(...opp.map((p) => X(p.x) + rad(p.size))) + 14, y1 = Math.max(...opp.map((p) => Y(p.y) + rad(p.size))) + 14, x0 = X(10 ** lo) - 14;
-      return `<rect class="hot" x="${x0.toFixed(0)}" y="${T}" width="${Math.max(120, x1 - x0).toFixed(0)}" height="${(y1 - T).toFixed(0)}"/><text class="hotl" x="${(x0 + 10).toFixed(0)}" y="${T + 18}">Heating up, little public money</text>`;
-    })()}
-    ${ticksY.map((v) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="ax" x="${L - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${v >= 0 ? '+' : '−'}${Math.round(Math.abs(v) * 100)}%</text>`).join('')}
-    ${ticksX.map((v) => `<text class="ax" x="${X(v).toFixed(1)}" y="${H - B + 18}" text-anchor="middle">${v ? usdShort(v) : 'no match'}</text>`).join('')}
-    <text class="ax t" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">US federal grants since ${new Date().getFullYear() - 3} (log scale)</text>
-    <text class="ax t" x="14" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(T + H - B) / 2})">Research growth, last 3 yrs vs 3 before</text>
-    ${dots}</svg>`;
-  const list = (full ? opp : opp.filter((p) => p.title)).slice(0, full ? (termSel.radarAll ? 99 : 10) : 2).map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}"><span>${esc(p.title)}<small>@${esc(p.goal)}</small></span><b class="mono up">+${Math.round(p.y * 100)}%</b><b class="mono">${p.x ? usdShort(p.x) : 'no grants'}</b></a>`).join('');
-  return `<section class="panel">${head}${answerBox(t.answers?.radar)}<div class="pad">${svg}
-      <p class="radar-note">Each dot is an unsolved problem, sized by papers last year. Highlighted: research growth in the top third and matched federal funding in the bottom third. The grey column on the left is problems with no matching grants found (the search may miss them, so they are not counted as opportunities)${full ? '' : '. Names are for subscribers; two examples below'}.</p></div>
-    <div class="oplist"><div class="oplist-h"><span>Opportunities</span><span>Research growth</span><span>Federal grants</span></div>${list}</div>${full && !termSel.radarAll && opp.length > 10 ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="radarAll" data-v="1">Show all ${opp.length}</button></p>` : ''}
-    ${full ? '' : moreGate(`${opp.length} problems are in the opportunity corner right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
+  const head = `<div class="panel-h"><h2>Opportunity radar</h2><span class="lbl">Research heating up, public money thin</span></div>`;
+  const funded = pts.filter((p) => p.x > 0 && p.y != null);
+  if (!funded.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
+  const rankOf = (arr, v) => (arr.length < 2 ? 50 : Math.round(arr.filter((x) => x < v).length / (arr.length - 1) * 100));
+  const xs = funded.map((p) => p.x), ys = funded.map((p) => p.y);
+  const rows = funded.map((p) => ({ ...p, fr: rankOf(xs, p.x), gr: rankOf(ys, p.y) })).map((p) => ({ ...p, gap: p.gr - p.fr }))
+    .sort((a, b) => Number(b.opportunity) - Number(a.opportunity) || b.gap - a.gap);
+  const shown = full ? rows.slice(0, termSel.radarAll ? rows.length : 10) : rows.filter((r) => r.title).slice(0, 2);
+  const opp = rows.filter((r) => r.opportunity).length;
+  const row = (r) => {
+    const name = r.title ? `<a href="#/g/${encodeURIComponent(r.slug)}/tree/${encodeURIComponent(r.key)}">${esc(r.title)}</a><small>@${esc(r.goal)}</small>` : '<span class="bf-hidden">Subscribers see the name</span>';
+    return `<div class="bf-row${r.opportunity ? ' op' : ''}"><div class="bf-name">${r.opportunity ? '<span class="bf-flag" title="In the opportunity group: growth in the top third, funding in the bottom third">Opportunity</span>' : ''}${name}</div>
+      <div class="bf-l" data-tip="Public funding: ${usdShort(r.x)} in US federal grants since ${new Date().getFullYear() - 3} · more than ${r.fr}% of funded problems"><span class="bf-v">${usdShort(r.x)}</span><i style="width:${Math.max(2, r.fr)}%"></i></div>
+      <div class="bf-r" data-tip="Research growth: ${r.y >= 0 ? '+' : ''}${Math.round(r.y * 100)}% papers, last 3 years vs the 3 before · faster than ${r.gr}% of funded problems"><i style="width:${Math.max(2, r.gr)}%"></i><span class="bf-v">${r.y >= 0 ? '+' : ''}${Math.round(r.y * 100)}%</span></div></div>`;
+  };
+  return `<section class="panel">${head}${answerBox(t.answers?.radar)}<div class="bf">
+      <div class="bf-head"><span></span><span>← Public funding</span><span>Research growth →</span></div>
+      ${shown.map(row).join('')}
+      <p class="radar-note">Bars are ranks among the ${funded.length} unsolved problems with matched US federal grants (0 = least, 100 = most). Flagged: growth in the top third and funding in the bottom third. Problems with no matched grants are left out, since the search may simply miss their funding.</p>
+      ${full && !termSel.radarAll && rows.length > shown.length ? `<p class="mk-more"><button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${rows.length}</button></p>` : ''}</div>
+    ${full ? '' : moreGate(`${opp} problems are in the opportunity group right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
 }
 
 // Catalysts: what is due, across every goal. Trial readouts (ClinicalTrials.gov) and promises coming due.
@@ -3923,6 +4036,7 @@ function renderTerminal(box, tab = 'overview') {
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
   initWebSim();
+  applyXSearch(box);
 }
 
 // One floating tooltip for every chart mark with data-tip.
