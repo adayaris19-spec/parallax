@@ -43,10 +43,16 @@ const SINCE = `${Y - 3}-01-01`;
 
 // Phrases to try (USAspending matches phrases). Phrases that carry the goal's own key words come
 // right after the first three words ("drug delivery Alzheimer" before "blood-brain barrier").
-const GENERIC = new Set("disease diseases people humans human world better cheap cheaper enough making first build every power scale".split(" "));
+const GENERIC = new Set("disease diseases people humans human world better cheap cheaper enough making first build every power scale useful solve solves problems problem living permanent early slowing cure removing billions tons systems system design control model models trial trials clinical safety testing large".split(" "));
 const words = (q: string) => q.replace(/['’]s\b/g, "").replace(/[^\p{L}\p{N}\s-]/gu, " ").split(/\s+/).filter(Boolean);
-function anchorsOf(goalName: string): string[] {
-  return words(goalName).map((w) => w.toLowerCase()).filter((w) => w.length >= 5 && !GENERIC.has(w));
+// The goal's subject: words from its name, plus words that recur across its problems' searches
+// (battery and storage for grid storage, Mars and crew for Mars).
+function anchorsOf(goalName: string, queries: string[] = []): string[] {
+  const out = new Set(words(goalName).map((w) => w.toLowerCase()).filter((w) => w.length >= 4 && !GENERIC.has(w)));
+  const freq = new Map<string, number>();
+  for (const q of queries) for (const w of new Set(words(q).map((x) => x.toLowerCase()))) freq.set(w, (freq.get(w) ?? 0) + 1);
+  for (const [w, n] of freq) if (n >= 3 && w.length >= 5 && !GENERIC.has(w)) out.add(w);
+  return [...out];
 }
 function tries(q: string, anchors: string[] = []): string[] {
   const w = words(q), out: string[] = [];
@@ -98,14 +104,13 @@ async function funding(q: string, anchors: string[] = []): Promise<Found | null>
     // deno-lint-ignore no-explicit-any
     const agencies = (byAgency.results ?? []).map((x: any) => ({ name: String(x.name ?? ""), amount: Math.round(Number(x.amount) || 0) })).filter((x: { amount: number }) => x.amount > 0);
     const total = agencies.reduce((a: number, x: { amount: number }) => a + x.amount, 0);
-    // Health research reuses broad phrases across diseases ("blood-brain barrier" spans ALS, stroke,
-    // cancer). For mostly-health grants, a phrase without the goal's key word must find grants that
+    // Broad phrases cross fields ("blood-brain barrier" spans ALS and stroke; "closed loop" finds
+    // battery recycling for a Mars goal). A phrase without the goal's subject must find grants that
     // name it.
-    const hhs = agencies.find((x: { name: string }) => /health and human services/i.test(x.name))?.amount ?? 0;
     const named = (t: string) => anchors.some((a) => grantTitle(t).toLowerCase().includes(a.slice(0, 6)));
     // deno-lint-ignore no-explicit-any
     const descs = (all as any[]).map((x) => String(x["Description"] ?? ""));
-    if (anchors.length && !anchors.some((a) => k.toLowerCase().includes(a.slice(0, 6))) && hhs >= total * 0.5 && descs.filter(named).length < descs.length * 0.3) { await sleep(250); continue; }
+    if (anchors.length && !anchors.some((a) => k.toLowerCase().includes(a.slice(0, 6))) && descs.filter(named).length < descs.length * 0.3) { await sleep(250); continue; }
     return {
       source: "grants", count, amount_cents: total * 100, since_year: Y - 3, extra: { terms: k, agencies: agencies.slice(0, 4) },
         // deno-lint-ignore no-explicit-any
@@ -162,7 +167,7 @@ async function run(slug?: string) {
     const now = new Date().toISOString(), found: Found[] = [];
     let failed = false;
     try {
-      const anchors = anchorsOf(g.name);
+      const anchors = anchorsOf(g.name, (leaves as { query: string }[]).map((x) => x.query));
       const gr = await funding(l.query, anchors);
       if (gr) found.push(gr);
       // deno-lint-ignore no-explicit-any
