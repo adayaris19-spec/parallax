@@ -174,8 +174,19 @@ async function save(goalId: number, key: string, drafts: z.infer<typeof Draft>[]
 }
 
 // Collect finished batches: structure each problem's research into ideas.
+// OpenAlex's free daily allowance ($1, resets midnight UTC). Judging ideas without the prior-art
+// search would make them look newer than they are, so collecting waits until there is allowance.
+async function oaRemaining(): Promise<number> {
+  try {
+    const r = await fetch(`https://api.openalex.org/rate-limit${OA_KEY ? `?api_key=${OA_KEY}` : ""}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10000) });
+    const d = await r.json();
+    return Number(d.rate_limit?.daily_remaining_usd ?? 1) + Number(d.rate_limit?.prepaid_remaining_usd ?? 0);
+  } catch { return 1; }
+}
+
 async function collect() {
   const jobs = await db(`idea_jobs?status=eq.pending&select=batch_id,goal_id,keys,context,created_at`);
+  if (jobs.length && (await oaRemaining()) < 0.05) return [{ batch: "-", ideas: 0, errors: ["waiting for OpenAlex's daily allowance to reset"] }];
   const out: { batch: string; ideas: number; errors: string[] }[] = [];
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);

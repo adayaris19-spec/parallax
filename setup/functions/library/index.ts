@@ -118,11 +118,23 @@ async function pool<T, R>(items: T[], size: number, fn: (x: T) => Promise<R>): P
   return out;
 }
 
+// OpenAlex gives each key $1 a day (a search costs $0.001), resetting at midnight UTC. New goals
+// come first: refreshing an existing goal only runs while more than 40% of the day is left.
+async function oaRemaining(): Promise<number> {
+  try {
+    const r = await fetch(`https://api.openalex.org/rate-limit${OA_KEY ? `?api_key=${OA_KEY}` : ""}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10000) });
+    const d = await r.json();
+    return Number(d.rate_limit?.daily_remaining_usd ?? 1) + Number(d.rate_limit?.prepaid_remaining_usd ?? 0);
+  } catch { return 1; }
+}
+const REFRESH_FLOOR = 0.4;
+
 // True research volume per problem (see yearCounts). One goal per call; monthly per goal.
 async function countGoal(slug?: string) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,counts_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=counts_at.asc.nullsfirst`);
   const g = slug ? goals[0] : goals.find((x: { counts_at: string | null }) => !x.counts_at || Date.now() - new Date(x.counts_at).getTime() > 30 * DAY);
   if (!g) return { note: "every goal's counts are fresh" };
+  if (!slug && g.counts_at && (await oaRemaining()) < REFRESH_FLOOR) return { note: "saving today's OpenAlex allowance for new goals" };
   const leaves = await db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&query=not.is.null&select=key,query`);
   const errors: string[] = [];
   try { await yearCounts(leaves[0]?.query ?? "research", "search"); } catch (e) {
@@ -141,6 +153,7 @@ async function grow(slug?: string) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,library_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=library_at.asc.nullsfirst`);
   const g = slug ? goals[0] : goals.find((x: { library_at: string | null }) => !x.library_at || Date.now() - new Date(x.library_at).getTime() > 30 * DAY);
   if (!g) return { note: "every library is fresh" };
+  if (!slug && g.library_at && (await oaRemaining()) < REFRESH_FLOOR) return { note: "saving today's OpenAlex allowance for new goals" };
   const leaves = await db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&query=not.is.null&select=key,query`);
   const from5 = `${new Date().getUTCFullYear() - 5}-01-01`;
   const errors: string[] = [];
@@ -207,6 +220,14 @@ Deno.serve(async (req) => {
       return json({ openalex: await tryIt(() => openAlex(q, 200)), ntrs: await tryIt(() => ntrs(q, 25)), pubmed: await tryIt(() => pubmed(q, 30)) });
     }
     if (body.counts === true) return json(await countGoal(body.slug));
+    if (body.action === "oa_status") {
+      const k = OA_KEY ? `?api_key=${OA_KEY}` : "";
+      const r = await fetch(`https://api.openalex.org/rate-limit${k}`, { headers: { Accept: "application/json" } });
+      const t = await r.text();
+      const hdr: Record<string, string> = {};
+      r.headers.forEach((v, k2) => { if (/limit|budget|reset|cost|remaining/i.test(k2)) hdr[k2] = v; });
+      return json({ status: r.status, headers: hdr, body: t.replace(OA_KEY || "\u0000", "<key>").slice(0, 1500) });
+    }
     const lib = await grow(body.slug);
     // Then the true research counts: for the goal just grown, else the goal whose counts are oldest.
     const counts = await countGoal("slug" in lib ? lib.slug : undefined).catch((e) => ({ error: e instanceof Error ? e.message : String(e) }));
