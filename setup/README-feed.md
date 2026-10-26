@@ -416,3 +416,15 @@ follows a goal the site offers alerts; the cron sends new advances, setbacks, so
 bottlenecks and promise checks on followed goals, at most 3 a day per device, and drops devices the
 push service says are gone. Works on Android and desktop browsers, and on iPhone once Parallax is
 added to the Home Screen (iOS 16.4+).
+
+## 29. Terminal: goal index, radar, catalysts, watchlists
+
+- Goal index (Terminal home), Opportunity radar and Catalysts calendar come from the `terminal`
+  function; visitors get samples cut on the server (3 index rows, unnamed radar dots plus 2 named,
+  the next 2 catalysts). The radar's opportunity corner is research growth in the top third and
+  matched federal funding in the bottom third; "no matching grants" never counts.
+- `schema-watchlists.sql`: `watchlists` (a subscriber's goals and alert rules), `radar_opportunities`
+  (written by the terminal function, with when each first appeared), `watch_alerts` (sent once),
+  `push_subscriptions.user_id`, and a daily `parallax-radar` cron. The `push` function adds each
+  paying subscriber's watchlist: posts on watched goals, Phase 2/3 trial readouts and promises due
+  within 30 days, and new opportunities; up to 6 alerts a day for subscribers.
