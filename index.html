@@ -514,10 +514,19 @@ body.goalstory .sw-bar{width:min(720px,100vw)}
 .rl-bg,.rl-media{position:absolute;inset:0}
 .rl-grad{background:radial-gradient(90% 70% at 30% 20%, hsl(var(--h) 55% 24%) 0%, transparent 60%),radial-gradient(80% 60% at 80% 85%, hsl(calc(var(--h) + 40) 50% 18%) 0%, transparent 65%),#05060B;background-size:140% 140%;animation:drift2 14s ease-in-out infinite alternate}
 @keyframes drift2{to{background-position:100% 60%}}
-video.rl-media{width:100%;height:100%;object-fit:cover}
+/* One look for clips from many creators: a light grade, slow camera motion, vignette and fine grain. */
+.rl-media{filter:contrast(1.07) saturate(1.1) brightness(.97)}
+video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
+.rl-scene.on video.rl-media{animation:push 8s cubic-bezier(.25,.6,.3,1) forwards}
+@keyframes push{from{transform:scale(1)}to{transform:scale(1.07)}}
 .rl-img{background-size:cover;background-position:center;transform:scale(1.04)}
 .rl-scene.on .rl-img{animation:kb 9s ease-out forwards}
+.rl-scene.on .rl-img.m1{animation-name:kb1}.rl-scene.on .rl-img.m2{animation-name:kb2}.rl-scene.on .rl-img.m3{animation-name:kb3}
 @keyframes kb{to{transform:scale(1.16) translate(-2%,-2%)}}
+@keyframes kb1{from{transform:scale(1.16) translate(2%,1%)}to{transform:scale(1.04)}}
+@keyframes kb2{from{transform:scale(1.1) translate(-3%,0)}to{transform:scale(1.1) translate(3%,0)}}
+@keyframes kb3{from{transform:scale(1.06)}to{transform:scale(1.15) translate(1.5%,-2.5%)}}
+.has-visual .rl-shade::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.42) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.5;mix-blend-mode:overlay}
 .rl-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,6,11,.55) 0%,rgba(5,6,11,0) 25%,rgba(5,6,11,.1) 45%,rgba(5,6,11,.85) 78%,rgba(5,6,11,.95) 100%)}
 .rl-text{position:absolute;left:22px;right:86px;bottom:112px;color:#fff}
 .rl-scene.on .rl-text > *{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
@@ -540,7 +549,7 @@ video.rl-media{width:100%;height:100%;object-fit:cover}
 .rl-rail span{font-size:11px;color:rgba(255,255,255,.8);margin-bottom:10px}
 .rl-dive{position:absolute;left:22px;right:22px;bottom:44px;z-index:3;height:50px;border-radius:999px;background:#fff;color:#0B0C14;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;text-decoration:none}
 .rl .sw-credit{bottom:16px;z-index:3}
-@media (prefers-reduced-motion:reduce){.rl-grad,.rl-scene.on .rl-img{animation:none}}
+@media (prefers-reduced-motion:reduce){.rl-grad,.rl-scene.on .rl-img,.rl-scene.on video.rl-media{animation:none}}
 
 /* ---------- goal page: the instrument ---------- */
 .gbody.narrow{max-width:780px;margin:0 auto}
@@ -3578,7 +3587,7 @@ function sceneBg(s, seed, k) {
   const v = s.visual;
   if (!v || !v.url) return base;
   if (v.kind === 'video') return base + `<video class="rl-media" src="${esc(v.url)}" poster="${esc(v.poster || '')}" muted loop playsinline preload="none"></video>`;
-  return base + `<div class="rl-media rl-img" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
+  return base + `<div class="rl-media rl-img m${(hue(seed) + k) % 4}" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
 }
 
 function reelCard(r, g, i) {
@@ -3617,13 +3626,16 @@ function reelPlayer(card) {
     const step = (t) => { const p = Math.min(1, (t - s0) / 900), e = 1 - Math.pow(1 - p, 3); el.textContent = m[1] + fmt(target * e) + m[3]; if (p < 1 && el.isConnected) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   };
+  // Load the next clip while this one plays, so the cut never shows a blank frame.
+  const preloadNext = () => { const nv = scenes[(k + 1) % scenes.length]?.querySelector('video'); if (nv && nv.preload !== 'auto') nv.preload = 'auto'; };
   const show = (i) => {
     k = (i + scenes.length) % scenes.length;
     scenes.forEach((s, j) => {
       s.classList.toggle('on', j === k);
       const v = s.querySelector('video');
-      if (v) { if (j === k && !paused) { v.preload = 'auto'; v.play().catch(() => {}); } else v.pause(); }
+      if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3) v.currentTime = 0; v.play().catch(() => {}); } else v.pause(); }
     });
+    if (!paused) preloadNext();
     bars.forEach((b, j) => { b.style.transition = 'none'; b.style.width = j < k ? '100%' : '0%'; });
     const st = scenes[k].querySelector('[data-stat]');
     if (st) countUp(st);
@@ -3644,7 +3656,7 @@ function reelPlayer(card) {
     scenes[k].querySelector('video')?.pause();
   };
   return {
-    play() { if (!paused) return; paused = false; card.classList.remove('paused'); scenes[k].querySelector('video')?.play().catch(() => {}); run(); },
+    play() { if (!paused) return; paused = false; card.classList.remove('paused'); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
     pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
     reset() { this.pause(); left = 0; show(0); },
     next() { stop(); show(k + 1); },
