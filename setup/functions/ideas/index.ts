@@ -219,8 +219,12 @@ async function submit(slug?: string, key?: string) {
   const all = await db(`nodes?parent_key=not.is.null&select=goal_id,title,plain_title`);
   const wanted = new Set(requests.map((r: { goal_id: number }) => r.goal_id));
   const att = await attention();
-  // Asked-for problems first, then goals people follow or visit; unwatched goals wait.
-  const goalsInScope = slug ? goals : goals.filter((g: { id: number }) => wanted.has(g.id) || (att.get(g.id) ?? 0) > 0);
+  // Asked-for problems first, then goals people follow or visit. Every goal gets its first ideas;
+  // only watched goals get refreshed.
+  const withIdeas = new Map<number, Set<string>>();
+  for (const r of await db(`ideas?select=goal_id,node_key`)) (withIdeas.get(r.goal_id) ?? withIdeas.set(r.goal_id, new Set()).get(r.goal_id)!).add(r.node_key);
+  const watched = (g: { id: number }) => !!slug || (att.get(g.id) ?? 0) > 0;
+  const goalsInScope = slug ? goals : goals.filter((g: { id: number }) => wanted.has(g.id) || watched(g) || (withIdeas.get(g.id)?.size ?? 0) < AUTO_PER_GOAL);
   goalsInScope.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
   for (const g of goalsInScope) {
     const [nodes, have] = await Promise.all([
@@ -237,7 +241,7 @@ async function submit(slug?: string, key?: string) {
     const todo = key ? leaves.filter((n) => n.key === key) : [
       ...ranked.filter((n) => asked.has(n.key) && !recent.has(n.key)),
       ...ranked.filter((n) => !asked.has(n.key) && !covered.has(n.key)).slice(0, room),
-      ...ranked.filter((n) => covered.has(n.key) && !recent.has(n.key) && !asked.has(n.key)), // refresh after 120 days
+      ...(watched(g) ? ranked.filter((n) => covered.has(n.key) && !recent.has(n.key) && !asked.has(n.key)) : []), // refresh after 120 days
     ].slice(0, PER_BATCH);
     if (todo.length < PER_BATCH && !key) await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { ideas_at: new Date().toISOString() } });
     if (!todo.length) continue;

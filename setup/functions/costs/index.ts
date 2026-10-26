@@ -197,8 +197,13 @@ async function submit(slug?: string, fresh = false) {
   if (!slug && pending.length) return { note: "a batch is still running" };
   const all = await db(`goals?status=eq.ready&select=id,slug,name${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=id.asc`);
   const att = await attention();
-  const goals = slug ? all : all.filter((g: { id: number }) => (att.get(g.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
+  // Every goal gets its first estimates; only watched goals (followed or visited) get refreshed.
+  const started = new Set((await db(`node_costs?select=goal_id`)).map((r: { goal_id: number }) => r.goal_id));
+  const watched = (g: { id: number }) => (att.get(g.id) ?? 0) > 0;
+  const goals = slug ? all : all.filter((g: { id: number }) => watched(g) || !started.has(g.id))
+    .sort((a: { id: number }, b: { id: number }) => Number(started.has(a.id)) - Number(started.has(b.id)) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
   for (const g of goals) {
+    const refresh = !!slug || watched(g);
     if (pending.some((p: { goal_id: number }) => p.goal_id === g.id)) continue;
     const [nodes, have] = await Promise.all([
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status,updated_at&order=position.asc`),
@@ -207,7 +212,7 @@ async function submit(slug?: string, fresh = false) {
     const est = new Map(have.map((h: { node_key: string; estimated_at: string }) => [h.node_key, new Date(h.estimated_at).getTime()]));
     const ok = (n: Node & { updated_at?: string }) => {
       const t = est.get(n.key) as number | undefined;
-      return !fresh && t !== undefined && Date.now() - t < STALE_DAYS * DAY && (!n.updated_at || new Date(n.updated_at).getTime() <= t);
+      return !fresh && t !== undefined && (!refresh || Date.now() - t < STALE_DAYS * DAY) && (!n.updated_at || new Date(n.updated_at).getTime() <= t);
     };
     const chapters = (nodes as Node[]).filter((n) => !n.parent_key).map((c) => ({ c, probs: (nodes as Node[]).filter((n) => n.parent_key === c.key && !ok(n)) })).filter((x) => x.probs.length);
     if (!chapters.length) continue;

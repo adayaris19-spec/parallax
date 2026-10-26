@@ -249,7 +249,9 @@ async function run(slug?: string, fresh = false, live = false) {
     return age > 30 * DAY || (age > 7 * DAY && !!n && n > x.reels_at) || (!!big && big > x.reels_at && Date.now() - new Date(big).getTime() < 2 * DAY);
   };
   const att = slug ? new Map() : await attention();
-  const g = slug ? goals[0] : goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);
+  // Every goal gets its first videos; only watched goals get remade.
+  const g = slug ? goals[0] : goals.find((x: { reels_at: string | null }) => !x.reels_at)
+    ?? goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);
   if (!g) return { note: "every goal has fresh reels" };
   const [nodes, posts, proms, intel, teams, have] = await Promise.all([
     db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&select=key,title,plain_title,status,plain_blocker,blocker,plain_why,why`),
