@@ -10,7 +10,7 @@
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "4900");
+const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "5500");
 const DAY = 86_400_000;
 
 const CORS = {

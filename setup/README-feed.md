@@ -162,7 +162,7 @@ preview; subscribers see everything. The feed stays free.
    any CVC. The Terminal unlocks within a few seconds.
 5. To go live, repeat step 3 in live mode with the live keys.
 
-The product and its $49/month price are created in Stripe on the first checkout
+The product and its $55/month price are created in Stripe on the first checkout
 (lookup key `parallax_terminal_monthly`). Set `TERMINAL_PRICE_CENTS` to change the
 price before that. Complimentary access: set a person's `subscriptions.status` to
 `comp` (see the comment in `schema-billing.sql`).
@@ -429,7 +429,7 @@ added to the Home Screen (iOS 16.4+).
   paying subscriber's watchlist: posts on watched goals, Phase 2/3 trial readouts and promises due
   within 30 days, and new opportunities; up to 6 alerts a day for subscribers.
 
-## 30. Parallax Plus ($20/month; Pro includes it)
+## 30. Parallax Plus ($12/month; Pro includes it)
 
 `#/plus` ("Your week in progress"): the weekly brief as a short video in the Watch player (the goals
 the person follows first), what's coming next (Phase 2/3 trial readouts and promises coming due) as
@@ -437,7 +437,7 @@ cards, and predictions on each ("Will this Phase 2 meet its main goal?"), with e
 a personal track record once `prediction_results` are filled in. Served by the `plus` function (no
 AI); visitors get a sample. `schema-plus.sql`: `predictions` (only paying subscribers can save one),
 `prediction_counts`, `prediction_results`. Billing: `{"action":"checkout","tier":"plus"}` creates
-Plus prices on first use ($20/month, $200/year; PLUS_PRICE_CENTS / PLUS_YEAR_PRICE_CENTS override);
+Plus prices on first use ($12/month, $120/year; PLUS_PRICE_CENTS / PLUS_YEAR_PRICE_CENTS override);
 the Stripe webhook records `plan = 'plus'` for them; the Terminal and watchlists stay Pro-only.
 
 ## 31. Pro-only market data: money, the race, the pipeline
@@ -493,3 +493,12 @@ Deploy `digest` with **verify_jwt false**, because the unsubscribe link is opene
   - `POST digest {"action":"test","email":"you@…"}` sends one now.
   - `GET digest?action=preview&email=…` (admin header) shows the email as a web page.
 - **Off switch in the app:** Pro → Calendar → Watchlist → Email, and on the Plus page.
+
+## 35. Prices
+
+**Current prices:** Plus is $12/month or $120/year. Pro is $55/month or $550/year.
+
+**Changing a price:** set `PLUS_PRICE_CENTS`, `PLUS_YEAR_PRICE_CENTS`, `TERMINAL_PRICE_CENTS` or `TERMINAL_YEAR_PRICE_CENTS`, or edit the defaults in `billing`, `plus` and `terminal`.
+
+- On the next checkout, `billing` creates a new Stripe price and moves the lookup key onto it (`transfer_lookup_key`). Existing subscribers keep the price they signed up at.
+- Every price carries `metadata.tier` (`plus` or `pro`), and `stripe-webhook` reads it. That way, an old price that has lost its lookup key still maps to the right plan.

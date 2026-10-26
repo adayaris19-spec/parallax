@@ -1,11 +1,11 @@
-// PARALLAX plus — Supabase Edge Function named `plus`. "Your week" for Parallax Plus ($20/month; Pro
+// PARALLAX plus — Supabase Edge Function named `plus`. "Your week" for Parallax Plus ($12/month; Pro
 // includes it): the weekly brief as a short video, what's coming next (trial readouts and promises
 // coming due) and predictions. No AI here: everything comes from data Parallax already has.
 // Request: POST {} with the person's access token (or none, for the sample).
 // Answer:  {access: "full" | "preview", brief, coming, counts, mine, results, price, year_price}
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "2000");
+const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "1200");
 const PLUS_YEAR_CENTS = Number(Deno.env.get("PLUS_YEAR_PRICE_CENTS") ?? String(PLUS_CENTS * 10));
 const PAID = ["active", "trialing", "comp"];
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
