@@ -700,6 +700,7 @@ body.goalpage main{max-width:1120px}
 .rep button{justify-self:start}
 .rep-ok{font-size:13.5px;color:var(--solved)}
 /* first-visit intro */
+.gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
 .intro h1{font-size:clamp(26px,5vw,34px);letter-spacing:-.03em;line-height:1.08;margin:0}
 .intro p{margin:10px 0 0;font-size:15.5px;line-height:1.55;color:var(--ink2);max-width:640px}
@@ -1915,7 +1916,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
 
   const head = `<div class="goal-h space"><canvas class="stars" aria-hidden="true"></canvas>
-      <div class="gh-top">${avatar(g, true)}<div style="min-width:0"><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
+      <div class="gh-top">${avatar(g, true)}<div style="min-width:0"><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}" data-alt="${esc(g.name)}">${esc(g.name)}</div></div></div>
       <h1>${esc(g.name)}</h1>
       ${g.summary ? `<p class="sum">${esc(g.summary)}</p>` : ''}
       <div class="act">${followBtn(g.slug)}<button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>Share</button></div>
@@ -1998,7 +1999,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const ymax = Math.max(1, ...libYears.map((x) => x.n));
   const hero = `<section class="gx space"><canvas class="stars" aria-hidden="true"></canvas>${(heroMedia || g.media)?.url ? `<div class="gx-bg">${bgMedia(heroMedia || g.media, g.slug)}</div>` : ''}
     <div class="gx-in">
-      <div class="gx-who">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}"></div></div></div>
+      <div class="gx-who">${avatar(g, true)}<div><div class="handle">@${esc(g.handle)}</div><div class="followers" id="followers" data-goal="${g.id}" data-alt="${esc(g.name)}">${esc(g.name)}</div></div></div>
       <h1>${esc(g.name)}</h1>
       ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
       <div class="gx-act">${followBtn(g.slug)}<a class="btn" href="#/watch/${encodeURIComponent(g.slug)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Watch</a><button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
@@ -2420,8 +2421,9 @@ async function refreshFollowers() {
   try {
     const r = await rest(`goal_followers?goal_id=eq.${el.dataset.goal}&select=followers`);
     const n = r.length ? r[0].followers : 0;
-    el.textContent = n ? `${n.toLocaleString()} ${n === 1 ? 'follower' : 'followers'}` : 'No followers yet. Be the first.';
-  } catch { el.textContent = ''; }
+    // Counts show from 10 up: before launch, "1 follower" reads as an empty room.
+    el.textContent = n >= 10 ? `${n.toLocaleString()} followers` : el.dataset.alt || '';
+  } catch { el.textContent = el.dataset.alt || ''; }
 }
 
 async function profileView(handle) {
@@ -3065,7 +3067,7 @@ function ideaTile(i, g, { problem = true } = {}) {
     <b class="itile-t">${esc(i.title)}</b>
     <span class="itile-p">${esc(firstSentenceOf(i.pitch))}</span>
     <span class="itile-f">${i.test_high ? `<span class="itile-cost"><small>First test</small> <span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span></span>` : ''}${nv ? `<span class="nov ${esc(i.novelty)}">${esc(nv[0])}</span>` : ''}
-      <span class="itile-v">${votes ? `<span class="vbar" aria-hidden="true"><i style="width:${(good / votes * 100).toFixed(0)}%"></i></span>${good} of ${votes} think it’s worth testing` : 'No verdicts yet: be the first'}</span></span>
+      <span class="itile-v">${votes ? `<span class="vbar" aria-hidden="true"><i style="width:${(good / votes * 100).toFixed(0)}%"></i></span>${good} of ${votes} think it’s worth testing` : 'New · be among the first to judge it'}</span></span>
   </a>`;
 }
 
@@ -3076,7 +3078,7 @@ function verdictPanel(i) {
   return `<div class="ip-k">What people think</div>
     ${votes ? `<div class="vstack" aria-hidden="true">${REACT.map(([k]) => (s[k] ? `<i class="${k}" style="flex:${s[k]}"></i>` : '')).join('')}</div>
       <div class="vlegend">${REACT.filter(([k]) => s[k]).map(([k, label]) => `<span><i class="${k}"></i>${s[k]} ${esc(label.toLowerCase())}</span>`).join('')}</div>`
-      : '<p class="ip-muted">No verdicts yet. Yours will be the first.</p>'}
+      : '<p class="ip-muted">Is it worth testing? Judge it below.</p>'}
     <div class="react">${REACT.map(([k, label]) => `<button type="button" class="rx ${k}${mine?.kind === k ? ' on' : ''}" data-react="${k}" aria-pressed="${mine?.kind === k}">${label}</button>`).join('')}</div>
     <div class="rx-note${mine ? '' : ' hide'}"><label><span class="sr">Add a note</span><textarea maxlength="600" rows="2" placeholder="${mine?.kind === 'flawed' ? 'What is the flaw?' : mine?.kind === 'tried' ? 'Where was it tried? A link helps.' : mine?.kind === 'test' ? 'What could you test, and how?' : 'Why? (optional)'}">${esc(mine?.note || '')}</textarea></label><button type="button" class="btn sm" data-note>Save note</button></div>
     ${notes.length ? `<div class="notes">${notes.slice(0, 2).map(noteHtml).join('')}${notes.length > 2 ? `<a class="more" href="#ideaNotes">All ${notes.length} notes ↓</a>` : ''}</div>` : ''}`;
@@ -3292,11 +3294,12 @@ function giveBox(g, gv) {
   if (!gv.orgs.length) return `<section class="gv" id="give">
     <div class="gv-top">
       <div class="gv-k">Support this goal</div>
-      <div class="gv-num"><b class="mono">${money(0)}</b><span>raised of a <b class="mono">${money(stepGoal(0))}</b> community goal</span></div>
-      <div class="gv-bar"><i style="width:0%"></i></div>
+      <div class="gv-num gv-lead"><span>Give to the people working on it</span></div>
       <div class="gv-meta">Parallax is checking registered charities that work on this goal. Donations open here once they’re verified, usually within a day.</div>
     </div></section>`;
   const raised = gv.total.raised_cents || 0, target = stepGoal(raised), pctDone = Math.min(100, raised / target * 100);
+  // The community total shows once it means something (a few gifts or $250), not as "$0 raised".
+  const showTotal = raised >= 25000 || (gv.total.gifts || 0) >= 3;
   const orgRow = (o, hidden) => `<div class="gv-org${hidden ? ' hide' : ''}">
       <span class="gv-logo gv-ini" aria-hidden="true">${esc(o.name.replace(/^the\s+/i, '').slice(0, 1))}${o.logo_url ? `<img src="${esc(o.logo_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>
       <div class="gv-main"><b>${esc(o.name)}</b><span>${esc(o.why)}</span>
@@ -3305,9 +3308,9 @@ function giveBox(g, gv) {
   return `<section class="gv" id="give">
     <div class="gv-top">
       <div class="gv-k">Support this goal</div>
-      <div class="gv-num"><b class="mono">${money(raised)}</b><span>raised of a <b class="mono">${money(target)}</b> community goal</span></div>
-      <div class="gv-bar"><i style="width:${Math.max(pctDone, raised ? 1.5 : 0).toFixed(1)}%"></i></div>
-      <div class="gv-meta">${gv.total.gifts ? `${gv.total.gifts} supporter${gv.total.gifts === 1 ? '' : 's'}${gv.total.last_at ? ` · last gift ${esc(whenAgo(gv.total.last_at))}` : ''}` : 'No donations yet. Yours can be the first.'}${raised ? ` · when it’s reached, the next goal is ${money(stepGoal(target))}` : ''}</div>
+      ${showTotal ? `<div class="gv-num"><b class="mono">${money(raised)}</b><span>raised of a <b class="mono">${money(target)}</b> community goal</span></div>
+      <div class="gv-bar"><i style="width:${Math.max(pctDone, 1.5).toFixed(1)}%"></i></div>` : `<div class="gv-num gv-lead"><span>Give to the people working on it</span></div>`}
+      <div class="gv-meta">${showTotal ? `${gv.total.gifts} supporter${gv.total.gifts === 1 ? '' : 's'}${gv.total.last_at ? ` · last gift ${esc(whenAgo(gv.total.last_at))}` : ''}` : `${gv.orgs.length} verified US charit${gv.orgs.length === 1 ? 'y' : 'ies'} · your whole gift reaches them · tax receipt by email`}${showTotal ? ` · when it’s reached, the next goal is ${money(stepGoal(target))}` : ''}</div>
       ${gv.recent.length ? `<ul class="gv-recent">${gv.recent.slice(0, 3).map((x) => `<li><b>${esc(x.who)}</b> gave <span class="mono">${money(x.amount_cents)}</span> to ${esc(x.org_name || 'an organisation')} <time>${esc(whenAgo(x.created_at))}</time></li>`).join('')}</ul>`
         : `<ol class="gv-how"><li><b>Pick an organisation</b> working on this goal.</li><li><b>Give through Every.org</b>, any amount, once or monthly.</li><li><b>It reaches them</b> with your tax receipt, and counts toward this goal’s total here.</li></ol>`}
     </div>
