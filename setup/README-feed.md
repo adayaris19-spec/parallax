@@ -479,3 +479,4 @@ Run `setup/schema-crossovers.sql` once (the `crossovers` table with public read,
   - ripples (moves and big grants on one goal that reach another), flagged new since your last visit. Overview leads with them.
 - **Free:** posts on a shared problem say "Also moves @Goal".
 - **Plus:** "Ripple of the week" card and video scene.
+- **Alerts:** Pro watchlists have a "Ripples from other goals" switch, on by default. A move from the last 3 days, or a $5M+ grant, on another goal that reaches a watched goal sends one alert per goal, once.
