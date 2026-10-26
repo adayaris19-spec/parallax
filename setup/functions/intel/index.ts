@@ -151,12 +151,18 @@ async function goalIntel(slug?: string) {
   return { slug: pick.slug, growth: row.growth, institutions: row.institutions.length, countries: row.countries.length };
 }
 
+const Item = (desc: string) => z.object({
+  goal: z.string(),
+  short: z.string().describe("The takeaway in at most 7 words, so a reader can scan. No @handle."),
+  text: z.string().describe(desc),
+});
 const BriefSchema = z.object({
   headline: z.string().describe("One line, at most 14 words: the single most important thing this week."),
+  tldr: z.array(z.string().describe("At most 12 words.")).describe("Exactly 3 bullets: the week in 30 seconds, most important first."),
   summary: z.string().describe("2-3 sentences, under 70 words, for an investor or funder."),
-  moved: z.array(z.object({ goal: z.string(), text: z.string().describe("One sentence, under 30 words.") })).describe("2-5 things that actually moved."),
-  watch: z.array(z.object({ goal: z.string(), text: z.string().describe("One sentence, under 30 words.") })).describe("2-4 things to watch next."),
-  money: z.array(z.object({ goal: z.string(), problem: z.string(), text: z.string().describe("One sentence, under 30 words: why money would unblock it.") })).describe("1-3 problems where funding would matter most."),
+  moved: z.array(Item("One sentence, under 30 words.")).describe("2-5 things that actually moved."),
+  watch: z.array(Item("One sentence, under 30 words.")).describe("2-4 things to watch next."),
+  money: z.array(Item("One sentence, under 30 words: why money would unblock it.").extend({ problem: z.string() })).describe("1-3 problems where funding would matter most."),
 });
 
 async function weeklyBrief() {
