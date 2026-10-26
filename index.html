@@ -1842,10 +1842,13 @@ async function feedView(tab) {
       box.innerHTML = note('Nothing posted yet', 'The goals are still being mapped. Their first posts appear here as soon as they are ready.');
       return;
     }
-    const [stories, daily] = tab === 'all' ? await Promise.all([loadStories(list).catch(() => []), ideaOfTheDay(list).catch(() => '')]) : [[], ''];
-    // The idea of the day sits after the first goal's row, so the feed still opens on news.
-    const body = daily ? first.parts[0] + daily + first.parts.slice(1).join('') : first.html;
-    box.innerHTML = (tab === 'all' ? storiesRow(list, stories) : '') + body + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    // Posts show at once; the story rings and the idea of the day fill in when they're ready.
+    box.innerHTML = (tab === 'all' ? storiesRow(list, []) : '') + first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    if (tab === 'all') {
+      loadStories(list).then((stories) => { const row = box.querySelector('.stories'); if (row && stories.length) { row.outerHTML = storiesRow(list, stories); const sn2 = $('#storyNew'); if (sn2) sn2.onclick = () => { qInput.focus(); toast('Type any goal, like "cure malaria"'); }; } }).catch(() => {});
+      // The idea of the day sits after the first goal's row, so the feed still opens on news.
+      ideaOfTheDay(list).then((daily) => { const firstRow = box.querySelector('.stories + *'); if (daily && firstRow) firstRow.insertAdjacentHTML('afterend', daily); }).catch(() => {});
+    }
     const sn = $('#storyNew');
     if (sn) sn.onclick = () => { qInput.focus(); toast('Type any goal, like "cure malaria"'); };
     const wire = () => {
@@ -1971,26 +1974,14 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
 
   let nodes, posts, promises = [], helpers = [], nodeYears = [], fieldReal = false, evidence = {}, nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
   try {
-    [nodes, posts, promises, helpers] = await Promise.all([
-      rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
-      rest(`posts?goal_id=eq.${g.id}&select=${POST_COLS}&order=created_at.desc&limit=50`),
-      rest(`promises?goal_id=eq.${g.id}&select=${PROMISE_COLS}&order=due_year.asc&limit=100`).catch(() => []),
-      rest(`node_contributors?goal_id=eq.${g.id}&select=node_key,people`).catch(() => []),
+    // One request for everything public on the page (parallax_goal_page), plus funding and config.
+    const [P, fund, cfg] = await Promise.all([
+      fetch(`${SUPA_URL}/rest/v1/rpc/parallax_goal_page`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ gid: g.id }) })
+        .then(async (r) => { if (!r.ok) throw new Error(`Could not load this goal (${r.status})`); return r.json(); }),
       loadFunding(g),
-      rest(`node_years?goal_id=eq.${g.id}&select=node_key,year,n`).catch(() => []),
-      rest(`node_links?goal_id=eq.${g.id}&select=a,b,n`).catch(() => []),
-      rest(`reels?goal_id=eq.${g.id}&select=kind,scenes&order=score.desc&limit=6`).catch(() => []),
-      rest(`node_costs?goal_id=eq.${g.id}&select=node_key,next_step,next_low,next_high,next_time,solve_low,solve_high,funders,basis,confidence,sources`).catch(() => []),
-      rest(`ideas?goal_id=eq.${g.id}&status=eq.open&select=${IDEA_COLS}&order=created_at.desc`).catch(() => []),
-      rest(`idea_requests?goal_id=eq.${g.id}&select=node_key`).catch(() => []),
-      rest(`goal_orgs?goal_id=eq.${g.id}&select=ein,name,city,state,website,why,focused,claimed,logo_url,donate_url&order=position.asc`).catch(() => []),
-      rest(`goal_giving?goal_id=eq.${g.id}&select=raised_cents,gifts,last_at`).catch(() => []),
-      rest(`recent_gifts?goal_id=eq.${g.id}&select=org_name,amount_cents,who,created_at&limit=5`).catch(() => []),
       siteConfig(),
-      rest(`goal_fundraisers?goal_id=eq.${g.id}&select=ein,url`).catch(() => []),
-      rest(`node_field_years?goal_id=eq.${g.id}&year=gte.${new Date().getFullYear() - 13}&select=node_key,year,n`).catch(() => []),
-      rest(`node_evidence?goal_id=eq.${g.id}&select=node_key,source,count,amount_cents,since_year,top,extra`).catch(() => []),
-    ]).then((r) => { for (const e of r[17]) (evidence[e.node_key] ||= {})[e.source] = e; askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+    ]);
+    [nodes, posts, promises, helpers] = await Promise.resolve([P.nodes, P.posts, P.promises, P.helpers, fund, P.years, P.links, P.reels, P.costs, P.ideas, P.asked, P.orgs, P.giving, P.gifts, cfg, P.fundraisers, P.field, P.evidence    ]).then((r) => { for (const e of r[17]) (evidence[e.node_key] ||= {})[e.source] = e; askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
@@ -3760,11 +3751,10 @@ async function loadStories(list) {
   const uniq = (arr) => [...new Map(arr.map((v) => [v.url, v])).values()];
   const videosFirst = (arr) => [...arr].sort((a, b) => Number(b.kind === 'video') - Number(a.kind === 'video'));
   const own = new Map(goalIds.map((id) => [id, videosFirst(uniq(reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url))))]));
-  const visuals = await Promise.all(chosen.map((p) => {
-    const n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
-    return fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: `${n?.title || ''} ${p.headline}`, n: 6 }) })
-      .then((r) => (r.ok ? r.json() : [])).catch(() => []);
-  }));
+  // Matching shots from the visual library, every story in one request.
+  const queries = chosen.map((p) => { const n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key); return `${n?.title || ''} ${p.headline}`; });
+  const visuals = await fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals_many`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ qs: queries, n: 6 }) })
+    .then((r) => (r.ok ? r.json() : [])).catch(() => []);
   const out = chosen.map((p, i) => {
     const g = list.find((x) => x.id === p.goal_id), n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
     const rich = reels.find((r) => r.post_id === p.id && (r.scenes || []).length);
