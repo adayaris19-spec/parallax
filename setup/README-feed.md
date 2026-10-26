@@ -480,3 +480,16 @@ Run `setup/schema-crossovers.sql` once (the `crossovers` table with public read,
 - **Free:** posts on a shared problem say "Also moves @Goal".
 - **Plus:** "Ripple of the week" card and video scene.
 - **Alerts:** Pro watchlists have a "Ripples from other goals" switch, on by default. A move from the last 3 days, or a $5M+ grant, on another goal that reaches a watched goal sends one alert per goal, once.
+
+## 34. The weekly email (Plus and Pro)
+
+Run `setup/schema-digest.sql` once. It creates `email_prefs` (weekly on by default, plus a one-click unsubscribe token) and the cron `parallax-digest`, which runs Mondays at 13:13 UTC with a catch-up at 15:13.
+
+Deploy `digest` with **verify_jwt false**, because the unsubscribe link is opened straight from an email. Admin actions check `x-parallax-admin`.
+
+- **Content:** the week in 30 seconds, ripples (Pro), new $1M+ grants (Pro), your settled calls and record, and what's coming up. Goals you watch, or get alerts for, come first.
+- **Sending:** through Resend. Add the secret `RESEND_API_KEY` in Supabase (Edge Functions → Secrets). Until a domain is verified in Resend, its test sender can only email the Resend account's own address. After verifying a domain, add the secret `DIGEST_FROM`, e.g. `Parallax <weekly@yourdomain>`.
+- **Test:**
+  - `POST digest {"action":"test","email":"you@…"}` sends one now.
+  - `GET digest?action=preview&email=…` (admin header) shows the email as a web page.
+- **Off switch in the app:** Pro → Calendar → Watchlist → Email, and on the Plus page.
