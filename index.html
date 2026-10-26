@@ -713,6 +713,11 @@ body.goalpage main{max-width:1120px}
 .iday-f b{color:var(--ink)}
 .iday-cta{margin-left:auto;color:var(--accent);font-weight:500}
 .lab-more{text-align:center;margin:20px 0}
+/* terminal sample gates */
+.moregate{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 18px;border-top:1px solid var(--line);background:linear-gradient(180deg,transparent,var(--accent-soft))}
+.moregate p{margin:0;font-size:14px;color:var(--ink2);max-width:560px}
+.moregate div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.moregate .linkish{font-size:13px}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -2697,7 +2702,7 @@ async function subscribe(btn) {
   await authReady;
   if (!me) { openSignIn('Sign in first, then you can subscribe to the Parallax Terminal.'); return; }
   if (btn) btn.disabled = true;
-  const data = await callFn('billing', { action: 'checkout' });
+  const data = await callFn('billing', { action: 'checkout', plan: btn?.dataset.sub === 'year' ? 'year' : 'month' });
   if (data.url) { location.href = data.url; return; }
   if (btn) btn.disabled = false;
   if (data.already) { toast('You already have the Terminal'); termAt = 0; terminalView(); return; }
@@ -2799,9 +2804,13 @@ const fmtN = (n) => (n == null ? '—' : n >= 10000 ? `${(n / 1000).toFixed(0)}k
 const probLink = (p) => `#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}`;
 const GHOST_ROWS = `<div class="pad">${Array.from({ length: 6 }, (_, i) => `<div style="height:13px;border-radius:4px;background:var(--line2);margin:14px 0;width:${[82, 64, 90, 71, 58, 77][i]}%"></div>`).join('')}</div>`;
 
+// After a sample: what the rest holds, and how to get it.
+function moreGate(text) {
+  return `<div class="moregate"><p>${text}</p><div><button class="btn primary sm" type="button" data-sub>Unlock · ${esc(term.price)}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year">or ${esc(term.year_price)}, two months free</button>` : ''}</div></div>`;
+}
 function lockGate(title, text) {
   return `<div class="locked"><div class="ghost" aria-hidden="true">${GHOST_ROWS}</div><div class="gate"><div><b>${esc(title)}</b><p>${esc(text)}</p>
-    <button class="btn primary" type="button" data-sub>Unlock · ${esc(term.price)}</button></div></div></div>`;
+    <button class="btn primary" type="button" data-sub>Unlock · ${esc(term.price)}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year" style="display:block;margin:8px auto 0">or ${esc(term.year_price)}: two months free</button>` : ''}</div></div></div>`;
 }
 
 function colsChart(years, recentFrom, big = false) {
@@ -2815,6 +2824,11 @@ function briefPanel(t) {
   if (!b) return '';
   const full = t.access === 'full';
   const list = (items, problem) => `<ul>${items.map((x) => `<li><b>${esc(x.goal)}</b> ${problem ? `<b>· ${esc(x.problem)}.</b> ` : ''}${esc(x.text)}</li>`).join('')}</ul>`;
+  const pv = t.preview?.brief;
+  if (!full && pv) return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(new Date(pv.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))} · sample</span>
+      <h3>${esc(pv.headline)}</h3></div>
+    ${pv.moved.length ? `<div class="brief3"><div><span class="lbl">What moved · 1 of ${pv.moved_total}</span>${list(pv.moved)}</div></div>` : ''}
+    ${moreGate(`The full brief: ${pv.moved_total} things that moved, ${pv.watch_total} to watch next, and ${pv.money_total} places where money would matter most. Every Monday.`)}</section>`;
   if (!full) return `<section class="panel"><div class="panel-h"><h2>Weekly brief</h2><span class="lbl">Subscribers only</span></div>${lockGate('This week’s brief', 'What moved, what to watch next, and where money would matter most. Written every Monday from the week’s research.')}</section>`;
   return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))}</span>
       <h3>${esc(b.headline)}</h3><p class="sum">${esc(b.summary)}</p></div>
@@ -2825,6 +2839,16 @@ function briefPanel(t) {
 function oppPanel(t) {
   const c = t.opportunity_counts;
   const head = `<div class="panel-h"><h2>Opportunities</h2><span class="lbl">Where attention or money would move things</span></div>`;
+  if (t.access !== 'full' && t.preview?.opportunities) {
+    const pc = t.preview.opportunity_counts, po = t.preview.opportunities;
+    const col = (title, desc, items, n, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${n}</small></h3><div class="d">${desc}</div>
+      ${items.map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('')}${n > items.length ? `<div class="d">+ ${n - items.length} more for subscribers</div>` : ''}</div>`;
+    return `<section class="panel">${head}<div class="opp">
+      ${col('Funding gaps', 'Unsolved problems whose main obstacle is money, not knowledge.', po.funding, pc.funding, (p) => `${STATUS_LABEL[p.status]} · <b>${p.sources}</b> sources`)}
+      ${col('Gone quiet', 'Unsolved, and the newest research behind them is 5+ years old.', po.quiet, pc.quiet, (p) => `newest paper <b>${p.newest}</b>`)}
+      ${col('Heating up', 'Unsolved problems with the most papers in the last 3 years.', po.hot, pc.hot, (p) => `<b>${p.recent}</b> recent papers`)}
+    </div>${moreGate(`One example from each list. Subscribers see all ${pc.funding + pc.quiet + pc.hot}, updated daily.`)}</section>`;
+  }
   if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Opportunities', 'Problems held back only by money, problems research has gone quiet on, and problems seeing a burst of new work.')}</section>`;
   const o = t.opportunities;
   const col = (title, desc, items, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${items.length}</small></h3><div class="d">${desc}</div>
@@ -2838,6 +2862,10 @@ function oppPanel(t) {
 
 function fieldsPanel(t) {
   const head = `<div class="panel-h"><h2>Who is leading ${t.access === 'full' ? `<small>${t.fields_total}</small>` : ''}</h2><span class="lbl">Each goal’s whole research field, last 3 full years</span></div>`;
+  if (t.access !== 'full' && t.preview?.fields?.length) {
+    const sample = fieldsPanel({ ...t, access: 'full', fields: t.preview.fields });
+    return sample.replace(/<\/section>$/, `${moreGate(`A sample: one goal of ${t.fields_total}. Subscribers see who leads every goal’s field, which countries, and how fast each is growing.`)}</section>`);
+  }
   if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Institutions and countries, goal by goal', 'Who publishes the most on each goal, which countries lead, and how fast each field is growing.')}</section>`;
   if (!t.fields.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Field data is being gathered. Check back in a few hours.</div></section>`;
   const y = new Date().getFullYear();
@@ -2885,7 +2913,7 @@ const TTABS = [
 // Overview cards: one per tab, each with the single most useful fact from it.
 function overviewCards(t) {
   const full = t.access === 'full';
-  const card = (tab, title, big, line, locked) => `<a class="jump${locked ? ' lockd' : ''}" href="#/terminal/${tab}"><span class="lbl">${title}${locked ? ' · <span class="lk">Locked</span>' : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${locked ? 'See what’s inside →' : 'Open →'}</span></a>`;
+  const card = (tab, title, big, line, locked) => `<a class="jump${locked ? ' lockd' : ''}" href="#/terminal/${tab}"><span class="lbl">${title}${locked ? ' · <span class="lk">Preview</span>' : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${locked ? 'See a sample →' : 'Open →'}</span></a>`;
   const signals = card('signals', 'Signals', t.tape[0] ? esc(t.tape[0].headline) : 'No signals yet', `${t.tape_total} advances, setbacks and promises · latest ${t.tape[0] ? esc(whenAgo(t.tape[0].at)) : ''}`, false);
   if (!full) {
     return `<div class="jumps">
@@ -2936,7 +2964,7 @@ function renderTerminal(box, tab = 'overview') {
     opportunities: () => oppPanel(t),
     leaders: () => fieldsPanel(t),
     bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>
-        ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
+        ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : t.preview?.bottlenecks?.length ? `<div class="bn">${bottleneckBoard(t.preview.bottlenecks)}</div>${moreGate(`2 of ${t.preview.bottlenecks_total} goals. Subscribers see every goal’s bottleneck, what it waits on, and its countdown.`)}` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
       <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
     signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
@@ -2954,7 +2982,7 @@ function renderTerminal(box, tab = 'overview') {
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>A weekly analyst brief on every goal</li><li>Funding gaps, problems research has gone quiet on, and problems heating up</li><li>The institutions and countries leading each field, and how fast each field grows</li><li>The bottleneck board, the stuck map and every signal with its sources</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
-      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe</button></div></div></section>`;
+      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe monthly</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
   const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;

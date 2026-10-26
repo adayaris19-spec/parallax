@@ -56,20 +56,27 @@ async function userFrom(req: Request): Promise<{ id: string; email: string } | n
 
 export const priceLabel = (cents: number) => `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}/month`;
 
-// The Terminal's price, created once and found by its lookup key afterwards.
-async function terminalPrice(): Promise<string> {
-  const found = await stripeApi().prices.list({ lookup_keys: [LOOKUP], active: true, limit: 1 });
+// Yearly plan: 10 months' price for 12 (two months free).
+const YEAR_CENTS = Number(Deno.env.get("TERMINAL_YEAR_PRICE_CENTS") ?? String(CENTS * 10));
+const LOOKUP_YEAR = "parallax_terminal_yearly";
+
+// The Terminal's prices, created once and found by their lookup keys afterwards.
+async function terminalPrice(plan: "month" | "year" = "month"): Promise<string> {
+  const key = plan === "year" ? LOOKUP_YEAR : LOOKUP;
+  const found = await stripeApi().prices.list({ lookup_keys: [key], active: true, limit: 1 });
   if (found.data[0]) return found.data[0].id;
-  const product = await stripeApi().products.create({
+  // Reuse the product of the other plan when it exists.
+  const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? LOOKUP : LOOKUP_YEAR], active: true, limit: 1 })).data[0];
+  const productId = other ? String(other.product) : (await stripeApi().products.create({
     name: "Parallax Terminal",
-    description: "Every goal on Parallax in one view: progress, countdowns, bottlenecks, momentum and promise track record, with exports.",
-  });
+    description: "Every goal on Parallax in one view: weekly brief, opportunities, who is leading, bottlenecks, signals and every table, with exports.",
+  })).id;
   const price = await stripeApi().prices.create({
-    product: product.id,
+    product: productId,
     currency: "usd",
-    unit_amount: CENTS,
-    recurring: { interval: "month" },
-    lookup_key: LOOKUP,
+    unit_amount: plan === "year" ? YEAR_CENTS : CENTS,
+    recurring: { interval: plan },
+    lookup_key: key,
   });
   return price.id;
 }
@@ -109,7 +116,7 @@ Deno.serve(async (req) => {
       if (Deno.env.get("STRIPE_SECRET_KEY")) {
         try { await stripeApi().balance.retrieve(); stripe = "ok"; } catch (e) { stripe = stripeProblem(e); }
       }
-      return json({ status: row?.status ?? "none", current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), stripe });
+      return json({ status: row?.status ?? "none", current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
     }
     if (!user) return json({ error: "Sign in first." }, 401);
     if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ error: "Payments are not switched on yet." }, 503);
@@ -117,7 +124,7 @@ Deno.serve(async (req) => {
     if (body.action === "checkout") {
       const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status`))?.[0];
       if (row && ["active", "trialing", "comp"].includes(row.status)) return json({ already: true });
-      const [price, customer] = await Promise.all([terminalPrice(), customerFor(user)]);
+      const [price, customer] = await Promise.all([terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
       const session = await stripeApi().checkout.sessions.create({
         mode: "subscription",
         customer,

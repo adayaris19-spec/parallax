@@ -230,6 +230,7 @@ Deno.serve(async (req) => {
       signed_in: !!uid,
       status,
       price: `$${(CENTS / 100).toFixed(CENTS % 100 ? 2 : 0)}/month`,
+      year_price: `$${(Number(Deno.env.get("TERMINAL_YEAR_PRICE_CENTS") ?? String(CENTS * 10)) / 100).toFixed(0)}/year`,
       generated_at: new Date().toISOString(),
       kpis,
       blockers: Object.entries(blockers).map(([kind, count]) => ({ kind, count })).sort((a, b) => b.count - a.count),
@@ -250,6 +251,16 @@ Deno.serve(async (req) => {
       opportunity_counts: full ? { funding: funding.length, quiet: quiet.length, hot: hot.length } : null,
       fields: full ? fields : [],
       fields_total: fields.length,
+      // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
+      // cut here on the server so nothing more ever leaves it. Tables and CSV stay subscriber-only.
+      preview: full ? null : {
+        brief: brief ? { week: brief.week, headline: brief.headline, moved: (brief.moved ?? []).slice(0, 1), moved_total: brief.moved?.length ?? 0, watch_total: brief.watch?.length ?? 0, money_total: brief.money?.length ?? 0 } : null,
+        opportunities: { funding: funding.slice(0, 1), quiet: quiet.slice(0, 1), hot: hot.slice(0, 1) },
+        opportunity_counts: { funding: funding.length, quiet: quiet.length, hot: hot.length },
+        fields: fields.slice(0, 1),
+        bottlenecks: bottlenecks.slice(0, 2),
+        bottlenecks_total: bottlenecks.length,
+      },
     });
   } catch (e) {
     console.error("terminal failed:", e instanceof Error ? e.message : e);
