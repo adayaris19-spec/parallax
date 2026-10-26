@@ -699,6 +699,11 @@ body.goalpage main{max-width:1120px}
 .rep input,.rep textarea{font:inherit;font-size:15px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink)}
 .rep button{justify-self:start}
 .rep-ok{font-size:13.5px;color:var(--solved)}
+/* alert offer after following */
+.alert-offer{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:60;background:var(--card);border:1px solid var(--line2);border-radius:16px;box-shadow:var(--shadow-lg);padding:14px 16px;animation:rise .3s ease both}
+.alert-offer p{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink2)}
+.alert-offer div{display:flex;gap:8px;margin-top:10px}
+@media (min-width:900px){.alert-offer{bottom:24px}}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -1912,7 +1917,12 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   clearTimeout(pollTimer);
   view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
   let g;
-  try { g = (await rest(`goals?slug=eq.${encodeURIComponent(slug)}&select=${GOAL_COLS}`))[0]; } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
+  try {
+    // The goals list is cached and carries each goal's pictures (for the avatar).
+    const [one, all] = await Promise.all([rest(`goals?slug=eq.${encodeURIComponent(slug)}&select=${GOAL_COLS}`), goals().catch(() => [])]);
+    g = one[0];
+    if (g) g.pics = all.find((x) => x.id === g.id)?.pics || [];
+  } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
 
   const head = `<div class="goal-h space"><canvas class="stars" aria-hidden="true"></canvas>
@@ -2401,7 +2411,9 @@ document.addEventListener('click', (e) => {
     const was = follows.has(slug);
     paint(!was);
     follows.toggle(slug).then((on) => {
-      if (on && !me && sb) toast('Following on this device. Sign in to keep it everywhere.');
+      alerts.sync();
+      if (on && alerts.canAsk()) alerts.offer(slug);
+      else if (on && !me && sb) toast('Following on this device. Sign in to keep it everywhere.');
       else toast(on ? 'Following. Its posts now fill your Following tab.' : 'Unfollowed');
       refreshFollowers();
     }).catch((err) => { paint(was); toast(err.message); });
@@ -4018,6 +4030,44 @@ function route() {
 window.addEventListener('hashchange', route);
 renderAcct();
 route();
+
+// Alerts: web push for followed goals (push function). Offered right after following a goal; the
+// device's followed goals are kept in sync. Works on Android and desktop, and on iPhone once
+// Parallax is added to the Home Screen.
+const alerts = {
+  supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:',
+  canAsk() { try { return this.supported() && Notification.permission === 'default' && localStorage.getItem('px.alerts.no') !== '1'; } catch { return false; } },
+  async call(body) { return fetch(`${SUPA_URL}/functions/v1/push`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()); },
+  async subscription() { const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); },
+  async enable() {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await this.call({ action: 'key' });
+    const raw = atob(key.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - key.length % 4) % 4));
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(raw, (c) => c.charCodeAt(0)) });
+    await this.call({ action: 'subscribe', sub: sub.toJSON(), goals: localFollows.get() });
+    return true;
+  },
+  async sync() {
+    try { if (!this.supported() || Notification.permission !== 'granted') return; const sub = await this.subscription(); if (sub) await this.call({ action: 'subscribe', sub: sub.toJSON(), goals: localFollows.get() }); } catch { /* next time */ }
+  },
+  offer(slug) {
+    document.querySelector('.alert-offer')?.remove();
+    const el = document.createElement('div');
+    el.className = 'alert-offer'; el.setAttribute('role', 'dialog');
+    el.innerHTML = `<p><b>Following.</b> Get an alert when this goal has a breakthrough or a setback? At most 3 a day.</p><div><button class="btn primary sm" type="button" data-al="yes">Turn on alerts</button><button class="btn sm" type="button" data-al="no">Not now</button></div>`;
+    document.body.appendChild(el);
+    el.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-al]'); if (!b) return;
+      el.remove();
+      if (b.dataset.al === 'no') { try { localStorage.setItem('px.alerts.no', '1'); } catch { /* private mode */ } return; }
+      try { toast((await this.enable()) ? 'Alerts on. You’ll hear about breakthroughs and setbacks.' : 'Alerts are blocked in your browser settings.'); } catch { toast('Could not turn on alerts here.'); }
+    });
+    setTimeout(() => el.remove(), 15000);
+    void slug;
+  },
+};
 
 // Faster repeat visits and a usable site on a bad connection (sw.js).
 if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

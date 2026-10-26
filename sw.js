@@ -2,7 +2,7 @@
 // connection. The page shell is served from the phone at once and refreshed in the background (the
 // next visit gets any new version); fonts and libraries come from the phone; data is fetched fresh,
 // falling back to the last copy when offline. Videos are never cached here (they stream).
-const V = "px-v1";
+const V = "px-v2";
 const SHELL = ["./", "index.html", "icon.svg", "icon-180.png", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
@@ -41,4 +41,19 @@ self.addEventListener("fetch", (e) => {
   if (url.origin === location.origin && /\.(png|svg|webmanifest|json)$/.test(url.pathname)) {
     e.respondWith(caches.match(req).then((hit) => { const f = fetch(req).then((r) => put(req, r)); return hit || f; }));
   }
+});
+
+// Alerts for followed goals (sent by the push function). Tapping one opens the story.
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Parallax", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Parallax", { body: d.body || "", tag: d.tag, icon: "icon-180.png", badge: "icon-180.png", data: { url: d.url || "./" } }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url || "./";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((cs) => {
+    for (const c of cs) if ("focus" in c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
 });
