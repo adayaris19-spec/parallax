@@ -398,3 +398,11 @@ list changes, and closes it when everything is healthy. Run it any time from the
 Self-healing that goes with it: AI batches with nothing finished after 4 hours are cancelled (not
 billed) and resubmitted; up to 3 cost or idea batches run at once so one slow batch can't block every
 goal; `giving` retries Supabase's brief "JWT issued at future" clock errors.
+
+## 27. How Parallax works, and mistake reports
+
+`#/how` explains where every number comes from, what the AI does, and the limits, with sections
+linkable as `#/how/<section>` (map, status, time, research, cost, funding, posts, ideas, money,
+limits, mistake). It is linked from the first-visit intro, every goal page and Explore.
+`schema-reports.sql` adds `mistake_reports` (visitors can add, not read; at most 30 an hour). The
+daily health check lists new reports in its GitHub issue (links and @-mentions removed).

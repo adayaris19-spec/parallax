@@ -72,6 +72,14 @@ begin
     if r.n > 0 then level := 'warning'; area := 'giving'; message := format('%s charities have no Every.org donation page yet', r.n); return next; end if;
   end loop;
 
+  -- Mistake reports from visitors in the last 24 hours (text shortened, links and @-mentions removed).
+  for r in
+    select m.page, regexp_replace(regexp_replace(left(m.message, 220), 'https?://\S+', '[link]', 'g'), '@', '', 'g') as msg, m.created_at
+    from mistake_reports m where m.created_at > now() - interval '24 hours' order by m.created_at desc limit 10
+  loop
+    level := 'warning'; area := 'mistake report'; message := format('%s · %s', coalesce(nullif(r.page, ''), 'no page'), r.msg); return next;
+  end loop;
+
   -- Nothing seeded for a day while the queue still has goals.
   if exists (select 1 from seed_queue where sent_at is null)
      and not exists (select 1 from goals where created_at > now() - interval '24 hours') then

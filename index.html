@@ -683,6 +683,22 @@ body.goalpage main{max-width:1120px}
   .mv{grid-template-columns:1fr;gap:18px}
 }
 
+/* how Parallax works */
+.how{max-width:720px;margin:0 auto;padding:28px 0 60px}
+.how-lede{font-size:17px;line-height:1.6;color:var(--ink2);margin:12px 0 0}
+.how-toc{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 8px}
+.how-toc a{font-size:13px;padding:6px 11px;border-radius:999px;background:var(--sunk);color:var(--ink2);text-decoration:none}
+.how-s{padding-top:26px;scroll-margin-top:80px}
+.how-s h2{font-size:21px;letter-spacing:-.02em;margin:0 0 8px}
+.how-s p,.how-s li{font-size:15.5px;line-height:1.62;color:var(--ink2)}
+.how-s ul{padding-left:20px;margin:8px 0}
+.how-s li{margin:6px 0}
+.how-link{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.rep{display:grid;gap:12px;margin-top:12px}
+.rep label{display:grid;gap:6px;font-size:13.5px;color:var(--muted)}
+.rep input,.rep textarea{font:inherit;font-size:15px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink)}
+.rep button{justify-self:start}
+.rep-ok{font-size:13.5px;color:var(--solved)}
 /* first-visit intro */
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
 .intro h1{font-size:clamp(26px,5vw,34px);letter-spacing:-.03em;line-height:1.08;margin:0}
@@ -1758,7 +1774,7 @@ async function feedView(tab) {
     </nav>${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
       <h1>The feed of human progress</h1>
       <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
-      <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><button class="intro-x" type="button" data-intro-x>Got it</button></div>
+      <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
     </section>` : ''}<div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
   let list;
@@ -1817,8 +1833,48 @@ async function feedView(tab) {
   } catch (e) { box.innerHTML = failNote(e, 'route()'); }
 }
 
+// ------------------------------------------------------------ how Parallax works
+// Where every number comes from, what the AI does, and the limits. Linked from the numbers.
+const howState = { from: '' };
+document.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'repForm') return;
+  e.preventDefault();
+  const f = new FormData(e.target), btn = e.target.querySelector('button');
+  btn.disabled = true;
+  const r = await fetch(`${SUPA_URL}/rest/v1/mistake_reports`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ page: String(f.get('page') || '').slice(0, 300), message: String(f.get('message') || '').slice(0, 2000) }) }).catch(() => null);
+  btn.disabled = false;
+  $('#repOk').textContent = r && r.ok ? 'Thank you. It will be checked.' : 'That didn’t send. Please try again in a minute.';
+  if (r && r.ok) e.target.reset();
+});
+function howView(section) {
+  document.title = 'How Parallax works';
+  const sec = (id, title, body) => `<section class="how-s" id="how-${id}"><h2>${title}</h2>${body}</section>`;
+  view.innerHTML = `<article class="how">
+    <span class="kick">How Parallax works</span>
+    <h1 class="page-h">Where every number comes from</h1>
+    <p class="how-lede">Parallax follows humanity’s biggest goals by reading the research behind them. An AI (Claude, by Anthropic) does the reading and the first draft; rules in the code decide what it may claim, and every claim links to its sources so you can check it.</p>
+    <nav class="how-toc">${[['map', 'The map of problems'], ['status', 'Solved, moving, blocked'], ['time', 'Time to go'], ['research', 'Research per year'], ['cost', 'What it would take'], ['funding', 'Public funding and trials'], ['posts', 'Posts and videos'], ['ideas', 'Ideas to try'], ['money', 'Donations'], ['limits', 'Limits'], ['mistake', 'Report a mistake']].map(([id, t]) => `<a href="#/how/${id}">${t}</a>`).join('')}</nav>
+    ${sec('map', 'The map of problems', `<p>When a goal is added, the AI breaks it into chapters and concrete problems that stand between us and it (Alzheimer’s has 25). For each problem it writes a search, and Parallax builds a library of papers for it from <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a> (250 million scholarly works), <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener">PubMed</a> and NASA’s technical reports. The AI then judges each problem against those papers.</p>`)}
+    ${sec('status', 'Solved, moving, blocked, barely started', `<ul><li><b>Solved</b>: done and demonstrated, not just proposed. Parallax only allows this when at least two papers from different research groups support it; the code checks this, not the AI.</li><li><b>Moving</b>: being actively worked on, with real results.</li><li><b>Blocked</b>: cannot move until something specific changes (the reason is shown: knowledge, materials, instruments, funding or attention).</li><li><b>Barely started</b>: little real work yet.</li></ul><p>Statuses are re-checked as new research appears (daily for followed goals, weekly for the rest). Parallax deliberately shows counts instead of a single “% complete”: no honest formula turns these into one number.</p>`)}
+    ${sec('time', 'Time to go', `<p>A range in years for when the goal could plausibly be reached <i>at today’s pace of work</i>, judged by the AI from the map and the research. It is an estimate, shown as a wide range on purpose, and it changes when the pace changes.</p>`)}
+    ${sec('research', 'Research per year', `<p>The number of papers published each year that match each problem’s search, counted across all of OpenAlex (not just Parallax’s library). “Heating up” and “Going quiet” compare the last four years with the four before, relative to the goal as a whole. Counts depend on the wording of the search, so compare a problem with itself over time rather than with other problems.</p>`)}
+    ${sec('cost', 'What it would take', `<p>For each problem the AI searches the web for real budgets, grants and contracts, then estimates the cost of the next concrete step and of solving it for this goal, as ranges with a confidence level. Sources are only pages the search actually returned, and are listed under “How we estimated this”. These are Parallax estimates, not quotes.</p>`)}
+    ${sec('funding', 'Public funding and clinical trials', `<p><b>Funding</b>: US federal grants from the last three years, from <a href="https://www.usaspending.gov" target="_blank" rel="noopener">USAspending.gov</a> (NIH, NSF, Energy, NASA and more), matching the problem’s key words. A match only counts if the grants are actually about the topic. Private, philanthropic and non-US funding is not included, so the real total is higher.</p><p><b>Trials</b>: active or recruiting studies from <a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a>, for health goals only.</p><p>No AI is involved in either: the numbers come straight from the government databases, and each section shows the exact search used.</p>`)}
+    ${sec('posts', 'Posts and videos', `<p>Posts (advances, setbacks, bottlenecks, forgotten ideas, promise checks) are written by the AI from new papers. Each links its papers and shows whether at least two independent research groups back it. Videos are made from those posts; the footage is stock (Pixabay, Unsplash, NASA, Wikimedia), chosen to fit the words, and credited on screen.</p>`)}
+    ${sec('ideas', 'Ideas to try', `<p>The AI proposes ideas for a problem from its research library, each with a cheap first test, then checks OpenAlex for prior work and marks it new, partly explored or already tried. They are suggestions for people to judge, not findings.</p>`)}
+    ${sec('money', 'Donations', `<p>Donations go to registered US charities (checked against IRS records) through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit donation platform: it takes the gift, pays the organisation and sends the tax receipt. Parallax never holds the money and takes no cut. Parallax itself is funded by Terminal subscriptions.</p>`)}
+    ${sec('limits', 'Limits', `<ul><li>The AI can be wrong. Rules catch some mistakes (sources required, no invented numbers, two groups for “solved”), not all.</li><li>The research is mostly English-language and indexed papers; work in companies or in progress may be missing.</li><li>Funding covers US federal grants only.</li><li>Estimates (time to go, costs) are judgements, shown as ranges.</li></ul>`)}
+    ${sec('mistake', 'Report a mistake', `<p>See something wrong? Say where and what, and it will be checked against the research.</p>
+      <form class="rep" id="repForm"><label>Where <input name="page" maxlength="300" placeholder="e.g. Alzheimer’s → Make drugs that halt decline" value="${esc(howState.from || '')}"></label>
+      <label>What is wrong <textarea name="message" required minlength="3" maxlength="2000" rows="4" placeholder="What it says, and what the research shows instead (a link helps)"></textarea></label>
+      <button class="btn primary" type="submit">Send report</button><span class="rep-ok" id="repOk" role="status"></span></form>`)}
+  </article>`;
+  const el = section && document.getElementById(`how-${section}`);
+  if (el) requestAnimationFrame(() => el.scrollIntoView({ block: 'start' })); else scrollTo(0, 0);
+}
+
 async function exploreView() {
-  view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped.</p><div id="grid" class="grid"></div>`;
+  view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   try {
@@ -1956,7 +2012,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
             : `<div class="ro-c"><span class="ro-l">Ideas to try</span><b class="mono">—</b><small>Parallax is preparing ideas</small></div>`;
         })()}
       </div>
-      ${g.papers_count ? `<div class="gx-built mono">Built on ${g.papers_count.toLocaleString()} papers · updated ${esc(whenAgo(g.pulsed_at || g.mapped_at))}</div>` : ''}
+      ${g.papers_count ? `<div class="gx-built mono">Built on ${g.papers_count.toLocaleString()} papers · updated ${esc(whenAgo(g.pulsed_at || g.mapped_at))} · <a href="#/how" style="color:inherit">how these numbers work</a></div>` : ''}
     </div></section>`;
 
   const tabs = `<nav class="tabs gtabs" role="tablist">${[['overview', 'Overview', base], ['posts', `Posts`, `${base}/posts`], ['promises', `Promises${promises.length ? ` · ${promises.length}` : ''}`, `${base}/promises`]]
@@ -3189,7 +3245,7 @@ function evidenceBlock(ev) {
       <p class="ev-n"><b class="mono">${esc(usdShort(Math.round(gr.amount_cents / 100)))}</b> in ${gr.count.toLocaleString()} federal grant${gr.count === 1 ? '' : 's'} since ${gr.since_year}</p>
       ${(gr.extra?.agencies || []).length ? `<div class="ev-ag">${gr.extra.agencies.slice(0, 4).map((a) => `<span>${esc(agencyName(a.name))} <b class="mono">${esc(usdShort(a.amount))}</b></span>`).join('')}</div>` : ''}
       <ul class="ev-l">${(gr.top || []).map((x) => item(x, `${esc(x.who)}${x.amount ? ` · <span class="mono">${esc(usdShort(x.amount))}</span> total award` : ''}`)).join('')}</ul>
-      <p class="ev-src">US federal grants from <a href="https://www.usaspending.gov" target="_blank" rel="noopener">USAspending.gov</a>, matching “${esc(gr.extra?.terms || '')}”. Private and non-US funding isn’t included.</p></div>` : ''}
+      <p class="ev-src">US federal grants from <a href="https://www.usaspending.gov" target="_blank" rel="noopener">USAspending.gov</a>, matching “${esc(gr.extra?.terms || '')}”. Private and non-US funding isn’t included. <a href="#/how/funding">How this works</a></p></div>` : ''}
     ${tr ? `<div class="ev-s"><div class="kick">In clinical trials</div>
       <p class="ev-n"><b class="mono">${tr.count.toLocaleString()}</b> active stud${tr.count === 1 ? 'y' : 'ies'}${tr.extra?.recruiting ? `, ${tr.extra.recruiting} recruiting now` : ''}${phaseLine(tr.extra?.phases) ? ` · ${esc(phaseLine(tr.extra.phases))}` : ''}</p>
       <ul class="ev-l">${(tr.top || []).map((x) => item(x, `${esc(x.who)}${x.phase ? ` · ${esc(x.phase)}` : ''}${x.status ? ` · ${esc(x.status)}` : ''}`)).join('')}</ul>
@@ -3939,6 +3995,8 @@ function route() {
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
+  if (parts[0] === 'how') return howView(parts[1]);
+  if (parts[0] === 'g' && parts[1]) howState.from = `#/g/${parts[1]}`;
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'branch') return branchView();
