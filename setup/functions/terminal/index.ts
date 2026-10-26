@@ -541,6 +541,7 @@ Deno.serve(async (req) => {
       signed_in: !!uid,
       status,
       price: `$${(CENTS / 100).toFixed(CENTS % 100 ? 2 : 0)}/month`,
+      trial_days: Number(Deno.env.get("PRO_TRIAL_DAYS") ?? "7"),
       year_price: `$${(Number(Deno.env.get("TERMINAL_YEAR_PRICE_CENTS") ?? String(CENTS * 10)) / 100).toFixed(0)}/year`,
       generated_at: new Date().toISOString(),
       kpis,

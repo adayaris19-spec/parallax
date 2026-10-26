@@ -502,3 +502,12 @@ Deploy `digest` with **verify_jwt false**, because the unsubscribe link is opene
 
 - On the next checkout, `billing` creates a new Stripe price and moves the lookup key onto it (`transfer_lookup_key`). Existing subscribers keep the price they signed up at.
 - Every price carries `metadata.tier` (`plus` or `pro`), and `stripe-webhook` reads it. That way, an old price that has lost its lookup key still maps to the right plan.
+
+## 36. Pro free trial
+
+First-time Pro subscribers get a free trial: 7 days by default, set by `PRO_TRIAL_DAYS` (0 turns it off).
+
+- A card is required upfront (`payment_method_collection: always`), and Stripe charges it when the trial ends. If there's no payment method, the subscription cancels.
+- One trial per person: only for someone with no earlier subscription, either in `subscriptions` or in their Stripe customer's history.
+- Pro buttons say "Try 7 days free". The offer spells out the terms.
+- Plus has no trial.

@@ -62,6 +62,8 @@ const LOOKUP_YEAR = "parallax_terminal_yearly";
 
 // Plus ($12/month, $120/year): the weekly video brief, what's coming, predictions. Pro includes it.
 const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "1200");
+// Pro: a free trial for first-time subscribers, card required, charged when it ends unless cancelled.
+const TRIAL_DAYS = Number(Deno.env.get("PRO_TRIAL_DAYS") ?? "7");
 const PLUS_YEAR_CENTS = Number(Deno.env.get("PLUS_YEAR_PRICE_CENTS") ?? String(PLUS_CENTS * 10));
 // The current price for a lookup key. When the configured amount changes, a new Stripe price takes the
 // lookup key; existing subscriptions keep the price they signed up at. Every price carries
@@ -127,13 +129,13 @@ Deno.serve(async (req) => {
       if (Deno.env.get("STRIPE_SECRET_KEY")) {
         try { await stripeApi().balance.retrieve(); stripe = "ok"; } catch (e) { stripe = stripeProblem(e); }
       }
-      return json({ status: row?.status ?? "none", plan: row?.plan ?? null, plus_price: priceLabel(PLUS_CENTS), plus_year_price: `$${(PLUS_YEAR_CENTS / 100).toFixed(0)}/year`, current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
+      return json({ status: row?.status ?? "none", plan: row?.plan ?? null, plus_price: priceLabel(PLUS_CENTS), plus_year_price: `$${(PLUS_YEAR_CENTS / 100).toFixed(0)}/year`, current_period_end: row?.current_period_end ?? null, trial_days: TRIAL_DAYS, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
     }
     if (!user) return json({ error: "Sign in first." }, 401);
     if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ error: "Payments are not switched on yet." }, 503);
 
     if (body.action === "checkout") {
-      const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status,plan`))?.[0];
+      const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status,plan,stripe_subscription_id`))?.[0];
       const tier = body.tier === "plus" ? "plus" : "pro";
       if (row && ["active", "trialing", "comp"].includes(row.status)) {
         // Already subscribed: Pro covers Plus; moving between plans happens in the billing portal.
@@ -141,12 +143,16 @@ Deno.serve(async (req) => {
         return json({ switch: true, error: "You have Plus. Switch to Pro from Manage billing." });
       }
       const [price, customer] = await Promise.all([tier === "plus" ? plusPrice(body.plan === "year" ? "year" : "month") : terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
+      // One Pro trial per person: only if they have never had a subscription (here or in Stripe).
+      let trial = false;
+      if (tier === "pro" && TRIAL_DAYS > 0 && !row?.stripe_subscription_id) trial = !(await stripeApi().subscriptions.list({ customer, status: "all", limit: 1 })).data.length;
       const session = await stripeApi().checkout.sessions.create({
         mode: "subscription",
         customer,
         client_reference_id: user.id,
         line_items: [{ price, quantity: 1 }],
-        subscription_data: { metadata: { user_id: user.id } },
+        payment_method_collection: "always", // a card upfront, also for the trial
+        subscription_data: { metadata: { user_id: user.id }, ...(trial ? { trial_period_days: TRIAL_DAYS, trial_settings: { end_behavior: { missing_payment_method: "cancel" } } } : {}) },
         allow_promotion_codes: true,
         success_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal/welcome`,
         cancel_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal`,
