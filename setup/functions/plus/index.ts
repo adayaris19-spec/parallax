@@ -76,6 +76,21 @@ Deno.serve(async (req) => {
     };
     const settled = qs.filter((q: { key: string }) => results.some((r) => r.key === q.key)).map(card).filter(Boolean)
       .sort((a, b) => String(results.find((r) => r.key === b!.key)?.resolved_at).localeCompare(String(results.find((r) => r.key === a!.key)?.resolved_at)));
+    // How you compare: your share of right calls against everyone with at least one settled call.
+    let standing = null;
+    const judgedKeys = results.filter((r) => r.outcome !== "void").map((r) => r.key);
+    if (uid && judgedKeys.length && mine.some((m: { key: string }) => judgedKeys.includes(m.key))) {
+      const all = await db(`predictions?key=in.(${judgedKeys.map((k) => `"${k}"`).join(",")})&select=user_id,key,choice&limit=100000`);
+      const score = new Map<string, { right: number; n: number }>();
+      for (const c of all) { const r = results.find((x) => x.key === c.key); const s = score.get(c.user_id) ?? { right: 0, n: 0 }; s.n++; if (r?.outcome === c.choice) s.right++; score.set(c.user_id, s); }
+      const me = score.get(uid);
+      if (me) {
+        const acc = (s: { right: number; n: number }) => s.right / s.n, mineAcc = acc(me);
+        const others = [...score].filter(([id]) => id !== uid).map(([, s]) => acc(s));
+        const beat = others.filter((x) => x < mineAcc).length + others.filter((x) => x === mineAcc).length / 2;
+        standing = { callers: score.size, percentile: others.length ? Math.round(beat / others.length * 100) : null, accuracy: Math.round(mineAcc * 100) };
+      }
+    }
     const waiting = qs.filter((q: { key: string }) => myKeys.has(q.key) && !results.some((r) => r.key === q.key)).map(card).filter(Boolean);
     const b = briefs[0] ? { week: briefs[0].week, ...briefs[0].content } : null;
     // Ripple of the week: the newest move on a problem shared with another goal (crossovers).
@@ -106,6 +121,7 @@ Deno.serve(async (req) => {
       counts: full ? counts : counts.filter((c) => c.key === coming[0]?.key),
       ripple,
       results,
+      standing: full ? standing : null,
       settled: full ? settled : settled.slice(0, 1), // the sample: the latest one
       waiting: full ? waiting : [],
       mine: full ? mine : [],

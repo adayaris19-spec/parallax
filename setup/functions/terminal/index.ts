@@ -488,7 +488,7 @@ Deno.serve(async (req) => {
     // The web: every goal pair with how many problems they share.
     const edgeMap = new Map<string, number>();
     for (const c of cross) { const k = `${goalOf.get(c.goal_a)?.slug}|${goalOf.get(c.goal_b)?.slug}`; edgeMap.set(k, (edgeMap.get(k) ?? 0) + 1); }
-    const web = { goals: goals.map((g) => ({ slug: g.slug, handle: g.handle })), edges: [...edgeMap].map(([k, n]) => { const [a, b] = k.split("|"); return { a, b, n }; }).sort((x, y) => y.n - x.n) };
+    const web = { goals: goals.map((g) => ({ slug: g.slug, handle: g.handle, mapped_at: g.mapped_at })), edges: [...edgeMap].map(([k, n]) => { const [a, b] = k.split("|"); return { a, b, n }; }).sort((x, y) => y.n - x.n) };
     const linksOf = (a: string, b: string) => cross.filter((c) => { const sa = goalOf.get(c.goal_a)?.slug, sb = goalOf.get(c.goal_b)?.slug; return (sa === a && sb === b) || (sa === b && sb === a); })
       .map((c) => ({ a: nref(c.goal_a, c.key_a), b: nref(c.goal_b, c.key_b), why: c.why, papers: c.shared_papers, source: c.source }));
     const webLinks = Object.fromEntries(web.edges.map((e) => [`${e.a}|${e.b}`, linksOf(e.a, e.b)]));
