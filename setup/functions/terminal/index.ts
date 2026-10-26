@@ -71,10 +71,11 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   try {
     const uid = await userId(req);
-    const sub = uid ? (await db(`subscriptions?user_id=eq.${uid}&select=status,current_period_end`))[0] : null;
+    const sub = uid ? (await db(`subscriptions?user_id=eq.${uid}&select=status,plan,current_period_end`))[0] : null;
     const status: string = sub?.status ?? "none";
     const admin = Deno.env.get("ADMIN_TOKEN");
-    const full = PAID.includes(status) || (!!admin && req.headers.get("x-admin-token") === admin); // admin: for testing the full view
+    // The Terminal is Pro: a Plus subscription alone doesn't open it.
+    const full = (PAID.includes(status) && sub?.plan !== "plus") || (!!admin && req.headers.get("x-admin-token") === admin); // admin: for testing the full view
 
     const since90 = new Date(Date.now() - 90 * DAY).toISOString();
     const [goals, nodes, posts, promises, followers, contributions, history, intel, briefs] = await Promise.all([

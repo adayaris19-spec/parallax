@@ -428,3 +428,14 @@ added to the Home Screen (iOS 16.4+).
   `push_subscriptions.user_id`, and a daily `parallax-radar` cron. The `push` function adds each
   paying subscriber's watchlist: posts on watched goals, Phase 2/3 trial readouts and promises due
   within 30 days, and new opportunities; up to 6 alerts a day for subscribers.
+
+## 30. Parallax Plus ($20/month; Pro includes it)
+
+`#/plus` ("Your week in progress"): the weekly brief as a short video in the Watch player (the goals
+the person follows first), what's coming next (Phase 2/3 trial readouts and promises coming due) as
+cards, and predictions on each ("Will this Phase 2 meet its main goal?"), with everyone's split and
+a personal track record once `prediction_results` are filled in. Served by the `plus` function (no
+AI); visitors get a sample. `schema-plus.sql`: `predictions` (only paying subscribers can save one),
+`prediction_counts`, `prediction_results`. Billing: `{"action":"checkout","tier":"plus"}` creates
+Plus prices on first use ($20/month, $200/year; PLUS_PRICE_CENTS / PLUS_YEAR_PRICE_CENTS override);
+the Stripe webhook records `plan = 'plus'` for them; the Terminal and watchlists stay Pro-only.

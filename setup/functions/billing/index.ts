@@ -60,6 +60,21 @@ export const priceLabel = (cents: number) => `$${(cents / 100).toFixed(cents % 1
 const YEAR_CENTS = Number(Deno.env.get("TERMINAL_YEAR_PRICE_CENTS") ?? String(CENTS * 10));
 const LOOKUP_YEAR = "parallax_terminal_yearly";
 
+// Plus ($20/month, $200/year): the weekly video brief, what's coming, predictions. Pro includes it.
+const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "2000");
+const PLUS_YEAR_CENTS = Number(Deno.env.get("PLUS_YEAR_PRICE_CENTS") ?? String(PLUS_CENTS * 10));
+async function plusPrice(plan: "month" | "year" = "month"): Promise<string> {
+  const key = plan === "year" ? "parallax_plus_yearly" : "parallax_plus_monthly";
+  const found = await stripeApi().prices.list({ lookup_keys: [key], active: true, limit: 1 });
+  if (found.data[0]) return found.data[0].id;
+  const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? "parallax_plus_monthly" : "parallax_plus_yearly"], active: true, limit: 1 })).data[0];
+  const productId = other ? String(other.product) : (await stripeApi().products.create({
+    name: "Parallax Plus",
+    description: "Your week in progress: a weekly video brief on the goals you follow, what's coming next, and predictions.",
+  })).id;
+  return (await stripeApi().prices.create({ product: productId, currency: "usd", unit_amount: plan === "year" ? PLUS_YEAR_CENTS : PLUS_CENTS, recurring: { interval: plan }, lookup_key: key })).id;
+}
+
 // The Terminal's prices, created once and found by their lookup keys afterwards.
 async function terminalPrice(plan: "month" | "year" = "month"): Promise<string> {
   const key = plan === "year" ? LOOKUP_YEAR : LOOKUP;
@@ -110,21 +125,26 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const user = await userFrom(req);
     if (body.action === "status") {
-      const row = user ? (await db(`subscriptions?user_id=eq.${user.id}&select=status,current_period_end`))?.[0] : null;
+      const row = user ? (await db(`subscriptions?user_id=eq.${user.id}&select=status,plan,current_period_end`))?.[0] : null;
       // `stripe` says whether payments can work right now, without exposing anything secret.
       let stripe = "missing key";
       if (Deno.env.get("STRIPE_SECRET_KEY")) {
         try { await stripeApi().balance.retrieve(); stripe = "ok"; } catch (e) { stripe = stripeProblem(e); }
       }
-      return json({ status: row?.status ?? "none", current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
+      return json({ status: row?.status ?? "none", plan: row?.plan ?? null, plus_price: priceLabel(PLUS_CENTS), plus_year_price: `$${(PLUS_YEAR_CENTS / 100).toFixed(0)}/year`, current_period_end: row?.current_period_end ?? null, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
     }
     if (!user) return json({ error: "Sign in first." }, 401);
     if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ error: "Payments are not switched on yet." }, 503);
 
     if (body.action === "checkout") {
-      const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status`))?.[0];
-      if (row && ["active", "trialing", "comp"].includes(row.status)) return json({ already: true });
-      const [price, customer] = await Promise.all([terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
+      const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status,plan`))?.[0];
+      const tier = body.tier === "plus" ? "plus" : "pro";
+      if (row && ["active", "trialing", "comp"].includes(row.status)) {
+        // Already subscribed: Pro covers Plus; moving between plans happens in the billing portal.
+        if (row.plan !== "plus" || tier === "plus") return json({ already: true });
+        return json({ switch: true, error: "You have Plus. Switch to Pro from Manage billing." });
+      }
+      const [price, customer] = await Promise.all([tier === "plus" ? plusPrice(body.plan === "year" ? "year" : "month") : terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
       const session = await stripeApi().checkout.sessions.create({
         mode: "subscription",
         customer,
@@ -132,8 +152,8 @@ Deno.serve(async (req) => {
         line_items: [{ price, quantity: 1 }],
         subscription_data: { metadata: { user_id: user.id } },
         allow_promotion_codes: true,
-        success_url: `${SITE}#/terminal/welcome`,
-        cancel_url: `${SITE}#/terminal`,
+        success_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal/welcome`,
+        cancel_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal`,
       });
       return json({ url: session.url });
     }

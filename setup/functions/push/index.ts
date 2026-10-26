@@ -60,7 +60,7 @@ async function send() {
     db(`posts?created_at=gt.${encodeURIComponent(since)}&kind=in.(${KINDS.join(",")})&select=id,goal_id,kind,headline,created_at&order=created_at.asc&limit=200`),
     db(`goals?select=id,slug,handle`),
     db(`push_subscriptions?select=endpoint,p256dh,auth,goals,user_id,sent_day,sent_count&limit=50000`),
-    db(`subscriptions?status=in.(${PAID.join(",")})&select=user_id`),
+    db(`subscriptions?status=in.(${PAID.join(",")})&or=(plan.is.null,plan.neq.plus)&select=user_id`), // watchlists are Pro
     db(`watchlists?select=user_id,goals,rules`),
   ]);
   await setCfg("push_last", now);
