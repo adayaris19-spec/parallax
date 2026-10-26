@@ -9,7 +9,7 @@
 // can only send to the Resend account's own address until a domain is verified).
 //
 //   POST {"action":"send"}                      admin: send this week's emails (skips anyone already sent)
-//   POST {"action":"test","email":"..."}        admin: send one now to that subscriber (ignores the weekly check)
+//   POST {"action":"test","email":"...","as"?:"plus"|"pro"}  admin: send one now (ignores the weekly check; `as` shows the other plan's email)
 //   GET  ?action=preview&email=...              admin header: the email as a web page
 //   GET/POST ?action=unsub&t=<token>             the one-click unsubscribe link in every email
 // Deploy with verify_jwt false (the unsubscribe link is opened from an email); admin actions check
@@ -219,8 +219,9 @@ async function mail(to: string, m: { subject: string; html: string; unsub: strin
   if (!r.ok) throw new Error(`resend ${r.status}: ${(await r.text()).slice(0, 200)}`);
 }
 
-async function send(only?: string) {
-  const subs = (await subscribers()).filter((s) => !only || s.email.toLowerCase() === only.toLowerCase());
+async function send(only?: string, as?: string) {
+  // `as` (tests only): "plus" or "pro", to see the other plan's email.
+  const subs = (await subscribers()).filter((s) => !only || s.email.toLowerCase() === only.toLowerCase()).map((s) => (as ? { ...s, pro: as !== "plus" } : s));
   if (!subs.length) return { note: only ? "no paying subscriber with that email" : "no subscribers" };
   const S = await shared();
   const out: Record<string, string> = {};
@@ -228,8 +229,10 @@ async function send(only?: string) {
     try {
       const p = await prefsFor(sub.user_id);
       if (!only && (!p.weekly || (p.last_sent_at && Date.now() - new Date(p.last_sent_at).getTime() < 6 * DAY))) { out[sub.email] = p.weekly ? "already sent this week" : "unsubscribed"; continue; }
-      await mail(sub.email, await build(sub, S, p.unsub_token));
-      await db(`email_prefs?user_id=eq.${sub.user_id}`, { method: "PATCH", prefer: "return=minimal", body: { last_sent_at: new Date().toISOString() } });
+      const m = await build(sub, S, p.unsub_token);
+      if (as) m.subject = `[${as === "plus" ? "Plus" : "Pro"} version] ${m.subject}`;
+      await mail(sub.email, m);
+      if (!as) await db(`email_prefs?user_id=eq.${sub.user_id}`, { method: "PATCH", prefer: "return=minimal", body: { last_sent_at: new Date().toISOString() } });
       out[sub.email] = "sent";
     } catch (e) { out[sub.email] = `failed: ${e instanceof Error ? e.message.slice(0, 160) : e}`; }
   }
@@ -250,13 +253,14 @@ Deno.serve(async (req) => {
     if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
     if (action === "preview") {
       const email = q.get("email") ?? body.email ?? "";
-      const sub = (await subscribers()).find((s) => s.email.toLowerCase() === String(email).toLowerCase());
+      const found = (await subscribers()).find((s) => s.email.toLowerCase() === String(email).toLowerCase());
+      const as = q.get("as") ?? body.as, sub = found && (as === "plus" || as === "pro") ? { ...found, pro: as !== "plus" } : found;
       if (!sub) return json({ error: "no paying subscriber with that email" }, 404);
       const p = await prefsFor(sub.user_id);
       const m = await build(sub, await shared(), p.unsub_token);
       return new Response(m.html, { headers: { "Content-Type": "text/html; charset=utf-8", "x-subject": encodeURIComponent(m.subject) } });
     }
-    if (action === "test") return json(await send(String(body.email ?? "")));
+    if (action === "test") return json(await send(String(body.email ?? ""), body.as === "plus" || body.as === "pro" ? body.as : undefined));
     if (action === "send") return json(await send());
     return json({ error: "unknown action" }, 400);
   } catch (e) {
