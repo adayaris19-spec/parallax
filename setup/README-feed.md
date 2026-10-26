@@ -384,3 +384,17 @@ The goal page shows a summary in the field panel and the detail in each problem'
 - `sw.js` (service worker): the page shell loads from the phone instantly and refreshes in the
   background; fonts and libraries are kept; database reads fall back to the last copy offline.
   To force everyone onto a new shell immediately, bump `V` in sw.js.
+
+## 26. Health check and alerts
+
+`schema-health.sql` adds `parallax_health()`, listing what needs attention: background jobs that
+answered with errors (last 6 hours), scheduler failures, AI batches pending over 6 hours, goals that
+failed to map, ready goals missing a piece 8 hours after mapping (library, research counts,
+charities, cost estimates, ideas, videos, funding and trials), charities without a donation page,
+and seeding stalled for a day. `.github/workflows/health.yml` runs `scripts/health.mjs` daily at
+07:13 UTC: it opens one GitHub issue tagging the owner (so GitHub emails them), updates it when the
+list changes, and closes it when everything is healthy. Run it any time from the Actions tab.
+
+Self-healing that goes with it: AI batches with nothing finished after 4 hours are cancelled (not
+billed) and resubmitted; up to 3 cost or idea batches run at once so one slow batch can't block every
+goal; `giving` retries Supabase's brief "JWT issued at future" clock errors.

@@ -172,7 +172,13 @@ async function collect() {
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);
     if (b.processing_status !== "ended") {
-      if (Date.now() - new Date(j.created_at).getTime() > 26 * 3600_000) await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      // Stuck: nothing finished after 4 hours (Anthropic sometimes leaves a batch queued), or never
+      // ended. Cancel it (unfinished requests aren't billed) so the next run submits it again.
+      const age = Date.now() - new Date(j.created_at).getTime();
+      if ((age > 4 * 3600_000 && (b.request_counts?.succeeded ?? 0) === 0) || age > 26 * 3600_000) {
+        if (b.processing_status === "in_progress") await claude.messages.batches.cancel(j.batch_id).catch(() => {});
+        await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      }
       continue;
     }
     const nodes: Node[] = await db(`nodes?goal_id=eq.${j.goal_id}&select=key,parent_key,title,plain_title,why,blocker,status`);
@@ -194,7 +200,8 @@ async function collect() {
 
 async function submit(slug?: string, fresh = false) {
   const pending = await db(`cost_jobs?status=eq.pending&select=goal_id`);
-  if (!slug && pending.length) return { note: "a batch is still running" };
+  // A slow batch must not hold up every other goal: up to 3 run at once, one per goal.
+  if (!slug && pending.length >= 3) return { note: "3 batches are still running" };
   const all = await db(`goals?status=eq.ready&select=id,slug,name${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=id.asc`);
   const att = await attention();
   // Every goal gets its first estimates; only watched goals (followed or visited) get refreshed.
@@ -273,6 +280,10 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
+    if (body.action === "batch_status") {
+      const jobs = await db(`cost_jobs?status=eq.pending&select=batch_id,goal_id,created_at`);
+      return json(await Promise.all(jobs.map(async (j: { batch_id: string; goal_id: number; created_at: string }) => { const b = await claude.messages.batches.retrieve(j.batch_id); return { goal_id: j.goal_id, created_at: j.created_at, status: b.processing_status, counts: b.request_counts }; })));
+    }
     if (body.action === "backfill") return json(await backfill());
     return json(await run(body.slug, !!body.fresh));
   } catch (e) {

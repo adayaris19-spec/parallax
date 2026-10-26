@@ -474,7 +474,18 @@ async function collect() {
   const fmt = betaZodOutputFormat(Verdict);
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);
-    if (b.processing_status !== "ended") continue;
+    if (b.processing_status !== "ended") {
+      // Stuck: nothing finished after 4 hours (Anthropic sometimes leaves a batch queued), or never
+      // ended. Cancel it (unfinished requests aren't billed) so the next run submits it again.
+      const age = Date.now() - new Date(j.created_at).getTime();
+      if ((age > 4 * 3600_000 && (b.request_counts?.succeeded ?? 0) === 0) || age > 26 * 3600_000) {
+        if (b.processing_status === "in_progress") await claude.messages.batches.cancel(j.batch_id).catch(() => {});
+        await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+        // Let the goal be picked again on the next run.
+        await db(`goals?id=eq.${j.goal_id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: null } });
+      }
+      continue;
+    }
     let verdict: z.infer<typeof Verdict> | null = null;
     for await (const r of await claude.messages.batches.results(j.batch_id)) {
       if (r.result.type !== "succeeded") continue;
