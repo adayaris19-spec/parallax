@@ -64,60 +64,141 @@ async function shared() {
   if (t.error || t.access !== "full") throw new Error(`terminal: ${t.error ?? "no full access"}`);
   const results = await db(`prediction_results?resolved_at=gte.${new Date(Date.now() - 7 * DAY).toISOString()}&select=key,outcome,note`);
   const questions = results.length ? await db(`prediction_questions?key=in.(${results.map((r: { key: string }) => `"${r.key}"`).join(",")})&select=key,title,question,goal_id`) : [];
-  return { t, results, questions };
+  const [pics, counts] = await Promise.all([
+    db("goal_pictures?select=goal_id,pics").catch(() => []),
+    db("prediction_counts?select=key,yes,no").catch(() => []),
+  ]);
+  const picOf = new Map<string, string>();
+  for (const g of t.goals ?? []) { const p = pics.find((x: { goal_id: number }) => x.goal_id === g.id)?.pics?.[0]; if (p) picOf.set(g.slug, p); }
+  return { t, results, questions, picOf, counts };
 }
 
 type Sub = { user_id: string; email: string; pro: boolean };
 async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: string) {
-  const { t } = S, since = Date.now() - 7 * DAY;
-  // Goals this person cares about: Pro watchlist, then goals they get alerts for.
+  const { t, picOf } = S, since = Date.now() - 7 * DAY;
   const [wl, pushes, calls, all] = await Promise.all([
     db(`watchlists?user_id=eq.${sub.user_id}&select=goals`).catch(() => []),
     db(`push_subscriptions?user_id=eq.${sub.user_id}&select=goals`).catch(() => []),
     db(`predictions?user_id=eq.${sub.user_id}&select=key,choice`).catch(() => []),
     db("prediction_results?select=key,outcome").catch(() => []),
   ]);
+  // Goals this person cares about (Pro watchlist, alert goals) come first everywhere.
   const mine = new Set<string>([...(wl[0]?.goals ?? []), ...pushes.flatMap((p: { goals: string[] }) => p.goals ?? [])]);
   // deno-lint-ignore no-explicit-any
   const first = (arr: any[]): any[] => [...arr].sort((a, b) => Number(mine.has(b.from?.slug ?? b.slug)) - Number(mine.has(a.from?.slug ?? a.slug)));
+  const slugOfHandle = (h: string) => (t.goals ?? []).find((g: { handle: string }) => g.handle === String(h ?? "").replace(/^@/, ""))?.slug;
   const b = t.brief;
-  const ripples = sub.pro ? first((t.crossovers?.ripples ?? []).filter((r: { at: string }) => new Date(r.at).getTime() >= since)).slice(0, 3) : [];
+  const allRipples = first((t.crossovers?.ripples ?? []).filter((r: { at: string }) => new Date(r.at).getTime() >= since));
+  const ripples = sub.pro ? allRipples.slice(0, 3) : allRipples.slice(0, 1); // Plus: the ripple of the week
   const grants = sub.pro ? first((t.money?.awards ?? []).filter((a: { first_seen: string }) => new Date(a.first_seen).getTime() >= since)) : [];
   const nextUp = first(t.catalysts ?? []).slice(0, 3);
-  // Calls settled this week, and the overall record.
   const settled = calls.map((c: { key: string; choice: string }) => ({ ...c, r: S.results.find((x: { key: string }) => x.key === c.key), q: S.questions.find((x: { key: string }) => x.key === c.key) })).filter((c: { r: unknown; q: unknown }) => c.r && c.q);
   const judged = calls.filter((c: { key: string }) => all.some((r: { key: string; outcome: string }) => r.key === c.key && r.outcome !== "void"));
   const right = judged.filter((c: { key: string; choice: string }) => all.find((r: { key: string }) => r.key === c.key)?.outcome === c.choice).length;
+  // Call of the week: a trial readout due in the next ~4 months most people have called, else the next one.
+  const myKeys = new Set(calls.map((c: { key: string }) => c.key));
+  const keyOf = (c: { kind: string; url: string | null; title: string }) => (c.kind === "trial" ? `trial:${String(c.url ?? "").split("/").pop()}` : null);
+  const soon = (t.catalysts ?? []).filter((c: { kind: string; date: string }) => c.kind === "trial" && /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-28`).getTime() - Date.now() < 125 * DAY && new Date(`${c.date}-28`).getTime() > Date.now());
+  const crowd = (k: string | null) => S.counts.find((x: { key: string }) => x.key === k) ?? { yes: 0, no: 0 };
+  const cotw = [...soon].sort((a, c) => (crowd(keyOf(c)).yes + crowd(keyOf(c)).no) - (crowd(keyOf(a)).yes + crowd(keyOf(a)).no))[0];
   const home = sub.pro ? `${SITE}#/terminal` : `${SITE}#/plus`;
 
-  const h2 = (s: string) => `<tr><td style="padding:26px 0 8px;font:600 12px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#73767E">${s}</td></tr>`;
-  const row = (inner: string) => `<tr><td style="padding:10px 0;border-top:1px solid #ECECE9;font:15px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111214">${inner}</td></tr>`;
-  const small = (s: string) => `<div style="font-size:13px;line-height:1.45;color:#73767E;margin-top:3px">${s}</div>`;
-  const link = (href: string, text: string) => `<a href="${href}" style="color:#111214;text-decoration:none;font-weight:600">${text}</a>`;
-  const sections: string[] = [];
-  if (b) sections.push(`${h2("The week in 30 seconds")}<tr><td style="font:700 22px/1.3 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111214;padding-bottom:6px">${esc(b.headline)}</td></tr>
-    ${(b.tldr ?? []).slice(0, 3).map((x: string) => row(`• ${esc(x)}`)).join("")}`);
-  if (ripples.length) sections.push(`${h2(`Ripples · ${ripples.length} this week`)}${ripples.map((r: { headline: string; post?: number; from: { goal: string }; affects: { goal: string; title: string; why: string }[] }) =>
-    row(`${r.post ? link(`${SITE}#/p/${r.post}`, esc(r.headline)) : `<b>${esc(r.headline)}</b>`}${small(`@${esc(r.from.goal)} → also moves ${[...new Map(r.affects.map((a) => [a.goal, a])).values()].slice(0, 2).map((a) => { const n = r.affects.filter((x) => x.goal === a.goal).length; return `@${esc(a.goal)} (${n > 1 ? `${n} shared problems` : esc(a.title)})`; }).join(", ")}`)}`)).join("")}`);
-  if (grants.length) sections.push(`${h2(`New grants of $1M+ · ${grants.length} this week, ${usd(grants.reduce((s: number, a: { amount: number }) => s + a.amount, 0))}`)}${grants.slice(0, 3).map((a: { amount: number; recipient: string; goal: string; title: string; url: string }) =>
-    row(`<b>${usd(a.amount)}</b> to ${esc(a.recipient)}${small(`@${esc(a.goal)} · ${esc(calm(a.title))}`)}`)).join("")}`);
-  if (settled.length || calls.length) sections.push(`${h2("Your calls")}${settled.map((c: { choice: string; r: { outcome: string; note: string }; q: { title: string; question: string } }) =>
-    row(`${c.r.outcome === "void" ? "–" : c.r.outcome === c.choice ? "✓ You called it" : "✗ Not this time"}: <b>${esc(c.q.question)}</b>${small(`${esc(c.q.title)} · result: ${c.r.outcome === "void" ? "no result" : c.r.outcome}. ${esc(c.r.note ?? "")}`)}`)).join("")}
-    ${row(`${calls.length} call${calls.length === 1 ? "" : "s"} made${judged.length ? ` · ${right} of ${judged.length} right` : ""} · ${link(`${SITE}#/plus`, "make this week’s call →")}`)}`);
-  else sections.push(`${h2("Your calls")}${row(`You haven’t made a call yet. ${link(`${SITE}#/plus`, "Call this week’s trial readouts and promises →")}`)}`);
-  if (nextUp.length) sections.push(`${h2("Coming up")}${nextUp.map((c: { date: string; title: string; goal: string; kind: string }) => row(`<b>${esc(month(c.date))}</b> · ${esc(c.title)}${small(`@${esc(c.goal)} · ${c.kind === "trial" ? "trial readout" : "promise due"}`)}`)).join("")}`);
+  // Building blocks (tables and inline styles only: they render the same in Gmail, Apple Mail and Outlook).
+  const F = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif", INK = "#111214", INK2 = "#3C3F45", MUTED = "#73767E", LINE = "#ECECE9", SUNK = "#F2F2F0", ACC = "#3D4BF2", GREEN = "#14955F", RED = "#E0484E";
+  const label = (s: string, color = MUTED) => `<div style="font:600 11px/1.4 ${F};letter-spacing:.09em;text-transform:uppercase;color:${color};margin:0 0 10px">${s}</div>`;
+  const section = (inner: string) => `<tr><td style="padding:28px 0 0">${inner}</td></tr>`;
+  const avatar = (slug: string | undefined, size = 40) => { const u = slug && picOf.get(slug); return u ? `<img src="${esc(u)}" width="${size}" height="${size}" alt="" style="display:block;width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:0">` : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${SUNK}"></div>`; };
+  const chip = (s: string, bg = SUNK, color = INK2) => `<span style="display:inline-block;font:600 12px/1 ${F};padding:4px 8px;border-radius:999px;background:${bg};color:${color}">${s}</span>`;
+  const button = (href: string, text: string, bg = INK) => `<a href="${href}" style="display:inline-block;background:${bg};color:#FFFFFF;text-decoration:none;font:600 15px/1 ${F};padding:14px 22px;border-radius:999px">${text}</a>`;
+  const blocks: string[] = [];
+
+  // 1. Hero: the week's lead story, with its goal's picture.
+  const leadSlug = slugOfHandle(b?.moved?.[0]?.goal) ?? ripples[0]?.from?.slug ?? [...picOf.keys()][0];
+  const hero = leadSlug && picOf.get(leadSlug);
+  if (b) blocks.push(`<tr><td style="padding:0">${hero ? `<a href="${home}"><img src="${esc(hero)}" width="580" alt="" style="display:block;width:100%;max-width:580px;height:220px;object-fit:cover;border-radius:18px 18px 0 0;border:0"></a>` : ''}</td></tr>
+    <tr><td style="padding:22px 28px 0">${label(`The week in 30 seconds · ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" })}`, ACC)}
+      <div style="font:800 26px/1.2 ${F};color:${INK};letter-spacing:-.02em">${esc(b.headline)}</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px">${(b.tldr ?? []).slice(0, 3).map((x: string, i: number) => `<tr><td width="28" valign="top" style="font:700 14px/1.5 ${F};color:${ACC};padding:6px 0">${i + 1}</td><td style="font:15px/1.5 ${F};color:${INK2};padding:6px 0;border-top:${i ? `1px solid ${LINE}` : "0"}">${esc(x)}</td></tr>`).join("")}</table></td></tr>`);
+
+  const inner: string[] = [];
+  // 2. The week in numbers.
+  const stats = [
+    sub.pro ? [String(allRipples.length), "ripples"] : null,
+    sub.pro ? [String(grants.length), "new $1M+ grants"] : null,
+    sub.pro && grants.length ? [usd(grants.reduce((s2: number, a: { amount: number }) => s2 + a.amount, 0)), "in new grants"] : null,
+    [String(calls.length), calls.length === 1 ? "call made" : "calls made"],
+    judged.length ? [`${right}/${judged.length}`, "called right"] : null,
+    [String((t.catalysts ?? []).length), "coming up"],
+  ].filter(Boolean).slice(0, 4) as string[][];
+  inner.push(section(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${SUNK};border-radius:14px"><tr>${stats.map(([n, l], i) => `<td align="center" style="padding:14px 6px;${i ? `border-left:1px solid ${LINE};` : ""}"><div style="font:800 24px/1.1 ${F};color:${INK}">${esc(n)}</div><div style="font:12px/1.3 ${F};color:${MUTED};margin-top:4px">${esc(l)}</div></td>`).join("")}</tr></table>`));
+
+  // 3. Call of the week.
+  if (cotw) {
+    const k = keyOf(cotw), n = crowd(k), tot = n.yes + n.no, yes = tot ? Math.round(n.yes / tot * 100) : 0, phase = (String(cotw.detail ?? "").match(/Phase [0-9/ Phase]+/) ?? ["Phase 2"])[0].trim();
+    const done = k && myKeys.has(k);
+    inner.push(section(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #C8CCFA;border-radius:16px;background:#F4F5FF"><tr><td style="padding:18px 20px">
+      ${label(`Call of the week · results due ${esc(month(cotw.date))}`, ACC)}
+      <div style="font:700 19px/1.3 ${F};color:${INK}">Will this ${esc(phase)} trial meet its main goal?</div>
+      <div style="font:13.5px/1.45 ${F};color:${MUTED};margin:6px 0 14px">${esc(cotw.title)} · @${esc(cotw.goal)}</div>
+      ${tot ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;overflow:hidden"><tr><td width="${Math.max(yes, 1)}%" style="background:${GREEN};height:8px;font-size:0;line-height:0">&nbsp;</td><td width="${Math.max(100 - yes, 1)}%" style="background:${RED};height:8px;font-size:0;line-height:0">&nbsp;</td></tr></table><div style="font:12.5px/1.4 ${F};color:${MUTED};margin:6px 0 14px">${yes}% say yes · ${tot} call${tot === 1 ? "" : "s"}</div>` : `<div style="font:12.5px/1.4 ${F};color:${MUTED};margin:0 0 14px">Nobody has called it yet. Be the first.</div>`}
+      ${done ? `<div style="font:600 14px/1.4 ${F};color:${INK2}">You’ve made your call. <a href="${SITE}#/plus" style="color:${ACC}">See it →</a></div>` : `${button(`${SITE}#/plus`, "Yes", GREEN)}&nbsp;&nbsp;${button(`${SITE}#/plus`, "No", RED)}`}
+      </td></tr></table>`));
+  }
+
+  // 4. Ripples, with goal pictures.
+  if (ripples.length) inner.push(section(`${label(sub.pro ? `Ripples · moves that reached another goal` : "Ripple of the week")}${ripples.map((r: { headline: string; post?: number; kind: string; from: { goal: string; slug: string }; affects: { goal: string; slug: string; title: string }[] }) => {
+    const to = [...new Map(r.affects.map((a) => [a.goal, a])).values()].slice(0, 2);
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
+      <td width="52" valign="top" style="padding:14px 0">${avatar(r.from.slug)}</td>
+      <td valign="top" style="padding:14px 0">${chip(r.kind === "grant" ? "Big grant" : r.kind === "setback" ? "Setback" : r.kind === "bottleneck" ? "Bottleneck" : "Advance", r.kind === "setback" ? "#FDECEC" : r.kind === "grant" ? "#EEF0FF" : "#E8F5EE", r.kind === "setback" ? RED : r.kind === "grant" ? ACC : GREEN)}
+        <div style="font:600 16px/1.35 ${F};color:${INK};margin:8px 0 6px">${r.post ? `<a href="${SITE}#/p/${r.post}" style="color:${INK};text-decoration:none">${esc(r.headline)}</a>` : esc(r.headline)}</div>
+        <div style="font:13.5px/1.45 ${F};color:${MUTED}">@${esc(r.from.goal)} <span style="color:${ACC}">→</span> also moves ${to.map((a) => `<b style="color:${INK2}">@${esc(a.goal)}</b>`).join(" and ")}</div></td>
+      <td width="${to.length * 30 + 6}" valign="top" align="right" style="padding:14px 0 0 8px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>${to.map((a) => `<td style="padding-left:4px">${avatar(a.slug, 26)}</td>`).join("")}</tr></table></td></tr></table>`;
+  }).join("")}`));
+
+  // 5. Money (Pro): a small bar chart of funding by goal, then the biggest new grants.
+  if (sub.pro && t.money?.goals?.length) {
+    const top = (t.money.goals as { goal: string; slug: string; last4: number; change: number | null }[]).filter((g) => g.last4 > 0).slice(0, 5), max = Math.max(1, ...top.map((g) => g.last4));
+    inner.push(section(`${label("Federal grant money, last 12 months")}${top.map((g) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px"><tr>
+      <td width="34" valign="middle">${avatar(g.slug, 26)}</td><td width="128" valign="middle" style="font:600 13px/1.2 ${F};color:${INK}">@${esc(g.goal)}</td>
+      <td valign="middle"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td width="${Math.max(2, Math.round(g.last4 / max * 100))}%" style="background:${mine.has(g.slug) ? ACC : INK};height:12px;border-radius:4px;font-size:0;line-height:0">&nbsp;</td><td style="font-size:0">&nbsp;</td></tr></table></td>
+      <td width="64" align="right" valign="middle" style="font:600 13px/1 ${F};color:${INK}">${usd(g.last4)}</td>
+      <td width="52" align="right" valign="middle" style="font:600 12px/1 ${F};color:${g.change == null ? MUTED : g.change > 0 ? GREEN : RED}">${g.change == null ? "—" : `${g.change > 0 ? "▲" : "▼"}${Math.round(Math.abs(g.change) * 100)}%`}</td></tr></table>`).join("")}
+      ${grants.length ? `<div style="margin-top:16px">${grants.slice(0, 3).map((a: { amount: number; recipient: string; goal: string; slug: string; title: string }) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
+        <td width="86" valign="top" style="padding:12px 0;font:800 18px/1.2 ${F};color:${INK}">${usd(a.amount)}</td>
+        <td valign="top" style="padding:12px 0"><div style="font:600 14px/1.35 ${F};color:${INK}">${esc(a.recipient)}</div><div style="font:13px/1.45 ${F};color:${MUTED}">@${esc(a.goal)} · ${esc((() => { const x = calm(a.title); return x.length > 90 ? `${x.slice(0, 88).replace(/\s+\S*$/, "")}…` : x; })())}</div></td></tr></table>`).join("")}</div>` : ""}`));
+  }
+
+  // 6. Your calls, settled this week.
+  if (settled.length) inner.push(section(`${label("Your calls, settled")}${settled.map((c: { choice: string; r: { outcome: string; note: string }; q: { title: string; question: string } }) => {
+    const ok = c.r.outcome === c.choice, none = c.r.outcome === "void";
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
+      <td width="44" valign="top" style="padding:14px 0"><div style="width:32px;height:32px;border-radius:50%;background:${none ? SUNK : ok ? "#E8F5EE" : "#FDECEC"};color:${none ? MUTED : ok ? GREEN : RED};font:700 16px/32px ${F};text-align:center">${none ? "–" : ok ? "✓" : "✗"}</div></td>
+      <td valign="top" style="padding:14px 0"><div style="font:600 15px/1.35 ${F};color:${INK}">${none ? "No result" : ok ? "You called it" : "Not this time"}: ${esc(c.q.question)}</div><div style="font:13px/1.45 ${F};color:${MUTED};margin-top:3px">${esc(c.q.title)}. ${esc(c.r.note ?? "")}</div></td></tr></table>`;
+  }).join("")}`));
+
+  // 7. Coming up, as date tiles.
+  if (nextUp.length) inner.push(section(`${label("Coming up")}${nextUp.map((c: { date: string; title: string; goal: string; kind: string }) => {
+    const d = /^\d{4}-\d{2}$/.test(c.date) ? new Date(`${c.date}-15`) : null;
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px"><tr>
+      <td width="64" valign="top"><table role="presentation" width="52" cellpadding="0" cellspacing="0" style="border:1px solid ${LINE};border-radius:10px;overflow:hidden"><tr><td align="center" style="background:${ACC};color:#FFFFFF;font:700 10px/1 ${F};letter-spacing:.08em;padding:5px 0">${d ? d.toLocaleDateString("en-US", { month: "short" }).toUpperCase() : "DUE"}</td></tr><tr><td align="center" style="font:800 17px/1 ${F};color:${INK};padding:8px 0">’${d ? String(d.getFullYear()).slice(2) : esc(c.date).slice(2)}</td></tr></table></td>
+      <td valign="top" style="padding-top:2px"><div style="font:600 14.5px/1.35 ${F};color:${INK}">${esc(c.title)}</div><div style="font:13px/1.4 ${F};color:${MUTED};margin-top:3px">@${esc(c.goal)} · ${c.kind === "trial" ? "trial readout" : "promise due"}</div></td></tr></table>`;
+  }).join("")}`));
+
+  inner.push(section(`<div style="text-align:center;padding:6px 0 4px">${button(home, sub.pro ? "Open Parallax Pro →" : "Open your week →", ACC)}</div>`));
   const unsub = `${FN}?action=unsub&t=${token}`;
   const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" });
   const subject = b?.headline ? `Your week: ${b.headline}` : `Your week in progress · ${date}`;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
-<body style="margin:0;background:#FAFAF9"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAF9"><tr><td align="center" style="padding:28px 14px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#FFFFFF;border:1px solid #ECECE9;border-radius:18px"><tr><td style="padding:26px 28px 30px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-<tr><td style="font:600 14px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111214">Parallax ${sub.pro ? "Pro" : "Plus"} <span style="color:#73767E;font-weight:400">· your week in progress · ${esc(date)}</span></td></tr>
-${sections.join("")}
-<tr><td style="padding:28px 0 0"><a href="${home}" style="display:inline-block;background:#111214;color:#FFFFFF;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:13px 20px;border-radius:999px">Open ${sub.pro ? "Parallax Pro" : "your week"} →</a></td></tr>
-</table></td></tr></table>
-<p style="max-width:580px;font:12px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#A3A6AD;margin:16px auto 0">You get this because you subscribe to Parallax ${sub.pro ? "Pro" : "Plus"}. One email a week, on Mondays. <a href="${unsub}" style="color:#73767E">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:#73767E">email settings</a></p>
+  const pre = `${sub.pro ? `${allRipples.length} ripples, ${grants.length} new big grants` : "Your call of the week"}, and what's coming up.`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(subject)}</title></head>
+<body style="margin:0;background:#FAFAF9"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(pre)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAF9"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px"><tr><td style="padding:0 4px 12px;font:700 15px/1 ${F};color:${INK}">Parallax <span style="color:${MUTED};font-weight:400">${sub.pro ? "Pro" : "Plus"}</span></td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#FFFFFF;border:1px solid ${LINE};border-radius:18px">
+${blocks.join("")}
+<tr><td style="padding:0 28px 30px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${inner.join("")}</table></td></tr>
+</table>
+<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax ${sub.pro ? "Pro" : "Plus"}. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a></p>
 </td></tr></table></body></html>`;
   return { subject, html, unsub };
 }
