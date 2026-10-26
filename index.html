@@ -683,6 +683,13 @@ body.goalpage main{max-width:1120px}
   .mv{grid-template-columns:1fr;gap:18px}
 }
 
+/* status mix bar (solved / moving / blocked / barely started) */
+.ro-stbar{margin-top:14px;height:5px}
+.gcard .gp .stbar{flex:1}
+.idx .stbar{margin:14px 0 12px;height:6px}
+a.ro-link{text-decoration:none;color:inherit;transition:background .15s}a.ro-link:hover{background:rgba(20,22,34,.9)}
+.stbar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;min-width:0}
+.stbar i{display:block;height:100%;min-width:3px}
 /* real funding and trials */
 .fs-ev{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:10px}
 .fs-ev .kick{margin-bottom:4px;display:block}
@@ -1106,6 +1113,7 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
 .tt .sub{display:block;color:var(--muted);font-size:12px;font-family:var(--f)}
 .tt td.num .sub{font-family:var(--m);font-size:11px}
 .pbar{display:inline-block;width:56px;height:4px;border-radius:2px;background:var(--sunk);vertical-align:middle;margin-right:8px;overflow:hidden}
+.pbar .stbar{height:100%;border-radius:0}
 .pbar i{display:block;height:100%;background:var(--solved)}
 .up{color:var(--solved)} .down{color:var(--blocked)}
 .offer{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:24px 22px}
@@ -1776,13 +1784,19 @@ async function exploreView() {
   view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped.</p><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
+  try {
+    const rows = await rest('nodes?parent_key=not.is.null&select=goal_id,status');
+    const by = {};
+    for (const n of rows) { const c = (by[n.goal_id] ||= { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }); c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; }
+    for (const g of list) g._counts = by[g.id];
+  } catch { /* the cards still show without counts */ }
   if (!list.length) { $('#grid').outerHTML = note('No goals yet', 'Search for any goal to map the first one.'); return; }
   $('#grid').innerHTML = list.map((g) => {
-    const pct = Math.round((g.progress || 0) * 100);
-    const sub = g.status === 'mapping' ? 'Being mapped now' : `${pct}% of its problems solved`;
+    const c = g._counts || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 };
+    const sub = g.status === 'mapping' ? 'Being mapped now' : '';
     return `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}">${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}
       <span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small>
-      ${g.status === 'ready' ? `<span class="gp"><span class="segbar" style="background:var(--line);border-radius:2px"><i style="width:${pct}%;background:var(--solved)"></i></span><span>${pct}%</span></span>` : `<small style="margin-top:8px">${esc(sub)}</small>`}</span></a>`;
+      ${g.status === 'ready' && c.total ? `<span class="gp">${statusBar(c)}<span>${c.solved} of ${c.total} solved</span></span>` : `<small style="margin-top:8px">${esc(sub || `${c.total || ''} problems mapped`)}</small>`}</span></a>`;
   }).join('');
 }
 
@@ -1861,7 +1875,6 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
   const lower = (t) => t ? t.charAt(0).toLowerCase() + t.slice(1).replace(/\.$/, '') : '';
-  const pctN = Math.round((g.progress || 0) * 100);
   const bn = leaves.find((l) => l.key === g.bottleneck_key);
   const lo = g.horizon_low, hi = g.horizon_high;
   const horizon = lo == null ? '' : lo === hi ? `~${lo}` : `${lo}–${hi}`;
@@ -1889,7 +1902,6 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const libGrowth = Math.round((goalRatio - 1) * 100);
   goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1, any: Object.keys(yrs).length > 0, real: fieldReal };
 
-  const ring = `<div class="ro-bar"><i style="width:${pctN}%"></i></div>`;
   const ymax = Math.max(1, ...libYears.map((x) => x.n));
   const hero = `<section class="gx space"><canvas class="stars" aria-hidden="true"></canvas>${(heroMedia || g.media)?.url ? `<div class="gx-bg">${bgMedia(heroMedia || g.media, g.slug)}</div>` : ''}
     <div class="gx-in">
@@ -1898,10 +1910,14 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       ${g.tagline || g.summary ? `<p class="sum">${esc(g.tagline || firstSentence(g.summary))}</p>` : ''}
       <div class="gx-act">${followBtn(g.slug)}<a class="btn" href="#/watch/${encodeURIComponent(g.slug)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Watch</a><button class="btn" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax">Share</button></div>
       <div class="ro">
-        <div class="ro-c"><span class="ro-l">Progress</span><b class="mono"><span data-count="${pctN}">${pctN}</span>%</b>${ring}<small>${solved} of ${leaves.length} problems solved</small></div>
+        <div class="ro-c"><span class="ro-l">Problems solved</span><b class="mono"><span data-count="${solved}">${solved}</span><em> of ${leaves.length}</em></b>${statusBar({ solved, moving: going, blocked, open: openN }, 'ro-stbar')}<small>${going} moving · ${blocked} blocked · ${openN} barely started</small></div>
         <div class="ro-c"><span class="ro-l">Time to go</span><b class="mono">${horizon ? esc(horizon) : '—'}<em> yrs</em></b><small>at today’s pace</small></div>
         <div class="ro-c"><span class="ro-l">Research per year</span><div class="ro-cols" aria-hidden="true">${libYears.map((x, i) => `<i style="height:${Math.max(4, x.n / ymax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div><small class="${libGrowth >= 0 ? 'up' : 'down'}">${libGrowth >= 0 ? '▲' : '▼'} ${Math.abs(libGrowth)}% in 4 years</small></div>
-        <div class="ro-c"><span class="ro-l">Problems</span><b class="mono">${leaves.length}</b><div class="ro-st" aria-hidden="true">${[['solved', solved], ['in_progress', going], ['blocked', blocked], ['open', openN]].map(([k, n]) => (n ? `<i class="st-${k}" style="flex:${n}"></i>` : '')).join('')}</div><small>${going} moving · ${blocked} blocked</small></div>
+        ${(() => {
+          const open = goalIdeas.length, cheap = goalIdeas.map((i) => i.test_low).filter((x) => x > 0).sort((a, b) => a - b)[0];
+          return open ? `<a class="ro-c ro-link" href="#/lab/${encodeURIComponent(g.slug)}"><span class="ro-l">Ideas to try</span><b class="mono">${open}</b><small>${cheap ? `first tests from ${esc(usdShort(cheap))} · ` : ''}judge them →</small></a>`
+            : `<div class="ro-c"><span class="ro-l">Ideas to try</span><b class="mono">—</b><small>Parallax is preparing ideas</small></div>`;
+        })()}
       </div>
       ${g.papers_count ? `<div class="gx-built mono">Built on ${g.papers_count.toLocaleString()} papers · updated ${esc(whenAgo(g.pulsed_at || g.mapped_at))}</div>` : ''}
     </div></section>`;
@@ -2600,12 +2616,12 @@ function goalsTable() {
   for (const h of term.history || []) { if (!hist.has(h.goal_id)) hist.set(h.goal_id, []); hist.get(h.goal_id).push(h); }
   const rows = sortRows(term.goals, termSort.goals);
   return `<div class="tw"><table class="tt"><thead><tr>
-    ${th('goals', 'handle', 'Goal')}${th('goals', 'progress', 'Progress', 'num')}<th class="nosort num" scope="col">Trend</th>${th('goals', 'horizon_low', 'Countdown', 'num')}
+    ${th('goals', 'handle', 'Goal')}${th('goals', 'solved', 'Solved', 'num')}<th class="nosort num" scope="col">Trend</th>${th('goals', 'horizon_low', 'Countdown', 'num')}
     ${th('goals', 'problems', 'Problems', 'num')}${th('goals', 'blocked', 'Blocked', 'num')}${th('goals', 'momentum', 'Momentum 30d', 'num')}
     ${th('goals', 'promise_score', 'Promises kept', 'num')}${th('goals', 'field_growth', 'Field growth', 'num')}${th('goals', 'followers', 'Followers', 'num')}
   </tr></thead><tbody>${rows.map((g) => `<tr>
     <td><a href="#/g/${encodeURIComponent(g.slug)}"><b>@${esc(g.handle)}</b></a><span class="sub">${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</span></td>
-    <td class="num"><span class="pbar"><i style="width:${Math.round((g.progress || 0) * 100)}%"></i></span>${pct(g.progress)}</td>
+    <td class="num"><span class="pbar">${statusBar({ solved: g.solved, moving: g.in_progress, blocked: g.blocked, open: g.open })}</span>${g.solved}/${g.problems}</td>
     <td class="num">${spark(hist.get(g.id))}</td>
     <td class="num">${horizon(g)}</td>
     <td class="num">${g.problems}</td>
@@ -2773,17 +2789,17 @@ function overviewCards(t) {
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
-  const idxChange = t.index_history.length > 1 ? t.index - t.index_history[0].value : null;
   const thisYear = new Date().getFullYear();
   const head = `<div class="term-h"><div><h1 class="page-h">Parallax Terminal</h1>
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
     <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
   const overview = `<div class="top2">
-      <section class="panel idx"><span class="lbl">The Parallax Index</span>
-        <div class="v">${t.index.toFixed(1)}<small>/ 100</small></div>
-        <p>How far humanity is toward every goal on Parallax, on average. It moves when research solves, advances or blocks a problem.</p>
-        <div class="chg">${idxChange == null ? 'Daily history began this week' : `<span class="${idxChange >= 0 ? 'up' : 'down'}">${idxChange >= 0 ? '▲' : '▼'} ${Math.abs(idxChange).toFixed(1)}</span> since ${esc(t.index_history[0].day)}`}</div>
+      <section class="panel idx"><span class="lbl">Problems solved, across every goal</span>
+        <div class="v">${k.solved ?? Math.round(k.solved_share * k.problems)}<small>/ ${k.problems}</small></div>
+        ${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}
+        <p>${k.moving ?? '—'} moving, ${k.blocked} blocked, ${k.open ?? '—'} barely started. A problem counts as solved only when the evidence shows it is done.</p>
+        <div class="chg">${k.advances30} advance${k.advances30 === 1 ? '' : 's'} and ${k.setbacks30} setback${k.setbacks30 === 1 ? '' : 's'} in the last 30 days</div>
         <div class="stats"><div><b>${k.goals}</b><span>goals</span></div><div><b>${pct(k.solved_share)}</b><span>problems solved</span></div><div><b>${k.promise_score == null ? '—' : pct(k.promise_score)}</b><span>promises kept</span></div></div>
       </section>
       <section class="panel pad"><div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><b>Research behind the map</b>${t.research.growth == null ? '' : `<span class="mono up" style="font-size:12.5px">${growthTxt(t.research.growth)} in the last 5 years</span>`}</div>
@@ -3142,6 +3158,11 @@ function evidenceBlock(ev) {
       <ul class="ev-l">${(tr.top || []).map((x) => item(x, `${esc(x.who)}${x.phase ? ` · ${esc(x.phase)}` : ''}${x.status ? ` · ${esc(x.status)}` : ''}`)).join('')}</ul>
       <p class="ev-src">From <a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a>, matching “${esc(tr.extra?.terms || '')}”.</p></div>` : ''}
   </div>`;
+}
+// Where a goal stands, in facts anyone can check: problems solved, moving, blocked, barely started.
+// (Parallax no longer shows a single "% of the way": it counted every moving problem as half done.)
+function statusBar(c, cls = '') {
+  return `<span class="stbar ${cls}" aria-hidden="true">${[['solved', c.solved], ['in_progress', c.moving], ['blocked', c.blocked], ['open', c.open]].map(([k, n]) => (n ? `<i class="st-${k}" style="flex:${n}"></i>` : '')).join('')}</span>`;
 }
 const CONF = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' };
 function costBlock(c, l) {
@@ -3612,11 +3633,11 @@ async function loadStories(list) {
     const v = videosFirst(uniq([...(visuals[i] || []), ...rot])), vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
     const sentences = String(p.body || '').match(/[^.!?]+[.!?]+/g) || [p.body || ''];
     const why = (sentences[1] || sentences[0] || '').trim();
-    const pct = Math.round((g.progress || 0) * 100);
+    const gl = nodes.filter((x) => x.goal_id === p.goal_id), solvedN = gl.filter((x) => x.status === 'solved').length;
     const scenes = [
       { caption: p.headline, sub: null, stat: null, visual: vis(v[0]), layout: 'bottom' },
       why ? { caption: why, sub: n ? n.title : null, stat: null, visual: vis(v[1] || v[0]), layout: 'center' } : null,
-      { caption: n ? `${n.title}: ${lowerFirst(leafStatusLabel(n.status))}` : g.name, sub: g.horizon_low != null ? `About ${horizonText(g).replace(' yrs', ' years')} to go at today’s pace.` : null, stat: { value: `${pct}%`, label: `of the way to ${lowerFirst(g.name)}` }, visual: vis(v[2] || v[0]), layout: 'number' },
+      { caption: n ? `${n.title}: ${lowerFirst(leafStatusLabel(n.status))}` : g.name, sub: g.horizon_low != null ? `About ${horizonText(g).replace(' yrs', ' years')} to go at today’s pace.` : null, stat: gl.length ? { value: `${solvedN}/${gl.length}`, label: `problems solved toward ${lowerFirst(g.name)}` } : null, visual: vis(v[2] || v[0]), layout: 'number' },
     ].filter(Boolean);
     return { id: `s${p.id}`, story: p.id, goal_id: p.goal_id, post_id: p.id, kind: p.kind, mood: STORY_MOOD[p.kind] || 'calm', scenes, created_at: p.created_at };
   });

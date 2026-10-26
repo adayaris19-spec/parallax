@@ -42,13 +42,13 @@ h1{margin-top:auto;font-size:${g.name.length > 34 ? 60 : 72}px;line-height:1.02;
 .bn{margin-top:22px;font-size:25px;line-height:1.35;color:rgba(255,255,255,.78);max-width:760px}
 .bn b{color:#fff;font-weight:500}
 .row{margin-top:34px;display:flex;align-items:center;gap:28px;font-family:"Geist Mono",monospace;font-size:22px;color:rgba(255,255,255,.8)}
-.bar{width:300px;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden}.bar i{display:block;height:100%;background:#7C83FF;border-radius:6px}
+.bar{width:300px;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;display:flex;gap:3px}.bar i{display:block;height:100%}
 .row b{color:#fff;font-size:30px;font-weight:500}
 </style></head><body><div class="bg"></div><div class="shade"></div><div class="in">
 <div class="brand"><svg viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#111214"/><line x1="150" y1="352" x2="256" y2="152" stroke="#fff" stroke-width="18" stroke-linecap="round" opacity=".55"/><line x1="362" y1="352" x2="256" y2="152" stroke="#fff" stroke-width="18" stroke-linecap="round" opacity=".55"/><circle cx="150" cy="352" r="34" fill="#fff"/><circle cx="362" cy="352" r="34" fill="#fff"/><circle cx="256" cy="152" r="46" fill="#5C64F0"/></svg>Parallax</div>
 <h1>${esc(g.name)}</h1>
 ${d.bottleneck ? `<p class="bn">Biggest bottleneck: <b>${esc(d.bottleneck)}</b></p>` : ""}
-<div class="row"><b>${d.pct}%</b><div class="bar"><i style="width:${Math.max(2, d.pct)}%"></i></div><span>${d.solved ? `${d.solved} of ${d.total} problems solved` : `${d.total} problems mapped`}</span>${g.horizon_low ? `<span>· ${g.horizon_low}–${g.horizon_high} yrs to go</span>` : ""}</div>
+<div class="row"><b>${d.solved}<span style="font-size:20px;color:rgba(255,255,255,.6)"> of ${d.total} solved</span></b><div class="bar mix">${[["#2BB673", d.solved], ["#E0A23A", d.moving], ["#E0484E", d.blocked], ["rgba(255,255,255,.28)", d.open]].map(([c, n]) => (n ? `<i style="flex:${n};background:${c}"></i>` : "")).join("")}</div>${g.horizon_low ? `<span>${g.horizon_low}–${g.horizon_high} yrs to go</span>` : ""}</div>
 </div></body></html>`;
 
 const page = (g, d) => {
@@ -70,7 +70,7 @@ const page = (g, d) => {
 <meta property="og:image" content="${esc(img)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="${esc(`${g.name}: ${d.pct}% of the way`)}">
+<meta property="og:image:alt" content="${esc(`${g.name}: ${d.solved} of ${d.total} problems solved`)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(g.name)}">
 <meta name="twitter:description" content="${esc(desc)}">
@@ -92,10 +92,12 @@ for (const g of goals) {
   const leaves = nodes.filter((n) => n.goal_id === g.id);
   const bn = leaves.find((n) => n.key === g.bottleneck_key);
   const d = {
-    pct: Math.round((g.progress || 0) * 100), solved: leaves.filter((n) => n.status === "solved").length, total: leaves.length,
+    pct: 0, solved: leaves.filter((n) => n.status === "solved").length, moving: leaves.filter((n) => n.status === "in_progress").length, blocked: leaves.filter((n) => n.status === "blocked").length, total: leaves.length,
+    open: 0,
     bottleneck: bn ? (bn.plain_title || bn.title) : "", pic: pictureOf(g.id),
   };
-  d.v = [d.pct, d.solved, d.total, d.bottleneck, d.pic].join("|").split("").reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7).toString(36);
+  d.open = d.total - d.solved - d.moving - d.blocked;
+  d.v = [d.moving, d.blocked, d.solved, d.total, d.bottleneck, d.pic].join("|").split("").reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7).toString(36);
   await tab.setContent(card(g, d), { waitUntil: "networkidle" }).catch(() => {});
   await tab.waitForTimeout(300);
   await tab.screenshot({ path: `share/${g.slug}.png`, type: "png" });

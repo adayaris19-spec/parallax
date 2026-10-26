@@ -174,7 +174,7 @@ async function weeklyBrief() {
   // deno-lint-ignore no-explicit-any
   const goalLines = goals.map((g: any) => {
     const bn = nodes.find((n: { goal_id: number; key: string }) => n.goal_id === g.id && n.key === g.bottleneck_key);
-    return `@${g.handle} (${g.name}): progress ${Math.round((g.progress ?? 0) * 100)}%, estimate ${g.horizon_low ?? "?"}-${g.horizon_high ?? "?"} years${bn ? `, bottleneck: ${bn.title}` : ""}`;
+    return `@${g.handle} (${g.name}): ${nodes.filter((n: { goal_id: number }) => n.goal_id === g.id).length} problems still open, estimate ${g.horizon_low ?? "?"}-${g.horizon_high ?? "?"} years${bn ? `, bottleneck: ${bn.title}` : ""}`;
   }).join("\n");
   // deno-lint-ignore no-explicit-any
   const signalLines = posts.map((p: any) => `${name(p.goal_id)} [${p.kind}] ${p.headline}. ${p.body ?? ""} (${p.independent_sources} sources)`).join("\n") || "(no new signals this week)";

@@ -307,7 +307,7 @@ async function run(slug?: string, fresh = false, live = false) {
   const done = new Set(have.map((r: { kind: string; post_id: number | null }) => `${r.kind}:${r.post_id ?? 0}`));
   const facts = `GOAL: ${g.name} (@${g.handle})
 Where it stands: ${g.tagline ?? g.summary ?? ""}
-Progress ${Math.round((g.progress ?? 0) * 100)}%. ${nodes.length} problems: ${solved} solved, ${blocked} blocked. Estimate: ${g.horizon_low ?? "?"}-${g.horizon_high ?? "?"} years at today's pace.
+${nodes.length} problems: ${solved} solved, ${blocked} blocked, the rest moving or barely started (never describe this as a percentage of the way). Estimate: ${g.horizon_low ?? "?"}-${g.horizon_high ?? "?"} years at today's pace.
 Research library: ${g.papers_count ?? "?"} papers.${iv ? ` Field: ${iv.papers_3y} papers in the last 3 full years, growth ${Math.round((iv.growth ?? 0) * 100)}% vs the 3 before. Leading countries: ${(iv.countries ?? []).slice(0, 3).map((c: { name: string; share: number }) => `${c.name} ${Math.round(c.share * 100)}%`).join(", ")}. Leading institutions: ${(iv.institutions ?? []).slice(0, 3).map((i: { name: string }) => i.name).join(", ")}.` : ""}
 Biggest bottleneck: ${bn ? `${t(bn)}. ${bn.plain_blocker || bn.blocker || ""} Why it matters: ${bn.plain_why || bn.why || ""}` : "none"}
 Promises from older research: ${pc("kept")} kept, ${pc("partly")} partly kept, ${pc("broken")} broken, ${pc("pending")} not due yet.
