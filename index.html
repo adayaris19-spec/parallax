@@ -704,6 +704,15 @@ body.goalpage main{max-width:1120px}
 .alert-offer p{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink2)}
 .alert-offer div{display:flex;gap:8px;margin-top:10px}
 @media (min-width:900px){.alert-offer{bottom:24px}}
+/* idea of the day */
+.iday{display:block;text-decoration:none;color:inherit;margin:18px 0;padding:18px 20px;border-radius:18px;background:linear-gradient(135deg,var(--accent-soft),transparent 70%),var(--card);border:1px solid var(--accent-line);box-shadow:var(--shadow)}
+.iday .kick{color:var(--accent)}
+.iday h3{font-size:20px;letter-spacing:-.02em;line-height:1.25;margin:8px 0 6px}
+.iday p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.iday-f{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px;font-size:13.5px;color:var(--muted)}
+.iday-f b{color:var(--ink)}
+.iday-cta{margin-left:auto;color:var(--accent);font-weight:500}
+.lab-more{text-align:center;margin:20px 0}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -1741,6 +1750,20 @@ function postCard(p, g, compact = false) {
   </article>`;
 }
 
+// Idea of the day: one open idea a day (the same for everyone that day), to invite a verdict.
+async function ideaOfTheDay(list) {
+  const ideas = await rest(`ideas?status=eq.open&novelty=in.(new,partly)&select=id,goal_id,title,pitch,test_low,test_high&order=id.asc&limit=300`);
+  if (!ideas.length) return '';
+  const day = Math.floor(Date.now() / 86400000), i = ideas[(day * 7919) % ideas.length], g = list.find((x) => x.id === i.goal_id);
+  if (!g) return '';
+  return `<a class="iday" href="#/idea/${i.id}">
+    <span class="kick">Idea of the day · @${esc(g.handle)}</span>
+    <h3>${esc(i.title)}</h3>
+    <p>${esc(i.pitch)}</p>
+    <span class="iday-f">${i.test_high ? `<span>First test <b class="mono">${esc(usdRange(i.test_low, i.test_high))}</b></span>` : ''}<span class="iday-cta">Worth testing? Judge it →</span></span>
+  </a>`;
+}
+
 // One row per goal: its newest posts side by side, swiped sideways.
 function goalRow(g, posts) {
   if (posts.length === 1) return postCard(posts[0], g);
@@ -1809,9 +1832,9 @@ async function feedView(tab) {
       if (!groups.has(g.id)) groups.set(g.id, { g, posts: [] });
       groups.get(g.id).posts.push(p);
     }
-    const html = [...groups.values()].map(({ g, posts }) => goalRow(g, posts)).join('');
+    const parts = [...groups.values()].map(({ g, posts }) => goalRow(g, posts)), html = parts.join('');
     before = page.length ? page[page.length - 1].created_at : before;
-    return { html, more: page.length === PAGE };
+    return { html, parts, more: page.length === PAGE };
   };
   try {
     const first = await load();
@@ -1819,8 +1842,10 @@ async function feedView(tab) {
       box.innerHTML = note('Nothing posted yet', 'The goals are still being mapped. Their first posts appear here as soon as they are ready.');
       return;
     }
-    const stories = tab === 'all' ? await loadStories(list).catch(() => []) : [];
-    box.innerHTML = (tab === 'all' ? storiesRow(list, stories) : '') + first.html + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
+    const [stories, daily] = tab === 'all' ? await Promise.all([loadStories(list).catch(() => []), ideaOfTheDay(list).catch(() => '')]) : [[], ''];
+    // The idea of the day sits after the first goal's row, so the feed still opens on news.
+    const body = daily ? first.parts[0] + daily + first.parts.slice(1).join('') : first.html;
+    box.innerHTML = (tab === 'all' ? storiesRow(list, stories) : '') + body + (first.more ? '<button class="btn more" id="more">Load more</button>' : '');
     const sn = $('#storyNew');
     if (sn) sn.onclick = () => { qInput.focus(); toast('Type any goal, like "cure malaria"'); };
     const wire = () => {
@@ -3205,8 +3230,16 @@ async function labView(slug, sort = 'top') {
       <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
     <div class="lab-bar"><div class="chips">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
       <div class="seg"><a class="${sort === 'top' ? 'on' : ''}" href="${base}">Most promising</a><a class="${sort === 'new' ? 'on' : ''}" href="${base}?new">Newest</a></div></div>
-    ${shown.length ? `<div class="itiles">${shown.map((i) => ideaTile(i, list.find((g) => g.id === i.goal_id))).join('')}</div>` : note('No ideas yet', 'Parallax adds new ideas every hour, starting with each goal’s hardest problems.')}`;
+    ${shown.length ? `<div class="itiles" id="itiles">${shown.slice(0, LAB_PAGE).map((i) => ideaTile(i, list.find((g) => g.id === i.goal_id))).join('')}</div>${shown.length > LAB_PAGE ? `<p class="lab-more"><button class="btn" type="button" id="labMore">Show more ideas (${shown.length - LAB_PAGE} left)</button></p>` : ''}` : note('No ideas yet', 'Parallax adds new ideas every hour, starting with each goal’s hardest problems.')}`;
+  // 20 at a time: a phone shouldn't render all of them at once.
+  let at = LAB_PAGE;
+  $('#labMore')?.addEventListener('click', (e) => {
+    $('#itiles').insertAdjacentHTML('beforeend', shown.slice(at, at + LAB_PAGE).map((i) => ideaTile(i, list.find((g) => g.id === i.goal_id))).join(''));
+    at += LAB_PAGE;
+    if (at >= shown.length) e.target.closest('p').remove(); else e.target.textContent = `Show more ideas (${shown.length - at} left)`;
+  });
 }
+const LAB_PAGE = 20;
 
 async function ideaView(id) {
   view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
