@@ -851,6 +851,10 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .cc.ghost span{display:block;height:12px;border-radius:4px;background:var(--line2);margin:8px 0}.cc.ghost span:nth-child(2){width:70%}.cc.ghost span:nth-child(3){width:45%}
 .cc-more{justify-content:center;background:linear-gradient(160deg,var(--accent-soft),var(--card))}.cc-more p{margin:0;font-size:13.5px;color:var(--ink2)}.cc-more .btn{align-self:flex-start;margin-top:6px}
 @media (max-width:760px){.plus-top{grid-template-columns:1fr}.plus-top .pweek{justify-self:center}.pstrip{grid-auto-columns:78%}}
+.pripple{background:linear-gradient(135deg,var(--accent-soft),transparent 70%),var(--card)}
+.pr-t{margin:6px 0 4px;font-size:15.5px;font-weight:600;line-height:1.35}.pr-t a{color:var(--ink);text-decoration:none}.pr-t a:hover{text-decoration:underline}
+.pr-to{margin:0;font-size:13.5px;color:var(--ink2)}.pr-to span{color:var(--accent)}
+.pr-w{margin:6px 0 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
 .comings{display:grid;gap:12px}
 .coming{position:relative;padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
 .coming::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--img,var(--accent-soft)) center/cover,var(--accent-soft)}
@@ -1248,6 +1252,48 @@ body.wide main{max-width:1120px}
 .bdet>summary::after{content:" ↓";color:var(--muted)}.bdet[open]>summary::after{content:" ↑"}
 .csvrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 0}
 .csvrow .lbl{margin-right:4px}
+.xdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--open)}
+.xdot.st-solved{background:var(--solved)}.xdot.st-progress{background:var(--progress)}.xdot.st-blocked{background:var(--blocked)}
+.webwrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px;align-items:start;padding:8px 10px 14px}
+svg.web{width:100%;max-width:640px;height:auto;display:block;margin:0 auto}
+.wedge line{stroke:var(--ink2);stroke-opacity:.35;stroke-linecap:round}
+.wedge line.hit{stroke:transparent;stroke-width:18}
+.wedge{cursor:pointer}.wedge:hover line:not(.hit){stroke-opacity:.7}
+.wedge.on line:not(.hit){stroke:var(--accent);stroke-opacity:1}
+.wedge text{font-family:var(--m);font-size:11px;fill:var(--ink2);paint-order:stroke;stroke:var(--card);stroke-width:4px}
+.wnode circle{fill:var(--ink)}.wnode text{font-size:12.5px;font-weight:600;fill:var(--ink)}
+.wnode.alone circle{fill:var(--line2)}.wnode.alone text{fill:var(--muted);font-weight:400}
+.webside{padding:8px 8px 0;max-height:430px;overflow:auto}
+.xlink{padding:10px 0;border-top:1px solid var(--line)}
+.xpair{display:grid;gap:4px;font-size:13.5px}
+.xpair a{color:var(--ink);text-decoration:none}.xpair a:hover{text-decoration:underline}
+.xeq{color:var(--muted);font-size:12px;padding-left:2px}
+.xlink p{margin:6px 0 2px;font-size:13.5px;line-height:1.45;color:var(--ink2)}
+.xlink small{font-size:11.5px;color:var(--muted)}
+.kcards{display:grid;gap:0}
+.kcard{padding:14px 18px;border-top:1px solid var(--line)}
+.kcards>.kcard:first-child{border-top:0}
+.kcard-h{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;justify-content:space-between}
+.kcard-h b{font-size:15.5px}
+.kgoals{display:flex;flex-wrap:wrap;gap:4px}
+.kmeta{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 0 2px;font-size:12.5px;color:var(--muted)}
+.kmeta b{color:var(--ink);font-weight:500}
+.kcard details>summary{cursor:pointer;font-size:13px;color:var(--ink2);padding:6px 0 0}
+.rips .rip{padding:12px 18px;border-top:1px solid var(--line)}
+.rips>.rip:first-child{border-top:0}
+.rip-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.rip-h .when{margin-left:auto}
+.rip-new{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px}
+.rip-t{margin:6px 0 4px;font-size:15px;font-weight:500;line-height:1.4}
+.rip-t a{color:var(--ink);text-decoration:none}.rip-t a:hover{text-decoration:underline}
+.rip-to{display:grid;gap:6px;font-size:13.5px}
+.rip-to>div{display:grid;grid-template-columns:16px minmax(0,1fr);gap:4px}
+.rip-to a{color:var(--ink2);text-decoration:none}.rip-to a:hover{text-decoration:underline}
+.rip-to small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4;margin-top:2px}
+.rip-arrow{color:var(--accent)}
+@media (max-width:760px){.webwrap{grid-template-columns:1fr}.webside{max-height:none}}
+.xalso{padding:8px 16px 0;font-size:13px;color:var(--ink2)}
+.xalso span{color:var(--accent)}.xalso a{font-weight:600;color:var(--ink);text-decoration:none}.xalso a:hover{text-decoration:underline}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -1879,12 +1925,18 @@ async function share(path, title) {
 
 // ------------------------------------------------------------ data
 let goalsCache = null;
+let crossIdx = new Map(); // "goalId/key" -> problems in other goals it also moves
 async function goals(force = false) {
   if (!goalsCache || force) {
-    const [list, pics] = await Promise.all([
+    const [list, pics, cross] = await Promise.all([
       rest(`goals?select=${GOAL_COLS}&status=neq.failed&order=name.asc&limit=2000`),
       rest('goal_pictures?select=goal_id,pics').catch(() => []),
+      rest('crossovers?source=neq.rejected&select=goal_a,key_a,goal_b,key_b,why&limit=5000').catch(() => []),
     ]);
+    // Crossovers: a problem shared with other goals (posts on it say which goals it also moves).
+    crossIdx = new Map();
+    const add = (g, k, og, ok, why) => { const id = `${g}/${k}`; if (!crossIdx.has(id)) crossIdx.set(id, []); crossIdx.get(id).push({ gid: og, key: ok, why }); };
+    for (const c of cross) { add(c.goal_a, c.key_a, c.goal_b, c.key_b, c.why); add(c.goal_b, c.key_b, c.goal_a, c.key_a, c.why); }
     // Each goal's own pictures (from its approved video shots): its avatar and its feed cards.
     const by = new Map(pics.map((x) => [x.goal_id, (x.pics || []).filter((u) => safeUrl(u))]));
     for (const g of list) g.pics = by.get(g.id) || [];
@@ -1938,18 +1990,21 @@ function postCard(p, g, compact = false) {
     srcs ? `<ul class="srcs">${srcs}</ul>` : '',
   ].join('');
   const shareBtn = `<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>`;
+  // Shared problems: which other goals this also moves (one link per goal).
+  const also = p.node_key && p.kind !== 'mapped' ? [...new Map((crossIdx.get(`${p.goal_id}/${p.node_key}`) || []).map((x) => [x.gid, x])).values()] : [];
+  const alsoLine = also.length ? `<div class="xalso"><span aria-hidden="true">↳</span> Also moves ${also.map((x) => { const og = (goalsCache || []).find((q) => q.id === x.gid); return og ? `<a href="#/g/${encodeURIComponent(og.slug)}/tree/${encodeURIComponent(x.key)}" title="${esc(x.why || '')}">@${esc(og.handle)}</a>` : ''; }).filter(Boolean).join(', ')}</div>` : '';
   const more = detail ? `<details class="more"><summary>Read more${nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : '';
   if (compact) {
     // Inside a goal's row or on its own page: the goal is already named above, so no header.
     return `<article class="post compact">
-    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>${alsoLine}
     <div class="post-f">${more || '<span></span>'}<span class="spacer"></span><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time>${shareBtn}</div>
   </article>`;
   }
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
     <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
-    ${more}
+    ${alsoLine}${more}
     <div class="post-f">${check}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
 }
@@ -3022,7 +3077,7 @@ function oppPanel(t) {
 }
 
 // ---- Pro-only market views: money flows, the race, the pipeline. Data the free site never shows.
-const termSel = { money: '', race: '', pipe: '', phase: '', moneyAll: false, pipeAll: false };
+const termSel = { money: '', race: '', pipe: '', phase: '', moneyAll: false, pipeAll: false, web: '', keyAll: false, ripAll: false };
 const selChips = (key, items, cur, allLabel) => `<div class="bfilter" role="group">${allLabel ? `<button type="button" class="chip3${cur ? '' : ' on'}" data-tsel="${key}" data-v="">${allLabel}</button>` : ''}${items.map(([v, label]) => `<button type="button" class="chip3${cur === v ? ' on' : ''}" data-tsel="${key}" data-v="${esc(v)}">${esc(label)}</button>`).join('')}</div>`;
 const extLink = (url, text) => { const u = safeUrl(url); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${text}</a>` : text; };
 const goalChip = (x) => `<a class="hchip" href="#/g/${encodeURIComponent(x.slug)}">@${esc(x.goal)}</a>`;
@@ -3116,11 +3171,98 @@ function pipelinePanel(t) {
     ${list.length > shown.length ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="pipeAll" data-v="1">Show all ${list.length}</button></p>` : ''}
     <p class="radar-note" style="padding:8px 18px 14px">Recruiting, active or about to start, from ClinicalTrials.gov, for the problems on each health goal’s map. “Not phased” is mostly observational studies and device or diagnostic studies.</p></section>`;
 }
-const MARKET_PANES = { money: moneyPanel, race: racePanel, pipeline: pipelinePanel };
+// ---- Crossovers: problems shared between goals. The map, keystone problems and ripples.
+// "Since your last visit": the previous visit's time, kept for this session.
+let lastSeen = 0, seenMarked = false;
+function markSeen() { // called when Pro opens
+  if (seenMarked) return; seenMarked = true;
+  try {
+    let prev = Number(sessionStorage.getItem('px.termPrev') || 0);
+    if (!prev) { prev = Number(localStorage.getItem('px.termSeen') || 0) || 1; sessionStorage.setItem('px.termPrev', String(prev)); }
+    localStorage.setItem('px.termSeen', String(Date.now()));
+    lastSeen = prev > 1 ? prev : 0;
+  } catch { /* storage blocked: no "new" flags */ }
+}
+const RIP_KIND = { advance: ['Advance', 'advance'], setback: ['Setback', 'setback'], solved: ['Solved', 'solved'], bottleneck: ['Bottleneck', 'bottleneck'], grant: ['Big grant', 'promise'] };
+const stDot = (s) => `<i class="xdot st-${s === 'in_progress' ? 'progress' : s}" title="${esc(STATUS_LABEL[s] || s)}"></i>`;
+const xref = (n) => `<a href="#/g/${encodeURIComponent(n.slug)}/tree/${encodeURIComponent(n.key)}">${stDot(n.status)}<span class="hchip">@${esc(n.goal)}</span> ${esc(n.title)}</a>`;
+function rippleRows(list) {
+  return list.map((r) => {
+    const [label, cls] = RIP_KIND[r.kind] || [r.kind, ''];
+    const isNew = lastSeen && new Date(r.at).getTime() > lastSeen;
+    const head = r.post ? `<a href="#/p/${r.post}">${esc(r.headline)}</a>` : r.url ? extLink(r.url, esc(r.headline)) : esc(r.headline);
+    return `<div class="rip"><div class="rip-h"><span class="sig ${cls}">${label}</span>${isNew ? '<span class="rip-new">New</span>' : ''}<span class="hchip">@${esc(r.from.goal)}</span><span class="when">${esc(whenAgo(r.at))}</span></div>
+      <div class="rip-t">${head}</div>
+      <div class="rip-to">${r.affects.map((a) => `<div><span class="rip-arrow" aria-hidden="true">↳</span> <span>also moves <a href="#/g/${encodeURIComponent(a.slug)}/tree/${encodeURIComponent(a.key)}"><span class="hchip">@${esc(a.goal)}</span> ${esc(a.title)}</a>${a.why ? `<small>${esc(a.why)}</small>` : ''}</span></div>`).join('')}</div></div>`;
+  }).join('');
+}
+function webSvg(web, sel) {
+  // Order goals so linked ones sit next to each other around the circle.
+  const order = [], seen = new Set();
+  for (const e of web.edges) for (const s of [e.a, e.b]) if (!seen.has(s)) { seen.add(s); order.push(s); }
+  for (const g of web.goals) if (!seen.has(g.slug)) order.push(g.slug);
+  const W = 640, H = 430, cx = W / 2, cy = H / 2 - 4, R = 165, N = order.length;
+  const pos = Object.fromEntries(order.map((s, i) => [s, [cx + R * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / N), cy + R * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / N)]]));
+  const handle = (s) => web.goals.find((g) => g.slug === s)?.handle || s;
+  const linked = new Set(web.edges.flatMap((e) => [e.a, e.b]));
+  const edges = web.edges.map((e) => {
+    const [x1, y1] = pos[e.a], [x2, y2] = pos[e.b], on = sel === `${e.a}|${e.b}`;
+    return `<g class="wedge${on ? ' on' : ''}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" role="button" tabindex="0" aria-label="@${esc(handle(e.a))} and @${esc(handle(e.b))}: ${e.n} shared problems">
+      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="hit"/><line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke-width:${Math.min(9, 1.5 + e.n * 0.7).toFixed(1)}"/>
+      <text x="${((x1 + x2) / 2).toFixed(1)}" y="${((y1 + y2) / 2 + 4).toFixed(1)}" text-anchor="middle">${e.n}</text></g>`;
+  }).join('');
+  const nodes = order.map((s) => {
+    const [x, y] = pos[s], out = x < cx - 10 ? 'end' : x > cx + 10 ? 'start' : 'middle', dx = out === 'end' ? -16 : out === 'start' ? 16 : 0, dy = out === 'middle' ? (y < cy ? -18 : 26) : 4;
+    return `<g class="wnode${linked.has(s) ? '' : ' alone'}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/><text x="${(x + dx).toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${out}">@${esc(handle(s))}</text></g>`;
+  }).join('');
+  return `<svg class="web" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals linked by shared problems">${edges}${nodes}</svg>`;
+}
+function linkRows(links) {
+  return links.map((l) => `<div class="xlink"><div class="xpair">${xref(l.a)}<span class="xeq" aria-hidden="true">⇄</span>${xref(l.b)}</div><p>${esc(l.why || '')}</p><small>${l.source === 'ai' ? 'Found by reading both problems' : `${l.papers} shared papers`}</small></div>`).join('');
+}
+function keystoneCards(list) {
+  return list.map((k) => `<div class="kcard"><div class="kcard-h"><b>${esc(k.title)}</b><span class="kgoals">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</span></div>
+    <div class="kmeta"><span><b class="mono">${k.goals}</b> goals</span><span><b class="mono">${k.members.length}</b> linked problems</span>${k.funding ? `<span><b class="mono">${usdShort(k.funding)}</b> federal grants</span>` : ''}${k.papers_last ? `<span><b class="mono">${k.papers_last.toLocaleString()}</b> papers last year</span>` : ''}<span><b class="mono">${k.moves30}</b> moves in 30 days</span></div>
+    <details><summary>How they connect</summary>${linkRows(k.links)}</details></div>`).join('');
+}
+function crossPanel(t) {
+  const full = t.access === 'full', tot = t.crossover_totals || {};
+  const head = (h, sub) => `<div class="panel-h"><h2>${h}</h2><span class="lbl">${sub}</span></div>`;
+  if (!tot.links) return `<section class="panel">${head('Crossovers', 'Problems shared between goals')}<div class="pad" style="color:var(--muted)">Crossovers are being mapped. Check back in a few hours.</div></section>`;
+  if (!full) {
+    const p = t.preview?.crossovers || {};
+    return `<section class="panel">${head('Crossovers', 'Where solving one problem moves more than one goal')}${answerBox(t.answers?.crossovers)}<div class="pad">${p.web ? webSvg(p.web, '') : ''}</div>
+      ${p.keystone ? `<div class="pad" style="border-top:1px solid var(--line)"><span class="lbl">Top keystone · sample</span>${keystoneCards([p.keystone])}</div>` : ''}
+      ${p.ripple ? `<div class="rips" style="border-top:1px solid var(--line)"><span class="lbl" style="display:block;padding:12px 18px 0">Latest ripple · sample</span>${rippleRows([p.ripple])}</div>` : ''}
+      ${moreGate(`Subscribers see all ${tot.links} links with how they connect, ${tot.keystones} keystone problems ranked, and every ripple as it happens, flagged new since your last visit.`)}</section>`;
+  }
+  const c = t.crossovers;
+  const sel = termSel.web || (c.web.edges[0] ? `${c.web.edges[0].a}|${c.web.edges[0].b}` : '');
+  const [sa, sb] = sel.split('|'), hn = (s) => c.web.goals.find((g) => g.slug === s)?.handle;
+  const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
+  return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
+      <div class="webwrap">${webSvg(c.web, sel)}<div class="webside">${sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${(c.links[sel] || []).length} shared</span>${linkRows(c.links[sel] || [])}` : ''}</div></div></section>
+    <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
+      <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 6))}</div>
+      ${c.keystones.length > 6 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
+    <section class="panel">${head(`Ripples <small>${c.ripples.length}</small>`, `Moves on one goal that reach another · last 30 days${fresh ? ` · ${fresh} new since your last visit` : ''}`)}
+      <div class="rips">${rippleRows(c.ripples.slice(0, termSel.ripAll ? 99 : 10)) || '<div class="pad" style="color:var(--muted)">No ripples in the last 30 days.</div>'}</div>
+      ${c.ripples.length > 10 && !termSel.ripAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="ripAll" data-v="1">Show all ${c.ripples.length}</button></p>` : ''}</section>`;
+}
+// Overview: what rippled since the last visit (the reason to come back), newest first.
+function rippleBox(t) {
+  if (t.access !== 'full' || !t.crossovers?.ripples?.length) return '';
+  const all = t.crossovers.ripples, fresh = all.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen);
+  const list = (fresh.length ? fresh : all).slice(0, 4);
+  return `<section class="panel"><div class="panel-h"><h2>${fresh.length ? `${fresh.length} new ripple${fresh.length === 1 ? '' : 's'} since your last visit` : 'Latest ripples'}</h2><a class="lbl" href="#/terminal/crossovers">All crossovers →</a></div>
+    <div class="rips">${rippleRows(list)}</div></section>`;
+}
+
+const MARKET_PANES = { money: moneyPanel, race: racePanel, pipeline: pipelinePanel, cross: crossPanel };
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-tsel]'); if (!b || !term) return;
   const k = b.dataset.tsel, v = b.dataset.v;
-  if (k === 'moneyAll' || k === 'pipeAll') termSel[k] = true; else termSel[k] = v;
+  if (['moneyAll', 'pipeAll', 'keyAll', 'ripAll'].includes(k)) termSel[k] = true; else termSel[k] = v;
   if (k === 'money') termSel.moneyAll = false;
   if (k === 'pipe') { termSel.phase = ''; termSel.pipeAll = false; }
   if (k === 'phase') termSel.pipeAll = false;
@@ -3132,7 +3274,7 @@ document.addEventListener('click', (e) => {
 
 // Four tabs: the overview, and one each for money, players and dates. Old links land on the tab
 // that now holds what they pointed to.
-const TTABS = [['overview', 'Overview'], ['money', 'Money'], ['players', 'Players'], ['calendar', 'Calendar']];
+const TTABS = [['overview', 'Overview'], ['crossovers', 'Crossovers'], ['money', 'Money'], ['players', 'Players'], ['calendar', 'Calendar']];
 const TAB_ALIAS = { radar: 'money', opportunities: 'money', race: 'players', pipeline: 'players', leaders: 'players', watch: 'calendar', brief: 'overview', bottlenecks: 'overview', signals: 'overview', data: 'overview' };
 const mp = (id, html) => `<div data-mp="${id}">${html}</div>`;
 
@@ -3141,7 +3283,9 @@ function overviewCards(t) {
   const full = t.access === 'full', mt = t.market_totals || {};
   const card = (tab, title, big, line) => `<a class="jump${full ? '' : ' lockd'}" href="#/terminal/${tab}"><span class="lbl">${title}${full ? '' : ' · <span class="lk">Preview</span>'}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${full ? 'Open →' : 'See a sample →'}</span></a>`;
   const aw = t.money?.awards?.[0], cl = t.race?.climbers?.[0], next = (t.catalysts || [])[0];
+  const ct = t.crossover_totals || {};
   return `<div class="jumps">
+    ${card('crossovers', 'Crossovers', `${ct.links || 0} links between goals’ problems`, `${ct.keystones || 0} keystones · ${ct.ripples || 0} ripples in 30 days`)}
     ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants · ${usdShort(mt.awards_sum || 0)}`, full && aw ? `Biggest: ${usdShort(aw.amount)} to ${esc(aw.recipient)} (@${esc(aw.goal)})` : 'Who got them, funding by quarter, and where money is thin')}
     ${card('players', 'Players', `${mt.climbers || 0} organizations on the move${mt.trials ? ` · ${mt.trials} trials` : ''}`, full && cl ? `${esc(cl.name)}: ${cl.prior_rank ? `#${cl.prior_rank} → #${cl.rank}` : `new at #${cl.rank}`} on @${esc(cl.goal)}` : 'Who leads each goal on grants, trials and papers')}
     ${card('calendar', 'Calendar', `${t.catalysts_total || 0} catalysts ahead`, full && next ? `Next: ${esc(next.title.slice(0, 80))} (@${esc(next.goal)})` : 'Trial readouts and promises coming due, with alerts')}
@@ -3289,6 +3433,7 @@ async function wireWatch(box) {
 
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
+  if (full) markSeen();
   tab = TAB_ALIAS[tab] || tab; // old links
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   const thisYear = new Date().getFullYear();
@@ -3302,6 +3447,7 @@ function renderTerminal(box, tab = 'overview') {
       <div><span class="lbl">Catalysts ahead</span><b class="mono">${t.catalysts_total ?? 0}</b><small>trial readouts and promises due</small></div>
       <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
     </section>
+    ${rippleBox(t)}
     ${weekBox(t)}
     ${goalIndex(t)}
     ${upNext(t)}
@@ -3312,9 +3458,10 @@ function renderTerminal(box, tab = 'overview') {
     money: () => mp('money', moneyPanel(t)) + radarPanel(t) + oppPanel(t),
     players: () => mp('race', racePanel(t)) + mp('pipeline', pipelinePanel(t)),
     calendar: () => calendarPanel(t) + watchPanel(t),
+    crossovers: () => mp('cross', crossPanel(t)),
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
-      <ul><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
+      <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
       <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe monthly</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
   const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
@@ -3368,6 +3515,8 @@ async function plusView() {
     scenes.push({ caption: 'Your week in progress', sub: b.headline, visual: vis(first, 1), layout: 'center' });
     items.slice(0, full ? 6 : 1).forEach((x, i) => { const g = goalOf(x.goal); const clip = (t, n) => (t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, '')}…` : t);
       scenes.push({ caption: x.short || x.text, sub: `${x.goal} · ${x.k === 'watch' ? 'Watch next: ' : ''}${clip(String(x.text), 140)}`, visual: vis(g, i + 2), layout: i % 2 ? 'top' : 'bottom' }); });
+    const rp = d.ripple;
+    if (rp && full) scenes.push({ caption: 'Ripple effect', sub: `${rp.headline} · @${rp.from} → also moves @${rp.to}: ${rp.why}`, visual: vis(goalOf(rp.to), 4), layout: 'bottom' });
     const next = d.coming?.[0];
     if (next) scenes.push({ caption: 'Coming up', sub: `${next.title.length > 110 ? `${next.title.slice(0, 110).replace(/\s+\S*$/, '')}…` : next.title} · @${next.goal}`, visual: vis(goalOf(next.goal), 3), layout: 'center' });
     if (!full) scenes.push({ caption: 'The full video is for Plus', sub: `Every week: what moved on the goals you follow, what to watch, and what's coming.`, visual: null, layout: 'center' });
@@ -3414,6 +3563,8 @@ async function plusView() {
         <p class="pweek-n">${b ? `Week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))} · ${mine.size ? 'the goals you follow first' : 'follow goals to make it yours'}` : ''}</p></div>
       <div class="pmain">
         ${b ? `<div class="pbox"><span class="lbl">This week</span><h2>${esc(b.headline)}</h2>${tldr.length ? `<ul>${tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
+        ${d.ripple ? `<div class="pbox pripple"><span class="lbl">Ripple of the week</span><p class="pr-t"><a href="#/p/${d.ripple.post}">${esc(d.ripple.headline)}</a></p>
+          <p class="pr-to"><a class="hchip" href="#/g/${encodeURIComponent(d.ripple.from_slug)}">@${esc(d.ripple.from)}</a> <span aria-hidden="true">→</span> also moves <a class="hchip" href="#/g/${encodeURIComponent(d.ripple.to_slug)}">@${esc(d.ripple.to)}</a></p><p class="pr-w">${esc(d.ripple.why)}</p></div>` : ''}
         <div class="pbox"><div class="pbox-h"><span class="lbl">Your calls</span>${full ? `<a class="linkish" href="#pstrip">Make a call →</a>` : ''}</div>
           <div class="pstats"><div><b class="mono">${calls}</b><small>made</small></div><div><b class="mono">${judged.length ? `${right}/${judged.length}` : '—'}</b><small>right</small></div><div><b class="mono">${waiting.length}</b><small>waiting</small></div></div>
           ${settled.length ? `<div class="rrs">${settled.slice(0, full ? 4 : 1).map(resRow).join('')}</div>${full && settled.length > 4 ? `<details class="rr-more"><summary>All ${settled.length} results</summary><div class="rrs">${settled.slice(4).map(resRow).join('')}</div></details>` : ''}`
