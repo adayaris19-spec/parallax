@@ -184,7 +184,8 @@ async function unsplashPhotos(q: string): Promise<Cand[]> {
 const R2_ACCOUNT = Deno.env.get("R2_ACCOUNT_ID") ?? "";
 const R2_PUBLIC = (Deno.env.get("R2_PUBLIC_URL") ?? "").replace(/\/+$/, "");
 const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "parallax-media";
-const r2 = R2_ACCOUNT && R2_PUBLIC && Deno.env.get("R2_ACCESS_KEY_ID")
+// The public address must be the bucket's public URL (pub-….r2.dev or a custom domain), not the API endpoint.
+const r2 = R2_ACCOUNT && R2_PUBLIC && !R2_PUBLIC.includes("r2.cloudflarestorage.com") && Deno.env.get("R2_ACCESS_KEY_ID")
   ? new AwsClient({ accessKeyId: Deno.env.get("R2_ACCESS_KEY_ID")!, secretAccessKey: Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "", service: "s3", region: "auto" })
   : null;
 const OLD_PREFIX = `${SB}/storage/v1/object/public/reels-media/`;
@@ -203,8 +204,11 @@ async function rehost(c: Cand, folder: string) {
   if (!r.ok || !r.body) throw new Error(`copy failed ${r.status}`);
   const type = (r.headers.get("content-type") ?? (c.kind === "video" ? "video/mp4" : "image/jpeg")).split(";")[0];
   const path = `${folder}/${c.id}.${c.kind === "video" ? "mp4" : "jpg"}`;
-  if (r2) return await r2Put(path, await r.arrayBuffer(), type);
-  const up = await fetch(`${SB}/storage/v1/object/reels-media/${path}`, { method: "POST", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": type, "x-upsert": "true", "cache-control": "max-age=31536000" }, body: r.body, signal: AbortSignal.timeout(90000) });
+  const data = await r.arrayBuffer();
+  if (r2) {
+    try { return await r2Put(path, data, type); } catch (e) { console.error("R2 upload failed, using Supabase:", e instanceof Error ? e.message : e); }
+  }
+  const up = await fetch(`${SB}/storage/v1/object/reels-media/${path}`, { method: "POST", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": type, "x-upsert": "true", "cache-control": "max-age=31536000" }, body: data, signal: AbortSignal.timeout(90000) });
   if (!up.ok) throw new Error(`storage ${up.status}: ${(await up.text()).slice(0, 120)}`);
   return `${SB}/storage/v1/object/public/reels-media/${path}`;
 }
@@ -524,6 +528,12 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   try {
     if (body.action === "move_media") return json(await moveMedia());
+    if (body.action === "r2_check") {
+      if (!r2) return json({ ok: false, why: R2_PUBLIC.includes("r2.cloudflarestorage.com") ? "R2_PUBLIC_URL is the API endpoint; use the bucket's public URL (pub-….r2.dev)" : "R2 secrets missing" });
+      const put = await r2.fetch(`https://${R2_ACCOUNT}.r2.cloudflarestorage.com/${R2_BUCKET}/check.txt`, { method: "PUT", body: "ok", headers: { "Content-Type": "text/plain" } });
+      const pub = put.ok ? await fetch(`${R2_PUBLIC}/check.txt`).then((r) => r.status).catch(() => 0) : 0;
+      return json({ ok: put.ok && pub === 200, bucket: R2_BUCKET, upload: put.status, upload_error: put.ok ? null : (await put.text()).slice(0, 160), public_read: pub });
+    }
     if (body.action === "drop_old") return json(await dropOld());
     const collected = await collect();
     if (body.collect_only === true) return json({ collected });
