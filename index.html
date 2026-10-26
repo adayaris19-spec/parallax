@@ -718,6 +718,45 @@ body.goalpage main{max-width:1120px}
 .moregate p{margin:0;font-size:14px;color:var(--ink2);max-width:560px}
 .moregate div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .moregate .linkish{font-size:13px}
+/* terminal: KPI strip, goal index, radar, catalysts */
+.kstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:14px 0;border-radius:var(--r);overflow:hidden;background:var(--line);border:1px solid var(--line);box-shadow:var(--shadow)}
+.kstrip>div{background:var(--card);padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.kstrip b{font-size:26px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.kstrip b small{font-size:14px;color:var(--muted);font-weight:400}
+.kstrip small{font-size:12.5px;color:var(--muted)}
+.kstrip .up,.gindex .up{color:var(--solved)} .kstrip .down,.gindex .down{color:var(--blocked)}
+@media (max-width:760px){.kstrip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.radar{width:100%;height:auto;display:block}
+.radar .grid{stroke:var(--line);stroke-width:1}
+.radar .ax{fill:var(--muted);font-size:11px;font-family:var(--m)}
+.radar .ax.t{font-family:var(--f);font-size:12px}
+.radar .hot{fill:var(--accent-soft);rx:10}
+.radar .lane{fill:var(--sunk);rx:8}
+@media (max-width:640px){table.tt.gindex{min-width:0}table.gindex th:nth-child(3),table.gindex td:nth-child(3),table.gindex th:nth-child(5),table.gindex td:nth-child(5),table.gindex th:nth-child(6),table.gindex td:nth-child(6),table.gindex th:nth-child(8),table.gindex td:nth-child(8){display:none}table.gindex td .sub{max-width:150px}table.gindex .pbar{width:36px}}
+.pbar .stbar i.st-solved{background:var(--solved)}.pbar .stbar i.st-in_progress{background:var(--progress)}.pbar .stbar i.st-blocked{background:var(--blocked)}.pbar .stbar i.st-open{background:var(--open)}
+.radar .hotl{fill:var(--accent);font-size:12px;font-weight:600}
+.radar circle{fill:var(--line2);stroke:var(--card);stroke-width:1;opacity:.9}
+.radar circle.op{fill:var(--accent);opacity:.85}
+.radar circle.nm{stroke:var(--ink);stroke-width:1.5}
+.radar a circle{cursor:pointer}
+.radar-note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.oplist{border-top:1px solid var(--line)}
+.oplist-h,.oplist a{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px;gap:12px;align-items:center;padding:10px 18px}
+.oplist-h{font-family:var(--m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.oplist a{text-decoration:none;color:inherit;border-top:1px solid var(--line);font-size:14px}
+.oplist a:hover{background:var(--sunk)}
+.oplist a small{display:block;font-size:12px;color:var(--muted)}
+.oplist b{font-weight:500;text-align:right;font-size:13px}
+.cal{padding:4px 18px 10px}
+.cal-g{padding:12px 0;border-bottom:1px solid var(--line)}
+.cal-g:last-child{border-bottom:0}
+.cal-d{font-family:var(--m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.cal-i{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:start;padding:6px 0}
+.cal-i .sig{justify-self:start}
+.cal-t{font-size:14.5px;line-height:1.4}.cal-t a{color:var(--ink);text-decoration:none}.cal-t a:hover{text-decoration:underline}
+.cal-m{font-size:12.5px;color:var(--muted);margin-top:2px}.cal-m a{color:inherit}
+@media (max-width:640px){.cal-i{grid-template-columns:1fr}.oplist-h,.oplist a{grid-template-columns:minmax(0,1fr) 70px 80px;padding:10px 14px}}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -2906,7 +2945,7 @@ function heatMap(t) {
 }
 
 const TTABS = [
-  ['overview', 'Overview'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
+  ['overview', 'Goal index'], ['radar', 'Radar'], ['calendar', 'Catalysts'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
   ['leaders', 'Who is leading'], ['bottlenecks', 'Bottlenecks'], ['signals', 'Signals'], ['data', 'All data'],
 ];
 
@@ -2937,6 +2976,81 @@ function overviewCards(t) {
   </div>`;
 }
 
+// Goal index: one row per goal, like a market screen.
+function goalIndex(t) {
+  const full = t.access === 'full', rows = full ? [...t.goals].sort((a, b) => (b.papers_last ?? 0) - (a.papers_last ?? 0)) : (t.preview?.index || []);
+  const pctTxt = (x) => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${Math.round(Math.abs(x) * 100)}%`);
+  const body = rows.map((g) => `<tr>
+      <td><a href="#/g/${encodeURIComponent(g.slug)}"><b>@${esc(g.handle)}</b></a><span class="sub">${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</span></td>
+      <td class="num"><span class="pbar">${statusBar({ solved: g.solved, moving: g.in_progress, blocked: g.blocked, open: g.open })}</span>${g.solved}/${g.problems}</td>
+      <td class="num"><span class="up">+${g.advances30}</span> <span class="down">−${g.setbacks30}</span></td>
+      <td class="num">${g.papers_last == null ? '—' : g.papers_last.toLocaleString()}</td>
+      <td class="num ${g.field_growth3 > 0 ? 'up' : g.field_growth3 < 0 ? 'down' : ''}">${pctTxt(g.field_growth3)}</td>
+      <td class="num">${g.funded_problems ?? 0}/${g.problems}</td>
+      <td class="num">${g.catalysts ? `<a href="#/terminal/calendar">${g.catalysts}</a>` : '—'}</td>
+      <td class="num">${horizon(g)}</td></tr>`).join('');
+  return `<section class="panel"><div class="panel-h"><h2>Goal index ${full ? `<small>${rows.length}</small>` : ''}</h2><span class="lbl">Every goal, side by side · research figures for the last full year</span></div>
+    <div class="tw"><table class="tt gindex"><thead><tr><th scope="col">Goal</th><th class="num" scope="col">Solved</th><th class="num" scope="col" title="Advances and setbacks in the last 30 days">30 days</th><th class="num" scope="col" title="Papers published last year across the goal's field">Papers/yr</th><th class="num" scope="col" title="Last 3 years vs the 3 before">Growth</th><th class="num" scope="col" title="Problems with US federal grants matched">Funded</th><th class="num" scope="col">Catalysts</th><th class="num" scope="col">Countdown</th></tr></thead><tbody>${body}</tbody></table></div>
+    ${full ? '' : moreGate(`3 of ${t.goals_total} goals. Subscribers see every goal, updated daily.`)}</section>`;
+}
+
+// Opportunity radar: each unsolved problem by public funding (across) and research growth (up).
+function radarPanel(t) {
+  const full = t.access === 'full', pts = full ? t.radar : (t.preview?.radar || []);
+  const head = `<div class="panel-h"><h2>Opportunity radar</h2><span class="lbl">Where research is heating up but public money is thin</span></div>`;
+  if (!pts.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
+  const W = 900, H = 440, L = 64, R = 20, T = 20, B = 46;
+  const maxX = Math.max(1, ...pts.map((p) => p.x)), lx = (v) => (v > 0 ? Math.log10(v) : 0), lo = 5; // $100K
+  const hi = Math.max(lo + 1, Math.ceil(lx(maxX)));
+  const X = (v) => (v <= 0 ? L + 18 : L + 78 + (Math.max(lo, lx(v)) - lo) / (hi - lo) * (W - L - R - 78));
+  const ys = pts.map((p) => p.y), yMin = Math.max(-0.75, Math.min(0, ...ys)), yMax = Math.min(4, Math.max(1, ...ys));
+  const Y = (v) => T + (1 - (Math.min(yMax, Math.max(yMin, v)) - yMin) / (yMax - yMin)) * (H - T - B);
+  const maxS = Math.max(1, ...pts.map((p) => p.size || 1)), rad = (s) => 3 + 9 * Math.sqrt((s || 1) / maxS);
+  const opp = pts.filter((p) => p.opportunity);
+  const ticksX = [0, ...Array.from({ length: hi - lo + 1 }, (_, i) => 10 ** (lo + i))];
+  const ticksY = [...new Set([yMin, 0, yMax / 2, yMax].map((v) => Math.round(v * 100) / 100))].filter((v, i, a) => v === 0 || a.every((w) => w === v || Math.abs(w - v) > (yMax - yMin) * 0.08));
+  const dots = pts.map((p) => {
+    const named = !!p.title, link = named ? `#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}` : null;
+    const c = `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${rad(p.size).toFixed(1)}" class="${p.opportunity ? 'op' : ''}${named ? ' nm' : ''}">${named ? `<title>@${esc(p.goal)} · ${esc(p.title)} · research ${p.y >= 0 ? '+' : ''}${Math.round(p.y * 100)}% · ${p.x ? usdShort(p.x) : 'no'} federal grants</title>` : ''}</circle>`;
+    return link ? `<a href="${link}">${c}</a>` : c;
+  }).join('');
+  const svg = `<svg class="radar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Problems by public funding and research growth">
+    <rect class="lane" x="${L}" y="${T}" width="36" height="${(H - T - B).toFixed(0)}"/>
+    ${(() => { // the shaded corner fits around the actual opportunities
+      if (!opp.length) return '';
+      const x1 = Math.max(...opp.map((p) => X(p.x) + rad(p.size))) + 14, y1 = Math.max(...opp.map((p) => Y(p.y) + rad(p.size))) + 14, x0 = X(10 ** lo) - 14;
+      return `<rect class="hot" x="${x0.toFixed(0)}" y="${T}" width="${Math.max(120, x1 - x0).toFixed(0)}" height="${(y1 - T).toFixed(0)}"/><text class="hotl" x="${(x0 + 10).toFixed(0)}" y="${T + 18}">Heating up, little public money</text>`;
+    })()}
+    ${ticksY.map((v) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="ax" x="${L - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${v >= 0 ? '+' : '−'}${Math.round(Math.abs(v) * 100)}%</text>`).join('')}
+    ${ticksX.map((v) => `<text class="ax" x="${X(v).toFixed(1)}" y="${H - B + 18}" text-anchor="middle">${v ? usdShort(v) : 'no match'}</text>`).join('')}
+    <text class="ax t" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">US federal grants since ${new Date().getFullYear() - 3} (log scale)</text>
+    <text class="ax t" x="14" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(T + H - B) / 2})">Research growth, last 3 yrs vs 3 before</text>
+    ${dots}</svg>`;
+  const list = (full ? opp : opp.filter((p) => p.title)).slice(0, full ? 30 : 2).map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}"><span>${esc(p.title)}<small>@${esc(p.goal)}</small></span><b class="mono up">+${Math.round(p.y * 100)}%</b><b class="mono">${p.x ? usdShort(p.x) : 'no grants'}</b></a>`).join('');
+  return `<section class="panel">${head}<div class="pad">${svg}
+      <p class="radar-note">Each dot is an unsolved problem, sized by papers last year. Highlighted: research growth in the top third and matched federal funding in the bottom third. The grey column on the left is problems with no matching grants found (the search may miss them, so they are not counted as opportunities)${full ? '' : '. Names are for subscribers; two examples below'}.</p></div>
+    <div class="oplist"><div class="oplist-h"><span>Opportunities</span><span>Research growth</span><span>Federal grants</span></div>${list}</div>
+    ${full ? '' : moreGate(`${opp.length} problems are in the opportunity corner right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
+}
+
+// Catalysts: what is due, across every goal. Trial readouts (ClinicalTrials.gov) and promises coming due.
+function calendarPanel(t) {
+  const full = t.access === 'full', items = full ? t.catalysts : (t.preview?.catalysts || []);
+  const head = `<div class="panel-h"><h2>Catalysts ${full ? `<small>${items.length}</small>` : ''}</h2><span class="lbl">What is due next, across every goal</span></div>`;
+  if (!items.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Nothing due yet. Trial readouts and promises appear here as they come up.</div></section>`;
+  const label = (d) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : `During ${d}`);
+  const groups = [];
+  for (const c of items) { const l = label(c.date); if (!groups.length || groups[groups.length - 1].l !== l) groups.push({ l, items: [] }); groups[groups.length - 1].items.push(c); }
+  const body = groups.map((g) => `<div class="cal-g"><div class="cal-d">${esc(g.l)}</div>${g.items.map((c) => {
+    const u = safeUrl(c.url), title = esc(c.title);
+    return `<div class="cal-i"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial readout' : 'Promise due'}</span>
+      <div><div class="cal-t">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${title}</a>` : title}</div><div class="cal-m"><a href="#/g/${encodeURIComponent(c.slug)}${c.key ? `/tree/${encodeURIComponent(c.key)}` : ''}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</div></div></div>`;
+  }).join('')}</div>`).join('');
+  return `<section class="panel">${head}<div class="cal">${body}</div>
+    <p class="radar-note" style="padding:0 18px 14px">Trial dates are the expected primary completion dates registered on ClinicalTrials.gov (Phase 2 and 3, next 18 months). Promises are claims from papers, due this year or the next two.</p>
+    ${full ? '' : moreGate(`The next 2 of ${t.catalysts_total}. Subscribers see the full calendar and can get alerts before each one.`)}</section>`;
+}
+
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
@@ -2945,21 +3059,18 @@ function renderTerminal(box, tab = 'overview') {
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
     <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
-  const overview = `<div class="top2">
-      <section class="panel idx"><span class="lbl">Problems solved, across every goal</span>
-        <div class="v">${k.solved ?? Math.round(k.solved_share * k.problems)}<small>/ ${k.problems}</small></div>
-        ${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}
-        <p>${k.moving ?? '—'} moving, ${k.blocked} blocked, ${k.open ?? '—'} barely started. A problem counts as solved only when the evidence shows it is done.</p>
-        <div class="chg">${k.advances30} advance${k.advances30 === 1 ? '' : 's'} and ${k.setbacks30} setback${k.setbacks30 === 1 ? '' : 's'} in the last 30 days</div>
-        <div class="stats"><div><b>${k.goals}</b><span>goals</span></div><div><b>${pct(k.solved_share)}</b><span>problems solved</span></div><div><b>${k.promise_score == null ? '—' : pct(k.promise_score)}</b><span>promises kept</span></div></div>
-      </section>
-      <section class="panel pad"><div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><b>Research behind the map</b>${t.research.growth == null ? '' : `<span class="mono up" style="font-size:12.5px">${growthTxt(t.research.growth)} in the last 5 years</span>`}</div>
-        <div style="color:var(--muted);font-size:12.5px;margin-top:3px">${t.research.papers.toLocaleString()} papers and reports in Parallax’s library, by year published.</div>
-        ${colsChart(t.research.years, thisYear - 5, true)}</section>
-    </div>
+  const overview = `<section class="kstrip">
+      <div><span class="lbl">Problems solved</span><b class="mono">${k.solved ?? 0}<small> / ${k.problems}</small></b>${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}</div>
+      <div><span class="lbl">Last 30 days</span><b class="mono"><span class="up">+${k.advances30}</span> <span class="down">−${k.setbacks30}</span></b><small>advances · setbacks</small></div>
+      <div><span class="lbl">Catalysts ahead</span><b class="mono">${t.catalysts_total ?? 0}</b><small>trial readouts and promises due</small></div>
+      <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
+    </section>
+    ${goalIndex(t)}
     ${overviewCards(t)}`;
   const panes = {
     overview: () => overview,
+    radar: () => radarPanel(t),
+    calendar: () => calendarPanel(t),
     brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
     opportunities: () => oppPanel(t),
     leaders: () => fieldsPanel(t),

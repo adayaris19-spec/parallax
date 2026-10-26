@@ -128,7 +128,7 @@ const ACTIVE = ["RECRUITING", "NOT_YET_RECRUITING", "ACTIVE_NOT_RECRUITING", "EN
 // full search words, and listed in ClinicalTrials.gov's relevance order.
 async function trials(q: string, anchors: string[] = []): Promise<Found | null> {
   for (const k of [q]) {
-    const p = new URLSearchParams({ "query.term": k, "filter.overallStatus": ACTIVE.join(","), countTotal: "true", pageSize: "500", fields: "NCTId,BriefTitle,Phase,OverallStatus,LeadSponsorName,EnrollmentCount" });
+    const p = new URLSearchParams({ "query.term": k, "filter.overallStatus": ACTIVE.join(","), countTotal: "true", pageSize: "500", fields: "NCTId,BriefTitle,Phase,OverallStatus,LeadSponsorName,EnrollmentCount,PrimaryCompletionDate" });
     const d = await getJson(`https://clinicaltrials.gov/api/v2/studies?${p}`);
     // deno-lint-ignore no-explicit-any
     const st: any[] = d.studies ?? [];
@@ -143,7 +143,15 @@ async function trials(q: string, anchors: string[] = []): Promise<Found | null> 
       const ps = s.protocolSection ?? {};
       return { title: clean(ps.identificationModule?.briefTitle), who: clean(ps.sponsorCollaboratorsModule?.leadSponsor?.name, 90), url: `https://clinicaltrials.gov/study/${ps.identificationModule?.nctId}`, phase: (ps.designModule?.phases ?? []).map((x: string) => x.replace("EARLY_PHASE", "Early phase ").replace("PHASE", "Phase ")).join("/"), status: String(ps.statusModule?.overallStatus ?? "").replace(/_/g, " ").toLowerCase() };
     });
-    return { source: "trials", count, amount_cents: null, since_year: Y, top, extra: { terms: k, phases, recruiting: st.filter((s) => s.protocolSection?.statusModule?.overallStatus === "RECRUITING").length } };
+    // Upcoming readouts: studies whose main results are due in the next 18 months (for the Terminal's
+    // catalysts calendar), the furthest-along first within each month.
+    const now = new Date().toISOString().slice(0, 7), until = new Date(Date.now() + 548 * 86_400_000).toISOString().slice(0, 7);
+    const upcoming = st.filter(named).map((x) => {
+      const ps = x.protocolSection ?? {};
+      const date = String(ps.statusModule?.primaryCompletionDateStruct?.date ?? "").slice(0, 7);
+      return { nct: ps.identificationModule?.nctId, title: clean(ps.identificationModule?.briefTitle, 160), sponsor: clean(ps.sponsorCollaboratorsModule?.leadSponsor?.name, 80), phase: (ps.designModule?.phases ?? []).map((p: string) => p.replace("EARLY_PHASE", "Early phase ").replace("PHASE", "Phase ")).join("/"), date };
+    }).filter((x) => x.nct && x.date >= now && x.date <= until && /Phase [23]/.test(x.phase)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 8);
+    return { source: "trials", count, amount_cents: null, since_year: Y, top, extra: { terms: k, phases, upcoming, recruiting: st.filter((s) => s.protocolSection?.statusModule?.overallStatus === "RECRUITING").length } };
   }
   return null;
 }

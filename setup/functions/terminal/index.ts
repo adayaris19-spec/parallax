@@ -48,6 +48,24 @@ function paperAges(evidence: any[] | null) {
 }
 const round = (x: number, d = 3) => Math.round(x * 10 ** d) / 10 ** d;
 
+// Opportunity radar: unsolved problems by public funding (x) and research growth (y). Heating up
+// with little funding is where money would go furthest.
+// deno-lint-ignore no-explicit-any
+function radarPoints(problems: any[]) {
+  const pts = problems.filter((p) => p.growth != null && (p.papers_last ?? 0) >= 5);
+  // Opportunity: research growth in the top third and funding in the bottom third (most fields
+  // grow, so "growing" alone means little).
+  const q = (arr: number[], f: number) => { const v = [...arr].sort((a, b) => a - b); return v.length ? v[Math.floor((v.length - 1) * f)] : 0; };
+  // "No matching grants" is not evidence of little funding (the search may just miss it), so only
+  // problems with some matched funding can be opportunities.
+  const growthTop = q(pts.map((p) => p.growth), 0.67), fundLow = q(pts.filter((p) => p.funding > 0).map((p) => p.funding), 0.33);
+  return pts.map((p) => ({
+    goal: p.goal, slug: p.slug, key: p.key, title: p.title, status: p.status,
+    x: p.funding, y: p.growth, size: p.papers_last, terms: p.funding_terms,
+    opportunity: p.funding > 0 && p.growth >= growthTop && p.funding <= fundLow,
+  })).sort((a, b) => Number(b.opportunity) - Number(a.opportunity) || b.y - a.y);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -70,6 +88,40 @@ Deno.serve(async (req) => {
       db("goal_intel?select=goal_id,years,growth,papers_3y,institutions,countries,updated_at").catch(() => []),
       db("briefs?select=week,content,signals,created_at&order=id.desc&limit=1").catch(() => []),
     ]);
+    // Research volume, public funding, trials and promises: for the goal index, radar and calendar.
+    const Y1 = new Date().getUTCFullYear() - 1;
+    const [fieldYears, evidence, duePromises] = await Promise.all([
+      db(`node_field_years?year=gte.${Y1 - 5}&year=lte.${Y1}&select=goal_id,node_key,year,n&limit=50000`).catch(() => []),
+      db("node_evidence?select=goal_id,node_key,source,count,amount_cents,extra&limit=20000").catch(() => []),
+      db(`promises?status=eq.pending&due_year=gte.${Y1 + 1}&due_year=lte.${Y1 + 3}&select=goal_id,node_key,claim,made_year,due_year&order=due_year.asc&limit=500`).catch(() => []),
+    ]);
+    const fy = new Map<string, { recent: number; prior: number; last: number }>();
+    for (const r of fieldYears) {
+      const k = `${r.goal_id}/${r.node_key}`, v = fy.get(k) ?? { recent: 0, prior: 0, last: 0 };
+      if (r.year > Y1 - 3) v.recent += r.n; else v.prior += r.n;
+      if (r.year === Y1) v.last = r.n;
+      fy.set(k, v);
+    }
+    const ev = new Map<string, { grants?: any; trials?: any }>(); // deno-lint-ignore no-explicit-any
+    for (const e of evidence) { const k = `${e.goal_id}/${e.node_key}`; ev.set(k, { ...(ev.get(k) ?? {}), [e.source]: e }); }
+    // Catalysts: Phase 2/3 trial readouts due in the next 18 months, and promises coming due.
+    const goalOf = new Map(goals.map((g) => [g.id, g]));
+    // deno-lint-ignore no-explicit-any
+    const catalysts: any[] = [];
+    const seenTrial = new Set<string>();
+    for (const e of evidence) {
+      if (e.source !== "trials") continue;
+      for (const t of e.extra?.upcoming ?? []) {
+        if (seenTrial.has(t.nct)) continue; seenTrial.add(t.nct);
+        const g = goalOf.get(e.goal_id); if (!g) continue;
+        catalysts.push({ kind: "trial", date: t.date, goal_id: g.id, goal: g.handle, slug: g.slug, key: e.node_key, title: t.title, detail: [t.phase, t.sponsor].filter(Boolean).join(" · "), url: `https://clinicaltrials.gov/study/${t.nct}` });
+      }
+    }
+    for (const p of duePromises) {
+      const g = goalOf.get(p.goal_id); if (!g) continue;
+      catalysts.push({ kind: "promise", date: String(p.due_year), goal_id: g.id, goal: g.handle, slug: g.slug, key: p.node_key, title: p.claim, detail: `Promised in ${p.made_year}`, url: null });
+    }
+    catalysts.sort((a, b) => a.date.localeCompare(b.date));
 
     const byGoal = new Map<number, ReturnType<typeof blank>>();
     function blank() {
@@ -115,10 +167,31 @@ Deno.serve(async (req) => {
           bottleneck: g.bottleneck_key === n.key || (g.bottleneck_key && n.key.startsWith(`${g.bottleneck_key}.`)) ? true : false,
           updated_at: n.updated_at,
           ...paperAges(n.evidence),
+          ...problemMetrics(n.goal_id, n.key),
         });
       }
     }
     const cut30 = Date.now() - 30 * DAY;
+    // Goal-level figures that don't double-count: papers and growth from the goal-wide research search
+    // (goal_intel), and how many of the goal's problems have federal funding or trials.
+    function goalMetrics(goalId: number) {
+      const it = intel.find((i: { goal_id: number }) => i.goal_id === goalId);
+      const last = it?.years?.find((y: { year: number }) => y.year === Y1)?.papers ?? null;
+      let funded = 0, withTrials = 0;
+      for (const [k, v] of ev) if (k.startsWith(`${goalId}/`)) { if (v.grants) funded++; if (v.trials) withTrials++; }
+      return {
+        papers_last: last, field_growth3: it?.growth ?? null, funded_problems: funded, trial_problems: withTrials,
+        catalysts: catalysts.filter((c) => c.goal_id === goalId).length,
+      };
+    }
+    function problemMetrics(goalId: number, key: string) {
+      const f = fy.get(`${goalId}/${key}`), e = ev.get(`${goalId}/${key}`);
+      return {
+        papers_last: f?.last ?? null, growth: f && f.prior >= 10 ? round(f.recent / f.prior - 1, 2) : null,
+        funding: e?.grants ? Math.round(e.grants.amount_cents / 100) : 0, grants: e?.grants?.count ?? 0, funding_terms: e?.grants?.extra?.terms ?? null,
+        trials: e?.trials?.count ?? 0,
+      };
+    }
     for (const p of posts) {
       const s = byGoal.get(p.goal_id);
       if (!s) continue;
@@ -149,6 +222,7 @@ Deno.serve(async (req) => {
         promise_score: judged ? round((s.kept + 0.5 * s.partly) / judged, 2) : null,
         followers: s.followers, contributors: s.contributors.size, papers: g.papers_count ?? goalPapers.get(g.id)?.size ?? 0,
         mapped_at: g.mapped_at, checked_at: g.pulsed_at ?? g.mapped_at,
+        ...goalMetrics(g.id),
       };
     });
 
@@ -251,6 +325,9 @@ Deno.serve(async (req) => {
       opportunity_counts: full ? { funding: funding.length, quiet: quiet.length, hot: hot.length } : null,
       fields: full ? fields : [],
       fields_total: fields.length,
+      radar: full ? radarPoints(problems) : [],
+      catalysts: full ? catalysts : [],
+      catalysts_total: catalysts.length,
       // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
       // cut here on the server so nothing more ever leaves it. Tables and CSV stay subscriber-only.
       preview: full ? null : {
@@ -260,6 +337,10 @@ Deno.serve(async (req) => {
         fields: fields.slice(0, 1),
         bottlenecks: bottlenecks.slice(0, 2),
         bottlenecks_total: bottlenecks.length,
+        // Goal index: 3 rows. Radar: the dots without names, plus two named examples. Calendar: the next 2.
+        index: [...rows].sort((a, b) => (b.papers_last ?? 0) - (a.papers_last ?? 0)).slice(0, 3),
+        radar: radarPoints(problems).map((r, i) => (i < 2 && r.opportunity ? r : { x: r.x, y: r.y, size: r.size, opportunity: r.opportunity })),
+        catalysts: catalysts.slice(0, 2),
       },
     });
   } catch (e) {
