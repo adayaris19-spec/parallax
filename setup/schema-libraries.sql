@@ -58,3 +58,12 @@ $$;
 create or replace function parallax_visual_used(vid bigint) returns void
 language sql security definer set search_path = public as $$ update visuals set uses = uses + 1 where id = vid; $$;
 revoke all on function parallax_visual_used(bigint) from public, anon, authenticated;
+
+-- Many searches in one request (the stories row asks for one per story).
+create or replace function parallax_match_visuals_many(qs text[], n int default 6)
+returns jsonb language sql stable as $$
+  select coalesce(jsonb_agg((select coalesce(jsonb_agg(to_jsonb(v)), '[]'::jsonb) from parallax_match_visuals(q, n) v) order by ord), '[]'::jsonb)
+  from unnest(qs) with ordinality as t(q, ord);
+$$;
+grant execute on function parallax_match_visuals_many(text[], int) to anon, authenticated;
+notify pgrst, 'reload schema';
