@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     const [goals, nodes, posts, promises, followers, contributions, history, intel, briefs] = await Promise.all([
       db("goals?status=eq.ready&select=id,slug,handle,name,papers_count,progress,horizon_low,horizon_high,bottleneck_key,mapped_at,pulsed_at&order=name.asc&limit=2000"),
       db("nodes?select=goal_id,key,parent_key,title,plain_title,status,blocker_kind,blocker,plain_blocker,independent_sources,updated_at,evidence&limit=50000"),
-      db(`posts?created_at=gte.${since90}&select=goal_id,node_key,kind,headline,plain_headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
+      db(`posts?created_at=gte.${since90}&select=id,goal_id,node_key,kind,headline,plain_headline,independent_sources,created_at&order=created_at.desc&limit=50000`),
       db("promises?select=goal_id,status&limit=50000"),
       db("goal_followers?select=goal_id,followers"),
       db("contributions?select=goal_id,user_id&limit=50000"),
@@ -436,6 +436,75 @@ Deno.serve(async (req) => {
       ] : [],
     });
 
+    // ---- Crossovers: problems shared by two goals (crossovers function). Keystones are clusters of
+    // linked problems; ripples are recent moves on one side of a link, shown with the goals they reach.
+    const cross: { goal_a: number; key_a: string; goal_b: number; key_b: string; shared_papers: number; source: string; why: string }[] =
+      await db("crossovers?source=neq.rejected&select=goal_a,key_a,goal_b,key_b,shared_papers,source,why&limit=5000").catch(() => []);
+    const nodeInfo = new Map(nodes.map((n) => [`${n.goal_id}/${n.key}`, n]));
+    const nref = (gid: number, key: string) => {
+      const g = goalOf.get(gid), n = nodeInfo.get(`${gid}/${key}`);
+      return g && n ? { goal: g.handle, slug: g.slug, key, title: n.title, status: ["solved", "in_progress", "blocked"].includes(n.status) ? n.status : "open" } : null;
+    };
+    const partners = new Map<string, { gid: number; key: string; why: string }[]>();
+    for (const c of cross) {
+      (partners.get(`${c.goal_a}/${c.key_a}`) ?? partners.set(`${c.goal_a}/${c.key_a}`, []).get(`${c.goal_a}/${c.key_a}`)!).push({ gid: c.goal_b, key: c.key_b, why: c.why });
+      (partners.get(`${c.goal_b}/${c.key_b}`) ?? partners.set(`${c.goal_b}/${c.key_b}`, []).get(`${c.goal_b}/${c.key_b}`)!).push({ gid: c.goal_a, key: c.key_a, why: c.why });
+    }
+    // Clusters (union-find over linked problems).
+    const parent = new Map<string, string>();
+    const find = (x: string): string => { let r = x; while (parent.get(r) && parent.get(r) !== r) r = parent.get(r)!; parent.set(x, r); return r; };
+    for (const c of cross) { const a = `${c.goal_a}/${c.key_a}`, b = `${c.goal_b}/${c.key_b}`; if (!parent.has(a)) parent.set(a, a); if (!parent.has(b)) parent.set(b, b); parent.set(find(a), find(b)); }
+    const groups = new Map<string, string[]>();
+    for (const k of parent.keys()) (groups.get(find(k)) ?? groups.set(find(k), []).get(find(k))!).push(k);
+    const cut30x = Date.now() - 30 * DAY;
+    const movesOn = (k: string) => posts.filter((p) => `${p.goal_id}/${p.node_key}` === k && ["advance", "setback", "solved", "bottleneck"].includes(p.kind) && new Date(p.created_at).getTime() >= cut30x).length;
+    // deno-lint-ignore no-explicit-any
+    const keystones: any[] = [...groups.values()].map((ks) => {
+      // deno-lint-ignore no-explicit-any
+      const members: any[] = ks.map((k) => { const [gid, ...rest] = k.split("/"); const key = rest.join("/"); const r = nref(Number(gid), key); return r ? { ...r, ...problemMetrics(Number(gid), key), moves30: movesOn(k), links: partners.get(k)?.length ?? 0 } : null; }).filter(Boolean);
+      if (members.length < 2) return null;
+      const hub = [...members].sort((a, b) => b.links - a.links)[0];
+      const links = cross.filter((c) => ks.includes(`${c.goal_a}/${c.key_a}`)).map((c) => ({ a: nref(c.goal_a, c.key_a), b: nref(c.goal_b, c.key_b), why: c.why, papers: c.shared_papers, source: c.source }));
+      const goalsIn = [...new Set(members.map((m) => m.slug))];
+      return { title: hub.title, hub: { slug: hub.slug, key: hub.key, goal: hub.goal }, goals: goalsIn.length, handles: [...new Set(members.map((m) => m.goal))], members, links,
+        unsolved: members.filter((m) => m.status !== "solved").length, funding: members.reduce((t, m) => t + (m.funding || 0), 0), papers_last: members.reduce((t, m) => t + (m.papers_last || 0), 0), moves30: members.reduce((t, m) => t + m.moves30, 0) };
+    }).filter(Boolean).sort((a: any, b: any) => b.goals - a.goals || b.moves30 - a.moves30 || b.members.length - a.members.length || b.papers_last - a.papers_last);
+    // Ripples: the last 30 days of moves (and new $1M+ grants) on a linked problem.
+    // deno-lint-ignore no-explicit-any
+    const ripples: any[] = [];
+    for (const p of posts) {
+      if (!["advance", "setback", "solved", "bottleneck"].includes(p.kind) || new Date(p.created_at).getTime() < cut30x) continue;
+      const ps = partners.get(`${p.goal_id}/${p.node_key}`); if (!ps) continue;
+      const from = nref(p.goal_id, p.node_key); if (!from) continue;
+      ripples.push({ kind: p.kind, at: p.created_at, post: p.id, headline: p.plain_headline || p.headline, from, affects: ps.map((x) => ({ ...nref(x.gid, x.key), why: x.why })).filter((x) => x.slug) });
+    }
+    for (const a of awardRows) {
+      if (!a.node_key || Number(a.amount) < 5e6 || new Date(a.first_seen).getTime() < cut30x) continue; // big grants only
+      const ps = partners.get(`${a.goal_id}/${a.node_key}`); if (!ps) continue;
+      const from = nref(a.goal_id, a.node_key); if (!from) continue;
+      ripples.push({ kind: "grant", at: a.first_seen, headline: `${usd(Number(a.amount))} federal grant to ${String(a.recipient ?? "").replace(/^the /i, "").split(" - ")[0]}`, url: a.url, from, affects: ps.map((x) => ({ ...nref(x.gid, x.key), why: x.why })).filter((x) => x.slug) });
+    }
+    ripples.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    // The web: every goal pair with how many problems they share.
+    const edgeMap = new Map<string, number>();
+    for (const c of cross) { const k = `${goalOf.get(c.goal_a)?.slug}|${goalOf.get(c.goal_b)?.slug}`; edgeMap.set(k, (edgeMap.get(k) ?? 0) + 1); }
+    const web = { goals: goals.map((g) => ({ slug: g.slug, handle: g.handle })), edges: [...edgeMap].map(([k, n]) => { const [a, b] = k.split("|"); return { a, b, n }; }).sort((x, y) => y.n - x.n) };
+    const linksOf = (a: string, b: string) => cross.filter((c) => { const sa = goalOf.get(c.goal_a)?.slug, sb = goalOf.get(c.goal_b)?.slug; return (sa === a && sb === b) || (sa === b && sb === a); })
+      .map((c) => ({ a: nref(c.goal_a, c.key_a), b: nref(c.goal_b, c.key_b), why: c.why, papers: c.shared_papers, source: c.source }));
+    const webLinks = Object.fromEntries(web.edges.map((e) => [`${e.a}|${e.b}`, linksOf(e.a, e.b)]));
+    // A link papers missed (found by reading the problems), a different one each week.
+    const aiLinks = cross.filter((c) => c.source === "ai" && c.why);
+    const pick = aiLinks.length ? aiLinks[Math.floor(Date.now() / (7 * DAY)) % aiLinks.length] : null;
+    const surprise = pick ? { a: nref(pick.goal_a, pick.key_a), b: nref(pick.goal_b, pick.key_b), why: pick.why } : null;
+    Object.assign(answers, {
+      crossovers: [
+        `${cross.length} links between problems in different goals: progress on one side moves ${keystones.filter((k) => k.goals >= 3).length ? "two or three goals at once" : "two goals at once"}.`,
+        keystones[0] ? `Biggest keystone: ${full ? `“${keystones[0].title}”` : "a problem"} links ${keystones[0].handles.map((h: string) => `@${h}`).join(", ")}.` : null,
+        ripples.length ? `${ripples.length} moves in the last 30 days rippled into another goal.` : null,
+        surprise?.a && surprise.b ? `Surprising link: @${surprise.a.goal} and @${surprise.b.goal}. ${full ? surprise.why : ""}`.trim() : null,
+      ].filter(Boolean),
+    });
+
     // Remember which problems are in the opportunity corner (for watchlist alerts about new ones).
     const opps = radarPoints(problems).filter((r) => r.opportunity);
     if (opps.length) {
@@ -478,6 +547,8 @@ Deno.serve(async (req) => {
       money: full ? { goals: moneyGoals, awards } : null,
       race: full ? { goals: race, climbers } : null,
       pipeline: full ? pipeline : null,
+      crossovers: full ? { keystones, ripples: ripples.slice(0, 60), web, links: webLinks } : null,
+      crossover_totals: { links: cross.length, keystones: keystones.length, ripples: ripples.length },
       market_totals: { awards: awards.length, awards_sum: newSum, climbers: climbers.length, trials: pipeTotal, health_goals: pipeline.length },
       // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
       // cut here on the server so nothing more ever leaves it. Tables and CSV stay subscriber-only.
@@ -495,6 +566,8 @@ Deno.serve(async (req) => {
         // Money: the single largest new grant. Race: one goal's top 3 names, no figures. Pipeline: counts only.
         money: { award: awards[0] ?? null, goals: moneyGoals.length },
         race: race[0] ? { goal: race[0]!.goal, slug: race[0]!.slug, orgs: race[0].orgs.slice(0, 3).map((o: { name: string; place: number }) => ({ name: o.name, place: o.place })) } : null,
+        // Crossovers: the web with counts (no problem names), one keystone, the newest ripple.
+        crossovers: { web, keystone: keystones[0] ?? null, ripple: ripples[0] ?? null },
         pipeline: pipeline.map((p) => ({ goal: p!.goal, slug: p!.slug, total: p!.total, late: p!.late, by_phase: p!.by_phase })),
       },
     });

@@ -78,6 +78,22 @@ Deno.serve(async (req) => {
       .sort((a, b) => String(results.find((r) => r.key === b!.key)?.resolved_at).localeCompare(String(results.find((r) => r.key === a!.key)?.resolved_at)));
     const waiting = qs.filter((q: { key: string }) => myKeys.has(q.key) && !results.some((r) => r.key === q.key)).map(card).filter(Boolean);
     const b = briefs[0] ? { week: briefs[0].week, ...briefs[0].content } : null;
+    // Ripple of the week: the newest move on a problem shared with another goal (crossovers).
+    let ripple = null;
+    try {
+      const [cross, recent] = await Promise.all([
+        db("crossovers?source=neq.rejected&select=goal_a,key_a,goal_b,key_b,why&limit=5000"),
+        db(`posts?created_at=gte.${new Date(Date.now() - 14 * 86_400_000).toISOString()}&kind=in.(advance,setback,solved)&select=id,goal_id,node_key,kind,headline,plain_headline&order=created_at.desc&limit=200`),
+      ]);
+      for (const p of recent) {
+        const c = cross.find((x: { goal_a: number; key_a: string; goal_b: number; key_b: string }) => (x.goal_a === p.goal_id && x.key_a === p.node_key) || (x.goal_b === p.goal_id && x.key_b === p.node_key));
+        if (!c) continue;
+        const other = goalOf.get(c.goal_a === p.goal_id ? c.goal_b : c.goal_a), from = goalOf.get(p.goal_id);
+        if (!other || !from) continue;
+        ripple = { post: p.id, kind: p.kind, headline: p.plain_headline || p.headline, from: from.handle, from_slug: from.slug, to: other.handle, to_slug: other.slug, why: c.why };
+        break;
+      }
+    } catch { /* no ripple this week */ }
     return json({
       access: full ? "full" : "preview",
       signed_in: !!uid,
@@ -88,6 +104,7 @@ Deno.serve(async (req) => {
       coming: full ? coming : coming.slice(0, 1),
       coming_total: coming.length,
       counts: full ? counts : counts.filter((c) => c.key === coming[0]?.key),
+      ripple,
       results,
       settled: full ? settled : settled.slice(0, 1), // the sample: the latest one
       waiting: full ? waiting : [],

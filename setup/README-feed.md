@@ -463,3 +463,19 @@ Run `setup/schema-plus-resolve.sql` once (questions table, `void` outcome, daily
   - Otherwise: Claude (Sonnet, about a cent) reads the posted results text and the earliest papers naming the trial number (Europe PMC: free, no daily budget). Its answer is yes, no or unclear; unclear stays open.
 - Everyone who made a call gets a push alert when it settles ("You called it ✓"), once per question.
 - Test one question without saving: `POST resolve {"key":"trial:NCT...","dry":true}`.
+
+## 33. Crossovers: problems shared between goals
+
+Run `setup/schema-crossovers.sql` once (the `crossovers` table with public read, the candidate function, and cron `parallax-crossovers` every 6 hours). Deploy the `crossovers` function with `verify_jwt` true.
+
+- **Papers:** problem pairs in different goals that cite at least 5 of the same papers.
+- **Claude:** two short calls per goal (titles only, cents). The first checks the paper pairs and proposes overlaps papers missed. The second is a strict check that drops analogies.
+  - Rejected pairs stay in the table as `rejected`, so later scans don't add them back.
+  - Every goal is re-checked monthly. New goals go first.
+  - `POST crossovers {"action":"audit"}` re-checks every AI-found link.
+- **Pro:** a Crossovers tab with three parts:
+  - the goal web (tap a line to see the shared problems);
+  - keystone problems (clusters of linked problems, most goals first);
+  - ripples (moves and big grants on one goal that reach another), flagged new since your last visit. Overview leads with them.
+- **Free:** posts on a shared problem say "Also moves @Goal".
+- **Plus:** "Ripple of the week" card and video scene.
