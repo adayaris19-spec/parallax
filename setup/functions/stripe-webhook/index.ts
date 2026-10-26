@@ -52,7 +52,8 @@ async function record(sub: any, fallbackUser?: string | null) {
       stripe_customer_id: customer ?? null,
       stripe_subscription_id: sub.id,
       status: sub.status,
-      plan: "terminal",
+      // Which tier: Plus prices have lookup keys starting with parallax_plus; everything else is Pro.
+      plan: String(sub.items?.data?.[0]?.price?.lookup_key ?? "").startsWith("parallax_plus") ? "plus" : "terminal",
       current_period_end: end ? new Date(end * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     },
