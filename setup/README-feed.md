@@ -336,3 +336,14 @@ Rough figures on `claude-opus-5-5`, to check against your real bill in the first
 - A goal page says "Mapping hit a problem": the error is shown on the page. To retry it, run
   `curl -X POST https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/map-goal -H "Authorization: Bearer <anon key>" -H "x-parallax-admin: <ADMIN_TOKEN>" -H "Content-Type: application/json" -d '{"continue":"<slug>","retry":true}'`
 - Edge Functions -> map-goal -> Logs shows every call and error.
+
+## 22. Video storage (Cloudflare R2)
+
+Reel media lives in a Cloudflare R2 bucket (`parallax-media`): free up to 10 GB, with free downloads.
+Supabase Edge Function secrets: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
+(an Object Read & Write token for the bucket) and `R2_PUBLIC_URL` (the bucket's `https://pub-….r2.dev`
+address, not the S3 API endpoint). Optional `R2_BUCKET` if the bucket has another name.
+Without them, or if an upload fails, `reels` falls back to Supabase Storage (`reels-media`).
+Admin actions on `reels`: `{"action":"r2_check"}` tests upload and public read;
+`{"action":"move_media"}` copies Supabase-hosted media to R2; `{"action":"drop_old"}` deletes
+Supabase copies nothing references.
