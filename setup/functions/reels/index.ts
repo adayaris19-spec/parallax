@@ -14,6 +14,7 @@
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
 import { z } from "npm:zod@4.6.7";
+import { AwsClient } from "npm:aws4fetch@1.0.20";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -178,12 +179,31 @@ async function unsplashPhotos(q: string): Promise<Cand[]> {
   }));
 }
 
-// Copy a file into Supabase Storage and return its public address.
+// Media storage: Cloudflare R2 when its secrets are set (free storage up to 10 GB, free downloads),
+// otherwise Supabase Storage. Same files either way, so quality is unchanged.
+const R2_ACCOUNT = Deno.env.get("R2_ACCOUNT_ID") ?? "";
+const R2_PUBLIC = (Deno.env.get("R2_PUBLIC_URL") ?? "").replace(/\/+$/, "");
+const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "parallax-media";
+const r2 = R2_ACCOUNT && R2_PUBLIC && Deno.env.get("R2_ACCESS_KEY_ID")
+  ? new AwsClient({ accessKeyId: Deno.env.get("R2_ACCESS_KEY_ID")!, secretAccessKey: Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "", service: "s3", region: "auto" })
+  : null;
+const OLD_PREFIX = `${SB}/storage/v1/object/public/reels-media/`;
+
+async function r2Put(path: string, data: ArrayBuffer, type: string) {
+  const up = await r2!.fetch(`https://${R2_ACCOUNT}.r2.cloudflarestorage.com/${R2_BUCKET}/${path}`, {
+    method: "PUT", body: data, headers: { "Content-Type": type, "Cache-Control": "public, max-age=31536000, immutable" },
+  });
+  if (!up.ok) throw new Error(`r2 ${up.status}: ${(await up.text()).slice(0, 120)}`);
+  return `${R2_PUBLIC}/${path}`;
+}
+
+// Copy a file into storage and return its public address.
 async function rehost(c: Cand, folder: string) {
   const r = await fetch(c.url, { signal: AbortSignal.timeout(60000) });
   if (!r.ok || !r.body) throw new Error(`copy failed ${r.status}`);
   const type = (r.headers.get("content-type") ?? (c.kind === "video" ? "video/mp4" : "image/jpeg")).split(";")[0];
   const path = `${folder}/${c.id}.${c.kind === "video" ? "mp4" : "jpg"}`;
+  if (r2) return await r2Put(path, await r.arrayBuffer(), type);
   const up = await fetch(`${SB}/storage/v1/object/reels-media/${path}`, { method: "POST", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": type, "x-upsert": "true", "cache-control": "max-age=31536000" }, body: r.body, signal: AbortSignal.timeout(90000) });
   if (!up.ok) throw new Error(`storage ${up.status}: ${(await up.text()).slice(0, 120)}`);
   return `${SB}/storage/v1/object/public/reels-media/${path}`;
@@ -451,11 +471,60 @@ async function collect() {
   return out;
 }
 
+// One-time move of media from Supabase Storage to R2. "move_media" copies files (resumable, about
+// 100 s per call); "drop_old" deletes Supabase copies no longer referenced once the URLs are rewritten.
+async function mediaInUse(): Promise<string[]> {
+  const [reels, vis] = await Promise.all([db(`reels?select=scenes`), db(`visuals?select=url,poster`)]);
+  const urls = new Set<string>();
+  for (const r of reels) for (const sc of r.scenes ?? []) for (const u of [sc.visual?.url, sc.visual?.poster]) if (typeof u === "string") urls.add(u);
+  for (const v of vis) for (const u of [v.url, v.poster]) if (typeof u === "string") urls.add(u);
+  return [...urls];
+}
+async function moveMedia() {
+  if (!r2) return { error: "R2 secrets are not set" };
+  const t0 = Date.now(), todo = (await mediaInUse()).filter((u) => u.startsWith(OLD_PREFIX));
+  let copied = 0, skipped = 0;
+  const errors: string[] = [];
+  for (const u of todo) {
+    if (Date.now() - t0 > 100_000) break;
+    const path = u.slice(OLD_PREFIX.length);
+    const head = await fetch(`${R2_PUBLIC}/${path}`, { method: "HEAD" }).catch(() => null);
+    if (head?.ok) { skipped++; continue; }
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(60000) });
+      if (!r.ok) throw new Error(`read ${r.status}`);
+      await r2Put(path, await r.arrayBuffer(), (r.headers.get("content-type") ?? "application/octet-stream").split(";")[0]);
+      copied++;
+    } catch (e) { errors.push(`${path}: ${e instanceof Error ? e.message : e}`); }
+  }
+  return { in_supabase: todo.length, copied, already_there: skipped, errors: errors.slice(0, 5), done: copied + skipped === todo.length, old_prefix: OLD_PREFIX, new_prefix: `${R2_PUBLIC}/` };
+}
+async function dropOld() {
+  if ((await db(`reel_jobs?status=eq.pending&select=batch_id`)).length) return { note: "video batches still running; try again after they finish" };
+  const used = new Set((await mediaInUse()).filter((u) => u.startsWith(OLD_PREFIX)).map((u) => u.slice(OLD_PREFIX.length)));
+  const names: string[] = [];
+  const walk = async (prefix: string) => {
+    for (let off = 0; ; off += 1000) {
+      const items = await fetch(`${SB}/storage/v1/object/list/reels-media`, { method: "POST", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": "application/json" }, body: JSON.stringify({ prefix, limit: 1000, offset: off }) }).then((r) => r.json());
+      for (const it of items) { const p = prefix ? `${prefix}/${it.name}` : it.name; if (it.id) names.push(p); else await walk(p); }
+      if (items.length < 1000) break;
+    }
+  };
+  await walk("");
+  const gone = names.filter((n) => !used.has(n));
+  for (let i = 0; i < gone.length; i += 500) {
+    await fetch(`${SB}/storage/v1/object/reels-media`, { method: "DELETE", headers: { Authorization: `Bearer ${SRK}`, apikey: SRK, "Content-Type": "application/json" }, body: JSON.stringify({ prefixes: gone.slice(i, i + 500) }) });
+  }
+  return { files: names.length, deleted: gone.length, kept_in_use: names.length - gone.length };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
+    if (body.action === "move_media") return json(await moveMedia());
+    if (body.action === "drop_old") return json(await dropOld());
     const collected = await collect();
     if (body.collect_only === true) return json({ collected });
     return json({ collected, made: await run(body.slug, !!body.fresh, body.live === true) });
