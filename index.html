@@ -824,6 +824,15 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .call-split{display:grid;gap:4px;margin-top:10px}
 .call-split .stbar{height:6px}
 .call-split small{font-size:12px;color:var(--muted)}
+.settled{padding:14px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.settled.right{border-color:color-mix(in srgb,var(--solved) 45%,var(--line))}
+.settled-t{display:block;font-size:15px;margin:10px 0 2px}
+.settled-q{margin:0 0 6px;font-size:13px;color:var(--muted)}
+.settled p{margin:4px 0;font-size:14px;line-height:1.45}
+.settled small{font-size:12.5px;color:var(--muted)}
+.settled small a{color:var(--ink2)}
+.settled.wait p{display:block;margin:10px 0 0}
+.settled.wait p small{display:block}
 .call-res{margin:8px 0 0;font-size:13.5px;color:var(--ink2)}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
@@ -3446,11 +3455,25 @@ async function plusView() {
       <h3>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(c.title)}</a>` : esc(c.title)}</h3>
       <p class="coming-m"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</p>
       <div class="call" data-key="${esc(c.key)}"><b>${esc(c.question)}</b>
-        ${res ? `<p class="call-res">Result: <b>${res.outcome === 'yes' ? 'Yes' : 'No'}</b>${my ? ` · you said ${my === 'yes' ? 'yes' : 'no'}${my === res.outcome ? ' ✓' : ''}` : ''}</p>` : `<div class="call-b"><button type="button" class="btn sm${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn sm${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button></div>`}
+        ${res ? `<p class="call-res">Result: <b>${res.outcome === 'yes' ? 'Yes' : res.outcome === 'no' ? 'No' : 'No result'}</b>${my && res.outcome !== 'void' ? ` · you said ${my === 'yes' ? 'yes' : 'no'}${my === res.outcome ? ' ✓' : ''}` : ''}</p>` : `<div class="call-b"><button type="button" class="btn sm${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn sm${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button></div>`}
         <div class="call-split" aria-label="What everyone thinks">${tot ? `<span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% say yes · ${tot} call${tot === 1 ? '' : 's'}</small>` : `<small>${full ? 'Be the first to call it.' : 'Plus members make the call.'}</small>`}</div>
       </div></article>`;
   };
-  const calls = d.mine.length, judged = d.mine.filter((m) => resultOf(m.key)), right = judged.filter((m) => resultOf(m.key).outcome === m.choice).length;
+  const calls = d.mine.length, judged = d.mine.filter((m) => resultOf(m.key) && resultOf(m.key).outcome !== 'void'), right = judged.filter((m) => resultOf(m.key).outcome === m.choice).length;
+  // Settled questions (your calls first) and your calls still waiting on a result.
+  const RES = { yes: 'Yes', no: 'No', void: 'No result' };
+  const settledCard = (c) => {
+    const res = resultOf(c.key), my = myCall(c.key), u = safeUrl(res.source_url || c.url), n = countOf(c.key), tot = n.yes + n.no;
+    const mark = !my ? '' : res.outcome === 'void' ? 'Your call doesn’t count' : my === res.outcome ? `You said ${my}: called it ✓` : `You said ${my}`;
+    return `<div class="settled${my && res.outcome !== 'void' ? (my === res.outcome ? ' right' : ' wrong') : ''}"><div class="coming-top"><span class="sig ${res.outcome === 'yes' ? 'advance' : res.outcome === 'no' ? 'setback' : ''}">Result: ${RES[res.outcome]}</span><a class="coming-d" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a></div>
+      <b class="settled-t">${esc(c.question)}</b><p class="settled-q">${esc(c.title)}</p>${res.note ? `<p>${esc(res.note)}</p>` : ''}
+      <small>${[mark, tot ? `${Math.round(n.yes / tot * 100)}% of ${tot} said yes` : '', u ? `<a href="${esc(u)}" target="_blank" rel="noopener">Source</a>` : ''].filter(Boolean).join(' · ')}</small></div>`;
+  };
+  const settled = (d.settled || []).filter((c) => resultOf(c.key));
+  const waiting = d.waiting || [];
+  const callsSec = settled.length || waiting.length ? `<div class="pside-h" style="margin-top:22px"><h2>Results</h2><span class="lbl">${judged.length ? `you: ${right} of ${judged.length} right` : 'settled automatically from trial results and promise checks'}</span></div>
+    <div class="comings">${settled.slice(0, full ? 20 : 1).map(settledCard).join('')}
+    ${waiting.length ? `<div class="settled wait"><span class="lbl">Your calls waiting on a result · ${waiting.length}</span>${waiting.map((c) => `<p><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>${esc(c.status_note ? `Due ${fmtDate(c.date)}, ${c.status_note}` : `Due ${fmtDate(c.date)}, checked weekly`)}</small></p>`).join('')}</div>` : ''}</div>` : '';
   const cta = (where) => `<div class="plus-cta ${where}"><div><b>Parallax Plus</b><span>${esc(d.price.replace('/month', ''))} a month · or ${esc(d.year_price.replace('/year', ''))} a year (two months free)</span></div><div class="plus-cta-b"><button class="btn primary" type="button" data-sub data-tier="plus">Get Plus</button><button class="linkish" type="button" data-sub="year" data-tier="plus">Yearly</button></div></div>`;
   view.innerHTML = `<section class="plus">
     <div class="plus-h"><div><span class="kick">Parallax Plus${full ? ` · ${d.plan === 'plus' ? 'yours' : 'included with Pro'}` : ''}</span><h1>Your week in progress</h1>
@@ -3462,6 +3485,7 @@ async function plusView() {
         <div class="pside-h"><h2>Coming up</h2>${full ? `<span class="lbl">${d.coming_total} ahead${calls ? ` · your calls: ${calls}${judged.length ? `, ${right} of ${judged.length} right` : ''}` : ''}</span>` : `<span class="lbl">1 of ${d.coming_total}</span>`}</div>
         <div class="comings">${(d.coming || []).slice(0, full ? 12 : 1).map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}</div>
         ${full ? '' : `<div class="moregate"><p>${d.coming_total - 1} more readouts and promises coming up, each with a call to make. Your track record builds as results come in.</p></div>`}
+        ${callsSec}
       </div>
     </div>
     ${full ? '' : cta('bottom')}

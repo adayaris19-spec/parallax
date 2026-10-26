@@ -449,3 +449,17 @@ Pro shows data the free site never does:
 - **Pipeline** (`evidence` function writes `trial_pipeline`): every active trial on the health goals with phase, sponsor and type, size and results date. `POST evidence {"pipeline":"<slug>"}` refills one goal without redoing grants.
 
 Run `setup/schema-market.sql` once. Previews are cut on the server: one grant, three names, counts only.
+
+## 32. Plus predictions resolve themselves
+
+Run `setup/schema-plus-resolve.sql` once (questions table, `void` outcome, daily cron `parallax-resolve` at 06:41 UTC), and deploy the `resolve` function (`verify_jwt` true).
+
+- The `plus` function saves every question it shows to `prediction_questions`, so a question can still be settled after it leaves "Coming up".
+- **Promises:** the promises function's verdict decides. Kept is yes; partly kept or broken is no; unclear stays open.
+- **Trials:** checked weekly once their results month has passed (ClinicalTrials.gov).
+  - Withdrawn: void. Calls on it don't count.
+  - Stopped early: no, unless it stopped because it worked.
+  - Posted p-values for the main outcome: any below 0.05 is yes, otherwise no.
+  - Otherwise: Claude (Sonnet, about a cent) reads the posted results text and the earliest papers naming the trial number (Europe PMC: free, no daily budget). Its answer is yes, no or unclear; unclear stays open.
+- Everyone who made a call gets a push alert when it settles ("You called it ✓"), once per question.
+- Test one question without saving: `POST resolve {"key":"trial:NCT...","dry":true}`.
