@@ -683,6 +683,12 @@ body.goalpage main{max-width:1120px}
   .mv{grid-template-columns:1fr;gap:18px}
 }
 
+/* first-visit intro */
+.intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
+.intro h1{font-size:clamp(26px,5vw,34px);letter-spacing:-.03em;line-height:1.08;margin:0}
+.intro p{margin:10px 0 0;font-size:15.5px;line-height:1.55;color:var(--ink2);max-width:640px}
+.intro-a{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
+.intro-x{margin-left:auto;background:none;border:0;color:var(--muted);font:inherit;font-size:13.5px;cursor:pointer;padding:6px}
 /* status mix bar (solved / moving / blocked / barely started) */
 .ro-stbar{margin-top:14px;height:5px}
 .gcard .gp .stbar{flex:1}
@@ -1297,6 +1303,11 @@ body{background:var(--bg)}
 .slides .post{flex:0 0 min(84%,380px);scroll-snap-align:start;margin:0;display:flex;flex-direction:column}
 .post.compact{padding:12px 12px 10px}
 .post.compact .cover{margin:0;flex:1;padding:16px 16px 18px}
+/* Feed cards and avatars carry the goal's own pictures (from its approved video shots). */
+.cover.has-img{background:linear-gradient(180deg,rgba(8,9,14,.30) 0%,rgba(8,9,14,.62) 45%,rgba(8,9,14,.92) 100%),var(--img) center/cover no-repeat,#0B0C11;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end}
+.cover.has-img .kind{margin-bottom:auto;align-self:flex-start;background:rgba(8,9,14,.5);padding:3px 8px;border-radius:6px;backdrop-filter:blur(6px)}
+.cover.has-img .kind + h3,.cover.has-img .big{margin-top:28px}
+.av.pic{background:#1A1B22 center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .post.compact .cover h3{font-size:18.5px}
 .post.compact .cover .big{font-size:30px;margin-bottom:12px}
 .post.compact .post-f{margin-top:8px;gap:6px;flex-wrap:nowrap}
@@ -1402,6 +1413,8 @@ function orb(seed, sat = 78) {
 }
 function avatar(g, big = false) {
   const initials = String(g.handle || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
+  const pic = g.pics?.[0] || (goalsCache || []).find((x) => x.id === g.id)?.pics?.[0];
+  if (pic) return `<a class="av pic${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="background-image:url('${esc(pic).replace(/'/g, '%27')}')" aria-label="@${esc(g.handle)}"></a>`;
   return `<a class="av${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="${orb(g.slug)}" aria-label="@${esc(g.handle)}">${esc(initials)}</a>`;
 }
 
@@ -1632,7 +1645,16 @@ async function share(path, title) {
 // ------------------------------------------------------------ data
 let goalsCache = null;
 async function goals(force = false) {
-  if (!goalsCache || force) goalsCache = await rest(`goals?select=${GOAL_COLS}&status=neq.failed&order=name.asc&limit=2000`);
+  if (!goalsCache || force) {
+    const [list, pics] = await Promise.all([
+      rest(`goals?select=${GOAL_COLS}&status=neq.failed&order=name.asc&limit=2000`),
+      rest('goal_pictures?select=goal_id,pics').catch(() => []),
+    ]);
+    // Each goal's own pictures (from its approved video shots): its avatar and its feed cards.
+    const by = new Map(pics.map((x) => [x.goal_id, (x.pics || []).filter((u) => safeUrl(u))]));
+    for (const g of list) g.pics = by.get(g.id) || [];
+    goalsCache = list;
+  }
   return goalsCache;
 }
 const goalById = (list, id) => list.find((g) => g.id === id);
@@ -1671,6 +1693,9 @@ function postCard(p, g, compact = false) {
     if (m) big = `<div class="big">${esc(m[1])}<span class="lbl">problems mapped</span></div>`;
   }
   const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : `#/p/${p.id}`; // a post opens as its story
+  const pics = g.pics || (goalsCache || []).find((x) => x.id === g.id)?.pics || [];
+  const pic = pics.length ? pics[(p.id * 7) % pics.length] : '';
+  const coverStyle = `--h:${h};--h2:${h2}${pic ? `;--img:url('${esc(pic).replace(/'/g, '%27')}')` : ''}`, coverCls = pic ? 'cover has-img' : 'cover';
   const nPapers = (p.sources || []).length;
   const detail = [
     p.kind === 'promise' && p.meta?.quote ? quoteBlock(p.meta.quote, p.meta.paper, `Written in ${p.meta.made_year}, due ${p.meta.due_year}`) : '',
@@ -1682,13 +1707,13 @@ function postCard(p, g, compact = false) {
   if (compact) {
     // Inside a goal's row or on its own page: the goal is already named above, so no header.
     return `<article class="post compact">
-    <a class="cover" href="${target}" style="--h:${h};--h2:${h2}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
     <div class="post-f">${more || '<span></span>'}<span class="spacer"></span><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time>${shareBtn}</div>
   </article>`;
   }
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
-    <a class="cover" href="${target}" style="--h:${h};--h2:${h2}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
     ${more}
     <div class="post-f">${check}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
@@ -1716,13 +1741,25 @@ function failNote(e, retry) {
   return note("Parallax can't reach its data right now", esc(e.message || e), `<p><button class="btn" onclick="${retry}">Try again</button></p>`);
 }
 
+// First visit: one short intro above the feed, until dismissed or signed in.
+const introSeen = () => { try { return localStorage.getItem('px.intro') === '1'; } catch { return false; } };
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[data-intro-x]')) return;
+  try { localStorage.setItem('px.intro', '1'); } catch { /* private mode */ }
+  $('#intro')?.remove();
+});
+
 async function feedView(tab) {
   view.innerHTML = `<nav class="tabs feedtabs" role="tablist">
       <a class="tab" role="tab" href="#/" aria-selected="${tab === 'all'}">Everything</a>
       <a class="tab" role="tab" href="#/following" aria-selected="${tab === 'following'}">Following</a>
       <a class="tab" role="tab" href="#/branch" aria-selected="false">Your branch</a>
       <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a>
-    </nav><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
+    </nav>${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
+      <h1>The feed of human progress</h1>
+      <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
+      <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><button class="intro-x" type="button" data-intro-x>Got it</button></div>
+    </section>` : ''}<div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
   let list;
   try { list = await goals(); } catch (e) { box.innerHTML = failNote(e, 'route()'); return; }
