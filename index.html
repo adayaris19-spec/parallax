@@ -2406,7 +2406,7 @@ function howView(section) {
 async function exploreView() {
   view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
     <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
-    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
+    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro · 7 days free</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   try {
@@ -3233,13 +3233,16 @@ const fmtN = (n) => (n == null ? '—' : n >= 10000 ? `${(n / 1000).toFixed(0)}k
 const probLink = (p) => `#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}`;
 const GHOST_ROWS = `<div class="pad">${Array.from({ length: 6 }, (_, i) => `<div style="height:13px;border-radius:4px;background:var(--line2);margin:14px 0;width:${[82, 64, 90, 71, 58, 77][i]}%"></div>`).join('')}</div>`;
 
+// Pro buttons: first-time subscribers get a free trial (card upfront, charged when it ends).
+const proCta = (prefix = 'Unlock') => (term?.trial_days ? `Try ${term.trial_days} days free` : `${prefix} · ${esc(term.price)}`);
+const trialNote = () => (term?.trial_days ? `${term.trial_days} days free, then ${esc(term.price)}. Cancel before day ${term.trial_days + 1} and you pay nothing.` : 'Cancel any time.');
 // After a sample: what the rest holds, and how to get it.
 function moreGate(text) {
-  return `<div class="moregate"><p>${text}</p><div><button class="btn primary sm" type="button" data-sub>Unlock · ${esc(term.price)}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year">or ${esc(term.year_price)}, two months free</button>` : ''}</div></div>`;
+  return `<div class="moregate"><p>${text}</p><div><button class="btn primary sm" type="button" data-sub>${proCta()}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year">or ${esc(term.year_price)}, two months free</button>` : ''}</div></div>`;
 }
 function lockGate(title, text) {
   return `<div class="locked"><div class="ghost" aria-hidden="true">${GHOST_ROWS}</div><div class="gate"><div><b>${esc(title)}</b><p>${esc(text)}</p>
-    <button class="btn primary" type="button" data-sub>Unlock · ${esc(term.price)}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year" style="display:block;margin:8px auto 0">or ${esc(term.year_price)}: two months free</button>` : ''}</div></div></div>`;
+    <button class="btn primary" type="button" data-sub>${proCta()}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year" style="display:block;margin:8px auto 0">or ${esc(term.year_price)}: two months free</button>` : ''}</div></div></div>`;
 }
 
 function colsChart(years, recentFrom, big = false) {
@@ -4153,7 +4156,7 @@ function renderTerminal(box, tab = 'overview') {
   const thisYear = new Date().getFullYear();
   const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
-      <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
+      <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>${proCta('Subscribe')}</button>`}</div></div>
     <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
   const kstrip = `<section class="kstrip">
       <div><span class="lbl">Problems solved</span><b class="mono">${k.solved ?? 0}<small> / ${k.problems}</small></b>${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}</div>
@@ -4175,7 +4178,7 @@ function renderTerminal(box, tab = 'overview') {
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
-      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">Cancel any time. The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>Subscribe monthly</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
+      <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">${trialNote()} The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>${t.trial_days ? `Start your free ${t.trial_days} days` : 'Subscribe monthly'}</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
   const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
