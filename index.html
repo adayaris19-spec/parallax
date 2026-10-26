@@ -1523,6 +1523,11 @@ svg.gl .wedge.back{display:none}
 .pk-way>b{display:block;font-size:13px;line-height:1.35;margin:3px 0}.pk-way span{font-size:12px;color:var(--muted)}
 .pk-act{display:flex;align-items:center;gap:12px;margin-top:2px}
 .mk-panel .pks{padding:10px 0 6px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.gwrap.globe{position:relative}
+.gl-flip{position:absolute;top:6px;right:6px;z-index:1}
+svg.gl.flat{cursor:default}
+svg.gl.flat .wnode.back{opacity:1}svg.gl.flat .wnode.back text{display:inline}svg.gl.flat .wedge.back{display:inline}
+.gl-sphere,.gl-grid{transition:none}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3560,7 +3565,7 @@ function initWebSim() {
 
 // ---- The goal globe: goals as points on a sphere, links as arcs over its surface. Drag to spin; it
 // turns slowly on its own until you touch it. Ink only: a faint graticule, goal pictures as points.
-const globeRot = { yaw: -0.6, pitch: 0.35, auto: true };
+const globeRot = { yaw: -0.6, pitch: 0.35, auto: true, flat: false, k: 0 }; // k: 0 = globe, 1 = flat
 let globeAnim = 0;
 function globeLayout(web) {
   const order = [], seen = new Set();
@@ -3593,7 +3598,7 @@ function globeSvg(web, sel) {
     <circle class="gl-sphere" cx="380" cy="260" r="215"/><g class="gl-grid"></g>
     <g class="wedges">${web.edges.map((e) => `<g class="wedge${sel === `${e.a}|${e.b}` ? ' on' : ''}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" data-ends="${esc(e.a)} ${esc(e.b)}" data-n="${e.n}"><path class="hit"/><path class="ln" style="stroke-width:${(1.4 + Math.min(7, e.n * 0.55)).toFixed(1)}"/><g class="wn"><circle r="9"/><text text-anchor="middle">${e.n}</text></g></g>`).join('')}</g>
     <g class="gl-nodes">${order.map((s, i) => { const { handle, pic } = info(s); return `<g class="wnode${deg[s] ? '' : ' alone'}" data-node="${esc(s)}" data-i="${i}"><a href="#/g/${encodeURIComponent(s)}"><circle class="ring" r="13"/>${pic ? `<image href="${esc(pic)}" width="20" height="20" preserveAspectRatio="xMidYMid slice" clip-path="url(#glc${i})"/>` : '<circle class="dot" r="10"/>'}<text>@${esc(handle)}</text><title>@${esc(handle)} · ${deg[s] ? `shares ${deg[s]} problem link${deg[s] === 1 ? '' : 's'}` : 'no shared problems yet'}</title></a></g>`; }).join('')}</g>
-  </svg><p class="gl-hint">Drag to turn the globe · tap a line to see what two goals share</p>${growBar()}</div>`;
+  </svg><button class="btn sm gl-flip" type="button" data-flat>${globeRot.flat ? '◍ Back to globe' : '▭ Flatten'}</button><p class="gl-hint">${globeRot.flat ? 'Tap a line to see what two goals share' : 'Drag to turn the globe · tap a line to see what two goals share'}</p>${growBar()}</div>`;
 }
 function initGlobe() {
   cancelAnimationFrame(globeAnim);
@@ -3608,6 +3613,11 @@ function initGlobe() {
   const proj = (v, lift = 1) => { const [x, y, z] = rot(v); return [cx + R * lift * x, cy - R * lift * y, z]; };
   const slerp = (a, b, t) => { const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])), om = Math.acos(dot); if (om < 1e-4) return a; const s0 = Math.sin((1 - t) * om) / Math.sin(om), s1 = Math.sin(t * om) / Math.sin(om); return [0, 1, 2].map((k) => a[k] * s0 + b[k] * s1); };
   const grid = svg.querySelector('.gl-grid'), nodes = [...svg.querySelectorAll('.wnode')], edges = [...svg.querySelectorAll('.wedge')];
+  // The flat map: goals on a circle (linked ones next to each other), links curving toward the middle.
+  const FR = 190, flatAt = Object.fromEntries(order.map((s, i) => [s, [cx + FR * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / order.length), cy + FR * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / order.length)]]));
+  const flatCurve = (a, b) => { const [x1, y1] = flatAt[a], [x2, y2] = flatAt[b], mx = (x1 + x2) / 2, my = (y1 + y2) / 2, qx = mx + (cx - mx) * 0.35, qy = my + (cy - my) * 0.35;
+    return Array.from({ length: 25 }, (_, i) => { const t = i / 24, u = 1 - t; return [u * u * x1 + 2 * u * t * qx + t * t * x2, u * u * y1 + 2 * u * t * qy + t * t * y2, 1]; }); };
+  const mix = (p, q, k) => [p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k, k > 0.5 ? 1 : p[2]];
   const f = (n) => n.toFixed(1);
   // A path through 3D points, front side only (behind the globe is skipped).
   const pathOf = (pts) => { let d = '', pen = false; for (const [x, y, z] of pts) { if (z < -0.02) { pen = false; continue; } d += `${pen ? 'L' : 'M'}${f(x)},${f(y)}`; pen = true; } return d; };
@@ -3617,16 +3627,20 @@ function initGlobe() {
   grid.innerHTML = lines.map(() => '<path/>').join('');
   const gpaths = [...grid.children];
   const draw = () => {
-    lines.forEach((ln, i) => gpaths[i].setAttribute('d', pathOf(ln.map((v) => proj(v)))));
+    const k = globeRot.k;
+    svg.classList.toggle('flat', k > 0.5);
+    grid.style.opacity = String(1 - k); svg.querySelector('.gl-sphere').style.opacity = String(1 - k);
+    lines.forEach((ln, i) => gpaths[i].setAttribute('d', k >= 1 ? '' : pathOf(ln.map((v) => proj(v)))));
     for (const el of edges) {
-      const [a, b] = el.dataset.ends.split(' '), pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24; return proj(slerp(P[a], P[b], t), 1 + 0.12 * Math.sin(Math.PI * t)); });
+      const [a, b] = el.dataset.ends.split(' '), fc = k > 0 ? flatCurve(a, b) : null;
+      const pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24, g = proj(slerp(P[a], P[b], t), 1 + 0.12 * Math.sin(Math.PI * t)); return k > 0 ? mix(g, fc[i], k) : g; });
       const d = pathOf(pts); el.querySelectorAll('path').forEach((p) => p.setAttribute('d', d));
       const m = pts[12]; el.querySelector('.wn').setAttribute('transform', `translate(${f(m[0])},${f(m[1])})`); el.querySelector('.wn').style.display = m[2] < 0 ? 'none' : '';
       el.querySelector('text').setAttribute('y', '3.8');
       el.classList.toggle('back', !d);
     }
     for (const el of nodes) {
-      const [x, y, z] = proj(P[el.dataset.node]), front = z >= 0, sc = 0.7 + 0.45 * Math.max(0, z);
+      const g = proj(P[el.dataset.node]), [x, y, z] = k > 0 ? mix(g, [...flatAt[el.dataset.node], 1], k) : g, front = z >= 0, sc = (0.7 + 0.45 * Math.max(0, g[2])) * (1 - k) + k;
       el.setAttribute('transform', `translate(${f(x)},${f(y)}) scale(${sc.toFixed(3)})`);
       el.classList.toggle('back', !front);
       const right = x >= cx;
@@ -3642,14 +3656,16 @@ function initGlobe() {
   let hover = false, drag = null;
   const tick = () => {
     if (!svg.isConnected) return;
-    if (globeRot.auto && !hover && !drag && !still && !document.hidden) { globeRot.yaw += 0.0035; draw(); }
+    const want = globeRot.flat ? 1 : 0;
+    if (globeRot.k !== want) { globeRot.k = still ? want : Math.abs(want - globeRot.k) < 0.02 ? want : globeRot.k + (want - globeRot.k) * 0.12; draw(); }
+    else if (globeRot.auto && !globeRot.flat && !hover && !drag && !still && !document.hidden) { globeRot.yaw += 0.0035; draw(); }
     globeAnim = requestAnimationFrame(tick);
   };
   globeAnim = requestAnimationFrame(tick);
   svg.addEventListener('mouseenter', () => { hover = true; });
   svg.addEventListener('mouseleave', () => { hover = false; });
   svg.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.wedge, .wnode')) return; // taps on lines and goals keep working
+    if (e.target.closest('.wedge, .wnode') || globeRot.flat) return; // taps on lines and goals keep working; the flat map doesn't turn
     drag = { x: e.clientX, y: e.clientY, yaw: globeRot.yaw, pitch: globeRot.pitch }; svg.classList.add('dragging');
     const move = (ev) => { const r = svg.getBoundingClientRect(); globeRot.yaw = drag.yaw + (ev.clientX - drag.x) / r.width * 3.2; globeRot.pitch = Math.max(-1.1, Math.min(1.1, drag.pitch + (ev.clientY - drag.y) / r.height * 2.4)); draw(); };
     const up = () => { drag = null; svg.classList.remove('dragging'); removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
@@ -3657,6 +3673,12 @@ function initGlobe() {
   });
 }
 
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-flat]'); if (!b) return;
+  globeRot.flat = !globeRot.flat;
+  b.textContent = globeRot.flat ? '◍ Back to globe' : '▭ Flatten';
+  const hint = b.parentElement.querySelector('.gl-hint'); if (hint) hint.textContent = globeRot.flat ? 'Tap a line to see what two goals share' : 'Drag to turn the globe · tap a line to see what two goals share';
+});
 // Watch it grow (both views): goals join in the order Parallax mapped them; their links and shared
 // problems fade in as soon as both sides are on the map. A caption says who joined and what it added.
 function growBar() {
@@ -3761,8 +3783,8 @@ function crossPanel(t) {
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
       ${xSearchBox()}
-      ${selChips('webmode', [['globe', 'Globe'], ['goals', 'Flat'], ['problems', 'Problems']], termSel.webmode || 'globe')}
-      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${(termSel.webmode || 'globe') === 'globe' ? globeSvg(c.web, sel) : webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
+      ${selChips('webmode', [['globe', 'Globe'], ['problems', 'Problems']], termSel.webmode === 'problems' ? 'problems' : 'globe')}
+      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${globeSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
       <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
       ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
