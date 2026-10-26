@@ -532,7 +532,9 @@ Deno.serve(async (req) => {
       if (!r2) return json({ ok: false, why: R2_PUBLIC.includes("r2.cloudflarestorage.com") ? "R2_PUBLIC_URL is the API endpoint; use the bucket's public URL (pub-….r2.dev)" : "R2 secrets missing" });
       const put = await r2.fetch(`https://${R2_ACCOUNT}.r2.cloudflarestorage.com/${R2_BUCKET}/check.txt`, { method: "PUT", body: "ok", headers: { "Content-Type": "text/plain" } });
       const pub = put.ok ? await fetch(`${R2_PUBLIC}/check.txt`).then((r) => r.status).catch(() => 0) : 0;
-      return json({ ok: put.ok && pub === 200, bucket: R2_BUCKET, upload: put.status, upload_error: put.ok ? null : (await put.text()).slice(0, 160), public_read: pub });
+      let sample = null;
+      if (typeof body.path === "string") { const r = await fetch(`${R2_PUBLIC}/${body.path}`, { headers: { Range: "bytes=0-999" } }); sample = { status: r.status, type: r.headers.get("content-type"), range: r.headers.get("content-range"), cors: r.headers.get("access-control-allow-origin") }; await r.body?.cancel(); }
+      return json({ sample, ok: put.ok && pub === 200, bucket: R2_BUCKET, upload: put.status, upload_error: put.ok ? null : (await put.text()).slice(0, 160), public_read: pub });
     }
     if (body.action === "drop_old") return json(await dropOld());
     const collected = await collect();
