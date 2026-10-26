@@ -186,8 +186,8 @@ async function oaRemaining(): Promise<number> {
 
 async function collect() {
   const jobs = await db(`idea_jobs?status=eq.pending&select=batch_id,goal_id,keys,context,created_at`);
-  if (jobs.length && (await oaRemaining()) < 0.05) return [{ batch: "-", ideas: 0, errors: ["waiting for OpenAlex's daily allowance to reset"] }];
   const out: { batch: string; ideas: number; errors: string[] }[] = [];
+  let oaLeft: number | null = null;
   for (const j of jobs) {
     const b = await claude.messages.batches.retrieve(j.batch_id);
     if (b.processing_status !== "ended") {
@@ -200,6 +200,10 @@ async function collect() {
       }
       continue;
     }
+    // Saving ideas looks papers up on OpenAlex: wait for its daily allowance to reset if it's spent
+    // (checked here, after the stuck check, so a spent allowance never keeps a stuck batch alive).
+    oaLeft ??= await oaRemaining();
+    if (oaLeft < 0.05) { out.push({ batch: j.batch_id, ideas: 0, errors: ["waiting for OpenAlex's daily allowance to reset"] }); continue; }
     const work: Promise<number>[] = [], errors: string[] = [];
     for await (const r of await claude.messages.batches.results(j.batch_id)) {
       const key = j.keys[Number(r.custom_id.slice(1))] ?? r.custom_id;
@@ -230,7 +234,7 @@ async function attention(): Promise<Map<number, number>> {
 async function submit(slug?: string, key?: string) {
   const pending = await db(`idea_jobs?status=eq.pending&select=keys,goal_id`);
   // A slow batch must not hold up every other goal: up to 3 run at once, one per goal.
-  if (!slug && pending.length >= 3) return { note: "3 batches are still running" };
+  if (!slug && new Set(pending.map((p: { goal_id: number }) => p.goal_id)).size >= 3) return { note: "3 goals have batches running" };
   const busy = new Set(pending.flatMap((p: { goal_id: number; keys: string[] }) => p.keys.map((k) => `${p.goal_id}:${k}`)));
   const requests = await db(`idea_requests?select=goal_id,node_key`).catch(() => []);
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,bottleneck_key,ideas_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=ideas_at.asc.nullsfirst`);
@@ -243,8 +247,12 @@ async function submit(slug?: string, key?: string) {
   for (const r of await db(`ideas?select=goal_id,node_key`)) (withIdeas.get(r.goal_id) ?? withIdeas.set(r.goal_id, new Set()).get(r.goal_id)!).add(r.node_key);
   const watched = (g: { id: number }) => !!slug || (att.get(g.id) ?? 0) > 0;
   const goalsInScope = slug ? goals : goals.filter((g: { id: number }) => wanted.has(g.id) || watched(g) || (withIdeas.get(g.id)?.size ?? 0) < AUTO_PER_GOAL);
-  goalsInScope.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
+  // Asked-for first, then goals with no ideas yet (a new goal's page needs them), then by attention.
+  const none = (g: { id: number }) => Number(!withIdeas.get(g.id)?.size);
+  goalsInScope.sort((a: { id: number }, b: { id: number }) => Number(wanted.has(b.id)) - Number(wanted.has(a.id)) || none(b) - none(a) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
+  const busyGoals = new Set(pending.map((p: { goal_id: number }) => p.goal_id));
   for (const g of goalsInScope) {
+    if (!slug && busyGoals.has(g.id)) continue; // one running batch per goal, so no goal holds up the rest
     const [nodes, have] = await Promise.all([
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status&order=position.asc`),
       db(`ideas?goal_id=eq.${g.id}&select=node_key,created_at`),
