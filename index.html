@@ -1845,7 +1845,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const hot = byMom.filter((l) => momOf(l.key) >= 1.25).slice(0, 4), cold = byMom.filter((l) => momOf(l.key) <= 0.8).reverse().slice(0, 4);
   const libYears = Array.from({ length: 12 }, (_, i) => Y1 - 11 + i).map((y) => ({ y, n: leaves.reduce((a, l) => a + (yrs[l.key]?.[y] || 0), 0) }));
   const libGrowth = Math.round((goalRatio - 1) * 100);
-  goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1 };
+  goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1, any: Object.keys(yrs).length > 0 };
 
   const ring = `<div class="ro-bar"><i style="width:${pctN}%"></i></div>`;
   const ymax = Math.max(1, ...libYears.map((x) => x.n));
@@ -2036,8 +2036,8 @@ function fieldPanel(key) {
     ${text ? `<p>${esc(text)}</p>` : ''}
     <div class="fs-res"><div class="fs-rh"><span class="kick">Research per year</span><b class="mono ${word === 'Heating up' ? 'up' : word === 'Going quiet' ? 'down' : ''}">${word}${total >= 6 ? ` · ×${m.toFixed(1)}` : ''}</b></div>
       <div class="fs-cols" aria-hidden="true">${vals.map((v, i) => `<i style="height:${Math.max(3, v / vmax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div>
-      <div class="fs-ax mono"><span>${years[0]}</span><span>${total.toLocaleString()} papers in the library</span><span>${years[years.length - 1]}</span></div></div>
-    ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : ''; })()}
+      <div class="fs-ax mono"><span>${years[0]}</span><span>${total ? `${total.toLocaleString()} papers in the library` : F.any ? 'No papers found for this problem yet' : 'Building the research library…'}</span><span>${years[years.length - 1]}</span></div></div>
+    ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : l.status === 'solved' ? '' : `<div class="fs-cost"><span class="kick">What it would take</span><p class="muted">Parallax is researching the cost of the next step and of solving it. Estimates appear here within a few hours.</p></div>`; })()}
     ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
     ${fundingPanel(g, l, { compact: true })}
     <div class="fs-act"><button class="btn" type="button" data-leaf="${esc(l.key)}">Open the research</button></div>`;
@@ -3065,7 +3065,7 @@ function usdRange(lo, hi) {
 }
 const CONF = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' };
 function costBlock(c, l) {
-  if (!c) return '';
+  if (!c) return l?.status === 'solved' ? '' : `<div class="wt"><div class="kick">What it would take</div><p class="muted">Parallax is researching what the next step and a full solution would cost. Estimates appear here within a few hours.</p></div>`;
   const src = (c.sources || []).map((x) => { const u = safeUrl(x.url); return u ? `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title || u)}</a></li>` : ''; }).join('');
   return `<div class="wt"><div class="kick">What it would take</div>
     <div class="wt-next"><span class="wt-l">Next step</span><b>${esc(c.next_step)}</b><span class="wt-n mono">${esc(usdRange(c.next_low, c.next_high))}${c.next_time ? ` · ${esc(c.next_time)}` : ''}</span></div>
@@ -3095,7 +3095,13 @@ function donateUrl(o, g, token) {
   return `${o.donate_url}#/donate?partner_donation_id=${id}&partner_metadata=${encodeURIComponent(meta)}${token ? `&webhook_token=${encodeURIComponent(token)}` : ''}&success_url=${encodeURIComponent(back)}`;
 }
 function giveBox(g, gv) {
-  if (!gv.orgs.length) return '';
+  if (!gv.orgs.length) return `<section class="gv" id="give">
+    <div class="gv-top">
+      <div class="gv-k">Support this goal</div>
+      <div class="gv-num"><b class="mono">${money(0)}</b><span>raised of a <b class="mono">${money(stepGoal(0))}</b> community goal</span></div>
+      <div class="gv-bar"><i style="width:0%"></i></div>
+      <div class="gv-meta">Parallax is checking registered charities that work on this goal. Donations open here once they’re verified, usually within a day.</div>
+    </div></section>`;
   const raised = gv.total.raised_cents || 0, target = stepGoal(raised), pctDone = Math.min(100, raised / target * 100);
   const orgRow = (o, hidden) => `<div class="gv-org${hidden ? ' hide' : ''}">
       <span class="gv-logo gv-ini" aria-hidden="true">${esc(o.name.replace(/^the\s+/i, '').slice(0, 1))}${o.logo_url ? `<img src="${esc(o.logo_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>

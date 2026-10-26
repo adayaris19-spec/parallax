@@ -145,6 +145,8 @@ async function grow(slug?: string) {
   }
   const count = (await db(`rpc/parallax_goal_paper_count`, { method: "POST", body: { gid: g.id } })) ?? papers.size;
   await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { library_at: new Date().toISOString(), papers_count: count } });
+  // The goal page's field (research per year, shared papers) reads stored counts; refresh them now.
+  await db("rpc/parallax_refresh_field", { method: "POST", body: {} }).catch((e) => errors.push(`field refresh: ${e instanceof Error ? e.message : e}`));
   const bySource: Record<string, number> = {};
   for (const p of all) bySource[p.source] = (bySource[p.source] ?? 0) + 1;
   return { slug: g.slug, problems: leaves.length, papers: count, by_source: bySource, errors: [...new Set(errors)].slice(0, 6) };
