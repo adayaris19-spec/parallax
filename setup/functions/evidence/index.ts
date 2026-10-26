@@ -89,7 +89,7 @@ function relevant(texts: string[], used: string): boolean {
   return hit / texts.length >= 0.3;
 }
 
-async function funding(q: string, anchors: string[] = []): Promise<Found | null> {
+async function funding(q: string, anchors: string[] = [], names: string[] = anchors): Promise<Found | null> {
   for (const k of tries(q, anchors)) {
     const filters = { keywords: [k], award_type_codes: GRANTS, time_period: [{ start_date: SINCE, end_date: `${Y}-12-31` }] };
     const c = await post(`${USA}/spending_by_award_count/`, { filters });
@@ -105,12 +105,15 @@ async function funding(q: string, anchors: string[] = []): Promise<Found | null>
     const agencies = (byAgency.results ?? []).map((x: any) => ({ name: String(x.name ?? ""), amount: Math.round(Number(x.amount) || 0) })).filter((x: { amount: number }) => x.amount > 0);
     const total = agencies.reduce((a: number, x: { amount: number }) => a + x.amount, 0);
     // Broad phrases cross fields ("blood-brain barrier" spans ALS and stroke; "closed loop" finds
-    // battery recycling for a Mars goal). A phrase without the goal's subject must find grants that
-    // name it.
-    const named = (t: string) => anchors.some((a) => grantTitle(t).toLowerCase().includes(a.slice(0, 6)));
+    // battery recycling for a Mars goal). A phrase without a word from the goal's name must find
+    // grants that name the goal's subject.
+    // Test against the goal's subject words that are not in the phrase itself ("prevention" can't
+    // vouch for "prevention treatment").
+    const others = anchors.filter((a) => !k.toLowerCase().includes(a.slice(0, 6)));
+    const named = (t: string) => others.some((a) => grantTitle(t).toLowerCase().includes(a.slice(0, 6)));
     // deno-lint-ignore no-explicit-any
     const descs = (all as any[]).map((x) => String(x["Description"] ?? ""));
-    if (anchors.length && !anchors.some((a) => k.toLowerCase().includes(a.slice(0, 6))) && descs.filter(named).length < descs.length * 0.3) { await sleep(250); continue; }
+    if (names.length && !names.some((a) => k.toLowerCase().includes(a.slice(0, 6))) && descs.filter(named).length < descs.length * 0.3) { await sleep(250); continue; }
     return {
       source: "grants", count, amount_cents: total * 100, since_year: Y - 3, extra: { terms: k, agencies: agencies.slice(0, 4) },
         // deno-lint-ignore no-explicit-any
@@ -168,7 +171,7 @@ async function run(slug?: string) {
     let failed = false;
     try {
       const anchors = anchorsOf(g.name, (leaves as { query: string }[]).map((x) => x.query));
-      const gr = await funding(l.query, anchors);
+      const gr = await funding(l.query, anchors, anchorsOf(g.name));
       if (gr) found.push(gr);
       // deno-lint-ignore no-explicit-any
       const hhs = ((gr?.extra.agencies ?? []) as any[]).find((a) => /health and human services/i.test(a.name))?.amount ?? 0;
