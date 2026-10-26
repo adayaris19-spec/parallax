@@ -121,7 +121,9 @@ async function attention(): Promise<Map<number, number>> {
 async function run(slug?: string) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,tagline,orgs_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=orgs_at.asc.nullsfirst`);
   const att = slug ? new Map() : await attention();
-  const g = slug ? goals[0] : goals.find((x: { id: number; orgs_at: string | null }) => (att.get(x.id) ?? 0) > 0 && (!x.orgs_at || Date.now() - new Date(x.orgs_at).getTime() > 90 * DAY));
+  const g = slug ? goals[0] : goals.find((x: { id: number; orgs_at: string | null }) => !x.orgs_at)
+    ?? goals.find((x: { id: number; orgs_at: string | null }) => (att.get(x.id) ?? 0) > 0 && Date.now() - new Date(x.orgs_at!).getTime() > 90 * DAY);
+  // Every goal gets its first list (so the giving box always shows); only watched goals get refreshed.
   if (!g) return { note: "every watched goal has a recent list" };
   const nodes = await db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&select=key,title,plain_title`);
   const msg = await claude.beta.messages.stream({
