@@ -3395,8 +3395,8 @@ function calendarPanel(t) {
 }
 
 // Watchlist: goals a subscriber watches, and what they want to hear about (sent as alerts).
-const WRULES = [['signals', 'Advances, setbacks and new bottlenecks', 'As soon as they are posted.'], ['catalysts', 'Catalysts within 30 days', 'A trial readout or a promise coming due on a watched goal.'], ['opportunities', 'New on the opportunity radar', 'When one of your goals’ problems enters the opportunity corner.']];
-const wlState = { goals: null, rules: { signals: true, catalysts: true, opportunities: true }, loaded: false };
+const WRULES = [['signals', 'Advances, setbacks and new bottlenecks', 'As soon as they are posted.'], ['catalysts', 'Catalysts within 30 days', 'A trial readout or a promise coming due on a watched goal.'], ['opportunities', 'New on the opportunity radar', 'When one of your goals’ problems enters the opportunity corner.'], ['ripples', 'Ripples from other goals', 'When a move or a big grant on another goal reaches a problem your goal shares.']];
+const wlState = { goals: null, rules: { signals: true, catalysts: true, opportunities: true, ripples: true }, loaded: false };
 function watchPanel(t) {
   const full = t.access === 'full';
   const head = `<div class="panel-h"><h2>Watchlist</h2><span class="lbl">Your goals, and what you want to hear about</span></div>`;
@@ -3406,9 +3406,9 @@ function watchPanel(t) {
     <div><span class="lbl">Goals to watch</span><div class="wl-goals">${goalsList.map((g) => `<label class="wl-g"><input type="checkbox" name="wg" value="${esc(g.slug)}"${sel.has(g.slug) ? ' checked' : ''}${full ? '' : ' disabled'}><span>${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}@${esc(g.handle)}</span></label>`).join('')}</div></div>
     <div><span class="lbl">Alert me about</span>${WRULES.map(([k, title, d]) => `<label class="wl-r"><input type="checkbox" name="wr" value="${k}"${wlState.rules[k] !== false ? ' checked' : ''}${full ? '' : ' disabled'}><span><b>${title}</b><small>${d}</small></span></label>`).join('')}</div>
     ${full ? `<div class="wl-a"><button class="btn primary" type="button" id="wlSave">Save watchlist</button><button class="btn" type="button" id="wlDevice">Send alerts to this device</button><span class="wl-ok" id="wlOk" role="status"></span></div>
-      <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst and opportunity is sent once.</p>` : ''}
+      <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst, opportunity and ripple is sent once.</p>` : ''}
   </div>`;
-  return `<section class="panel">${head}<div class="pad">${form}</div>${full ? '' : moreGate('Pick the goals you care about and get an alert when a trial readout is 30 days away, a promise comes due, or a problem enters the opportunity corner.')}</section>`;
+  return `<section class="panel">${head}<div class="pad">${form}</div>${full ? '' : moreGate('Pick the goals you care about and get an alert when a trial readout is 30 days away, a promise comes due, a problem enters the opportunity corner, or a move on another goal ripples into yours.')}</section>`;
 }
 async function wireWatch(box) {
   if (!$('#wlSave')) return;

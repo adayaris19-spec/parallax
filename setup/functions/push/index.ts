@@ -82,6 +82,20 @@ async function send() {
       db(`watch_alerts?user_id=in.(${[...watchOf.keys()].join(",")})&select=user_id,key`),
     ]);
     const done = new Set(sent.map((x: { user_id: string; key: string }) => `${x.user_id}|${x.key}`));
+    // Ripples: a move (or a $5M+ grant) in the last 3 days on a problem shared with another goal.
+    const since3 = new Date(Date.now() - 3 * 86_400_000).toISOString();
+    const [cross, rposts, rgrants] = await Promise.all([
+      db("crossovers?source=neq.rejected&select=goal_a,key_a,goal_b,key_b,why&limit=5000").catch(() => []),
+      db(`posts?created_at=gte.${since3}&kind=in.(advance,setback,solved,bottleneck)&select=id,goal_id,node_key,kind,headline,plain_headline&limit=200`).catch(() => []),
+      db(`grant_awards?first_seen=gte.${since3}&amount=gte.5000000&node_key=not.is.null&select=goal_id,award_id,node_key,recipient,amount,url&limit=200`).catch(() => []),
+    ]);
+    type Rip = { key: string; to: number; from: number; title: string; body: string; url: string };
+    const rips: Rip[] = [];
+    const reach = (gid: number, key: string) => cross.flatMap((c: { goal_a: number; key_a: string; goal_b: number; key_b: string; why: string }) =>
+      c.goal_a === gid && c.key_a === key ? [{ to: c.goal_b, why: c.why }] : c.goal_b === gid && c.key_b === key ? [{ to: c.goal_a, why: c.why }] : []);
+    const usd = (x: number) => (x >= 1e9 ? `$${(x / 1e9).toFixed(1)}B` : `$${(x / 1e6).toFixed(x >= 1e8 ? 0 : 1)}M`);
+    for (const p of rposts) for (const r of reach(p.goal_id, p.node_key)) rips.push({ key: `rip:${p.id}:${r.to}`, to: r.to, from: p.goal_id, title: `Ripple from @${byId.get(p.goal_id)?.handle}`, body: `${p.plain_headline || p.headline} · ${r.why}`, url: `${SITE}#/p/${p.id}` });
+    for (const a of rgrants) for (const r of reach(a.goal_id, a.node_key)) rips.push({ key: `ripg:${a.award_id}:${r.to}`, to: r.to, from: a.goal_id, title: `Ripple from @${byId.get(a.goal_id)?.handle}`, body: `${usd(Number(a.amount))} grant to ${String(a.recipient ?? "").split(" - ")[0]} · ${r.why}`, url: `${SITE}#/terminal/crossovers` });
     const nodes = opps.length ? await db(`nodes?or=(${opps.map((o: { goal_id: number; node_key: string }) => `and(goal_id.eq.${o.goal_id},key.eq.${o.node_key})`).join(",")})&select=goal_id,key,title,plain_title`) : [];
     for (const [uid, w] of watchOf) {
       const mine = new Set<number>((w.goals ?? []).map((sl: string) => bySlug.get(sl)?.id).filter(Boolean));
@@ -91,6 +105,10 @@ async function send() {
           out.push({ key: `trial:${t.nct}`, goal: byId.get(e.goal_id)!.handle, title: "Trial readout due", body: `${t.title} (${t.phase}) · due ${t.date}`, url: `https://clinicaltrials.gov/study/${t.nct}` });
         }
         for (const p of proms) if (mine.has(p.goal_id)) out.push({ key: `promise:${p.id}`, goal: byId.get(p.goal_id)!.handle, title: "Promise due this year", body: p.claim, url: `${SITE}#/g/${byId.get(p.goal_id)!.slug}/promises` });
+      }
+      if (w.rules?.ripples !== false) {
+        // Moves on other goals that reach a watched goal (a move on a watched goal itself already alerts).
+        for (const r of rips) if (mine.has(r.to) && !mine.has(r.from)) out.push({ key: r.key, goal: byId.get(r.to)!.handle, title: r.title, body: r.body.slice(0, 220), url: r.url });
       }
       if (w.rules?.opportunities !== false) {
         for (const o of opps) if (mine.has(o.goal_id)) {
