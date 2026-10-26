@@ -1255,14 +1255,22 @@ body.wide main{max-width:1120px}
 .xdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--open)}
 .xdot.st-solved{background:var(--solved)}.xdot.st-progress{background:var(--progress)}.xdot.st-blocked{background:var(--blocked)}
 .webwrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px;align-items:start;padding:8px 10px 14px}
-svg.web{width:100%;max-width:640px;height:auto;display:block;margin:0 auto}
-.wedge line{stroke:var(--ink2);stroke-opacity:.35;stroke-linecap:round}
-.wedge line.hit{stroke:transparent;stroke-width:18}
-.wedge{cursor:pointer}.wedge:hover line:not(.hit){stroke-opacity:.7}
-.wedge.on line:not(.hit){stroke:var(--accent);stroke-opacity:1}
-.wedge text{font-family:var(--m);font-size:11px;fill:var(--ink2);paint-order:stroke;stroke:var(--card);stroke-width:4px}
-.wnode circle{fill:var(--ink)}.wnode text{font-size:12.5px;font-weight:600;fill:var(--ink)}
-.wnode.alone circle{fill:var(--line2)}.wnode.alone text{fill:var(--muted);font-weight:400}
+svg.web{width:100%;max-width:700px;height:auto;display:block;margin:0 auto}
+.webwrap{background:radial-gradient(ellipse at 38% 50%,var(--accent-soft),transparent 62%)}
+.wedge .ln{fill:none;stroke:var(--ink2);stroke-opacity:.32;stroke-linecap:round;transition:stroke-opacity .15s,stroke .15s}
+.wedge .hit{fill:none;stroke:transparent;stroke-width:20}
+.wedge{cursor:pointer;outline:none}.wedge:hover .ln,.wedge:focus-visible .ln{stroke-opacity:.75}
+.wedge.on .ln{stroke:var(--accent);stroke-opacity:.95}
+.wn circle{fill:var(--card);stroke:var(--line2)}.wedge.on .wn circle{stroke:var(--accent)}
+.wn text{font-family:var(--m);font-size:10.5px;fill:var(--ink2)}
+.wnode a{cursor:pointer}
+.wnode .ring{fill:var(--card);stroke:var(--line2);stroke-width:1.5}
+.wnode .dot{fill:var(--ink)}
+.wnode text{font-size:15px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.wnode.alone .dot{fill:var(--line2)}.wnode.alone text{fill:var(--muted);font-weight:400}
+svg.web.focus .wedge:not(.hl){opacity:.18}svg.web.focus .wnode:not(.hl){opacity:.35}
+svg.web .wedge.hl .ln{stroke-opacity:.9}
+svg.web .wnode,svg.web .wedge{transition:opacity .15s}
 .webside{padding:8px 8px 0;max-height:430px;overflow:auto}
 .xlink{padding:10px 0;border-top:1px solid var(--line)}
 .xpair{display:grid;gap:4px;font-size:13.5px}
@@ -1294,6 +1302,23 @@ svg.web{width:100%;max-width:640px;height:auto;display:block;margin:0 auto}
 @media (max-width:760px){.webwrap{grid-template-columns:1fr}.webside{max-height:none}}
 .xalso{padding:8px 16px 0;font-size:13px;color:var(--ink2)}
 .xalso span{color:var(--accent)}.xalso a{font-weight:600;color:var(--ink);text-decoration:none}.xalso a:hover{text-decoration:underline}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin:0 0 10px;overflow:hidden}
+.sec>summary{display:grid;grid-template-columns:auto minmax(0,1fr) 20px;gap:14px;align-items:center;padding:15px 18px;cursor:pointer;list-style:none}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary:hover{background:var(--sunk)}
+.sec-t{font-weight:600;font-size:15.5px;white-space:nowrap}
+.sec-k{font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-k .hchip{font-size:11.5px}
+.sec-c{width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);justify-self:center;margin-top:-4px;transition:transform .15s}
+.sec[open]>summary .sec-c{transform:rotate(-135deg);margin-top:4px}
+.sec[open]>summary{border-bottom:1px solid var(--line)}
+.sec[open]>summary .sec-k{opacity:.0;pointer-events:none}
+.sec-b>section.panel{border:0;box-shadow:none;border-radius:0;margin:0;background:none}
+.sec-b .panel-h{display:none}
+.sec-b .panel-h + .ans,.sec-b>section.panel>.ans:first-child{border-top:0}
+.wbar{margin-bottom:12px}
+.wbar[open]>summary .sec-k{opacity:1}
+@media (max-width:640px){.sec>summary{grid-template-columns:minmax(0,1fr) 20px;gap:4px 10px}.sec-t{grid-column:1}.sec-k{grid-column:1;grid-row:2;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.sec-c{grid-column:2;grid-row:1/3}}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3068,7 +3093,7 @@ function oppPanel(t) {
   if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Opportunities', 'Problems held back only by money, problems research has gone quiet on, and problems seeing a burst of new work.')}</section>`;
   const o = t.opportunities;
   const col = (title, desc, items, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${items.length}</small></h3><div class="d">${desc}</div>
-    ${items.length ? items.slice(0, 6).map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('') : '<div class="d">None right now.</div>'}</div>`;
+    ${items.length ? items.slice(0, 4).map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('') : '<div class="d">None right now.</div>'}</div>`;
   return `<section class="panel">${head}${answerBox(t.answers?.opportunities)}<div class="opp">
     ${col('Funding gaps', 'Unsolved problems whose main obstacle is money, not knowledge.', o.funding, (p) => `${STATUS_LABEL[p.status]} · <b>${p.sources}</b> sources`)}
     ${col('Gone quiet', 'Unsolved, and the newest research behind them is 5+ years old. Often overlooked.', o.quiet, (p) => `newest paper <b>${p.newest}</b>`)}
@@ -3107,7 +3132,7 @@ function moneyPanel(t) {
       <td class="num ${g.change > 0 ? 'up' : g.change < 0 ? 'down' : ''}">${pctTxt(g.change)}</td><td class="num">${g.new_awards ? `<button type="button" class="linkish" data-tsel="money" data-v="${esc(g.slug)}">${g.new_awards} · ${usdShort(g.new_sum)}</button>` : '—'}</td></tr>`).join('')}</tbody></table></div>`;
   const goalsWith = m.goals.filter((g) => g.new_awards).map((g) => [g.slug, `@${g.goal} ${g.new_awards}`]);
   const list = m.awards.filter((a) => !termSel.money || a.slug === termSel.money);
-  const shown = termSel.moneyAll ? list : list.slice(0, 15);
+  const shown = termSel.moneyAll ? list : list.slice(0, 8);
   return `<section class="panel">${head}${answerBox(t.answers?.money)}${table}
     <p class="radar-note" style="padding:8px 18px 14px">Grants matched to each goal by the search phrases checked for its problems. Quarters are US federal fiscal quarters (FY starts in October); negative amounts are money taken back.</p></section>
     <section class="panel" id="mAwards"><div class="panel-h"><h2>New grants of $1M+ <small>${list.length}</small></h2><span class="lbl">Last 90 days, largest first</span></div>
@@ -3158,7 +3183,7 @@ function pipelinePanel(t) {
   const cur = P.find((p) => p.slug === termSel.pipe) || P[0];
   const phases = cur.by_phase.map((p) => [p.phase, `${p.phase} ${p.n}`]);
   const list = cur.trials.filter((x) => !termSel.phase || x.phase === termSel.phase);
-  const shown = termSel.pipeAll ? list : list.slice(0, 25);
+  const shown = termSel.pipeAll ? list : list.slice(0, 12);
   const when = (d) => (d ? new Date(`${d.length === 7 ? `${d}-15` : d}T12:00:00`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '—');
   return `<section class="panel">${head}${answerBox(t.answers?.pipeline)}
     <div class="pgrid">${P.map((p) => `<button type="button" class="pcard${p.slug === cur.slug ? ' on' : ''}" data-tsel="pipe" data-v="${esc(p.slug)}"><div class="fh"><b>@${esc(p.goal)}</b><span class="mono">${p.total} trials · ${p.late} Phase 3+</span></div>${phaseBars(p.by_phase)}
@@ -3193,7 +3218,7 @@ function rippleRows(list) {
     const head = r.post ? `<a href="#/p/${r.post}">${esc(r.headline)}</a>` : r.url ? extLink(r.url, esc(r.headline)) : esc(r.headline);
     return `<div class="rip"><div class="rip-h"><span class="sig ${cls}">${label}</span>${isNew ? '<span class="rip-new">New</span>' : ''}<span class="hchip">@${esc(r.from.goal)}</span><span class="when">${esc(whenAgo(r.at))}</span></div>
       <div class="rip-t">${head}</div>
-      <div class="rip-to">${r.affects.map((a) => `<div><span class="rip-arrow" aria-hidden="true">↳</span> <span>also moves <a href="#/g/${encodeURIComponent(a.slug)}/tree/${encodeURIComponent(a.key)}"><span class="hchip">@${esc(a.goal)}</span> ${esc(a.title)}</a>${a.why ? `<small>${esc(a.why)}</small>` : ''}</span></div>`).join('')}</div></div>`;
+      <div class="rip-to">${r.affects.slice(0, 2).map((a) => `<div><span class="rip-arrow" aria-hidden="true">↳</span> <span>also moves <a href="#/g/${encodeURIComponent(a.slug)}/tree/${encodeURIComponent(a.key)}"><span class="hchip">@${esc(a.goal)}</span> ${esc(a.title)}</a>${a.why ? `<small>${esc(a.why)}</small>` : ''}</span></div>`).join('')}${r.affects.length > 2 ? `<div><span></span><small>+${r.affects.length - 2} more linked problem${r.affects.length - 2 === 1 ? '' : 's'}</small></div>` : ''}</div></div>`;
   }).join('');
 }
 function webSvg(web, sel) {
@@ -3201,22 +3226,40 @@ function webSvg(web, sel) {
   const order = [], seen = new Set();
   for (const e of web.edges) for (const s of [e.a, e.b]) if (!seen.has(s)) { seen.add(s); order.push(s); }
   for (const g of web.goals) if (!seen.has(g.slug)) order.push(g.slug);
-  const W = 640, H = 430, cx = W / 2, cy = H / 2 - 4, R = 165, N = order.length;
+  const W = 760, H = 470, cx = W / 2, cy = H / 2, R = 172, N = order.length;
   const pos = Object.fromEntries(order.map((s, i) => [s, [cx + R * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / N), cy + R * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / N)]]));
-  const handle = (s) => web.goals.find((g) => g.slug === s)?.handle || s;
-  const linked = new Set(web.edges.flatMap((e) => [e.a, e.b]));
+  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
+  const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
+  const rad = (s) => (deg[s] ? Math.min(25, 15 + Math.sqrt(deg[s]) * 2.6) : 11);
+  const f = (n) => n.toFixed(1);
   const edges = web.edges.map((e) => {
     const [x1, y1] = pos[e.a], [x2, y2] = pos[e.b], on = sel === `${e.a}|${e.b}`;
-    return `<g class="wedge${on ? ' on' : ''}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" role="button" tabindex="0" aria-label="@${esc(handle(e.a))} and @${esc(handle(e.b))}: ${e.n} shared problems">
-      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="hit"/><line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke-width:${Math.min(9, 1.5 + e.n * 0.7).toFixed(1)}"/>
-      <text x="${((x1 + x2) / 2).toFixed(1)}" y="${((y1 + y2) / 2 + 4).toFixed(1)}" text-anchor="middle">${e.n}</text></g>`;
+    // Bend each line toward the middle, so lines meeting at one goal fan out instead of overlapping.
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, qx = mx + (cx - mx) * 0.35, qy = my + (cy - my) * 0.35;
+    const lx = 0.25 * x1 + 0.5 * qx + 0.25 * x2, ly = 0.25 * y1 + 0.5 * qy + 0.25 * y2, d = `M${f(x1)},${f(y1)} Q${f(qx)},${f(qy)} ${f(x2)},${f(y2)}`;
+    return `<g class="wedge${on ? ' on' : ''}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" data-ends="${esc(e.a)} ${esc(e.b)}" role="button" tabindex="0" aria-label="@${esc(info(e.a).handle)} and @${esc(info(e.b).handle)}: ${e.n} shared problems">
+      <path d="${d}" class="hit"/><path d="${d}" class="ln" style="stroke-width:${f(Math.min(10, 1.6 + e.n * 0.75))}"/>
+      <g class="wn"><circle cx="${f(lx)}" cy="${f(ly)}" r="10"/><text x="${f(lx)}" y="${f(ly + 3.8)}" text-anchor="middle">${e.n}</text></g></g>`;
   }).join('');
-  const nodes = order.map((s) => {
-    const [x, y] = pos[s], out = x < cx - 10 ? 'end' : x > cx + 10 ? 'start' : 'middle', dx = out === 'end' ? -16 : out === 'start' ? 16 : 0, dy = out === 'middle' ? (y < cy ? -18 : 26) : 4;
-    return `<g class="wnode${linked.has(s) ? '' : ' alone'}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/><text x="${(x + dx).toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${out}">@${esc(handle(s))}</text></g>`;
+  const defs = order.map((s, i) => { const [x, y] = pos[s]; return `<clipPath id="wc${i}"><circle cx="${f(x)}" cy="${f(y)}" r="${f(rad(s))}"/></clipPath>`; }).join('');
+  const nodes = order.map((s, i) => {
+    const [x, y] = pos[s], r = rad(s), { handle, pic } = info(s), alone = !deg[s];
+    const side = x < cx - 12 ? 'end' : x > cx + 12 ? 'start' : 'middle', dx = side === 'end' ? -(r + 8) : side === 'start' ? r + 8 : 0, dy = side === 'middle' ? (y < cy ? -(r + 9) : r + 17) : 4.5;
+    return `<g class="wnode${alone ? ' alone' : ''}" data-node="${esc(s)}"><a href="#/g/${encodeURIComponent(s)}"><circle class="ring" cx="${f(x)}" cy="${f(y)}" r="${f(r + 3)}"/>
+      ${pic && !alone ? `<image href="${esc(pic)}" x="${f(x - r)}" y="${f(y - r)}" width="${f(2 * r)}" height="${f(2 * r)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#wc${i})"/>` : `<circle class="dot" cx="${f(x)}" cy="${f(y)}" r="${f(r)}"/>`}
+      <text x="${f(x + dx)}" y="${f(y + dy)}" text-anchor="${side}">@${esc(handle)}</text>${deg[s] ? `<title>@${esc(handle)} · shares ${deg[s]} problem link${deg[s] === 1 ? '' : 's'}</title>` : `<title>@${esc(handle)} · no shared problems found yet</title>`}</a></g>`;
   }).join('');
-  return `<svg class="web" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals linked by shared problems">${edges}${nodes}</svg>`;
+  return `<svg class="web" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals linked by shared problems"><defs>${defs}</defs><g class="wedges">${edges}</g>${nodes}</svg>`;
 }
+// Hovering a goal lights up its links.
+document.addEventListener('mouseover', (e) => {
+  const n = e.target.closest?.('.wnode'), svg = e.target.closest?.('svg.web');
+  if (!svg) return;
+  const slug = n?.dataset.node || '';
+  svg.classList.toggle('focus', !!slug);
+  svg.querySelectorAll('.wedge').forEach((g) => g.classList.toggle('hl', !!slug && g.dataset.ends.split(' ').includes(slug)));
+  svg.querySelectorAll('.wnode').forEach((g) => g.classList.toggle('hl', !!slug && (g.dataset.node === slug || [...svg.querySelectorAll('.wedge.hl')].some((w) => w.dataset.ends.split(' ').includes(g.dataset.node)))));
+});
 function linkRows(links) {
   return links.map((l) => `<div class="xlink"><div class="xpair">${xref(l.a)}<span class="xeq" aria-hidden="true">⇄</span>${xref(l.b)}</div><p>${esc(l.why || '')}</p><small>${l.source === 'ai' ? 'Found by reading both problems' : `${l.papers} shared papers`}</small></div>`).join('');
 }
@@ -3241,13 +3284,13 @@ function crossPanel(t) {
   const [sa, sb] = sel.split('|'), hn = (s) => c.web.goals.find((g) => g.slug === s)?.handle;
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
-      <div class="webwrap">${webSvg(c.web, sel)}<div class="webside">${sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${(c.links[sel] || []).length} shared</span>${linkRows(c.links[sel] || [])}` : ''}</div></div></section>
+      <div class="webwrap">${webSvg(c.web, sel)}<div class="webside">${sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${(c.links[sel] || []).length} shared</span>${linkRows((c.links[sel] || []).slice(0, termSel.pairAll ? 99 : 5))}${(c.links[sel] || []).length > 5 && !termSel.pairAll ? `<p style="margin:10px 0 0"><button class="btn sm" type="button" data-tsel="pairAll" data-v="1">Show all ${(c.links[sel] || []).length}</button></p>` : ''}` : ''}</div></div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
-      <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 6))}</div>
-      ${c.keystones.length > 6 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
+      <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
+      ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
     <section class="panel">${head(`Ripples <small>${c.ripples.length}</small>`, `Moves on one goal that reach another · last 30 days${fresh ? ` · ${fresh} new since your last visit` : ''}`)}
-      <div class="rips">${rippleRows(c.ripples.slice(0, termSel.ripAll ? 99 : 10)) || '<div class="pad" style="color:var(--muted)">No ripples in the last 30 days.</div>'}</div>
-      ${c.ripples.length > 10 && !termSel.ripAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="ripAll" data-v="1">Show all ${c.ripples.length}</button></p>` : ''}</section>`;
+      <div class="rips">${rippleRows(c.ripples.slice(0, termSel.ripAll ? 99 : 6)) || '<div class="pad" style="color:var(--muted)">No ripples in the last 30 days.</div>'}</div>
+      ${c.ripples.length > 6 && !termSel.ripAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="ripAll" data-v="1">Show all ${c.ripples.length}</button></p>` : ''}</section>`;
 }
 // Overview: what rippled since the last visit (the reason to come back), newest first.
 function rippleBox(t) {
@@ -3258,18 +3301,67 @@ function rippleBox(t) {
     <div class="rips">${rippleRows(list)}</div></section>`;
 }
 
-const MARKET_PANES = { money: moneyPanel, race: racePanel, pipeline: pipelinePanel, cross: crossPanel };
+// ---- Summary-first sections: each Pro tab is a stack of sections, one open at a time. A closed
+// section is one line with its key fact, so nothing gets buried as lists grow.
+const part = (html, n) => html.split(/(?=<section class="panel")/).filter((x) => x.trim())[n] || '';
+const firstLine = (arr) => (arr && arr[0] ? String(arr[0]) : '');
+const SECS = {
+  overview: [
+    { id: 'ripples', title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return r.length ? `${f ? `${f} new since your last visit · ` : ''}${esc(r[0].headline)}` : 'Moves on one goal that reach another'; }, body: (t) => rippleBox(t), full: true },
+    { id: 'week', title: 'This week', take: (t) => esc(t.brief?.headline || 'The weekly brief'), body: (t) => weekBox(t) },
+    { id: 'index', title: 'Goal index', take: (t) => esc(firstLine(t.answers?.index) || `${t.goals_total} goals side by side`), body: (t) => goalIndex(t) },
+    { id: 'next', title: 'Up next', take: (t) => { const c = (t.access === 'full' ? t.catalysts : t.preview?.catalysts || [])[0]; return c ? esc(`${c.title.slice(0, 90)} · @${c.goal}`) : 'Trial readouts and promises coming due'; }, body: (t) => upNext(t) },
+  ],
+  crossovers: [
+    { id: 'web', title: 'The goal web', take: (t) => `${t.crossover_totals?.links || 0} links between goals’ problems`, body: (t) => part(crossPanel(t), 0) },
+    { id: 'keystones', title: 'Keystone problems', take: (t) => { const k = t.crossovers?.keystones?.[0]; return `${t.crossover_totals?.keystones || 0} problems that move several goals${k ? ` · top: ${esc(k.title)}` : ''}`; }, body: (t) => part(crossPanel(t), 1), full: true },
+    { id: 'rips', title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return `${t.crossover_totals?.ripples || 0} in 30 days${f ? ` · ${f} new since your last visit` : ''}`; }, body: (t) => part(crossPanel(t), 2), full: true },
+  ],
+  money: [
+    { id: 'bygoal', title: 'Funding by goal', take: (t) => esc(firstLine((t.answers?.money || []).filter((x) => /Funding up/.test(x))) || 'Federal grant money per goal, by quarter'), body: (t) => part(moneyPanel(t), 0) },
+    { id: 'grants', title: 'New grants of $1M+', take: (t) => { const a = t.money?.awards?.[0], m = t.market_totals || {}; return `${m.awards || 0} in 90 days · ${usdShort(m.awards_sum || 0)}${a ? ` · biggest ${usdShort(a.amount)} to ${esc(a.recipient)}` : ''}`; }, body: (t) => part(moneyPanel(t), 1), full: true },
+    { id: 'radar', title: 'Opportunity radar', take: (t) => esc(firstLine(t.answers?.radar) || 'Heating up, little public money'), body: (t) => radarPanel(t) },
+    { id: 'gaps', title: 'Funding gaps and quiet problems', take: (t) => esc(firstLine(t.answers?.opportunities) || ''), body: (t) => oppPanel(t) },
+  ],
+  players: [
+    { id: 'race', title: 'The race', take: (t) => esc(firstLine((t.answers?.race || []).slice(-1)) || 'Who leads each goal'), body: (t) => part(racePanel(t), 0) },
+    { id: 'movers', title: 'Biggest movers', take: (t) => { const c = t.race?.climbers?.[0]; return `${t.market_totals?.climbers || 0} organizations${c ? ` · ${esc(c.name)} ${c.prior_rank ? `#${c.prior_rank} → #${c.rank}` : `new at #${c.rank}`}` : ''}`; }, body: (t) => part(racePanel(t), 1), full: true },
+    { id: 'pipeline', title: 'Trial pipeline', take: (t) => esc(firstLine(t.answers?.pipeline) || 'Active trials on the health goals'), body: (t) => part(pipelinePanel(t), 0) },
+    { id: 'trials', title: 'Every trial', take: (t) => { const p = (t.pipeline || []).find((x) => x.slug === termSel.pipe) || (t.pipeline || [])[0]; return p ? `@${esc(p.goal)}: ${p.total} trials, ${p.late} in Phase 3+` : ''; }, body: (t) => part(pipelinePanel(t), 1), full: true },
+  ],
+  calendar: [
+    { id: 'catalysts', title: 'Catalysts', take: (t) => esc(firstLine(t.answers?.calendar) || 'What is due next'), body: (t) => calendarPanel(t) },
+  ],
+};
+const SEC_BY_ID = Object.fromEntries(Object.values(SECS).flat().map((x) => [x.id, x]));
+const openSec = (tab) => { try { return localStorage.getItem(`px.sec.${tab}`); } catch { return null; } };
+function sections(t, tab) {
+  const list = SECS[tab].filter((x) => !x.full || t.access === 'full').map((x) => ({ ...x, html: x.body(t) })).filter((x) => x.html);
+  const want = openSec(tab), open = list.some((x) => x.id === want) ? want : list[0]?.id;
+  return list.map((x) => `<details class="sec" data-sec="${x.id}" data-tab="${tab}"${x.id === open ? ' open' : ''}><summary><span class="sec-t">${x.title}</span><span class="sec-k">${x.take(t)}</span><span class="sec-c" aria-hidden="true"></span></summary><div class="sec-b" data-mp="${x.id}">${x.html}</div></details>`).join('');
+}
+// One open at a time, remembered per tab.
+document.addEventListener('toggle', (e) => {
+  const d = e.target; if (!(d instanceof HTMLDetailsElement) || !d.classList.contains('sec') || !d.open) return;
+  document.querySelectorAll(`details.sec[data-tab="${d.dataset.tab}"]`).forEach((x) => { if (x !== d) x.open = false; });
+  try { localStorage.setItem(`px.sec.${d.dataset.tab}`, d.dataset.sec); } catch { /* fine */ }
+  d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}, true);
+
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-tsel]'); if (!b || !term) return;
   const k = b.dataset.tsel, v = b.dataset.v;
-  if (['moneyAll', 'pipeAll', 'keyAll', 'ripAll'].includes(k)) termSel[k] = true; else termSel[k] = v;
+  if (['moneyAll', 'pipeAll', 'keyAll', 'ripAll', 'calAll', 'radarAll', 'pairAll'].includes(k)) termSel[k] = true; else termSel[k] = v;
+  if (k === 'web') termSel.pairAll = false;
   if (k === 'money') termSel.moneyAll = false;
   if (k === 'pipe') { termSel.phase = ''; termSel.pipeAll = false; }
   if (k === 'phase') termSel.pipeAll = false;
   const pane = b.closest('[data-mp]'); if (!pane) return;
-  pane.innerHTML = MARKET_PANES[pane.dataset.mp](term);
+  pane.innerHTML = SEC_BY_ID[pane.dataset.mp].body(term);
+  // a choice in one section can change another's summary or content (the trial list follows the pipeline card)
+  if (k === 'pipe') { const tr = document.querySelector('[data-mp="trials"]'); if (tr) tr.innerHTML = SEC_BY_ID.trials.body(term); }
   pane.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
-  if (k === 'money' && v) pane.querySelector('#mAwards')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  if (k === 'money' && v) { const g = document.querySelector('details.sec[data-sec="grants"]'); if (g) { g.querySelector('[data-mp]').innerHTML = SEC_BY_ID.grants.body(term); g.open = true; } }
 });
 
 // Four tabs: the overview, and one each for money, players and dates. Old links land on the tab
@@ -3277,20 +3369,6 @@ document.addEventListener('click', (e) => {
 const TTABS = [['overview', 'Overview'], ['crossovers', 'Crossovers'], ['money', 'Money'], ['players', 'Players'], ['calendar', 'Calendar']];
 const TAB_ALIAS = { radar: 'money', opportunities: 'money', race: 'players', pipeline: 'players', leaders: 'players', watch: 'calendar', brief: 'overview', bottlenecks: 'overview', signals: 'overview', data: 'overview' };
 const mp = (id, html) => `<div data-mp="${id}">${html}</div>`;
-
-// Overview cards: one per other tab, each with the single most useful fact from it.
-function overviewCards(t) {
-  const full = t.access === 'full', mt = t.market_totals || {};
-  const card = (tab, title, big, line) => `<a class="jump${full ? '' : ' lockd'}" href="#/terminal/${tab}"><span class="lbl">${title}${full ? '' : ' · <span class="lk">Preview</span>'}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${full ? 'Open →' : 'See a sample →'}</span></a>`;
-  const aw = t.money?.awards?.[0], cl = t.race?.climbers?.[0], next = (t.catalysts || [])[0];
-  const ct = t.crossover_totals || {};
-  return `<div class="jumps">
-    ${card('crossovers', 'Crossovers', `${ct.links || 0} links between goals’ problems`, `${ct.keystones || 0} keystones · ${ct.ripples || 0} ripples in 30 days`)}
-    ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants · ${usdShort(mt.awards_sum || 0)}`, full && aw ? `Biggest: ${usdShort(aw.amount)} to ${esc(aw.recipient)} (@${esc(aw.goal)})` : 'Who got them, funding by quarter, and where money is thin')}
-    ${card('players', 'Players', `${mt.climbers || 0} organizations on the move${mt.trials ? ` · ${mt.trials} trials` : ''}`, full && cl ? `${esc(cl.name)}: ${cl.prior_rank ? `#${cl.prior_rank} → #${cl.rank}` : `new at #${cl.rank}`} on @${esc(cl.goal)}` : 'Who leads each goal on grants, trials and papers')}
-    ${card('calendar', 'Calendar', `${t.catalysts_total || 0} catalysts ahead`, full && next ? `Next: ${esc(next.title.slice(0, 80))} (@${esc(next.goal)})` : 'Trial readouts and promises coming due, with alerts')}
-  </div>`;
-}
 
 // This week, short: the brief's headline and three bullets; the full brief opens in place.
 function weekBox(t) {
@@ -3369,10 +3447,10 @@ function radarPanel(t) {
     <text class="ax t" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">US federal grants since ${new Date().getFullYear() - 3} (log scale)</text>
     <text class="ax t" x="14" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(T + H - B) / 2})">Research growth, last 3 yrs vs 3 before</text>
     ${dots}</svg>`;
-  const list = (full ? opp : opp.filter((p) => p.title)).slice(0, full ? 30 : 2).map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}"><span>${esc(p.title)}<small>@${esc(p.goal)}</small></span><b class="mono up">+${Math.round(p.y * 100)}%</b><b class="mono">${p.x ? usdShort(p.x) : 'no grants'}</b></a>`).join('');
+  const list = (full ? opp : opp.filter((p) => p.title)).slice(0, full ? (termSel.radarAll ? 99 : 10) : 2).map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}"><span>${esc(p.title)}<small>@${esc(p.goal)}</small></span><b class="mono up">+${Math.round(p.y * 100)}%</b><b class="mono">${p.x ? usdShort(p.x) : 'no grants'}</b></a>`).join('');
   return `<section class="panel">${head}${answerBox(t.answers?.radar)}<div class="pad">${svg}
       <p class="radar-note">Each dot is an unsolved problem, sized by papers last year. Highlighted: research growth in the top third and matched federal funding in the bottom third. The grey column on the left is problems with no matching grants found (the search may miss them, so they are not counted as opportunities)${full ? '' : '. Names are for subscribers; two examples below'}.</p></div>
-    <div class="oplist"><div class="oplist-h"><span>Opportunities</span><span>Research growth</span><span>Federal grants</span></div>${list}</div>
+    <div class="oplist"><div class="oplist-h"><span>Opportunities</span><span>Research growth</span><span>Federal grants</span></div>${list}</div>${full && !termSel.radarAll && opp.length > 10 ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="radarAll" data-v="1">Show all ${opp.length}</button></p>` : ''}
     ${full ? '' : moreGate(`${opp.length} problems are in the opportunity corner right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
 }
 
@@ -3382,14 +3460,14 @@ function calendarPanel(t) {
   const head = `<div class="panel-h"><h2>Catalysts ${full ? `<small>${items.length}</small>` : ''}</h2><span class="lbl">What is due next, across every goal</span></div>`;
   if (!items.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Nothing due yet. Trial readouts and promises appear here as they come up.</div></section>`;
   const label = (d) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : `During ${d}`);
-  const groups = [];
-  for (const c of items) { const l = label(c.date); if (!groups.length || groups[groups.length - 1].l !== l) groups.push({ l, items: [] }); groups[groups.length - 1].items.push(c); }
+  const groups = [], capped = full && !termSel.calAll ? items.slice(0, 8) : items;
+  for (const c of capped) { const l = label(c.date); if (!groups.length || groups[groups.length - 1].l !== l) groups.push({ l, items: [] }); groups[groups.length - 1].items.push(c); }
   const body = groups.map((g) => `<div class="cal-g"><div class="cal-d">${esc(g.l)}</div>${g.items.map((c) => {
     const u = safeUrl(c.url), title = esc(c.title);
     return `<div class="cal-i"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial readout' : 'Promise due'}</span>
       <div><div class="cal-t">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${title}</a>` : title}</div><div class="cal-m"><a href="#/g/${encodeURIComponent(c.slug)}${c.key ? `/tree/${encodeURIComponent(c.key)}` : ''}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</div></div></div>`;
   }).join('')}</div>`).join('');
-  return `<section class="panel">${head}${answerBox(t.answers?.calendar)}<div class="cal">${body}</div>
+  return `<section class="panel">${head}${answerBox(t.answers?.calendar)}<div class="cal">${body}</div>${capped.length < items.length ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="calAll" data-v="1">Show all ${items.length}</button></p>` : ''}
     <p class="radar-note" style="padding:0 18px 14px">Trial dates are the expected primary completion dates registered on ClinicalTrials.gov (Phase 2 and 3, next 18 months). Promises are claims from papers, due this year or the next two.</p>
     ${full ? '' : moreGate(`The next 2 of ${t.catalysts_total}. Subscribers see the full calendar and can get alerts before each one.`)}</section>`;
 }
@@ -3409,6 +3487,13 @@ function watchPanel(t) {
       <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst, opportunity and ripple is sent once.</p>` : ''}
   </div>`;
   return `<section class="panel">${head}<div class="pad">${form}</div>${full ? '' : moreGate('Pick the goals you care about and get an alert when a trial readout is 30 days away, a promise comes due, a problem enters the opportunity corner, or a move on another goal ripples into yours.')}</section>`;
+}
+// The watchlist as a one-line bar (opens in place), so the calendar leads.
+function watchBar(t) {
+  const full = t.access === 'full', w = wlState.goals || [], on = WRULES.filter(([k]) => wlState.rules[k] !== false).length;
+  const handles = w.map((sl) => (goalsCache || []).find((g) => g.slug === sl)?.handle).filter(Boolean);
+  const sum = !full ? 'Alerts for the goals you pick · Pro' : handles.length ? `Watching ${handles.slice(0, 4).map((h) => `<span class="hchip">@${esc(h)}</span>`).join(' ')}${handles.length > 4 ? ` +${handles.length - 4}` : ''} · ${on} alert type${on === 1 ? '' : 's'} on` : 'Pick goals to get alerts about';
+  return `<details class="sec wbar"><summary><span class="sec-t">Watchlist</span><span class="sec-k">${sum}</span><span class="sec-c" aria-hidden="true"></span></summary><div class="sec-b">${watchPanel(t)}</div></details>`;
 }
 async function wireWatch(box) {
   if (!$('#wlSave')) return;
@@ -3447,18 +3532,14 @@ function renderTerminal(box, tab = 'overview') {
       <div><span class="lbl">Catalysts ahead</span><b class="mono">${t.catalysts_total ?? 0}</b><small>trial readouts and promises due</small></div>
       <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
     </section>
-    ${rippleBox(t)}
-    ${weekBox(t)}
-    ${goalIndex(t)}
-    ${upNext(t)}
-    ${overviewCards(t)}
+    ${sections(t, 'overview')}
     ${full ? `<p class="csvrow"><span class="lbl">Download</span><button class="btn sm" type="button" data-csv="goals">Every goal (CSV)</button><button class="btn sm" type="button" data-csv="problems">Every open problem (CSV)</button></p>` : ''}`;
   const panes = {
     overview: () => overview,
-    money: () => mp('money', moneyPanel(t)) + radarPanel(t) + oppPanel(t),
-    players: () => mp('race', racePanel(t)) + mp('pipeline', pipelinePanel(t)),
-    calendar: () => calendarPanel(t) + watchPanel(t),
-    crossovers: () => mp('cross', crossPanel(t)),
+    money: () => sections(t, 'money'),
+    players: () => sections(t, 'players'),
+    calendar: () => watchBar(t) + sections(t, 'calendar'),
+    crossovers: () => sections(t, 'crossovers'),
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
@@ -3604,7 +3685,7 @@ async function plusView() {
 
 async function terminalView(tab = 'overview') {
   const welcome = tab === 'welcome';
-  if (tab === 'calendar' || tab === 'watch') await goals().catch(() => []); // the watchlist lists every goal
+  await goals().catch(() => []); // the watchlist and the goal web use the goal list
   // Switching tabs reuses the data loaded in the last 5 minutes, so it is instant.
   if (!welcome && term && !term.error && Date.now() - termAt < 300_000 && termWho === (me ? me.id : null)) {
     view.innerHTML = '<div id="term"></div>';
