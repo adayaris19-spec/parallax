@@ -505,6 +505,26 @@ Deno.serve(async (req) => {
       ].filter(Boolean),
     });
 
+    // ---- What would fix a problem: Parallax's cost estimate (next step, to solve) and the open ideas
+    // from the Ideas Lab, cheapest first test first. For shared problems and radar problems.
+    const [costRows, ideaRows] = await Promise.all([
+      db("node_costs?select=goal_id,node_key,next_step,next_low,next_high,solve_low,solve_high,confidence&limit=20000").catch(() => []),
+      db("ideas?status=eq.open&select=id,goal_id,node_key,title,pitch,test_low,test_high,novelty&limit=20000").catch(() => []),
+    ]);
+    const fixKeys = new Set<string>([...partners.keys()]);
+    for (const p of problems) if (p.funding > 0 && p.growth != null) fixKeys.add(`${goals.find((g) => g.slug === p.slug)?.id}/${p.key}`);
+    // deno-lint-ignore no-explicit-any
+    const fixes: Record<string, any> = {};
+    for (const k of fixKeys) {
+      const [gid, ...rest] = k.split("/"); const key = rest.join("/"), g = goalOf.get(Number(gid)); if (!g) continue;
+      const c = costRows.find((r: { goal_id: number; node_key: string }) => r.goal_id === Number(gid) && r.node_key === key);
+      const ideas = ideaRows.filter((r: { goal_id: number; node_key: string }) => r.goal_id === Number(gid) && r.node_key === key)
+        .sort((a: { test_low: number | null }, b: { test_low: number | null }) => (a.test_low ?? 1e15) - (b.test_low ?? 1e15)).slice(0, 3)
+        .map((r: { id: number; title: string; pitch: string; test_low: number | null; test_high: number | null; novelty: string }) => ({ id: r.id, title: r.title, pitch: r.pitch, test_low: r.test_low, test_high: r.test_high, novelty: r.novelty }));
+      if (!c && !ideas.length) continue;
+      fixes[`${g.slug}/${key}`] = { cost: c ? { next_step: c.next_step, next_low: c.next_low, next_high: c.next_high, solve_low: c.solve_low, solve_high: c.solve_high, confidence: c.confidence } : null, ideas };
+    }
+
     // Remember which problems are in the opportunity corner (for watchlist alerts about new ones).
     const opps = radarPoints(problems).filter((r) => r.opportunity);
     if (opps.length) {
@@ -548,6 +568,7 @@ Deno.serve(async (req) => {
       race: full ? { goals: race, climbers } : null,
       pipeline: full ? pipeline : null,
       crossovers: full ? { keystones, ripples: ripples.slice(0, 60), web, links: webLinks } : null,
+      fixes: full ? fixes : null,
       crossover_totals: { links: cross.length, keystones: keystones.length, ripples: ripples.length },
       market_totals: { awards: awards.length, awards_sum: newSum, climbers: climbers.length, trials: pipeTotal, health_goals: pipeline.length },
       // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
