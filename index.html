@@ -869,6 +869,9 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .pweb .wedge{pointer-events:none}
 .pweb .grow{display:none}
 @media (max-width:760px){.plus-row{grid-template-columns:1fr}}
+.emsw{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;align-items:start;cursor:pointer;margin-top:6px}
+.emsw input{margin-top:3px;width:16px;height:16px;accent-color:var(--accent)}
+.emsw b{display:block;font-size:14px;font-weight:600}.emsw small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:2px}
 .comings{display:grid;gap:12px}
 .coming{position:relative;padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
 .coming::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--img,var(--accent-soft)) center/cover,var(--accent-soft)}
@@ -4082,6 +4085,23 @@ function calendarPanel(t) {
 // Watchlist: goals a subscriber watches, and what they want to hear about (sent as alerts).
 const WRULES = [['signals', 'Advances, setbacks and new bottlenecks', 'As soon as they are posted.'], ['catalysts', 'Catalysts within 30 days', 'A trial readout or a promise coming due on a watched goal.'], ['opportunities', 'New on the opportunity radar', 'When one of your goals’ problems enters the opportunity corner.'], ['ripples', 'Ripples from other goals', 'When a move or a big grant on another goal reaches a problem your goal shares.']];
 const wlState = { goals: null, rules: { signals: true, catalysts: true, opportunities: true, ripples: true }, loaded: false };
+// The weekly email switch (Plus and Pro), saved to email_prefs. On unless turned off.
+let emailWeekly = null;
+const emailSwitch = () => `<label class="emsw"><input type="checkbox" data-email-weekly${emailWeekly === false ? '' : ' checked'}><span><b>Weekly email, Mondays</b><small>The week in 30 seconds, ripples, big new grants, your calls and what’s coming up.</small></span></label>`;
+async function loadEmailPref() {
+  if (!me || !sb || emailWeekly !== null) return;
+  const { data } = await sb.from('email_prefs').select('weekly').eq('user_id', me.id).maybeSingle();
+  emailWeekly = data ? data.weekly : true;
+  document.querySelectorAll('[data-email-weekly]').forEach((x) => { x.checked = emailWeekly; });
+}
+document.addEventListener('change', async (e) => {
+  if (!e.target.matches?.('[data-email-weekly]') || !me || !sb) return;
+  const on = e.target.checked;
+  const { error } = await sb.from('email_prefs').upsert({ user_id: me.id, weekly: on, updated_at: new Date().toISOString() });
+  if (error) { e.target.checked = !on; toast('Could not save. Try again.'); return; }
+  emailWeekly = on; document.querySelectorAll('[data-email-weekly]').forEach((x) => { x.checked = on; });
+  toast(on ? 'Weekly email on.' : 'Weekly email off.');
+});
 function watchPanel(t) {
   const full = t.access === 'full';
   const head = `<div class="panel-h"><h2>Watchlist</h2><span class="lbl">Your goals, and what you want to hear about</span></div>`;
@@ -4091,7 +4111,8 @@ function watchPanel(t) {
     <div><span class="lbl">Goals to watch</span><div class="wl-goals">${goalsList.map((g) => `<label class="wl-g"><input type="checkbox" name="wg" value="${esc(g.slug)}"${sel.has(g.slug) ? ' checked' : ''}${full ? '' : ' disabled'}><span>${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}@${esc(g.handle)}</span></label>`).join('')}</div></div>
     <div><span class="lbl">Alert me about</span>${WRULES.map(([k, title, d]) => `<label class="wl-r"><input type="checkbox" name="wr" value="${k}"${wlState.rules[k] !== false ? ' checked' : ''}${full ? '' : ' disabled'}><span><b>${title}</b><small>${d}</small></span></label>`).join('')}</div>
     ${full ? `<div class="wl-a"><button class="btn primary" type="button" id="wlSave">Save watchlist</button><button class="btn" type="button" id="wlDevice">Send alerts to this device</button><span class="wl-ok" id="wlOk" role="status"></span></div>
-      <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst, opportunity and ripple is sent once.</p>` : ''}
+      <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst, opportunity and ripple is sent once.</p>
+      <div><span class="lbl">Email</span>${emailSwitch()}</div>` : ''}
   </div>`;
   return `<section class="panel">${head}<div class="pad">${form}</div>${full ? '' : moreGate('Pick the goals you care about and get an alert when a trial readout is 30 days away, a promise comes due, a problem enters the opportunity corner, or a move on another goal ripples into yours.')}</section>`;
 }
@@ -4160,7 +4181,7 @@ function renderTerminal(box, tab = 'overview') {
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
   box.querySelector('.ttabs [aria-selected=true]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
-  if (tab === 'calendar') wireWatch(box);
+  if (tab === 'calendar') { wireWatch(box); loadEmailPref(); }
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
@@ -4284,6 +4305,7 @@ async function plusView() {
             : `<p class="pnote">${full ? 'Results appear here as trials report and promises come due. Each is settled automatically from the trial’s results or the promise check.' : 'Plus members call what happens next and build a record as results come in.'}</p>`}
           ${waiting.length ? `<details class="rr-more"><summary>${waiting.length} call${waiting.length === 1 ? '' : 's'} waiting on a result</summary>${waiting.map((c) => `<p class="rr-w"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>Due ${esc(fmtDate(c.date))}${c.status_note ? `, ${esc(c.status_note)}` : ', checked weekly'}</small></p>`).join('')}</details>` : ''}
         </div>
+        ${full ? `<div class="pbox">${emailSwitch()}</div>` : ''}
       </div>
     </div>
     ${yourWeb || (d.ripple ? 1 : 0) ? `<div class="plus-row${yourWeb && (d.ripple ? 1 : 0) ? '' : ' one'}">${yourWeb}${d.ripple ? `<div class="pbox pripple"><span class="lbl">Ripple of the week</span><p class="pr-t"><a href="#/p/${d.ripple.post}">${esc(d.ripple.headline)}</a></p>
@@ -4292,6 +4314,7 @@ async function plusView() {
     <div class="pstrip">${comingList.map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}${ghosts}</div>
     ${full ? '' : cta('bottom')}
   </section>`;
+  if (full) loadEmailPref();
   view.querySelectorAll('[data-strip]').forEach((x) => { x.onclick = () => { const st = view.querySelector('.pstrip'); st.scrollBy({ left: Number(x.dataset.strip) * st.clientWidth * 0.85, behavior: 'smooth' }); }; });
   view.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
   // Play the weekly video in place.

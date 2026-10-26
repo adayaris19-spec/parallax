@@ -352,7 +352,9 @@ Deno.serve(async (req) => {
     const now = new Date(), m = now.getUTCMonth() + 1;
     const curFY = m >= 10 ? now.getUTCFullYear() + 1 : now.getUTCFullYear(), curQ = Math.floor(((m - 10 + 12) % 12) / 3) + 1;
     const qIndex = (fy: number, q: number) => fy * 4 + q;
-    const short = (d: string) => String(d ?? "").split(/ -|PROJECT SUMMARY|ABSTRACT|PURPOSE:/i)[0].replace(/\s+/g, " ").trim().slice(0, 140);
+    // USAspending descriptions are often in capitals: the title part, in sentence case.
+    const calm = (t: string) => { const up = t.replace(/[^A-Z]/g, "").length, low = t.replace(/[^a-z]/g, "").length; return up > low * 2 ? t.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, (m) => m.toUpperCase()) : t; };
+    const short = (d: string) => calm(String(d ?? "").split(/ -|PROJECT SUMMARY|ABSTRACT|PURPOSE:/i)[0].replace(/\s+/g, " ").trim().slice(0, 140));
     // deno-lint-ignore no-explicit-any
     const moneyGoals: any[] = money.map((mg: { goal_id: number; quarters: { fy: number; q: number; amount: number }[]; recipients: unknown[] }) => {
       const g = goalOf.get(mg.goal_id); if (!g) return null;
