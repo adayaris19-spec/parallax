@@ -5,21 +5,21 @@
 // details only ever go to Stripe's own pages.
 //
 // Request: POST {"action": "checkout" | "portal" | "status"} with the person's access token.
-// Answer:  {"url": "..."} for checkout and portal; {"status": "...", "price": "$49/month"} for status.
+// Answer:  {"url": "..."} for checkout and portal; {"status": "...", "price": "$55/month"} for status.
 //
 // The Terminal's product and price are created in Stripe on first use (lookup key
 // `parallax_terminal_monthly`), so there is nothing to set up in Stripe by hand
 // except the webhook (see setup/README-feed.md).
 //
 // Secrets: STRIPE_SECRET_KEY (sk_test_... while testing, sk_live_... when live).
-// Optional: TERMINAL_PRICE_CENTS (default 4900 = $49/month), SITE_URL.
+// Optional: TERMINAL_PRICE_CENTS (default 5500 = $55/month), PLUS_PRICE_CENTS (default 1200 = $12/month), SITE_URL.
 
 import Stripe from "npm:stripe@22.6.2";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE = Deno.env.get("SITE_URL") ?? "https://adayaris19-spec.github.io/parallax/";
-const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "4900");
+const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "5500");
 const LOOKUP = "parallax_terminal_monthly";
 
 // Made on first use: the library refuses to start without a key, and the key may not be set yet.
@@ -60,40 +60,36 @@ export const priceLabel = (cents: number) => `$${(cents / 100).toFixed(cents % 1
 const YEAR_CENTS = Number(Deno.env.get("TERMINAL_YEAR_PRICE_CENTS") ?? String(CENTS * 10));
 const LOOKUP_YEAR = "parallax_terminal_yearly";
 
-// Plus ($20/month, $200/year): the weekly video brief, what's coming, predictions. Pro includes it.
-const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "2000");
+// Plus ($12/month, $120/year): the weekly video brief, what's coming, predictions. Pro includes it.
+const PLUS_CENTS = Number(Deno.env.get("PLUS_PRICE_CENTS") ?? "1200");
 const PLUS_YEAR_CENTS = Number(Deno.env.get("PLUS_YEAR_PRICE_CENTS") ?? String(PLUS_CENTS * 10));
+// The current price for a lookup key. When the configured amount changes, a new Stripe price takes the
+// lookup key; existing subscriptions keep the price they signed up at. Every price carries
+// metadata.tier, so the webhook knows Plus from Pro even for old prices without the lookup key.
+async function currentPrice(key: string, tier: "plus" | "pro", cents: number, interval: "month" | "year", product: () => Promise<string>): Promise<string> {
+  const found = (await stripeApi().prices.list({ lookup_keys: [key], active: true, limit: 1 })).data[0];
+  if (found && found.unit_amount === cents) {
+    if (found.metadata?.tier !== tier) await stripeApi().prices.update(found.id, { metadata: { tier } });
+    return found.id;
+  }
+  if (found) await stripeApi().prices.update(found.id, { metadata: { tier } }); // keep the old one recognisable
+  return (await stripeApi().prices.create({ product: found ? String(found.product) : await product(), currency: "usd", unit_amount: cents, recurring: { interval }, lookup_key: key, transfer_lookup_key: true, metadata: { tier } })).id;
+}
 async function plusPrice(plan: "month" | "year" = "month"): Promise<string> {
   const key = plan === "year" ? "parallax_plus_yearly" : "parallax_plus_monthly";
-  const found = await stripeApi().prices.list({ lookup_keys: [key], active: true, limit: 1 });
-  if (found.data[0]) return found.data[0].id;
-  const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? "parallax_plus_monthly" : "parallax_plus_yearly"], active: true, limit: 1 })).data[0];
-  const productId = other ? String(other.product) : (await stripeApi().products.create({
-    name: "Parallax Plus",
-    description: "Your week in progress: a weekly video brief on the goals you follow, what's coming next, and predictions.",
-  })).id;
-  return (await stripeApi().prices.create({ product: productId, currency: "usd", unit_amount: plan === "year" ? PLUS_YEAR_CENTS : PLUS_CENTS, recurring: { interval: plan }, lookup_key: key })).id;
+  return currentPrice(key, "plus", plan === "year" ? PLUS_YEAR_CENTS : PLUS_CENTS, plan, async () => {
+    const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? "parallax_plus_monthly" : "parallax_plus_yearly"], active: true, limit: 1 })).data[0];
+    return other ? String(other.product) : (await stripeApi().products.create({ name: "Parallax Plus", description: "Your week in progress: a weekly video brief on the goals you follow, what's coming next, and predictions." })).id;
+  });
 }
 
 // The Terminal's prices, created once and found by their lookup keys afterwards.
 async function terminalPrice(plan: "month" | "year" = "month"): Promise<string> {
   const key = plan === "year" ? LOOKUP_YEAR : LOOKUP;
-  const found = await stripeApi().prices.list({ lookup_keys: [key], active: true, limit: 1 });
-  if (found.data[0]) return found.data[0].id;
-  // Reuse the product of the other plan when it exists.
-  const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? LOOKUP : LOOKUP_YEAR], active: true, limit: 1 })).data[0];
-  const productId = other ? String(other.product) : (await stripeApi().products.create({
-    name: "Parallax Terminal",
-    description: "Every goal on Parallax in one view: weekly brief, opportunities, who is leading, bottlenecks, signals and every table, with exports.",
-  })).id;
-  const price = await stripeApi().prices.create({
-    product: productId,
-    currency: "usd",
-    unit_amount: plan === "year" ? YEAR_CENTS : CENTS,
-    recurring: { interval: plan },
-    lookup_key: key,
+  return currentPrice(key, "pro", plan === "year" ? YEAR_CENTS : CENTS, plan, async () => {
+    const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? LOOKUP : LOOKUP_YEAR], active: true, limit: 1 })).data[0];
+    return other ? String(other.product) : (await stripeApi().products.create({ name: "Parallax Pro", description: "Every goal at once: money flows, the race, the trial pipeline, crossovers, opportunities and a weekly brief, with exports." })).id;
   });
-  return price.id;
 }
 
 async function customerFor(user: { id: string; email: string }): Promise<string> {
