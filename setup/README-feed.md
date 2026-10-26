@@ -406,3 +406,13 @@ linkable as `#/how/<section>` (map, status, time, research, cost, funding, posts
 limits, mistake). It is linked from the first-visit intro, every goal page and Explore.
 `schema-reports.sql` adds `mistake_reports` (visitors can add, not read; at most 30 an hour). The
 daily health check lists new reports in its GitHub issue (links and @-mentions removed).
+
+## 28. Alerts (web push)
+
+`schema-push.sql` adds `push_subscriptions` (one row per device with the goals it follows; service
+role only) and the `parallax-push` cron (every 15 minutes). The `push` function makes its signing
+keys (VAPID) on first use and keeps them in `app_config`, so nothing needs setting up. After someone
+follows a goal the site offers alerts; the cron sends new advances, setbacks, solved problems,
+bottlenecks and promise checks on followed goals, at most 3 a day per device, and drops devices the
+push service says are gone. Works on Android and desktop browsers, and on iPhone once Parallax is
+added to the Home Screen (iOS 16.4+).
