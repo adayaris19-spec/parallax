@@ -1795,7 +1795,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     return;
   }
 
-  let nodes, posts, promises = [], helpers = [], nodeYears = [], nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
+  let nodes, posts, promises = [], helpers = [], nodeYears = [], fieldReal = false, nodeLinks = [], heroMedia = null, costs = {}, goalIdeas = [], askedIdeas = [], giving = { orgs: [], total: { raised_cents: 0, gifts: 0 }, recent: [], token: '' };
   try {
     [nodes, posts, promises, helpers] = await Promise.all([
       rest(`nodes?goal_id=eq.${g.id}&select=key,parent_key,position,title,why,status,blocker_kind,blocker,evidence,independent_sources,plain_title,plain_why,plain_blocker&order=position.asc`),
@@ -1814,7 +1814,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       rest(`recent_gifts?goal_id=eq.${g.id}&select=org_name,amount_cents,who,created_at&limit=5`).catch(() => []),
       siteConfig(),
       rest(`goal_fundraisers?goal_id=eq.${g.id}&select=ein,url`).catch(() => []),
-    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; nodeYears = r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
+      rest(`node_field_years?goal_id=eq.${g.id}&year=gte.${new Date().getFullYear() - 13}&select=node_key,year,n`).catch(() => []),
+    ]).then((r) => { askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
     await loadIdeaExtras(goalIdeas.map((i) => i.id));
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
@@ -1854,7 +1855,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const hot = byMom.filter((l) => momOf(l.key) >= 1.25).slice(0, 4), cold = byMom.filter((l) => momOf(l.key) <= 0.8).reverse().slice(0, 4);
   const libYears = Array.from({ length: 12 }, (_, i) => Y1 - 11 + i).map((y) => ({ y, n: leaves.reduce((a, l) => a + (yrs[l.key]?.[y] || 0), 0) }));
   const libGrowth = Math.round((goalRatio - 1) * 100);
-  goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1, any: Object.keys(yrs).length > 0 };
+  goalCtx.field = { yrs, recentOf, momOf, momWord, links: nodeLinks, Y1, any: Object.keys(yrs).length > 0, real: fieldReal };
 
   const ring = `<div class="ro-bar"><i style="width:${pctN}%"></i></div>`;
   const ymax = Math.max(1, ...libYears.map((x) => x.n));
@@ -2045,7 +2046,7 @@ function fieldPanel(key) {
     ${text ? `<p>${esc(text)}</p>` : ''}
     <div class="fs-res"><div class="fs-rh"><span class="kick">Research per year</span><b class="mono ${word === 'Heating up' ? 'up' : word === 'Going quiet' ? 'down' : ''}">${word}${total >= 6 ? ` · ×${m.toFixed(1)}` : ''}</b></div>
       <div class="fs-cols" aria-hidden="true">${vals.map((v, i) => `<i style="height:${Math.max(3, v / vmax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div>
-      <div class="fs-ax mono"><span>${years[0]}</span><span>${total ? `${total.toLocaleString()} papers in the library` : F.any ? 'No papers found for this problem yet' : 'Building the research library…'}</span><span>${years[years.length - 1]}</span></div></div>
+      <div class="fs-ax mono"><span>${years[0]}</span><span>${F.real && total ? `${(F.yrs[l.key]?.[F.Y1] || 0).toLocaleString()} papers published in ${F.Y1}` : total ? `${total.toLocaleString()} papers in the library` : F.any ? 'No papers found for this problem yet' : 'Building the research library…'}</span><span>${years[years.length - 1]}</span></div></div>
     ${(() => { const c = goalCtx.costs?.[l.key]; return c ? `<div class="fs-cost"><span class="kick">What it would take</span><p><b>Next step:</b> ${esc(c.next_step)}</p><div class="fs-cn"><span><small>Next step</small><b class="mono">${esc(usdRange(c.next_low, c.next_high))}</b></span>${l.status !== 'solved' && (c.solve_low || c.solve_high) ? `<span><small>To solve it</small><b class="mono">${esc(usdRange(c.solve_low, c.solve_high))}</b></span>` : ''}<span><small>Confidence</small><b>${esc((c.confidence || 'low').replace(/^./, (x) => x.toUpperCase()))}</b></span></div></div>` : l.status === 'solved' ? '' : `<div class="fs-cost"><span class="kick">What it would take</span><p class="muted">Parallax is researching the cost of the next step and of solving it. Estimates appear here within a few hours.</p></div>`; })()}
     ${linked.length ? `<div class="fs-links"><span class="kick">Shares research with</span>${linked.map((x) => `<button type="button" data-pick="${esc(x.k)}"><span>${esc(x.l.title)}</span><b class="mono">${x.n} papers</b></button>`).join('')}</div>` : ''}
     ${fundingPanel(g, l, { compact: true })}

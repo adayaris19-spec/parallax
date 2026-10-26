@@ -64,6 +64,21 @@ async function openAlex(q: string, per: number, from?: string): Promise<Paper[]>
   })).filter((x: Paper) => x.id && x.title);
 }
 
+// True research volume: papers per year across all of OpenAlex for a problem's search, in one
+// request (group_by), without downloading them. The goal page's bars and momentum use these.
+async function yearCounts(q: string, how: "search" | "abstract" = "abstract"): Promise<Record<number, number>> {
+  const y1 = new Date().getUTCFullYear();
+  const f = `type:article|review|preprint,publication_year:2000-${y1}`;
+  const p = new URLSearchParams(how === "search" ? { search: q, filter: f } : { filter: `${f},title_and_abstract.search:${q.replace(/[,:|]/g, " ")}` });
+  p.set("group_by", "publication_year");
+  if (MAIL) p.set("mailto", MAIL);
+  if (OA_KEY) p.set("api_key", OA_KEY);
+  const d = await getJson(`https://api.openalex.org/works?${p}`);
+  const out: Record<number, number> = {};
+  for (const x of d.group_by ?? []) { const y = Number(x.key); if (y >= 2000 && y <= y1) out[y] = Number(x.count) || 0; }
+  return out;
+}
+
 async function ntrs(q: string, per: number): Promise<Paper[]> {
   const d = await getJson(`https://ntrs.nasa.gov/api/citations/search?q=${encodeURIComponent(q)}&page.size=${per}`);
   // deno-lint-ignore no-explicit-any
@@ -101,6 +116,22 @@ async function pool<T, R>(items: T[], size: number, fn: (x: T) => Promise<R>): P
     while (next < items.length) { const i = next++; out[i] = await fn(items[i]); }
   }));
   return out;
+}
+
+// True research volume per problem (see yearCounts). One goal per call; monthly per goal.
+async function countGoal(slug?: string) {
+  const goals = await db(`goals?status=eq.ready&select=id,slug,counts_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=counts_at.asc.nullsfirst`);
+  const g = slug ? goals[0] : goals.find((x: { counts_at: string | null }) => !x.counts_at || Date.now() - new Date(x.counts_at).getTime() > 30 * DAY);
+  if (!g) return { note: "every goal's counts are fresh" };
+  const leaves = await db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&query=not.is.null&select=key,query`);
+  const errors: string[] = [];
+  const counts = await pool(leaves, 4, async (l: { key: string; query: string }) => {
+    try { return await yearCounts(l.query, "search"); } catch (e) { errors.push(`${l.key}: ${e instanceof Error ? e.message : e}`); return null; }
+  });
+  const rows = leaves.flatMap((l: { key: string }, i: number) => counts[i] ? Object.entries(counts[i]!).map(([y, n]) => ({ goal_id: g.id, node_key: l.key, year: Number(y), n })) : []);
+  if (rows.length) await db("node_field_years?on_conflict=goal_id,node_key,year", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: rows });
+  if (!errors.length) await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { counts_at: new Date().toISOString() } });
+  return { slug: g.slug, problems: leaves.length, counted: counts.filter(Boolean).length, errors: errors.slice(0, 4) };
 }
 
 async function grow(slug?: string) {
@@ -157,12 +188,19 @@ Deno.serve(async (req) => {
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
   const body = await req.json().catch(() => ({}));
   try {
+    if (typeof body.probe_counts === "string") {
+      return json(await yearCounts(body.probe_counts, "search"));
+    }
     if (body.probe) {
       const q = String(body.probe);
       const tryIt = async (f: () => Promise<Paper[]>) => { try { const r = await f(); return { n: r.length, first: r[0] ?? null }; } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; } };
       return json({ openalex: await tryIt(() => openAlex(q, 200)), ntrs: await tryIt(() => ntrs(q, 25)), pubmed: await tryIt(() => pubmed(q, 30)) });
     }
-    return json(await grow(body.slug));
+    if (body.counts === true) return json(await countGoal(body.slug));
+    const lib = await grow(body.slug);
+    // Then the true research counts: for the goal just grown, else the goal whose counts are oldest.
+    const counts = await countGoal("slug" in lib ? lib.slug : undefined).catch((e) => ({ error: e instanceof Error ? e.message : String(e) }));
+    return json({ ...lib, counts });
   } catch (e) {
     console.error("library failed:", e instanceof Error ? e.message : e);
     return json({ error: e instanceof Error ? e.message.slice(0, 200) : "failed" }, 500);

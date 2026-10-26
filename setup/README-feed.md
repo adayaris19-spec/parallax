@@ -347,3 +347,12 @@ Without them, or if an upload fails, `reels` falls back to Supabase Storage (`re
 Admin actions on `reels`: `{"action":"r2_check"}` tests upload and public read;
 `{"action":"move_media"}` copies Supabase-hosted media to R2; `{"action":"drop_old"}` deletes
 Supabase copies nothing references.
+
+## 23. True research volume
+
+`schema-field-counts.sql` adds `node_field_years`: papers per year for each problem's search across
+all of OpenAlex, counted with one `group_by=publication_year` request per problem (no papers are
+downloaded). The `library` function refreshes one goal's counts per run (monthly per goal), right
+after growing a library; `POST {"counts": true, "slug": "..."}` counts one goal now. The goal page's
+research bars, momentum and dot sizes use these counts, falling back to the library sample
+(`node_years`) for goals not yet counted. Free: about 25 OpenAlex requests per goal per month.
