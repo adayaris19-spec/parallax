@@ -1918,17 +1918,19 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
       <div class="rn-act" style="margin-top:14px"><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div></section>` : '';
 
   // 2. The problem field: every problem, sized by recent research, linked by shared papers.
+  // The legend sits right under the map (and under the list in list view), not below the taller panel.
+  const legend = '<div class="fx-legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span><span><i class="ring-l"></i>Biggest bottleneck</span></div>';
   const field = `<section class="fx" id="field"><div class="fx-h"><div><div class="kick">The problem field</div>
       <h2 class="big">${leaves.length} problems. ${hot.length ? `${hot.length} heating up` : 'None heating up'}${cold.length ? `, ${cold.length} going quiet` : ''}${blocked ? `, ${blocked} blocked` : ''}.</h2>
       <p class="cap">Bigger dot = more research in the last 4 years. Lines = problems that share papers. Tap a dot.</p></div>
       <div class="seg" role="tablist"><button type="button" class="on" data-fview="field">Field</button><button type="button" data-fview="list">List</button></div></div>
-    <div class="fx-grid"><div class="fx-map" id="fxMap"></div><aside class="fx-sel" id="fxSel" aria-live="polite"></aside></div>
+    <div class="fx-grid"><div class="fx-left"><div class="fx-map" id="fxMap"></div>${legend}</div><aside class="fx-sel" id="fxSel" aria-live="polite"></aside></div>
     <div class="fx-list hide" id="fxList">${branches.map((b, i) => {
       const kids = leaves.filter((l) => l.parent_key === b.key);
       return `<section class="chap"><div class="chap-h"><span class="mono">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(b.title)}</h3>${b.why ? `<p>${esc(firstSentence(b.why))}</p>` : ''}</div></div>
         <div class="tiles">${kids.map((l) => { const f = fundState.perNode[l.key]; return `<a class="tile" href="${base}/tree/${encodeURIComponent(l.key)}" data-leaf="${esc(l.key)}"><i class="dot st-${esc(l.status || 'open')}"></i><b>${esc(l.title)}</b><span>${esc(leafStatusLabel(l.status))}${l.key === g.bottleneck_key ? ' · bottleneck' : ''}${costs[l.key]?.next_high ? ` · next step ${esc(usdRange(costs[l.key].next_low, costs[l.key].next_high))}` : ''}${f ? ` · ${money(f.raised_cents)} raised` : ''}</span></a>`; }).join('')}</div></section>`;
     }).join('')}</div>
-    <div class="fx-legend"><span><i class="dot st-solved"></i>Solved</span><span><i class="dot st-in_progress"></i>Moving</span><span><i class="dot st-blocked"></i>Blocked</span><span><i class="dot st-open"></i>Barely started</span><span><i class="ring-l"></i>Biggest bottleneck</span></div></section>`;
+    <div class="fx-list-legend hide">${legend}</div></section>`;
 
   const give = giveBox(g, giving);
 
@@ -2102,6 +2104,7 @@ document.addEventListener('click', (e) => {
     const list = v.dataset.fview === 'list';
     $('#fxList')?.classList.toggle('hide', !list);
     document.querySelector('.fx-grid')?.classList.toggle('hide', list);
+    document.querySelector('.fx-list-legend')?.classList.toggle('hide', !list);
   }
 });
 document.addEventListener('keydown', (e) => {
