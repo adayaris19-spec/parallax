@@ -16,13 +16,16 @@ const PRIV = Deno.env.get("EVERY_PRIVATE_KEY") ?? "";
 const API = "https://partners.every.org/v0.2";
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
+async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}, attempt = 0): Promise<any> { // deno-lint-ignore no-explicit-any
   const r = await fetch(`${SB}/rest/v1/${path}`, {
     method: init.method ?? "GET",
     headers: { apikey: SRK, Authorization: `Bearer ${SRK}`, "Content-Type": "application/json", ...(init.prefer ? { Prefer: init.prefer } : {}) },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
   });
   const text = await r.text();
+  // Supabase's servers sometimes disagree by a moment about the time ("JWT issued at future"):
+  // waiting a second and trying again succeeds.
+  if (r.status === 401 && text.includes("PGRST303") && attempt < 2) { await new Promise((ok) => setTimeout(ok, 1500)); return db(path, init, attempt + 1); }
   if (!r.ok) throw new Error(`database ${r.status}: ${text.slice(0, 200)}`);
   return text ? JSON.parse(text) : null;
 }

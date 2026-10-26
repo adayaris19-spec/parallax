@@ -1,0 +1,26 @@
+# Daily health check: runs parallax_health() in the database and keeps one GitHub issue up to date,
+# tagging the owner (GitHub emails them) when something needs attention. Free.
+name: Health check
+on:
+  schedule:
+    - cron: "13 7 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            index.html
+            scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/health.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
