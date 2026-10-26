@@ -299,6 +299,48 @@ Deno.serve(async (req) => {
     }
     const brief = briefs[0] ? { week: briefs[0].week, signals: briefs[0].signals, ...briefs[0].content } : null;
 
+    // The answer first: a few plain facts per section, for scanning. Goal-level facts only (they are
+    // safe to show visitors too); named problems are added for subscribers.
+    const by = <T,>(arr: T[], f: (x: T) => number) => arr.reduce((a: T | null, x) => (a == null || f(x) > f(a) ? x : a), null);
+    const fastest = by(rows.filter((r) => r.field_growth3 != null), (r) => r.field_growth3 ?? 0);
+    const mostCat = by(rows, (r) => r.catalysts ?? 0);
+    const bestMom = by(rows, (r) => r.momentum);
+    const mostBlocked = by(rows, (r) => r.blocked);
+    const kindCount: Record<string, number> = {};
+    for (const b of bottlenecks) kindCount[b.kind] = (kindCount[b.kind] ?? 0) + 1;
+    const topKind = Object.entries(kindCount).sort((a, b) => b[1] - a[1])[0];
+    const leadCount: Record<string, number> = {};
+    for (const f of fields) { const c = (f.countries as { code: string; name?: string }[])[0]; if (c) leadCount[c.name ?? c.code] = (leadCount[c.name ?? c.code] ?? 0) + 1; }
+    const topCountry = Object.entries(leadCount).sort((a, b) => b[1] - a[1])[0];
+    const fastestField = by(fields.filter((f) => f.growth != null), (f) => f.growth ?? 0);
+    const radarAll = radarPoints(problems), oppAll = radarAll.filter((r) => r.opportunity);
+    const in90 = new Date(Date.now() + 90 * DAY).toISOString().slice(0, 7);
+    const answers = {
+      index: [
+        fastest ? `Fastest-growing field: @${fastest.handle}, ${Math.round((fastest.field_growth3 ?? 0) * 100)}% more papers than 3 years before.` : null,
+        mostCat?.catalysts ? `Most catalysts ahead: @${mostCat.handle} (${mostCat.catalysts}).` : null,
+        bestMom && bestMom.momentum > 0 ? `Best month: @${bestMom.handle}, ${bestMom.advances30} advance${bestMom.advances30 === 1 ? "" : "s"} vs ${bestMom.setbacks30} setback${bestMom.setbacks30 === 1 ? "" : "s"}.` : null,
+        mostBlocked?.blocked ? `Most stuck: @${mostBlocked.handle}, ${mostBlocked.blocked} blocked problem${mostBlocked.blocked === 1 ? "" : "s"}.` : null,
+      ].filter(Boolean),
+      radar: [
+        `${oppAll.length} problem${oppAll.length === 1 ? " is" : "s are"} heating up while public money stays thin.`,
+        full && oppAll[0] ? `Biggest: ${oppAll[0].title} (@${oppAll[0].goal}), research +${Math.round(oppAll[0].y * 100)}% on ${oppAll[0].x ? "about " + (oppAll[0].x >= 1e6 ? `$${(oppAll[0].x / 1e6).toFixed(1)}M` : `$${Math.round(oppAll[0].x / 1e3)}K`) : "no matched"} federal grants.` : null,
+      ].filter(Boolean),
+      calendar: [
+        catalysts[0] ? `Next up: ${full ? catalysts[0].title.slice(0, 90) : "a " + (catalysts[0].kind === "trial" ? "trial readout" : "promise")} (@${catalysts[0].goal}), due ${/^\d{4}-\d{2}$/.test(catalysts[0].date) ? new Date(`${catalysts[0].date}-15`).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : catalysts[0].date}.` : null,
+        `${catalysts.filter((c) => c.date <= in90).length} catalysts in the next 90 days, ${catalysts.length} in total.`,
+      ].filter(Boolean),
+      leaders: [
+        topCountry ? `${topCountry[0]} publishes the most on ${topCountry[1]} of ${fields.length} goals.` : null,
+        fastestField ? `Fastest-growing field: @${fastestField.goal} (+${Math.round((fastestField.growth ?? 0) * 100)}% in 3 years).` : null,
+      ].filter(Boolean),
+      bottlenecks: [
+        topKind ? `Most bottlenecks wait on ${topKind[0] === "knowledge" ? "knowledge (we don't yet know how)" : topKind[0]}: ${topKind[1]} of ${bottlenecks.length} goals.` : null,
+        mostBlocked?.blocked ? `@${mostBlocked.handle} has the most blocked problems (${mostBlocked.blocked}).` : null,
+      ].filter(Boolean),
+      opportunities: [`${funding.length} problems are held back mainly by money, ${quiet.length} have gone quiet, ${hot.length} are heating up.`],
+    };
+
     // Remember which problems are in the opportunity corner (for watchlist alerts about new ones).
     const opps = radarPoints(problems).filter((r) => r.opportunity);
     if (opps.length) {
@@ -337,10 +379,11 @@ Deno.serve(async (req) => {
       radar: full ? radarPoints(problems) : [],
       catalysts: full ? catalysts : [],
       catalysts_total: catalysts.length,
+      answers,
       // What visitors see of each locked section: a small, deliberate sample (about one item in ten),
       // cut here on the server so nothing more ever leaves it. Tables and CSV stay subscriber-only.
       preview: full ? null : {
-        brief: brief ? { week: brief.week, headline: brief.headline, moved: (brief.moved ?? []).slice(0, 1), moved_total: brief.moved?.length ?? 0, watch_total: brief.watch?.length ?? 0, money_total: brief.money?.length ?? 0 } : null,
+        brief: brief ? { week: brief.week, headline: brief.headline, tldr: (brief.tldr ?? []).slice(0, 1), moved: (brief.moved ?? []).slice(0, 1), moved_total: brief.moved?.length ?? 0, watch_total: brief.watch?.length ?? 0, money_total: brief.money?.length ?? 0 } : null,
         opportunities: { funding: funding.slice(0, 1), quiet: quiet.slice(0, 1), hot: hot.slice(0, 1) },
         opportunity_counts: { funding: funding.length, quiet: quiet.length, hot: hot.length },
         fields: fields.slice(0, 1),

@@ -771,6 +771,24 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .wl-r b{display:block;font-size:14.5px;font-weight:500}.wl-r small{display:block;font-size:12.5px;color:var(--muted)}
 .wl-a{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .wl-ok{font-size:13.5px;color:var(--solved)}
+/* terminal: answers first, scannable brief */
+.ans{margin:0;padding:14px 18px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.ans .lbl{color:var(--accent)}
+.ans ul{margin:8px 0 0;padding-left:18px;display:grid;gap:5px}
+.ans li{font-size:15px;line-height:1.45;color:var(--ink)}
+.ans b{font-family:var(--m);font-weight:500}
+.hchip{display:inline-block;font-size:12px;font-weight:500;padding:1px 7px;border-radius:999px;background:var(--sunk);color:var(--ink2);white-space:nowrap}
+.bfilter{display:flex;flex-wrap:wrap;gap:6px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.bfilter .chip3{cursor:pointer;font:inherit;font-size:12.5px}
+.brows{padding:4px 18px 12px}
+.bsec{padding-top:10px}
+.bsec>.lbl{display:block;margin:6px 0 2px}
+.brow{display:grid;grid-template-columns:76px auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.brow .sig{justify-self:start}
+.brow-t b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.brow-t p{margin:3px 0 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.brow-p{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px}
+@media (max-width:640px){.brow{grid-template-columns:auto minmax(0,1fr)}.brow .brow-t{grid-column:1/-1}}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -2872,22 +2890,46 @@ function colsChart(years, recentFrom, big = false) {
     <div class="axis"><span>${years[0].year}</span><span>${years[years.length - 1].year}</span></div>`;
 }
 
+// Weekly brief, built for scanning: the week in 30 seconds, then every item as one row with a bold
+// takeaway, filterable by goal.
+const BRIEF_KIND = { moved: ['Moved', 'advance'], watch: ['Watch', 'bottleneck'], money: ['Money', 'promise'] };
+function briefRows(items, kind) {
+  const [label, cls] = BRIEF_KIND[kind];
+  return items.map((x) => {
+    const short = x.short || String(x.text).split(/[,;:]| — /)[0];
+    return `<div class="brow" data-bgoal="${esc(x.goal)}"><span class="sig ${cls}">${label}</span><span class="hchip">${esc(x.goal)}</span>
+      <div class="brow-t"><b>${esc(short)}</b>${kind === 'money' && x.problem ? `<small class="brow-p">${esc(x.problem)}</small>` : ''}<p>${esc(x.text)}</p></div></div>`;
+  }).join('');
+}
 function briefPanel(t) {
   const b = t.brief;
   if (!b) return '';
   const full = t.access === 'full';
-  const list = (items, problem) => `<ul>${items.map((x) => `<li><b>${esc(x.goal)}</b> ${problem ? `<b>· ${esc(x.problem)}.</b> ` : ''}${esc(x.text)}</li>`).join('')}</ul>`;
+  const date = (w) => new Date(w).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
   const pv = t.preview?.brief;
-  if (!full && pv) return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(new Date(pv.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))} · sample</span>
-      <h3>${esc(pv.headline)}</h3></div>
-    ${pv.moved.length ? `<div class="brief3"><div><span class="lbl">What moved · 1 of ${pv.moved_total}</span>${list(pv.moved)}</div></div>` : ''}
+  if (!full && pv) return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(date(pv.week))} · sample</span><h3>${esc(pv.headline)}</h3></div>
+    ${pv.tldr?.length ? `<div class="ans"><span class="lbl">In 30 seconds · 1 of 3</span><ul>${pv.tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+    ${pv.moved.length ? `<div class="brows">${briefRows(pv.moved, 'moved')}</div>` : ''}
     ${moreGate(`The full brief: ${pv.moved_total} things that moved, ${pv.watch_total} to watch next, and ${pv.money_total} places where money would matter most. Every Monday.`)}</section>`;
   if (!full) return `<section class="panel"><div class="panel-h"><h2>Weekly brief</h2><span class="lbl">Subscribers only</span></div>${lockGate('This week’s brief', 'What moved, what to watch next, and where money would matter most. Written every Monday from the week’s research.')}</section>`;
-  return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))}</span>
-      <h3>${esc(b.headline)}</h3><p class="sum">${esc(b.summary)}</p></div>
-    ${full ? `<div class="brief3"><div><span class="lbl">What moved</span>${list(b.moved)}</div><div><span class="lbl">What to watch</span>${list(b.watch)}</div><div><span class="lbl">Where money would matter</span>${list(b.money, true)}</div></div>`
-      : lockGate('The rest of the brief', 'What moved, what to watch next, and where money would matter most. Written every Monday from the week’s research.')}</section>`;
+  const all = [...(b.moved || []), ...(b.watch || []), ...(b.money || [])];
+  const goalsIn = [...new Set(all.map((x) => x.goal))];
+  return `<section class="panel"><div class="brief"><span class="lbl">Weekly brief · ${esc(date(b.week))}</span><h3>${esc(b.headline)}</h3></div>
+    ${answerBox(b.tldr?.length ? b.tldr : [b.summary]).replace('The answer', 'In 30 seconds')}
+    <div class="bfilter" role="group" aria-label="Filter by goal"><button type="button" class="chip3 on" data-bf="">All ${all.length}</button>${goalsIn.map((g) => `<button type="button" class="chip3" data-bf="${esc(g)}">${esc(g)} ${all.filter((x) => x.goal === g).length}</button>`).join('')}</div>
+    <div class="brows">
+      <div class="bsec"><span class="lbl">What moved</span>${briefRows(b.moved || [], 'moved')}</div>
+      <div class="bsec"><span class="lbl">What to watch</span>${briefRows(b.watch || [], 'watch')}</div>
+      <div class="bsec"><span class="lbl">Where money would matter</span>${briefRows(b.money || [], 'money')}</div>
+    </div></section>`;
 }
+document.addEventListener('click', (e) => {
+  const f = e.target.closest('[data-bf]'); if (!f) return;
+  const g = f.dataset.bf, box = f.closest('.panel');
+  box.querySelectorAll('[data-bf]').forEach((x) => x.classList.toggle('on', x === f));
+  box.querySelectorAll('.brow').forEach((r) => { r.hidden = !!g && r.dataset.bgoal !== g; });
+  box.querySelectorAll('.bsec').forEach((sec) => { sec.hidden = ![...sec.querySelectorAll('.brow')].some((r) => !r.hidden); });
+});
 
 function oppPanel(t) {
   const c = t.opportunity_counts;
@@ -2896,7 +2938,7 @@ function oppPanel(t) {
     const pc = t.preview.opportunity_counts, po = t.preview.opportunities;
     const col = (title, desc, items, n, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${n}</small></h3><div class="d">${desc}</div>
       ${items.map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('')}${n > items.length ? `<div class="d">+ ${n - items.length} more for subscribers</div>` : ''}</div>`;
-    return `<section class="panel">${head}<div class="opp">
+    return `<section class="panel">${head}${answerBox(t.answers?.opportunities)}<div class="opp">
       ${col('Funding gaps', 'Unsolved problems whose main obstacle is money, not knowledge.', po.funding, pc.funding, (p) => `${STATUS_LABEL[p.status]} · <b>${p.sources}</b> sources`)}
       ${col('Gone quiet', 'Unsolved, and the newest research behind them is 5+ years old.', po.quiet, pc.quiet, (p) => `newest paper <b>${p.newest}</b>`)}
       ${col('Heating up', 'Unsolved problems with the most papers in the last 3 years.', po.hot, pc.hot, (p) => `<b>${p.recent}</b> recent papers`)}
@@ -2906,7 +2948,7 @@ function oppPanel(t) {
   const o = t.opportunities;
   const col = (title, desc, items, meta) => `<div><h3>${title} <small style="color:var(--muted);font-family:var(--m);font-weight:400">${items.length}</small></h3><div class="d">${desc}</div>
     ${items.length ? items.slice(0, 6).map((p) => `<a href="${probLink(p)}">${esc(p.title)}<span class="m">@${esc(p.goal)} · ${meta(p)}</span></a>`).join('') : '<div class="d">None right now.</div>'}</div>`;
-  return `<section class="panel">${head}<div class="opp">
+  return `<section class="panel">${head}${answerBox(t.answers?.opportunities)}<div class="opp">
     ${col('Funding gaps', 'Unsolved problems whose main obstacle is money, not knowledge.', o.funding, (p) => `${STATUS_LABEL[p.status]} · <b>${p.sources}</b> sources`)}
     ${col('Gone quiet', 'Unsolved, and the newest research behind them is 5+ years old. Often overlooked.', o.quiet, (p) => `newest paper <b>${p.newest}</b>`)}
     ${col('Heating up', 'Unsolved problems with the most papers in the last 3 years.', o.hot, (p) => `<b>${p.recent}</b> recent papers`)}
@@ -2922,7 +2964,7 @@ function fieldsPanel(t) {
   if (t.access !== 'full') return `<section class="panel">${head}${lockGate('Institutions and countries, goal by goal', 'Who publishes the most on each goal, which countries lead, and how fast each field is growing.')}</section>`;
   if (!t.fields.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Field data is being gathered. Check back in a few hours.</div></section>`;
   const y = new Date().getFullYear();
-  return `<section class="panel">${head}<div class="fields">${t.fields.map((f) => {
+  return `<section class="panel">${head}${answerBox(t.answers?.leaders)}<div class="fields">${t.fields.map((f) => {
     const maxShare = Math.max(0.01, ...f.countries.map((c) => c.share));
     return `<div class="fld"><div class="fh"><a href="#/g/${encodeURIComponent(f.slug)}">@${esc(f.goal)}</a><span class="gr ${f.growth > 0 ? 'up' : f.growth < 0 ? 'down' : ''}" data-tip="Papers in the last 3 full years vs the 3 before">${growthTxt(f.growth)} in 3 years</span></div>
       <div class="sub2">${f.papers_3y.toLocaleString()} papers in the last 3 full years</div>
@@ -2991,6 +3033,12 @@ function overviewCards(t) {
 }
 
 // Goal index: one row per goal, like a market screen.
+// The answer first: 2-4 plain facts at the top of each Terminal section, @handles as chips.
+function answerBox(lines) {
+  if (!lines || !lines.length) return '';
+  const fmt = (x) => esc(x).replace(/@([A-Za-z0-9]+)/g, '<span class="hchip">@$1</span>').replace(/(\+?\d[\d,.]*%?)/g, '<b>$1</b>');
+  return `<div class="ans"><span class="lbl">The answer</span><ul>${lines.map((l) => `<li>${fmt(l)}</li>`).join('')}</ul></div>`;
+}
 function goalIndex(t) {
   const full = t.access === 'full', rows = full ? [...t.goals].sort((a, b) => (b.papers_last ?? 0) - (a.papers_last ?? 0)) : (t.preview?.index || []);
   const pctTxt = (x) => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${Math.round(Math.abs(x) * 100)}%`);
@@ -3004,6 +3052,7 @@ function goalIndex(t) {
       <td class="num">${g.catalysts ? `<a href="#/terminal/calendar">${g.catalysts}</a>` : '—'}</td>
       <td class="num">${horizon(g)}</td></tr>`).join('');
   return `<section class="panel"><div class="panel-h"><h2>Goal index ${full ? `<small>${rows.length}</small>` : ''}</h2><span class="lbl">Every goal, side by side · research figures for the last full year</span></div>
+    ${answerBox(t.answers?.index)}
     <div class="tw"><table class="tt gindex"><thead><tr><th scope="col">Goal</th><th class="num" scope="col">Solved</th><th class="num" scope="col" title="Advances and setbacks in the last 30 days">30 days</th><th class="num" scope="col" title="Papers published last year across the goal's field">Papers/yr</th><th class="num" scope="col" title="Last 3 years vs the 3 before">Growth</th><th class="num" scope="col" title="Problems with US federal grants matched">Funded</th><th class="num" scope="col">Catalysts</th><th class="num" scope="col">Countdown</th></tr></thead><tbody>${body}</tbody></table></div>
     ${full ? '' : moreGate(`3 of ${t.goals_total} goals. Subscribers see every goal, updated daily.`)}</section>`;
 }
@@ -3041,7 +3090,7 @@ function radarPanel(t) {
     <text class="ax t" x="14" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(T + H - B) / 2})">Research growth, last 3 yrs vs 3 before</text>
     ${dots}</svg>`;
   const list = (full ? opp : opp.filter((p) => p.title)).slice(0, full ? 30 : 2).map((p) => `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}"><span>${esc(p.title)}<small>@${esc(p.goal)}</small></span><b class="mono up">+${Math.round(p.y * 100)}%</b><b class="mono">${p.x ? usdShort(p.x) : 'no grants'}</b></a>`).join('');
-  return `<section class="panel">${head}<div class="pad">${svg}
+  return `<section class="panel">${head}${answerBox(t.answers?.radar)}<div class="pad">${svg}
       <p class="radar-note">Each dot is an unsolved problem, sized by papers last year. Highlighted: research growth in the top third and matched federal funding in the bottom third. The grey column on the left is problems with no matching grants found (the search may miss them, so they are not counted as opportunities)${full ? '' : '. Names are for subscribers; two examples below'}.</p></div>
     <div class="oplist"><div class="oplist-h"><span>Opportunities</span><span>Research growth</span><span>Federal grants</span></div>${list}</div>
     ${full ? '' : moreGate(`${opp.length} problems are in the opportunity corner right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
@@ -3060,7 +3109,7 @@ function calendarPanel(t) {
     return `<div class="cal-i"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial readout' : 'Promise due'}</span>
       <div><div class="cal-t">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${title}</a>` : title}</div><div class="cal-m"><a href="#/g/${encodeURIComponent(c.slug)}${c.key ? `/tree/${encodeURIComponent(c.key)}` : ''}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</div></div></div>`;
   }).join('')}</div>`).join('');
-  return `<section class="panel">${head}<div class="cal">${body}</div>
+  return `<section class="panel">${head}${answerBox(t.answers?.calendar)}<div class="cal">${body}</div>
     <p class="radar-note" style="padding:0 18px 14px">Trial dates are the expected primary completion dates registered on ClinicalTrials.gov (Phase 2 and 3, next 18 months). Promises are claims from papers, due this year or the next two.</p>
     ${full ? '' : moreGate(`The next 2 of ${t.catalysts_total}. Subscribers see the full calendar and can get alerts before each one.`)}</section>`;
 }
@@ -3126,7 +3175,7 @@ function renderTerminal(box, tab = 'overview') {
     brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
     opportunities: () => oppPanel(t),
     leaders: () => fieldsPanel(t),
-    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>
+    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>${answerBox(t.answers?.bottlenecks)}
         ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : t.preview?.bottlenecks?.length ? `<div class="bn">${bottleneckBoard(t.preview.bottlenecks)}</div>${moreGate(`2 of ${t.preview.bottlenecks_total} goals. Subscribers see every goal’s bottleneck, what it waits on, and its countdown.`)}` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
       <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
