@@ -102,6 +102,27 @@ async function send() {
     }
   }
 
+  // Plus: "your call was settled", once per person per question (resolve function).
+  const settled = await db(`prediction_results?resolved_at=gte.${new Date(Date.now() - 3 * 86_400_000).toISOString()}&select=key,outcome,note`).catch(() => []);
+  if (settled.length) {
+    const inList = settled.map((r: { key: string }) => `"${r.key}"`).join(",");
+    const [calls, qs] = await Promise.all([
+      db(`predictions?key=in.(${inList})&select=user_id,key,choice`),
+      db(`prediction_questions?key=in.(${inList})&select=key,title,goal_id`),
+    ]);
+    const already = calls.length ? await db(`watch_alerts?user_id=in.(${[...new Set(calls.map((c: { user_id: string }) => c.user_id))].join(",")})&key=like.res:*&select=user_id,key`) : [];
+    const done = new Set(already.map((x: { user_id: string; key: string }) => `${x.user_id}|${x.key}`));
+    for (const c of calls) {
+      const r = settled.find((x: { key: string }) => x.key === c.key), q = qs.find((x: { key: string }) => x.key === c.key);
+      const g = q ? byId.get(q.goal_id) : null;
+      if (!r || !g || done.has(`${c.user_id}|res:${c.key}`)) continue;
+      const verdict = r.outcome === "void" ? "No result, your call doesn't count" : r.outcome === c.choice ? "You called it ✓" : "Not this time";
+      const list = extrasFor.get(c.user_id) ?? [];
+      list.unshift({ key: `res:${c.key}`, goal: g.handle, title: verdict, body: `${String(q.title).slice(0, 90)}: ${r.note ?? ""}`.slice(0, 220), url: `${SITE}#/plus` });
+      extrasFor.set(c.user_id, list);
+    }
+  }
+
   let sent = 0, gone = 0;
   const marked = new Set<string>();
   for (const s of subs) {
