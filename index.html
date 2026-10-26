@@ -855,6 +855,19 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .pr-t{margin:6px 0 4px;font-size:15.5px;font-weight:600;line-height:1.35}.pr-t a{color:var(--ink);text-decoration:none}.pr-t a:hover{text-decoration:underline}
 .pr-to{margin:0;font-size:13.5px;color:var(--ink2)}.pr-to span{color:var(--accent)}
 .pr-w{margin:6px 0 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.cotw{border-color:var(--accent-line);background:linear-gradient(140deg,var(--accent-soft),transparent 65%),var(--card)}
+.cotw-d{font-family:var(--m);font-size:12px;color:var(--accent)}
+.cotw h2{font-size:21px;margin:8px 0 4px}
+.cotw-t{margin:0 0 12px;font-size:13.5px;color:var(--muted);line-height:1.45}.cotw-t a{color:var(--ink2)}
+.cotw-b{display:flex;align-items:center;gap:8px;margin:0;padding:0;border:0}
+.cotw-b .btn{min-width:72px}
+.cotw-s{flex:1;display:grid;gap:4px;min-width:0;text-align:right}.cotw-s .stbar{height:6px}.cotw-s small{font-size:12px;color:var(--muted)}
+.pstand{margin:8px 0 2px;font-size:13.5px;color:var(--ink2)}
+.plus-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;margin-top:14px;align-items:start}
+.plus-row.one{grid-template-columns:1fr}
+.pweb svg.web{max-width:520px}
+.pweb .wedge{pointer-events:none}
+@media (max-width:760px){.plus-row{grid-template-columns:1fr}}
 .comings{display:grid;gap:12px}
 .coming{position:relative;padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
 .coming::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--img,var(--accent-soft)) center/cover,var(--accent-soft)}
@@ -1319,6 +1332,38 @@ svg.web .wnode,svg.web .wedge{transition:opacity .15s}
 .wbar{margin-bottom:12px}
 .wbar[open]>summary .sec-k{opacity:1}
 @media (max-width:640px){.sec>summary{grid-template-columns:minmax(0,1fr) 20px;gap:4px 10px}.sec-t{grid-column:1}.sec-k{grid-column:1;grid-row:2;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.sec-c{grid-column:2;grid-row:1/3}}
+.bento{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;grid-auto-flow:row dense}
+.ptile{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.ptile.w2,.ptile.big{grid-column:1/-1}
+.tile-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:13px 18px;border-bottom:1px solid var(--line)}
+.tile-h .sec-k{font-size:13px}
+.tile-x{font-size:13px;white-space:nowrap}
+.tile-b.tcap{max-height:var(--h);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.ptile.big .tile-b.tcap{max-height:none}
+.tile-b>section.panel{border:0;box-shadow:none;border-radius:0;margin:0;background:none}
+.tile-b .panel-h{display:none}
+.ptile .webwrap{padding:4px 10px 10px}
+.ptile .webside{max-height:470px}
+.ptile .tw table.tt.mtab{min-width:0}
+.ptile:not(.big) .tile-b .ans:not(.keep){display:none}
+.gwrap{position:relative}
+.webwrap:has(.gwrap){grid-template-columns:minmax(0,2.2fr) minmax(0,1fr)}
+.ggrow{position:absolute;left:10px;bottom:10px}
+svg.gsim{max-width:none;touch-action:none;user-select:none}
+.ge.own{stroke:var(--line2);stroke-width:1}
+.ge.cross{stroke:var(--ink2);stroke-opacity:.55;stroke-width:1.8}
+.gn{cursor:grab}.gn:active{cursor:grabbing}
+.gn.goal .ring{fill:var(--card);stroke:var(--line2);stroke-width:1.5}
+.gn.goal .dot{fill:var(--ink)}.gn.goal.alone .dot{fill:var(--line2)}
+.gn.goal text{font-size:13px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+.gn.goal.alone text{fill:var(--muted);font-weight:400}
+.gn.prob circle{fill:var(--open);stroke:var(--card);stroke-width:2}
+.gn.prob.st-solved circle{fill:var(--solved)}.gn.prob.st-progress circle{fill:var(--progress)}.gn.prob.st-blocked circle{fill:var(--blocked)}
+.gn.prob.on circle{stroke:var(--accent);stroke-width:3}
+svg.gsim.focus .gn:not(.hl){opacity:.3}svg.gsim.focus .ge:not(.hl){opacity:.15}
+svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
+.gnote{font-size:13.5px;line-height:1.5;color:var(--ink2);margin:6px 0 10px}
+.gtitle{font-size:14px;margin:6px 0 12px}.gtitle a{color:var(--ink);text-decoration:none}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -1334,7 +1379,7 @@ svg.web .wnode,svg.web .wedge{transition:opacity .15s}
 .qbars i:last-child{opacity:1}
 .rmv{font-family:var(--m);font-size:12.5px;color:var(--muted)} .rmv.up{color:var(--solved)} .rmv.down{color:var(--blocked)}
 table.tt.mtab{min-width:620px}
-.mtab td:first-child.num,.mtab th:first-child{width:36px}
+.mtab td:first-child.num,.mtab th:first-child.num{width:1%;white-space:nowrap}
 .mtab .up{color:var(--solved)} .mtab .down{color:var(--blocked)}
 .mtab td{vertical-align:top}
 .rlist{margin:8px 0 0;padding-left:20px;display:grid;gap:4px;font-size:15px}
@@ -3198,7 +3243,7 @@ function pipelinePanel(t) {
 }
 // ---- Crossovers: problems shared between goals. The map, keystone problems and ripples.
 // "Since your last visit": the previous visit's time, kept for this session.
-let lastSeen = 0, seenMarked = false;
+let lastSeen = 0, seenMarked = false, termTab = null;
 function markSeen() { // called when Pro opens
   if (seenMarked) return; seenMarked = true;
   try {
@@ -3254,12 +3299,117 @@ function webSvg(web, sel) {
 // Hovering a goal lights up its links.
 document.addEventListener('mouseover', (e) => {
   const n = e.target.closest?.('.wnode'), svg = e.target.closest?.('svg.web');
-  if (!svg) return;
+  if (!svg || svg.classList.contains('gsim')) return; // the problem graph handles its own hover
   const slug = n?.dataset.node || '';
   svg.classList.toggle('focus', !!slug);
   svg.querySelectorAll('.wedge').forEach((g) => g.classList.toggle('hl', !!slug && g.dataset.ends.split(' ').includes(slug)));
   svg.querySelectorAll('.wnode').forEach((g) => g.classList.toggle('hl', !!slug && (g.dataset.node === slug || [...svg.querySelectorAll('.wedge.hl')].some((w) => w.dataset.ends.split(' ').includes(g.dataset.node)))));
 });
+// ---- The web, problem by problem: goals as large dots, each shared problem as a small dot tied to
+// its goal, and lines between problems that move each other. A small physics simulation settles
+// it; dots can be dragged. "Watch it grow" replays goals arriving in the order they were mapped.
+let webSim = null;
+function problemGraph(c) {
+  const nodes = [], idx = new Map(), edges = [];
+  const add = (id, n) => { if (!idx.has(id)) { idx.set(id, nodes.length); nodes.push(n); } return idx.get(id); };
+  for (const g of c.web.goals) add(`g:${g.slug}`, { kind: 'goal', slug: g.slug, handle: g.handle, mapped_at: g.mapped_at || '', pic: (goalsCache || []).find((x) => x.slug === g.slug)?.pics?.[0] });
+  for (const links of Object.values(c.links)) for (const l of links) {
+    if (!l.a || !l.b) continue;
+    const ia = add(`p:${l.a.slug}/${l.a.key}`, { kind: 'problem', ...l.a }), ib = add(`p:${l.b.slug}/${l.b.key}`, { kind: 'problem', ...l.b });
+    edges.push({ s: ia, t: ib, kind: 'cross', why: l.why });
+  }
+  for (const [id, i] of idx) if (id.startsWith('p:')) edges.push({ s: idx.get(`g:${nodes[i].slug}`), t: i, kind: 'own' });
+  // Drop goals with no shared problems from the middle: they float at the edge.
+  const deg = nodes.map(() => 0); for (const e of edges) { deg[e.s]++; deg[e.t]++; }
+  return { nodes, edges, deg };
+}
+function problemSvg(c) {
+  const { nodes, edges, deg } = problemGraph(c);
+  const sel = termSel.wnode;
+  return `<div class="gwrap"><svg class="web gsim" id="wsim" viewBox="0 0 760 520" role="img" aria-label="Every shared problem and what it links to">
+    <defs>${nodes.map((n, i) => n.kind === 'goal' ? `<clipPath id="gc${i}"><circle r="${deg[i] ? 20 : 12}"/></clipPath>` : '').join('')}</defs>
+    <g class="gedges">${edges.map((e, i) => `<line class="ge ${e.kind}" data-e="${i}" data-s="${e.s}" data-t="${e.t}"/>`).join('')}</g>
+    <g class="gnodes">${nodes.map((n, i) => n.kind === 'goal'
+      ? `<g class="gn goal${deg[i] ? '' : ' alone'}" data-n="${i}"><circle class="ring" r="${deg[i] ? 23 : 14}"/>${n.pic && deg[i] ? `<image href="${esc(safeUrl(n.pic) || '')}" x="-20" y="-20" width="40" height="40" preserveAspectRatio="xMidYMid slice" clip-path="url(#gc${i})"/>` : `<circle class="dot" r="${deg[i] ? 20 : 12}"/>`}<text y="${deg[i] ? 38 : 28}" text-anchor="middle">@${esc(n.handle)}</text></g>`
+      : `<g class="gn prob st-${n.status === 'in_progress' ? 'progress' : n.status}${sel === `${n.slug}/${n.key}` ? ' on' : ''}" data-n="${i}" data-tsel="wnode" data-v="${esc(n.slug)}/${esc(n.key)}" tabindex="0"><circle r="${5 + Math.min(4, deg[i])}"/><title>@${esc(n.goal)}: ${esc(n.title)}</title></g>`).join('')}</g>
+  </svg><button class="btn sm ggrow" type="button" data-grow>▶ Watch it grow</button></div>`;
+}
+function problemSide(c) {
+  const id = termSel.wnode;
+  if (!id) return `<span class="lbl">How to read it</span><p class="gnote">Big dots are goals. Small dots are problems a goal shares with another goal, coloured by status. Lines between small dots mean progress on one moves the other.</p><p class="gnote">Drag anything. Tap a small dot to see what it shares.</p>`;
+  const links = Object.values(c.links).flat().filter((l) => l.a && l.b && (`${l.a.slug}/${l.a.key}` === id || `${l.b.slug}/${l.b.key}` === id));
+  const me = links[0] ? (`${links[0].a.slug}/${links[0].a.key}` === id ? links[0].a : links[0].b) : null;
+  return me ? `<span class="lbl">Shared problem</span><p class="gtitle">${xref(me)}</p><span class="lbl">Moves ${links.length} problem${links.length === 1 ? '' : 's'} in other goals</span>${linkRows(links)}` : '';
+}
+function initWebSim() {
+  if (webSim) { cancelAnimationFrame(webSim.raf); webSim = null; }
+  const svg = document.getElementById('wsim'); if (!svg || !term?.crossovers) return;
+  const { nodes, edges, deg } = problemGraph(term.crossovers);
+  const W = 760, H = 520, cx = W / 2, cy = H / 2, goals = nodes.filter((n) => n.kind === 'goal');
+  // Start: goals on a circle (linked ones first), problems near their goal.
+  const order = [...goals].sort((a, b) => deg[nodes.indexOf(b)] - deg[nodes.indexOf(a)]);
+  order.forEach((g, k) => { const a = -Math.PI / 2 + k * 2 * Math.PI / order.length, r = deg[nodes.indexOf(g)] ? 150 : 235; g.x = cx + r * Math.cos(a); g.y = cy + r * Math.sin(a); });
+  for (const n of nodes) if (n.kind === 'problem') { const g = goals.find((x) => x.slug === n.slug); n.x = g.x + (Math.random() - 0.5) * 60; n.y = g.y + (Math.random() - 0.5) * 60; }
+  for (const n of nodes) { n.vx = 0; n.vy = 0; n.on = true; }
+  const els = [...svg.querySelectorAll('.gn')], lines = [...svg.querySelectorAll('.ge')];
+  const sim = webSim = { alpha: 1, raf: 0, drag: null };
+  const tick = () => {
+    const a = sim.alpha, live = nodes.filter((n) => n.on);
+    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+      const p = live[i], q = live[j]; let dx = q.x - p.x, dy = q.y - p.y; const d2 = dx * dx + dy * dy + 0.01, d = Math.sqrt(d2);
+      const big = (p.kind === 'goal' ? 2.2 : 1) * (q.kind === 'goal' ? 2.2 : 1), f = Math.min(9, (1500 * big) / d2) * a;
+      dx /= d; dy /= d; p.vx -= dx * f; p.vy -= dy * f; q.vx += dx * f; q.vy += dy * f;
+    }
+    for (const e of edges) {
+      const p = nodes[e.s], q = nodes[e.t]; if (!p.on || !q.on) continue;
+      const dx = q.x - p.x, dy = q.y - p.y, d = Math.sqrt(dx * dx + dy * dy) || 1, L = e.kind === 'own' ? 58 : 90, k = (e.kind === 'own' ? 0.06 : 0.03) * a;
+      const f = (d - L) * k; p.vx += (dx / d) * f; p.vy += (dy / d) * f; q.vx -= (dx / d) * f; q.vy -= (dy / d) * f;
+    }
+    for (const n of live) {
+      if (sim.drag && sim.drag.n === n) { n.vx = n.vy = 0; continue; }
+      const pull = deg[nodes.indexOf(n)] ? 0.008 : 0.003; n.vx += (cx - n.x) * pull * a; n.vy += (cy - n.y) * pull * a;
+      n.vx *= 0.82; n.vy *= 0.82; const m = n.kind === 'goal' ? 80 : 20; n.x = Math.max(m, Math.min(W - m, n.x + n.vx)); n.y = Math.max(30, Math.min(H - 40, n.y + n.vy));
+    }
+    els.forEach((el) => { const n = nodes[+el.dataset.n]; el.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); el.style.display = n.on ? '' : 'none'; });
+    lines.forEach((ln) => { const p = nodes[+ln.dataset.s], q = nodes[+ln.dataset.t]; ln.setAttribute('x1', p.x.toFixed(1)); ln.setAttribute('y1', p.y.toFixed(1)); ln.setAttribute('x2', q.x.toFixed(1)); ln.setAttribute('y2', q.y.toFixed(1)); ln.style.display = p.on && q.on ? '' : 'none'; });
+    sim.alpha *= 0.985;
+    if (sim.alpha > 0.02 || sim.drag) sim.raf = requestAnimationFrame(tick);
+  };
+  sim.kick = (v = 0.6) => { const was = sim.alpha <= 0.02; sim.alpha = Math.max(sim.alpha, v); if (was) sim.raf = requestAnimationFrame(tick); };
+  tick();
+  // Drag.
+  const pt = (e) => { const r = svg.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+  svg.addEventListener('pointerdown', (e) => {
+    const g = e.target.closest('.gn'); if (!g) return;
+    const start = pt(e); sim.drag = { n: nodes[+g.dataset.n], moved: false }; sim.kick(0.3);
+    const move = (ev) => { const p = pt(ev); if (!sim.drag) return; if (Math.hypot(p.x - start.x, p.y - start.y) > 4) sim.drag.moved = true; if (sim.drag.moved) { sim.drag.n.x = p.x; sim.drag.n.y = p.y; sim.kick(0.3); } };
+    const up = () => { if (sim.drag?.moved) svg.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true }); sim.drag = null; removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+    addEventListener('pointermove', move); addEventListener('pointerup', up);
+  });
+  // Hover: light up a dot's neighbours.
+  svg.addEventListener('mouseover', (e) => {
+    const g = e.target.closest('.gn'); svg.classList.toggle('focus', !!g); if (!g) return;
+    const i = +g.dataset.n, near = new Set([i]);
+    for (const ed of edges) { if (ed.s === i) near.add(ed.t); if (ed.t === i) near.add(ed.s); }
+    els.forEach((el) => el.classList.toggle('hl', near.has(+el.dataset.n)));
+    lines.forEach((ln) => ln.classList.toggle('hl', +ln.dataset.s === i || +ln.dataset.t === i));
+  });
+  svg.addEventListener('mouseleave', () => svg.classList.remove('focus'));
+  // Watch it grow: goals arrive in the order they were mapped, with their shared problems.
+  svg.parentElement.querySelector('[data-grow]')?.addEventListener('click', () => {
+    const seq = [...goals].sort((a, b) => String(a.mapped_at).localeCompare(String(b.mapped_at)));
+    for (const n of nodes) n.on = false;
+    let k = 0;
+    const step = () => {
+      if (k >= seq.length) return;
+      const g = seq[k++]; g.on = true;
+      const onGoals = new Set(seq.slice(0, k).map((x) => x.slug));
+      for (const n of nodes) if (n.kind === 'problem' && onGoals.has(n.slug) && edges.some((e) => e.kind === 'cross' && (nodes[e.s] === n || nodes[e.t] === n) && onGoals.has(nodes[e.s].slug) && onGoals.has(nodes[e.t].slug))) n.on = true;
+      sim.kick(0.8); setTimeout(step, 750);
+    };
+    step();
+  });
+}
 function linkRows(links) {
   return links.map((l) => `<div class="xlink"><div class="xpair">${xref(l.a)}<span class="xeq" aria-hidden="true">⇄</span>${xref(l.b)}</div><p>${esc(l.why || '')}</p><small>${l.source === 'ai' ? 'Found by reading both problems' : `${l.papers} shared papers`}</small></div>`).join('');
 }
@@ -3282,9 +3432,12 @@ function crossPanel(t) {
   const c = t.crossovers;
   const sel = termSel.web || (c.web.edges[0] ? `${c.web.edges[0].a}|${c.web.edges[0].b}` : '');
   const [sa, sb] = sel.split('|'), hn = (s) => c.web.goals.find((g) => g.slug === s)?.handle;
+  const pl = c.links[sel] || [];
+  const pairSide = sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${pl.length} shared</span>${linkRows(pl.slice(0, termSel.pairAll ? 99 : 5))}${pl.length > 5 && !termSel.pairAll ? `<p style="margin:10px 0 0"><button class="btn sm" type="button" data-tsel="pairAll" data-v="1">Show all ${pl.length}</button></p>` : ''}` : '';
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
-      <div class="webwrap">${webSvg(c.web, sel)}<div class="webside">${sel ? `<span class="lbl">@${esc(hn(sa))} ⇄ @${esc(hn(sb))} · ${(c.links[sel] || []).length} shared</span>${linkRows((c.links[sel] || []).slice(0, termSel.pairAll ? 99 : 5))}${(c.links[sel] || []).length > 5 && !termSel.pairAll ? `<p style="margin:10px 0 0"><button class="btn sm" type="button" data-tsel="pairAll" data-v="1">Show all ${(c.links[sel] || []).length}</button></p>` : ''}` : ''}</div></div></section>
+      ${selChips('webmode', [['goals', 'Goals'], ['problems', 'Problems']], termSel.webmode || 'goals')}
+      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
       <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
       ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
@@ -3307,39 +3460,51 @@ const part = (html, n) => html.split(/(?=<section class="panel")/).filter((x) =>
 const firstLine = (arr) => (arr && arr[0] ? String(arr[0]) : '');
 const SECS = {
   overview: [
-    { id: 'ripples', title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return r.length ? `${f ? `${f} new since your last visit · ` : ''}${esc(r[0].headline)}` : 'Moves on one goal that reach another'; }, body: (t) => rippleBox(t), full: true },
-    { id: 'week', title: 'This week', take: (t) => esc(t.brief?.headline || 'The weekly brief'), body: (t) => weekBox(t) },
-    { id: 'index', title: 'Goal index', take: (t) => esc(firstLine(t.answers?.index) || `${t.goals_total} goals side by side`), body: (t) => goalIndex(t) },
-    { id: 'next', title: 'Up next', take: (t) => { const c = (t.access === 'full' ? t.catalysts : t.preview?.catalysts || [])[0]; return c ? esc(`${c.title.slice(0, 90)} · @${c.goal}`) : 'Trial readouts and promises coming due'; }, body: (t) => upNext(t) },
+    { id: 'ripples', h: 430, title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return r.length ? `${f ? `${f} new since your last visit · ` : ''}${esc(r[0].headline)}` : 'Moves on one goal that reach another'; }, body: (t) => rippleBox(t), full: true },
+    { id: 'week', h: 430, title: 'This week', take: (t) => esc(t.brief?.headline || 'The weekly brief'), body: (t) => weekBox(t) },
+    { id: 'index', w: 2, h: 470, title: 'Goal index', take: (t) => esc(firstLine(t.answers?.index) || `${t.goals_total} goals side by side`), body: (t) => goalIndex(t) },
+    { id: 'next', w: 2, h: 300, title: 'Up next', take: (t) => { const c = (t.access === 'full' ? t.catalysts : t.preview?.catalysts || [])[0]; return c ? esc(`${c.title.slice(0, 90)} · @${c.goal}`) : 'Trial readouts and promises coming due'; }, body: (t) => upNext(t) },
   ],
   crossovers: [
-    { id: 'web', title: 'The goal web', take: (t) => `${t.crossover_totals?.links || 0} links between goals’ problems`, body: (t) => part(crossPanel(t), 0) },
-    { id: 'keystones', title: 'Keystone problems', take: (t) => { const k = t.crossovers?.keystones?.[0]; return `${t.crossover_totals?.keystones || 0} problems that move several goals${k ? ` · top: ${esc(k.title)}` : ''}`; }, body: (t) => part(crossPanel(t), 1), full: true },
-    { id: 'rips', title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return `${t.crossover_totals?.ripples || 0} in 30 days${f ? ` · ${f} new since your last visit` : ''}`; }, body: (t) => part(crossPanel(t), 2), full: true },
+    { id: 'web', w: 2, h: 0, title: 'The goal web', take: (t) => `${t.crossover_totals?.links || 0} links between goals’ problems`, body: (t) => part(crossPanel(t), 0) },
+    { id: 'keystones', h: 440, title: 'Keystone problems', take: (t) => { const k = t.crossovers?.keystones?.[0]; return `${t.crossover_totals?.keystones || 0} problems that move several goals${k ? ` · top: ${esc(k.title)}` : ''}`; }, body: (t) => part(crossPanel(t), 1), full: true },
+    { id: 'rips', h: 440, title: 'Ripples', take: (t) => { const r = t.crossovers?.ripples || []; const f = r.filter((x) => lastSeen && new Date(x.at).getTime() > lastSeen).length; return `${t.crossover_totals?.ripples || 0} in 30 days${f ? ` · ${f} new since your last visit` : ''}`; }, body: (t) => part(crossPanel(t), 2), full: true },
   ],
   money: [
-    { id: 'bygoal', title: 'Funding by goal', take: (t) => esc(firstLine((t.answers?.money || []).filter((x) => /Funding up/.test(x))) || 'Federal grant money per goal, by quarter'), body: (t) => part(moneyPanel(t), 0) },
-    { id: 'grants', title: 'New grants of $1M+', take: (t) => { const a = t.money?.awards?.[0], m = t.market_totals || {}; return `${m.awards || 0} in 90 days · ${usdShort(m.awards_sum || 0)}${a ? ` · biggest ${usdShort(a.amount)} to ${esc(a.recipient)}` : ''}`; }, body: (t) => part(moneyPanel(t), 1), full: true },
-    { id: 'radar', title: 'Opportunity radar', take: (t) => esc(firstLine(t.answers?.radar) || 'Heating up, little public money'), body: (t) => radarPanel(t) },
-    { id: 'gaps', title: 'Funding gaps and quiet problems', take: (t) => esc(firstLine(t.answers?.opportunities) || ''), body: (t) => oppPanel(t) },
+    { id: 'bygoal', h: 480, title: 'Funding by goal', take: (t) => esc(firstLine((t.answers?.money || []).filter((x) => /Funding up/.test(x))) || 'Federal grant money per goal, by quarter'), body: (t) => part(moneyPanel(t), 0) },
+    { id: 'grants', h: 480, title: 'New grants of $1M+', take: (t) => { const a = t.money?.awards?.[0], m = t.market_totals || {}; return `${m.awards || 0} in 90 days · ${usdShort(m.awards_sum || 0)}${a ? ` · biggest ${usdShort(a.amount)} to ${esc(a.recipient)}` : ''}`; }, body: (t) => part(moneyPanel(t), 1), full: true },
+    { id: 'radar', h: 480, title: 'Opportunity radar', take: (t) => esc(firstLine(t.answers?.radar) || 'Heating up, little public money'), body: (t) => radarPanel(t) },
+    { id: 'gaps', h: 480, title: 'Funding gaps and quiet problems', take: (t) => esc(firstLine(t.answers?.opportunities) || ''), body: (t) => oppPanel(t) },
   ],
   players: [
-    { id: 'race', title: 'The race', take: (t) => esc(firstLine((t.answers?.race || []).slice(-1)) || 'Who leads each goal'), body: (t) => part(racePanel(t), 0) },
-    { id: 'movers', title: 'Biggest movers', take: (t) => { const c = t.race?.climbers?.[0]; return `${t.market_totals?.climbers || 0} organizations${c ? ` · ${esc(c.name)} ${c.prior_rank ? `#${c.prior_rank} → #${c.rank}` : `new at #${c.rank}`}` : ''}`; }, body: (t) => part(racePanel(t), 1), full: true },
-    { id: 'pipeline', title: 'Trial pipeline', take: (t) => esc(firstLine(t.answers?.pipeline) || 'Active trials on the health goals'), body: (t) => part(pipelinePanel(t), 0) },
-    { id: 'trials', title: 'Every trial', take: (t) => { const p = (t.pipeline || []).find((x) => x.slug === termSel.pipe) || (t.pipeline || [])[0]; return p ? `@${esc(p.goal)}: ${p.total} trials, ${p.late} in Phase 3+` : ''; }, body: (t) => part(pipelinePanel(t), 1), full: true },
+    { id: 'race', h: 480, title: 'The race', take: (t) => esc(firstLine((t.answers?.race || []).slice(-1)) || 'Who leads each goal'), body: (t) => part(racePanel(t), 0) },
+    { id: 'movers', h: 480, title: 'Biggest movers', take: (t) => { const c = t.race?.climbers?.[0]; return `${t.market_totals?.climbers || 0} organizations${c ? ` · ${esc(c.name)} ${c.prior_rank ? `#${c.prior_rank} → #${c.rank}` : `new at #${c.rank}`}` : ''}`; }, body: (t) => part(racePanel(t), 1), full: true },
+    { id: 'pipeline', h: 480, title: 'Trial pipeline', take: (t) => esc(firstLine(t.answers?.pipeline) || 'Active trials on the health goals'), body: (t) => part(pipelinePanel(t), 0) },
+    { id: 'trials', h: 480, title: 'Every trial', take: (t) => { const p = (t.pipeline || []).find((x) => x.slug === termSel.pipe) || (t.pipeline || [])[0]; return p ? `@${esc(p.goal)}: ${p.total} trials, ${p.late} in Phase 3+` : ''; }, body: (t) => part(pipelinePanel(t), 1), full: true },
   ],
   calendar: [
-    { id: 'catalysts', title: 'Catalysts', take: (t) => esc(firstLine(t.answers?.calendar) || 'What is due next'), body: (t) => calendarPanel(t) },
+    { id: 'catalysts', h: 600, title: 'Catalysts', take: (t) => esc(firstLine(t.answers?.calendar) || 'What is due next'), body: (t) => calendarPanel(t) },
+    { id: 'watch', h: 600, wide: true, title: 'Watchlist', take: () => 'Your goals and the alerts you get', body: (t) => watchPanel(t) },
   ],
 };
 const SEC_BY_ID = Object.fromEntries(Object.values(SECS).flat().map((x) => [x.id, x]));
 const openSec = (tab) => { try { return localStorage.getItem(`px.sec.${tab}`); } catch { return null; } };
+// Desktop: a grid of tiles side by side, each a fixed height with its own scroll and an Expand
+// button, so a whole tab fits on about one screen. Phones: one section open at a time.
+const WIDE = matchMedia('(min-width: 980px)');
 function sections(t, tab) {
-  const list = SECS[tab].filter((x) => !x.full || t.access === 'full').map((x) => ({ ...x, html: x.body(t) })).filter((x) => x.html);
+  const list = SECS[tab].filter((x) => (!x.full || t.access === 'full') && (!x.wide || WIDE.matches)).map((x) => ({ ...x, html: x.body(t) })).filter((x) => x.html);
+  if (WIDE.matches) return `<div class="bento">${list.map((x) => `<section class="ptile${x.w === 2 ? ' w2' : ''}" data-tile="${x.id}"><header class="tile-h"><span class="sec-t">${x.title}</span><span class="sec-k">${x.take(t)}</span>${x.h ? `<button class="linkish tile-x" type="button" data-expand>Expand</button>` : ''}</header><div class="tile-b${x.h ? ' tcap' : ''}" data-mp="${x.id}"${x.h ? ` style="--h:${x.h}px"` : ''}>${x.html}</div></section>`).join('')}</div>`;
   const want = openSec(tab), open = list.some((x) => x.id === want) ? want : list[0]?.id;
   return list.map((x) => `<details class="sec" data-sec="${x.id}" data-tab="${tab}"${x.id === open ? ' open' : ''}><summary><span class="sec-t">${x.title}</span><span class="sec-k">${x.take(t)}</span><span class="sec-c" aria-hidden="true"></span></summary><div class="sec-b" data-mp="${x.id}">${x.html}</div></details>`).join('');
 }
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-expand]'); if (!b) return;
+  const tile = b.closest('.ptile'), big = tile.classList.toggle('big');
+  b.textContent = big ? 'Collapse' : 'Expand';
+  if (big) tile.scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
+WIDE.addEventListener('change', () => { const box = document.querySelector('#term'); if (box && term && termTab) renderTerminal(box, termTab); });
 // One open at a time, remembered per tab.
 document.addEventListener('toggle', (e) => {
   const d = e.target; if (!(d instanceof HTMLDetailsElement) || !d.classList.contains('sec') || !d.open) return;
@@ -3353,11 +3518,14 @@ document.addEventListener('click', (e) => {
   const k = b.dataset.tsel, v = b.dataset.v;
   if (['moneyAll', 'pipeAll', 'keyAll', 'ripAll', 'calAll', 'radarAll', 'pairAll'].includes(k)) termSel[k] = true; else termSel[k] = v;
   if (k === 'web') termSel.pairAll = false;
+  if (k === 'webmode') termSel.wnode = '';
   if (k === 'money') termSel.moneyAll = false;
   if (k === 'pipe') { termSel.phase = ''; termSel.pipeAll = false; }
   if (k === 'phase') termSel.pipeAll = false;
   const pane = b.closest('[data-mp]'); if (!pane) return;
+  if (k === 'wnode') { const side = pane.querySelector('.webside'); if (side) side.innerHTML = problemSide(term.crossovers); pane.querySelectorAll('.gn.prob').forEach((x) => x.classList.toggle('on', x.dataset.v === v)); return; }
   pane.innerHTML = SEC_BY_ID[pane.dataset.mp].body(term);
+  initWebSim();
   // a choice in one section can change another's summary or content (the trial list follows the pipeline card)
   if (k === 'pipe') { const tr = document.querySelector('[data-mp="trials"]'); if (tr) tr.innerHTML = SEC_BY_ID.trials.body(term); }
   pane.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
@@ -3377,7 +3545,7 @@ function weekBox(t) {
   if (!b) return '';
   const n = (b.moved?.length || 0) + (b.watch?.length || 0) + (b.money?.length || 0);
   return `<section class="panel"><div class="brief"><span class="lbl">This week · ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))}</span><h3>${esc(b.headline)}</h3></div>
-    ${answerBox(b.tldr?.length ? b.tldr : [b.summary]).replace('The answer', 'In 30 seconds')}
+    ${answerBox(b.tldr?.length ? b.tldr : [b.summary]).replace('The answer', 'In 30 seconds').replace('<div class="ans">', '<div class="ans keep">')}
     <details class="bdet"><summary>Read the full brief · ${n} items</summary>${(() => { const fb = briefPanel(t); return fb.slice(fb.indexOf('<div class="bfilter"')).replace(/<\/section>$/, ''); })()}</details></section>`;
 }
 
@@ -3521,6 +3689,7 @@ function renderTerminal(box, tab = 'overview') {
   if (full) markSeen();
   tab = TAB_ALIAS[tab] || tab; // old links
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
+  termTab = tab;
   const thisYear = new Date().getFullYear();
   const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
@@ -3538,7 +3707,7 @@ function renderTerminal(box, tab = 'overview') {
     overview: () => overview,
     money: () => sections(t, 'money'),
     players: () => sections(t, 'players'),
-    calendar: () => watchBar(t) + sections(t, 'calendar'),
+    calendar: () => (WIDE.matches ? '' : watchBar(t)) + sections(t, 'calendar'),
     crossovers: () => sections(t, 'crossovers'),
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
@@ -3553,6 +3722,7 @@ function renderTerminal(box, tab = 'overview') {
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
+  initWebSim();
 }
 
 // One floating tooltip for every chart mark with data-tip.
@@ -3636,6 +3806,25 @@ async function plusView() {
   const ghosts = full ? '' : Array.from({ length: Math.min(3, Math.max(0, d.coming_total - 1)) }, () => `<div class="cc ghost" aria-hidden="true"><span></span><span></span><span></span></div>`).join('')
     + (d.coming_total > 1 ? `<div class="cc cc-more"><b>${d.coming_total - 1} more coming up</b><p>Each with a call to make. Your record builds as results come in.</p><button class="btn primary sm" type="button" data-sub data-tier="plus">Get Plus</button></div>` : '');
   const tldr = b ? (b.tldr || []).slice(0, full ? 3 : 1) : [];
+  // Call of the week: of what's due in the next ~4 months, the one most people have called (then the soonest).
+  const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
+  const cotw = [...(soon.length ? soon : d.coming || [])].sort((a, b) => { const n = (k) => { const x = countOf(k); return x.yes + x.no; }; return n(b.key) - n(a.key) || a.date.localeCompare(b.date); })[0];
+  const dueIn = (c) => { if (!/^\d{4}-\d{2}$/.test(c.date)) return `due ${c.date}`; const days = Math.round((new Date(`${c.date}-28`) - Date.now()) / 864e5); return days <= 0 ? 'results due now' : days === 1 ? 'results tomorrow' : days < 21 ? `results in ${days} days` : `results in ~${Math.round(days / 7)} weeks`; };
+  const hero = cotw ? (() => { const n = countOf(cotw.key), tot = n.yes + n.no, my = myCall(cotw.key), u = safeUrl(cotw.url);
+    return `<div class="pbox cotw"><div class="pbox-h"><span class="lbl">Call of the week</span><span class="cotw-d">${esc(dueIn(cotw))}</span></div>
+      <h2>${esc(cotw.question)}</h2><p class="cotw-t">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(cotw.title)}</a>` : esc(cotw.title)} · <a href="#/g/${encodeURIComponent(cotw.slug)}">@${esc(cotw.goal)}</a></p>
+      <div class="call cotw-b" data-key="${esc(cotw.key)}"><button type="button" class="btn${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button>
+        <span class="cotw-s">${tot ? `<span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% say yes · ${tot} call${tot === 1 ? '' : 's'}${my ? ` · you said ${my}` : ''}</small>` : `<small>${full ? 'Be the first to call it' : 'Plus members make the call'}</small>`}</span></div></div>`; })() : '';
+  // Your web: the goals you follow and the goals they share problems with.
+  const followSet = new Set(localFollows.get()), linkCount = new Map();
+  for (const [id, arr] of crossIdx) { const gid = Number(id.split('/')[0]); for (const x of arr) { const a = list.find((g) => g.id === gid)?.slug, b2 = list.find((g) => g.id === x.gid)?.slug; if (!a || !b2 || a > b2) continue; linkCount.set(`${a}|${b2}`, (linkCount.get(`${a}|${b2}`) || 0) + 1); } }
+  const allEdges = [...linkCount].map(([k, n]) => { const [a, b2] = k.split('|'); return { a, b: b2, n }; });
+  const myEdges = followSet.size ? allEdges.filter((e) => followSet.has(e.a) || followSet.has(e.b)) : allEdges;
+  const webGoals = list.filter((g) => g.status === 'ready' && (!followSet.size || followSet.has(g.slug) || myEdges.some((e) => e.a === g.slug || e.b === g.slug)));
+  const reach = followSet.size ? new Set(myEdges.flatMap((e) => [e.a, e.b]).filter((x) => !followSet.has(x))) : null;
+  const yourWeb = webGoals.length > 1 && myEdges.length ? `<div class="pbox pweb"><div class="pbox-h"><span class="lbl">${followSet.size ? 'Your web' : 'The goal web'}</span>${full ? '' : ''}</div>
+      <p class="pnote">${followSet.size ? (reach.size ? `The goals you follow share problems with <b>${reach.size}</b> other goal${reach.size === 1 ? '' : 's'}: progress there moves yours too.` : 'The goals you follow don’t share problems with other goals yet.') : 'Follow goals to see which other goals move them. Lines are problems two goals share.'}</p>
+      ${webSvg({ goals: webGoals.map((g) => ({ slug: g.slug, handle: g.handle })), edges: myEdges }, '')}</div>` : '';
   view.innerHTML = `<section class="plus">
     <div class="plus-h"><div><span class="kick">Parallax Plus${full ? ` · ${d.plan === 'plus' ? 'yours' : 'included with Pro'}` : ''}</span><h1>Your week in progress</h1>
       <p>What moved on the goals you follow, what’s coming next, and your calls on how it turns out. A minute a week.</p></div>${full ? '' : cta('top')}</div>
@@ -3643,17 +3832,19 @@ async function plusView() {
       <div class="pweek"><div class="sw pweek-sw" id="pweek">${scenes.length ? reelCard(reel, pg, 0) : `<section class="sw-card"><div class="sw-text"><h2>The first weekly video arrives Monday.</h2></div></section>`}</div>
         <p class="pweek-n">${b ? `Week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))} · ${mine.size ? 'the goals you follow first' : 'follow goals to make it yours'}` : ''}</p></div>
       <div class="pmain">
+        ${hero}
         ${b ? `<div class="pbox"><span class="lbl">This week</span><h2>${esc(b.headline)}</h2>${tldr.length ? `<ul>${tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
-        ${d.ripple ? `<div class="pbox pripple"><span class="lbl">Ripple of the week</span><p class="pr-t"><a href="#/p/${d.ripple.post}">${esc(d.ripple.headline)}</a></p>
-          <p class="pr-to"><a class="hchip" href="#/g/${encodeURIComponent(d.ripple.from_slug)}">@${esc(d.ripple.from)}</a> <span aria-hidden="true">→</span> also moves <a class="hchip" href="#/g/${encodeURIComponent(d.ripple.to_slug)}">@${esc(d.ripple.to)}</a></p><p class="pr-w">${esc(d.ripple.why)}</p></div>` : ''}
         <div class="pbox"><div class="pbox-h"><span class="lbl">Your calls</span>${full ? `<a class="linkish" href="#pstrip">Make a call →</a>` : ''}</div>
           <div class="pstats"><div><b class="mono">${calls}</b><small>made</small></div><div><b class="mono">${judged.length ? `${right}/${judged.length}` : '—'}</b><small>right</small></div><div><b class="mono">${waiting.length}</b><small>waiting</small></div></div>
+          ${d.standing ? `<p class="pstand">${d.standing.percentile == null ? `You’re the first caller to get results: ${d.standing.accuracy}% right so far.` : `You’re ahead of <b>${d.standing.percentile}%</b> of ${d.standing.callers - 1} other caller${d.standing.callers === 2 ? '' : 's'} (${d.standing.accuracy}% right).`}</p>` : ''}
           ${settled.length ? `<div class="rrs">${settled.slice(0, full ? 4 : 1).map(resRow).join('')}</div>${full && settled.length > 4 ? `<details class="rr-more"><summary>All ${settled.length} results</summary><div class="rrs">${settled.slice(4).map(resRow).join('')}</div></details>` : ''}`
             : `<p class="pnote">${full ? 'Results appear here as trials report and promises come due. Each is settled automatically from the trial’s results or the promise check.' : 'Plus members call what happens next and build a record as results come in.'}</p>`}
           ${waiting.length ? `<details class="rr-more"><summary>${waiting.length} call${waiting.length === 1 ? '' : 's'} waiting on a result</summary>${waiting.map((c) => `<p class="rr-w"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>Due ${esc(fmtDate(c.date))}${c.status_note ? `, ${esc(c.status_note)}` : ', checked weekly'}</small></p>`).join('')}</details>` : ''}
         </div>
       </div>
     </div>
+    ${yourWeb || (d.ripple ? 1 : 0) ? `<div class="plus-row${yourWeb && (d.ripple ? 1 : 0) ? '' : ' one'}">${yourWeb}${d.ripple ? `<div class="pbox pripple"><span class="lbl">Ripple of the week</span><p class="pr-t"><a href="#/p/${d.ripple.post}">${esc(d.ripple.headline)}</a></p>
+          <p class="pr-to"><a class="hchip" href="#/g/${encodeURIComponent(d.ripple.from_slug)}">@${esc(d.ripple.from)}</a> <span aria-hidden="true">→</span> also moves <a class="hchip" href="#/g/${encodeURIComponent(d.ripple.to_slug)}">@${esc(d.ripple.to)}</a></p><p class="pr-w">${esc(d.ripple.why)}</p></div>` : ''}</div>` : ''}
     <div class="pstrip-h" id="pstrip"><h2>Coming up <small>${d.coming_total}</small></h2><div class="pstrip-a"><button class="btn sm" type="button" data-strip="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-strip="1" aria-label="More">›</button></div></div>
     <div class="pstrip">${comingList.map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}${ghosts}</div>
     ${full ? '' : cta('bottom')}

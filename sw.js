@@ -2,7 +2,7 @@
 // connection. The page shell is served from the phone at once and refreshed in the background (the
 // next visit gets any new version); fonts and libraries come from the phone; data is fetched fresh,
 // falling back to the last copy when offline. Videos are never cached here (they stream).
-const V = "px-v7";
+const V = "px-v8";
 const SHELL = ["./", "index.html", "icon.svg", "icon-180.png", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
