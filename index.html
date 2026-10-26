@@ -757,6 +757,20 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .cal-t{font-size:14.5px;line-height:1.4}.cal-t a{color:var(--ink);text-decoration:none}.cal-t a:hover{text-decoration:underline}
 .cal-m{font-size:12.5px;color:var(--muted);margin-top:2px}.cal-m a{color:inherit}
 @media (max-width:640px){.cal-i{grid-template-columns:1fr}.oplist-h,.oplist a{grid-template-columns:minmax(0,1fr) 70px 80px;padding:10px 14px}}
+/* terminal watchlist */
+.wl{display:grid;gap:18px}
+.wl-off{opacity:.55}
+.wl-goals{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.wl-g{display:inline-flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border:1px solid var(--line2);border-radius:999px;font-size:13.5px;cursor:pointer}
+.wl-g .av{width:22px;height:22px;font-size:8px}
+.wl-g span{display:inline-flex;align-items:center;gap:8px}
+.wl-g:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.wl-g input{position:absolute;opacity:0;pointer-events:none}
+.wl-r{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.wl-r:first-of-type{margin-top:8px}
+.wl-r b{display:block;font-size:14.5px;font-weight:500}.wl-r small{display:block;font-size:12.5px;color:var(--muted)}
+.wl-a{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.wl-ok{font-size:13.5px;color:var(--solved)}
 /* first-visit intro */
 .gv-num.gv-lead span{margin-top:0;font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
 .intro{margin:18px 0 6px;padding:22px 22px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -2945,7 +2959,7 @@ function heatMap(t) {
 }
 
 const TTABS = [
-  ['overview', 'Goal index'], ['radar', 'Radar'], ['calendar', 'Catalysts'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
+  ['overview', 'Goal index'], ['radar', 'Radar'], ['calendar', 'Catalysts'], ['watch', 'Watchlist'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'],
   ['leaders', 'Who is leading'], ['bottlenecks', 'Bottlenecks'], ['signals', 'Signals'], ['data', 'All data'],
 ];
 
@@ -3051,6 +3065,43 @@ function calendarPanel(t) {
     ${full ? '' : moreGate(`The next 2 of ${t.catalysts_total}. Subscribers see the full calendar and can get alerts before each one.`)}</section>`;
 }
 
+// Watchlist: goals a subscriber watches, and what they want to hear about (sent as alerts).
+const WRULES = [['signals', 'Advances, setbacks and new bottlenecks', 'As soon as they are posted.'], ['catalysts', 'Catalysts within 30 days', 'A trial readout or a promise coming due on a watched goal.'], ['opportunities', 'New on the opportunity radar', 'When one of your goals’ problems enters the opportunity corner.']];
+const wlState = { goals: null, rules: { signals: true, catalysts: true, opportunities: true }, loaded: false };
+function watchPanel(t) {
+  const full = t.access === 'full';
+  const head = `<div class="panel-h"><h2>Watchlist</h2><span class="lbl">Your goals, and what you want to hear about</span></div>`;
+  const goalsList = (goalsCache || []).filter((g) => g.status === 'ready');
+  const sel = new Set(wlState.goals || []);
+  const form = `<div class="wl ${full ? '' : 'wl-off'}">
+    <div><span class="lbl">Goals to watch</span><div class="wl-goals">${goalsList.map((g) => `<label class="wl-g"><input type="checkbox" name="wg" value="${esc(g.slug)}"${sel.has(g.slug) ? ' checked' : ''}${full ? '' : ' disabled'}><span>${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}@${esc(g.handle)}</span></label>`).join('')}</div></div>
+    <div><span class="lbl">Alert me about</span>${WRULES.map(([k, title, d]) => `<label class="wl-r"><input type="checkbox" name="wr" value="${k}"${wlState.rules[k] !== false ? ' checked' : ''}${full ? '' : ' disabled'}><span><b>${title}</b><small>${d}</small></span></label>`).join('')}</div>
+    ${full ? `<div class="wl-a"><button class="btn primary" type="button" id="wlSave">Save watchlist</button><button class="btn" type="button" id="wlDevice">Send alerts to this device</button><span class="wl-ok" id="wlOk" role="status"></span></div>
+      <p class="radar-note">Alerts arrive as notifications (on iPhone, add Parallax to your Home Screen first). Up to 6 a day; each catalyst and opportunity is sent once.</p>` : ''}
+  </div>`;
+  return `<section class="panel">${head}<div class="pad">${form}</div>${full ? '' : moreGate('Pick the goals you care about and get an alert when a trial readout is 30 days away, a promise comes due, or a problem enters the opportunity corner.')}</section>`;
+}
+async function wireWatch(box) {
+  if (!$('#wlSave')) return;
+  if (!wlState.loaded && me && sb) {
+    const { data } = await sb.from('watchlists').select('goals,rules').eq('user_id', me.id).maybeSingle();
+    wlState.loaded = true;
+    if (data) { wlState.goals = data.goals; wlState.rules = { ...wlState.rules, ...(data.rules || {}) }; renderTerminal(box, 'watch'); return; }
+  }
+  $('#wlSave').onclick = async () => {
+    const goals = [...box.querySelectorAll('input[name=wg]:checked')].map((x) => x.value);
+    const rules = Object.fromEntries(WRULES.map(([k]) => [k, !!box.querySelector(`input[name=wr][value=${k}]`)?.checked]));
+    const { error } = await sb.from('watchlists').upsert({ user_id: me.id, goals, rules, updated_at: new Date().toISOString() });
+    wlState.goals = goals; wlState.rules = rules;
+    $('#wlOk').textContent = error ? 'Could not save. Try again.' : `Saved: watching ${goals.length} goal${goals.length === 1 ? '' : 's'}.`;
+    if (!error) alerts.sync();
+  };
+  $('#wlDevice').onclick = async () => {
+    if (!alerts.supported()) { $('#wlOk').textContent = 'This browser can’t receive alerts. On iPhone, add Parallax to your Home Screen first.'; return; }
+    try { $('#wlOk').textContent = (await alerts.enable()) ? 'Alerts on for this device.' : 'Alerts are blocked in your browser settings.'; } catch { $('#wlOk').textContent = 'Could not turn on alerts here.'; }
+  };
+}
+
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
@@ -3071,6 +3122,7 @@ function renderTerminal(box, tab = 'overview') {
     overview: () => overview,
     radar: () => radarPanel(t),
     calendar: () => calendarPanel(t),
+    watch: () => watchPanel(t),
     brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
     opportunities: () => oppPanel(t),
     leaders: () => fieldsPanel(t),
@@ -3099,6 +3151,7 @@ function renderTerminal(box, tab = 'overview') {
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
   box.querySelector('.ttabs [aria-selected=true]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
+  if (tab === 'watch') wireWatch(box);
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
@@ -3140,6 +3193,7 @@ addEventListener('scroll', () => tipEl.classList.remove('on'), { passive: true }
 let termAt = 0, termWho = null;
 async function terminalView(tab = 'overview') {
   const welcome = tab === 'welcome';
+  if (tab === 'watch') await goals().catch(() => []); // the watchlist lists every goal
   // Switching tabs reuses the data loaded in the last 5 minutes, so it is instant.
   if (!welcome && term && !term.error && Date.now() - termAt < 300_000 && termWho === (me ? me.id : null)) {
     view.innerHTML = '<div id="term"></div>';
@@ -4199,7 +4253,11 @@ route();
 const alerts = {
   supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:',
   canAsk() { try { return this.supported() && Notification.permission === 'default' && localStorage.getItem('px.alerts.no') !== '1'; } catch { return false; } },
-  async call(body) { return fetch(`${SUPA_URL}/functions/v1/push`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()); },
+  async call(body) {
+    let user = '';
+    if (me && sb) { const { data: { session } } = await sb.auth.getSession(); user = session?.access_token || ''; }
+    return fetch(`${SUPA_URL}/functions/v1/push`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', ...(user ? { 'x-user-token': user } : {}) }, body: JSON.stringify(body) }).then((r) => r.json());
+  },
   async subscription() { const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); },
   async enable() {
     const perm = await Notification.requestPermission();

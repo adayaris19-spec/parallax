@@ -299,6 +299,15 @@ Deno.serve(async (req) => {
     }
     const brief = briefs[0] ? { week: briefs[0].week, signals: briefs[0].signals, ...briefs[0].content } : null;
 
+    // Remember which problems are in the opportunity corner (for watchlist alerts about new ones).
+    const opps = radarPoints(problems).filter((r) => r.opportunity);
+    if (opps.length) {
+      const idOf = new Map(goals.map((g) => [g.slug, g.id]));
+      await fetch(`${SB}/rest/v1/radar_opportunities?on_conflict=goal_id,node_key`, {
+        method: "POST", headers: { apikey: SRK, Authorization: `Bearer ${SRK}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(opps.map((r) => ({ goal_id: idOf.get(r.slug), node_key: r.key, last_seen: new Date().toISOString() }))),
+      }).catch(() => {});
+    }
     return json({
       access: full ? "full" : "preview",
       signed_in: !!uid,

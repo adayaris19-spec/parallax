@@ -13,10 +13,11 @@ const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 const SITE = Deno.env.get("SITE_URL") ?? "https://adayaris19-spec.github.io/parallax/";
-const DAILY = 3;
+const DAILY = 3, DAILY_PAID = 6;
+const PAID = ["active", "trialing", "comp"];
 const KINDS = ["advance", "setback", "solved", "bottleneck", "promise"];
 const LABEL: Record<string, string> = { advance: "Advance", setback: "Setback", solved: "Solved", bottleneck: "New bottleneck", promise: "Promise check" };
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-parallax-admin", "Access-Control-Allow-Methods": "POST, OPTIONS" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-parallax-admin, x-user-token", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", ...cors } });
 
 async function db(path: string, init: { method?: string; body?: unknown; prefer?: string } = {}) {
@@ -32,6 +33,14 @@ async function db(path: string, init: { method?: string; body?: unknown; prefer?
 const cfg = async (key: string) => (await db(`app_config?key=eq.${key}&select=value`))[0]?.value as string | undefined;
 const setCfg = (key: string, value: string) => db("app_config?on_conflict=key", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: { key, value } });
 
+async function userId(req: Request): Promise<string | null> {
+  const token = (req.headers.get("x-user-token") ?? "").trim();
+  if (!token) return null;
+  const r = await fetch(`${SB}/auth/v1/user`, { headers: { apikey: SRK, Authorization: `Bearer ${token}` } }).catch(() => null);
+  if (!r || !r.ok) return null;
+  return (await r.json())?.id ?? null;
+}
+
 async function keys() {
   let pub = await cfg("vapid_public"), priv = await cfg("vapid_private");
   if (!pub || !priv) {
@@ -46,40 +55,86 @@ async function send() {
   const { pub, priv } = await keys();
   webpush.setVapidDetails(SITE, pub, priv);
   const since = (await cfg("push_last")) ?? new Date(Date.now() - 15 * 60_000).toISOString();
-  const now = new Date().toISOString();
-  const posts = await db(`posts?created_at=gt.${encodeURIComponent(since)}&kind=in.(${KINDS.join(",")})&select=id,goal_id,kind,headline,created_at&order=created_at.asc&limit=200`);
+  const now = new Date().toISOString(), today = now.slice(0, 10);
+  const [posts, goals, subs, paidRows, watch] = await Promise.all([
+    db(`posts?created_at=gt.${encodeURIComponent(since)}&kind=in.(${KINDS.join(",")})&select=id,goal_id,kind,headline,created_at&order=created_at.asc&limit=200`),
+    db(`goals?select=id,slug,handle`),
+    db(`push_subscriptions?select=endpoint,p256dh,auth,goals,user_id,sent_day,sent_count&limit=50000`),
+    db(`subscriptions?status=in.(${PAID.join(",")})&select=user_id`),
+    db(`watchlists?select=user_id,goals,rules`),
+  ]);
   await setCfg("push_last", now);
-  if (!posts.length) return { posts: 0, sent: 0 };
-  const goals = await db(`goals?select=id,slug,handle`);
-  const slugOf = new Map(goals.map((g: { id: number; slug: string }) => [g.id, g.slug]));
-  const handleOf = new Map(goals.map((g: { id: number; handle: string }) => [g.id, g.handle]));
-  const slugs = [...new Set(posts.map((p: { goal_id: number }) => slugOf.get(p.goal_id)).filter(Boolean))];
-  const subs = await db(`push_subscriptions?goals=ov.{${slugs.map((s) => `"${s}"`).join(",")}}&select=endpoint,p256dh,auth,goals,sent_day,sent_count`);
-  const today = now.slice(0, 10);
+  const bySlug = new Map(goals.map((g: { id: number; slug: string; handle: string }) => [g.slug, g]));
+  const byId = new Map(goals.map((g: { id: number; slug: string; handle: string }) => [g.id, g]));
+  const paid = new Set(paidRows.map((r: { user_id: string }) => r.user_id));
+  // deno-lint-ignore no-explicit-any
+  const watchOf = new Map<string, any>(watch.filter((w: { user_id: string }) => paid.has(w.user_id)).map((w: { user_id: string }) => [w.user_id, w]));
+
+  // Watchlist extras (catalysts within 30 days, new opportunities), each sent once per person.
+  type Extra = { key: string; goal: string; title: string; body: string; url: string };
+  const extrasFor = new Map<string, Extra[]>();
+  if (watchOf.size) {
+    const soon = new Date(Date.now() + 31 * 86_400_000).toISOString().slice(0, 7), thisYear = today.slice(0, 4);
+    const [ev, proms, opps, sent] = await Promise.all([
+      db(`node_evidence?source=eq.trials&select=goal_id,node_key,extra`),
+      db(`promises?status=eq.pending&due_year=eq.${thisYear}&select=id,goal_id,node_key,claim`),
+      db(`radar_opportunities?first_seen=gte.${new Date(Date.now() - 3 * 86_400_000).toISOString()}&select=goal_id,node_key`),
+      db(`watch_alerts?user_id=in.(${[...watchOf.keys()].join(",")})&select=user_id,key`),
+    ]);
+    const done = new Set(sent.map((x: { user_id: string; key: string }) => `${x.user_id}|${x.key}`));
+    const nodes = opps.length ? await db(`nodes?or=(${opps.map((o: { goal_id: number; node_key: string }) => `and(goal_id.eq.${o.goal_id},key.eq.${o.node_key})`).join(",")})&select=goal_id,key,title,plain_title`) : [];
+    for (const [uid, w] of watchOf) {
+      const mine = new Set<number>((w.goals ?? []).map((sl: string) => bySlug.get(sl)?.id).filter(Boolean));
+      const out: Extra[] = [];
+      if (w.rules?.catalysts !== false) {
+        for (const e of ev) if (mine.has(e.goal_id)) for (const t of e.extra?.upcoming ?? []) if (t.date <= soon) {
+          out.push({ key: `trial:${t.nct}`, goal: byId.get(e.goal_id)!.handle, title: "Trial readout due", body: `${t.title} (${t.phase}) · due ${t.date}`, url: `https://clinicaltrials.gov/study/${t.nct}` });
+        }
+        for (const p of proms) if (mine.has(p.goal_id)) out.push({ key: `promise:${p.id}`, goal: byId.get(p.goal_id)!.handle, title: "Promise due this year", body: p.claim, url: `${SITE}#/g/${byId.get(p.goal_id)!.slug}/promises` });
+      }
+      if (w.rules?.opportunities !== false) {
+        for (const o of opps) if (mine.has(o.goal_id)) {
+          const n = nodes.find((x: { goal_id: number; key: string }) => x.goal_id === o.goal_id && x.key === o.node_key);
+          out.push({ key: `opp:${o.goal_id}:${o.node_key}`, goal: byId.get(o.goal_id)!.handle, title: "New on the opportunity radar", body: n ? (n.plain_title || n.title) : "A problem entered the opportunity corner", url: `${SITE}#/terminal/radar` });
+        }
+      }
+      extrasFor.set(uid, [...new Map(out.filter((x) => !done.has(`${uid}|${x.key}`)).map((x) => [x.key, x])).values()]);
+    }
+  }
+
   let sent = 0, gone = 0;
+  const marked = new Set<string>();
   for (const s of subs) {
+    const w = s.user_id ? watchOf.get(s.user_id) : null;
+    const goalSet = new Set<string>([...(s.goals ?? []), ...(w && w.rules?.signals !== false ? w.goals ?? [] : [])]);
+    const cap = w ? DAILY_PAID : DAILY;
     let count = s.sent_day === today ? s.sent_count : 0;
-    // The most important first, one per goal per run.
-    const mine = posts.filter((p: { goal_id: number }) => s.goals.includes(slugOf.get(p.goal_id)))
-      .sort((a: { kind: string }, b: { kind: string }) => KINDS.indexOf(b.kind === "solved" ? "zz" : b.kind) - KINDS.indexOf(a.kind === "solved" ? "zz" : a.kind));
-    const seen = new Set<number>();
-    for (const p of mine) {
-      if (count >= DAILY || seen.has(p.goal_id)) continue;
-      seen.add(p.goal_id);
+    const start = count;
+    // deno-lint-ignore no-explicit-any
+    const queue: any[] = [];
+    const seenGoal = new Set<number>();
+    const order = (k: string) => ["solved", "advance", "setback", "bottleneck", "promise"].indexOf(k);
+    for (const p of [...posts].sort((a: { kind: string }, b: { kind: string }) => order(a.kind) - order(b.kind))) {
+      const g = byId.get(p.goal_id); if (!g || !goalSet.has(g.slug) || seenGoal.has(p.goal_id)) continue;
+      seenGoal.add(p.goal_id);
+      queue.push({ title: `@${g.handle} · ${LABEL[p.kind] ?? p.kind}`, body: p.headline, url: `${SITE}#/p/${p.id}`, tag: `p${p.id}` });
+    }
+    for (const x of (s.user_id && extrasFor.get(s.user_id)) || []) queue.push({ title: `@${x.goal} · ${x.title}`, body: x.body, url: x.url, tag: x.key, mark: x.key });
+    for (const m of queue) {
+      if (count >= cap) break;
       try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify({
-          title: `@${handleOf.get(p.goal_id)} · ${LABEL[p.kind] ?? p.kind}`, body: p.headline, url: `${SITE}#/p/${p.id}`, tag: `p${p.id}`,
-        }), { TTL: 24 * 3600 });
+        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify({ title: m.title, body: m.body, url: m.url, tag: m.tag }), { TTL: 24 * 3600 });
         count++; sent++;
+        if (m.mark && !marked.has(`${s.user_id}|${m.mark}`)) { marked.add(`${s.user_id}|${m.mark}`); await db("watch_alerts?on_conflict=user_id,key", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: { user_id: s.user_id, key: m.mark } }); }
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode;
         if (code === 404 || code === 410) { await db(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "DELETE", prefer: "return=minimal" }); gone++; break; }
         console.error("push failed:", code, String(e).slice(0, 200));
       }
     }
-    if (count !== (s.sent_day === today ? s.sent_count : 0)) await db(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "PATCH", prefer: "return=minimal", body: { sent_day: today, sent_count: count, last_sent_at: now } });
+    if (count !== start) await db(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "PATCH", prefer: "return=minimal", body: { sent_day: today, sent_count: count, last_sent_at: now } });
   }
-  return { posts: posts.length, devices: subs.length, sent, removed: gone };
+  return { posts: posts.length, devices: subs.length, watchers: watchOf.size, sent, removed: gone };
 }
 
 Deno.serve(async (req) => {
@@ -92,8 +147,10 @@ Deno.serve(async (req) => {
       const s = body.sub ?? {}, k = s.keys ?? {};
       if (typeof s.endpoint !== "string" || !/^https:\/\//.test(s.endpoint) || s.endpoint.length > 1000 || typeof k.p256dh !== "string" || typeof k.auth !== "string") return json({ error: "bad subscription" }, 400);
       const goals = (Array.isArray(body.goals) ? body.goals : []).filter((x: unknown) => typeof x === "string" && /^[a-z0-9-]{1,80}$/.test(x)).slice(0, 100);
-      if (!goals.length) { await db(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "DELETE", prefer: "return=minimal" }); return json({ ok: true, goals: 0 }); }
-      await db("push_subscriptions?on_conflict=endpoint", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: { endpoint: s.endpoint, p256dh: k.p256dh.slice(0, 200), auth: k.auth.slice(0, 100), goals } });
+      if (!goals.length && !(await userId(req))) { await db(`push_subscriptions?endpoint=eq.${encodeURIComponent(s.endpoint)}`, { method: "DELETE", prefer: "return=minimal" }); return json({ ok: true, goals: 0 }); }
+      // Signed in: link the device to the person, so their Terminal watchlist reaches it too.
+      const uid = await userId(req);
+      await db("push_subscriptions?on_conflict=endpoint", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: { endpoint: s.endpoint, p256dh: k.p256dh.slice(0, 200), auth: k.auth.slice(0, 100), goals, ...(uid ? { user_id: uid } : {}) } });
       return json({ ok: true, goals: goals.length });
     }
     if (body.action === "unsubscribe" && typeof body.endpoint === "string") {
