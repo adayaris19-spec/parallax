@@ -1486,18 +1486,43 @@ svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 svg.web.searching [data-node]:not(.qhit),svg.web.searching [data-ends]:not(.qhit),svg.web.searching .gn:not(.qhit){opacity:.15}
 svg.web.searching .gn.qhit circle{stroke:var(--accent);stroke-width:2.5}
 .bf-hidden{font-size:12.5px;color:var(--muted);font-style:italic}
-.qwrap{display:grid;grid-template-columns:86px minmax(0,1fr) minmax(0,1fr);gap:8px;padding:14px 18px 8px;align-items:stretch}
-.qcol{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:2px}
-.qrow{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);align-self:center;line-height:1.5}
-.qd.q-opp{background:linear-gradient(140deg,var(--accent-soft),var(--card) 80%);border-color:var(--accent-line)}
-.qd.q-opp .qd-h b{color:var(--accent)}
-.qd{padding:14px 16px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);min-width:0}
-.qd-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.qd-h b{font-size:15px}.qd-h .mono{font-size:22px;font-weight:600}
-.qd p{margin:4px 0 8px;font-size:12.5px;line-height:1.45;color:var(--ink2)}
-.qd ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.qd li a{font-size:13.5px;line-height:1.35;color:var(--ink);text-decoration:none}.qd li a:hover{text-decoration:underline}
-.qd li small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
-.qd .btn{margin-top:10px}.qd-more{display:block;margin-top:6px;font-size:11.5px;color:var(--muted)}
+svg.gl{touch-action:none;cursor:grab;max-width:none}svg.gl.dragging{cursor:grabbing}
+.gl-sphere{fill:url(#glshade);stroke:var(--line2);stroke-width:1.2}
+.gl-grid path{fill:none;stroke:var(--line2);stroke-width:.8;opacity:.7}
+svg.gl .wnode .ring{fill:var(--card);stroke:var(--ink);stroke-width:1.2}
+svg.gl .wnode .dot{fill:var(--ink)}
+svg.gl .wnode text{font-size:13px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+svg.gl .wnode.alone .ring{stroke:var(--line2)}svg.gl .wnode.alone text{fill:var(--muted);font-weight:400}
+svg.gl .wnode.back{opacity:.22}svg.gl .wnode.back text{display:none}
+svg.gl .wedge .ln{stroke:var(--ink);stroke-opacity:.45}svg.gl .wedge.on .ln{stroke:var(--accent);stroke-opacity:.95}
+svg.gl .wedge.back{display:none}
+.gl-hint{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+.fix{margin:12px 0 4px;padding:14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
+.fix small{display:block;font-size:11.5px;color:var(--muted)}
+.fix-cost{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin:8px 0 10px}
+.fix-cost b{display:block;font-size:13px;font-weight:500;line-height:1.4;margin:2px 0}
+.fix-cost .mono{font-size:13px}.fix-cost .mono.big{display:block;font-size:20px;font-weight:600;margin:2px 0}
+.fix-ideas{display:grid;gap:8px;margin:4px 0 12px}
+.fix-idea{padding:10px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.fix-idea b{font-size:13.5px;line-height:1.35}.fix-idea p{margin:4px 0;font-size:12.5px;line-height:1.45;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fix-idea span{font-size:12px;color:var(--muted)}.fix-idea a{color:var(--ink2)}
+.fix-fund{margin-top:2px}.fix-note{margin-top:6px}
+.mr-idea{font-size:12px;color:var(--ink2)}.mr-idea a{color:var(--accent)}
+.pks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:14px 18px 6px}
+.pk{display:grid;gap:8px;align-content:start;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.pk-top{display:flex;align-items:center;gap:6px}.pk-n{font-size:12px;color:var(--muted)}
+.pk-flag{margin-left:auto;font-family:var(--m);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px}
+.pk h4{margin:0;font-size:15.5px;line-height:1.35;letter-spacing:-.01em}.pk h4 a{color:var(--ink);text-decoration:none}.pk h4 a:hover{text-decoration:underline}
+.pk-nums{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk-nums div{padding:8px 10px;border-radius:10px;background:var(--sunk)}
+.pk-nums b{display:block;font-size:22px;font-weight:600}.pk-nums div:first-child b{color:var(--solved)}
+.pk-nums small{font-size:11px;color:var(--muted);line-height:1.3;display:block}
+.pk-say{margin:0;font-size:13.5px;line-height:1.45;color:var(--ink2)}
+.pk-way{padding:10px 12px;border-radius:10px;border:1px dashed var(--line2)}
+.pk-way small{display:block;font-family:var(--m);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pk-way>b{display:block;font-size:13px;line-height:1.35;margin:3px 0}.pk-way span{font-size:12px;color:var(--muted)}
+.pk-act{display:flex;align-items:center;gap:12px;margin-top:2px}
+.mk-panel .pks{padding:10px 0 6px;grid-template-columns:repeat(2,minmax(0,1fr))}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3467,12 +3492,24 @@ function problemSvg(c) {
       : `<g class="gn prob st-${n.status === 'in_progress' ? 'progress' : n.status}${sel === `${n.slug}/${n.key}` ? ' on' : ''}" data-n="${i}" data-own="${esc(n.slug)}" data-need="${esc([...new Set(edges.filter((e) => e.kind === 'cross' && (e.s === i || e.t === i)).map((e) => nodes[e.s === i ? e.t : e.s].slug))].join(' '))}" data-tsel="wnode" data-v="${esc(n.slug)}/${esc(n.key)}" tabindex="0"><circle r="${5 + Math.min(4, deg[i])}"/><title>@${esc(n.goal)}: ${esc(n.title)}</title></g>`).join('')}</g>
   </svg>${growBar()}</div>`;
 }
+// What would solve a problem: Parallax's cost estimate and the open ideas from the Ideas Lab, with a
+// way to fund it (the problem's page holds the teams to back and the charities to give to).
+function fixBlock(slug, key, title) {
+  const fx = term?.fixes?.[`${slug}/${key}`];
+  const span = (lo, hi) => (lo && hi && hi !== lo ? `${usdShort(lo)}–${usdShort(hi)}` : usdShort(lo || hi));
+  const page = `#/g/${encodeURIComponent(slug)}/tree/${encodeURIComponent(key)}`;
+  if (!fx) return `<div class="fix"><span class="lbl">What would solve it</span><p class="gnote">No estimate or ideas yet. <a href="#/lab/${encodeURIComponent(slug)}">Ask the Ideas Lab</a></p></div>`;
+  return `<div class="fix"><span class="lbl">What would solve it</span>
+    ${fx.cost ? `<div class="fix-cost"><div><small>Next step</small><b>${esc(fx.cost.next_step || '')}</b><span class="mono">${span(fx.cost.next_low, fx.cost.next_high)}</span></div><div><small>To solve it</small><span class="mono big">${span(fx.cost.solve_low, fx.cost.solve_high)}</span><small>${esc(fx.cost.confidence || '')} confidence estimate</small></div></div>` : ''}
+    ${fx.ideas.length ? `<div class="fix-ideas"><small>Ideas to try, cheapest first test first</small>${fx.ideas.map((i) => `<div class="fix-idea"><b>${esc(i.title)}</b><p>${esc(i.pitch || '')}</p><span>${i.test_low || i.test_high ? `First test <b class="mono">${span(i.test_low, i.test_high)}</b> · ` : ''}<a href="#/lab/${encodeURIComponent(slug)}">Judge it in the Ideas Lab</a></span></div>`).join('')}</div>` : `<p class="gnote">No ideas yet. <a href="#/lab/${encodeURIComponent(slug)}">Ask the Ideas Lab</a></p>`}
+    <a class="btn primary sm fix-fund" href="${page}">Fund this problem →</a><small class="fix-note">Back a team working on it, or give to verified charities on its goal. Through Stripe or Every.org; Parallax never holds the money.</small></div>`;
+}
 function problemSide(c) {
   const id = termSel.wnode;
   if (!id) return `<span class="lbl">How to read it</span><p class="gnote">Big dots are goals. Small dots are problems a goal shares with another goal, coloured by status. Lines between small dots mean progress on one moves the other.</p><p class="gnote">Drag anything. Tap a small dot to see what it shares.</p>`;
   const links = Object.values(c.links).flat().filter((l) => l.a && l.b && (`${l.a.slug}/${l.a.key}` === id || `${l.b.slug}/${l.b.key}` === id));
   const me = links[0] ? (`${links[0].a.slug}/${links[0].a.key}` === id ? links[0].a : links[0].b) : null;
-  return me ? `<span class="lbl">Shared problem</span><p class="gtitle">${xref(me)}</p><span class="lbl">Moves ${links.length} problem${links.length === 1 ? '' : 's'} in other goals</span>${linkRows(links)}` : '';
+  return me ? `<span class="lbl">Shared problem</span><p class="gtitle">${xref(me)}</p>${fixBlock(me.slug, me.key, me.title)}<span class="lbl" style="display:block;margin-top:14px">Solving it also moves ${links.length} problem${links.length === 1 ? '' : 's'} in other goals</span>${linkRows(links)}` : '';
 }
 function initWebSim() {
   const svg = document.getElementById('wsim'); if (!svg || !term?.crossovers) return;
@@ -3519,6 +3556,105 @@ function initWebSim() {
     lines.forEach((ln) => ln.classList.toggle('hl', +ln.dataset.s === i || +ln.dataset.t === i));
   });
   svg.addEventListener('mouseleave', () => svg.classList.remove('focus'));
+}
+
+// ---- The goal globe: goals as points on a sphere, links as arcs over its surface. Drag to spin; it
+// turns slowly on its own until you touch it. Ink only: a faint graticule, goal pictures as points.
+const globeRot = { yaw: -0.6, pitch: 0.35, auto: true };
+let globeAnim = 0;
+function globeLayout(web) {
+  const order = [], seen = new Set();
+  for (const e of web.edges) for (const s of [e.a, e.b]) if (!seen.has(s)) { seen.add(s); order.push(s); }
+  for (const g of web.goals) if (!seen.has(g.slug)) order.push(g.slug);
+  const N = order.length, P = {};
+  // Start evenly spread (a Fibonacci sphere), then pull linked goals together and push the rest apart.
+  order.forEach((s, i) => { const y = 1 - (2 * (i + 0.5)) / N, r = Math.sqrt(1 - y * y), th = i * 2.399963; P[s] = [r * Math.cos(th), y, r * Math.sin(th)]; });
+  const norm = (v) => { const l = Math.hypot(...v) || 1; return v.map((x) => x / l); };
+  for (let it = 0; it < 260; it++) {
+    const F = Object.fromEntries(order.map((s) => [s, [0, 0, 0]]));
+    for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
+      const a = P[order[i]], b = P[order[j]], d = [a[0] - b[0], a[1] - b[1], a[2] - b[2]], l2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2 + 0.01, f = 0.012 / l2;
+      for (let k = 0; k < 3; k++) { F[order[i]][k] += d[k] * f; F[order[j]][k] -= d[k] * f; }
+    }
+    for (const e of web.edges) {
+      const a = P[e.a], b = P[e.b], w = 0.02 * Math.min(4, Math.sqrt(e.n));
+      for (let k = 0; k < 3; k++) { const d = b[k] - a[k]; F[e.a][k] += d * w; F[e.b][k] -= d * w; }
+    }
+    for (const s of order) P[s] = norm(P[s].map((x, k) => x + F[s][k]));
+  }
+  return { order, P };
+}
+function globeSvg(web, sel) {
+  const { order } = globeLayout(web);
+  const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
+  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
+  return `<div class="gwrap globe"><svg class="web gl" id="wglobe" viewBox="0 0 760 520" role="img" aria-label="Goals on a globe, linked by the problems they share; drag to turn it">
+    <defs>${order.map((s, i) => `<clipPath id="glc${i}"><circle r="10"/></clipPath>`).join('')}<radialGradient id="glshade" cx="38%" cy="32%" r="75%"><stop offset="0" style="stop-color:var(--card)"/><stop offset="1" style="stop-color:var(--sunk)"/></radialGradient></defs>
+    <circle class="gl-sphere" cx="380" cy="260" r="215"/><g class="gl-grid"></g>
+    <g class="wedges">${web.edges.map((e) => `<g class="wedge${sel === `${e.a}|${e.b}` ? ' on' : ''}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" data-ends="${esc(e.a)} ${esc(e.b)}" data-n="${e.n}"><path class="hit"/><path class="ln" style="stroke-width:${(1.4 + Math.min(7, e.n * 0.55)).toFixed(1)}"/><g class="wn"><circle r="9"/><text text-anchor="middle">${e.n}</text></g></g>`).join('')}</g>
+    <g class="gl-nodes">${order.map((s, i) => { const { handle, pic } = info(s); return `<g class="wnode${deg[s] ? '' : ' alone'}" data-node="${esc(s)}" data-i="${i}"><a href="#/g/${encodeURIComponent(s)}"><circle class="ring" r="13"/>${pic ? `<image href="${esc(pic)}" width="20" height="20" preserveAspectRatio="xMidYMid slice" clip-path="url(#glc${i})"/>` : '<circle class="dot" r="10"/>'}<text>@${esc(handle)}</text><title>@${esc(handle)} · ${deg[s] ? `shares ${deg[s]} problem link${deg[s] === 1 ? '' : 's'}` : 'no shared problems yet'}</title></a></g>`; }).join('')}</g>
+  </svg><p class="gl-hint">Drag to turn the globe · tap a line to see what two goals share</p>${growBar()}</div>`;
+}
+function initGlobe() {
+  cancelAnimationFrame(globeAnim);
+  const svg = document.getElementById('wglobe'); if (!svg || !term?.crossovers) return;
+  const web = term.crossovers.web, { order, P } = globeLayout(web);
+  const W = 760, H = 520, cx = 380, cy = 260, R = 215;
+  const rot = ([x, y, z]) => { // yaw around Y, then pitch around X
+    const cy_ = Math.cos(globeRot.yaw), sy = Math.sin(globeRot.yaw), cp = Math.cos(globeRot.pitch), sp = Math.sin(globeRot.pitch);
+    const x1 = x * cy_ + z * sy, z1 = -x * sy + z * cy_;
+    return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
+  };
+  const proj = (v, lift = 1) => { const [x, y, z] = rot(v); return [cx + R * lift * x, cy - R * lift * y, z]; };
+  const slerp = (a, b, t) => { const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])), om = Math.acos(dot); if (om < 1e-4) return a; const s0 = Math.sin((1 - t) * om) / Math.sin(om), s1 = Math.sin(t * om) / Math.sin(om); return [0, 1, 2].map((k) => a[k] * s0 + b[k] * s1); };
+  const grid = svg.querySelector('.gl-grid'), nodes = [...svg.querySelectorAll('.wnode')], edges = [...svg.querySelectorAll('.wedge')];
+  const f = (n) => n.toFixed(1);
+  // A path through 3D points, front side only (behind the globe is skipped).
+  const pathOf = (pts) => { let d = '', pen = false; for (const [x, y, z] of pts) { if (z < -0.02) { pen = false; continue; } d += `${pen ? 'L' : 'M'}${f(x)},${f(y)}`; pen = true; } return d; };
+  const lines = [];
+  for (let lat = -60; lat <= 60; lat += 30) lines.push(Array.from({ length: 73 }, (_, i) => { const lo = (i * 5) * Math.PI / 180, la = lat * Math.PI / 180; return [Math.cos(la) * Math.cos(lo), Math.sin(la), Math.cos(la) * Math.sin(lo)]; }));
+  for (let lon = 0; lon < 180; lon += 30) lines.push(Array.from({ length: 73 }, (_, i) => { const la = (i * 5 - 180) * Math.PI / 180, lo = lon * Math.PI / 180; return [Math.cos(la) * Math.cos(lo), Math.sin(la), Math.cos(la) * Math.sin(lo)]; }));
+  grid.innerHTML = lines.map(() => '<path/>').join('');
+  const gpaths = [...grid.children];
+  const draw = () => {
+    lines.forEach((ln, i) => gpaths[i].setAttribute('d', pathOf(ln.map((v) => proj(v)))));
+    for (const el of edges) {
+      const [a, b] = el.dataset.ends.split(' '), pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24; return proj(slerp(P[a], P[b], t), 1 + 0.12 * Math.sin(Math.PI * t)); });
+      const d = pathOf(pts); el.querySelectorAll('path').forEach((p) => p.setAttribute('d', d));
+      const m = pts[12]; el.querySelector('.wn').setAttribute('transform', `translate(${f(m[0])},${f(m[1])})`); el.querySelector('.wn').style.display = m[2] < 0 ? 'none' : '';
+      el.querySelector('text').setAttribute('y', '3.8');
+      el.classList.toggle('back', !d);
+    }
+    for (const el of nodes) {
+      const [x, y, z] = proj(P[el.dataset.node]), front = z >= 0, sc = 0.7 + 0.45 * Math.max(0, z);
+      el.setAttribute('transform', `translate(${f(x)},${f(y)}) scale(${sc.toFixed(3)})`);
+      el.classList.toggle('back', !front);
+      const right = x >= cx;
+      const t = el.querySelector('text'); t.setAttribute('x', right ? 18 : -18); t.setAttribute('y', 4.5); t.setAttribute('text-anchor', right ? 'start' : 'end');
+      const img = el.querySelector('image'); if (img) { img.setAttribute('x', -10); img.setAttribute('y', -10); }
+    }
+    // Front nodes on top.
+    const layer = svg.querySelector('.gl-nodes');
+    [...nodes].sort((a, b) => rot(P[a.dataset.node])[2] - rot(P[b.dataset.node])[2]).forEach((n) => layer.appendChild(n));
+  };
+  draw();
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let hover = false, drag = null;
+  const tick = () => {
+    if (!svg.isConnected) return;
+    if (globeRot.auto && !hover && !drag && !still && !document.hidden) { globeRot.yaw += 0.0035; draw(); }
+    globeAnim = requestAnimationFrame(tick);
+  };
+  globeAnim = requestAnimationFrame(tick);
+  svg.addEventListener('mouseenter', () => { hover = true; });
+  svg.addEventListener('mouseleave', () => { hover = false; });
+  svg.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.wedge, .wnode')) return; // taps on lines and goals keep working
+    drag = { x: e.clientX, y: e.clientY, yaw: globeRot.yaw, pitch: globeRot.pitch }; svg.classList.add('dragging');
+    const move = (ev) => { const r = svg.getBoundingClientRect(); globeRot.yaw = drag.yaw + (ev.clientX - drag.x) / r.width * 3.2; globeRot.pitch = Math.max(-1.1, Math.min(1.1, drag.pitch + (ev.clientY - drag.y) / r.height * 2.4)); draw(); };
+    const up = () => { drag = null; svg.classList.remove('dragging'); removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+    addEventListener('pointermove', move); addEventListener('pointerup', up);
+  });
 }
 
 // Watch it grow (both views): goals join in the order Parallax mapped them; their links and shared
@@ -3625,8 +3761,8 @@ function crossPanel(t) {
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
       ${xSearchBox()}
-      ${selChips('webmode', [['goals', 'Goals'], ['problems', 'Problems']], termSel.webmode || 'goals')}
-      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
+      ${selChips('webmode', [['globe', 'Globe'], ['goals', 'Flat'], ['problems', 'Problems']], termSel.webmode || 'globe')}
+      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${(termSel.webmode || 'globe') === 'globe' ? globeSvg(c.web, sel) : webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
       <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
       ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
@@ -3662,7 +3798,7 @@ const SECS = {
   money: [
     { id: 'bygoal', h: 480, title: 'Funding by goal', take: (t) => esc(firstLine((t.answers?.money || []).filter((x) => /Funding up/.test(x))) || 'Federal grant money per goal, by quarter'), body: (t) => part(moneyPanel(t), 0) },
     { id: 'grants', h: 480, title: 'New grants of $1M+', take: (t) => { const a = t.money?.awards?.[0], m = t.market_totals || {}; return `${m.awards || 0} in 90 days · ${usdShort(m.awards_sum || 0)}${a ? ` · biggest ${usdShort(a.amount)} to ${esc(a.recipient)}` : ''}`; }, body: (t) => part(moneyPanel(t), 1), full: true },
-    { id: 'radar', h: 480, title: 'Opportunity radar', take: (t) => esc(firstLine(t.answers?.radar) || 'Heating up, little public money'), body: (t) => radarPanel(t) },
+    { id: 'radar', h: 480, title: 'Where money would go furthest', take: (t) => esc(firstLine(t.answers?.radar) || 'Heating up, little public money'), body: (t) => radarPanel(t) },
     { id: 'gaps', h: 480, title: 'Funding gaps and quiet problems', take: (t) => esc(firstLine(t.answers?.opportunities) || ''), body: (t) => oppPanel(t) },
   ],
   players: [
@@ -3707,7 +3843,7 @@ function mapRoom(t) {
   const c = t.crossovers;
   const web = part(crossPanel(t), 0).replace(xSearchBox(), '');
   const keys = c.keystones.map((k) => `<article class="mr-key" data-x="${esc([k.title, ...k.handles, ...k.members.map((m) => m.title), ...k.links.map((l) => l.why)].join(' ').toLowerCase())}"><div class="mr-kh">${k.handles.map((h) => `<span class="hchip">@${esc(h)}</span>`).join('')}</div><b>${esc(k.title)}</b>
-      <p>${esc(k.links[0]?.why || '')}</p><small>${k.goals} goals · ${k.members.length} problems${k.funding ? ` · ${usdShort(k.funding)} grants` : ''}</small></article>`).join('');
+      <p>${esc(k.links[0]?.why || '')}</p>${(() => { const ideas = k.members.flatMap((m) => (term?.fixes?.[`${m.slug}/${m.key}`]?.ideas || []).map((i) => ({ ...i, m }))).filter((i) => i.test_low).sort((a, b) => a.test_low - b.test_low); const i = ideas[0]; return i ? `<span class="mr-idea">Cheapest first test: <b class="mono">${usdShort(i.test_low)}</b> · <a href="#/g/${encodeURIComponent(i.m.slug)}/tree/${encodeURIComponent(i.m.key)}">fund it</a></span>` : ''; })()}<small>${k.goals} goals · ${k.members.length} problems${k.funding ? ` · ${usdShort(k.funding)} grants` : ''}</small></article>`).join('');
   return `<div class="mr">${xSearchBox()}<div class="mr-map">${web}</div>
     <div class="mr-low"><section class="mr-keys"><div class="fp-ch"><h3>Keystone problems</h3><span>solve once, move several goals · ${c.keystones.length}</span><span class="pstrip-a"><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-scroll=".mr-strip" data-dir="1" aria-label="More">›</button></span></div><div class="mr-strip">${keys}</div></section>
     <section class="mr-rips"><div class="fp-ch"><h3>Ripples</h3><span>last 30 days · ${c.ripples.length}</span></div><div class="rips mr-riplist">${rippleRows(c.ripples)}</div></section></div></div>`;
@@ -3729,7 +3865,7 @@ function marketScreen(t) {
     <div class="mk-cols"><section class="mk-panel"><div class="fp-ch"><h3>Funding, last 12 months</h3><span>tap a goal to filter the grants · change vs the year before</span></div><div class="mk-bars">${bars}</div></section>
       <section class="mk-panel"><div class="fp-ch"><h3>${sel ? `@${esc(m.goals.find((g) => g.slug === sel)?.goal || sel)} grants` : 'Latest big grants'}</h3><span>${list.length} · largest first</span></div><div class="mrows">${awardRows(shown) || '<p class="gnote">None in the last 90 days.</p>'}</div>
         ${list.length > shown.length ? `<p class="mk-more"><button class="btn sm" type="button" data-tsel="moneyAll" data-v="1">Show all ${list.length}</button></p>` : ''}</section></div>
-    <div class="mk-cols mk-low"><section class="mk-panel">${radarPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Opportunity radar</h3><span>heating up, little public money</span></div>')}</section>
+    <div class="mk-cols mk-low"><section class="mk-panel">${radarPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Where money would go furthest</h3><span>research growing faster than typical, on less money than typical</span></div>')}</section>
       <section class="mk-panel">${oppPanel(t).replace(/<div class="panel-h">[\s\S]*?<\/div>/, '<div class="fp-ch"><h3>Gaps and quiet problems</h3><span>where attention or money would move things</span></div>')}</section></div></div>`;
 }
 
@@ -3808,7 +3944,7 @@ document.addEventListener('click', (e) => {
   const pane = b.closest('[data-mp]'); if (!pane) return;
   if (k === 'wnode') { const side = pane.querySelector('.webside'); if (side) side.innerHTML = problemSide(term.crossovers); pane.querySelectorAll('.gn.prob').forEach((x) => x.classList.toggle('on', x.dataset.v === v)); return; }
   pane.innerHTML = SEC_BY_ID[pane.dataset.mp].body(term);
-  initWebSim();
+  initWebSim(); initGlobe();
   applyXSearch(pane.closest('.tpane') || pane);
   // a choice in one section can change another's summary or content (the trial list follows the pipeline card)
   if (k === 'pipe') { const tr = document.querySelector('[data-mp="trials"]'); if (tr) tr.innerHTML = SEC_BY_ID.trials.body(term); }
@@ -3868,35 +4004,39 @@ function goalIndex(t) {
 }
 
 // Opportunity radar: each unsolved problem by public funding (across) and research growth (up).
-// Opportunity radar, as a 2x2: research growth (slow / fast) against public money (little / a lot),
-// split at the middle problem for each. "Heating up, little money" is where money would go furthest.
+// Opportunities, as picks: the problems where research is growing much faster than the money behind
+// it, each said in plain numbers against a typical problem, with the cheapest way in and a way to fund it.
 function radarPanel(t) {
   const full = t.access === 'full', pts = full ? t.radar : (t.preview?.radar || []);
-  const head = `<div class="panel-h"><h2>Opportunity radar</h2><span class="lbl">Research heating up, public money thin</span></div>`;
+  const head = `<div class="panel-h"><h2>Opportunities</h2><span class="lbl">Research heating up, public money thin</span></div>`;
   const funded = pts.filter((p) => p.x > 0 && p.y != null);
-  if (funded.length < 4) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
+  if (funded.length < 4) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">Opportunities appear as research counts and funding data arrive.</div></section>`;
   const mid = (arr) => { const v = [...arr].sort((a, b) => a - b); return v[Math.floor(v.length / 2)]; };
   const mx = mid(funded.map((p) => p.x)), my = mid(funded.map((p) => p.y));
-  const box = (fast, rich) => funded.filter((p) => (p.y >= my) === fast && (p.x > mx) === rich).sort((a, b) => (fast ? b.y - a.y : a.y - b.y) || a.x - b.x);
-  const Q = [
-    { id: 'q-opp', fast: true, rich: false, name: 'Heating up, little money', why: 'Research is growing fast but public grants are small. This is where money would go furthest.' },
-    { id: 'q-hot', fast: true, rich: true, name: 'Heating up, well funded', why: 'Fast-growing and already well funded: the crowded races.' },
-    { id: 'q-quiet', fast: false, rich: false, name: 'Quiet, little money', why: 'Little new research and little money: overlooked, or stuck.' },
-    { id: 'q-steady', fast: false, rich: true, name: 'Quiet, well funded', why: 'Well funded but research isn’t picking up: worth asking why.' },
-  ].map((q) => ({ ...q, items: box(q.fast, q.rich) }));
-  const line = (p) => `<li>${p.title ? `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}">${esc(p.title)}</a>` : '<span class="bf-hidden">Name for subscribers</span>'}<small>${p.goal ? `@${esc(p.goal)} · ` : ''}research ${p.y >= 0 ? '+' : ''}${Math.round(p.y * 100)}% · ${usdShort(p.x)} in grants</small></li>`;
-  const card = (q) => {
-    const shown = q.id === 'q-opp' ? (full ? q.items.slice(0, termSel.radarAll ? 99 : 4) : q.items.filter((p) => p.title).slice(0, 2)) : (full ? q.items.slice(0, 2) : []);
-    return `<div class="qd ${q.id}"><div class="qd-h"><b>${q.name}</b><span class="mono">${q.items.length}</span></div><p>${q.why}</p>${shown.length ? `<ul>${shown.map(line).join('')}</ul>` : ''}
-      ${q.id === 'q-opp' && full && !termSel.radarAll && q.items.length > 4 ? `<button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${q.items.length}</button>` : ''}${q.id !== 'q-opp' && full && q.items.length > 2 ? `<small class="qd-more">+${q.items.length - 2} more</small>` : ''}</div>`;
+  const rank = (arr, v) => arr.filter((x) => x < v).length / Math.max(1, arr.length - 1);
+  const xs = funded.map((p) => p.x), ys = funded.map((p) => p.y);
+  const picks = funded.map((p) => ({ ...p, gap: rank(ys, p.y) - rank(xs, p.x) })).filter((p) => p.y > my && p.x < mx)
+    .sort((a, b) => Number(b.opportunity) - Number(a.opportunity) || b.gap - a.gap);
+  const shown = full ? picks.slice(0, termSel.radarAll ? 99 : 4) : picks.filter((p) => p.title).slice(0, 1);
+  // Plain words: "2.4× as fast as" / "45% faster than".
+  const faster = (a, b) => { const r = b > 0 ? a / b : 0; return r >= 1.95 ? `${Math.round(r * 10) / 10}× as fast as` : r > 1 ? `${Math.round((r - 1) * 100)}% faster than` : 'faster than'; };
+  const card = (p, i) => {
+    const fx = term?.fixes?.[`${p.slug}/${p.key}`], idea = (fx?.ideas || []).find((x) => x.test_low) || fx?.ideas?.[0];
+    const growth = `${p.y >= 0 ? '+' : ''}${Math.round(p.y * 100)}%`, page = `#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}`;
+    const span = (lo, hi) => (lo && hi && hi !== lo ? `${usdShort(lo)}–${usdShort(hi)}` : usdShort(lo || hi));
+    return `<article class="pk"><div class="pk-top"><span class="pk-n mono">${i + 1}</span><span class="hchip">@${esc(p.goal)}</span>${p.opportunity ? '<span class="pk-flag">Top pick</span>' : ''}</div>
+      <h4><a href="${page}">${esc(p.title)}</a></h4>
+      <div class="pk-nums"><div><b class="mono">${growth}</b><small>research, last 3 yrs vs 3 before</small></div><div><b class="mono">${usdShort(p.x)}</b><small>US federal grants since ${new Date().getFullYear() - 3}</small></div></div>
+      <p class="pk-say">Research is growing <b>${faster(p.y, my)}</b> a typical problem’s, with <b>${usdShort(p.x)}</b> in grants where a typical problem has <b>${usdShort(mx)}</b>.</p>
+      ${idea ? `<div class="pk-way"><small>Cheapest way in</small><b>${esc(idea.title)}</b>${idea.test_low || idea.test_high ? `<span>First test <b class="mono">${span(idea.test_low, idea.test_high)}</b></span>` : ''}</div>`
+        : fx?.cost?.next_step ? `<div class="pk-way"><small>Next step</small><b>${esc(fx.cost.next_step)}</b><span><b class="mono">${span(fx.cost.next_low, fx.cost.next_high)}</b></span></div>` : ''}
+      <div class="pk-act"><a class="btn primary sm" href="${page}">Fund it</a><a class="linkish" href="#/lab/${encodeURIComponent(p.slug)}">Ideas</a></div></article>`;
   };
-  const top = Q[0].items.find((p) => p.title);
-  return `<section class="panel">${head}${answerBox([`${Q[0].items.length} of ${funded.length} funded problems are heating up with little public money.`, full && top ? `Fastest of them: ${top.title} (@${top.goal}), research +${Math.round(top.y * 100)}% on ${usdShort(top.x)} in grants.` : null].filter(Boolean))}<div class="qwrap">
-      <span></span><span class="qcol">Little public money</span><span class="qcol">A lot of public money</span>
-      <span class="qrow">Research growing fast</span>${card(Q[0])}${card(Q[1])}
-      <span class="qrow">Research growing slowly</span>${card(Q[2])}${card(Q[3])}</div>
-    <p class="radar-note" style="padding:0 18px 14px">The ${funded.length} unsolved problems with matched US federal grants, split at the middle for each: research growth is papers in the last 3 years vs the 3 before; money is grants since ${new Date().getFullYear() - 3}. Problems with no matched grants are left out, since the search may simply miss their funding.</p>
-    ${full ? '' : moreGate(`${Q[0].items.length} problems are heating up with little public money. Subscribers see every name and get alerted when new ones appear.`)}</section>`;
+  return `<section class="panel">${head}${answerBox([`${picks.length} problems are growing faster than typical on less money than typical.`, full && shown[0] ? `Top pick: ${shown[0].title} (@${shown[0].goal}).` : null].filter(Boolean))}
+    <div class="pks">${shown.map(card).join('')}</div>
+    ${full && !termSel.radarAll && picks.length > shown.length ? `<p class="mk-more" style="padding:0 18px"><button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${picks.length}</button></p>` : ''}
+    <p class="radar-note" style="padding:0 18px 14px">“Typical” is the middle problem among the ${funded.length} unsolved problems with matched US federal grants (research growth ${my >= 0 ? '+' : ''}${Math.round(my * 100)}%, ${usdShort(mx)} in grants). Picks grow faster and get less; top picks are in the fastest third and the least-funded third.</p>
+    ${full ? '' : moreGate(`${picks.length} problems are growing faster than typical on less money. Subscribers see every one, the cheapest way in, and alerts when new ones appear.`)}</section>`;
 }
 
 // Catalysts: what is due, across every goal. Trial readouts (ClinicalTrials.gov) and promises coming due.
@@ -4002,7 +4142,7 @@ function renderTerminal(box, tab = 'overview') {
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
-  initWebSim();
+  initWebSim(); initGlobe();
   applyXSearch(box);
 }
 
