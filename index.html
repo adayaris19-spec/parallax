@@ -867,6 +867,7 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .plus-row.one{grid-template-columns:1fr}
 .pweb svg.web{max-width:520px}
 .pweb .wedge{pointer-events:none}
+.pweb .grow{display:none}
 @media (max-width:760px){.plus-row{grid-template-columns:1fr}}
 .comings{display:grid;gap:12px}
 .coming{position:relative;padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
@@ -1348,7 +1349,12 @@ svg.web .wnode,svg.web .wedge{transition:opacity .15s}
 .ptile:not(.big) .tile-b .ans:not(.keep){display:none}
 .gwrap{position:relative}
 .webwrap:has(.gwrap){grid-template-columns:minmax(0,2.2fr) minmax(0,1fr)}
-.ggrow{position:absolute;left:10px;bottom:10px}
+svg.web .gone{opacity:0!important;pointer-events:none}
+svg.web .wnode,svg.web .wedge,svg.web .gn,svg.web .ge{transition:opacity .6s ease}
+.grow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.grow-cap{font-size:13.5px;color:var(--ink2);min-height:20px}.grow-cap b{color:var(--ink)}
+.grow-new{font-family:var(--m);font-size:12px;color:var(--accent)}
+.grow-bar{flex:0 0 120px;height:4px;border-radius:2px;background:var(--line2);overflow:hidden;margin-left:auto}.grow-bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
 svg.gsim{max-width:none;touch-action:none;user-select:none}
 .ge.own{stroke:var(--line2);stroke-width:1}
 .ge.cross{stroke:var(--ink2);stroke-opacity:.55;stroke-width:1.8}
@@ -1467,21 +1473,7 @@ svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 .tl-card small{font-size:11.5px;color:var(--muted)}.tl-card small a{color:var(--ink2)}
 .tl-card .sig{justify-self:start}
 .tl-side>section.panel{margin:0}
-.bf{padding:6px 18px 12px}
-.bf-head,.bf-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:0 10px;align-items:center}
-.bf-head{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 0 8px;border-bottom:1px solid var(--line)}
-.bf-head span:nth-child(2){text-align:right}
-.bf-row{padding:9px 0;border-bottom:1px solid var(--line)}
-.bf-name{min-width:0}.bf-name a{display:block;font-size:13.5px;line-height:1.35;color:var(--ink);text-decoration:none}.bf-name a:hover{text-decoration:underline}.bf-name small{font-size:11.5px;color:var(--muted)}
-.bf-flag{display:inline-block;font-family:var(--m);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:0 6px;margin-bottom:3px}
 .bf-hidden{font-size:12.5px;color:var(--muted);font-style:italic}
-.bf-l,.bf-r{display:flex;align-items:center;gap:6px;height:22px;cursor:default}
-.bf-l{flex-direction:row;justify-content:flex-end;border-right:2px solid var(--ink)}
-.bf-l i,.bf-r i{display:block;height:12px;min-width:2px}
-.bf-l i{background:var(--line2);border-radius:4px 0 0 4px;max-width:calc(100% - 52px)}
-.bf-r i{background:var(--ink2);border-radius:0 4px 4px 0;max-width:calc(100% - 52px)}
-.bf-row.op .bf-r i{background:var(--accent)}
-.bf-v{font-family:var(--m);font-size:11.5px;color:var(--ink2);white-space:nowrap}
 [data-x][hidden]{display:none!important}
 .xs{position:relative;display:flex;align-items:center;gap:10px;margin:0 0 14px}
 .xsearch{flex:1;height:46px;border-radius:14px;border:1px solid var(--line2);background:var(--card);padding:0 16px 0 42px;font:inherit;font-size:15px;color:var(--ink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center}
@@ -1493,17 +1485,19 @@ svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 .mr-riplist:has(.rip[hidden]) .rip:not([hidden]){display:block}
 svg.web.searching [data-node]:not(.qhit),svg.web.searching [data-ends]:not(.qhit),svg.web.searching .gn:not(.qhit){opacity:.15}
 svg.web.searching .gn.qhit circle{stroke:var(--accent);stroke-width:2.5}
-/* Rings */
-svg.chord .cr{fill:var(--accent);stroke:var(--card);stroke-width:.6;cursor:pointer;transition:fill-opacity .15s,opacity .15s}
-svg.chord .cr:hover{fill-opacity:.9!important}
-svg.chord .cr.on{fill-opacity:.95!important;stroke:var(--accent);stroke-width:1.5}
-svg.chord .cg-arc{fill:var(--ink)}
-svg.chord .cg.alone .cg-arc{fill:var(--line2)}
-.chord-lone{text-align:center;margin:0 0 6px}.chord-lone a{color:var(--ink2)}
-svg.chord .cg-dot{fill:var(--sunk)}
-svg.chord text{font-size:13.5px;font-weight:600;fill:var(--ink)}
-svg.chord .cg.alone text{fill:var(--muted);font-weight:400}
-svg.chord.focus .cr:not(.hl){opacity:.12}svg.chord.focus .cg:not(.hl) .cg-arc{opacity:.35}
+.bf-hidden{font-size:12.5px;color:var(--muted);font-style:italic}
+.qwrap{display:grid;grid-template-columns:86px minmax(0,1fr) minmax(0,1fr);gap:8px;padding:14px 18px 8px;align-items:stretch}
+.qcol{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:2px}
+.qrow{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);align-self:center;line-height:1.5}
+.qd.q-opp{background:linear-gradient(140deg,var(--accent-soft),var(--card) 80%);border-color:var(--accent-line)}
+.qd.q-opp .qd-h b{color:var(--accent)}
+.qd{padding:14px 16px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);min-width:0}
+.qd-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.qd-h b{font-size:15px}.qd-h .mono{font-size:22px;font-weight:600}
+.qd p{margin:4px 0 8px;font-size:12.5px;line-height:1.45;color:var(--ink2)}
+.qd ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.qd li a{font-size:13.5px;line-height:1.35;color:var(--ink);text-decoration:none}.qd li a:hover{text-decoration:underline}
+.qd li small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.qd .btn{margin-top:10px}.qd-more{display:block;margin-top:6px;font-size:11.5px;color:var(--muted)}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -3434,12 +3428,12 @@ function webSvg(web, sel) {
       ${pic && !alone ? `<image href="${esc(pic)}" x="${f(x - r)}" y="${f(y - r)}" width="${f(2 * r)}" height="${f(2 * r)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#wc${i})"/>` : `<circle class="dot" cx="${f(x)}" cy="${f(y)}" r="${f(r)}"/>`}
       <text x="${f(x + dx)}" y="${f(y + dy)}" text-anchor="${side}">@${esc(handle)}</text>${deg[s] ? `<title>@${esc(handle)} · shares ${deg[s]} problem link${deg[s] === 1 ? '' : 's'}</title>` : `<title>@${esc(handle)} · no shared problems found yet</title>`}</a></g>`;
   }).join('');
-  return `<svg class="web" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals linked by shared problems"><defs>${defs}</defs><g class="wedges">${edges}</g>${nodes}</svg>`;
+  return `<div class="gwrap"><svg class="web" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals linked by shared problems"><defs>${defs}</defs><g class="wedges">${edges}</g>${nodes}</svg>${growBar()}</div>`;
 }
 // Hovering a goal lights up its links.
 document.addEventListener('mouseover', (e) => {
   const n = e.target.closest?.('.wnode'), svg = e.target.closest?.('svg.web');
-  if (!svg || svg.classList.contains('gsim') || svg.classList.contains('chord')) return; // those handle their own hover
+  if (!svg || svg.classList.contains('gsim')) return; // the problem graph handles its own hover
   const slug = n?.dataset.node || '';
   svg.classList.toggle('focus', !!slug);
   svg.querySelectorAll('.wedge').forEach((g) => g.classList.toggle('hl', !!slug && g.dataset.ends.split(' ').includes(slug)));
@@ -3448,7 +3442,6 @@ document.addEventListener('mouseover', (e) => {
 // ---- The web, problem by problem: goals as large dots, each shared problem as a small dot tied to
 // its goal, and lines between problems that move each other. A small physics simulation settles
 // it; dots can be dragged. "Watch it grow" replays goals arriving in the order they were mapped.
-let webSim = null;
 function problemGraph(c) {
   const nodes = [], idx = new Map(), edges = [];
   const add = (id, n) => { if (!idx.has(id)) { idx.set(id, nodes.length); nodes.push(n); } return idx.get(id); };
@@ -3468,11 +3461,11 @@ function problemSvg(c) {
   const sel = termSel.wnode;
   return `<div class="gwrap"><svg class="web gsim" id="wsim" viewBox="0 0 760 520" role="img" aria-label="Every shared problem and what it links to">
     <defs>${nodes.map((n, i) => n.kind === 'goal' ? `<clipPath id="gc${i}"><circle r="${deg[i] ? 20 : 12}"/></clipPath>` : '').join('')}</defs>
-    <g class="gedges">${edges.map((e, i) => `<line class="ge ${e.kind}" data-e="${i}" data-s="${e.s}" data-t="${e.t}"/>`).join('')}</g>
+    <g class="gedges">${edges.map((e, i) => `<line class="ge ${e.kind}" data-e="${i}" data-s="${e.s}" data-t="${e.t}"${e.kind === 'cross' ? ` data-ends="${esc(nodes[e.s].slug)} ${esc(nodes[e.t].slug)}"` : ` data-pn="${e.t}"`}/>`).join('')}</g>
     <g class="gnodes">${nodes.map((n, i) => n.kind === 'goal'
-      ? `<g class="gn goal${deg[i] ? '' : ' alone'}" data-n="${i}"><circle class="ring" r="${deg[i] ? 23 : 14}"/>${n.pic && deg[i] ? `<image href="${esc(safeUrl(n.pic) || '')}" x="-20" y="-20" width="40" height="40" preserveAspectRatio="xMidYMid slice" clip-path="url(#gc${i})"/>` : `<circle class="dot" r="${deg[i] ? 20 : 12}"/>`}<text y="${deg[i] ? 38 : 28}" text-anchor="middle">@${esc(n.handle)}</text></g>`
-      : `<g class="gn prob st-${n.status === 'in_progress' ? 'progress' : n.status}${sel === `${n.slug}/${n.key}` ? ' on' : ''}" data-n="${i}" data-tsel="wnode" data-v="${esc(n.slug)}/${esc(n.key)}" tabindex="0"><circle r="${5 + Math.min(4, deg[i])}"/><title>@${esc(n.goal)}: ${esc(n.title)}</title></g>`).join('')}</g>
-  </svg><button class="btn sm ggrow" type="button" data-grow>▶ Watch it grow</button></div>`;
+      ? `<g class="gn goal${deg[i] ? '' : ' alone'}" data-n="${i}" data-slug="${esc(n.slug)}"><circle class="ring" r="${deg[i] ? 23 : 14}"/>${n.pic && deg[i] ? `<image href="${esc(safeUrl(n.pic) || '')}" x="-20" y="-20" width="40" height="40" preserveAspectRatio="xMidYMid slice" clip-path="url(#gc${i})"/>` : `<circle class="dot" r="${deg[i] ? 20 : 12}"/>`}<text y="${deg[i] ? 38 : 28}" text-anchor="middle">@${esc(n.handle)}</text></g>`
+      : `<g class="gn prob st-${n.status === 'in_progress' ? 'progress' : n.status}${sel === `${n.slug}/${n.key}` ? ' on' : ''}" data-n="${i}" data-own="${esc(n.slug)}" data-need="${esc([...new Set(edges.filter((e) => e.kind === 'cross' && (e.s === i || e.t === i)).map((e) => nodes[e.s === i ? e.t : e.s].slug))].join(' '))}" data-tsel="wnode" data-v="${esc(n.slug)}/${esc(n.key)}" tabindex="0"><circle r="${5 + Math.min(4, deg[i])}"/><title>@${esc(n.goal)}: ${esc(n.title)}</title></g>`).join('')}</g>
+  </svg>${growBar()}</div>`;
 }
 function problemSide(c) {
   const id = termSel.wnode;
@@ -3482,48 +3475,39 @@ function problemSide(c) {
   return me ? `<span class="lbl">Shared problem</span><p class="gtitle">${xref(me)}</p><span class="lbl">Moves ${links.length} problem${links.length === 1 ? '' : 's'} in other goals</span>${linkRows(links)}` : '';
 }
 function initWebSim() {
-  if (webSim) { cancelAnimationFrame(webSim.raf); webSim = null; }
   const svg = document.getElementById('wsim'); if (!svg || !term?.crossovers) return;
   const { nodes, edges, deg } = problemGraph(term.crossovers);
   const W = 760, H = 520, cx = W / 2, cy = H / 2, goals = nodes.filter((n) => n.kind === 'goal');
-  // Start: goals on a circle (linked ones first), problems near their goal.
-  const order = [...goals].sort((a, b) => deg[nodes.indexOf(b)] - deg[nodes.indexOf(a)]);
+  // Same start every time (no randomness), so the map looks the same on every visit.
+  const order = [...goals].sort((a, b) => deg[nodes.indexOf(b)] - deg[nodes.indexOf(a)] || a.slug.localeCompare(b.slug));
   order.forEach((g, k) => { const a = -Math.PI / 2 + k * 2 * Math.PI / order.length, r = deg[nodes.indexOf(g)] ? 150 : 235; g.x = cx + r * Math.cos(a); g.y = cy + r * Math.sin(a); });
-  for (const n of nodes) if (n.kind === 'problem') { const g = goals.find((x) => x.slug === n.slug); n.x = g.x + (Math.random() - 0.5) * 60; n.y = g.y + (Math.random() - 0.5) * 60; }
-  for (const n of nodes) { n.vx = 0; n.vy = 0; n.on = true; }
-  const els = [...svg.querySelectorAll('.gn')], lines = [...svg.querySelectorAll('.ge')];
-  const sim = webSim = { alpha: 1, raf: 0, drag: null };
-  const tick = () => {
-    const a = sim.alpha, live = nodes.filter((n) => n.on);
-    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
-      const p = live[i], q = live[j]; let dx = q.x - p.x, dy = q.y - p.y; const d2 = dx * dx + dy * dy + 0.01, d = Math.sqrt(d2);
-      const big = (p.kind === 'goal' ? 2.2 : 1) * (q.kind === 'goal' ? 2.2 : 1), f = Math.min(9, (1500 * big) / d2) * a;
+  nodes.forEach((n, i) => { if (n.kind === 'problem') { const g = goals.find((x) => x.slug === n.slug), a = i * 2.399963; n.x = g.x + 30 * Math.cos(a); n.y = g.y + 30 * Math.sin(a); } n.vx = 0; n.vy = 0; });
+  // Settle it before it is shown: run the physics off screen, then draw once. Nothing moves on open.
+  for (let it = 0, alpha = 1; it < 420; it++, alpha *= 0.99) {
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+      const p = nodes[i], q = nodes[j]; let dx = q.x - p.x, dy = q.y - p.y; const d2 = dx * dx + dy * dy + 0.01, d = Math.sqrt(d2);
+      const big = (p.kind === 'goal' ? 2.2 : 1) * (q.kind === 'goal' ? 2.2 : 1), f = Math.min(9, (1500 * big) / d2) * alpha;
       dx /= d; dy /= d; p.vx -= dx * f; p.vy -= dy * f; q.vx += dx * f; q.vy += dy * f;
     }
     for (const e of edges) {
-      const p = nodes[e.s], q = nodes[e.t]; if (!p.on || !q.on) continue;
-      const dx = q.x - p.x, dy = q.y - p.y, d = Math.sqrt(dx * dx + dy * dy) || 1, L = e.kind === 'own' ? 58 : 90, k = (e.kind === 'own' ? 0.06 : 0.03) * a;
-      const f = (d - L) * k; p.vx += (dx / d) * f; p.vy += (dy / d) * f; q.vx -= (dx / d) * f; q.vy -= (dy / d) * f;
+      const p = nodes[e.s], q = nodes[e.t], dx = q.x - p.x, dy = q.y - p.y, d = Math.sqrt(dx * dx + dy * dy) || 1, L = e.kind === 'own' ? 58 : 90, f = (d - L) * (e.kind === 'own' ? 0.06 : 0.03) * alpha;
+      p.vx += (dx / d) * f; p.vy += (dy / d) * f; q.vx -= (dx / d) * f; q.vy -= (dy / d) * f;
     }
-    for (const n of live) {
-      if (sim.drag && sim.drag.n === n) { n.vx = n.vy = 0; continue; }
-      const pull = deg[nodes.indexOf(n)] ? 0.008 : 0.003; n.vx += (cx - n.x) * pull * a; n.vy += (cy - n.y) * pull * a;
-      n.vx *= 0.82; n.vy *= 0.82; const m = n.kind === 'goal' ? 80 : 20; n.x = Math.max(m, Math.min(W - m, n.x + n.vx)); n.y = Math.max(30, Math.min(H - 40, n.y + n.vy));
-    }
-    els.forEach((el) => { const n = nodes[+el.dataset.n]; el.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); el.style.display = n.on ? '' : 'none'; });
-    lines.forEach((ln) => { const p = nodes[+ln.dataset.s], q = nodes[+ln.dataset.t]; ln.setAttribute('x1', p.x.toFixed(1)); ln.setAttribute('y1', p.y.toFixed(1)); ln.setAttribute('x2', q.x.toFixed(1)); ln.setAttribute('y2', q.y.toFixed(1)); ln.style.display = p.on && q.on ? '' : 'none'; });
-    sim.alpha *= 0.985;
-    if (sim.alpha > 0.02 || sim.drag) sim.raf = requestAnimationFrame(tick);
+    nodes.forEach((n, i) => { const pull = deg[i] ? 0.008 : 0.003; n.vx += (cx - n.x) * pull * alpha; n.vy += (cy - n.y) * pull * alpha; n.vx *= 0.82; n.vy *= 0.82; const m = n.kind === 'goal' ? 80 : 20; n.x = Math.max(m, Math.min(W - m, n.x + n.vx)); n.y = Math.max(30, Math.min(H - 40, n.y + n.vy)); });
+  }
+  const els = [...svg.querySelectorAll('.gn')], lines = [...svg.querySelectorAll('.ge')];
+  const draw = () => {
+    els.forEach((el) => { const n = nodes[+el.dataset.n]; el.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); });
+    lines.forEach((ln) => { const p = nodes[+ln.dataset.s], q = nodes[+ln.dataset.t]; ln.setAttribute('x1', p.x.toFixed(1)); ln.setAttribute('y1', p.y.toFixed(1)); ln.setAttribute('x2', q.x.toFixed(1)); ln.setAttribute('y2', q.y.toFixed(1)); });
   };
-  sim.kick = (v = 0.6) => { const was = sim.alpha <= 0.02; sim.alpha = Math.max(sim.alpha, v); if (was) sim.raf = requestAnimationFrame(tick); };
-  tick();
-  // Drag.
+  draw();
+  // Drag a dot to move it (only that dot; nothing else shifts).
   const pt = (e) => { const r = svg.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
   svg.addEventListener('pointerdown', (e) => {
     const g = e.target.closest('.gn'); if (!g) return;
-    const start = pt(e); sim.drag = { n: nodes[+g.dataset.n], moved: false }; sim.kick(0.3);
-    const move = (ev) => { const p = pt(ev); if (!sim.drag) return; if (Math.hypot(p.x - start.x, p.y - start.y) > 4) sim.drag.moved = true; if (sim.drag.moved) { sim.drag.n.x = p.x; sim.drag.n.y = p.y; sim.kick(0.3); } };
-    const up = () => { if (sim.drag?.moved) svg.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true }); sim.drag = null; removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+    const n = nodes[+g.dataset.n], start = pt(e); let moved = false;
+    const move = (ev) => { const p = pt(ev); if (Math.hypot(p.x - start.x, p.y - start.y) > 4) moved = true; if (moved) { n.x = Math.max(20, Math.min(W - 20, p.x)); n.y = Math.max(20, Math.min(H - 20, p.y)); draw(); } };
+    const up = () => { if (moved) svg.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true }); removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
     addEventListener('pointermove', move); addEventListener('pointerup', up);
   });
   // Hover: light up a dot's neighbours.
@@ -3535,66 +3519,46 @@ function initWebSim() {
     lines.forEach((ln) => ln.classList.toggle('hl', +ln.dataset.s === i || +ln.dataset.t === i));
   });
   svg.addEventListener('mouseleave', () => svg.classList.remove('focus'));
-  // Watch it grow: goals arrive in the order they were mapped, with their shared problems.
-  svg.parentElement.querySelector('[data-grow]')?.addEventListener('click', () => {
-    const seq = [...goals].sort((a, b) => String(a.mapped_at).localeCompare(String(b.mapped_at)));
-    for (const n of nodes) n.on = false;
-    let k = 0;
-    const step = () => {
-      if (k >= seq.length) return;
-      const g = seq[k++]; g.on = true;
-      const onGoals = new Set(seq.slice(0, k).map((x) => x.slug));
-      for (const n of nodes) if (n.kind === 'problem' && onGoals.has(n.slug) && edges.some((e) => e.kind === 'cross' && (nodes[e.s] === n || nodes[e.t] === n) && onGoals.has(nodes[e.s].slug) && onGoals.has(nodes[e.t].slug))) n.on = true;
-      sim.kick(0.8); setTimeout(step, 750);
-    };
-    step();
-  });
 }
-// The web as rings: each goal an arc sized by how many problems it shares, ribbons between goals,
-// darker where they share more (one hue, light to dark). Tap a ribbon to see the shared problems.
-function chordSvg(web, sel) {
-  const order = [], seen = new Set();
-  for (const e of web.edges) for (const s of [e.a, e.b]) if (!seen.has(s)) { seen.add(s); order.push(s); }
-  const lone = web.goals.filter((g) => !seen.has(g.slug)); // not linked yet: listed under the rings
-  const W = 760, H = 560, cx = W / 2, cy = H / 2, R = 182, TH = 16, GAP = 0.07;
-  const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
-  const weight = (s) => Math.sqrt(deg[s] || 1), total = order.reduce((t, s) => t + weight(s), 0), span = 2 * Math.PI - GAP * order.length;
-  const arc = {}; let a = -Math.PI / 2;
-  for (const s of order) { const w = (weight(s) / total) * span; arc[s] = { a0: a, a1: a + w, cur: a }; a += w + GAP; }
-  const pos = (s) => order.indexOf(s);
-  // Each goal's arc is split among its ribbons, nearest partners first, to limit crossings.
-  const slot = {};
-  for (const s of order) {
-    const mine = web.edges.filter((e) => e.a === s || e.b === s).sort((x, y) => ((pos(x.a === s ? x.b : x.a) - pos(s) + order.length) % order.length) - ((pos(y.a === s ? y.b : y.a) - pos(s) + order.length) % order.length));
-    for (const e of mine) { const w = (e.n / (deg[s] || 1)) * (arc[s].a1 - arc[s].a0); slot[`${e.a}|${e.b}|${s}`] = [arc[s].cur, arc[s].cur + w]; arc[s].cur += w; }
-  }
-  const P = (ang, r) => [cx + r * Math.cos(ang), cy + r * Math.sin(ang)], f = (n) => n.toFixed(1);
-  const ri = R - TH - 2, maxN = Math.max(1, ...web.edges.map((e) => e.n));
-  const ribbons = web.edges.map((e) => {
-    const [a0, a1] = slot[`${e.a}|${e.b}|${e.a}`], [b0, b1] = slot[`${e.a}|${e.b}|${e.b}`];
-    const p = (x) => P(x, ri), arcTo = (x0, x1) => `A${ri},${ri} 0 ${x1 - x0 > Math.PI ? 1 : 0} 1 ${f(p(x1)[0])},${f(p(x1)[1])}`;
-    const d = `M${f(p(a0)[0])},${f(p(a0)[1])} ${arcTo(a0, a1)} Q${cx},${cy} ${f(p(b0)[0])},${f(p(b0)[1])} ${arcTo(b0, b1)} Q${cx},${cy} ${f(p(a0)[0])},${f(p(a0)[1])}Z`;
-    const op = (0.16 + 0.6 * Math.sqrt(e.n / maxN)).toFixed(2);
-    return `<path class="cr${sel === `${e.a}|${e.b}` ? ' on' : ''}" d="${d}" style="fill-opacity:${op}" data-tsel="web" data-v="${esc(e.a)}|${esc(e.b)}" data-ends="${esc(e.a)} ${esc(e.b)}"><title>${e.n} shared problem${e.n === 1 ? '' : 's'}</title></path>`;
-  }).join('');
-  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
-  const arcs = order.map((s, i) => {
-    const { a0, a1 } = arc[s], o = P(a0, R), o2 = P(a1, R), in1 = P(a1, R - TH), in0 = P(a0, R - TH), big = a1 - a0 > Math.PI ? 1 : 0;
-    const d = `M${f(o[0])},${f(o[1])} A${R},${R} 0 ${big} 1 ${f(o2[0])},${f(o2[1])} L${f(in1[0])},${f(in1[1])} A${R - TH},${R - TH} 0 ${big} 0 ${f(in0[0])},${f(in0[1])}Z`;
-    const mid = (a0 + a1) / 2, [px, py] = P(mid, R + 28), [lx, ly] = P(mid, R + 50), right = Math.cos(mid) >= 0, { handle, pic } = info(s);
-    return `<g class="cg${deg[s] ? '' : ' alone'}" data-node="${esc(s)}"><path class="cg-arc" d="${d}"/>
-      <clipPath id="cc${i}"><circle cx="${f(px)}" cy="${f(py)}" r="13"/></clipPath>${pic ? `<image href="${esc(pic)}" x="${f(px - 13)}" y="${f(py - 13)}" width="26" height="26" preserveAspectRatio="xMidYMid slice" clip-path="url(#cc${i})"/>` : `<circle cx="${f(px)}" cy="${f(py)}" r="13" class="cg-dot"/>`}
-      <a href="#/g/${encodeURIComponent(s)}"><text x="${f(lx + (right ? -6 : 6))}" y="${f(ly + 4)}" text-anchor="${right ? 'start' : 'end'}" transform="rotate(0)">@${esc(handle)}${deg[s] ? ` · ${deg[s]}` : ''}</text></a></g>`;
-  }).join('');
-  return `<div class="chordwrap"><svg class="web chord" viewBox="0 0 ${W} ${H}" role="img" aria-label="Goals as arcs, linked by the problems they share">${ribbons}${arcs}</svg>${lone.length ? `<p class="gnote chord-lone">Not linked to another goal yet: ${lone.map((g) => `<a href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a>`).join(', ')}</p>` : ''}</div>`;
+
+// Watch it grow (both views): goals join in the order Parallax mapped them; their links and shared
+// problems fade in as soon as both sides are on the map. A caption says who joined and what it added.
+function growBar() {
+  return `<div class="grow"><button class="btn sm" type="button" data-grow>▶ Watch it grow</button><span class="grow-cap" aria-live="polite"></span><span class="grow-bar"><i></i></span></div>`;
 }
-// Hovering a goal's arc lights up its ribbons.
-document.addEventListener('mouseover', (e) => {
-  const svg = e.target.closest?.('svg.chord'); if (!svg) return;
-  const g = e.target.closest('.cg'), slug = g?.dataset.node || '';
-  svg.classList.toggle('focus', !!slug);
-  svg.querySelectorAll('.cr').forEach((r) => r.classList.toggle('hl', !!slug && r.dataset.ends.split(' ').includes(slug)));
-  svg.querySelectorAll('.cg').forEach((x) => x.classList.toggle('hl', x === g));
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-grow]'); if (!b || !term?.crossovers) return;
+  const wrap = b.closest('.gwrap'), svg = wrap.querySelector('svg.web'), cap = wrap.querySelector('.grow-cap'), bar = wrap.querySelector('.grow-bar i');
+  clearTimeout(wrap._grow);
+  const seq = [...term.crossovers.web.goals].sort((a, c) => String(a.mapped_at).localeCompare(String(c.mapped_at)));
+  const goalEls = [...svg.querySelectorAll('.wnode[data-node], .gn.goal[data-slug]')], probEls = [...svg.querySelectorAll('[data-need]')];
+  const lineEls = [...svg.querySelectorAll('[data-ends]')], ownEls = [...svg.querySelectorAll('[data-pn]')];
+  const slugOf = (el) => el.dataset.node || el.dataset.slug;
+  const on = new Set();
+  const paint = () => {
+    goalEls.forEach((el) => el.classList.toggle('gone', !on.has(slugOf(el))));
+    probEls.forEach((el) => el.classList.toggle('gone', !(on.has(el.dataset.own) && el.dataset.need.split(' ').some((x) => on.has(x)))));
+    lineEls.forEach((el) => el.classList.toggle('gone', !el.dataset.ends.split(' ').every((x) => on.has(x))));
+    ownEls.forEach((el) => el.classList.toggle('gone', svg.querySelector(`.gn[data-n="${el.dataset.pn}"]`)?.classList.contains('gone') ?? true));
+  };
+  const links = Object.values(term.crossovers.links).flat().filter((l) => l.a && l.b);
+  const when = (d) => (d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+  let k = 0;
+  b.textContent = 'Growing…'; b.disabled = true; svg.classList.add('growing');
+  paint();
+  const step = () => {
+    if (k >= seq.length) {
+      cap.innerHTML = `<b>Today:</b> ${seq.length} goals, ${links.length} links between their problems`;
+      b.textContent = '↻ Replay'; b.disabled = false; svg.classList.remove('growing'); return;
+    }
+    const g = seq[k++]; on.add(g.slug);
+    const added = links.filter((l) => (l.a.slug === g.slug || l.b.slug === g.slug) && on.has(l.a.slug) && on.has(l.b.slug)).length;
+    paint();
+    cap.innerHTML = `<b>@${esc(g.handle)}</b> joins · ${esc(when(g.mapped_at))}${added ? ` · <span class="grow-new">+${added} link${added === 1 ? '' : 's'}</span>` : ''}`;
+    bar.style.width = `${(k / seq.length * 100).toFixed(1)}%`;
+    wrap._grow = setTimeout(step, added ? 1300 : 800);
+  };
+  wrap._grow = setTimeout(step, 300);
 });
 
 // Search across the crossovers: keystones, ripples and links filter as you type; matching goals and
@@ -3661,8 +3625,8 @@ function crossPanel(t) {
   const fresh = c.ripples.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen).length;
   return `<section class="panel">${head('The goal web', 'Goals linked by the problems they share · tap a line')}${answerBox(t.answers?.crossovers)}
       ${xSearchBox()}
-      ${selChips('webmode', [['rings', 'Rings'], ['goals', 'Web'], ['problems', 'Problems']], termSel.webmode || 'rings')}
-      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${(termSel.webmode || 'rings') === 'rings' ? chordSvg(c.web, sel) : webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
+      ${selChips('webmode', [['goals', 'Goals'], ['problems', 'Problems']], termSel.webmode || 'goals')}
+      <div class="webwrap">${termSel.webmode === 'problems' ? `${problemSvg(c)}<div class="webside">${problemSide(c)}</div>` : `${webSvg(c.web, sel)}<div class="webside">${pairSide}</div>`}</div></section>
     <section class="panel">${head(`Keystone problems <small>${c.keystones.length}</small>`, 'Solve once, move several goals · most goals first')}
       <div class="kcards">${keystoneCards(c.keystones.slice(0, termSel.keyAll ? 99 : 5))}</div>
       ${c.keystones.length > 5 && !termSel.keyAll ? `<p style="padding:12px 18px;margin:0;border-top:1px solid var(--line)"><button class="btn" type="button" data-tsel="keyAll" data-v="1">Show all ${c.keystones.length}</button></p>` : ''}</section>
@@ -3904,32 +3868,35 @@ function goalIndex(t) {
 }
 
 // Opportunity radar: each unsolved problem by public funding (across) and research growth (up).
-// Opportunity radar, as a two-sided bar chart: each problem's public funding (left) and research
-// growth (right), both as a rank among all problems with matched funding (0-100, a common scale).
-// A long bar on the right with a short one on the left is the opportunity: heating up, little money.
+// Opportunity radar, as a 2x2: research growth (slow / fast) against public money (little / a lot),
+// split at the middle problem for each. "Heating up, little money" is where money would go furthest.
 function radarPanel(t) {
   const full = t.access === 'full', pts = full ? t.radar : (t.preview?.radar || []);
   const head = `<div class="panel-h"><h2>Opportunity radar</h2><span class="lbl">Research heating up, public money thin</span></div>`;
   const funded = pts.filter((p) => p.x > 0 && p.y != null);
-  if (!funded.length) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
-  const rankOf = (arr, v) => (arr.length < 2 ? 50 : Math.round(arr.filter((x) => x < v).length / (arr.length - 1) * 100));
-  const xs = funded.map((p) => p.x), ys = funded.map((p) => p.y);
-  const rows = funded.map((p) => ({ ...p, fr: rankOf(xs, p.x), gr: rankOf(ys, p.y) })).map((p) => ({ ...p, gap: p.gr - p.fr }))
-    .sort((a, b) => Number(b.opportunity) - Number(a.opportunity) || b.gap - a.gap);
-  const shown = full ? rows.slice(0, termSel.radarAll ? rows.length : 10) : rows.filter((r) => r.title).slice(0, 2);
-  const opp = rows.filter((r) => r.opportunity).length;
-  const row = (r) => {
-    const name = r.title ? `<a href="#/g/${encodeURIComponent(r.slug)}/tree/${encodeURIComponent(r.key)}">${esc(r.title)}</a><small>@${esc(r.goal)}</small>` : '<span class="bf-hidden">Subscribers see the name</span>';
-    return `<div class="bf-row${r.opportunity ? ' op' : ''}"><div class="bf-name">${r.opportunity ? '<span class="bf-flag" title="In the opportunity group: growth in the top third, funding in the bottom third">Opportunity</span>' : ''}${name}</div>
-      <div class="bf-l" data-tip="Public funding: ${usdShort(r.x)} in US federal grants since ${new Date().getFullYear() - 3} · more than ${r.fr}% of funded problems"><span class="bf-v">${usdShort(r.x)}</span><i style="width:${Math.max(2, r.fr)}%"></i></div>
-      <div class="bf-r" data-tip="Research growth: ${r.y >= 0 ? '+' : ''}${Math.round(r.y * 100)}% papers, last 3 years vs the 3 before · faster than ${r.gr}% of funded problems"><i style="width:${Math.max(2, r.gr)}%"></i><span class="bf-v">${r.y >= 0 ? '+' : ''}${Math.round(r.y * 100)}%</span></div></div>`;
+  if (funded.length < 4) return `<section class="panel">${head}<div class="pad" style="color:var(--muted)">The radar fills in as research counts and funding data arrive.</div></section>`;
+  const mid = (arr) => { const v = [...arr].sort((a, b) => a - b); return v[Math.floor(v.length / 2)]; };
+  const mx = mid(funded.map((p) => p.x)), my = mid(funded.map((p) => p.y));
+  const box = (fast, rich) => funded.filter((p) => (p.y >= my) === fast && (p.x > mx) === rich).sort((a, b) => (fast ? b.y - a.y : a.y - b.y) || a.x - b.x);
+  const Q = [
+    { id: 'q-opp', fast: true, rich: false, name: 'Heating up, little money', why: 'Research is growing fast but public grants are small. This is where money would go furthest.' },
+    { id: 'q-hot', fast: true, rich: true, name: 'Heating up, well funded', why: 'Fast-growing and already well funded: the crowded races.' },
+    { id: 'q-quiet', fast: false, rich: false, name: 'Quiet, little money', why: 'Little new research and little money: overlooked, or stuck.' },
+    { id: 'q-steady', fast: false, rich: true, name: 'Quiet, well funded', why: 'Well funded but research isn’t picking up: worth asking why.' },
+  ].map((q) => ({ ...q, items: box(q.fast, q.rich) }));
+  const line = (p) => `<li>${p.title ? `<a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}">${esc(p.title)}</a>` : '<span class="bf-hidden">Name for subscribers</span>'}<small>${p.goal ? `@${esc(p.goal)} · ` : ''}research ${p.y >= 0 ? '+' : ''}${Math.round(p.y * 100)}% · ${usdShort(p.x)} in grants</small></li>`;
+  const card = (q) => {
+    const shown = q.id === 'q-opp' ? (full ? q.items.slice(0, termSel.radarAll ? 99 : 4) : q.items.filter((p) => p.title).slice(0, 2)) : (full ? q.items.slice(0, 2) : []);
+    return `<div class="qd ${q.id}"><div class="qd-h"><b>${q.name}</b><span class="mono">${q.items.length}</span></div><p>${q.why}</p>${shown.length ? `<ul>${shown.map(line).join('')}</ul>` : ''}
+      ${q.id === 'q-opp' && full && !termSel.radarAll && q.items.length > 4 ? `<button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${q.items.length}</button>` : ''}${q.id !== 'q-opp' && full && q.items.length > 2 ? `<small class="qd-more">+${q.items.length - 2} more</small>` : ''}</div>`;
   };
-  return `<section class="panel">${head}${answerBox(t.answers?.radar)}<div class="bf">
-      <div class="bf-head"><span></span><span>← Public funding</span><span>Research growth →</span></div>
-      ${shown.map(row).join('')}
-      <p class="radar-note">Bars are ranks among the ${funded.length} unsolved problems with matched US federal grants (0 = least, 100 = most). Flagged: growth in the top third and funding in the bottom third. Problems with no matched grants are left out, since the search may simply miss their funding.</p>
-      ${full && !termSel.radarAll && rows.length > shown.length ? `<p class="mk-more"><button class="btn sm" type="button" data-tsel="radarAll" data-v="1">Show all ${rows.length}</button></p>` : ''}</div>
-    ${full ? '' : moreGate(`${opp} problems are in the opportunity group right now. Subscribers see every name, open each one, and get alerted when new ones appear.`)}</section>`;
+  const top = Q[0].items.find((p) => p.title);
+  return `<section class="panel">${head}${answerBox([`${Q[0].items.length} of ${funded.length} funded problems are heating up with little public money.`, full && top ? `Fastest of them: ${top.title} (@${top.goal}), research +${Math.round(top.y * 100)}% on ${usdShort(top.x)} in grants.` : null].filter(Boolean))}<div class="qwrap">
+      <span></span><span class="qcol">Little public money</span><span class="qcol">A lot of public money</span>
+      <span class="qrow">Research growing fast</span>${card(Q[0])}${card(Q[1])}
+      <span class="qrow">Research growing slowly</span>${card(Q[2])}${card(Q[3])}</div>
+    <p class="radar-note" style="padding:0 18px 14px">The ${funded.length} unsolved problems with matched US federal grants, split at the middle for each: research growth is papers in the last 3 years vs the 3 before; money is grants since ${new Date().getFullYear() - 3}. Problems with no matched grants are left out, since the search may simply miss their funding.</p>
+    ${full ? '' : moreGate(`${Q[0].items.length} problems are heating up with little public money. Subscribers see every name and get alerted when new ones appear.`)}</section>`;
 }
 
 // Catalysts: what is due, across every goal. Trial readouts (ClinicalTrials.gov) and promises coming due.
