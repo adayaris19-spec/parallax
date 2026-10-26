@@ -810,6 +810,47 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .pweek-n{font-size:12.5px;color:var(--muted);margin:8px 2px 0}
 .pside-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
 .pside-h h2{margin:0;font-size:22px;letter-spacing:-.02em}
+.plus-top{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:22px;margin-top:22px;align-items:start}
+.plus-top .pweek-sw{height:min(62vh,580px)}
+.pmain{display:grid;gap:14px}
+.pbox{padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.pbox h2{font-size:19px;letter-spacing:-.015em;line-height:1.3;margin:6px 0 8px}
+.pbox ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14.5px;line-height:1.45}
+.pbox-h{display:flex;justify-content:space-between;align-items:center}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 6px}
+.pstats div{padding:8px 10px;border-radius:12px;background:var(--sunk)}
+.pstats b{display:block;font-size:20px;font-weight:600}.pstats small{font-size:12px;color:var(--muted)}
+.pnote{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.rrs{display:grid;margin-top:6px}
+.rr{border-top:1px solid var(--line)}
+.rr>summary{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:center;padding:10px 0;cursor:pointer;list-style:none}
+.rr>summary::-webkit-details-marker{display:none}
+.rr-m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--sunk);color:var(--muted)}
+.rr.right .rr-m{background:color-mix(in srgb,var(--solved) 18%,var(--card));color:var(--solved)}
+.rr.wrong .rr-m{background:color-mix(in srgb,var(--blocked) 14%,var(--card));color:var(--blocked)}
+.rr-t b{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr-t small{font-size:12px;color:var(--muted)}
+.rr-d{padding:0 0 12px 34px;font-size:13.5px;line-height:1.45}.rr-d p{margin:0 0 6px}.rr-d small{color:var(--muted)}.rr-d a{color:var(--ink2)}
+.rr-more{margin-top:6px;border-top:1px solid var(--line)}
+.rr-more>summary{cursor:pointer;padding:10px 0 2px;font-size:13.5px;color:var(--ink2);font-weight:500}
+.rr-w{margin:8px 0 0;font-size:13.5px}.rr-w small{display:block;color:var(--muted);font-size:12px}
+.pstrip-h{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 10px}
+.pstrip-h h2{margin:0;font-size:22px;letter-spacing:-.02em}.pstrip-h small{font-family:var(--m);font-size:13px;color:var(--muted);font-weight:400}
+.pstrip-a{display:flex;gap:6px}
+.pstrip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,280px);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 12px;scrollbar-width:thin}
+.cc{scroll-snap-align:start;position:relative;display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;min-height:230px}
+.cc::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--img,var(--accent-soft)) center/cover,var(--accent-soft)}
+.cc-top{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.cc-g{font-size:12.5px;color:var(--muted);text-decoration:none}
+.cc h3{font-size:15px;line-height:1.35;margin:0 0 4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cc h3 a{color:var(--ink);text-decoration:none}.cc h3 a:hover{text-decoration:underline}
+.cc .call{margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.cc .call>b{font-size:13px;font-weight:600}
+.cc-b{display:flex;align-items:center;gap:6px;margin-top:8px}
+.cc-split{flex:1;display:grid;gap:3px;min-width:0;text-align:right}.cc-split .stbar{height:5px}.cc-split small{font-size:11.5px;color:var(--muted)}
+.cc.ghost span{display:block;height:12px;border-radius:4px;background:var(--line2);margin:8px 0}.cc.ghost span:nth-child(2){width:70%}.cc.ghost span:nth-child(3){width:45%}
+.cc-more{justify-content:center;background:linear-gradient(160deg,var(--accent-soft),var(--card))}.cc-more p{margin:0;font-size:13.5px;color:var(--ink2)}.cc-more .btn{align-self:flex-start;margin-top:6px}
+@media (max-width:760px){.plus-top{grid-template-columns:1fr}.plus-top .pweek{justify-self:center}.pstrip{grid-auto-columns:78%}}
 .comings{display:grid;gap:12px}
 .coming{position:relative;padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
 .coming::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--img,var(--accent-soft)) center/cover,var(--accent-soft)}
@@ -1201,6 +1242,12 @@ body.wide main{max-width:1120px}
 .fld .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
 .fld ol{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink2)}
 .fld ol li span{color:var(--muted);font-family:var(--m);font-size:11.5px}
+.bdet{border-top:1px solid var(--line)}
+.bdet>summary{cursor:pointer;padding:12px 18px;font-size:14px;font-weight:500;color:var(--ink2);list-style:none}
+.bdet>summary::-webkit-details-marker{display:none}
+.bdet>summary::after{content:" ↓";color:var(--muted)}.bdet[open]>summary::after{content:" ↑"}
+.csvrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 0}
+.csvrow .lbl{margin-right:4px}
 /* Pro market views: money, the race, the pipeline */
 .mrows .lbl{color:var(--muted)}
 .mrow{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:12px 18px;border-top:1px solid var(--line);align-items:start}
@@ -2843,9 +2890,6 @@ async function callFn(name, body = {}) {
 }
 
 let term = null; // last answer from the terminal function
-let termSort = { goals: { key: 'momentum', dir: -1 }, problems: { key: '', dir: 1 } };
-let termFilter = { status: '', kind: '', q: '' };
-let termLimit = 25;
 const KIND_LABEL = { knowledge: 'Knowledge', materials: 'Materials', instruments: 'Instruments', funding: 'Funding', attention: 'Attention', unknown: 'Not yet known' };
 const STATUS_LABEL = { blocked: 'Blocked', open: 'Open', in_progress: 'In progress', solved: 'Solved' };
 const pct = (x) => `${Math.round((x || 0) * 100)}%`;
@@ -2870,69 +2914,6 @@ async function manageBilling(btn) {
   if (data.url) { location.href = data.url; return; }
   btn.disabled = false;
   toast(data.error || 'Could not open billing. Try again.');
-}
-
-function spark(points) {
-  if (!points || points.length < 2) return '<span style="color:var(--faint)">—</span>';
-  const w = 64, h = 18, ys = points.map((p) => p.progress || 0), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
-  const d = ys.map((y, i) => `${i ? 'L' : 'M'}${(i / (ys.length - 1) * w).toFixed(1)},${(h - 2 - (y - lo) / span * (h - 4)).toFixed(1)}`).join('');
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-label="Progress over time"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
-}
-
-function sortRows(rows, { key, dir }) {
-  if (!key) return rows;
-  return [...rows].sort((a, b) => {
-    const x = a[key], y = b[key];
-    if (x == null && y == null) return 0;
-    if (x == null) return 1;
-    if (y == null) return -1;
-    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir;
-  });
-}
-function th(table, key, label, cls = '') {
-  const s = termSort[table];
-  const sort = s.key === key ? ` aria-sort="${s.dir > 0 ? 'ascending' : 'descending'}"` : '';
-  return `<th class="${cls}" data-sort="${table}:${key}"${sort} scope="col">${label}</th>`;
-}
-
-function goalsTable() {
-  const hist = new Map();
-  for (const h of term.history || []) { if (!hist.has(h.goal_id)) hist.set(h.goal_id, []); hist.get(h.goal_id).push(h); }
-  const rows = sortRows(term.goals, termSort.goals);
-  return `<div class="tw"><table class="tt"><thead><tr>
-    ${th('goals', 'handle', 'Goal')}${th('goals', 'solved', 'Solved', 'num')}<th class="nosort num" scope="col">Trend</th>${th('goals', 'horizon_low', 'Countdown', 'num')}
-    ${th('goals', 'problems', 'Problems', 'num')}${th('goals', 'blocked', 'Blocked', 'num')}${th('goals', 'momentum', 'Momentum 30d', 'num')}
-    ${th('goals', 'promise_score', 'Promises kept', 'num')}${th('goals', 'field_growth', 'Field growth', 'num')}${th('goals', 'followers', 'Followers', 'num')}
-  </tr></thead><tbody>${rows.map((g) => `<tr>
-    <td><a href="#/g/${encodeURIComponent(g.slug)}"><b>@${esc(g.handle)}</b></a><span class="sub">${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</span></td>
-    <td class="num"><span class="pbar">${statusBar({ solved: g.solved, moving: g.in_progress, blocked: g.blocked, open: g.open })}</span>${g.solved}/${g.problems}</td>
-    <td class="num">${spark(hist.get(g.id))}</td>
-    <td class="num">${horizon(g)}</td>
-    <td class="num">${g.problems}</td>
-    <td class="num">${g.blocked}</td>
-    <td class="num ${g.momentum > 0 ? 'up' : g.momentum < 0 ? 'down' : ''}">${signed(g.momentum)}<span class="sub">${g.advances30} up · ${g.setbacks30} down</span></td>
-    <td class="num">${g.promise_score == null ? '—' : pct(g.promise_score)}<span class="sub">${g.promises_kept + g.promises_partly + g.promises_broken} judged</span></td>
-    <td class="num ${g.field_growth > 0 ? 'up' : ''}">${growthTxt(g.field_growth)}<span class="sub">${g.field_papers_3y == null ? '' : `${fmtN(g.field_papers_3y)} papers, 3 yrs`}</span></td>
-    <td class="num">${g.followers}<span class="sub">${g.contributors} helping</span></td>
-  </tr>`).join('')}</tbody></table></div>`;
-}
-
-function problemsTable() {
-  const q = termFilter.q.toLowerCase();
-  let rows = term.problems.filter((p) => (!termFilter.status || p.status === termFilter.status) && (!termFilter.kind || p.blocker_kind === termFilter.kind)
-    && (!q || `${p.title} ${p.blocker} ${p.goal}`.toLowerCase().includes(q)));
-  rows = sortRows(rows, termSort.problems);
-  const shown = rows.slice(0, termLimit);
-  return `<div class="tw"><table class="tt"><thead><tr>
-    ${th('problems', 'title', 'Problem')}${th('problems', 'goal', 'Goal')}${th('problems', 'status', 'Status')}${th('problems', 'blocker_kind', 'Held back by')}${th('problems', 'sources', 'Sources', 'num')}
-  </tr></thead><tbody>${shown.map((p) => `<tr>
-    <td><a href="#/g/${encodeURIComponent(p.slug)}/tree/${encodeURIComponent(p.key)}">${p.bottleneck ? '<span class="pill" style="height:18px;font-size:11px;margin-right:6px">Bottleneck</span>' : ''}${esc(p.title)}</a>${p.blocker ? `<span class="sub">${esc(p.blocker)}</span>` : ''}</td>
-    <td><a href="#/g/${encodeURIComponent(p.slug)}">@${esc(p.goal)}</a></td>
-    <td style="white-space:nowrap"><i class="dot st-${esc(p.status)}" style="display:inline-block;margin:0 6px 0 0;vertical-align:middle"></i>${STATUS_LABEL[p.status] || esc(p.status)}</td>
-    <td>${KIND_LABEL[p.blocker_kind] || esc(p.blocker_kind)}</td>
-    <td class="num">${p.sources}</td>
-  </tr>`).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nothing matches.</td></tr>'}</tbody></table></div>
-  ${rows.length > shown.length ? `<div style="padding:12px 18px;border-top:1px solid var(--line);text-align:center"><button class="btn" type="button" data-more>Show ${Math.min(25, rows.length - shown.length)} more · ${rows.length - shown.length} left</button></div>` : ''}`;
 }
 
 function csv(rows, cols) {
@@ -3040,28 +3021,6 @@ function oppPanel(t) {
   </div></section>`;
 }
 
-function bottleneckBoard(list) {
-  return list.map((b) => `<a href="#/g/${encodeURIComponent(b.slug)}${b.key ? `/tree/${encodeURIComponent(b.key)}` : ''}">
-    <div><div class="g">@${esc(b.goal)}</div><div class="t">${esc(b.title)}</div></div><div class="h">${horizon(b)}</div>
-    ${b.why ? `<div class="w">${esc(b.why)}</div>` : ''}
-    <div class="meta"><span class="sig ${b.status === 'blocked' ? 'setback' : b.status === 'in_progress' ? 'bottleneck' : ''}">${STATUS_LABEL[b.status] || esc(b.status)}</span><span class="sig">${KIND_LABEL[b.kind] || esc(b.kind)}</span><span class="sig">${b.sources} sources</span></div></a>`).join('');
-}
-
-function heatMap(t) {
-  const kinds = KIND_ORDER.filter((k) => t.blockers.some((b) => b.kind === k));
-  const max = Math.max(1, ...Object.values(t.matrix).flatMap((m) => Object.values(m)));
-  const rows = [...t.goals].sort((a, b) => b.problems - a.problems);
-  const seg = (n, total, color, label) => n ? `<i style="flex:${n};background:${color}" data-tip="${label} · ${n} of ${total}"></i>` : '';
-  return `<div class="heat" style="--k:${kinds.length}">
-    <div class="row"><span class="hd">Goal</span>${kinds.map((k) => `<span class="hd">${KIND_LABEL[k]}</span>`).join('')}<span class="hd" style="padding-left:12px">All problems by status</span></div>
-    ${rows.map((g) => `<div class="row"><a class="nm" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a>${kinds.map((k) => {
-      const n = (t.matrix[g.slug] || {})[k] || 0, a = n / max;
-      return `<span class="c" style="${n ? `background:color-mix(in srgb,var(--accent) ${Math.round(12 + 70 * a)}%,var(--card));color:${a > 0.5 ? '#fff' : 'var(--ink)'}` : ''}" data-tip="@${esc(g.handle)} · ${n} waiting on ${KIND_LABEL[k].toLowerCase()}">${n || '·'}</span>`;
-    }).join('')}<span class="stk">${seg(g.solved, g.problems, 'var(--solved)', 'Solved')}${seg(g.in_progress, g.problems, 'var(--progress)', 'In progress')}${seg(g.blocked, g.problems, 'var(--blocked)', 'Blocked')}${seg(g.open, g.problems, 'var(--open)', 'Open')}</span></div>`).join('')}
-  </div>
-  <div class="legend2"><span>Cells: unsolved problems by what they wait on. Darker means more.</span><span><i style="background:var(--solved)"></i>Solved</span><span><i style="background:var(--progress)"></i>In progress</span><span><i style="background:var(--blocked)"></i>Blocked</span><span><i style="background:var(--open)"></i>Open</span></div>`;
-}
-
 // ---- Pro-only market views: money flows, the race, the pipeline. Data the free site never shows.
 const termSel = { money: '', race: '', pipe: '', phase: '', moneyAll: false, pipeAll: false };
 const selChips = (key, items, cur, allLabel) => `<div class="bfilter" role="group">${allLabel ? `<button type="button" class="chip3${cur ? '' : ' on'}" data-tsel="${key}" data-v="">${allLabel}</button>` : ''}${items.map(([v, label]) => `<button type="button" class="chip3${cur === v ? ' on' : ''}" data-tsel="${key}" data-v="${esc(v)}">${esc(label)}</button>`).join('')}</div>`;
@@ -3165,51 +3124,55 @@ document.addEventListener('click', (e) => {
   if (k === 'money') termSel.moneyAll = false;
   if (k === 'pipe') { termSel.phase = ''; termSel.pipeAll = false; }
   if (k === 'phase') termSel.pipeAll = false;
-  const tab = k === 'race' ? 'race' : k === 'money' || k === 'moneyAll' ? 'money' : 'pipeline';
-  const pane = b.closest('.tpane'); if (!pane) return;
-  pane.innerHTML = MARKET_PANES[tab](term);
+  const pane = b.closest('[data-mp]'); if (!pane) return;
+  pane.innerHTML = MARKET_PANES[pane.dataset.mp](term);
   pane.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
   if (k === 'money' && v) pane.querySelector('#mAwards')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
 });
 
-const TTABS = [
-  ['overview', 'Goal index'], ['money', 'Money'], ['race', 'The race'], ['pipeline', 'Pipeline'], ['radar', 'Radar'], ['calendar', 'Catalysts'],
-  ['watch', 'Watchlist'], ['brief', 'Weekly brief'], ['opportunities', 'Opportunities'], ['bottlenecks', 'Bottlenecks'], ['data', 'All data'],
-];
+// Four tabs: the overview, and one each for money, players and dates. Old links land on the tab
+// that now holds what they pointed to.
+const TTABS = [['overview', 'Overview'], ['money', 'Money'], ['players', 'Players'], ['calendar', 'Calendar']];
+const TAB_ALIAS = { radar: 'money', opportunities: 'money', race: 'players', pipeline: 'players', leaders: 'players', watch: 'calendar', brief: 'overview', bottlenecks: 'overview', signals: 'overview', data: 'overview' };
+const mp = (id, html) => `<div data-mp="${id}">${html}</div>`;
 
-// Overview cards: one per tab, each with the single most useful fact from it.
+// Overview cards: one per other tab, each with the single most useful fact from it.
 function overviewCards(t) {
-  const full = t.access === 'full';
-  const card = (tab, title, big, line, locked) => `<a class="jump${locked ? ' lockd' : ''}" href="#/terminal/${tab}"><span class="lbl">${title}${locked ? ' · <span class="lk">Preview</span>' : ''}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${locked ? 'See a sample →' : 'Open →'}</span></a>`;
-  const mt = t.market_totals || {};
-  if (!full) {
-    return `<div class="jumps">
-      ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants in 90 days`, 'Who got them, for which problem, and every goal’s funding by quarter.', true)}
-      ${card('race', 'The race', 'Who is leading each goal, and who is climbing', 'Grants, trials and papers per organization, with a year’s movement.', true)}
-      ${mt.trials ? card('pipeline', 'Pipeline', `${mt.trials} active trials on the health goals`, 'By phase and sponsor, with when results are due.', true) : ''}
-      ${card('brief', 'Weekly brief', 'What moved this week, and what to watch', 'An analyst’s read on every goal, written every Monday from the week’s research.', true)}
-      ${card('opportunities', 'Opportunities', 'Where money or attention would move things', 'Problems held back only by money, problems research has gone quiet on, and problems heating up.', true)}
-      ${card('data', 'All data', 'Every goal and problem, in tables', 'Sort, filter and download everything as CSV.', true)}
-    </div>`;
-  }
-  const o = t.opportunities, c = t.opportunity_counts;
-  const aw = t.money?.awards?.[0], cl = t.race?.climbers?.[0];
+  const full = t.access === 'full', mt = t.market_totals || {};
+  const card = (tab, title, big, line) => `<a class="jump${full ? '' : ' lockd'}" href="#/terminal/${tab}"><span class="lbl">${title}${full ? '' : ' · <span class="lk">Preview</span>'}</span><b>${big}</b><span class="ln">${line}</span><span class="go">${full ? 'Open →' : 'See a sample →'}</span></a>`;
+  const aw = t.money?.awards?.[0], cl = t.race?.climbers?.[0], next = (t.catalysts || [])[0];
   return `<div class="jumps">
-    ${t.brief ? card('brief', 'Weekly brief', esc(t.brief.headline), `Week of ${esc(new Date(t.brief.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))} · what moved, what to watch, where money matters`) : ''}
-    ${card('opportunities', 'Opportunities', `${c.funding} funding gaps · ${c.quiet} gone quiet · ${c.hot} heating up`, o.funding[0] ? `Top gap: ${esc(o.funding[0].title)} (@${esc(o.funding[0].goal)})` : 'Where money or attention would move things')}
-    ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants · ${usdShort(mt.awards_sum || 0)}`, aw ? `Biggest: ${usdShort(aw.amount)} to ${esc(aw.recipient)} (@${esc(aw.goal)})` : 'Federal grant money on every goal, by quarter')}
-    ${card('race', 'The race', `${mt.climbers || 0} organizations on the move`, cl ? `${esc(cl.name)}: ${cl.prior_rank ? `#${cl.prior_rank} → #${cl.rank}` : `new at #${cl.rank}`} on @${esc(cl.goal)}` : 'Who leads each goal on grants, trials and papers')}
-    ${mt.trials ? card('pipeline', 'Pipeline', `${mt.trials} active trials`, `Across ${mt.health_goals} health goals, by phase and sponsor`) : ''}
-    ${card('bottlenecks', 'Bottlenecks', `${t.bottlenecks_total} goals held back · ${t.kpis.blocked} problems blocked`, t.bottlenecks[0] ? `e.g. ${esc(t.bottlenecks[0].title)} (@${esc(t.bottlenecks[0].goal)})` : 'What holds each goal back, and the stuck map')}
-    ${card('data', 'All data', `${t.goals_total} goals · ${t.problems_total} open problems`, 'Sortable tables, filters and CSV downloads')}
+    ${card('money', 'Money', `${mt.awards || 0} new $1M+ grants · ${usdShort(mt.awards_sum || 0)}`, full && aw ? `Biggest: ${usdShort(aw.amount)} to ${esc(aw.recipient)} (@${esc(aw.goal)})` : 'Who got them, funding by quarter, and where money is thin')}
+    ${card('players', 'Players', `${mt.climbers || 0} organizations on the move${mt.trials ? ` · ${mt.trials} trials` : ''}`, full && cl ? `${esc(cl.name)}: ${cl.prior_rank ? `#${cl.prior_rank} → #${cl.rank}` : `new at #${cl.rank}`} on @${esc(cl.goal)}` : 'Who leads each goal on grants, trials and papers')}
+    ${card('calendar', 'Calendar', `${t.catalysts_total || 0} catalysts ahead`, full && next ? `Next: ${esc(next.title.slice(0, 80))} (@${esc(next.goal)})` : 'Trial readouts and promises coming due, with alerts')}
   </div>`;
+}
+
+// This week, short: the brief's headline and three bullets; the full brief opens in place.
+function weekBox(t) {
+  const full = t.access === 'full', b = full ? t.brief : null;
+  if (!full) return briefPanel(t);
+  if (!b) return '';
+  const n = (b.moved?.length || 0) + (b.watch?.length || 0) + (b.money?.length || 0);
+  return `<section class="panel"><div class="brief"><span class="lbl">This week · ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))}</span><h3>${esc(b.headline)}</h3></div>
+    ${answerBox(b.tldr?.length ? b.tldr : [b.summary]).replace('The answer', 'In 30 seconds')}
+    <details class="bdet"><summary>Read the full brief · ${n} items</summary>${(() => { const fb = briefPanel(t); return fb.slice(fb.indexOf('<div class="bfilter"')).replace(/<\/section>$/, ''); })()}</details></section>`;
+}
+
+// The next few catalysts, compact.
+function upNext(t) {
+  const items = (t.access === 'full' ? t.catalysts : t.preview?.catalysts || []).slice(0, 3);
+  if (!items.length) return '';
+  const label = (d) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : d);
+  return `<section class="panel"><div class="panel-h"><h2>Up next</h2><a class="lbl" href="#/terminal/calendar">All ${t.catalysts_total} on the calendar →</a></div>
+    <div class="mrows">${items.map((c) => `<div class="mrow"><b class="mono amt">${esc(label(c.date))}</b><div class="mrow-t"><b>${esc(c.title)}</b> <a class="hchip" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a><small>${c.kind === 'trial' ? 'Trial readout' : 'Promise due'} · ${esc(c.detail || '')}</small></div></div>`).join('')}</div></section>`;
 }
 
 // Goal index: one row per goal, like a market screen.
 // The answer first: 2-4 plain facts at the top of each Terminal section, @handles as chips.
 function answerBox(lines) {
   if (!lines || !lines.length) return '';
-  const fmt = (x) => esc(x).replace(/@([A-Za-z0-9]+)/g, '<span class="hchip">@$1</span>').replace(/(\+?\d[\d,.]*%?)/g, '<b>$1</b>');
+  const fmt = (x) => esc(x).replace(/@([A-Za-z0-9]+)/g, '<span class="hchip">@$1</span>').replace(/(?<![#\w&])(\+?\d[\d,.]*%?)(?![\d;])/g, '<b>$1</b>');
   return `<div class="ans"><span class="lbl">The answer</span><ul>${lines.map((l) => `<li>${fmt(l)}</li>`).join('')}</ul></div>`;
 }
 function goalIndex(t) {
@@ -3308,7 +3271,7 @@ async function wireWatch(box) {
   if (!wlState.loaded && me && sb) {
     const { data } = await sb.from('watchlists').select('goals,rules').eq('user_id', me.id).maybeSingle();
     wlState.loaded = true;
-    if (data) { wlState.goals = data.goals; wlState.rules = { ...wlState.rules, ...(data.rules || {}) }; renderTerminal(box, 'watch'); return; }
+    if (data) { wlState.goals = data.goals; wlState.rules = { ...wlState.rules, ...(data.rules || {}) }; renderTerminal(box, 'calendar'); return; }
   }
   $('#wlSave').onclick = async () => {
     const goals = [...box.querySelectorAll('input[name=wg]:checked')].map((x) => x.value);
@@ -3326,7 +3289,7 @@ async function wireWatch(box) {
 
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
-  if (tab === 'leaders') tab = 'race'; // old links
+  tab = TAB_ALIAS[tab] || tab; // old links
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   const thisYear = new Date().getFullYear();
   const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
@@ -3339,32 +3302,16 @@ function renderTerminal(box, tab = 'overview') {
       <div><span class="lbl">Catalysts ahead</span><b class="mono">${t.catalysts_total ?? 0}</b><small>trial readouts and promises due</small></div>
       <div><span class="lbl">Promises kept</span><b class="mono">${k.promise_score == null ? '—' : pct(k.promise_score)}</b><small>of ${k.promises_judged} judged</small></div>
     </section>
+    ${weekBox(t)}
     ${goalIndex(t)}
-    ${overviewCards(t)}`;
+    ${upNext(t)}
+    ${overviewCards(t)}
+    ${full ? `<p class="csvrow"><span class="lbl">Download</span><button class="btn sm" type="button" data-csv="goals">Every goal (CSV)</button><button class="btn sm" type="button" data-csv="problems">Every open problem (CSV)</button></p>` : ''}`;
   const panes = {
     overview: () => overview,
-    radar: () => radarPanel(t),
-    calendar: () => calendarPanel(t),
-    watch: () => watchPanel(t),
-    brief: () => briefPanel(t) || note('No brief yet', 'The first weekly brief is written on Monday morning.'),
-    opportunities: () => oppPanel(t),
-    money: () => moneyPanel(t),
-    race: () => racePanel(t),
-    pipeline: () => pipelinePanel(t),
-    bottlenecks: () => `<section class="panel"><div class="panel-h"><h2>Bottleneck board ${full ? `<small>${t.bottlenecks_total}</small>` : ''}</h2><span class="lbl">The one problem holding back each goal</span></div>${answerBox(t.answers?.bottlenecks)}
-        ${full ? `<div class="bn">${bottleneckBoard(t.bottlenecks)}</div>` : t.preview?.bottlenecks?.length ? `<div class="bn">${bottleneckBoard(t.preview.bottlenecks)}</div>${moreGate(`2 of ${t.preview.bottlenecks_total} goals. Subscribers see every goal’s bottleneck, what it waits on, and its countdown.`)}` : lockGate('The bottleneck board', 'The one problem holding back each goal, what it waits on, and its countdown.')}</section>
-      <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
-        ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
-    data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate('Every goal and every problem', 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
-        <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
-        <div id="tGoals">${goalsTable()}</div></section>
-      <section class="panel"><div class="panel-h"><h2>Open problems <small>${full ? t.problems_total : `${t.problems.length} of ${t.problems_total}`}</small></h2>
-        ${full ? `<div class="tools"><input id="tQ" type="search" placeholder="Search problems" value="${esc(termFilter.q)}" aria-label="Search problems">
-          <select id="tStatus" aria-label="Status"><option value="">Any status</option>${['blocked', 'open', 'in_progress'].map((s) => `<option value="${s}"${termFilter.status === s ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select>
-          <select id="tKind" aria-label="Held back by"><option value="">Anything</option>${Object.keys(KIND_LABEL).map((s) => `<option value="${s}"${termFilter.kind === s ? ' selected' : ''}>${KIND_LABEL[s]}</option>`).join('')}</select>
-          <button class="btn" type="button" data-csv="problems">Download CSV</button></div>` : ''}</div>
-        <div id="tProblems">${problemsTable()}</div>
-        ${full ? '' : lockGate('Every open problem', 'Filter every open problem by goal, status and what holds it back, and download them all.')}</section>`,
+    money: () => mp('money', moneyPanel(t)) + radarPanel(t) + oppPanel(t),
+    players: () => mp('race', racePanel(t)) + mp('pipeline', pipelinePanel(t)),
+    calendar: () => calendarPanel(t) + watchPanel(t),
   };
   const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
@@ -3374,27 +3321,10 @@ function renderTerminal(box, tab = 'overview') {
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
   box.querySelector('.ttabs [aria-selected=true]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
-  if (tab === 'watch') wireWatch(box);
+  if (tab === 'calendar') wireWatch(box);
   const bill = box.querySelector('#tBill');
   if (bill) bill.onclick = () => manageBilling(bill);
   box.querySelectorAll('[data-csv]').forEach((b) => { b.onclick = () => exportCsv(b.dataset.csv); });
-  box.addEventListener('click', (e) => {
-    if (e.target.closest('[data-more]')) { termLimit += 25; box.querySelector('#tProblems').innerHTML = problemsTable(); return; }
-    const h = e.target.closest('th[data-sort]');
-    if (!h) return;
-    const [table, key] = h.dataset.sort.split(':');
-    const s = termSort[table];
-    termSort[table] = { key, dir: s.key === key ? -s.dir : typeof (term[table][0] || {})[key] === 'string' ? 1 : -1 };
-    box.querySelector(table === 'goals' ? '#tGoals' : '#tProblems').innerHTML = table === 'goals' ? goalsTable() : problemsTable();
-  });
-  const refilter = () => {
-    termFilter = { q: box.querySelector('#tQ').value.trim(), status: box.querySelector('#tStatus').value, kind: box.querySelector('#tKind').value };
-    termLimit = 25;
-    box.querySelector('#tProblems').innerHTML = problemsTable();
-  };
-  box.querySelector('#tQ')?.addEventListener('input', refilter);
-  box.querySelector('#tStatus')?.addEventListener('change', refilter);
-  box.querySelector('#tKind')?.addEventListener('change', refilter);
 }
 
 // One floating tooltip for every chart mark with data-tip.
@@ -3448,48 +3378,55 @@ async function plusView() {
   const countOf = (k) => d.counts.find((c) => c.key === k) || { yes: 0, no: 0 };
   const myCall = (k) => d.mine.find((m) => m.key === k)?.choice;
   const resultOf = (k) => d.results.find((r) => r.key === k);
+  const split = (n) => { const tot = n.yes + n.no; return tot ? `<span class="cc-split"><span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% yes · ${tot}</small></span>` : `<span class="cc-split"><small>${full ? 'No calls yet' : 'Plus members call it'}</small></span>`; };
+  // Coming up: compact cards in a row you swipe through.
   const card = (c, i) => {
-    const g = goalOf(c.goal), n = countOf(c.key), tot = n.yes + n.no, my = myCall(c.key), res = resultOf(c.key), u = safeUrl(c.url);
-    return `<article class="coming" style="${pic(g, i) ? `--img:url('${esc(pic(g, i)).replace(/'/g, '%27')}')` : ''}">
-      <div class="coming-top"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial readout' : 'Promise due'}</span><span class="coming-d">${esc(fmtDate(c.date))}</span></div>
+    const g = goalOf(c.goal), my = myCall(c.key), u = safeUrl(c.url), p = pic(g, i);
+    return `<article class="cc"${p ? ` style="--img:url('${esc(p).replace(/'/g, '%27')}')"` : ''}>
+      <div class="cc-top"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial' : 'Promise'}</span><span class="coming-d">${esc(fmtDate(c.date))}</span></div>
+      <a class="cc-g" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a>
       <h3>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(c.title)}</a>` : esc(c.title)}</h3>
-      <p class="coming-m"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> · ${esc(c.detail || '')}</p>
       <div class="call" data-key="${esc(c.key)}"><b>${esc(c.question)}</b>
-        ${res ? `<p class="call-res">Result: <b>${res.outcome === 'yes' ? 'Yes' : res.outcome === 'no' ? 'No' : 'No result'}</b>${my && res.outcome !== 'void' ? ` · you said ${my === 'yes' ? 'yes' : 'no'}${my === res.outcome ? ' ✓' : ''}` : ''}</p>` : `<div class="call-b"><button type="button" class="btn sm${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn sm${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button></div>`}
-        <div class="call-split" aria-label="What everyone thinks">${tot ? `<span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% say yes · ${tot} call${tot === 1 ? '' : 's'}</small>` : `<small>${full ? 'Be the first to call it.' : 'Plus members make the call.'}</small>`}</div>
-      </div></article>`;
+        <div class="cc-b"><button type="button" class="btn sm${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn sm${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button>${split(countOf(c.key))}</div></div></article>`;
   };
   const calls = d.mine.length, judged = d.mine.filter((m) => resultOf(m.key) && resultOf(m.key).outcome !== 'void'), right = judged.filter((m) => resultOf(m.key).outcome === m.choice).length;
-  // Settled questions (your calls first) and your calls still waiting on a result.
+  // Results: one compact row each, opening in place for the details.
   const RES = { yes: 'Yes', no: 'No', void: 'No result' };
-  const settledCard = (c) => {
+  const resRow = (c) => {
     const res = resultOf(c.key), my = myCall(c.key), u = safeUrl(res.source_url || c.url), n = countOf(c.key), tot = n.yes + n.no;
-    const mark = !my ? '' : res.outcome === 'void' ? 'Your call doesn’t count' : my === res.outcome ? `You said ${my}: called it ✓` : `You said ${my}`;
-    return `<div class="settled${my && res.outcome !== 'void' ? (my === res.outcome ? ' right' : ' wrong') : ''}"><div class="coming-top"><span class="sig ${res.outcome === 'yes' ? 'advance' : res.outcome === 'no' ? 'setback' : ''}">Result: ${RES[res.outcome]}</span><a class="coming-d" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a></div>
-      <b class="settled-t">${esc(c.question)}</b><p class="settled-q">${esc(c.title)}</p>${res.note ? `<p>${esc(res.note)}</p>` : ''}
-      <small>${[mark, tot ? `${Math.round(n.yes / tot * 100)}% of ${tot} said yes` : '', u ? `<a href="${esc(u)}" target="_blank" rel="noopener">Source</a>` : ''].filter(Boolean).join(' · ')}</small></div>`;
+    const mark = !my || res.outcome === 'void' ? '–' : my === res.outcome ? '✓' : '✗';
+    const cls = !my || res.outcome === 'void' ? '' : my === res.outcome ? ' right' : ' wrong';
+    return `<details class="rr${cls}"><summary><span class="rr-m" aria-hidden="true">${mark}</span><span class="rr-t"><b>${esc(c.title)}</b><small>@${esc(c.goal)} · result: ${RES[res.outcome]}${my && res.outcome !== 'void' ? ` · you said ${my}` : ''}</small></span></summary>
+      <div class="rr-d"><p><b>${esc(c.question)}</b> ${RES[res.outcome]}.</p>${res.note ? `<p>${esc(res.note)}</p>` : ''}<small>${[tot ? `${Math.round(n.yes / tot * 100)}% of ${tot} said yes` : '', res.outcome === 'void' && my ? 'Your call doesn’t count' : '', u ? `<a href="${esc(u)}" target="_blank" rel="noopener">Source</a>` : ''].filter(Boolean).join(' · ')}</small></div></details>`;
   };
   const settled = (d.settled || []).filter((c) => resultOf(c.key));
   const waiting = d.waiting || [];
-  const callsSec = settled.length || waiting.length ? `<div class="pside-h" style="margin-top:22px"><h2>Results</h2><span class="lbl">${judged.length ? `you: ${right} of ${judged.length} right` : 'settled automatically from trial results and promise checks'}</span></div>
-    <div class="comings">${settled.slice(0, full ? 20 : 1).map(settledCard).join('')}
-    ${waiting.length ? `<div class="settled wait"><span class="lbl">Your calls waiting on a result · ${waiting.length}</span>${waiting.map((c) => `<p><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>${esc(c.status_note ? `Due ${fmtDate(c.date)}, ${c.status_note}` : `Due ${fmtDate(c.date)}, checked weekly`)}</small></p>`).join('')}</div>` : ''}</div>` : '';
   const cta = (where) => `<div class="plus-cta ${where}"><div><b>Parallax Plus</b><span>${esc(d.price.replace('/month', ''))} a month · or ${esc(d.year_price.replace('/year', ''))} a year (two months free)</span></div><div class="plus-cta-b"><button class="btn primary" type="button" data-sub data-tier="plus">Get Plus</button><button class="linkish" type="button" data-sub="year" data-tier="plus">Yearly</button></div></div>`;
+  const comingList = (d.coming || []).slice(0, full ? 24 : 1);
+  const ghosts = full ? '' : Array.from({ length: Math.min(3, Math.max(0, d.coming_total - 1)) }, () => `<div class="cc ghost" aria-hidden="true"><span></span><span></span><span></span></div>`).join('')
+    + (d.coming_total > 1 ? `<div class="cc cc-more"><b>${d.coming_total - 1} more coming up</b><p>Each with a call to make. Your record builds as results come in.</p><button class="btn primary sm" type="button" data-sub data-tier="plus">Get Plus</button></div>` : '');
+  const tldr = b ? (b.tldr || []).slice(0, full ? 3 : 1) : [];
   view.innerHTML = `<section class="plus">
     <div class="plus-h"><div><span class="kick">Parallax Plus${full ? ` · ${d.plan === 'plus' ? 'yours' : 'included with Pro'}` : ''}</span><h1>Your week in progress</h1>
       <p>What moved on the goals you follow, what’s coming next, and your calls on how it turns out. A minute a week.</p></div>${full ? '' : cta('top')}</div>
-    <div class="plus-grid">
+    <div class="plus-top">
       <div class="pweek"><div class="sw pweek-sw" id="pweek">${scenes.length ? reelCard(reel, pg, 0) : `<section class="sw-card"><div class="sw-text"><h2>The first weekly video arrives Monday.</h2></div></section>`}</div>
         <p class="pweek-n">${b ? `Week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))} · ${mine.size ? 'the goals you follow first' : 'follow goals to make it yours'}` : ''}</p></div>
-      <div class="pside">
-        <div class="pside-h"><h2>Coming up</h2>${full ? `<span class="lbl">${d.coming_total} ahead${calls ? ` · your calls: ${calls}${judged.length ? `, ${right} of ${judged.length} right` : ''}` : ''}</span>` : `<span class="lbl">1 of ${d.coming_total}</span>`}</div>
-        <div class="comings">${(d.coming || []).slice(0, full ? 12 : 1).map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}</div>
-        ${full ? '' : `<div class="moregate"><p>${d.coming_total - 1} more readouts and promises coming up, each with a call to make. Your track record builds as results come in.</p></div>`}
-        ${callsSec}
+      <div class="pmain">
+        ${b ? `<div class="pbox"><span class="lbl">This week</span><h2>${esc(b.headline)}</h2>${tldr.length ? `<ul>${tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
+        <div class="pbox"><div class="pbox-h"><span class="lbl">Your calls</span>${full ? `<a class="linkish" href="#pstrip">Make a call →</a>` : ''}</div>
+          <div class="pstats"><div><b class="mono">${calls}</b><small>made</small></div><div><b class="mono">${judged.length ? `${right}/${judged.length}` : '—'}</b><small>right</small></div><div><b class="mono">${waiting.length}</b><small>waiting</small></div></div>
+          ${settled.length ? `<div class="rrs">${settled.slice(0, full ? 4 : 1).map(resRow).join('')}</div>${full && settled.length > 4 ? `<details class="rr-more"><summary>All ${settled.length} results</summary><div class="rrs">${settled.slice(4).map(resRow).join('')}</div></details>` : ''}`
+            : `<p class="pnote">${full ? 'Results appear here as trials report and promises come due. Each is settled automatically from the trial’s results or the promise check.' : 'Plus members call what happens next and build a record as results come in.'}</p>`}
+          ${waiting.length ? `<details class="rr-more"><summary>${waiting.length} call${waiting.length === 1 ? '' : 's'} waiting on a result</summary>${waiting.map((c) => `<p class="rr-w"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>Due ${esc(fmtDate(c.date))}${c.status_note ? `, ${esc(c.status_note)}` : ', checked weekly'}</small></p>`).join('')}</details>` : ''}
+        </div>
       </div>
     </div>
+    <div class="pstrip-h" id="pstrip"><h2>Coming up <small>${d.coming_total}</small></h2><div class="pstrip-a"><button class="btn sm" type="button" data-strip="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-strip="1" aria-label="More">›</button></div></div>
+    <div class="pstrip">${comingList.map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}${ghosts}</div>
     ${full ? '' : cta('bottom')}
   </section>`;
+  view.querySelectorAll('[data-strip]').forEach((x) => { x.onclick = () => { const st = view.querySelector('.pstrip'); st.scrollBy({ left: Number(x.dataset.strip) * st.clientWidth * 0.85, behavior: 'smooth' }); }; });
   view.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
   // Play the weekly video in place.
   const vc = view.querySelector('#pweek .rl');
@@ -3516,7 +3453,7 @@ async function plusView() {
 
 async function terminalView(tab = 'overview') {
   const welcome = tab === 'welcome';
-  if (tab === 'watch') await goals().catch(() => []); // the watchlist lists every goal
+  if (tab === 'calendar' || tab === 'watch') await goals().catch(() => []); // the watchlist lists every goal
   // Switching tabs reuses the data loaded in the last 5 minutes, so it is instant.
   if (!welcome && term && !term.error && Date.now() - termAt < 300_000 && termWho === (me ? me.id : null)) {
     view.innerHTML = '<div id="term"></div>';
