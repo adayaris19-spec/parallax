@@ -802,6 +802,7 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 @media (max-width:860px){.plus-grid{grid-template-columns:1fr}}
 .pweek-sw{position:relative;height:min(70vh,640px);aspect-ratio:9/16;max-width:100%;border-radius:22px;overflow:hidden;scroll-snap-type:none}
 @media (max-width:860px){.pweek-sw{height:auto;width:100%;max-height:78vh}}
+.tiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 6px}.tiers .plus-link{margin:0}@media (max-width:640px){.tiers{grid-template-columns:1fr}}
 .plus-link{display:grid;gap:3px;margin:14px 0 6px;padding:14px 16px;border-radius:16px;text-decoration:none;color:inherit;background:linear-gradient(135deg,var(--accent-soft),transparent 70%),var(--card);border:1px solid var(--accent-line)}
 .plus-link .kick{color:var(--accent)}.plus-link b{font-size:17px;letter-spacing:-.01em}.plus-link span:last-child{font-size:13.5px;color:var(--ink2)}
 .pweek-sw .sw-card{height:100%;scroll-snap-align:none}
@@ -1480,7 +1481,7 @@ body{background:var(--bg)}
     <a class="navlink x" href="#/lab">Ideas</a>
     <a class="navlink x" href="#/explore">Explore</a>
     <a class="navlink x" href="#/plus">Plus</a>
-    <a class="navlink x" href="#/terminal">Terminal</a>
+    <a class="navlink x" href="#/terminal">Pro</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
   </div>
   <div class="menu hide" id="menu" role="menu"></div>
@@ -1489,7 +1490,7 @@ body{background:var(--bg)}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/terminal">Parallax Terminal</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a>
+  <br><a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -1664,8 +1665,8 @@ function toggleMenu(force) {
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
     <a href="#/branch" role="menuitem">Your branch</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
-    <a href="#/plus" role="menuitem">Your week (Plus)</a>
-    <a href="#/terminal" role="menuitem">Parallax Terminal</a>
+    <a href="#/plus" role="menuitem">Parallax Plus</a>
+    <a href="#/terminal" role="menuitem">Parallax Pro</a>
     <a href="#/team" role="menuitem">Raise money for your team</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
@@ -2009,7 +2010,7 @@ function howView(section) {
     ${sec('funding', 'Public funding and clinical trials', `<p><b>Funding</b>: US federal grants from the last three years, from <a href="https://www.usaspending.gov" target="_blank" rel="noopener">USAspending.gov</a> (NIH, NSF, Energy, NASA and more), matching the problem’s key words. A match only counts if the grants are actually about the topic. Private, philanthropic and non-US funding is not included, so the real total is higher.</p><p><b>Trials</b>: active or recruiting studies from <a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a>, for health goals only.</p><p>No AI is involved in either: the numbers come straight from the government databases, and each section shows the exact search used.</p>`)}
     ${sec('posts', 'Posts and videos', `<p>Posts (advances, setbacks, bottlenecks, forgotten ideas, promise checks) are written by the AI from new papers. Each links its papers and shows whether at least two independent research groups back it. Videos are made from those posts; the footage is stock (Pixabay, Unsplash, NASA, Wikimedia), chosen to fit the words, and credited on screen.</p>`)}
     ${sec('ideas', 'Ideas to try', `<p>The AI proposes ideas for a problem from its research library, each with a cheap first test, then checks OpenAlex for prior work and marks it new, partly explored or already tried. They are suggestions for people to judge, not findings.</p>`)}
-    ${sec('money', 'Donations', `<p>Donations go to registered US charities (checked against IRS records) through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit donation platform: it takes the gift, pays the organisation and sends the tax receipt. Parallax never holds the money and takes no cut. Parallax itself is funded by Terminal subscriptions.</p>`)}
+    ${sec('money', 'Donations', `<p>Donations go to registered US charities (checked against IRS records) through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit donation platform: it takes the gift, pays the organisation and sends the tax receipt. Parallax never holds the money and takes no cut. Parallax itself is funded by Plus and Pro subscriptions.</p>`)}
     ${sec('limits', 'Limits', `<ul><li>The AI can be wrong. Rules catch some mistakes (sources required, no invented numbers, two groups for “solved”), not all.</li><li>The research is mostly English-language and indexed papers; work in companies or in progress may be missing.</li><li>Funding covers US federal grants only.</li><li>Estimates (time to go, costs) are judgements, shown as ranges.</li></ul>`)}
     ${sec('mistake', 'Report a mistake', `<p>See something wrong? Say where and what, and it will be checked against the research.</p>
       <form class="rep" id="repForm"><label>Where <input name="page" maxlength="300" placeholder="e.g. Alzheimer’s → Make drugs that halt decline" value="${esc(howState.from || '')}"></label>
@@ -2022,7 +2023,8 @@ function howView(section) {
 
 async function exploreView() {
   view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
-    <a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a><div id="grid" class="grid"></div>`;
+    <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
+    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   try {
@@ -2809,14 +2811,14 @@ const horizon = (g) => (g.horizon_low == null ? '—' : g.horizon_high && g.hori
 
 async function subscribe(btn) {
   await authReady;
-  if (!me) { openSignIn('Sign in first, then you can subscribe to the Parallax Terminal.'); return; }
+  if (!me) { openSignIn('Sign in first, then you can subscribe.'); return; }
   if (btn) btn.disabled = true;
   const tier = btn?.dataset.tier === 'plus' ? 'plus' : 'pro';
   const data = await callFn('billing', { action: 'checkout', tier, plan: btn?.dataset.sub === 'year' ? 'year' : 'month' });
   if (data.switch) { toast(data.error); if (btn) btn.disabled = false; return; }
   if (data.url) { location.href = data.url; return; }
   if (btn) btn.disabled = false;
-  if (data.already) { toast(tier === 'plus' ? 'You already have Plus (or Pro, which includes it)' : 'You already have the Terminal'); if (tier === 'plus') { plusView(); return; } termAt = 0; terminalView(); return; }
+  if (data.already) { toast(tier === 'plus' ? 'You already have Plus (or Pro, which includes it)' : 'You already have Pro'); if (tier === 'plus') { plusView(); return; } termAt = 0; terminalView(); return; }
   toast(data.error || 'Could not start checkout. Try again.');
 }
 async function manageBilling(btn) {
@@ -3195,7 +3197,7 @@ function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   const thisYear = new Date().getFullYear();
-  const head = `<div class="term-h"><div><h1 class="page-h">Parallax Terminal</h1>
+  const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
       <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>Subscribe · ${esc(t.price)}</button>`}</div></div>
     <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
@@ -3220,7 +3222,7 @@ function renderTerminal(box, tab = 'overview') {
       <section class="panel"><div class="panel-h"><h2>Where progress is stuck</h2><span class="lbl">Every goal × what its problems wait on</span></div>
         ${full ? heatMap(t) : lockGate('The stuck map', 'Every goal against what holds its problems back: knowledge, materials, funding, instruments or attention.')}</section>`,
     signals: () => `<section class="panel"><div class="panel-h"><h2>Signals <small>${t.tape_total}</small></h2><span class="lbl">Advances, setbacks and promises, newest first</span></div>
-        <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with the Terminal. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
+        <div class="feed2" style="max-height:none">${signalList(t.tape)}</div>${full ? '' : `<div style="padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px">${t.tape_total - t.tape.length} more signals with Pro. <button class="btn primary" type="button" data-sub style="margin-left:8px">Unlock · ${esc(t.price)}</button></div>`}</section>`,
     data: () => !full ? `<section class="panel"><div class="panel-h"><h2>All data</h2><span class="lbl">Subscribers only</span></div>${lockGate('Every goal and every problem', 'Every goal and every open problem in sortable tables: progress, countdowns, momentum, promise record, field growth and what holds each problem back. Filter them and download CSVs.')}</section>` : `<section class="panel"><div class="panel-h"><h2>Goals <small>${full ? t.goals_total : `${t.goals.length} of ${t.goals_total}`}</small></h2>
         <div class="tools">${full ? '<button class="btn" type="button" data-csv="goals">Download CSV</button>' : ''}</div></div>
         <div id="tGoals">${goalsTable()}</div></section>
@@ -3381,7 +3383,7 @@ async function terminalView(tab = 'overview') {
   // Right after checkout, Stripe's confirmation can take a few seconds to arrive.
   for (let i = 0; i < (welcome ? 10 : 1); i++) {
     if (welcome && i) {
-      box.innerHTML = note('Setting up your Terminal', 'Your payment went through. Switching on your access, this takes a few seconds.', '<p><span class="spin" style="display:inline-block"></span></p>');
+      box.innerHTML = note('Setting up Parallax Pro', 'Your payment went through. Switching on your access, this takes a few seconds.', '<p><span class="spin" style="display:inline-block"></span></p>');
       await new Promise((r) => setTimeout(r, 2500));
       if (!box.isConnected) return;
     }
@@ -3394,7 +3396,7 @@ async function terminalView(tab = 'overview') {
   renderTerminal(box, welcome ? 'overview' : tab);
   if (welcome) {
     history.replaceState(null, '', location.pathname + '#/terminal');
-    toast(term.access === 'full' ? 'Welcome to the Parallax Terminal' : 'Payment received. Access can take a minute, reload soon.');
+    toast(term.access === 'full' ? 'Welcome to Parallax Pro' : 'Payment received. Access can take a minute, reload soon.');
   }
 }
 
