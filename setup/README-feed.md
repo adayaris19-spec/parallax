@@ -373,3 +373,14 @@ checks each problem:
 One goal per run (resumable), refreshed monthly. `POST {"slug": "..."}` runs one goal now,
 `{"probe": "search words"}` tests a search, `{"redo": true}` re-checks every goal.
 The goal page shows a summary in the field panel and the detail in each problem's research sheet.
+
+## 25. Share previews and offline speed
+
+- `scripts/build-share.mjs` writes `g/<slug>/index.html` (that goal's title, description and preview
+  image, then forwards to `#/g/<slug>`) and `share/<slug>.png` (a 1200x630 card), plus
+  `share/parallax.png` for the home page. The site's Share buttons link to `g/<slug>/`.
+  `.github/workflows/share.yml` rebuilds them every 6 hours (and on demand from the Actions tab) and
+  commits only changes. When the site moves to its own domain, set `SITE_BASE` in that workflow.
+- `sw.js` (service worker): the page shell loads from the phone instantly and refreshes in the
+  background; fonts and libraries are kept; database reads fall back to the last copy offline.
+  To force everyone onto a new shell immediately, bump `V` in sw.js.

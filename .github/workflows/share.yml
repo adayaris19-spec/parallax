@@ -1,0 +1,36 @@
+# Rebuilds each goal's share page and preview image (scripts/build-share.mjs) so links shared on
+# WhatsApp, iMessage, X etc. show that goal's card. Runs every 6 hours and on demand; commits only
+# when something changed. Free on GitHub for public repositories.
+name: Share previews
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: share-previews
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+      - name: Build share pages
+        run: node scripts/build-share.mjs
+      - name: Commit changes
+        run: |
+          git add g share
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git config user.name "parallax-bot"
+          git config user.email "parallax-bot@users.noreply.github.com"
+          git commit -m "Update share previews"
+          git push
