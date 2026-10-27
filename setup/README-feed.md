@@ -539,7 +539,8 @@ Run `schema-goal-open.sql`. A goal page now loads in one request, `rpc/parallax_
 
 A new goal's first ideas and cost estimates now skip the half-price batch queue, which often took 4–24 hours. They run as direct calls, side by side, and arrive in minutes. Later rounds and refreshes still use the batch.
 
-- **Ideas** run direct for a goal mapped in the last 3 days that has ideas on fewer than 6 problems. **Costs** run direct for a goal with no estimates yet.
+- **Ideas** run direct for a goal mapped in the last 3 days that has ideas on fewer than 4 problems (`AUTO_PER_GOAL`).
+- **Costs** for a new goal can run direct too, but this is off to save money: set `COSTS_DIRECT=1` to turn it on. The web research step runs on Sonnet (`COSTS_RESEARCH_MODEL`, about half Opus's price); structuring the notes stays on the main model.
 - **Videos:** a goal's first set of videos has its pictures judged straight away instead of through the batch, which costs about $0.15 more per goal.
 - **Triggers:** `map-goal` starts the costs and the first videos as soon as a goal is ready. `library` starts the ideas when a goal's first paper library is done. Neither waits for the hourly run.
 - **Stuck runs:** a direct run still pending after 45 minutes is marked failed, and its work goes back to the batch queue.
