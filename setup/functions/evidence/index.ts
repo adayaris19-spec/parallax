@@ -197,7 +197,54 @@ async function pipelineOnly(slug: string) {
   return { slug, problems: want.size, trials_saved, errors: errors.slice(0, 5) };
 }
 
+// Problems the AI won't write ideas for (vaccine and pathogen biology) show the trials already
+// testing approaches instead, so they always get a trial search, widening the words until one hits.
+const TRIAL_WORDS = new Set(["trial", "trials", "study", "model", "models", "field", "long-term", "durable", "efficacy", "safety", "phase", "development", "testing", "protection", "prevent", "human", "humans", "infection", "controlled", "randomized", "adults", "adolescents", "children", "wild"]);
+async function declinedTrials(limit = 6) {
+  const rows = await db(`nodes?ideas_declined=is.true&query=not.is.null&or=(tested_at.is.null,tested_at.lt.${new Date(Date.now() - 30 * DAY).toISOString()})&select=goal_id,key,query&limit=${limit}`);
+  const out: { goal_id: number; key: string; terms: string | null; count: number; top: string[] }[] = [];
+  for (const l of rows as { goal_id: number; key: string; query: string }[]) {
+    const [g] = await db(`goals?id=eq.${l.goal_id}&select=name`);
+    const qs = await db(`nodes?goal_id=eq.${l.goal_id}&parent_key=not.is.null&query=not.is.null&select=query`);
+    const anchors = anchorsOf(g?.name ?? "", qs.map((x: { query: string }) => x.query));
+    // Keep trials that name the goal's subject, ranked by how many of the problem's words they share;
+    // widen the search words until some survive.
+    const subject = anchorsOf(g?.name ?? "");
+    const qw = words(l.query).map((w) => w.toLowerCase()).filter((w) => w.length >= 4 && !subject.includes(w) && !TRIAL_WORDS.has(w));
+    // The problem's lead word (vaccine, gene drive, correlates…) must appear, so a nearby trial
+    // (bed nets under gene drives) doesn't stand in for the problem.
+    // Words match at their start, short ones whole ("gene" isn't in "next-generation").
+    const has = (x: string, w: string) => new RegExp(`(^|[^\\p{L}])${w.slice(0, 6).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}${w.length <= 5 ? "s?(?![\\p{L}])" : ""}`, "u").test(x);
+    const lead = qw[0] ?? "";
+    const fit = (t: Trial) => { const x = t.title.toLowerCase(); return subject.some((a) => has(x, a)) && (!lead || has(x, lead)) ? 1 + qw.filter((w) => has(x, w)).length : 0; };
+    let tr: Awaited<ReturnType<typeof trials>> = null, kept: Trial[] = [];
+    for (const k of [l.query, ...tries(l.query, anchors)]) {
+      tr = await trials(k, anchors).catch(() => null);
+      kept = (tr?.pipeline ?? []).filter((t) => fit(t) >= 2).sort((a, b) => fit(b) - fit(a) || (b.phase || "").localeCompare(a.phase || ""));
+      if (kept.length) break;
+      await sleep(250);
+    }
+    await db(`node_evidence?goal_id=eq.${l.goal_id}&node_key=eq.${encodeURIComponent(l.key)}&source=eq.trials`, { method: "DELETE", prefer: "return=minimal" });
+    if (tr && kept.length) {
+      const { pipeline: _p, ...base } = tr;
+      const f = { ...base, count: kept.length,
+        top: kept.slice(0, 3).map((t) => ({ title: t.title, who: t.sponsor, url: `https://clinicaltrials.gov/study/${t.nct}`, phase: t.phase, status: t.status })),
+        extra: { terms: base.extra.terms, recruiting: kept.filter((t) => t.status === "recruiting").length } };
+      await db("node_evidence", { method: "POST", prefer: "return=minimal", body: { goal_id: l.goal_id, node_key: l.key, ...f, checked_at: new Date().toISOString() } });
+    }
+    await savePipeline(l.goal_id, l.key, kept);
+    await db(`nodes?goal_id=eq.${l.goal_id}&key=eq.${encodeURIComponent(l.key)}`, { method: "PATCH", prefer: "return=minimal", body: { tested_at: new Date().toISOString() } });
+    out.push({ goal_id: l.goal_id, key: l.key, terms: tr ? String(tr.extra.terms) : null, count: kept.length, top: kept.slice(0, 3).map((t) => t.title.slice(0, 70)) });
+  }
+  return out;
+}
+
 async function run(slug?: string) {
+  const tested = await declinedTrials().catch((e) => [{ error: String(e).slice(0, 120) }]);
+  return { ...(await runGoal(slug)), tested };
+}
+
+async function runGoal(slug?: string) {
   const goals = await db(`goals?status=eq.ready&select=id,slug,name,evidence_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=evidence_at.asc.nullsfirst`);
   const g = slug ? goals[0] : goals.find((x: { evidence_at: string | null }) => !x.evidence_at || Date.now() - new Date(x.evidence_at).getTime() > 30 * DAY);
   if (!g) return { note: "every goal's evidence is fresh" };

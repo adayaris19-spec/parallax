@@ -184,6 +184,12 @@ async function oaRemaining(): Promise<number> {
   } catch { return 1; }
 }
 
+// Marks problems the model won't write ideas for, so the page shows what's being tested instead.
+async function declineNodes(goalId: number, keys: string[]) {
+  if (!keys.length) return;
+  await db(`nodes?goal_id=eq.${goalId}&key=in.(${keys.map((k) => `"${k}"`).join(",")})&ideas_declined=is.false`, { method: "PATCH", prefer: "return=minimal", body: { ideas_declined: true } }).catch(() => {});
+}
+
 async function collect() {
   const jobs = await db(`idea_jobs?status=eq.pending&select=batch_id,goal_id,keys,context,created_at`);
   const out: { batch: string; ideas: number; errors: string[] }[] = [];
@@ -211,7 +217,11 @@ async function collect() {
       track("ideas", true)(r.result.message);
       let drafts: z.infer<typeof Draft>[] = [];
       try { drafts = DRAFT_FMT.parse(r.result.message.content.map((c) => (c.type === "text" ? c.text : "")).join("")).ideas; } catch { /* unreadable */ }
-      if (!drafts.length) { errors.push(`${key}: no ideas (${r.result.message.stop_reason})`); continue; }
+      if (!drafts.length) {
+        errors.push(`${key}: no ideas (${r.result.message.stop_reason})`);
+        if (r.result.message.stop_reason === "refusal") await declineNodes(j.goal_id, [key]);
+        continue;
+      }
       work.push(save(j.goal_id, key, drafts, j.context[key] ?? []).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
@@ -267,10 +277,17 @@ async function submit(slug?: string, key?: string) {
       }
     }
     const declined = new Set([...tries].filter(([, n]) => n >= 2).map(([k]) => k));
+    await declineNodes(g.id, [...declined]);
+    // A chapter where two problems were declined is likely all the same kind of problem (vaccine
+    // or pathogen biology): move on to the goal's other chapters unless someone asked.
+    const parentOf = new Map((nodes as Node[]).map((n) => [n.key, n.parent_key]));
+    const perChapter = new Map<string, number>();
+    for (const k of declined) { const c = parentOf.get(k); if (c) perChapter.set(c, (perChapter.get(c) ?? 0) + 1); }
+    const skipChapter = (n: Node) => (perChapter.get(n.parent_key ?? "") ?? 0) >= 2;
     const recent = new Set(have.filter((h: { created_at: string }) => Date.now() - new Date(h.created_at).getTime() < 120 * DAY).map((h: { node_key: string }) => h.node_key));
     const covered = new Set(have.map((h: { node_key: string }) => h.node_key));
     const asked = new Set(requests.filter((r: { goal_id: number }) => r.goal_id === g.id).map((r: { node_key: string }) => r.node_key));
-    const leaves = (nodes as Node[]).filter((n) => n.parent_key && n.status !== "solved" && !busy.has(`${g.id}:${n.key}`) && !declined.has(n.key));
+    const leaves = (nodes as Node[]).filter((n) => n.parent_key && n.status !== "solved" && !busy.has(`${g.id}:${n.key}`) && !declined.has(n.key) && (!skipChapter(n) || asked.has(n.key)));
     const ranked = leaves.sort((a, b) => (a.key === g.bottleneck_key ? -1 : b.key === g.bottleneck_key ? 1 : (ORDER[a.status] ?? 5) - (ORDER[b.status] ?? 5)));
     // Someone asked first; then the goal's most important problems, up to AUTO_PER_GOAL of them.
     const room = Math.max(0, AUTO_PER_GOAL - covered.size);

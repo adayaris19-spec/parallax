@@ -1023,6 +1023,11 @@ body.labpage main{max-width:1080px}
 .sh-ideas a{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14.5px}
 .sh-ideas a .mono{font-size:12.5px;color:var(--muted);white-space:nowrap}
 .sh-ideas a:hover b{text-decoration:underline}
+.sh-ideas.tested{padding:16px 18px;border-radius:16px;background:var(--sunk)}
+.sh-ideas.tested p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.sh-ideas.tested .kick{margin-bottom:8px}
+.sh-ideas.tested .ev-src{margin-top:12px;font-size:12px;color:var(--faint)}
+.sh-ideas.tested a{display:inline;padding:0;border:0;font-size:inherit}.sh-ideas.tested .ev-src a{color:inherit;text-decoration:underline}
 @media (max-width:760px){
   .ideas.two{grid-template-columns:1fr}
   .idea{padding:18px;border-radius:18px}
@@ -2812,9 +2817,9 @@ function openLeaf(key, push = true) {
     <div class="facts"><span>${l.independent_sources >= 2 ? `✓ ${l.independent_sources} independent sources` : 'Fewer than two independent sources so far'}</span>${h ? `<span>${h.people} ${h.people === 1 ? 'person' : 'people'} took a step here</span>` : ''}</div>
     <details class="papers" id="shLib"><summary>The research · <span id="shCount">${(l.evidence || []).length}</span> papers</summary>${ev ? `<div class="kick" style="margin-top:8px">Key papers</div><ul class="srcs">${ev}</ul>` : ''}<div id="shMore"></div></details>
     ${costBlock(goalCtx.costs?.[l.key], l)}
-    ${evidenceBlock(goalCtx.evidence?.[l.key])}
+    ${evidenceBlock(goalCtx.evidence?.[l.key], { noTrials: l.ideas_declined && !(goalCtx.ideas || []).some((i) => i.node_key === l.key) })}
     ${(() => { const li = (goalCtx.ideas || []).filter((i) => i.node_key === l.key); return li.length ? `<div class="sh-ideas"><div class="kick">Ideas to try · ${li.length}</div>${li.map((i) => `<a href="#/idea/${i.id}"><b>${esc(i.title)}</b>${i.test_high ? `<span class="mono">test ${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</a>`).join('')}</div>`
-      : l.status === 'solved' ? '' : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
+      : l.status === 'solved' ? '' : l.ideas_declined ? testedNow(goalCtx.evidence?.[l.key]) : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
         ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
         : `<p>No ideas for this problem yet. Parallax can research it and propose some, each checked against earlier work.</p><button class="btn" type="button" data-askideas="${esc(l.key)}">Ask for ideas</button>`}</div>`; })()}
     ${fundingPanel(g, l, { sheet: true })}
@@ -4657,9 +4662,22 @@ function evidenceBrief(ev) {
   return `<div class="fs-ev">${gr ? `<div><span class="kick">Public funding since ${gr.since_year}</span><p><b class="mono">${esc(usdShort(Math.round(gr.amount_cents / 100)))}</b> in ${gr.count.toLocaleString()} federal grant${gr.count === 1 ? '' : 's'}${(gr.extra?.agencies || []).length ? ` · ${(gr.extra.agencies).slice(0, 2).map((a) => esc(agencyName(a.name))).join(', ')}` : ''}</p></div>` : ''}
     ${tr ? `<div><span class="kick">Clinical trials</span><p><b class="mono">${tr.count.toLocaleString()}</b> active${phaseLine(tr.extra?.phases) ? ` · ${esc(phaseLine(tr.extra.phases))}` : ''}</p></div>` : ''}</div>`;
 }
-function evidenceBlock(ev) {
+// Problems the AI won't write ideas for (vaccine and pathogen biology): show what researchers are
+// already testing there instead, from the same ClinicalTrials.gov and USAspending data.
+function testedNow(ev) {
+  const tr = ev?.trials, gr = ev?.grants;
+  const item = (x, meta) => { const u = safeUrl(x.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title)}</a>` : esc(x.title)}<small>${meta}</small></li>`; };
+  const intro = '<p>Parallax doesn’t write its own ideas for vaccine and pathogen-biology problems like this one.';
+  if (tr) return `<div class="sh-ideas tested"><div class="kick">Being tested now · ${tr.count.toLocaleString()} trial${tr.count === 1 ? '' : 's'}</div>${intro} Here’s what researchers are already testing${tr.extra?.recruiting ? `, ${tr.extra.recruiting} recruiting now` : ''}.</p>
+    <ul class="ev-l">${(tr.top || []).map((x) => item(x, `${esc(x.who)}${x.phase ? ` · ${esc(x.phase)}` : ''}${x.status ? ` · ${esc(x.status)}` : ''}`)).join('')}</ul>
+    <p class="ev-src">From <a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a>${phaseLine(tr.extra?.phases) ? ` · ${esc(phaseLine(tr.extra.phases))}` : ''}.</p></div>`;
+  if (gr) return `<div class="sh-ideas tested"><div class="kick">Being worked on now</div>${intro} No active trials match it yet; the federal grants above show who is funding the work.</p></div>`;
+  return `<div class="sh-ideas tested"><div class="kick">Ideas to try</div>${intro} No active trials or grants match it yet; the papers above are the best place to start.</p></div>`;
+}
+function evidenceBlock(ev, o = {}) {
   if (!ev || (!ev.grants && !ev.trials)) return '';
-  const gr = ev.grants, tr = ev.trials;
+  const gr = ev.grants, tr = o.noTrials ? null : ev.trials;
+  if (!gr && !tr) return '';
   const item = (x, meta) => { const u = safeUrl(x.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title)}</a>` : esc(x.title)}<small>${meta}</small></li>`; };
   return `<div class="ev">
     ${gr ? `<div class="ev-s"><div class="kick">Who’s funding it</div>

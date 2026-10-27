@@ -4,7 +4,7 @@
 create or replace function parallax_goal_page(gid bigint) returns jsonb
 language sql stable security invoker set search_path = public as $$
   select jsonb_build_object(
-    'nodes', coalesce((select jsonb_agg(to_jsonb(x) order by x.position) from (select key, parent_key, position, title, why, status, blocker_kind, blocker, evidence, independent_sources, plain_title, plain_why, plain_blocker from nodes where goal_id = gid) x), '[]'),
+    'nodes', coalesce((select jsonb_agg(to_jsonb(x) order by x.position) from (select key, parent_key, position, title, why, status, blocker_kind, blocker, evidence, independent_sources, plain_title, plain_why, plain_blocker, ideas_declined from nodes where goal_id = gid) x), '[]'),
     'posts', coalesce((select jsonb_agg(to_jsonb(x) order by x.created_at desc) from (select id, goal_id, node_key, kind, headline, body, plain_headline, plain_body, media, sources, independent_sources, expert_reviewed, reviewer, created_at, meta from posts where goal_id = gid order by created_at desc limit 50) x), '[]'),
     'promises', coalesce((select jsonb_agg(to_jsonb(x) order by x.due_year) from (select id, node_key, claim, quote, made_year, due_year, source, status, verdict, verdict_sources, independent_sources, checked_at from promises where goal_id = gid order by due_year limit 100) x), '[]'),
     'helpers', coalesce((select jsonb_agg(jsonb_build_object('node_key', node_key, 'people', people)) from node_contributors where goal_id = gid), '[]'),
