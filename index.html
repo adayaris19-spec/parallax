@@ -4782,6 +4782,7 @@ function statusBar(c, cls = '') {
 }
 const CONF = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' };
 function costBlock(c, l) {
+  if (!c && l?.ideas_declined) return ''; // virus and pathogen problems: the grants and trials below show what's being spent
   if (!c) return l?.status === 'solved' ? '' : `<div class="wt"><div class="kick">What it would take</div><p class="muted">Parallax is researching what the next step and a full solution would cost. Estimates appear here within a few hours.</p></div>`;
   const src = (c.sources || []).map((x) => { const u = safeUrl(x.url); return u ? `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title || u)}</a></li>` : ''; }).join('');
   return `<div class="wt"><div class="kick">What it would take</div>
