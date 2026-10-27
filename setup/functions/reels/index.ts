@@ -831,20 +831,21 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   const others: string[] = ((await db(`visuals?select=caption,url&order=created_at.desc&limit=600`).catch(() => [])) as { caption: string | null; url: string }[])
     .filter((v) => v.caption && usedClips.has(clipId(v.url))).map((v) => v.caption!);
   const otherIds = [...usedClips].map((x) => Number(/^pv(\d+)$/.exec(x)?.[1] ?? NaN)).filter((n) => !isNaN(n));
-  const alike = (a: string, b: string) => { const A = words(a), B = words(b); const shared = [...A].filter((w) => B.has(w)).length; return shared / Math.max(1, Math.min(A.size, B.size)) >= 0.6; };
+  const overlap = (a: string, b: string) => { const A = words(a), B = words(b); const shared = [...A].filter((w) => B.has(w)).length; return shared / Math.max(1, Math.min(A.size, B.size)); };
+  const alike = (a: string, b: string) => overlap(a, b) >= 0.6;
   const shots: typeof judged = [];
   const cut = { near: 0, series: 0, alike: 0, other: 0 };
   for (const j of judged.filter(strict).sort((a, b) => rank(b) - rank(a))) {
     const n = pvNum(j.c);
-    if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 40)) { cut.near++; continue; }
+    if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 15)) { cut.near++; continue; }
     if (shots.some((k) => !isNaN(n) && k.c.credit === j.c.credit && Math.abs(pvNum(k.c) - n) < 400)) { cut.series++; continue; }
     if (shots.some((k) => alike(k.shows, j.shows))) { cut.alike++; continue; }
-    if (others.some((o) => alike(o, j.shows))) { cut.other++; continue; }
+    if (others.some((o) => overlap(o, j.shows) >= 0.8)) { cut.other++; continue; }
     shots.push(j);
     if (shots.length >= 22) break;
   }
   const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, dynamic: j.dynamic, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
-  if (shots.length < 8) return { slug, error: "too few good shots", found: shots.length, passed: judged.filter(strict).length, cut, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
+  if (shots.length < 5) return { slug, error: "too few good shots", found: shots.length, passed: judged.filter(strict).length, cut, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
 
   // 4. The script, written around the approved shots.
   const list = shots.map((x, i) => `S${i} [${x.c.kind}${x.action ? ", action" : ""}] ${x.shows}`).join("\n");
@@ -859,9 +860,9 @@ What makes people watch:
 - Every reel is one story with tension: a problem, the stakes for real people, a turn (what changed, what failed, who is trying something), and an ending that leaves a question or a next step.
 - Each caption is a punch, at most 9 words, spoken style. Concrete nouns and numbers beat adjectives. The sub line adds the detail.
 - Never: "revolutionary", "game-changer", "unlock", "the future of", "imagine", "journey", "landscape", "crucial", "key", vague words like "progress is being made".
-Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Vary them: never two of the same kind in a row, and open every reel on the most dynamic, eye-catching clip that fits.
+Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Vary them: never two of the same kind in a row, at most 2 clips of the same subject in the whole set (2 wind turbines, 2 smokestacks, 2 DNA helices), and open every reel on the most dynamic, eye-catching clip that fits. Fewer scenes beat repeats.
 Score each reel's hook honestly; a reel under 7 is not worth making.`,
-    messages: [{ role: "user", content: `${facts}\n\nAPPROVED SHOTS (${shots.length}; make ${shots.length >= 14 ? "up to 3 reels" : shots.length >= 10 ? "2 reels" : "1 intro reel"}):\n${list}` }],
+    messages: [{ role: "user", content: `${facts}\n\nAPPROVED SHOTS (${shots.length}; make ${shots.length >= 14 ? "up to 3 reels" : shots.length >= 10 ? "2 reels" : "1 intro reel of 4-5 scenes"}):\n${list}` }],
   }).finalMessage().then(track("reels"))).parsed_output;
   if (!script) return { slug, error: "no script" };
   const reels = script.reels.filter((r) => r.kind === "intro" || r.hook_score >= 7).slice(0, 3);

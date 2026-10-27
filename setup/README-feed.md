@@ -589,3 +589,11 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 - **Repairs:** POST `{"action": "revisual", "items": [{"reel_id": 1, "si": 0}]}` replaces chosen scenes only (one goal and up to 8 scenes per call; add `"space": true` for space goals). `{"action": "peek", "terms": [...]}` shows what the search finds, and `{"action": "posters", "urls": [...]}` returns stored posters for review by eye.
 - **Avatars:** `goal_pictures` puts judged shots first, so a goal's avatar is never an unchecked clip.
 - **Unsplash limit:** the demo tier allows 50 searches an hour. Applying for production on unsplash.com/oauth/applications raises it to 5,000.
+
+## 45. Videos: footage first, cinematic
+
+- **How a goal's videos are made now (`footage_first`):** Sonnet writes 16 search terms for the goal's world, mostly animated 3D science footage (cells, molecules, plasma, particles) plus real clips of the goal's own subject. Pixabay (animation allowed) and NASA for space goals give up to 84 moving clips. Sonnet judges each once for fit, quality and how dynamic it is. Cartoons, characters, labelled diagrams and documentary snapshots score 1. Look-alikes are dropped (same creator series, similar descriptions, near-identical to another goal's clips). Opus then writes 1-3 reels around the approved clips only.
+- **Rules for the script:** a hook first, one story with a turn per reel, at most 9 words per caption, never two of the same kind of clip in a row, at most 2 of the same subject, and the most dynamic clip opens each reel.
+- **Run one goal:** POST `{"action": "footage_first", "slug": "<slug>"}` (add `"dry": true` to preview without saving). For a full remake run goals one at a time with `"avoid": [<goals already done>]`, so earlier goals' clips stay unique.
+- **Scheduled runs and new goals** use footage first automatically. About 40 cents per goal.
+- **Kept as they were:** Mars and Moon base (their footage was already right), and fusion's opening plasma clip.
