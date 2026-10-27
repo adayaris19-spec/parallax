@@ -552,6 +552,7 @@ Run `schema-work.sql` and deploy `review-work` with Verify JWT on.
 
 - **Linking work:** a step someone logs ("I did this") can carry a link to what they made: a GitHub repo, a Google Doc, or a page.
 - **Review:** `review-work` opens the link (GitHub repos through their README, Google Docs through the text export) and judges it against the problem. It uses Sonnet (`REVIEW_MODEL`), and each person gets 3 reviews a day.
+- **Strict bar:** publishing needs relevance and substance of 4 or more out of 5, clearly the submitter's own work, and checkable results. A second, stricter reader on Opus (`REVIEW_CHECK_MODEL`) must also agree. It only runs on work the first reader would publish.
 - **Publishing:** work that holds up is published on the goal's feed as a `community` post, "By @handle · reviewed by Parallax". Otherwise the author gets specific feedback and can try again.
 - **Guard:** the browser can only set `work_url` and `note`; a trigger stops it from writing the review fields.
 - **Your impact:** `#/impact` opens your profile at the Impact section. It's linked from the account menu and from Your branch.
