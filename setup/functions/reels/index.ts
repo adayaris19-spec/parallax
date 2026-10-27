@@ -121,7 +121,7 @@ async function commons(q: string): Promise<Cand[]> {
     const ok = /^(cc0|public domain|pd|cc by(-sa)? \d)/i.test(lic) && !/nc|nd/i.test(lic);
     if (!ii || !ok || (ii.width ?? 0) < 1200 || !/^image\/(jpeg|png|webp)/.test(ii.mime ?? "")) return null;
     return { kind: "image", url: ii.thumburl ?? ii.url, poster: commonsThumb(String(ii.url)), credit: `${strip(md.Artist?.value).slice(0, 60) || "Unknown author"} via Wikimedia Commons`, license: lic, source_url: ii.descriptionurl ?? ii.url, source: "commons" };
-  }).filter(Boolean).slice(0, 3) as Cand[];
+  }).filter(Boolean).slice(0, 4) as Cand[];
 }
 
 // Pictures go to Claude as data (some sites do not let others fetch them). Each source is asked for a
@@ -307,8 +307,8 @@ async function gather(qs: string[], space: boolean, taken: Set<string>, errors: 
   // Real photos when footage is scarce (Unsplash, then Wikimedia Commons, which has real clinics,
   // mosquitoes and lab work from health agencies).
   // Always offered: stock footage searches often return near-misses (a basketball net for "mosquito net").
-  if (terms[0]) await Promise.all([add(() => unsplashPhotos(terms[0])), ...(space ? [add(() => nasaImages(terms[0]))] : terms.slice(0, 2).map((q) => add(() => commons(q)))), add(() => pixabayPhotos(terms[1] ?? terms[0]))]);
-  return [...list.filter((c) => c.kind === "video").slice(0, 8), ...list.filter((c) => c.kind === "image").slice(0, 6)].slice(0, 12);
+  if (terms[0]) await Promise.all([add(() => unsplashPhotos(terms[0])), ...(space ? [add(() => nasaImages(terms[0]))] : terms.map((q) => add(() => commons(q)))), add(() => pixabayPhotos(terms[1] ?? terms[0]))]);
+  return [...list.filter((c) => c.kind === "video").slice(0, 8), ...list.filter((c) => c.kind === "image").slice(0, 8)].slice(0, 14);
 }
 
 // Find, judge and copy a fitting shot for each scene (live, not batched: used for repairs and for
