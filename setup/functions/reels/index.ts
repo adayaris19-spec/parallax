@@ -370,9 +370,10 @@ Craft:
   const present = blocks.map((b) => b.map(Boolean));
   const postIds = reels.map((r) => (r.post_id && posts.some((p: { id: number }) => p.id === r.post_id) ? r.post_id : null));
   // The photo editor's judgement goes through the Message Batches API (half price, same model and
-  // standards); a later call applies it. {"live": true} judges at once instead.
+  // standards); a later call applies it. {"live": true} judges at once instead, and so does a new
+  // goal's first set of videos (the batch queue can take hours; one small call costs cents).
   if (!present.some((b) => b.some(Boolean))) return finalize(g, reels, wants, cands, present, postIds, null, fresh, errors, pre);
-  if (!live) {
+  if (!live && have.length) {
     const fmt = betaZodOutputFormat(Verdict);
     const batch = await claude.messages.batches.create({ requests: [{ custom_id: "judge", params: {
       model: MODEL, max_tokens: 16000, output_config: { effort: "low", format: { type: "json_schema", schema: fmt.schema } },

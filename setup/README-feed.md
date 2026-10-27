@@ -540,6 +540,7 @@ Run `schema-goal-open.sql`. A goal page now loads in one request, `rpc/parallax_
 A new goal's first ideas and cost estimates now skip the half-price batch queue, which often took 4–24 hours. They run as direct calls, side by side, and arrive in minutes. Later rounds and refreshes still use the batch.
 
 - **Ideas** run direct for a goal mapped in the last 3 days that has ideas on fewer than 6 problems. **Costs** run direct for a goal with no estimates yet.
-- **Triggers:** `map-goal` starts the costs as soon as a goal is ready. `library` starts the ideas when a goal's first paper library is done. Neither waits for the hourly run.
+- **Videos:** a goal's first set of videos has its pictures judged straight away instead of through the batch, which costs about $0.15 more per goal.
+- **Triggers:** `map-goal` starts the costs and the first videos as soon as a goal is ready. `library` starts the ideas when a goal's first paper library is done. Neither waits for the hourly run.
 - **Stuck runs:** a direct run still pending after 45 minutes is marked failed, and its work goes back to the batch queue.
 - **Manual restart:** `{"rush": "<slug>"}` (admin) on `ideas` or `costs` drops a goal's queued batch and starts again.
