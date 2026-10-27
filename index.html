@@ -83,6 +83,8 @@ h1,h2,h3{font-weight:600;letter-spacing:-.018em}
 
 main{max-width:680px;margin:0 auto;padding:0 20px 96px}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:0 -20px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+/* the section tabs line up with the header on every page, wide pages (Watch, Ideas) included */
+@media (min-width:761px){.feedtabs{margin-left:calc((100% - 720px) / 2);margin-right:calc((100% - 720px) / 2)}}
 .tabs::-webkit-scrollbar{display:none}
 .tab{white-space:nowrap;flex:none;appearance:none;border:0;background:none;padding:15px 12px 13px;font-weight:500;font-size:14.5px;color:var(--muted);cursor:pointer;border-bottom:1.5px solid transparent;margin-bottom:-1px;text-decoration:none;transition:color .15s}
 .tab:hover{color:var(--ink)}
@@ -1704,6 +1706,8 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
   .feedtabs .tab:nth-child(n+3){display:none}
+  /* phones reach Explore, Watch and Your branch from the bottom bar: only the feed keeps this bar */
+  .feedtabs:not(:has(.tab:nth-child(-n+2)[aria-selected="true"])){display:none}
   .acct.out{display:none}
   main{padding-bottom:calc(40px + var(--navh))}
   .navlink.x{display:none}
@@ -1898,9 +1902,6 @@ body{background:var(--bg)}
       <input id="q" type="search" placeholder="Search any goal: Mars, fusion, Alzheimer's…" aria-label="Search any goal" maxlength="160">
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
-    <a class="navlink x" href="#/watch">Watch</a>
-    <a class="navlink x" href="#/lab">Ideas</a>
-    <a class="navlink x" href="#/explore">Explore</a>
     <a class="navlink x" href="#/plus">Plus</a>
     <a class="navlink x" href="#/terminal">Pro</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
@@ -2338,13 +2339,12 @@ document.addEventListener('click', (e) => {
   $('#intro')?.remove();
 });
 
+// The site's sections, in one tab bar under the header (the header keeps search, Plus and Pro).
+const NAV_TABS = [['all', '#/', 'Everything'], ['following', '#/following', 'Following'], ['branch', '#/branch', 'Your branch'], ['explore', '#/explore', 'Explore'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas']];
+const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
+
 async function feedView(tab) {
-  view.innerHTML = `<nav class="tabs feedtabs" role="tablist">
-      <a class="tab" role="tab" href="#/" aria-selected="${tab === 'all'}">Everything</a>
-      <a class="tab" role="tab" href="#/following" aria-selected="${tab === 'following'}">Following</a>
-      <a class="tab" role="tab" href="#/branch" aria-selected="false">Your branch</a>
-      <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a>
-    </nav>${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
+  view.innerHTML = `${navTabs(tab)}${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
       <h1>The feed of human progress</h1>
       <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
       <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
@@ -2503,7 +2503,7 @@ function howView(section) {
 }
 
 async function exploreView() {
-  view.innerHTML = `<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
+  view.innerHTML = `${navTabs('explore')}<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
     <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
     <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
@@ -3210,11 +3210,7 @@ function branchCard(it, i, done) {
 }
 
 async function branchView(refresh = false) {
-  const tabs = `<nav class="tabs feedtabs" role="tablist">
-      <a class="tab" role="tab" href="#/" aria-selected="false">Everything</a>
-      <a class="tab" role="tab" href="#/following" aria-selected="false">Following</a>
-      <a class="tab" role="tab" href="#/branch" aria-selected="true">Your branch</a>
-      <a class="tab" role="tab" href="#/explore" aria-selected="false">Explore</a></nav>`;
+  const tabs = navTabs('branch');
   view.innerHTML = tabs + `<div id="br"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#br');
   await authReady;
@@ -4691,7 +4687,7 @@ async function labView(slug, sort = 'top') {
   const voters = Object.values(labState.scores).reduce((a, s) => a + s.promising + s.flawed + s.tried + s.test, 0);
   const base = slug ? `#/lab/${encodeURIComponent(slug)}` : '#/lab';
   document.body.classList.add('labpage');
-  view.innerHTML = `<section class="lab-h"><div class="kick">Ideas lab</div>
+  view.innerHTML = `${navTabs('lab')}<section class="lab-h"><div class="kick">Ideas lab</div>
       <h1>${ideas.length} idea${ideas.length === 1 ? '' : 's'} to try${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
       <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
     <div class="lab-bar"><div class="chips">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
@@ -5379,7 +5375,7 @@ function reelPlayer(card) {
 
 async function watchView(slug, storiesMode = false) {
   document.body.classList.add('swipe');
-  view.innerHTML = `<div class="sw-wrap">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
+  view.innerHTML = `${storiesMode ? '' : navTabs('watch')}<div class="sw-wrap">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
   let list, reels;
   try {
