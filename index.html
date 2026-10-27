@@ -685,6 +685,11 @@ body.goalpage main{max-width:1120px}
 
 /* how Parallax works */
 .how{max-width:720px;margin:0 auto;padding:28px 0 60px}
+.sub-fine{font-size:11.5px;color:var(--muted);margin:10px 0 0}.sub-fine a{color:inherit}
+.plus-cta .sub-fine{flex-basis:100%;margin:2px 0 0}
+.med-note{font-size:13px;line-height:1.5;color:var(--muted);margin:14px 0 0;padding:10px 14px;border-radius:12px;background:var(--sunk)}
+.med-note b{color:var(--ink2)}.med-note a{color:inherit}
+.legal .how-s p,.legal .how-s li{font-size:15px}
 .how-lede{font-size:17px;line-height:1.6;color:var(--ink2);margin:12px 0 0}
 .how-toc{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 8px}
 .how-toc a{font-size:13px;padding:6px 11px;border-radius:999px;background:var(--sunk);color:var(--ink2);text-decoration:none}
@@ -1906,7 +1911,7 @@ body{background:var(--bg)}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a>
+  <br><a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -2111,7 +2116,7 @@ async function openSignIn(reason) {
     <h2 id="siT">Sign in to Parallax</h2>
     <p>${esc(reason || 'Keep the goals you follow on every device, and build your profile.')}</p>
     <div id="siBody"><div class="note" style="padding:12px"><span class="spin" style="display:inline-block"></span></div></div>
-    <p class="fine">Parallax only uses your name and email to run your account. You can delete it any time in Settings.</p>
+    <p class="fine">Parallax only uses your name and email to run your account. You can delete it any time in Settings. By continuing you accept the <a href="#/terms">terms</a> and <a href="#/privacy">privacy policy</a>.</p>
     <button class="btn wide" type="button" id="siClose" style="margin-top:12px">Not now</button></div>`;
   document.body.appendChild(back);
   back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
@@ -2407,6 +2412,57 @@ async function feedView(tab) {
 }
 
 // ------------------------------------------------------------ how Parallax works
+// Terms, privacy and the medical note. LEGAL holds the operator's details; empty fields are left out
+// of the pages (fill them in before charging people outside the owner's own account).
+const LEGAL = { name: 'Parallax', email: '', address: '', law: '', updated: 'October 27, 2026' };
+const HEALTH_RE = /\b(cancer|alzheimer|dementia|malaria|tuberculosis|\btb\b|hiv|aids|diabet|disease|aging|ageing|longevity|vaccine|heart|stroke|blood|tumou?r|infect|pandemic|antibiotic|parkinson|obesity|mental health|depression|cure|patients?)\b/i;
+function isHealthGoal(g, evidence) {
+  return Object.values(evidence || {}).some((e) => e?.trials) || HEALTH_RE.test(`${g?.name || ''} ${g?.summary || ''}`);
+}
+function medNote(cls = '') {
+  return `<p class="med-note ${cls}"><b>Not medical advice.</b> Parallax’s health content is written with AI from published research and can be wrong or out of date. Talk to a doctor about your own health, and never change treatment because of something you read here. <a href="#/terms/medical">More</a></p>`;
+}
+function legalContact() {
+  return LEGAL.email ? `<a href="mailto:${esc(LEGAL.email)}">${esc(LEGAL.email)}</a>` : 'the <a href="#/how/mistake">contact form</a>';
+}
+function legalView(kind, section) {
+  const terms = kind !== 'privacy';
+  document.title = terms ? 'Terms of use · Parallax' : 'Privacy policy · Parallax';
+  const sec = (id, title, body) => `<section class="how-s" id="lg-${id}"><h2>${title}</h2>${body}</section>`;
+  const who = esc(LEGAL.name) + (LEGAL.address ? `, ${esc(LEGAL.address)}` : '');
+  const body = terms ? `
+    <span class="kick">Terms of use</span>
+    <h1 class="page-h">The rules for using Parallax</h1>
+    <p class="how-lede">These terms are an agreement between you and ${who} (“Parallax”, “we”). By using the site or signing in, you accept them. Last updated ${esc(LEGAL.updated)}.</p>
+    <nav class="how-toc">${[['what', 'What Parallax is'], ['medical', 'Not medical advice'], ['accounts', 'Accounts'], ['paid', 'Plus and Pro'], ['donations', 'Donations'], ['content', 'What you post'], ['calls', 'Calls and predictions'], ['ours', 'Our content'], ['liability', 'Limits of liability'], ['changes', 'Changes'], ['contact', 'Contact']].map(([id, t]) => `<a href="#/terms/${id}">${t}</a>`).join('')}</nav>
+    ${sec('what', 'What Parallax is', `<p>Parallax follows big goals (curing diseases, clean energy, space) by reading published research with AI. Maps, statuses, timelines, cost estimates, ideas, posts and videos are written by an AI (Claude, by Anthropic) under rules described on <a href="#/how">How Parallax works</a>. They are a starting point for your own judgement, not facts we guarantee. The AI can be wrong, sources can be incomplete, and numbers are estimates.</p>`)}
+    ${sec('medical', 'Not medical advice', `<p>Nothing on Parallax is medical advice, diagnosis or treatment. Health goals, problems, trials, ideas and posts describe research, not what is right for any person. Always ask a doctor or other qualified health professional about your own health, and never ignore professional advice or delay getting it because of something on Parallax. Ideas to try are research suggestions for scientists to judge, not treatments to try on yourself. If you think you have a medical emergency, call your local emergency number.</p>`)}
+    ${sec('accounts', 'Accounts', `<p>You can read Parallax without an account. To follow goals, make calls or subscribe, you sign in with Google or an email code. You need to be at least 13 (or the minimum age in your country), and old enough to make a payment to subscribe. Keep your sign-in safe; you are responsible for what happens under your account. You can delete your account at any time in Settings; this also cancels any subscription.</p>`)}
+    ${sec('paid', 'Plus and Pro', `<ul><li><b>Prices.</b> Plus is $12 a month and Pro is $55 a month, or the yearly prices shown at checkout, plus any tax. Payments are handled by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>; Parallax never sees your full card number.</li><li><b>Renewal.</b> Subscriptions renew automatically each month or year until you cancel.</li><li><b>Cancelling.</b> Cancel any time from Manage billing. You keep access until the end of the period you paid for, and you are not charged again.</li><li><b>Refunds.</b> Payments are not refunded for partly used periods, except where the law requires it. If something went wrong, contact us and we will look at it.</li><li><b>Changes.</b> If a price goes up we tell you before it applies to you, and you can cancel before then.</li><li><b>What you get.</b> Paid features may change as Parallax improves. Data in Pro (funding, trials, crossovers, calls) comes from public sources and AI, with the same limits as the rest of the site.</li><li><b>Not financial advice.</b> Funding, grants, trials and “where money would go furthest” are information, not investment, financial or giving advice.</li></ul>`)}
+    ${sec('donations', 'Donations', `<p>Donations go to registered charities through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit platform, under its own terms. Every.org takes the gift, pays the organisation and sends the receipt; Parallax never holds the money and takes no cut. Parallax does not guarantee how an organisation uses a gift.</p>`)}
+    ${sec('content', 'What you post', `<p>When you post on Parallax (a profile, ratings and notes on ideas, idea requests, mistake reports, team pages), you keep ownership of it and let Parallax show it on the site and use it to run and improve Parallax. Don’t post anything illegal, harmful, misleading, hateful or that you have no right to share, don’t impersonate others, and don’t try to break, overload or scrape the site. We may remove content or close accounts that break these rules.</p>`)}
+    ${sec('calls', 'Calls and predictions', `<p>Calls in Plus are for fun and for tracking your own judgement. No money is staked or won, and results are settled from public sources (ClinicalTrials.gov, Europe PMC, the promises Parallax tracks), which can be wrong or late.</p>`)}
+    ${sec('ours', 'Our content', `<p>The Parallax site, design and text belong to Parallax. Research, grants and trials belong to their sources, and stock footage to its creators, as credited. You may share links and quote small parts with a link back. Please don’t copy the site or its data wholesale.</p>`)}
+    ${sec('liability', 'Limits of liability', `<p>Parallax is provided “as is”, without warranties of any kind, including accuracy, completeness or fitness for a purpose. To the fullest extent the law allows, Parallax is not liable for indirect or consequential losses, or for decisions made using its content, and our total liability is limited to what you paid us in the 12 months before the claim. Some places don’t allow these limits, so they may not all apply to you; nothing here limits rights you have under consumer law.</p>`)}
+    ${sec('changes', 'Changes', `<p>We may update these terms. If a change matters, we say so on the site or by email before it applies. Using Parallax after that means you accept the new terms.${LEGAL.law ? ` These terms are governed by the laws of ${esc(LEGAL.law)}.` : ''}</p>`)}
+    ${sec('contact', 'Contact', `<p>Questions about these terms: ${legalContact()}.${LEGAL.address ? ` Post: ${esc(LEGAL.address)}.` : ''} See also the <a href="#/privacy">privacy policy</a>.</p>`)}`
+  : `
+    <span class="kick">Privacy policy</span>
+    <h1 class="page-h">What Parallax knows about you</h1>
+    <p class="how-lede">Short version: Parallax keeps only what it needs to run your account, never sells your data, and shows no ads. ${who} is responsible for your data. Last updated ${esc(LEGAL.updated)}.</p>
+    <nav class="how-toc">${[['collect', 'What we collect'], ['use', 'How we use it'], ['share', 'Who processes it'], ['keep', 'How long we keep it'], ['rights', 'Your choices and rights'], ['children', 'Children'], ['changes', 'Changes'], ['contact', 'Contact']].map(([id, t]) => `<a href="#/privacy/${id}">${t}</a>`).join('')}</nav>
+    ${sec('collect', 'What we collect', `<ul><li><b>Without an account:</b> nothing that identifies you. We count page visits per goal and day (a number, with no record of who visited). Your browser stores a few settings on your device (for example sound on or off, the intro you dismissed, goals you follow before signing in).</li><li><b>Your account:</b> your email address, and your name and picture if you sign in with Google; the profile you write; the goals you follow; your watchlist, calls, the steps you log on problems, idea ratings, notes and idea requests; your email and notification settings.</li><li><b>Payments:</b> Stripe collects your card and billing details. We keep only your Stripe customer number, plan, status and renewal date.</li><li><b>Notifications:</b> if you turn on alerts, a push address for your browser.</li><li><b>Donations:</b> Every.org tells us the amount, the organisation and, if you chose to share it, your name, to show totals and recent gifts.</li><li><b>Mistake reports:</b> the page and text you send (not linked to your account).</li></ul>`)}
+    ${sec('use', 'How we use it', `<p>To run your account and the features you use; to send the weekly email you can turn off, and alerts you switched on; to take payments; to decide where Parallax spends its AI budget (goals people follow and visit get updated more); to fix mistakes; and to keep the site safe. We don’t sell or rent your data, don’t use it for advertising, and don’t use third-party trackers or analytics.</p>`)}
+    ${sec('share', 'Who processes it', `<p>Parallax uses these services to run the site. Each only gets what it needs:</p><ul><li><a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>: database, sign-in and server functions.</li><li><a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>: payments.</li><li><a href="https://resend.com" target="_blank" rel="noopener">Resend</a>: sending emails.</li><li><a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>: donations.</li><li>Google: sign-in, if you choose it.</li><li><a href="https://pages.github.com" target="_blank" rel="noopener">GitHub Pages</a> and jsDelivr: serving the site’s files (they see your IP address, as any website host does).</li><li><a href="https://www.anthropic.com" target="_blank" rel="noopener">Anthropic</a>: the AI that reads research. It is sent research, never your account data.</li></ul><p>These services may store data in the United States and other countries. We may also share data if the law requires it, or to protect people or Parallax from harm.</p>`)}
+    ${sec('keep', 'How long we keep it', `<p>Account data stays until you delete your account, which removes it from Parallax straight away (backups roll off within a few weeks). Stripe keeps payment records as tax law requires. Visit counts have no personal data and are kept.</p>`)}
+    ${sec('rights', 'Your choices and rights', `<ul><li>Delete your account and its data any time in Settings (this also cancels any subscription).</li><li>Turn the weekly email off from any email or in the app, and alerts off in your browser or the app.</li><li>Ask us for a copy of your data, or to correct it, at ${legalContact()}.</li><li>Depending on where you live (for example the EU, UK or California) you have further rights, such as to object or to complain to a data protection authority. We don’t sell or share personal data for advertising.</li></ul>`)}
+    ${sec('children', 'Children', `<p>Parallax is not meant for children under 13 and does not knowingly collect their data. If you think a child has given us data, contact us and we will delete it.</p>`)}
+    ${sec('changes', 'Changes', `<p>If this policy changes in a way that matters, we say so on the site or by email before it applies.</p>`)}
+    ${sec('contact', 'Contact', `<p>Privacy questions or requests: ${legalContact()}.${LEGAL.address ? ` Post: ${esc(LEGAL.address)}.` : ''} See also the <a href="#/terms">terms of use</a>.</p>`)}`;
+  view.innerHTML = `<article class="how legal">${body}</article>`;
+  const el = section && document.getElementById(`lg-${section}`);
+  if (el) requestAnimationFrame(() => el.scrollIntoView({ block: 'start' })); else scrollTo(0, 0);
+}
 // Where every number comes from, what the AI does, and the limits. Linked from the numbers.
 const howState = { from: '' };
 document.addEventListener('submit', async (e) => {
@@ -2680,7 +2736,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   }
 
   document.body.classList.add('goalpage');
-  view.innerHTML = hero + tabs + `<div class="gbody${tab === 'overview' ? '' : ' narrow'}">${body}</div>`;
+  view.innerHTML = hero + tabs + `<div class="gbody${tab === 'overview' ? '' : ' narrow'}">${body}${isHealthGoal(g, evidence) ? medNote('gp') : ''}</div>`;
   refreshFollowers();
   if (tab === 'overview') { drawField(focusKey); fieldW = $('#fxMap')?.clientWidth || 0; if (scrollField) $('#field')?.scrollIntoView(); }
   if (focusKey) openLeaf(focusKey, false);
@@ -2822,6 +2878,7 @@ function openLeaf(key, push = true) {
       : l.status === 'solved' ? '' : l.ideas_declined ? testedNow(goalCtx.evidence?.[l.key]) : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
         ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
         : `<p>No ideas for this problem yet. Parallax can research it and propose some, each checked against earlier work.</p><button class="btn" type="button" data-askideas="${esc(l.key)}">Ask for ideas</button>`}</div>`; })()}
+    ${isHealthGoal(g, goalCtx.evidence) ? medNote() : ''}
     ${fundingPanel(g, l, { sheet: true })}
   </aside>`;
   document.body.appendChild(back);
@@ -3074,7 +3131,7 @@ async function settingsView(welcome) {
     </form>
     ${welcome ? '' : `<div class="post"><h3 style="margin-top:2px">Account</h3>
       <div class="post-f" style="margin-top:4px"><button class="btn" type="button" id="pfOut">Sign out</button><button class="btn danger" type="button" id="pfDel">Delete my account</button></div>
-      <p class="fine" style="color:var(--muted);font-size:13px">Deleting removes your profile and follows for good.</p></div>`}`;
+      <p class="fine" style="color:var(--muted);font-size:13px">Deleting removes your profile, follows and calls for good, and cancels any subscription.</p></div>`}`;
   $('#pfBio').oninput = () => { $('#pfCount').textContent = $('#pfBio').value.length; };
   $('#pf').onsubmit = async (e) => {
     e.preventDefault();
@@ -3098,10 +3155,11 @@ async function settingsView(welcome) {
   if (out) out.onclick = () => sb.auth.signOut();
   const del = $('#pfDel');
   if (del) del.onclick = async () => {
-    if (!confirm('Delete your Parallax account? Your profile and follows will be removed. This cannot be undone.')) return;
+    if (!confirm('Delete your Parallax account? Your profile, follows and calls will be removed, and any Plus or Pro subscription is cancelled right away. This cannot be undone.')) return;
     del.disabled = true;
-    const { error } = await sb.rpc('delete_my_account');
-    if (error) { del.disabled = false; toast(`Could not delete: ${error.message}`); return; }
+    // Through billing, so a paid plan is cancelled in Stripe before the account goes.
+    const res = await callFn('billing', { action: 'delete_account' }).catch((e) => ({ error: e.message }));
+    if (!res?.deleted) { del.disabled = false; toast(`Could not delete: ${res?.error || 'try again'}`); return; }
     await sb.auth.signOut();
     location.hash = '#/';
   };
@@ -3285,7 +3343,7 @@ function moreGate(text) {
 }
 function lockGate(title, text) {
   return `<div class="locked"><div class="ghost" aria-hidden="true">${GHOST_ROWS}</div><div class="gate"><div><b>${esc(title)}</b><p>${esc(text)}</p>
-    <button class="btn primary" type="button" data-sub>${proCta()}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year" style="display:block;margin:8px auto 0">or ${esc(term.year_price)}: two months free</button>` : ''}</div></div></div>`;
+    <button class="btn primary" type="button" data-sub>${proCta()}</button>${term.year_price ? `<button class="linkish" type="button" data-sub="year" style="display:block;margin:8px auto 0">or ${esc(term.year_price)}: two months free</button>` : ''}<p class="sub-fine">Renews until you cancel · cancel any time · <a href="#/terms/paid">Terms</a></p></div></div></div>`;
 }
 
 function colsChart(years, recentFrom, big = false) {
@@ -4311,7 +4369,7 @@ async function plusView() {
   };
   const settled = (d.settled || []).filter((c) => resultOf(c.key));
   const waiting = d.waiting || [];
-  const cta = (where) => `<div class="plus-cta ${where}"><div><b>Parallax Plus</b><span>${esc(d.price.replace('/month', ''))} a month · or ${esc(d.year_price.replace('/year', ''))} a year (two months free)</span></div><div class="plus-cta-b"><button class="btn primary" type="button" data-sub data-tier="plus">Get Plus</button><button class="linkish" type="button" data-sub="year" data-tier="plus">Yearly</button></div></div>`;
+  const cta = (where) => `<div class="plus-cta ${where}"><div><b>Parallax Plus</b><span>${esc(d.price.replace('/month', ''))} a month · or ${esc(d.year_price.replace('/year', ''))} a year (two months free)</span></div><div class="plus-cta-b"><button class="btn primary" type="button" data-sub data-tier="plus">Get Plus</button><button class="linkish" type="button" data-sub="year" data-tier="plus">Yearly</button></div><p class="sub-fine">Renews until you cancel · cancel any time · <a href="#/terms/paid">Terms</a></p></div>`;
   const comingList = (d.coming || []).slice(0, full ? 24 : 1);
   const ghosts = full ? '' : Array.from({ length: Math.min(3, Math.max(0, d.coming_total - 1)) }, () => `<div class="cc ghost" aria-hidden="true"><span></span><span></span><span></span></div>`).join('')
     + (d.coming_total > 1 ? `<div class="cc cc-more"><b>${d.coming_total - 1} more coming up</b><p>Each with a call to make. Your record builds as results come in.</p><button class="btn primary sm" type="button" data-sub data-tier="plus">Get Plus</button></div>` : '');
@@ -4510,7 +4568,7 @@ function ideaPage(i, g, siblings) {
   return `<article class="ipage" data-idea="${i.id}" id="idea-${i.id}">
     <nav class="ip-crumbs"><a href="#/lab${g ? `/${encodeURIComponent(g.slug)}` : ''}">← Ideas lab</a>${g ? `<span>·</span><a href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a>` : ''}${node && g ? `<span>·</span><a href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">${esc(node)}</a>` : ''}</nav>
     <header class="ip-head">${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}
-      <h1>${esc(i.title)}</h1><p>${esc(i.pitch)}</p></header>
+      <h1>${esc(i.title)}</h1><p>${esc(i.pitch)}</p>${g && isHealthGoal(g) ? medNote() : ''}</header>
     <div class="ip-grid">
       <section class="ip-col"><div class="ip-k">The test</div>
         ${i.test_high ? `<div class="ip-cost mono">${esc(usdRange(i.test_low, i.test_high))}</div>` : ''}
@@ -5435,6 +5493,7 @@ function route() {
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
   if (parts[0] === 'how') return howView(parts[1]);
+  if (parts[0] === 'terms' || parts[0] === 'privacy') return legalView(parts[0], parts[1]);
   if (parts[0] === 'g' && parts[1]) howState.from = `#/g/${parts[1]}`;
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');

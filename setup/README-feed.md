@@ -519,3 +519,11 @@ The model declines to write ideas for vaccine and pathogen-biology problems (tub
 - **ideas function:** a refusal marks the problem `nodes.ideas_declined`. Two empty tries count the same as a refusal. Declined problems are never resubmitted. A chapter with two declined problems is skipped, so the goal's ideas go to its other chapters (diagnosis, delivery, funding).
 - **evidence function:** on each run it searches ClinicalTrials.gov for up to 6 declined problems. It widens the search words until trials naming both the goal's subject and the problem's lead word turn up, and saves them as that problem's `trials` evidence. Each search is repeated every 30 days.
 - **Problem sheet:** a declined problem shows "Being tested now" with those trials, instead of "Ask for ideas".
+
+## 38. Terms, privacy and the medical note
+
+- **Pages:** `#/terms` and `#/privacy` (sections can be linked, for example `#/terms/medical`). They're linked from the footer, the sign-in box, the paywalls and Stripe Checkout's submit text.
+- **Operator details:** fill in `LEGAL` at the top of the legal code in index.html: `email`, `address`, and `law` (governing law). Empty fields are left out of the pages.
+- **Email address:** set the Supabase secret `DIGEST_ADDRESS` to a postal address. It is printed in every weekly email's footer, which US anti-spam law (CAN-SPAM) requires.
+- **Medical note:** shown on health goals (any goal with trials evidence, or a health word in its name or summary). It appears at the end of the goal page, in each problem sheet and on idea pages.
+- **Account deletion:** now goes through `billing` (`delete_account`). It cancels any Stripe subscription before deleting the user, so nobody is charged for a deleted account.

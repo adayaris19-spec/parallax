@@ -4,7 +4,7 @@
 // portal (cancel, change card, invoices), or reports the caller's plan. Card
 // details only ever go to Stripe's own pages.
 //
-// Request: POST {"action": "checkout" | "portal" | "status"} with the person's access token.
+// Request: POST {"action": "checkout" | "portal" | "status" | "delete_account"} with the person's access token.
 // Answer:  {"url": "..."} for checkout and portal; {"status": "...", "price": "$55/month"} for status.
 //
 // The Terminal's product and price are created in Stripe on first use (lookup key
@@ -132,6 +132,19 @@ Deno.serve(async (req) => {
       return json({ status: row?.status ?? "none", plan: row?.plan ?? null, plus_price: priceLabel(PLUS_CENTS), plus_year_price: `$${(PLUS_YEAR_CENTS / 100).toFixed(0)}/year`, current_period_end: row?.current_period_end ?? null, trial_days: TRIAL_DAYS, price: priceLabel(CENTS), year_price: `$${(YEAR_CENTS / 100).toFixed(YEAR_CENTS % 100 ? 2 : 0)}/year`, stripe });
     }
     if (!user) return json({ error: "Sign in first." }, 401);
+
+    // Deleting an account first cancels any paid plan in Stripe, so nobody is charged for an account
+    // that no longer exists; then the account and everything tied to it is removed.
+    if (body.action === "delete_account") {
+      const row = (await db(`subscriptions?user_id=eq.${user.id}&select=stripe_customer_id`))?.[0];
+      if (row?.stripe_customer_id && Deno.env.get("STRIPE_SECRET_KEY")) {
+        const subs = await stripeApi().subscriptions.list({ customer: row.stripe_customer_id, status: "all", limit: 20 });
+        for (const s of subs.data) if (!["canceled", "incomplete_expired"].includes(s.status)) await stripeApi().subscriptions.cancel(s.id);
+      }
+      const r = await fetch(`${SB}/auth/v1/admin/users/${user.id}`, { method: "DELETE", headers: { apikey: SRK, Authorization: `Bearer ${SRK}` } });
+      if (!r.ok) throw new Error(`delete user ${r.status}: ${(await r.text()).slice(0, 120)}`);
+      return json({ deleted: true });
+    }
     if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ error: "Payments are not switched on yet." }, 503);
 
     if (body.action === "checkout") {
@@ -154,6 +167,7 @@ Deno.serve(async (req) => {
         payment_method_collection: "always", // a card upfront, also for the trial
         subscription_data: { metadata: { user_id: user.id }, ...(trial ? { trial_period_days: TRIAL_DAYS, trial_settings: { end_behavior: { missing_payment_method: "cancel" } } } : {}) },
         allow_promotion_codes: true,
+        custom_text: { submit: { message: `Renews automatically until you cancel; cancel any time from Manage billing. By subscribing you accept the Parallax terms (${SITE}#/terms) and privacy policy (${SITE}#/privacy).` } },
         success_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal/welcome`,
         cancel_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal`,
       });
