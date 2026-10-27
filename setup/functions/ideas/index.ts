@@ -292,6 +292,12 @@ async function submit(slug?: string, key?: string) {
       }
     }
     const declined = new Set([...tries].filter(([, n]) => n >= 2).map(([k]) => k));
+    // Four or more problems declined and not one idea yet: the whole goal is the kind the model
+    // won't write ideas for (virus research, for one). Every problem shows its trials instead.
+    if (declined.size >= 4 && !have.length) {
+      await declineNodes(g.id, (nodes as Node[]).filter((n) => n.parent_key).map((n) => n.key));
+      continue;
+    }
     await declineNodes(g.id, [...declined]);
     // A chapter where two problems were declined is likely all the same kind of problem (vaccine
     // or pathogen biology): move on to the goal's other chapters unless someone asked.
