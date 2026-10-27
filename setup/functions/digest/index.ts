@@ -19,6 +19,8 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 const RESEND = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM = Deno.env.get("DIGEST_FROM") ?? "Parallax <onboarding@resend.dev>";
+// Postal address in every email's footer (US anti-spam law requires one in marketing email).
+const ADDRESS = Deno.env.get("DIGEST_ADDRESS") ?? "";
 const SITE = (Deno.env.get("SITE_URL") ?? "https://adayaris19-spec.github.io/parallax/").replace(/\/?$/, "/");
 const FN = `${SB}/functions/v1/digest`;
 const PAID = ["active", "trialing", "comp"];
@@ -198,7 +200,7 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
 ${blocks.join("")}
 <tr><td style="padding:0 28px 30px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${inner.join("")}</table></td></tr>
 </table>
-<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax ${sub.pro ? "Pro" : "Plus"}. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a></p>
+<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax ${sub.pro ? "Pro" : "Plus"}. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a> · <a href="${SITE}#/privacy" style="color:${MUTED}">Privacy</a>${ADDRESS ? `<br>Parallax · ${esc(ADDRESS)}` : ""}</p>
 </td></tr></table></body></html>`;
   return { subject, html, unsub };
 }
