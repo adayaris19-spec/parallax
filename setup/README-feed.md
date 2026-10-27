@@ -527,3 +527,10 @@ The model declines to write ideas for vaccine and pathogen-biology problems (tub
 - **Email address:** set the Supabase secret `DIGEST_ADDRESS` to a postal address. It is printed in every weekly email's footer, which US anti-spam law (CAN-SPAM) requires.
 - **Medical note:** shown on health goals (any goal with trials evidence, or a health word in its name or summary). It appears at the end of the goal page, in each problem sheet and on idea pages.
 - **Account deletion:** now goes through `billing` (`delete_account`). It cancels any Stripe subscription before deleting the user, so nobody is charged for a deleted account.
+
+## 39. Faster goal pages
+
+Run `schema-goal-open.sql`. A goal page now loads in one request, `rpc/parallax_goal_open {"s": slug}`. It returns the goal, its page contents, funding, and idea ratings and notes. Before, it took three requests, one after another.
+
+- **Caching:** the browser keeps each opened goal for 2 minutes, so switching tabs and going back show instantly. A goal that is still mapping is never kept, so its progress keeps updating.
+- **Prefetch:** hovering over or touching a goal link starts loading that goal before the click.

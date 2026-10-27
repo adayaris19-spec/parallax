@@ -2538,14 +2538,40 @@ function leafStatusLabel(s) {
 }
 const BLOCK = { knowledge: 'we do not know how yet', materials: 'missing materials', instruments: 'missing instruments or tools', funding: 'missing funding', attention: 'few people are working on it', none: '' };
 
+// A goal page in one request (parallax_goal_open: the goal, its contents and funding), kept for
+// two minutes so switching tabs and going back are instant. Touching or hovering a goal link starts
+// it early. A goal still being mapped is never kept: its progress is polled.
+const goalPages = new Map();
+function goalOpen(slug, force = false) {
+  const c = goalPages.get(slug);
+  if (c && !force && c.ready !== false && Date.now() - c.at < 120000) return c.p;
+  const entry = { at: Date.now(), ready: undefined };
+  entry.p = fetch(`${SUPA_URL}/rest/v1/rpc/parallax_goal_open`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ s: slug }) })
+    .then(async (r) => { if (!r.ok) throw new Error(`Could not load this goal (${r.status})`); const v = await r.json(); entry.ready = v?.goal?.status === 'ready'; return v; });
+  entry.p.catch(() => { if (goalPages.get(slug) === entry) goalPages.delete(slug); });
+  goalPages.set(slug, entry);
+  return entry.p;
+}
+const prefetchGoal = (e) => {
+  const a = e.target.closest?.('a[href^="#/g/"]');
+  const slug = a && decodeURIComponent(a.getAttribute('href').split('/')[2] || '');
+  if (slug) goalOpen(slug).catch(() => {});
+};
+document.addEventListener('pointerover', prefetchGoal, { passive: true });
+document.addEventListener('touchstart', prefetchGoal, { passive: true });
+
 async function goalView(slug, tab, focusKey, scrollField = false) {
   clearTimeout(pollTimer);
   view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
-  let g;
+  let g, opened, mineP = null;
   try {
-    // The goals list is cached and carries each goal's pictures (for the avatar).
-    const [one, all] = await Promise.all([rest(`goals?slug=eq.${encodeURIComponent(slug)}&select=${GOAL_COLS}`), goals().catch(() => [])]);
-    g = one[0];
+    // One request for the whole page (goalOpen); the goals list is cached and carries each goal's
+    // pictures (for the avatar).
+    // Your own idea ratings load at the same time (a person has few), not after the page.
+    if (me) mineP = sb.from('idea_reactions').select('idea_id,kind,note').eq('user_id', me.id).limit(2000);
+    const [O, all] = await Promise.all([goalOpen(slug), goals().catch(() => [])]);
+    opened = O;
+    g = O?.goal;
     if (g) g.pics = all.find((x) => x.id === g.id)?.pics || [];
   } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
@@ -2573,14 +2599,14 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   try {
     // One request for everything public on the page (parallax_goal_page), plus funding and config.
     const [P, fund, cfg] = await Promise.all([
-      fetch(`${SUPA_URL}/rest/v1/rpc/parallax_goal_page`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ gid: g.id }) })
+      opened.page || fetch(`${SUPA_URL}/rest/v1/rpc/parallax_goal_page`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ gid: g.id }) })
         .then(async (r) => { if (!r.ok) throw new Error(`Could not load this goal (${r.status})`); return r.json(); }),
-      loadFunding(g),
+      loadFunding(g, opened),
       siteConfig(),
     ]);
     [nodes, posts, promises, helpers] = await Promise.resolve([P.nodes, P.posts, P.promises, P.helpers, fund, P.years, P.links, P.reels, P.costs, P.ideas, P.asked, P.orgs, P.giving, P.gifts, cfg, P.fundraisers, P.field, P.evidence    ]).then((r) => { for (const e of r[17]) (evidence[e.node_key] ||= {})[e.source] = e; askedIdeas = r[10].map((x) => x.node_key); const fr = new Map(r[15].map((x) => [x.ein, x.url])); giving = { orgs: r[11].map((o) => ({ ...o, donate_url: fr.get(o.ein) || o.donate_url })), total: r[12][0] || { raised_cents: 0, gifts: 0 }, recent: r[13], token: r[14].every_webhook_token || '' }; fieldReal = r[16].length > 0; nodeYears = fieldReal ? r[16] : r[5]; nodeLinks = r[6]; heroMedia = pickHero(r[7]); costs = Object.fromEntries(r[8].map((c) => [c.node_key, c])); goalIdeas = r[9]; return r; });
     labState.ideas = goalIdeas;
-    await loadIdeaExtras(goalIdeas.map((i) => i.id));
+    await loadIdeaExtras(goalIdeas.map((i) => i.id), opened.idea_scores ? { ...opened, mine: mineP } : undefined);
   } catch (e) { view.innerHTML = head + failNote(e, 'route()'); return; }
 
   const leaves = nodes.filter((n) => n.parent_key);
@@ -4485,10 +4511,10 @@ const coverFor = (c) => Math.ceil(c * 0.029 + 30);
 const TEAM_KIND = { lab: 'Lab or university', nonprofit: 'Nonprofit', company: 'Company', individual: 'Independent researcher' };
 let fundState = { goal: null, listings: [], perNode: {}, perListing: {} };
 
-async function loadFunding(g) {
+async function loadFunding(g, pre) {
   fundState = { goal: g, listings: [], perNode: {}, perListing: {} };
   try {
-    const [listings, perNode] = await Promise.all([
+    const [listings, perNode] = pre?.listings ? [pre.listings, pre.per_node || []] : await Promise.all([
       rest(`team_problems?goal_id=eq.${g.id}&status=eq.active&select=id,node_key,node_title,plan,target_cents,teams(id,name,kind,website,country,about)&order=created_at.asc`),
       rest(`problem_funding?goal_id=eq.${g.id}&select=node_key,raised_cents,backers`),
     ]);
@@ -4514,10 +4540,10 @@ const REACT = [['promising', 'Promising'], ['flawed', 'Has a flaw'], ['tried', '
 const NOVELTY = { new: ['New', 'No one seems to have tried this'], partly: ['Partly explored', 'Related work exists, but not this'], tried: ['Tried before', 'Something like this has been done'] };
 const labState = { ideas: [], scores: {}, notes: {}, mine: {}, nodes: {} };
 
-async function loadIdeaExtras(ids) {
+async function loadIdeaExtras(ids, pre) {
   if (!ids.length) return;
   const list = ids.join(',');
-  const [scores, notes] = await Promise.all([
+  const [scores, notes] = pre ? [pre.idea_scores || [], pre.idea_notes || []] : await Promise.all([
     rest(`idea_scores?idea_id=in.(${list})&select=idea_id,promising,flawed,tried,test`).catch(() => []),
     rest(`idea_notes?idea_id=in.(${list})&select=idea_id,kind,note,created_at,handle,display_name&order=created_at.desc`).catch(() => []),
   ]);
@@ -4525,7 +4551,7 @@ async function loadIdeaExtras(ids) {
   for (const id of ids) labState.notes[id] = notes.filter((n) => n.idea_id === id);
   if (me) {
     try {
-      const { data } = await sb.from('idea_reactions').select('idea_id,kind,note').eq('user_id', me.id).in('idea_id', ids);
+      const { data } = await (pre?.mine || sb.from('idea_reactions').select('idea_id,kind,note').eq('user_id', me.id).in('idea_id', ids));
       for (const r of data || []) labState.mine[r.idea_id] = r;
     } catch { /* counts still show */ }
   }
