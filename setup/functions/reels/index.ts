@@ -773,11 +773,13 @@ const Script = z.object({ reels: z.array(z.object({
   scenes: z.array(ScriptScene).describe("4 or 5 scenes."),
 })) });
 
-async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
+async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[] } = {}) {
   const g = (await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at`))[0];
   if (!g) return { error: "no such goal" };
   // Clips in other goals' videos stay off limits; this goal's own old clips may be reused.
-  usedClips = new Set(((await db(`reels?goal_id=neq.${g.id}&select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  // During a full remake, only the goals already done in this pass (and those kept) are off limits.
+  const avoidIds = opts.avoid ? ((await db(`goals?slug=in.(${opts.avoid.map((x) => `"${x}"`).join(",")})&select=id`)) as { id: number }[]).map((x) => x.id).filter((id) => id !== g.id) : null;
+  usedClips = new Set(((await db(avoidIds ? `reels?goal_id=in.(${avoidIds.join(",") || 0})&select=scenes` : `reels?goal_id=neq.${g.id}&select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
   const { facts, posts } = await goalFacts(g, true);
   const space = /mars|moon|space|orbit|asteroid|planet|rocket|satellite/i.test(`${g.slug} ${g.name}`);
   const errors: string[] = [];
@@ -819,7 +821,9 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
       for (const it of v?.items ?? []) if (part.includes(it.id)) judged.push({ c: cands[it.id], shows: it.shows, fit: it.fit, quality: it.quality, action: it.action, dynamic: it.dynamic });
     } catch (e) { errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 80) : e}`); }
   }));
-  const strict = (j: { fit: number; quality: number; dynamic: number }) => j.dynamic >= 5 && ((j.fit >= 6 && j.quality >= 7) || (j.fit >= 8 && j.quality >= 6));
+  // On topic, or general science animation that is striking and dynamic (a glowing DNA helix suits
+  // any biology goal). Never unrelated nature or abstract filler.
+  const strict = (j: { fit: number; quality: number; dynamic: number }) => (j.fit >= 7 && j.quality >= 6 && j.dynamic >= 4) || (j.fit >= 5 && j.quality >= 7 && j.dynamic >= 5) || (j.fit >= 4 && j.quality >= 8 && j.dynamic >= 7);
   const rank = (j: { fit: number; quality: number; dynamic: number }) => j.fit + j.quality + j.dynamic * 1.5;
   // No look-alikes: one clip per creator series (Pixabay ids close together from the same creator),
   // none whose description matches a clip already kept or one in another goal's videos.
@@ -829,16 +833,18 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
   const otherIds = [...usedClips].map((x) => Number(/^pv(\d+)$/.exec(x)?.[1] ?? NaN)).filter((n) => !isNaN(n));
   const alike = (a: string, b: string) => { const A = words(a), B = words(b); const shared = [...A].filter((w) => B.has(w)).length; return shared / Math.max(1, Math.min(A.size, B.size)) >= 0.6; };
   const shots: typeof judged = [];
+  const cut = { near: 0, series: 0, alike: 0, other: 0 };
   for (const j of judged.filter(strict).sort((a, b) => rank(b) - rank(a))) {
     const n = pvNum(j.c);
-    if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 40)) continue;
-    if (shots.some((k) => (!isNaN(n) && k.c.credit === j.c.credit && Math.abs(pvNum(k.c) - n) < 400) || alike(k.shows, j.shows))) continue;
-    if (others.some((o) => alike(o, j.shows))) continue;
+    if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 40)) { cut.near++; continue; }
+    if (shots.some((k) => !isNaN(n) && k.c.credit === j.c.credit && Math.abs(pvNum(k.c) - n) < 400)) { cut.series++; continue; }
+    if (shots.some((k) => alike(k.shows, j.shows))) { cut.alike++; continue; }
+    if (others.some((o) => alike(o, j.shows))) { cut.other++; continue; }
     shots.push(j);
     if (shots.length >= 22) break;
   }
   const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, dynamic: j.dynamic, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
-  if (shots.length < 8) return { slug, error: "too few good shots", found: shots.length, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
+  if (shots.length < 8) return { slug, error: "too few good shots", found: shots.length, passed: judged.filter(strict).length, cut, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
 
   // 4. The script, written around the approved shots.
   const list = shots.map((x, i) => `S${i} [${x.c.kind}${x.action ? ", action" : ""}] ${x.shows}`).join("\n");
@@ -937,7 +943,7 @@ Deno.serve(async (req) => {
     // Repair: new shots for chosen scenes only ({items: [{reel_id, si}]}, one goal per call), found
     // and judged by the editor's rules. Replaced shots leave the library so they're never reused.
     // Footage first: {"action": "footage_first", "slug": "end-malaria", "dry": true} previews without saving.
-    if (body.action === "footage_first" && typeof body.slug === "string") return json(await footageFirst(body.slug, { dry: body.dry === true }));
+    if (body.action === "footage_first" && typeof body.slug === "string") return json(await footageFirst(body.slug, { dry: body.dry === true, avoid: Array.isArray(body.avoid) ? body.avoid : undefined }));
     if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : []));
     // Admin review: what the footage search finds for some terms, as pictures.
     if (body.action === "peek" && Array.isArray(body.terms)) {
