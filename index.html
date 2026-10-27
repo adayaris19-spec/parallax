@@ -705,6 +705,7 @@ body.goalpage main{max-width:1120px}
 .chal-more{margin-top:6px}.chal-more summary{font-size:13px;color:var(--muted);cursor:pointer}.chal-more p{font-size:13.5px;line-height:1.5;margin:8px 0 0;color:var(--ink2)}.chal-more .wt-l{display:block}
 .chal-res a{color:var(--ink)}
 .chal-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}.chal-n{flex:1;min-width:140px;font-size:12.5px;color:var(--muted)}.chal-n a{color:inherit}
+.chal-me{font-size:13.5px;color:var(--ink2);margin:0 0 12px}.chal-me a{color:var(--accent);text-decoration:none}
 .chal-filter .chip{text-decoration:none}.chal-filter .chip.on{background:var(--ink);color:var(--bg)}
 .br-impact{display:inline-block;margin:2px 0 6px;font-size:14px;color:var(--accent);text-decoration:none;font-weight:500}
 .sub-fine{font-size:11.5px;color:var(--muted);margin:10px 0 0}.sub-fine a{color:inherit}
@@ -1938,7 +1939,7 @@ body{background:var(--bg)}
 <nav class="bnav" id="bnav" aria-label="Main">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
   <a href="#/watch" data-nav="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/></svg>Watch</a>
-  <a href="#/branch" data-nav="branch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Branch</a>
+  <a href="#/challenges" data-nav="challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Challenges</a>
   <a href="#/explore" data-nav="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Explore</a>
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
 </nav>
@@ -2105,7 +2106,7 @@ function toggleMenu(force) {
   const h = me.profile ? me.profile.handle : '';
   m.innerHTML = `<div class="who2">Signed in as <b>@${esc(h)}</b></div>
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
-    <a href="#/branch" role="menuitem">Your branch</a>
+    <a href="#/challenges" role="menuitem">Challenges for you</a>
     <a href="#/impact" role="menuitem">Your impact</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/plus" role="menuitem">Parallax Plus</a>
@@ -2365,7 +2366,7 @@ document.addEventListener('click', (e) => {
 
 // The site's sections, in one tab bar under the header (the header keeps search, Plus and Pro).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['explore', '#/explore', 'Explore'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following'], ['branch', '#/branch', 'Your branch']];
+const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['explore', '#/explore', 'Explore'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 async function feedView(tab) {
@@ -3139,7 +3140,7 @@ async function profileView(handle, toImpact = false) {
       ${p.bio ? `<p class="sum">${esc(p.bio)}</p>` : ''}
       ${(p.skills || []).length ? `<div class="chips">${p.skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="followers">Joined ${esc(joined)}</div>
-      <div class="act">${own ? '<a class="btn primary" href="#/branch">Your branch</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
+      <div class="act">${own ? '<a class="btn primary" href="#/challenges">Challenges for you</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
     </div></div>
     <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
     ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
@@ -3160,7 +3161,7 @@ async function profileView(handle, toImpact = false) {
 function impactHtml(steps, list, own) {
   if (!steps.length) {
     return own
-      ? `<p style="color:var(--muted);margin-top:4px">When you take a first step from Your branch, press "I did this" and it shows here.</p><p><a class="btn" href="#/branch">Open your branch</a></p>`
+      ? `<p style="color:var(--muted);margin-top:4px">Take on a challenge and submit your work, and it shows here.</p><p><a class="btn" href="#/challenges">Open challenges</a></p>`
       : '<p style="color:var(--muted);margin-top:4px">No steps yet.</p>';
   }
   const goalsTouched = new Set(steps.map((x) => x.goal_id)).size, pub = steps.filter((x) => x.review_status === 'published').length;
@@ -3274,128 +3275,8 @@ async function settingsView(welcome) {
   };
 }
 
-let branchItems = [];
-function branchCard(it, i, done) {
-  const g = it.goal;
-  const papers = (it.papers || []).map((e) => { const u = safeUrl(e.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)}${e.year ? ` <span>(${esc(e.year)}${e.first_author ? `, ${esc(e.first_author)}` : ''})</span>` : ''}</li>`; }).join('');
-  return `<article class="post">
-    <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div></div>
-    <span class="kind advance">Fits your skill: ${esc(it.skill_used)}</span>
-    <h3><i class="dot st-${esc(it.node.status || 'open')}" style="display:inline-block;margin:0 8px 1px 0;vertical-align:middle"></i>${esc(it.node.title)}</h3>
-    <p><b>Why you:</b> ${esc(it.why_you)}</p>
-    <p><b>A first step:</b> ${esc(it.first_step)}</p>
-    ${papers ? `<ul class="srcs">${papers}</ul>` : ''}
-    <div class="post-f"><span class="check"></span><a class="btn" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(it.node.key)}">See the problem</a>${followBtn(g.slug)}${done ? '<span class="btn following">Done ✓</span>' : `<button class="btn primary" type="button" data-did="${i}">I did this</button>`}</div>
-  </article>`;
-}
 
-async function branchView(refresh = false) {
-  const tabs = navTabs('branch');
-  view.innerHTML = tabs + `<div id="br"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
-  const box = $('#br');
-  await authReady;
-  if (!box.isConnected) return;
-  if (!sb || !me) {
-    box.innerHTML = note('Find where you can help', 'Sign in and tell Parallax what you are good at. It will find the problems, across every goal, where someone like you can make a difference.', '<p><button class="btn primary" type="button" id="brIn">Sign in</button></p>');
-    box.querySelector('#brIn').onclick = () => openSignIn('Sign in to find the problems where your skills can help.');
-    return;
-  }
-  const skills = (me.profile && me.profile.skills) || [];
-  if (!skills.length) {
-    box.innerHTML = note('Add what you can help with', 'Parallax matches your skills to the problems that need them. Add a few, like nursing, coding, statistics or Spanish.', '<p><a class="btn primary" href="#/settings">Add your skills</a></p>');
-    return;
-  }
-  box.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span><h2 style="margin-top:12px">Finding where your skills fit</h2><div>Parallax is reading every open problem across every goal. This takes about 20 seconds.</div></div>`;
-  let data = {};
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const r = await fetch(`${SUPA_URL}/functions/v1/branch`, {
-      method: 'POST',
-      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${session ? session.access_token : SUPA_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(refresh ? { refresh: true } : {}),
-    });
-    data = await r.json().catch(() => ({ error: `Parallax answered ${r.status}` }));
-  } catch (e) { data = { error: e.message }; }
-  if (!box.isConnected) return; // the person moved on, or a newer load replaced this one
-  if (data.needs === 'skills') { location.hash = '#/settings'; return; }
-  if (data.error && !data.items) { box.innerHTML = note('Could not find your matches', esc(data.error), '<p><button class="btn" type="button" onclick="branchView()">Try again</button></p>'); return; }
-  const items = data.items || [];
-  branchItems = items;
-  const done = new Set();
-  try {
-    const { data: rows } = await sb.from('contributions').select('goal_id,node_key').eq('user_id', me.id);
-    for (const r of rows || []) done.add(`${r.goal_id}/${r.node_key}`);
-  } catch {}
-  // Challenges that fit your skills come first: real pieces of a problem with a bar to meet.
-  let fit = [];
-  try {
-    const [cl, all] = await Promise.all([rest('challenges?status=eq.open&select=id,goal_id,node_key,title,useful,task,done_when,resources,skills,size,status&limit=600'), goals()]);
-    const sk = skills.map((s) => s.toLowerCase());
-    const byId = new Map(all.map((g) => [g.id, g]));
-    fit = cl.filter((c) => byId.has(c.goal_id) && (c.skills || []).some((s) => sk.some((m) => m.includes(s) || s.includes(m)))).slice(0, 4);
-    const takers = fit.length ? await rest(`challenge_takers?challenge_id=in.(${fit.map((c) => c.id).join(',')})&select=challenge_id`).catch(() => []) : [];
-    for (const c of fit) { c.takers = takers.filter((t) => t.challenge_id === c.id).length; chalIndex.set(c.id, { c, g: byId.get(c.goal_id) }); }
-    await loadTaken();
-  } catch { /* the matches below still show */ }
-  if (!box.isConnected) return;
-  const when = data.generated_at ? ago(data.generated_at) : '';
-  box.innerHTML = `<h1 class="page-h">Your branch</h1>${done.size ? `<a class="br-impact" href="#/impact">Your impact · ${done.size} ${done.size === 1 ? 'step' : 'steps'} →</a>` : ''}
-    <p class="page-sub">Problems where someone with your skills can help. Based on:</p>
-    <div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}<a class="chip" href="#/settings" style="background:none;text-decoration:underline">Edit</a></div>
-    ${data.note ? `<p style="color:var(--muted)">${esc(data.note)}</p>` : ''}
-    ${fit.length ? `<div class="prom-h">Challenges that fit your skills</div>${fit.map((c) => challengeCard(c, chalIndex.get(c.id).g, { goal: true })).join('')}<p><a class="br-impact" href="#/challenges/mine">All challenges for your skills →</a></p><div class="prom-h">More places to help</div>` : ''}
-    ${items.length ? items.map((it, i) => branchCard(it, i, done.has(`${it.goal.id}/${it.node.key}`))).join('') : note('No close matches yet', 'Try adding more skills, or check back as more goals are mapped.')}
-    <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:16px">${when ? `Matched ${esc(when === 'now' ? 'just now' : /^\d/.test(when) ? `${when} ago` : `on ${when}`)} · ` : ''}<button class="btn" type="button" id="brNew">Find new matches</button></p>`;
-  box.querySelector('#brNew').onclick = () => branchView(true);
-  box.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-did]');
-    if (b) openDidIt(branchItems[Number(b.dataset.did)], b);
-  });
-}
 
-function openDidIt(it, btn) {
-  if (!it || !me) return;
-  closeModal();
-  const back = document.createElement('div');
-  back.className = 'modal-back';
-  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="didT">
-    <h2 id="didT">Nice work</h2>
-    <p>Add this to your impact on <b>${esc(it.node.title)}</b>.</p>
-    <label class="field"><span>What did you do? <small style="display:inline;font-weight:400">(optional)</small></span>
-      <textarea id="didNote" maxlength="500" placeholder="For example: read the paper and sent my notes to the author."></textarea></label>
-    <label class="field"><span>Link to what you made <small style="display:inline;font-weight:400">(optional: GitHub, a Google Doc, a page)</small></span>
-      <input id="didUrl" type="url" maxlength="500" placeholder="https://"></label>
-    <label class="chk" id="didRevRow" style="display:none"><input type="checkbox" id="didRev" checked> Ask Parallax to review it. Good work is published on <b>@${esc(it.goal.handle || '')}</b>’s feed under your name.</label>
-    <button class="btn primary wide" type="button" id="didSave">Add to my impact</button>
-    <button class="btn wide" type="button" id="didCancel">Cancel</button>
-    <p class="fine">Shown on your public profile, marked as self-reported.</p>
-    <div class="err" id="didErr"></div></div>`;
-  document.body.appendChild(back);
-  back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
-  $('#didCancel').onclick = closeModal;
-  $('#didNote').focus();
-  $('#didUrl').oninput = () => { $('#didRevRow').style.display = /^https?:\/\/\S+/i.test($('#didUrl').value.trim()) ? '' : 'none'; };
-  $('#didSave').onclick = async () => {
-    const url = $('#didUrl').value.trim();
-    if (url && !/^https?:\/\/\S+$/i.test(url)) { $('#didErr').textContent = 'Paste a full link starting with https://'; return; }
-    $('#didSave').disabled = true;
-    const { data, error } = await sb.from('contributions').insert({
-      user_id: me.id, goal_id: it.goal.id, node_key: it.node.key, node_title: it.node.title.slice(0, 300),
-      step: String(it.first_step || '').slice(0, 600), note: $('#didNote').value.trim().slice(0, 500), work_url: url || null,
-    }).select('id').single();
-    if (error && error.code !== '23505') { $('#didSave').disabled = false; $('#didErr').textContent = `Could not save: ${error.message}`; return; }
-    if (btn) btn.outerHTML = '<span class="btn following">Done ✓</span>';
-    if (url && data?.id && $('#didRev').checked) {
-      $('#didSave').textContent = 'Reviewing your work… about a minute';
-      const res = await submitWork(data.id, url, null);
-      closeModal();
-      if (res && !res.error) location.hash = '#/impact';
-      return;
-    }
-    closeModal();
-    toast('Added to your impact');
-  };
-}
 
 
 // ------------------------------------------------------------ challenges
@@ -3516,13 +3397,15 @@ async function challengesView(skill) {
   const freq = new Map(); for (const s of list.flatMap((c) => c.skills || [])) freq.set(s, (freq.get(s) || 0) + 1);
   const skills = [...freq.keys()].sort((a, b) => freq.get(b) - freq.get(a)); // most common first
   const mine = me?.profile?.skills || [];
-  const sel = skill ? decodeURIComponent(skill) : '';
+  // Signed in with skills: open on the challenges that fit them.
+  const sel = skill ? (skill === 'all' ? '' : decodeURIComponent(skill)) : (mine.length ? 'mine' : '');
   const shown = list.filter((c) => byId.has(c.goal_id) && (!sel || (sel === 'mine' ? (c.skills || []).some((s) => mine.some((m) => m.toLowerCase().includes(s) || s.includes(m.toLowerCase()))) : (c.skills || []).includes(sel))))
     .sort((a, b) => (a.status === 'solved') - (b.status === 'solved') || b.takers - a.takers);
   for (const c of shown) chalIndex.set(c.id, { c, g: byId.get(c.goal_id) });
   view.innerHTML = navTabs('challenges') + `<h1 class="page-h">Challenges</h1>
     <p class="page-sub">Real pieces of humanity’s biggest problems that one person could solve from home with public data, code and analysis. Each has a clear bar. Meet it and your work is published on the goal’s feed under your name.</p>
-    <div class="chips chal-filter"><a class="chip${sel ? '' : ' on'}" href="#/challenges">All ${list.length}</a>${mine.length ? `<a class="chip${sel === 'mine' ? ' on' : ''}" href="#/challenges/mine">Fits my skills</a>` : ''}${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
+    ${me ? `<div class="chal-me">${mine.length ? `<span>Your skills: ${mine.map((k) => `<b>${esc(k)}</b>`).join(', ')}</span> <a href="#/settings">Edit</a>` : '<span>Add your skills and Parallax shows the challenges that fit you.</span> <a href="#/settings">Add skills</a>'} · <a href="#/impact">Your impact →</a></div>` : ''}
+    <div class="chips chal-filter">${mine.length ? `<a class="chip${sel === 'mine' ? ' on' : ''}" href="#/challenges/mine">For you</a>` : ''}<a class="chip${sel ? '' : ' on'}" href="#/challenges/all">All ${list.length}</a>${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
     ${shown.length ? shown.map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c) })).join('') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
 }
 
@@ -5727,7 +5610,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'branch', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
@@ -5760,7 +5643,7 @@ function route() {
   if (parts[0] === 'challenges') return challengesView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'plus') return plusView();
-  if (parts[0] === 'branch') return branchView();
+  if (parts[0] === 'branch') { location.replace('#/challenges'); return; } // Your branch became Challenges
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
   if (parts[0] === 'watch') return watchView(parts[1]);
