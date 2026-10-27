@@ -687,6 +687,15 @@ body.goalpage main{max-width:1120px}
 
 /* how Parallax works */
 .how{max-width:720px;margin:0 auto;padding:28px 0 60px}
+.work{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:10px;font-size:13.5px}
+.work .wl{font-family:var(--m);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.work a{color:var(--ink);word-break:break-all}
+.wstat{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.wstat i{width:7px;height:7px;border-radius:50%;background:var(--open)}.wstat.st-solved i{background:var(--solved)}.wstat.st-progress i{background:var(--progress)}.wstat.st-blocked i{background:var(--blocked)}
+.wfb{font-size:13.5px;color:var(--ink2);margin:6px 0 0;line-height:1.5}
+.workf{display:flex;gap:8px;margin-top:10px}.workf input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line2);border-radius:10px;font:inherit;font-size:14px;background:var(--card)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink2);margin:4px 0 12px;line-height:1.45}.chk input{margin-top:3px}
+.br-impact{display:inline-block;margin:2px 0 6px;font-size:14px;color:var(--accent);text-decoration:none;font-weight:500}
 .sub-fine{font-size:11.5px;color:var(--muted);margin:10px 0 0}.sub-fine a{color:inherit}
 .plus-cta .sub-fine{flex-basis:100%;margin:2px 0 0}
 .med-note{font-size:13px;line-height:1.5;color:var(--muted);margin:14px 0 0;padding:10px 14px;border-radius:12px;background:var(--sunk)}
@@ -2086,6 +2095,7 @@ function toggleMenu(force) {
   m.innerHTML = `<div class="who2">Signed in as <b>@${esc(h)}</b></div>
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
     <a href="#/branch" role="menuitem">Your branch</a>
+    <a href="#/impact" role="menuitem">Your impact</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/plus" role="menuitem">Parallax Plus</a>
     <a href="#/terminal" role="menuitem">Parallax Pro</a>
@@ -2233,7 +2243,7 @@ async function goals(force = false) {
 const goalById = (list, id) => list.find((g) => g.id === id);
 
 // ------------------------------------------------------------ post card
-const KIND = { mapped: 'New goal', bottleneck: 'Bottleneck', advance: 'Advance', setback: 'Setback', solved: 'Branch solved', forgotten: 'Forgotten idea', promise: 'Promise check' };
+const KIND = { community: 'Community work', mapped: 'New goal', bottleneck: 'Bottleneck', advance: 'Advance', setback: 'Setback', solved: 'Branch solved', forgotten: 'Forgotten idea', promise: 'Promise check' };
 const PSTATUS = { kept: 'Kept', partly: 'Partly kept', broken: 'Broken', pending: 'Not due yet', unclear: 'Unclear' };
 function quoteBlock(q, paper, made) {
   const u = safeUrl(paper && paper.url);
@@ -2249,7 +2259,10 @@ function postCard(p, g, compact = false) {
     return `<li>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${t}</a>` : t}${meta ? ` <span>(${esc(meta)})</span>` : ''}</li>`;
   }).join('');
   let check = '<span class="check"></span>';
-  if (p.kind !== 'mapped') {
+  if (p.kind === 'community') {
+    const by = p.meta?.by_handle;
+    check = `<span class="check two" title="Work by a Parallax member, read and checked by Parallax before publishing">${by ? `By <a href="#/u/${encodeURIComponent(by)}" style="color:inherit">@${esc(by)}</a> · ` : ''}reviewed by Parallax</span>`;
+  } else if (p.kind !== 'mapped') {
     check = p.independent_sources >= 2
       ? `<span class="check two" title="At least two papers by different first authors back this post">✓ ${p.independent_sources} independent sources</span>`
       : `<span class="check" title="One research group backs this post so far">One source so far</span>`;
@@ -2279,7 +2292,7 @@ function postCard(p, g, compact = false) {
   // Shared problems: which other goals this also moves (one link per goal).
   const also = p.node_key && p.kind !== 'mapped' ? [...new Map((crossIdx.get(`${p.goal_id}/${p.node_key}`) || []).map((x) => [x.gid, x])).values()] : [];
   const alsoLine = also.length ? `<div class="xalso"><span aria-hidden="true">↳</span> Also moves ${also.map((x) => { const og = (goalsCache || []).find((q) => q.id === x.gid); return og ? `<a href="#/g/${encodeURIComponent(og.slug)}/tree/${encodeURIComponent(x.key)}" title="${esc(x.why || '')}">@${esc(og.handle)}</a>` : ''; }).filter(Boolean).join(', ')}</div>` : '';
-  const more = detail ? `<details class="more"><summary>Read more${nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : '';
+  const more = detail ? `<details class="more"><summary>Read more${p.kind === 'community' ? ' · their work' : nPapers ? ` · ${nPapers} ${nPapers === 1 ? 'paper' : 'papers'}` : ''}</summary>${detail}</details>` : '';
   if (compact) {
     // Inside a goal's row or on its own page: the goal is already named above, so no header.
     return `<article class="post compact">
@@ -3082,7 +3095,15 @@ async function refreshFollowers() {
   } catch { el.textContent = el.dataset.alt || ''; }
 }
 
-async function profileView(handle) {
+// Your impact: your own profile, opened at the Impact section (sign in first if needed).
+async function impactRoute() {
+  await authReady;
+  if (!me) { view.innerHTML = note('Your impact', 'Sign in to see the steps you have taken and the work you have shared.', '<p><button class="btn primary" type="button" onclick="openSignIn()">Sign in</button></p>'); return; }
+  if (!me.profile) { location.hash = '#/settings/welcome'; return; }
+  location.replace(`#/u/${encodeURIComponent(me.profile.handle)}/impact`);
+}
+
+async function profileView(handle, toImpact = false) {
   view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
   let p, rows, list, steps;
   try {
@@ -3091,7 +3112,7 @@ async function profileView(handle) {
     [rows, list, steps] = await Promise.all([
       rest(`follows?user_id=eq.${p.id}&select=goal_id`),
       goals(),
-      rest(`contributions?user_id=eq.${p.id}&select=id,goal_id,node_key,node_title,step,note,created_at&order=created_at.desc&limit=100`).catch(() => []),
+      rest(`contributions?user_id=eq.${p.id}&select=id,goal_id,node_key,node_title,step,note,created_at,work_url,review_status,review,post_id&order=created_at.desc&limit=100`).catch(() => []),
     ]);
   } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
   const ids = new Set(rows.map((r) => r.goal_id));
@@ -3109,7 +3130,9 @@ async function profileView(handle) {
     <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
     ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
       : `<p style="color:var(--muted)">${own ? 'Follow goals and they will show here.' : 'Not following any goals yet.'}</p>`}
-    <div class="prom-h">Impact</div>${impactHtml(steps, list, own)}`;
+    <div class="prom-h" id="impact">Impact</div>${impactHtml(steps, list, own)}`;
+  if (toImpact) requestAnimationFrame(() => $('#impact')?.scrollIntoView({ block: 'start' }));
+  wireWork(view);
   view.querySelectorAll('[data-undo]').forEach((b) => {
     b.onclick = async () => {
       if (!confirm('Remove this step from your impact?')) return;
@@ -3126,8 +3149,9 @@ function impactHtml(steps, list, own) {
       ? `<p style="color:var(--muted);margin-top:4px">When you take a first step from Your branch, press "I did this" and it shows here.</p><p><a class="btn" href="#/branch">Open your branch</a></p>`
       : '<p style="color:var(--muted);margin-top:4px">No steps yet.</p>';
   }
-  const goalsTouched = new Set(steps.map((x) => x.goal_id)).size;
-  return `<p style="margin:4px 0 0"><b>${steps.length} ${steps.length === 1 ? 'step' : 'steps'}</b> taken across <b>${goalsTouched} ${goalsTouched === 1 ? 'goal' : 'goals'}</b> <span style="color:var(--muted)">· self-reported</span></p>` +
+  const goalsTouched = new Set(steps.map((x) => x.goal_id)).size, pub = steps.filter((x) => x.review_status === 'published').length;
+  return `<p style="margin:4px 0 0"><b>${steps.length} ${steps.length === 1 ? 'step' : 'steps'}</b> taken across <b>${goalsTouched} ${goalsTouched === 1 ? 'goal' : 'goals'}</b>${pub ? ` · <b>${pub} published</b>` : ''} <span style="color:var(--muted)">· self-reported</span></p>
+    ${own ? '<p class="fine2" style="margin:4px 0 0">Made something for one of these problems (code, an analysis, a write-up, data)? Add a link and Parallax will review it. Good work is published on the goal’s feed under your name.</p>' : ''}` +
     steps.map((x) => {
       const g = list.find((y) => y.id === x.goal_id);
       const head = g ? `<div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(x.created_at)}">${esc(ago(x.created_at))}</time></div>` : '';
@@ -3135,8 +3159,49 @@ function impactHtml(steps, list, own) {
         <h3 style="margin-top:10px">${g ? `<a href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(x.node_key)}" style="text-decoration:none">${esc(x.node_title)}</a>` : esc(x.node_title)}</h3>
         <p>${x.note ? esc(x.note) : 'Took the suggested first step.'}</p>
         ${x.step ? `<p style="color:var(--muted);font-size:13px;margin:0">Suggested step: ${esc(x.step)}</p>` : ''}
+        ${workBlock(x, own)}
         ${own ? `<div class="post-f"><span class="check"></span><button class="btn" type="button" data-undo="${x.id}">Remove</button></div>` : ''}</article>`;
     }).join('');
+}
+
+// The work behind a step: its link, and where Parallax's review of it stands.
+const REVIEW = { published: ['Published', 'solved'], pending: ['In review', 'progress'], not_published: ['Not published yet', 'open'], unreadable: ['Couldn’t open the link', 'blocked'] };
+function workBlock(x, own) {
+  const u = safeUrl(x.work_url || '');
+  const st = REVIEW[x.review_status];
+  const fb = x.review?.feedback;
+  let out = '';
+  if (u) {
+    out += `<div class="work"><span class="wl">${own ? 'Your work' : 'Their work'}</span><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\//, '').slice(0, 70))}</a>${st ? `<span class="wstat st-${st[1]}"><i></i>${esc(st[0])}</span>` : ''}</div>`;
+    if (x.review_status === 'published' && x.post_id) out += `<p class="wfb"><a href="#/p/${x.post_id}">See it on the goal’s feed →</a>${own && fb ? ` ${esc(fb)}` : ''}</p>`;
+    else if (own && fb) out += `<p class="wfb"><b>Feedback:</b> ${esc(fb)}</p>`;
+  }
+  if (!own || x.review_status === 'published' || x.review_status === 'pending') return out;
+  return out + `<form class="workf" data-work="${x.id}">
+      <input type="url" name="url" placeholder="Link to your work: GitHub, a Google Doc, a page" value="${esc(x.work_url || '')}" required maxlength="500">
+      <button class="btn" type="submit">${u ? 'Review again' : 'Submit for review'}</button></form>`;
+}
+// Save a step's link and ask Parallax to review it; shows the result in place.
+async function submitWork(id, url, form) {
+  const btn = form?.querySelector('button');
+  if (btn) { btn.disabled = true; btn.textContent = 'Reviewing… about a minute'; }
+  const { error } = await sb.from('contributions').update({ work_url: url }).eq('id', id).eq('user_id', me.id);
+  if (error) { toast(`Could not save the link: ${error.message}`); if (btn) { btn.disabled = false; btn.textContent = 'Submit for review'; } return null; }
+  const res = await callFn('review-work', { id }).catch((e) => ({ error: e.message }));
+  if (res.error) toast(res.error);
+  else toast(res.status === 'published' ? 'Published on the goal’s feed' : res.status === 'unreadable' ? 'Parallax couldn’t open the link' : 'Reviewed: not published yet. See the feedback.');
+  return res;
+}
+function wireWork(root) {
+  root.querySelectorAll('form[data-work]').forEach((f) => {
+    f.onsubmit = async (e) => {
+      e.preventDefault();
+      const url = f.url.value.trim();
+      if (!/^https?:\/\/\S+$/i.test(url)) { toast('Paste a full link starting with https://'); return; }
+      await submitWork(Number(f.dataset.work), url, f);
+      route();
+    };
+  });
 }
 
 async function settingsView(welcome) {
@@ -3249,7 +3314,7 @@ async function branchView(refresh = false) {
   } catch {}
   if (!box.isConnected) return;
   const when = data.generated_at ? ago(data.generated_at) : '';
-  box.innerHTML = `<h1 class="page-h">Your branch</h1>
+  box.innerHTML = `<h1 class="page-h">Your branch</h1>${done.size ? `<a class="br-impact" href="#/impact">Your impact · ${done.size} ${done.size === 1 ? 'step' : 'steps'} →</a>` : ''}
     <p class="page-sub">Problems where someone with your skills can help. Based on:</p>
     <div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}<a class="chip" href="#/settings" style="background:none;text-decoration:underline">Edit</a></div>
     ${data.note ? `<p style="color:var(--muted)">${esc(data.note)}</p>` : ''}
@@ -3272,6 +3337,9 @@ function openDidIt(it, btn) {
     <p>Add this to your impact on <b>${esc(it.node.title)}</b>.</p>
     <label class="field"><span>What did you do? <small style="display:inline;font-weight:400">(optional)</small></span>
       <textarea id="didNote" maxlength="500" placeholder="For example: read the paper and sent my notes to the author."></textarea></label>
+    <label class="field"><span>Link to what you made <small style="display:inline;font-weight:400">(optional: GitHub, a Google Doc, a page)</small></span>
+      <input id="didUrl" type="url" maxlength="500" placeholder="https://"></label>
+    <label class="chk" id="didRevRow" style="display:none"><input type="checkbox" id="didRev" checked> Ask Parallax to review it. Good work is published on <b>@${esc(it.goal.handle || '')}</b>’s feed under your name.</label>
     <button class="btn primary wide" type="button" id="didSave">Add to my impact</button>
     <button class="btn wide" type="button" id="didCancel">Cancel</button>
     <p class="fine">Shown on your public profile, marked as self-reported.</p>
@@ -3280,15 +3348,25 @@ function openDidIt(it, btn) {
   back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
   $('#didCancel').onclick = closeModal;
   $('#didNote').focus();
+  $('#didUrl').oninput = () => { $('#didRevRow').style.display = /^https?:\/\/\S+/i.test($('#didUrl').value.trim()) ? '' : 'none'; };
   $('#didSave').onclick = async () => {
+    const url = $('#didUrl').value.trim();
+    if (url && !/^https?:\/\/\S+$/i.test(url)) { $('#didErr').textContent = 'Paste a full link starting with https://'; return; }
     $('#didSave').disabled = true;
-    const { error } = await sb.from('contributions').insert({
+    const { data, error } = await sb.from('contributions').insert({
       user_id: me.id, goal_id: it.goal.id, node_key: it.node.key, node_title: it.node.title.slice(0, 300),
-      step: String(it.first_step || '').slice(0, 600), note: $('#didNote').value.trim().slice(0, 500),
-    });
+      step: String(it.first_step || '').slice(0, 600), note: $('#didNote').value.trim().slice(0, 500), work_url: url || null,
+    }).select('id').single();
     if (error && error.code !== '23505') { $('#didSave').disabled = false; $('#didErr').textContent = `Could not save: ${error.message}`; return; }
-    closeModal();
     if (btn) btn.outerHTML = '<span class="btn following">Done ✓</span>';
+    if (url && data?.id && $('#didRev').checked) {
+      $('#didSave').textContent = 'Reviewing your work… about a minute';
+      const res = await submitWork(data.id, url, null);
+      closeModal();
+      if (res && !res.error) location.hash = '#/impact';
+      return;
+    }
+    closeModal();
     toast('Added to your impact');
   };
 }
@@ -5522,7 +5600,8 @@ function route() {
   if (parts[0] === 'how') return howView(parts[1]);
   if (parts[0] === 'terms' || parts[0] === 'privacy') return legalView(parts[0], parts[1]);
   if (parts[0] === 'g' && parts[1]) howState.from = `#/g/${parts[1]}`;
-  if (parts[0] === 'u' && parts[1]) return profileView(parts[1]);
+  if (parts[0] === 'u' && parts[1]) return profileView(parts[1], parts[2] === 'impact');
+  if (parts[0] === 'impact') return impactRoute();
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'plus') return plusView();
   if (parts[0] === 'branch') return branchView();

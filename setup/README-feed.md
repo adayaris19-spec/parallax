@@ -545,3 +545,15 @@ A new goal's first ideas and cost estimates now skip the half-price batch queue,
 - **Triggers:** `map-goal` starts the costs and the first videos as soon as a goal is ready. `library` starts the ideas when a goal's first paper library is done. Neither waits for the hourly run.
 - **Stuck runs:** a direct run still pending after 45 minutes is marked failed, and its work goes back to the batch queue.
 - **Manual restart:** `{"rush": "<slug>"}` (admin) on `ideas` or `costs` drops a goal's queued batch and starts again.
+
+## 41. Community work: people's own work, reviewed and published
+
+Run `schema-work.sql` and deploy `review-work` with Verify JWT on.
+
+- **Linking work:** a step someone logs ("I did this") can carry a link to what they made: a GitHub repo, a Google Doc, or a page.
+- **Review:** `review-work` opens the link (GitHub repos through their README, Google Docs through the text export) and judges it against the problem. It uses Sonnet (`REVIEW_MODEL`), and each person gets 3 reviews a day.
+- **Publishing:** work that holds up is published on the goal's feed as a `community` post, "By @handle · reviewed by Parallax". Otherwise the author gets specific feedback and can try again.
+- **Guard:** the browser can only set `work_url` and `note`; a trigger stops it from writing the review fields.
+- **Your impact:** `#/impact` opens your profile at the Impact section. It's linked from the account menu and from Your branch.
+- **Unpublishing:** delete the post (`delete from posts where id = …`); the step's `post_id` is cleared automatically.
+- **Admin dry run:** POST `{"dry_run": {"goal": "<slug>", "key": "<node key>", "url": "<link>"}}` with the admin header reviews a link without saving anything.
