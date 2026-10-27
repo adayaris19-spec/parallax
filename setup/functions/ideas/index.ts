@@ -22,6 +22,7 @@ import { z } from "npm:zod@4.6.7";
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
+declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
@@ -184,6 +185,21 @@ async function oaRemaining(): Promise<number> {
   } catch { return 1; }
 }
 
+// One problem's drafted ideas (from a batch or a direct call): checked and saved; a refusal marks
+// the problem so it isn't asked again.
+// deno-lint-ignore no-explicit-any
+async function useDraft(goalId: number, key: string, message: any, papers: Paper[], errors: string[]): Promise<number> {
+  let drafts: z.infer<typeof Draft>[] = [];
+  // deno-lint-ignore no-explicit-any
+  try { drafts = DRAFT_FMT.parse(message.content.map((c: any) => (c.type === "text" ? c.text : "")).join("")).ideas; } catch { /* unreadable */ }
+  if (!drafts.length) {
+    errors.push(`${key}: no ideas (${message.stop_reason})`);
+    if (message.stop_reason === "refusal") await declineNodes(goalId, [key]);
+    return 0;
+  }
+  return save(goalId, key, drafts, papers).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; });
+}
+
 // Marks problems the model won't write ideas for, so the page shows what's being tested instead.
 async function declineNodes(goalId: number, keys: string[]) {
   if (!keys.length) return;
@@ -195,6 +211,12 @@ async function collect() {
   const out: { batch: string; ideas: number; errors: string[] }[] = [];
   let oaLeft: number | null = null;
   for (const j of jobs) {
+    // A direct run (a new goal's first ideas) finishes on its own; one still pending after 45
+    // minutes died, so the problems go back to the batch queue.
+    if (String(j.batch_id).startsWith("direct-")) {
+      if (Date.now() - new Date(j.created_at).getTime() > 45 * 60_000) await db(`idea_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      continue;
+    }
     const b = await claude.messages.batches.retrieve(j.batch_id);
     if (b.processing_status !== "ended") {
       // Stuck: nothing finished after 4 hours (Anthropic sometimes leaves a batch queued), or never
@@ -215,14 +237,7 @@ async function collect() {
       const key = j.keys[Number(r.custom_id.slice(1))] ?? r.custom_id;
       if (r.result.type !== "succeeded") { errors.push(`${key}: ${r.result.type}`); continue; }
       track("ideas", true)(r.result.message);
-      let drafts: z.infer<typeof Draft>[] = [];
-      try { drafts = DRAFT_FMT.parse(r.result.message.content.map((c) => (c.type === "text" ? c.text : "")).join("")).ideas; } catch { /* unreadable */ }
-      if (!drafts.length) {
-        errors.push(`${key}: no ideas (${r.result.message.stop_reason})`);
-        if (r.result.message.stop_reason === "refusal") await declineNodes(j.goal_id, [key]);
-        continue;
-      }
-      work.push(save(j.goal_id, key, drafts, j.context[key] ?? []).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
+      work.push(useDraft(j.goal_id, key, r.result.message, j.context[key] ?? [], errors));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
     await db(`idea_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done", note: errors.join(" | ").slice(0, 500) || null } });
@@ -247,7 +262,7 @@ async function submit(slug?: string, key?: string) {
   if (!slug && new Set(pending.map((p: { goal_id: number }) => p.goal_id)).size >= 3) return { note: "3 goals have batches running" };
   const busy = new Set(pending.flatMap((p: { goal_id: number; keys: string[] }) => p.keys.map((k) => `${p.goal_id}:${k}`)));
   const requests = await db(`idea_requests?select=goal_id,node_key`).catch(() => []);
-  const goals = await db(`goals?status=eq.ready&select=id,slug,name,bottleneck_key,ideas_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=ideas_at.asc.nullsfirst`);
+  const goals = await db(`goals?status=eq.ready&select=id,slug,name,bottleneck_key,ideas_at,mapped_at${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=ideas_at.asc.nullsfirst`);
   const all = await db(`nodes?parent_key=not.is.null&select=goal_id,title,plain_title`);
   const wanted = new Set(requests.map((r: { goal_id: number }) => r.goal_id));
   const att = await attention();
@@ -300,14 +315,28 @@ async function submit(slug?: string, key?: string) {
     if (!todo.length) continue;
     const other = all.filter((x: { goal_id: number }) => x.goal_id !== g.id).sort(() => Math.random() - 0.5).slice(0, 40).map((x: Node) => x.plain_title || x.title).join("; ");
     const ctx = await Promise.all(todo.map((n) => contextFor(g, n, nodes, other)));
+    const params = (i: number) => ({
+      model: MODEL, max_tokens: 64000, system: SYSTEM,
+      output_config: { effort: "high" as const, format: { type: "json_schema" as const, schema: DRAFT_FMT.schema } },
+      messages: [{ role: "user" as const, content: ctx[i].text }],
+    });
+    // A new goal's first ideas (mapped in the last 3 days) run now, one direct call per problem side by side (full price), instead
+    // of waiting hours in the half-price batch queue. Later rounds use the batch.
+    if (!key && covered.size < AUTO_PER_GOAL && Date.now() - new Date((g as { mapped_at?: string }).mapped_at ?? 0).getTime() < 3 * DAY) {
+      const id = `direct-${crypto.randomUUID()}`;
+      await db("idea_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: id, goal_id: g.id, keys: todo.map((n) => n.key), context: Object.fromEntries(todo.map((n, i) => [n.key, ctx[i].papers])) } });
+      const errors: string[] = [];
+      const work = Promise.all(todo.map((n, i) => claude.messages.stream(params(i)).finalMessage().then(track("ideas"))
+        .then((m) => useDraft(g.id, n.key, m, ctx[i].papers, errors))
+        .catch((e) => { errors.push(`${n.key}: ${String(e).slice(0, 120)}`); return 0; })))
+        .then(() => db(`idea_jobs?batch_id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done", note: errors.join(" | ").slice(0, 500) || null } }));
+      if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work); else await work;
+      return { direct: id, slug: g.slug, problems: todo.map((n) => n.key) };
+    }
     const batch = await claude.messages.batches.create({
       requests: todo.map((n, i) => ({
         custom_id: `p${i}`, // ids allow only letters, digits, _ and -; maps back to keys[i]
-        params: {
-          model: MODEL, max_tokens: 64000, system: SYSTEM,
-          output_config: { effort: "high", format: { type: "json_schema", schema: DRAFT_FMT.schema } },
-          messages: [{ role: "user", content: ctx[i].text }],
-        },
+        params: params(i),
       })),
     });
     await db("idea_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, keys: todo.map((n) => n.key), context: Object.fromEntries(todo.map((n, i) => [n.key, ctx[i].papers])) } });
@@ -339,6 +368,16 @@ Deno.serve(async (req) => {
         out.push({ id: r.custom_id, stop: m.stop_reason, model: m.model, kinds: m.content.map((c) => c.type), text: m.content.map((c) => (c.type === "text" ? c.text : "")).join("").slice(0, 300) });
       }
       return json(out);
+    }
+    // Start a goal's ideas now: drop its queued batch and run again (a new goal runs direct).
+    if (typeof body.rush === "string") {
+      const [g] = await db(`goals?slug=eq.${encodeURIComponent(body.rush)}&select=id`);
+      if (!g) return json({ error: "no such goal" }, 404);
+      for (const j of await db(`idea_jobs?goal_id=eq.${g.id}&status=eq.pending&select=batch_id`)) {
+        if (!String(j.batch_id).startsWith("direct-")) await claude.messages.batches.cancel(j.batch_id).catch(() => {});
+        await db(`idea_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      }
+      return json(await submit(body.rush));
     }
     return json(await run(body.slug, body.key, body.collect_only === true));
   } catch (e) {
