@@ -584,8 +584,8 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 
 - **Why:** the first remake filled most empty scenes with the first unused Pixabay clip, unchecked. That brought in cartoons, pets, food and random faces, mostly in health goals.
 - **Now:** every shot is judged before it's used, by the photo editor rules in `EDITOR`. The shot must show the scene's or goal's real subject. Cartoons, animation, posed faces and unrelated pretty shots are rejected, and footage with something happening is preferred. A scene with nothing fitting shows on the goal's colours instead of a wrong picture.
-- **Search:** the plan writes 4 short stock search terms per scene. Candidates come from Pexels (if `PEXELS_API_KEY` is set), filmed Pixabay footage (no animation), NASA for space goals, and Unsplash and Wikimedia photos.
+- **Search:** the plan writes 4 short stock search terms per scene, the first with the goal's key word. Candidates come from filmed Pixabay footage (no animation), NASA for space goals, and photos from Unsplash, Pixabay and Wikimedia Commons. Commons has real health photos (CDC, WHO, NIH). Pexels is supported if `PEXELS_API_KEY` is set, but Pexels paused new keys in Oct 2026. Openverse was tried and doesn't answer from Supabase.
 - **Second chance:** scenes the first judgement left empty get fresh search terms (Sonnet) and a live judgement (Sonnet, `REELS_JUDGE_MODEL`). This costs about 1 cent per scene.
 - **Repairs:** POST `{"action": "revisual", "items": [{"reel_id": 1, "si": 0}]}` replaces chosen scenes only (one goal and up to 8 scenes per call; add `"space": true` for space goals). `{"action": "peek", "terms": [...]}` shows what the search finds, and `{"action": "posters", "urls": [...]}` returns stored posters for review by eye.
 - **Avatars:** `goal_pictures` puts judged shots first, so a goal's avatar is never an unchecked clip.
-- **Pexels key:** free from pexels.com/api. Add it in Supabase → Edge Functions → Secrets as `PEXELS_API_KEY`.
+- **Unsplash limit:** the demo tier allows 50 searches an hour. Applying for production on unsplash.com/oauth/applications raises it to 5,000.

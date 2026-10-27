@@ -107,6 +107,8 @@ async function nasaImages(q: string): Promise<Cand[]> {
   }).filter(Boolean);
 }
 
+// A small preview of any Commons file (the API returns the original when it is under the asked width).
+const commonsThumb = (u: string) => { const m = /^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([0-9a-f]\/[0-9a-f]{2})\/([^?]+)/.exec(u); return m ? `${m[1]}/thumb/${m[2]}/${m[3]}/330px-${m[3]}` : u; };
 // Wikimedia Commons, directly: open licenses only, at least 1200 px wide.
 async function commons(q: string): Promise<Cand[]> {
   const p = new URLSearchParams({ action: "query", format: "json", origin: "*", generator: "search", gsrsearch: `${q} filetype:bitmap`, gsrnamespace: "6", gsrlimit: "12", prop: "imageinfo", iiprop: "url|size|extmetadata|mime", iiurlwidth: "2400" });
@@ -118,7 +120,7 @@ async function commons(q: string): Promise<Cand[]> {
     const lic = strip(md.LicenseShortName?.value);
     const ok = /^(cc0|public domain|pd|cc by(-sa)? \d)/i.test(lic) && !/nc|nd/i.test(lic);
     if (!ii || !ok || (ii.width ?? 0) < 1200 || !/^image\/(jpeg|png|webp)/.test(ii.mime ?? "")) return null;
-    return { kind: "image", url: ii.thumburl ?? ii.url, poster: String(ii.thumburl ?? ii.url).replace(/\/1600px-/, "/330px-"), credit: `${strip(md.Artist?.value).slice(0, 60) || "Unknown author"} via Wikimedia Commons`, license: lic, source_url: ii.descriptionurl ?? ii.url, source: "commons" };
+    return { kind: "image", url: ii.thumburl ?? ii.url, poster: commonsThumb(String(ii.url)), credit: `${strip(md.Artist?.value).slice(0, 60) || "Unknown author"} via Wikimedia Commons`, license: lic, source_url: ii.descriptionurl ?? ii.url, source: "commons" };
   }).filter(Boolean).slice(0, 3) as Cand[];
 }
 
@@ -304,8 +306,8 @@ async function gather(qs: string[], space: boolean, taken: Set<string>, errors: 
   // Real photos when footage is scarce (Unsplash, then Wikimedia Commons, which has real clinics,
   // mosquitoes and lab work from health agencies).
   // Always offered: stock footage searches often return near-misses (a basketball net for "mosquito net").
-  if (terms[0]) await Promise.all([add(() => unsplashPhotos(terms[0])), space ? add(() => nasaImages(terms[0])) : add(() => commons(terms[0]))]);
-  return [...list.filter((c) => c.kind === "video").slice(0, 8), ...list.filter((c) => c.kind === "image").slice(0, 4)].slice(0, 10);
+  if (terms[0]) await Promise.all([add(() => unsplashPhotos(terms[0])), ...(space ? [add(() => nasaImages(terms[0]))] : terms.slice(0, 2).map((q) => add(() => commons(q)))), add(() => pixabayPhotos(terms[1] ?? terms[0]))]);
+  return [...list.filter((c) => c.kind === "video").slice(0, 8), ...list.filter((c) => c.kind === "image").slice(0, 6)].slice(0, 12);
 }
 
 // Find, judge and copy a fitting shot for each scene (live, not batched: used for repairs and for
@@ -318,7 +320,7 @@ async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space
     const Terms = z.object({ items: z.array(z.object({ key: z.string(), search: z.array(z.string()) })) });
     const r = (await claude.beta.messages.stream({
       model: QUERY_MODEL, max_tokens: 8000, output_config: { effort: "low", format: betaZodOutputFormat(Terms) },
-      system: `You find footage for short science videos about the goal "${g.name}". For each scene, write 4 search terms for stock video libraries (Pexels, Pixabay), most specific first. Each is 1-3 plain words for something stock libraries really film: the real-world subject of the scene or of the goal (patients, clinics, nurses, lab hands pipetting, a surgeon operating, mosquitoes, pills, an MRI scanner, wind turbines, a rocket launch, a factory line). At least two of the 4 should be something happening (an action). Never abstract ideas, feelings, metaphors, numbers or text. When a caption is abstract (money, a deadline, a number), search for the goal's own core subject instead.${avoid.length ? ` These terms found nothing good before; try different ones: ${avoid.slice(0, 40).join(", ")}.` : ""}`,
+      system: `You find footage for short science videos about the goal "${g.name}". For each scene, write 4 search terms for stock video libraries (Pexels, Pixabay), most specific first. Each is 1-3 plain words for something stock libraries really film: the real-world subject of the scene or of the goal (patients, clinics, nurses, lab hands pipetting, a surgeon operating, mosquitoes, pills, an MRI scanner, wind turbines, a rocket launch, a factory line). The first term includes the goal's own key word (like "malaria clinic", "tuberculosis x-ray", "kidney transplant"), since archives of real health and science photos are searched by it. At least two of the 4 should be something happening (an action). Never abstract ideas, feelings, metaphors, numbers or text. When a caption is abstract (money, a deadline, a number), search for the goal's own core subject instead.${avoid.length ? ` These terms found nothing good before; try different ones: ${avoid.slice(0, 40).join(", ")}.` : ""}`,
       messages: [{ role: "user", content: asks.map((a) => `${a.key}: "${a.caption}"${a.sub ? ` (${a.sub})` : ""}`).join("\n") }],
     }).finalMessage().then(track("reels"))).parsed_output;
     for (const a of asks) a.search = r?.items.find((x) => x.key === a.key)?.search ?? a.search ?? [a.caption];
@@ -764,11 +766,11 @@ Deno.serve(async (req) => {
     if (body.action === "peek" && Array.isArray(body.terms)) {
       const errs: string[] = [];
       const c = await gather(body.terms, body.space === true, new Set(), errs);
-      return json({ errors: errs, unsplash_left: unsplashLeft, items: await Promise.all(c.map(async (x) => ({ id: x.id, kind: x.kind, source: x.source, block: await asBlock(x.preview ?? x.poster) }))) });
+      return json({ errors: errs, unsplash_left: unsplashLeft, items: await Promise.all(c.map(async (x) => { const block = await asBlock(x.preview ?? x.poster); return { id: x.id, kind: x.kind, source: x.source, block, why: block ? null : await fetch(x.preview ?? x.poster, { headers: { "User-Agent": `Parallax/1.0 (${MAIL})` } }).then((r) => `${r.status} ${r.headers.get("content-type")} ${r.headers.get("content-length")} ${x.preview ?? x.poster}`).catch((e) => String(e)) }; })) });
     }
     // Admin review: our own stored posters as data, for checking the videos by eye.
     if (body.action === "posters" && Array.isArray(body.urls)) {
-      const urls = (body.urls as string[]).filter((u) => typeof u === "string" && R2_PUBLIC && u.startsWith(`${R2_PUBLIC}/`)).slice(0, 40);
+      const urls = (body.urls as string[]).filter((u) => typeof u === "string" && /^https:\/\//.test(u)).slice(0, 40);
       return json(await Promise.all(urls.map(async (u) => ({ url: u, block: await asBlock(u) }))));
     }
     const collected = await collect();
