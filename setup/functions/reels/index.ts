@@ -155,15 +155,22 @@ function bestPixabayFile(vs: any): { url: string; width: number; height: number;
     // deno-lint-ignore no-explicit-any
     .sort((a: any, b: any) => b.short - a.short)[0];
 }
+// Clips already in any goal's videos (by their source id, since the same clip is copied per goal).
+// A clip appears once across the whole feed, so the Watch tab never shows the same shot twice.
+let usedClips = new Set<string>();
+// Money as people say it: $20K, $1.5M, $2B.
+const money = (n: number) => n >= 1e9 ? `$${+(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`;
+const clipId = (u: string) => /\b(p[vp]\d+)\b/.exec(u)?.[1] ?? u;
 async function pixabayVideos(q: string): Promise<Cand[]> {
   if (!PIXABAY) return [];
-  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&safesearch=true&per_page=8`);
+  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&safesearch=true&per_page=24`);
   // deno-lint-ignore no-explicit-any
   return (d.hits ?? []).map((v: any) => {
     const vs = v.videos ?? {};
     const f = bestPixabayFile(vs);
     const thumb = vs.medium?.thumbnail || f?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
+    if (usedClips.has(`pv${v.id}`)) return null;
     return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.small?.thumbnail || thumb };
   }).filter(Boolean).slice(0, 3);
 }
@@ -265,7 +272,7 @@ async function fromLibrary(q: string, avoid: Set<string>): Promise<LibVisual | n
   if (want.size < 2) return null;
   hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video"));
   for (const h of hits) {
-    if (avoid.has(h.url) || h.uses >= 4) continue; // keep the feed varied
+    if (avoid.has(h.url) || h.uses >= 1 || usedClips.has(clipId(h.url))) continue; // each clip once across the feed
     const have = words(`${h.query} ${h.caption ?? ""}`);
     const shared = [...want].filter((w) => have.has(w)).length;
     if (shared >= 2 && shared / want.size >= 0.6) return h;
@@ -290,6 +297,13 @@ async function run(slug?: string, fresh = false, live = false) {
   const g = slug ? goals[0] : goals.find((x: { reels_at: string | null }) => !x.reels_at)
     ?? goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);
   if (!g) return { note: "every goal has fresh reels" };
+  usedClips = new Set(((await db(`reels?select=scenes`).catch(() => [])) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  // Real things happening on this goal, so a new goal's videos have events, not just an overview.
+  const [evid, topIdeas, chals] = await Promise.all([
+    db(`node_evidence?goal_id=eq.${g.id}&select=node_key,source,count,amount_cents,top&order=amount_cents.desc.nullslast&limit=8`).catch(() => []),
+    db(`ideas?goal_id=eq.${g.id}&status=eq.open&select=title,pitch,test_low,test_high,borrowed_from&limit=4`).catch(() => []),
+    db(`challenges?goal_id=eq.${g.id}&status=eq.open&select=title,useful&limit=3`).catch(() => []),
+  ]);
   const [nodes, posts, proms, intel, teams, have] = await Promise.all([
     db(`nodes?goal_id=eq.${g.id}&parent_key=not.is.null&select=key,title,plain_title,status,plain_blocker,blocker,plain_why,why`),
     db(`posts?goal_id=eq.${g.id}&kind=neq.mapped&select=id,kind,headline,plain_headline,body,plain_body,meta,independent_sources,created_at&order=created_at.desc&limit=25`),
@@ -314,6 +328,10 @@ Promises from older research: ${pc("kept")} kept, ${pc("partly")} partly kept, $
 Teams raising money: ${teams.filter((x: { teams: unknown }) => x.teams).map((x: { teams: { name: string }; node_title: string; plan: string }) => `${x.teams.name} on "${x.node_title}": ${x.plan}`).join(" | ") || "none yet"}
 POSTS (id, kind, text):
 ${posts.map((p: { id: number; kind: string; plain_headline: string | null; headline: string; plain_body: string | null; body: string | null; meta: { made_year?: number; due_year?: number; status?: string } | null }) => `[${p.id}] ${p.kind}${p.meta?.made_year ? ` (${p.meta.made_year} -> ${p.meta.due_year}, ${p.meta.status})` : ""}: ${p.plain_headline || p.headline}. ${p.plain_body || p.body || ""}`).join("\n")}
+REAL ACTIVITY (grants, trials, ideas, challenges; each a concrete event you can build a scene around):
+${(evid as { source: string; count: number; amount_cents: number | null; top: { title: string; who: string; amount?: number; phase?: string }[] }[]).flatMap((e) => (e.top || []).slice(0, 2).map((t) => e.source === "grants" ? `- Grant: ${t.who} is funded to work on "${t.title}"${t.amount ? ` (${money(t.amount)} award)` : ""}` : `- Trial: ${t.who} is running "${t.title}"${t.phase ? ` (${t.phase})` : ""}`)).slice(0, 8).join("\n") || "- none found yet"}
+${(topIdeas as { title: string; pitch: string; test_low: number | null; test_high: number | null; borrowed_from: string | null }[]).map((i) => `- Idea to try: ${i.title}. ${i.pitch.split(/(?<=\.)\s/)[0]}${i.test_high ? ` First test costs about ${money(i.test_low ?? 0)}–${money(i.test_high)}.` : ""}${i.borrowed_from ? ` Borrowed from ${i.borrowed_from}.` : ""}`).join("\n")}
+${(chals as { title: string; useful: string }[]).map((c) => `- Open challenge anyone can take on: ${c.title}. ${c.useful.split(/(?<=\.)\s/)[0]}`).join("\n")}
 Already made (skip these): ${fresh ? "none" : [...done].join(", ") || "none"}`;
 
   const plan = (await claude.beta.messages.stream({
@@ -326,7 +344,8 @@ Craft:
 - Scene 1 must stop a scroll in under 2 seconds: the most surprising concrete fact, a stark contrast, or a question the reel answers. Never open with the goal's name or a definition.
 - One idea per scene. Each scene should make the viewer want the next: hook, then stakes, then the turn (what changed or what's in the way), then why it matters or what happens next.
 - Short, spoken words. No hype or filler: never "revolutionary", "game-changer", "unlock", "the future of", "imagine a world".
-- Visual: describe a real, filmable shot that stock libraries have, using concrete nouns and action ("scientist pipetting into test tubes, close-up", "wind turbines in fog at dawn", "rocket engine test fire, night"). Never abstract ideas like "hope" or "the future of medicine". Vary scale across a reel: wide, close-up, people, places.`,
+- Something must happen: build each reel around concrete events from the facts (a grant, a trial, a result, a broken promise, an idea someone could test for a few thousand dollars, an open challenge), not a general overview.
+- Visual: describe a real, filmable shot that stock libraries have, with motion and action, specific to THIS goal's subject ("a person in a wheelchair standing up in a robotic exoskeleton", "an MRI scanner sliding a patient in", "wind turbines in fog at dawn", "rocket engine test fire, night"). Never abstract ideas. Avoid generic lab b-roll ("scientist in a lab", "microscope", "test tubes", "DNA helix", "data on a screen") unless that exact thing is the scene's point. Every scene in a reel needs a different kind of shot: vary subject and scale (wide, close-up, people, places, machines).`,
     messages: [{ role: "user", content: facts }],
   }).finalMessage().then(track("reels"))).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
@@ -409,10 +428,14 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
     if (lib) db(`rpc/parallax_visual_used`, { method: "POST", body: { vid: lib } }).catch(() => {});
   }
   const fresh_: { url: string; poster: string; kind: string; credit: string; license: string; source_url: string; source: string; query: string; caption: string; score: number }[] = [];
+  // Every clip once across the whole feed: not in another goal's videos, not twice in this run.
+  const taken = new Set<string>(Object.values(visual).map((v) => clipId(v.url)));
+  const free = (c: Cand) => { const id = c.id ?? clipId(c.url); return !taken.has(id) && !usedClips.has(id); };
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
-    const c = v && v.pick >= 0 && present[i]?.[v.pick] && (v.score >= 8 || (v.score >= 7 && cands[i][v.pick].kind === "video")) ? cands[i][v.pick] : null; // moving footage at 7/10 beats a plain background
+    const c = v && v.pick >= 0 && present[i]?.[v.pick] && (v.score >= 8 || (v.score >= 7 && cands[i][v.pick].kind === "video")) && free(cands[i][v.pick]) ? cands[i][v.pick] : null; // moving footage at 7/10 beats a plain background
     if (!c) continue;
+    taken.add(c.id ?? clipId(c.url));
     let url = c.url;
     if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
     if (c.kind === "video" && !(await alive(url, /^video\//))) url = "";
@@ -426,12 +449,12 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
     visual[`${wants[i].r}:${wants[i].s}`] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source };
     fresh_.push({ url, poster, kind: c.kind, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source, query: wants[i].q, caption: reels[wants[i].r].scenes[wants[i].s].caption, score: v?.score ?? 8 });
   }
-  // Scenes the editor left empty: first a matching approved shot from the shared library, then one of
-  // this goal's approved shots. Videos first; no shot twice in one reel or more than twice per goal.
+  // Scenes the editor left empty: an approved library shot no video has used yet, else a fresh
+  // unused clip for the scene's own shot description, else no picture (the scene shows on the goal's
+  // colours). Never a clip that's already in the feed.
   const qOf = new Map(wants.map((w) => [`${w.r}:${w.s}`, w.q]));
   const uses = new Map<string, number>();
   for (const v of Object.values(visual)) uses.set(v.url, (uses.get(v.url) ?? 0) + 1);
-  const pool = Object.values(visual).sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video"));
   for (let ri = 0; ri < reels.length; ri++) {
     const r = reels[ri];
     const inReel = new Set(r.scenes.map((_, si) => visual[`${ri}:${si}`]?.url).filter(Boolean));
@@ -440,9 +463,16 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
       if (visual[k]) continue;
       const q = qOf.get(k) ?? r.scenes[si].visual ?? r.scenes[si].caption;
       const hits: LibVisual[] = await db("rpc/parallax_match_visuals", { method: "POST", body: { q, n: 12 } }).catch(() => []);
-      const lib = hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video")).find((h) => !uses.has(h.url) && h.uses < 4);
-      const pick: Cand | undefined = lib ? { kind: lib.kind, url: lib.url, poster: lib.poster ?? lib.url, credit: lib.credit, license: lib.license, source_url: lib.source_url, source: lib.source } : pool.find((v) => !inReel.has(v.url) && (uses.get(v.url) ?? 0) < 2);
+      const lib = hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video")).find((h) => !uses.has(h.url) && h.uses < 1 && !taken.has(clipId(h.url)) && !usedClips.has(clipId(h.url)));
+      let pick: Cand | undefined = lib ? { kind: lib.kind, url: lib.url, poster: lib.poster ?? lib.url, credit: lib.credit, license: lib.license, source_url: lib.source_url, source: lib.source } : undefined;
+      if (!pick) {
+        const found = (await pixabayVideos(q).catch(() => [])).find((c) => free(c));
+        if (found && (await alive(found.url, /^video\//))) {
+          try { pick = { ...found, url: await rehost(found, g.slug), poster: await rehost({ ...found, kind: "image", url: found.poster, id: `${found.id}-poster` }, g.slug) }; } catch { pick = undefined; }
+        }
+      }
       if (!pick) continue;
+      taken.add((pick as Cand).id ?? clipId(pick.url));
       visual[k] = pick; inReel.add(pick.url); uses.set(pick.url, (uses.get(pick.url) ?? 0) + 1);
       if (lib) db("rpc/parallax_visual_used", { method: "POST", body: { vid: lib.id } }).catch(() => {});
     }
@@ -604,6 +634,11 @@ Deno.serve(async (req) => {
       return json({ sample, ok: put.ok && pub === 200, bucket: R2_BUCKET, upload: put.status, upload_error: put.ok ? null : (await put.text()).slice(0, 160), public_read: pub });
     }
     if (body.action === "drop_old") return json(await dropOld());
+    if (body.action === "clip_check") {
+      const rows = await db(`reels?select=scenes`);
+      const ids = new Set((rows as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+      return json({ reels: rows.length, clips: ids.size, sample: [...ids].slice(0, 5) });
+    }
     if (body.action === "upgrade_media") return json(await upgradeMedia());
     const collected = await collect();
     if (body.collect_only === true) return json({ collected });
