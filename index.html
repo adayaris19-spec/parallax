@@ -2658,6 +2658,9 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
         <div class="ro-c"><span class="ro-l">Research per year</span><div class="ro-cols" aria-hidden="true">${libYears.map((x, i) => `<i style="height:${Math.max(4, x.n / ymax * 100).toFixed(0)}%"${i >= 8 ? ' class="on"' : ''}></i>`).join('')}</div><small class="${libGrowth >= 0 ? 'up' : 'down'}">${libGrowth >= 0 ? '▲' : '▼'} ${Math.abs(libGrowth)}% in 4 years</small></div>
         ${(() => {
           const open = goalIdeas.length, cheap = goalIdeas.map((i) => i.test_low).filter((x) => x > 0).sort((a, b) => a - b)[0];
+          // A goal the AI won't write ideas for (virus research): count the trials testing approaches instead.
+          const trialsN = leaves.reduce((a, l) => a + (evidence[l.key]?.trials?.count || 0), 0);
+          if (!open && leaves.length && leaves.every((l) => l.ideas_declined)) return `<div class="ro-c"><span class="ro-l">Being tested now</span><b class="mono">${trialsN ? trialsN.toLocaleString() : '—'}</b><small>${trialsN ? 'active trials across its problems' : 'see each problem’s research'}</small></div>`;
           return open ? `<a class="ro-c ro-link" href="#/lab/${encodeURIComponent(g.slug)}"><span class="ro-l">Ideas to try</span><b class="mono">${open}</b><small>${cheap ? `first tests from ${esc(usdShort(cheap))} · ` : ''}judge them →</small></a>`
             : `<div class="ro-c"><span class="ro-l">Ideas to try</span><b class="mono">—</b><small>${Date.now() - new Date(g.mapped_at || 0).getTime() > 86400000 ? 'none for this goal yet' : 'Parallax is preparing ideas'}</small></div>`;
         })()}

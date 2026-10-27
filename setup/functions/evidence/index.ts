@@ -206,10 +206,12 @@ async function declinedTrials(limit = 6) {
   for (const l of rows as { goal_id: number; key: string; query: string }[]) {
     const [g] = await db(`goals?id=eq.${l.goal_id}&select=name`);
     const qs = await db(`nodes?goal_id=eq.${l.goal_id}&parent_key=not.is.null&query=not.is.null&select=query`);
-    const anchors = anchorsOf(g?.name ?? "", qs.map((x: { query: string }) => x.query));
+    const acr = words(g?.name ?? "").filter((w) => /^[A-Z0-9]{2,5}$/.test(w)).map((w) => w.toLowerCase());
+    const anchors = [...anchorsOf(g?.name ?? "", qs.map((x: { query: string }) => x.query)), ...acr];
     // Keep trials that name the goal's subject, ranked by how many of the problem's words they share;
     // widen the search words until some survive.
-    const subject = anchorsOf(g?.name ?? "");
+    // The goal's subject words, plus short acronyms in its name (HIV, TB) that anchorsOf skips.
+    const subject = [...anchorsOf(g?.name ?? ""), ...acr];
     const qw = words(l.query).map((w) => w.toLowerCase()).filter((w) => w.length >= 4 && !subject.includes(w) && !TRIAL_WORDS.has(w));
     // The problem's lead word (vaccine, gene drive, correlates…) must appear, so a nearby trial
     // (bed nets under gene drives) doesn't stand in for the problem.
