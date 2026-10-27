@@ -119,13 +119,14 @@ async function pool<T, R>(items: T[], size: number, fn: (x: T) => Promise<R>): P
   return out;
 }
 
-// OpenAlex gives each key $1 a day (a search costs $0.001), resetting at midnight UTC. New goals
-// come first: refreshing an existing goal only runs while more than 40% of the day is left.
+// OpenAlex gives each key $1 a day (a search costs $0.001), resetting at midnight UTC, plus any
+// prepaid credit. New goals come first: refreshing an existing goal only runs while more than 40%
+// of the FREE daily budget is left, so prepaid credit is kept for new goals' libraries.
 async function oaRemaining(): Promise<number> {
   try {
     const r = await fetch(`https://api.openalex.org/rate-limit${OA_KEY ? `?api_key=${OA_KEY}` : ""}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10000) });
     const d = await r.json();
-    return Number(d.rate_limit?.daily_remaining_usd ?? 1) + Number(d.rate_limit?.prepaid_remaining_usd ?? 0);
+    return Number(d.rate_limit?.daily_remaining_usd ?? 1);
   } catch { return 1; }
 }
 const REFRESH_FLOOR = 0.4;
