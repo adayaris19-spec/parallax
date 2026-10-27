@@ -511,3 +511,11 @@ Deploy `digest` with **verify_jwt false**, because the unsubscribe link is opene
 - One trial per person: only for someone with no earlier subscription, either in `subscriptions` or in their Stripe customer's history.
 - Pro buttons say "Try 7 days free". The offer spells out the terms.
 - Plus has no trial.
+
+## 37. Problems the AI won't write ideas for
+
+The model declines to write ideas for vaccine and pathogen-biology problems (tuberculosis and malaria vaccines, gene drives). Run `schema-ideas-declined.sql` and `schema-goal-page.sql`.
+
+- **ideas function:** a refusal marks the problem `nodes.ideas_declined`. Two empty tries count the same as a refusal. Declined problems are never resubmitted. A chapter with two declined problems is skipped, so the goal's ideas go to its other chapters (diagnosis, delivery, funding).
+- **evidence function:** on each run it searches ClinicalTrials.gov for up to 6 declined problems. It widens the search words until trials naming both the goal's subject and the problem's lead word turn up, and saves them as that problem's `trials` evidence. Each search is repeated every 30 days.
+- **Problem sheet:** a declined problem shows "Being tested now" with those trials, instead of "Ask for ideas".
