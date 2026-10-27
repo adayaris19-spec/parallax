@@ -162,7 +162,7 @@ function bestPixabayFile(vs: any): { url: string; width: number; height: number;
 let usedClips = new Set<string>();
 // Money as people say it: $20K, $1.5M, $2B.
 const money = (n: number) => n >= 1e9 ? `$${+(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`;
-const clipId = (u: string) => /\b((?:p[vp]|xv)\d+)\b/.exec(u)?.[1] ?? u;
+const clipId = (u: string) => /\b((?:p[vp]|xv)\d+)\b/.exec(u)?.[1] ?? /(photo-\d+-[0-9a-f]+)/.exec(u)?.[1] ?? u.split("?")[0];
 async function pixabayVideos(q: string, n = 3): Promise<Cand[]> {
   if (!PIXABAY) return [];
   // Filmed footage only: animation brought cartoons and clip art into science videos.
