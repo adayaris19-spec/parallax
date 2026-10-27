@@ -198,19 +198,31 @@ async function ask<T extends z.ZodType>(
   system: string,
   user: string,
   effort: "low" | "medium" | "high",
+  tries = 2,
 ): Promise<z.infer<T>> {
-  const msg = await claude.beta.messages.stream({
-    model: MODEL,
-    max_tokens: 64000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort, format: betaZodOutputFormat(schema) },
-    system,
-    messages: [{ role: "user", content: user }],
-  }).finalMessage().then(track("map-goal"));
+  let msg;
+  try {
+    msg = await claude.beta.messages.stream({
+      model: MODEL,
+      max_tokens: 64000,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      output_config: { effort, format: betaZodOutputFormat(schema) },
+      system,
+      messages: [{ role: "user", content: user }],
+    }).finalMessage().then(track("map-goal"));
+  } catch (e) {
+    // A garbled reply or a dropped connection happens now and then: one more try before the goal
+    // is marked failed (which would leave it waiting hours for the next retry).
+    if (tries > 1 && !(e instanceof Anthropic.APIError && e.status && e.status < 500 && e.status !== 429)) return ask(schema, system, user, effort, tries - 1);
+    throw e;
+  }
   if (msg.stop_reason === "refusal") throw new Refused(msg.stop_details?.explanation ?? "declined");
   if (msg.stop_reason === "max_tokens") throw new Error("model output was cut off");
-  if (msg.parsed_output == null) throw new Error("model returned no structured output");
+  if (msg.parsed_output == null) {
+    if (tries > 1) return ask(schema, system, user, effort, tries - 1);
+    throw new Error("model returned no structured output");
+  }
   return msg.parsed_output as z.infer<T>;
 }
 
