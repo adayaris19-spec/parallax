@@ -210,7 +210,7 @@ async function collect() {
       work.push(useResearch(j.goal_id, nodes, j.chapters[r.custom_id] ?? [], r.result.message, j.known?.[r.custom_id] ?? [], r.custom_id, errors));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
-    await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
+    await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done", saved: n } });
     out.push({ batch: j.batch_id, estimated: n, errors });
   }
   return out;
@@ -218,6 +218,14 @@ async function collect() {
 
 async function submit(slug?: string, fresh = false) {
   const pending = await db(`cost_jobs?status=eq.pending&select=goal_id`);
+  // A goal whose last two finished runs saved nothing (the model declines its research, as for
+  // virus and pathogen goals) is left alone for 30 days instead of being retried every hour.
+  const recent = await db(`cost_jobs?status=eq.done&saved=not.is.null&created_at=gt.${new Date(Date.now() - 30 * DAY).toISOString()}&select=goal_id,saved&order=created_at.desc`);
+  const declined = new Set<number>();
+  for (const id of new Set(recent.map((r: { goal_id: number }) => r.goal_id))) {
+    const last = recent.filter((r: { goal_id: number }) => r.goal_id === id).slice(0, 2);
+    if (last.length === 2 && last.every((r: { saved: number }) => r.saved === 0)) declined.add(id as number);
+  }
   // A slow batch must not hold up every other goal: up to 3 run at once, one per goal.
   if (!slug && pending.length >= 3) return { note: "3 batches are still running" };
   const all = await db(`goals?status=eq.ready&select=id,slug,name${slug ? `&slug=eq.${encodeURIComponent(slug)}` : ""}&order=id.asc`);
@@ -229,7 +237,7 @@ async function submit(slug?: string, fresh = false) {
     .sort((a: { id: number }, b: { id: number }) => Number(started.has(a.id)) - Number(started.has(b.id)) || (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0));
   for (const g of goals) {
     const refresh = !!slug || watched(g);
-    if (pending.some((p: { goal_id: number }) => p.goal_id === g.id)) continue;
+    if (pending.some((p: { goal_id: number }) => p.goal_id === g.id) || (!slug && declined.has(g.id))) continue;
     const [nodes, have] = await Promise.all([
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status,updated_at&order=position.asc`),
       db(`node_costs?goal_id=eq.${g.id}&select=node_key,estimated_at`),
@@ -261,7 +269,7 @@ async function submit(slug?: string, fresh = false) {
       const work = Promise.all(chapters.map((x, i) => claude.messages.stream(params(i) as any).finalMessage().then(track("costs"))
         .then((m) => useResearch(g.id, nodes as Node[], x.probs.map((p) => p.key), m, known[i], `c${i}`, errors))
         .catch((e) => { errors.push(`c${i}: ${String(e).slice(0, 120)}`); return 0; })))
-        .then((n) => db(`cost_jobs?batch_id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: { status: n.some((x) => x > 0) ? "done" : "failed" } }));
+        .then((n) => db(`cost_jobs?batch_id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done", saved: n.reduce((a, x) => a + x, 0) } }));
       if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work); else await work;
       return { direct: id, slug: g.slug, chapters: chapters.length };
     }
