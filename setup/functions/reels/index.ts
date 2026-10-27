@@ -163,10 +163,10 @@ let usedClips = new Set<string>();
 // Money as people say it: $20K, $1.5M, $2B.
 const money = (n: number) => n >= 1e9 ? `$${+(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`;
 const clipId = (u: string) => /\b((?:p[vp]|xv)\d+)\b/.exec(u)?.[1] ?? /(photo-\d+-[0-9a-f]+)/.exec(u)?.[1] ?? u.split("?")[0];
-async function pixabayVideos(q: string, n = 3): Promise<Cand[]> {
+async function pixabayVideos(q: string, n = 3, vtype = "film"): Promise<Cand[]> {
   if (!PIXABAY) return [];
   // Filmed footage only: animation brought cartoons and clip art into science videos.
-  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&video_type=film&safesearch=true&per_page=24`);
+  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&video_type=${vtype}&safesearch=true&per_page=24`);
   // deno-lint-ignore no-explicit-any
   return (d.hits ?? []).map((v: any) => {
     const vs = v.videos ?? {};
@@ -930,7 +930,7 @@ Deno.serve(async (req) => {
     // Admin review: what the footage search finds for some terms, as pictures.
     if (body.action === "peek" && Array.isArray(body.terms)) {
       const errs: string[] = [];
-      const c = await gather(body.terms, body.space === true, new Set(), errs);
+      const c = body.vtype ? (await Promise.all((body.terms as string[]).map((q) => pixabayVideos(q, 4, String(body.vtype))))).flat() : await gather(body.terms, body.space === true, new Set(), errs);
       return json({ errors: errs, unsplash_left: unsplashLeft, items: await Promise.all(c.map(async (x) => { const block = await asBlock(x.preview ?? x.poster); return { id: x.id, kind: x.kind, source: x.source, block, why: block ? null : await fetch(x.preview ?? x.poster, { headers: { "User-Agent": `Parallax/1.0 (${MAIL})` } }).then((r) => `${r.status} ${r.headers.get("content-type")} ${r.headers.get("content-length")} ${x.preview ?? x.poster}`).catch((e) => String(e)) }; })) });
     }
     // Admin review: our own stored posters as data, for checking the videos by eye.
