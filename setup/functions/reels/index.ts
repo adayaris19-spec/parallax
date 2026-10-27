@@ -341,7 +341,12 @@ async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space
     content.push({ type: "text", text: "One entry per scene; id = the scene number; pick -1 if nothing fits." });
     let verdict: z.infer<typeof Verdict> | null = null;
     try { verdict = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 16000, output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output; }
-    catch (e) { errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 120) : e}`); continue; }
+    catch (e) {
+      // One unreadable picture spoils the whole call: judge these scenes one at a time instead.
+      errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 120) : e}`);
+      if (idx.length > 1) { for (const i of idx) { const one = await pickVisuals(g, [asks[i]], space, taken, errors, false); Object.assign(out, one); } }
+      continue;
+    }
     // One copy at a time: videos are big, and an edge function has little memory.
     for (const i of idx) await (async () => {
       const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
