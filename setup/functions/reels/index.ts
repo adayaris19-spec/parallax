@@ -160,10 +160,11 @@ function bestPixabayFile(vs: any): { url: string; width: number; height: number;
 let usedClips = new Set<string>();
 // Money as people say it: $20K, $1.5M, $2B.
 const money = (n: number) => n >= 1e9 ? `$${+(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`;
-const clipId = (u: string) => /\b(p[vp]\d+)\b/.exec(u)?.[1] ?? u;
-async function pixabayVideos(q: string): Promise<Cand[]> {
+const clipId = (u: string) => /\b((?:p[vp]|xv)\d+)\b/.exec(u)?.[1] ?? u;
+async function pixabayVideos(q: string, n = 3): Promise<Cand[]> {
   if (!PIXABAY) return [];
-  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&safesearch=true&per_page=24`);
+  // Filmed footage only: animation brought cartoons and clip art into science videos.
+  const d = await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&q=${encodeURIComponent(q.slice(0, 90))}&video_type=film&safesearch=true&per_page=24`);
   // deno-lint-ignore no-explicit-any
   return (d.hits ?? []).map((v: any) => {
     const vs = v.videos ?? {};
@@ -171,8 +172,28 @@ async function pixabayVideos(q: string): Promise<Cand[]> {
     const thumb = vs.medium?.thumbnail || f?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
     if (usedClips.has(`pv${v.id}`)) return null;
-    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.small?.thumbnail || thumb };
-  }).filter(Boolean).slice(0, 3);
+    return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.tiny?.thumbnail || vs.small?.thumbnail || thumb }; // the smallest preview: a third of the judging cost
+  }).filter(Boolean).slice(0, n);
+}
+// Pexels: a larger free video library, strong on medicine and people at work (Pexels License: free to
+// use; we credit and link anyway). Files are copied like Pixabay's. Used only when PEXELS_API_KEY is set.
+const PEXELS = Deno.env.get("PEXELS_API_KEY") ?? "";
+async function pexelsVideos(q: string, n = 3): Promise<Cand[]> {
+  if (!PEXELS) return [];
+  const r = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(q.slice(0, 90))}&per_page=15&size=medium`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`pexels answered ${r.status}`);
+  const d = await r.json();
+  // deno-lint-ignore no-explicit-any
+  return (d.videos ?? []).map((v: any) => {
+    if ((v.duration ?? 0) < 6 || usedClips.has(`xv${v.id}`) || !v.image) return null;
+    // deno-lint-ignore no-explicit-any
+    const f = (v.video_files ?? []).filter((x: any) => x.file_type === "video/mp4" && x.link && Math.min(x.width ?? 0, x.height ?? 0) >= 540 && Math.min(x.width ?? 0, x.height ?? 0) <= 1080)
+      // deno-lint-ignore no-explicit-any
+      .sort((a: any, b: any) => Math.min(b.width, b.height) - Math.min(a.width, a.height))[0];
+    if (!f) return null;
+    const poster = `${String(v.image).split("?")[0]}?auto=compress&cs=tinysrgb&w=1280`;
+    return { kind: "video", url: f.link, poster, preview: `${String(v.image).split("?")[0]}?auto=compress&cs=tinysrgb&w=480`, credit: `${String(v.user?.name ?? "Pexels creator").slice(0, 50)} via Pexels`, license: "Pexels License", source_url: v.url ?? "https://www.pexels.com", source: "pexels", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `xv${v.id}` };
+  }).filter(Boolean).slice(0, n);
 }
 async function pixabayPhotos(q: string): Promise<Cand[]> {
   if (!PIXABAY) return [];
@@ -186,9 +207,11 @@ async function pixabayPhotos(q: string): Promise<Cand[]> {
 // Used only when UNSPLASH_ACCESS_KEY is set. The free tier allows 50 searches an hour.
 const UNSPLASH = Deno.env.get("UNSPLASH_ACCESS_KEY") ?? "";
 const UTM = "utm_source=parallax&utm_medium=referral";
+let unsplashLeft = -1;
 async function unsplashPhotos(q: string): Promise<Cand[]> {
   if (!UNSPLASH) return [];
   const r = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&orientation=portrait&content_filter=high&per_page=6`, { headers: { Authorization: `Client-ID ${UNSPLASH}`, "Accept-Version": "v1" }, signal: AbortSignal.timeout(15000) });
+  unsplashLeft = Number(r.headers.get("x-ratelimit-remaining") ?? -1);
   if (!r.ok) throw new Error(`unsplash answered ${r.status}`);
   const d = await r.json();
   // deno-lint-ignore no-explicit-any
@@ -239,6 +262,7 @@ const Scene = z.object({
   stat_value: z.string().describe("Optional striking number from the facts, like 354 or 48% or 15-35. Empty if none."),
   stat_label: z.string().describe("What the number means, at most 6 words. Empty if no number."),
   visual: z.string().describe("3-6 words for cinematic footage or a photo to show behind this scene: a dramatic, wide or moody shot (a launch at night, Earth from orbit, the lunar horizon, a reactor glow, a vast landscape). Give one for every scene, including number scenes (shown dimmed behind the number)."),
+  search: z.array(z.string()).describe("3 search terms for a stock video library, most specific first, each 1-3 plain words that libraries really have (\"mosquito biting skin\", \"surgeon operating\", \"petri dish\", \"rocket launch\"). The real subject, never an idea or a feeling."),
   layout: z.enum(["bottom", "center", "top", "number", "quote"]).describe("bottom: text low over the visual (default). center: one short bold statement in the middle. top: a headline at the top, visual below. number: a huge number fills the screen (at most once per reel; other layouts can show a number too). quote: words someone wrote, in quote style. Vary layouts across the reel."),
 });
 const Plan = z.object({
@@ -253,6 +277,92 @@ const Plan = z.object({
   })).describe("1 to 4 reels. Always one intro. Then only the strongest other stories this goal really has."),
 });
 const Verdict = z.object({ items: z.array(z.object({ id: z.string(), pick: z.number(), score: z.number() })) });
+
+// The photo editor's rules, shared by new videos and repairs. Fit comes first: a beautiful shot that
+// isn't about the scene is worse than no shot.
+const EDITOR = `You are the photo editor for a science video channel about humanity's big goals. For each scene, pick the candidate a viewer would instantly see is ABOUT this scene: it must literally show the scene's subject or the goal's real-world subject (the disease and its patients, clinics and nurses, lab hands at work, the insect, the organ, the machine, the rocket, the place named). Many captions are abstract (a number, money, a deadline, "nobody has solved it"): for those, any strong shot of the goal's own world fits (for malaria: mosquitoes, bed nets, village clinics, blood tests; for fusion: reactors, plasma, magnets). Among on-topic candidates prefer footage where something is happening (people working, a procedure, machines moving, insects flying, a launch) over still or empty backgrounds, and cinematic shots (dramatic light, close detail, wide views) over ordinary ones.
+Reject (-1) without exception: cartoons, animation, 3D characters or mascots, clip art, illustrations, infographics; posed portraits or random faces; food, drinks, pets, flowers, birds or landscapes unless the scene is literally about them; offices, laptops and phones; text, logos or watermarks; anything that could mislead (a different disease, organ or machine). A beautiful but unrelated shot scores at most 3.
+Each video is shown as one still frame: imagine it moving. Score 1-10, fit first, then motion and beauty. 7 or more means a viewer would say "yes, that's what this is about".`;
+const fits = (_c: Cand, score: number) => score >= 7;
+const QUERY_MODEL = "claude-sonnet-5-5";
+// Repairs are judged live, so by the cheaper model with the same rules (new videos use the batch, at half price).
+const JUDGE_MODEL = Deno.env.get("REELS_JUDGE_MODEL") ?? "claude-sonnet-5-5";
+let lastScores: Record<string, { pick: number; score: number; of: number }> = {};
+
+// Up to 8 candidates for one scene from its search terms: filmed Pixabay footage first (NASA too
+// for space goals), photos only if footage is scarce. Never a clip already in the feed.
+async function gather(qs: string[], space: boolean, taken: Set<string>, errors: string[]): Promise<Cand[]> {
+  const list: Cand[] = [];
+  const seen = new Set<string>();
+  const add = async (f: () => Promise<Cand[]>) => {
+    try { for (const c of await f()) { const id = c.id ?? clipId(c.url); if (seen.has(id) || taken.has(id) || usedClips.has(id)) continue; seen.add(id); list.push(c); } }
+    catch (e) { errors.push(e instanceof Error ? e.message : String(e)); }
+  };
+  const terms = qs.map((q) => q.trim()).filter(Boolean).slice(0, 4);
+  await Promise.all(terms.flatMap((q) => [add(() => pexelsVideos(q, 3)), add(() => pixabayVideos(q, 3))]));
+  if (space) await Promise.all(terms.slice(0, 2).map((q) => add(() => nasaVideos(q))));
+  // Real photos when footage is scarce (Unsplash, then Wikimedia Commons, which has real clinics,
+  // mosquitoes and lab work from health agencies).
+  // Always offered: stock footage searches often return near-misses (a basketball net for "mosquito net").
+  if (terms[0]) await Promise.all([add(() => unsplashPhotos(terms[0])), space ? add(() => nasaImages(terms[0])) : add(() => commons(terms[0]))]);
+  return [...list.filter((c) => c.kind === "video").slice(0, 8), ...list.filter((c) => c.kind === "image").slice(0, 4)].slice(0, 10);
+}
+
+// Find, judge and copy a fitting shot for each scene (live, not batched: used for repairs and for
+// scenes the first pass left empty). Search terms are rewritten by a cheaper model when asked.
+type Ask = { key: string; caption: string; sub?: string | null; search?: string[] };
+async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space: boolean, taken: Set<string>, errors: string[], rewrite = false, avoid: string[] = []) {
+  const out: Record<string, Cand & { score: number; query: string }> = {};
+  if (!asks.length) return out;
+  if (rewrite || asks.some((a) => !a.search?.length)) {
+    const Terms = z.object({ items: z.array(z.object({ key: z.string(), search: z.array(z.string()) })) });
+    const r = (await claude.beta.messages.stream({
+      model: QUERY_MODEL, max_tokens: 8000, output_config: { effort: "low", format: betaZodOutputFormat(Terms) },
+      system: `You find footage for short science videos about the goal "${g.name}". For each scene, write 4 search terms for stock video libraries (Pexels, Pixabay), most specific first. Each is 1-3 plain words for something stock libraries really film: the real-world subject of the scene or of the goal (patients, clinics, nurses, lab hands pipetting, a surgeon operating, mosquitoes, pills, an MRI scanner, wind turbines, a rocket launch, a factory line). At least two of the 4 should be something happening (an action). Never abstract ideas, feelings, metaphors, numbers or text. When a caption is abstract (money, a deadline, a number), search for the goal's own core subject instead.${avoid.length ? ` These terms found nothing good before; try different ones: ${avoid.slice(0, 40).join(", ")}.` : ""}`,
+      messages: [{ role: "user", content: asks.map((a) => `${a.key}: "${a.caption}"${a.sub ? ` (${a.sub})` : ""}`).join("\n") }],
+    }).finalMessage().then(track("reels"))).parsed_output;
+    for (const a of asks) a.search = r?.items.find((x) => x.key === a.key)?.search ?? a.search ?? [a.caption];
+  }
+  const cands = await Promise.all(asks.map((a) => gather(a.search!, space, taken, errors)));
+  const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.preview ?? c.poster)))));
+  // Ten scenes per judgement keeps each call well under the picture limit.
+  for (let from = 0; from < asks.length; from += 10) {
+    const idx = asks.map((_, i) => i).slice(from, from + 10).filter((i) => blocks[i].some(Boolean));
+    if (!idx.length) continue;
+    // deno-lint-ignore no-explicit-any
+    const content: any[] = [{ type: "text", text: EDITOR }];
+    for (const i of idx) {
+      content.push({ type: "text", text: `\nScene ${i}: "${asks[i].caption}"${asks[i].sub ? ` (${asks[i].sub})` : ""} in a video about ${g.name}` });
+      cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind})` }); content.push(blocks[i][k]); } });
+    }
+    content.push({ type: "text", text: "One entry per scene; id = the scene number; pick -1 if nothing fits." });
+    let verdict: z.infer<typeof Verdict> | null = null;
+    try { verdict = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 16000, output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output; }
+    catch (e) { errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 120) : e}`); continue; }
+    // One copy at a time: videos are big, and an edge function has little memory.
+    for (const i of idx) await (async () => {
+      const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
+      lastScores[asks[i].key] = { pick: v?.pick ?? -1, score: v?.score ?? 0, of: cands[i].length };
+      const c = v && v.pick >= 0 && blocks[i][v.pick] ? cands[i][v.pick] : null;
+      if (!c || !fits(c, v!.score)) return;
+      const id = c.id ?? clipId(c.url);
+      if (taken.has(id)) return;
+      taken.add(id);
+      let url = c.url;
+      if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
+      if (c.kind === "video" && !(await alive(url, /^video\//))) url = "";
+      if (!url) return;
+      let poster = c.poster;
+      if (c.rehost) {
+        try { url = await rehost({ ...c, url }, g.slug); poster = c.kind === "video" ? await rehost({ ...c, kind: "image", url: c.poster, id: `${c.id}-poster` }, g.slug) : url; }
+        catch (e) { errors.push(`copy: ${e instanceof Error ? e.message : e}`); return; }
+      }
+      if (c.ping) fetch(c.ping, { headers: { Authorization: `Client-ID ${UNSPLASH}` } }).then((r) => r.body?.cancel()).catch(() => {});
+      out[asks[i].key] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source, score: v!.score, query: asks[i].search!.join(" / ") };
+    })();
+  }
+  return out;
+}
 
 // Attention: followers and recent visits (goal_attention). Goals nobody follows or visited in the
 // last 30 days get no expensive extras until someone does; the most-watched go first.
@@ -345,15 +455,17 @@ Craft:
 - One idea per scene. Each scene should make the viewer want the next: hook, then stakes, then the turn (what changed or what's in the way), then why it matters or what happens next.
 - Short, spoken words. No hype or filler: never "revolutionary", "game-changer", "unlock", "the future of", "imagine a world".
 - Something must happen: build each reel around concrete events from the facts (a grant, a trial, a result, a broken promise, an idea someone could test for a few thousand dollars, an open challenge), not a general overview.
-- Visual: describe a real, filmable shot that stock libraries have, with motion and action, specific to THIS goal's subject ("a person in a wheelchair standing up in a robotic exoskeleton", "an MRI scanner sliding a patient in", "wind turbines in fog at dawn", "rocket engine test fire, night"). Never abstract ideas. Avoid generic lab b-roll ("scientist in a lab", "microscope", "test tubes", "DNA helix", "data on a screen") unless that exact thing is the scene's point. Every scene in a reel needs a different kind of shot: vary subject and scale (wide, close-up, people, places, machines).`,
+- Visual: describe a real, filmable shot that stock libraries have, with motion and action, specific to THIS goal's subject ("a person in a wheelchair standing up in a robotic exoskeleton", "an MRI scanner sliding a patient in", "wind turbines in fog at dawn", "rocket engine test fire, night"). Never abstract ideas. Avoid generic lab b-roll ("scientist in a lab", "microscope", "test tubes", "DNA helix", "data on a screen") unless that exact thing is the scene's point. Every scene in a reel needs a different kind of shot: vary subject and scale (wide, close-up, people, places, machines).
+- Something happening: at least one scene in every four (more is better) needs a shot full of action: people at work, hands doing a procedure, machines moving, a launch, insects in flight, crowds, flowing liquid. Still or empty backgrounds are boring.
+- Health and biology goals: show the real world of the disease and its care (patients, clinics, nurses, lab hands pipetting, the insect that spreads it, a surgery), never a pretty landscape, a random face, food or animals that aren't the subject.`,
     messages: [{ role: "user", content: facts }],
   }).finalMessage().then(track("reels"))).parsed_output;
   if (!plan) return { slug: g.slug, note: "no plan" };
   const reels = plan.reels.filter((r) => fresh || !done.has(`${r.kind}:${r.post_id || 0}`) || r.kind === "intro").slice(0, 4);
 
   // Visuals: find candidates for each scene that wants one, then let Claude keep only good ones.
-  const wants: { r: number; s: number; q: string }[] = [];
-  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim()) wants.push({ r: ri, s: si, q: s.visual }); }));
+  const wants: { r: number; s: number; q: string; search: string[] }[] = [];
+  reels.forEach((r, ri) => r.scenes.forEach((s, si) => { if (s.visual.trim()) wants.push({ r: ri, s: si, q: s.visual, search: s.search?.length ? s.search : [s.visual] }); }));
   const errors: string[] = [];
   // Library first: scenes whose shot is already in the visual library skip search and judging.
   const used = new Set<string>((await db(`reels?goal_id=eq.${g.id}&select=scenes`)).flatMap((r: { scenes: { visual?: { url: string } }[] }) => r.scenes.map((x) => x.visual?.url).filter(Boolean)) as string[]);
@@ -365,24 +477,12 @@ Craft:
     pre[`${w.r}:${w.s}`] = { kind: h.kind, url: h.url, poster: h.poster ?? h.url, credit: h.credit, license: h.license, source_url: h.source_url, source: h.source, lib: h.id };
     wants.splice(wants.indexOf(w), 1);
   }
-  const cands: Cand[][] = await Promise.all(wants.map(async (w) => {
-    const list: Cand[] = [];
-    const add = async (f: () => Promise<Cand[]>) => { try { list.push(...await f()); } catch (e) { errors.push(e instanceof Error ? e.message : String(e)); } };
-    await add(() => pixabayVideos(w.q));
-    // Moving footage makes a reel: if the exact search found little, try a broader one.
-    if (list.length < 2) { const broad = w.q.split(/\s+/).slice(0, 2).join(" "); if (broad !== w.q) await add(() => pixabayVideos(broad)); }
-    if (plan.space) { await add(() => nasaVideos(w.q)); if (list.length < 3) await add(() => nasaImages(w.q)); }
-    if (list.length < 3) await add(() => unsplashPhotos(w.q));
-    if (list.length < 3) await add(() => pixabayPhotos(w.q));
-    if (list.length < 2) await add(() => commons(w.q));
-    // Up to 5 candidates: keep every video found, then the best photos.
-    return [...list.filter((c) => c.kind === "video").slice(0, 3), ...list.filter((c) => c.kind === "image")].slice(0, 5);
-  }));
+  const cands: Cand[][] = await Promise.all(wants.map((w) => gather(w.search, plan.space, new Set(), errors)));
   const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.preview ?? c.poster)))));
   // deno-lint-ignore no-explicit-any
-  const content: any[] = [{ type: "text", text: "You are the photo editor for a beautiful science video channel. For each scene, pick the candidate that is both on-topic and genuinely beautiful as a full-screen vertical background. The style is cinematic and moody (dramatic light, deep shadows, night launches, glowing machines) or huge wide views (Earth from orbit, planets, landscapes, skies). Reject (-1) anything ugly or ordinary: flat or cluttered snapshots, offices, people pointing at screens, cheesy stock poses, low resolution, washed-out colours, charts, diagrams, documents, logos, text or watermarks, or anything misleading about the subject. Moving footage is what makes these reels feel alive: each video candidate is shown as one still frame, so imagine it moving, and pick a video whenever it scores within 1 point of the best photo. Score 1-10 for beauty and fit together; only 8+ is good enough." }];
+  const content: any[] = [{ type: "text", text: EDITOR }];
   wants.forEach((w, i) => {
-    content.push({ type: "text", text: `\nScene ${i}: "${reels[w.r].scenes[w.s].caption}" (looking for: ${w.q})` });
+    content.push({ type: "text", text: `\nScene ${i}: "${reels[w.r].scenes[w.s].caption}" in a video about ${g.name} (looking for: ${w.q})` });
     cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind}${c.landscape ? ", landscape: the centre will be cropped to a tall phone screen" : ""})` }); content.push(blocks[i][k]); } });
   });
   content.push({ type: "text", text: "One entry per scene; id = the scene number." });
@@ -391,7 +491,7 @@ Craft:
   // The photo editor's judgement goes through the Message Batches API (half price, same model and
   // standards); a later call applies it. {"live": true} judges at once instead, and so does a new
   // goal's first set of videos (the batch queue can take hours; one small call costs cents).
-  if (!present.some((b) => b.some(Boolean))) return finalize(g, reels, wants, cands, present, postIds, null, fresh, errors, pre);
+  if (!present.some((b) => b.some(Boolean))) return finalize(g, reels, wants, cands, present, postIds, null, fresh, errors, pre, plan.space);
   if (!live && have.length) {
     const fmt = betaZodOutputFormat(Verdict);
     const batch = await claude.messages.batches.create({ requests: [{ custom_id: "judge", params: {
@@ -414,12 +514,12 @@ Craft:
       try { verdict = (await claude.beta.messages.stream({ model: MODEL, max_tokens: 64000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default", output_config: { effort: "low", format: betaZodOutputFormat(Verdict) }, messages: [{ role: "user", content: slim }] }).finalMessage().then(track("reels"))).parsed_output; } catch { /* text-only scenes this time */ }
     }
   }
-  return finalize(g, reels, wants, cands, present, postIds, verdict, fresh, errors, pre);
+  return finalize(g, reels, wants, cands, present, postIds, verdict, fresh, errors, pre, plan.space);
 }
 
 type Reel = z.infer<typeof Plan>["reels"][number];
 // Keep the visuals the photo editor approved (8/10 or better), copy Pixabay files, save the reels.
-async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[], pre: Record<string, Cand & { lib?: number }> = {}) {
+async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string; search?: string[] }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[], pre: Record<string, Cand & { lib?: number }> = {}, space = false) {
   if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
   const visual: Record<string, Cand> = {};
   for (const [k, v] of Object.entries(pre)) {
@@ -433,7 +533,7 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
   const free = (c: Cand) => { const id = c.id ?? clipId(c.url); return !taken.has(id) && !usedClips.has(id); };
   for (let i = 0; i < wants.length; i++) {
     const v = verdict?.items.find((x) => String(x.id).replace(/\D/g, "") === String(i));
-    const c = v && v.pick >= 0 && present[i]?.[v.pick] && (v.score >= 8 || (v.score >= 7 && cands[i][v.pick].kind === "video")) && free(cands[i][v.pick]) ? cands[i][v.pick] : null; // moving footage at 7/10 beats a plain background
+    const c = v && v.pick >= 0 && present[i]?.[v.pick] && fits(cands[i][v.pick], v.score) && free(cands[i][v.pick]) ? cands[i][v.pick] : null; // moving footage at 7/10 beats a plain background
     if (!c) continue;
     taken.add(c.id ?? clipId(c.url));
     let url = c.url;
@@ -449,33 +549,22 @@ async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: {
     visual[`${wants[i].r}:${wants[i].s}`] = { kind: c.kind, url, poster, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source };
     fresh_.push({ url, poster, kind: c.kind, credit: c.credit, license: c.license, source_url: c.source_url, source: c.source, query: wants[i].q, caption: reels[wants[i].r].scenes[wants[i].s].caption, score: v?.score ?? 8 });
   }
-  // Scenes the editor left empty: an approved library shot no video has used yet, else a fresh
-  // unused clip for the scene's own shot description, else no picture (the scene shows on the goal's
-  // colours). Never a clip that's already in the feed.
-  const qOf = new Map(wants.map((w) => [`${w.r}:${w.s}`, w.q]));
-  const uses = new Map<string, number>();
-  for (const v of Object.values(visual)) uses.set(v.url, (uses.get(v.url) ?? 0) + 1);
-  for (let ri = 0; ri < reels.length; ri++) {
-    const r = reels[ri];
-    const inReel = new Set(r.scenes.map((_, si) => visual[`${ri}:${si}`]?.url).filter(Boolean));
-    for (let si = 0; si < r.scenes.length; si++) {
-      const k = `${ri}:${si}`;
-      if (visual[k]) continue;
-      const q = qOf.get(k) ?? r.scenes[si].visual ?? r.scenes[si].caption;
-      const hits: LibVisual[] = await db("rpc/parallax_match_visuals", { method: "POST", body: { q, n: 12 } }).catch(() => []);
-      const lib = hits.sort((a, b) => Number(b.kind === "video") - Number(a.kind === "video")).find((h) => !uses.has(h.url) && h.uses < 1 && !taken.has(clipId(h.url)) && !usedClips.has(clipId(h.url)));
-      let pick: Cand | undefined = lib ? { kind: lib.kind, url: lib.url, poster: lib.poster ?? lib.url, credit: lib.credit, license: lib.license, source_url: lib.source_url, source: lib.source } : undefined;
-      if (!pick) {
-        const found = (await pixabayVideos(q).catch(() => [])).find((c) => free(c));
-        if (found && (await alive(found.url, /^video\//))) {
-          try { pick = { ...found, url: await rehost(found, g.slug), poster: await rehost({ ...found, kind: "image", url: found.poster, id: `${found.id}-poster` }, g.slug) }; } catch { pick = undefined; }
-        }
+  // Scenes the editor left empty get a second, live search with fresh search terms, judged by the
+  // same rules. Never an unjudged clip: a scene with nothing fitting shows on the goal's colours.
+  const empty: Ask[] = [];
+  reels.forEach((r, ri) => r.scenes.forEach((sc, si) => { if (!visual[`${ri}:${si}`] && sc.visual?.trim()) empty.push({ key: `${ri}:${si}`, caption: sc.caption, sub: sc.sub }); }));
+  if (empty.length) {
+    const tried = wants.flatMap((w) => w.search ?? []);
+    const name = (await db(`goals?id=eq.${g.id}&select=name`).catch(() => []))[0]?.name ?? g.slug;
+    try {
+      const got = await pickVisuals({ slug: g.slug, name }, empty.slice(0, 8), space, taken, errors, true, tried);
+      for (const [k, v] of Object.entries(got)) {
+        const { score, query, ...c } = v;
+        visual[k] = c;
+        const [ri, si] = k.split(":").map(Number);
+        fresh_.push({ ...c, query, caption: reels[ri].scenes[si].caption, score });
       }
-      if (!pick) continue;
-      taken.add((pick as Cand).id ?? clipId(pick.url));
-      visual[k] = pick; inReel.add(pick.url); uses.set(pick.url, (uses.get(pick.url) ?? 0) + 1);
-      if (lib) db("rpc/parallax_visual_used", { method: "POST", body: { vid: lib.id } }).catch(() => {});
-    }
+    } catch (e) { errors.push(`rescue: ${e instanceof Error ? e.message.slice(0, 100) : e}`); }
   }
   // Every newly approved shot joins the shared library.
   if (fresh_.length) await db("visuals?on_conflict=url", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: fresh_ }).catch((e) => errors.push(`library: ${String(e).slice(0, 80)}`));
@@ -535,7 +624,7 @@ async function collect() {
       continue;
     }
     finished++;
-    out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, [], j.pre ?? {}));
+    out.push(await finalize({ id: j.goal_id, slug: j.slug }, j.reels, j.wants, j.cands, j.present, j.post_ids, verdict, j.fresh, [], j.pre ?? {}, (j.cands ?? []).flat().some((c: Cand) => c?.source === "nasa")));
     await db(`reel_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
   }
   return out;
@@ -615,6 +704,34 @@ async function dropOld() {
   return { files: names.length, deleted: gone.length, kept_in_use: names.length - gone.length };
 }
 
+async function revisual(items: { reel_id: number; si: number }[], space: boolean, avoid: string[]) {
+  const ids = [...new Set(items.map((x) => Number(x.reel_id)))];
+  const rows: { id: number; goal_id: number; scenes: { caption: string; sub: string | null; visual: Cand | null }[] }[] = await db(`reels?id=in.(${ids.join(",")})&select=id,goal_id,scenes`);
+  const goalIds = [...new Set(rows.map((r) => r.goal_id))];
+  if (goalIds.length !== 1) return { error: "one goal per call" };
+  const g = (await db(`goals?id=eq.${goalIds[0]}&select=slug,name`))[0];
+  usedClips = new Set(((await db(`reels?select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  const asks: Ask[] = items.slice(0, 8).map((x) => { const sc = rows.find((r) => r.id === Number(x.reel_id))?.scenes[x.si]; return sc ? { key: `${x.reel_id}:${x.si}`, caption: sc.caption, sub: sc.sub } : null; }).filter(Boolean) as Ask[];
+  const errors: string[] = [];
+  const got = await pickVisuals(g, asks, space, new Set(), errors, true, avoid);
+  const gone: string[] = [];
+  for (const r of rows) {
+    let changed = false;
+    r.scenes.forEach((sc, si) => {
+      const v = got[`${r.id}:${si}`];
+      if (!v) return;
+      if (sc.visual?.url) gone.push(sc.visual.url);
+      const { score: _s, query: _q, ...c } = v;
+      sc.visual = c; changed = true;
+    });
+    if (changed) await db(`reels?id=eq.${r.id}`, { method: "PATCH", prefer: "return=minimal", body: { scenes: r.scenes } });
+  }
+  if (gone.length) await db(`visuals?url=in.(${gone.map((u) => `"${u}"`).join(",")})`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+  const fresh = Object.entries(got).map(([k, v]) => ({ url: v.url, poster: v.poster, kind: v.kind, credit: v.credit, license: v.license, source_url: v.source_url, source: v.source, query: v.query, caption: asks.find((a) => a.key === k)?.caption ?? null, score: v.score }));
+  if (fresh.length) await db("visuals?on_conflict=url", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: fresh }).catch(() => {});
+  return { slug: g.slug, unsplash_left: unsplashLeft, replaced: Object.keys(got), failed: asks.filter((a) => !got[a.key]).map((a) => ({ key: a.key, caption: a.caption, tried: a.search, best: lastScores[a.key] })), errors: [...new Set(errors)].slice(0, 4) };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
@@ -640,6 +757,20 @@ Deno.serve(async (req) => {
       return json({ reels: rows.length, clips: ids.size, sample: [...ids].slice(0, 5) });
     }
     if (body.action === "upgrade_media") return json(await upgradeMedia());
+    // Repair: new shots for chosen scenes only ({items: [{reel_id, si}]}, one goal per call), found
+    // and judged by the editor's rules. Replaced shots leave the library so they're never reused.
+    if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : []));
+    // Admin review: what the footage search finds for some terms, as pictures.
+    if (body.action === "peek" && Array.isArray(body.terms)) {
+      const errs: string[] = [];
+      const c = await gather(body.terms, body.space === true, new Set(), errs);
+      return json({ errors: errs, unsplash_left: unsplashLeft, items: await Promise.all(c.map(async (x) => ({ id: x.id, kind: x.kind, source: x.source, block: await asBlock(x.preview ?? x.poster) }))) });
+    }
+    // Admin review: our own stored posters as data, for checking the videos by eye.
+    if (body.action === "posters" && Array.isArray(body.urls)) {
+      const urls = (body.urls as string[]).filter((u) => typeof u === "string" && R2_PUBLIC && u.startsWith(`${R2_PUBLIC}/`)).slice(0, 40);
+      return json(await Promise.all(urls.map(async (u) => ({ url: u, block: await asBlock(u) }))));
+    }
     const collected = await collect();
     if (body.collect_only === true) return json({ collected });
     return json({ collected, made: await run(body.slug, !!body.fresh, body.live === true) });
