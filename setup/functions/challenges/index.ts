@@ -123,7 +123,8 @@ async function run(slug?: string) {
   if (slug) await db(`challenges?goal_id=eq.${g.id}&status=eq.open`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
   if (made.length) await db("challenges", { method: "POST", prefer: "return=minimal", body: made });
   // Mark done unless every chapter failed (then the next run tries again).
-  if (made.length || errors.length < chapters.length) await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { challenges_at: new Date().toISOString() } });
+  // (A goal with nothing eligible, like an all-virus goal, is done too, so it never blocks the queue.)
+  if (made.length || !chapters.length || errors.length < chapters.length) await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { challenges_at: new Date().toISOString() } });
   return { slug: g.slug, chapters: chapters.length, challenges: made.length, titles: made.map((m) => `${m.node_key}: ${m.title}`), errors };
 }
 
