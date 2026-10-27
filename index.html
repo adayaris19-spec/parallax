@@ -2572,7 +2572,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
         ${(() => {
           const open = goalIdeas.length, cheap = goalIdeas.map((i) => i.test_low).filter((x) => x > 0).sort((a, b) => a - b)[0];
           return open ? `<a class="ro-c ro-link" href="#/lab/${encodeURIComponent(g.slug)}"><span class="ro-l">Ideas to try</span><b class="mono">${open}</b><small>${cheap ? `first tests from ${esc(usdShort(cheap))} · ` : ''}judge them →</small></a>`
-            : `<div class="ro-c"><span class="ro-l">Ideas to try</span><b class="mono">—</b><small>Parallax is preparing ideas</small></div>`;
+            : `<div class="ro-c"><span class="ro-l">Ideas to try</span><b class="mono">—</b><small>${Date.now() - new Date(g.mapped_at || 0).getTime() > 86400000 ? 'none for this goal yet' : 'Parallax is preparing ideas'}</small></div>`;
         })()}
       </div>
       ${g.papers_count ? `<div class="gx-built mono">Built on ${g.papers_count.toLocaleString()} papers · updated ${esc(whenAgo(g.pulsed_at || g.mapped_at))} · <a href="#/how" style="color:inherit">how these numbers work</a></div>` : ''}

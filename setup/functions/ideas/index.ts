@@ -211,7 +211,7 @@ async function collect() {
       track("ideas", true)(r.result.message);
       let drafts: z.infer<typeof Draft>[] = [];
       try { drafts = DRAFT_FMT.parse(r.result.message.content.map((c) => (c.type === "text" ? c.text : "")).join("")).ideas; } catch { /* unreadable */ }
-      if (!drafts.length) { errors.push(`${key}: no ideas`); continue; }
+      if (!drafts.length) { errors.push(`${key}: no ideas (${r.result.message.stop_reason})`); continue; }
       work.push(save(j.goal_id, key, drafts, j.context[key] ?? []).catch((e) => { errors.push(`${key}: ${String(e).slice(0, 120)}`); return 0; }));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
@@ -257,10 +257,20 @@ async function submit(slug?: string, key?: string) {
       db(`nodes?goal_id=eq.${g.id}&select=key,parent_key,title,plain_title,why,blocker,status&order=position.asc`),
       db(`ideas?goal_id=eq.${g.id}&select=node_key,created_at`),
     ]);
+    // Problems the model declined (a safety refusal, or no ideas twice) aren't sent again: each
+    // retry costs money and would come back empty the same way.
+    const tries = new Map<string, number>();
+    for (const j of await db(`idea_jobs?goal_id=eq.${g.id}&status=eq.done&note=not.is.null&select=note`)) {
+      for (const part of String(j.note).split(" | ")) {
+        const m = part.match(/^(\S+): no ideas( \(refusal\))?/);
+        if (m) tries.set(m[1], (tries.get(m[1]) ?? 0) + (m[2] ? 2 : 1));
+      }
+    }
+    const declined = new Set([...tries].filter(([, n]) => n >= 2).map(([k]) => k));
     const recent = new Set(have.filter((h: { created_at: string }) => Date.now() - new Date(h.created_at).getTime() < 120 * DAY).map((h: { node_key: string }) => h.node_key));
     const covered = new Set(have.map((h: { node_key: string }) => h.node_key));
     const asked = new Set(requests.filter((r: { goal_id: number }) => r.goal_id === g.id).map((r: { node_key: string }) => r.node_key));
-    const leaves = (nodes as Node[]).filter((n) => n.parent_key && n.status !== "solved" && !busy.has(`${g.id}:${n.key}`));
+    const leaves = (nodes as Node[]).filter((n) => n.parent_key && n.status !== "solved" && !busy.has(`${g.id}:${n.key}`) && !declined.has(n.key));
     const ranked = leaves.sort((a, b) => (a.key === g.bottleneck_key ? -1 : b.key === g.bottleneck_key ? 1 : (ORDER[a.status] ?? 5) - (ORDER[b.status] ?? 5)));
     // Someone asked first; then the goal's most important problems, up to AUTO_PER_GOAL of them.
     const room = Math.max(0, AUTO_PER_GOAL - covered.size);
@@ -303,6 +313,15 @@ Deno.serve(async (req) => {
     if (body.action === "batch_status") {
       const jobs = await db(`idea_jobs?status=eq.pending&select=batch_id,goal_id,created_at`);
       return json(await Promise.all(jobs.map(async (j: { batch_id: string; goal_id: number; created_at: string }) => { const b = await claude.messages.batches.retrieve(j.batch_id); return { goal_id: j.goal_id, created_at: j.created_at, status: b.processing_status, counts: b.request_counts }; })));
+    }
+    if (body.action === "peek" && body.batch) {
+      const out = [];
+      for await (const r of await claude.messages.batches.results(body.batch)) {
+        if (r.result.type !== "succeeded") { out.push({ id: r.custom_id, type: r.result.type }); continue; }
+        const m = r.result.message;
+        out.push({ id: r.custom_id, stop: m.stop_reason, model: m.model, kinds: m.content.map((c) => c.type), text: m.content.map((c) => (c.type === "text" ? c.text : "")).join("").slice(0, 300) });
+      }
+      return json(out);
     }
     return json(await run(body.slug, body.key, body.collect_only === true));
   } catch (e) {
