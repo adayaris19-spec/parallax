@@ -25,3 +25,4 @@ grant select on node_costs to anon, authenticated;
 select cron.unschedule('parallax-costs') where exists (select 1 from cron.job where jobname = 'parallax-costs');
 select cron.schedule('parallax-costs', '43 * * * *',
   replace((select command from cron.job where jobname = 'parallax-promises'), '/functions/v1/promises', '/functions/v1/costs'));
+alter table cost_jobs add column if not exists saved int; -- estimates a finished run saved (costs function)
