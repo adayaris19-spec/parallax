@@ -1933,7 +1933,7 @@ body{background:var(--bg)}
 .chal-band{width:5px;flex:none;background:linear-gradient(180deg,hsl(var(--h) 62% 58%),hsl(var(--h2) 62% 62%))}
 .chal-body{flex:1;min-width:0;padding:14px 16px}
 .chal-goal{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);text-decoration:none;margin-bottom:8px}
-.av.mini{width:22px!important;height:22px!important;min-width:0;flex:none;border-radius:50%;display:inline-block;background-size:cover;background-position:center;font-size:0}
+.av.mini{margin:0!important;align-self:center;width:22px!important;height:22px!important;min-width:0;flex:none;border-radius:50%;display:inline-block;background-size:cover;background-position:center;font-size:0}
 .ws-goal .av.mini{width:30px!important;height:30px!important}
 body.wsw main{max-width:1000px}
 .chal-goal b{color:var(--ink2);font-weight:600}
@@ -1981,6 +1981,32 @@ body.wsw main{max-width:1000px}
 .ws-res .rt{font-size:13.5px;font-weight:500;line-height:1.3;overflow-wrap:anywhere}.ws-res .rd{font-size:11.5px;color:var(--muted)}
 .ws-papers summary{cursor:pointer;list-style:none}.ws-papers summary::-webkit-details-marker{display:none}
 .ws-drop{display:block;margin:4px auto 0;color:var(--muted)}
+
+/* ideas, redesigned: same scan-at-a-glance layout as challenges, accent colour rather than green */
+.nov.new{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.nov.partly{background:color-mix(in srgb,var(--progress) 16%,transparent);color:color-mix(in srgb,var(--progress) 70%,#000)}
+.itile{position:relative;overflow:hidden;padding:18px 20px 16px 24px}
+.itile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#8A90FF,var(--accent))}
+.itile-where{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}.itile-where b{color:var(--ink2);font-weight:600}
+.itile-t{font-size:16.5px;letter-spacing:-.01em;line-height:1.3}
+.itile-b{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;color:var(--ink2);line-height:1.4}.itile-b svg{width:14px;height:14px;flex:none;margin-top:1px;color:var(--accent)}.itile-b b{font-weight:600}
+.itile-cost{display:inline-flex;align-items:baseline;gap:5px;padding:4px 9px;border-radius:9px;background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--ink)}
+.itile-cost svg{width:13px;height:13px;align-self:center;color:var(--accent)}.itile-cost .mono{font-weight:600;font-size:13.5px}.itile-cost small{font-size:11.5px;color:var(--muted)}
+.lab-goals{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.lab-goals .chip3{flex:none}
+.ip-hero{position:relative;margin:4px -4px 0;padding:22px 24px 20px;border-radius:22px;border:1px solid var(--line);background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--accent) 11%,transparent),transparent 60%),radial-gradient(110% 130% at 100% 100%,color-mix(in srgb,#8A90FF 9%,transparent),transparent 55%),var(--card)}
+.ip-hero .ip-crumbs{margin:0}
+.ip-badges{display:flex;gap:8px;align-items:center;margin-top:12px}.ip-ai{font-size:12px;color:var(--muted)}
+.ip-h{font-size:30px;letter-spacing:-.03em;line-height:1.12;margin:8px 0 0;max-width:26ch}
+.ip-hook{font-size:16.5px;line-height:1.5;color:var(--ink2);margin:10px 0 0;max-width:64ch}
+.ip-test{background:color-mix(in srgb,var(--accent) 5%,var(--card));border-color:color-mix(in srgb,var(--accent) 25%,transparent)}
+.ip-test .ws-steps li::before{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.ip-cost{margin-left:auto;font-family:var(--m);font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:600}
+.ip-risk{background:color-mix(in srgb,var(--progress) 7%,var(--card));border-color:color-mix(in srgb,var(--progress) 28%,transparent)}.ip-risk .kick svg{color:color-mix(in srgb,var(--progress) 75%,#000)}
+.ip-evgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}@media (max-width:640px){.ip-evgrid{grid-template-columns:1fr}}
+.ip-sib{display:grid;gap:6px;margin-top:8px}.ip-sib a{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);text-decoration:none;color:var(--ink)}.ip-sib a:hover{background:var(--sunk)}
+.ip-sib b{font-size:13.5px;font-weight:500;line-height:1.35}.ip-sib .mono{font-size:12px;color:var(--muted)}
+.ws-side .ip-people{padding:14px 16px}
+@media (max-width:760px){.ip-h{font-size:24px}.ip-hero{padding:18px 16px}}
 </style>
 </head>
 <body>
@@ -4911,16 +4937,25 @@ async function loadIdeaExtras(ids, pre) {
 }
 
 // A short card for browsing: goal and problem, title, one-line pitch, test cost, novelty, verdicts.
+
+const ICON2 = {
+  flask: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4M6.6 2v4L3 12.6A1 1 0 0 0 3.9 14h8.2a1 1 0 0 0 .9-1.4L9.4 6V2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>',
+  swap: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5h9l-2.5-2.5M13 11H4l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  book: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h4a1.5 1.5 0 0 1 1.5 1.5v8a1.2 1.2 0 0 0-1.2-1.2H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1.2 1.2 0 0 1 1.2-1.2h4.3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  warn: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5 14 13H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6.5v3M8 11.3v.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  bulb: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 10.5a4.5 4.5 0 1 1 5 0V12h-5zM6 14h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
 function ideaTile(i, g, { problem = true } = {}) {
   const s = labState.scores[i.id] || {}, nv = NOVELTY[i.novelty], node = labState.nodes[`${i.goal_id}:${i.node_key}`];
   const votes = (s.promising || 0) + (s.flawed || 0) + (s.tried || 0) + (s.test || 0);
   const good = (s.promising || 0) + (s.test || 0);
-  return `<a class="itile" href="#/idea/${i.id}">
-    ${problem && g ? `<span class="itile-where">${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}<span>@${esc(g.handle)}${node ? ` · ${esc(node)}` : ''}</span></span>` : ''}
+  return `<a class="itile" href="#/idea/${i.id}" style="${gStyle(g)}">
+    ${problem && g ? `<span class="itile-where">${miniAv(g)}<span><b>@${esc(g.handle)}</b>${node ? ` · ${esc(node)}` : ''}</span></span>` : ''}
     <b class="itile-t">${esc(i.title)}</b>
     <span class="itile-p">${esc(firstSentenceOf(i.pitch))}</span>
-    <span class="itile-f">${i.test_high ? `<span class="itile-cost"><small>First test</small> <span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span></span>` : ''}${nv ? `<span class="nov ${esc(i.novelty)}">${esc(nv[0])}</span>` : ''}
-      <span class="itile-v">${votes ? `<span class="vbar" aria-hidden="true"><i style="width:${(good / votes * 100).toFixed(0)}%"></i></span>${good} of ${votes} think it’s worth testing` : 'New · be among the first to judge it'}</span></span>
+    ${i.borrowed_from ? `<span class="itile-b">${ICON2.swap}<span>Borrows from <b>${esc(i.borrowed_from)}</b></span></span>` : ''}
+    <span class="itile-f">${i.test_high ? `<span class="itile-cost">${ICON2.flask}<span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span><small>first test</small></span>` : ''}${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}
+      <span class="itile-v">${votes ? `<span class="vbar" aria-hidden="true"><i style="width:${(good / votes * 100).toFixed(0)}%"></i></span>${good}/${votes} worth testing` : 'Be the first to judge it'}</span></span>
   </a>`;
 }
 
@@ -4944,28 +4979,42 @@ function ideaPage(i, g, siblings) {
   const nv = NOVELTY[i.novelty], node = labState.nodes[`${i.goal_id}:${i.node_key}`];
   const link = (x) => { const u = safeUrl(x.url); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title || u)}</a>` : esc(x.title || ''); };
   const notes = labState.notes[i.id] || [];
-  return `<article class="ipage" data-idea="${i.id}" id="idea-${i.id}">
-    <nav class="ip-crumbs"><a href="#/lab${g ? `/${encodeURIComponent(g.slug)}` : ''}">← Ideas lab</a>${g ? `<span>·</span><a href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a>` : ''}${node && g ? `<span>·</span><a href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">${esc(node)}</a>` : ''}</nav>
-    <header class="ip-head">${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}
-      <h1>${esc(i.title)}</h1><p>${esc(i.pitch)}</p>${g && isHealthGoal(g) ? medNote() : ''}</header>
-    <div class="ip-grid">
-      <section class="ip-col"><div class="ip-k">The test</div>
-        ${i.test_high ? `<div class="ip-cost mono">${esc(usdRange(i.test_low, i.test_high))}</div>` : ''}
-        ${i.first_test ? `<p>${esc(i.first_test)}</p>` : ''}
-        ${i.risk ? `<div class="ip-sub"><span>Main risk</span>${esc(i.risk)}</div>` : ''}</section>
-      <section class="ip-col"><div class="ip-k">Why it might work</div>
-        ${i.mechanism ? `<p>${esc(i.mechanism)}</p>` : ''}
-        ${i.borrowed_from ? `<div class="ip-sub"><span>Borrowed from</span>${esc(i.borrowed_from)}</div>` : ''}</section>
-      <section class="ip-col ip-people" id="ideaPanel-${i.id}">${verdictPanel(i)}</section>
-    </div>
-    <details class="ip-ev"><summary><span><b>The evidence</b> · builds on ${(i.builds_on || []).length} paper${(i.builds_on || []).length === 1 ? '' : 's'}, checked against earlier work</span></summary>
-      <div class="ip-evgrid">
-        <div><div class="ip-k">Builds on</div>${(i.builds_on || []).length ? `<ul class="srcs">${i.builds_on.map((p) => `<li>${link(p)}${p.year ? ` <span>(${esc(p.year)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="ip-muted">No library papers cited.</p>'}</div>
-        <div><div class="ip-k">Has it been tried?${nv ? ` · ${esc(nv[0])}` : ''}</div>${i.novelty_note ? `<p>${esc(i.novelty_note)}</p>` : ''}${(i.prior_art || []).length ? `<ul class="srcs">${i.prior_art.map((p) => `<li>${link(p)}</li>`).join('')}</ul>` : ''}</div>
+  const pitch = sentences(i.pitch), test = sentences(i.first_test), papers = (i.builds_on || []).length;
+  const s = labState.scores[i.id] || {}, votes = REACT.reduce((a, [k]) => a + (s[k] || 0), 0), good = (s.promising || 0) + (s.test || 0);
+  return `<article class="ipage" data-idea="${i.id}" id="idea-${i.id}" style="${gStyle(g)}">
+    <header class="ip-hero">
+      <nav class="ip-crumbs"><a href="#/lab${g ? `/${encodeURIComponent(g.slug)}` : ''}">← Ideas lab</a></nav>
+      ${g ? `<a class="ws-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b><small>${esc(node || g.name)}</small></span></a>` : ''}
+      <div class="ip-badges">${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}<span class="ip-ai">Proposed by Parallax’s AI · for experts to judge</span></div>
+      <h1 class="ip-h">${esc(i.title)}</h1>
+      <p class="ip-hook">${esc(pitch[0] || i.pitch)}</p>
+      <div class="ws-facts">
+        <div><span>${ICON2.flask}First test</span><b class="mono">${i.test_high ? esc(usdRange(i.test_low, i.test_high)) : '—'}</b></div>
+        <div><span>${ICON2.swap}Borrows from</span><b>${esc(i.borrowed_from || '—')}</b></div>
+        <div><span>${ICON2.book}Builds on</span><b>${papers} paper${papers === 1 ? '' : 's'}</b></div>
+        <div><span>${ICON.people}Verdict</span><b>${votes ? `${good} of ${votes} say test it` : 'Not judged yet'}</b></div>
       </div>
-      <p class="wt-note">Proposed by Parallax’s AI from the research library, then checked against published work. A starting point for experts, not a finding.</p></details>
-    ${notes.length > 2 ? `<section class="ip-notes" id="ideaNotes"><div class="ip-k">All notes · ${notes.length}</div><div class="notes">${notes.map(noteHtml).join('')}</div></section>` : ''}
-    ${siblings.length ? `<section class="ip-more"><div class="ip-k">Other ideas for this problem</div><div class="itiles">${siblings.map((x) => ideaTile(x, g, { problem: false })).join('')}</div></section>` : ''}
+    </header>
+    <div class="ws-grid">
+      <div class="ws-main">
+        ${pitch.length > 1 ? `<section class="ws-card"><div class="kick">${ICON2.bulb} The idea</div><p>${esc(pitch.slice(1).join(' '))}</p></section>` : ''}
+        ${test.length ? `<section class="ws-card ip-test"><div class="kick">${ICON2.flask} The cheapest test${i.test_high ? ` <span class="ip-cost">${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</div><ol class="ws-steps">${test.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></section>` : ''}
+        ${i.mechanism ? `<section class="ws-card"><div class="kick">Why it might work</div><p>${esc(i.mechanism)}</p>${i.borrowed_from ? `<p class="ws-sub"><b>Borrowed from:</b> ${esc(i.borrowed_from)}</p>` : ''}</section>` : ''}
+        ${i.risk ? `<section class="ws-card ip-risk"><div class="kick">${ICON2.warn} Main risk</div><p>${esc(i.risk)}</p></section>` : ''}
+        <section class="ws-card"><div class="kick">${ICON2.book} The evidence</div>
+          <div class="ip-evgrid">
+            <div><div class="ip-k">Builds on</div>${papers ? `<ul class="ws-list">${i.builds_on.map((p) => `<li>${link(p)}${p.year ? ` <span>(${esc(p.year)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="ws-sub">No library papers cited.</p>'}</div>
+            <div><div class="ip-k">Has it been tried?${nv ? ` · ${esc(nv[0])}` : ''}</div>${i.novelty_note ? `<p>${esc(i.novelty_note)}</p>` : ''}${(i.prior_art || []).length ? `<ul class="ws-list">${i.prior_art.map((p) => `<li>${link(p)}</li>`).join('')}</ul>` : ''}</div>
+          </div></section>
+        ${notes.length > 2 ? `<section class="ws-card ip-notes" id="ideaNotes"><div class="kick">All notes · ${notes.length}</div><div class="notes">${notes.map(noteHtml).join('')}</div></section>` : ''}
+        ${g && isHealthGoal(g) ? medNote() : ''}
+      </div>
+      <aside class="ws-side">
+        <section class="ws-card ip-people" id="ideaPanel-${i.id}">${verdictPanel(i)}</section>
+        ${siblings.length ? `<section class="ws-card"><div class="kick">More ideas for this problem</div><div class="ip-sib">${siblings.slice(0, 5).map((x) => `<a href="#/idea/${x.id}"><b>${esc(x.title)}</b>${x.test_high ? `<span class="mono">${esc(usdRange(x.test_low, x.test_high))}</span>` : ''}</a>`).join('')}</div></section>` : ''}
+        ${g ? `<section class="ws-card"><div class="kick">Want to build something?</div><p class="ws-sub">This problem may have challenges: real pieces you can solve from home and get published.</p><a class="btn wide" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">See the problem</a></section>` : ''}
+      </aside>
+    </div>
   </article>`;
 }
 function refreshPanel(id) { const i = labState.ideas.find((x) => x.id === id), el = document.getElementById(`ideaPanel-${id}`); if (i && el) el.innerHTML = verdictPanel(i); }
@@ -5044,7 +5093,7 @@ async function labView(slug, sort = 'top') {
   view.innerHTML = `${navTabs('lab')}<section class="lab-h"><div class="kick">Ideas lab</div>
       <h1>${ideas.length} idea${ideas.length === 1 ? '' : 's'} to try${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
       <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
-    <div class="lab-bar"><div class="chips">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
+    <div class="lab-bar"><div class="chips lab-goals">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
       <div class="seg"><a class="${sort === 'top' ? 'on' : ''}" href="${base}">Most promising</a><a class="${sort === 'new' ? 'on' : ''}" href="${base}?new">Newest</a></div></div>
     ${shown.length ? `<div class="itiles" id="itiles">${shown.slice(0, LAB_PAGE).map((i) => ideaTile(i, list.find((g) => g.id === i.goal_id))).join('')}</div>${shown.length > LAB_PAGE ? `<p class="lab-more"><button class="btn" type="button" id="labMore">Show more ideas (${shown.length - LAB_PAGE} left)</button></p>` : ''}` : note('No ideas yet', 'Parallax adds new ideas every hour, starting with each goal’s hardest problems.')}`;
   // 20 at a time: a phone shouldn't render all of them at once.
@@ -5070,7 +5119,8 @@ async function ideaView(id) {
   labState.ideas = [i, ...siblings];
   await loadIdeaExtras(labState.ideas.map((x) => x.id));
   document.body.classList.add('labpage');
-  view.innerHTML = ideaPage(i, list.find((x) => x.id === i.goal_id), siblings);
+  document.body.classList.add('wsw');
+  view.innerHTML = navTabs('lab') + ideaPage(i, list.find((x) => x.id === i.goal_id), siblings);
 }
 
 // ------------------------------------------------------------ what it would take
@@ -5869,7 +5919,7 @@ function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').map(decodeURIComponent);
   setNav(parts);
   document.body.classList.toggle('wide', parts[0] === 'terminal');
-  document.body.classList.toggle('wsw', parts[0] === 'c'); // a challenge workspace gets more room
+  document.body.classList.toggle('wsw', parts[0] === 'c' || parts[0] === 'idea'); // workspaces and idea pages get more room
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
   if (parts[0] === 'explore') return exploreView();
