@@ -695,6 +695,17 @@ body.goalpage main{max-width:1120px}
 .wfb{font-size:13.5px;color:var(--ink2);margin:6px 0 0;line-height:1.5}
 .workf{display:flex;gap:8px;margin-top:10px}.workf input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line2);border-radius:10px;font:inherit;font-size:14px;background:var(--card)}
 .chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink2);margin:4px 0 12px;line-height:1.45}.chk input{margin-top:3px}
+.sh-chal{margin-top:18px}
+.chal{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px 16px;margin:10px 0}
+.chal.solved{opacity:.9}
+.chal-goal{display:block;font-size:12.5px;color:var(--muted);text-decoration:none;margin-bottom:4px}
+.chal-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.chal-top b{font-size:15.5px;line-height:1.35}
+.chal-meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}.chal-meta span{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.chal-why{font-size:14px;line-height:1.5;color:var(--ink2);margin:8px 0 0}
+.chal-more{margin-top:6px}.chal-more summary{font-size:13px;color:var(--muted);cursor:pointer}.chal-more p{font-size:13.5px;line-height:1.5;margin:8px 0 0;color:var(--ink2)}.chal-more .wt-l{display:block}
+.chal-res a{color:var(--ink)}
+.chal-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}.chal-n{flex:1;min-width:140px;font-size:12.5px;color:var(--muted)}.chal-n a{color:inherit}
+.chal-filter .chip{text-decoration:none}.chal-filter .chip.on{background:var(--ink);color:var(--bg)}
 .br-impact{display:inline-block;margin:2px 0 6px;font-size:14px;color:var(--accent);text-decoration:none;font-weight:500}
 .sub-fine{font-size:11.5px;color:var(--muted);margin:10px 0 0}.sub-fine a{color:inherit}
 .plus-cta .sub-fine{flex-basis:100%;margin:2px 0 0}
@@ -2354,7 +2365,7 @@ document.addEventListener('click', (e) => {
 
 // The site's sections, in one tab bar under the header (the header keeps search, Plus and Pro).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['explore', '#/explore', 'Explore'], ['lab', '#/lab', 'Ideas'], ['following', '#/following', 'Following'], ['branch', '#/branch', 'Your branch']];
+const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['explore', '#/explore', 'Explore'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following'], ['branch', '#/branch', 'Your branch']];
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 async function feedView(tab) {
@@ -2625,7 +2636,9 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
 
   const leaves = nodes.filter((n) => n.parent_key);
   const branches = nodes.filter((n) => !n.parent_key);
-  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas, giving, evidence };
+  goalCtx = { g, leaves, branches, helpers, tab, costs, ideas: goalIdeas, asked: askedIdeas, giving, evidence, challenges: opened.challenges || [] };
+  rememberChallenges(goalCtx.challenges, g);
+  if (me) await loadTaken().catch(() => {});
   // Count one visit per goal per browser session; AI spend follows what people look at.
   try { const k = `px.v.${g.id}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
@@ -2921,6 +2934,7 @@ function openLeaf(key, push = true) {
       : l.status === 'solved' ? '' : l.ideas_declined ? testedNow(goalCtx.evidence?.[l.key]) : `<div class="sh-ideas ask"><div class="kick">Ideas to try</div>${(goalCtx.asked || []).includes(l.key)
         ? '<p>Someone asked for ideas here. Parallax is researching them; they usually arrive within a few hours.</p>'
         : `<p>No ideas for this problem yet. Parallax can research it and propose some, each checked against earlier work.</p><button class="btn" type="button" data-askideas="${esc(l.key)}">Ask for ideas</button>`}</div>`; })()}
+    ${challengeBlock((goalCtx.challenges || []).filter((c) => c.node_key === l.key), g)}
     ${isHealthGoal(g, goalCtx.evidence) ? medNote() : ''}
     ${fundingPanel(g, l, { sheet: true })}
   </aside>`;
@@ -3312,12 +3326,24 @@ async function branchView(refresh = false) {
     const { data: rows } = await sb.from('contributions').select('goal_id,node_key').eq('user_id', me.id);
     for (const r of rows || []) done.add(`${r.goal_id}/${r.node_key}`);
   } catch {}
+  // Challenges that fit your skills come first: real pieces of a problem with a bar to meet.
+  let fit = [];
+  try {
+    const [cl, all] = await Promise.all([rest('challenges?status=eq.open&select=id,goal_id,node_key,title,useful,task,done_when,resources,skills,size,status&limit=600'), goals()]);
+    const sk = skills.map((s) => s.toLowerCase());
+    const byId = new Map(all.map((g) => [g.id, g]));
+    fit = cl.filter((c) => byId.has(c.goal_id) && (c.skills || []).some((s) => sk.some((m) => m.includes(s) || s.includes(m)))).slice(0, 4);
+    const takers = fit.length ? await rest(`challenge_takers?challenge_id=in.(${fit.map((c) => c.id).join(',')})&select=challenge_id`).catch(() => []) : [];
+    for (const c of fit) { c.takers = takers.filter((t) => t.challenge_id === c.id).length; chalIndex.set(c.id, { c, g: byId.get(c.goal_id) }); }
+    await loadTaken();
+  } catch { /* the matches below still show */ }
   if (!box.isConnected) return;
   const when = data.generated_at ? ago(data.generated_at) : '';
   box.innerHTML = `<h1 class="page-h">Your branch</h1>${done.size ? `<a class="br-impact" href="#/impact">Your impact · ${done.size} ${done.size === 1 ? 'step' : 'steps'} →</a>` : ''}
     <p class="page-sub">Problems where someone with your skills can help. Based on:</p>
     <div class="chips">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}<a class="chip" href="#/settings" style="background:none;text-decoration:underline">Edit</a></div>
     ${data.note ? `<p style="color:var(--muted)">${esc(data.note)}</p>` : ''}
+    ${fit.length ? `<div class="prom-h">Challenges that fit your skills</div>${fit.map((c) => challengeCard(c, chalIndex.get(c.id).g, { goal: true })).join('')}<p><a class="br-impact" href="#/challenges/mine">All challenges for your skills →</a></p><div class="prom-h">More places to help</div>` : ''}
     ${items.length ? items.map((it, i) => branchCard(it, i, done.has(`${it.goal.id}/${it.node.key}`))).join('') : note('No close matches yet', 'Try adding more skills, or check back as more goals are mapped.')}
     <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:16px">${when ? `Matched ${esc(when === 'now' ? 'just now' : /^\d/.test(when) ? `${when} ago` : `on ${when}`)} · ` : ''}<button class="btn" type="button" id="brNew">Find new matches</button></p>`;
   box.querySelector('#brNew').onclick = () => branchView(true);
@@ -3369,6 +3395,135 @@ function openDidIt(it, btn) {
     closeModal();
     toast('Added to your impact');
   };
+}
+
+
+// ------------------------------------------------------------ challenges
+// Real, bounded pieces of a problem someone can solve from home, each with a measurable bar
+// (challenges function). People take one on and submit their work; review-work judges it against the bar.
+let myTaken = null; // ids of challenges you have taken on
+async function loadTaken() {
+  if (!me || !sb) return new Set();
+  if (myTaken) return myTaken;
+  const { data } = await sb.from('challenge_takers').select('challenge_id').eq('user_id', me.id);
+  return (myTaken = new Set((data || []).map((r) => r.challenge_id)));
+}
+function challengeCard(c, g, opts = {}) {
+  const res = (c.resources || []).map((r) => { const u = safeUrl(r.url); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(r.title || u)}</a>` : ''; }).filter(Boolean).join(' · ');
+  const taken = myTaken?.has(c.id);
+  const solved = c.status === 'solved';
+  const meta = [c.size, ...(c.skills || [])].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('');
+  return `<article class="chal${solved ? ' solved' : ''}" data-chal="${c.id}">
+    ${opts.goal && g ? `<a class="chal-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">@${esc(g.handle)}${opts.problem ? ` · ${esc(opts.problem)}` : ''}</a>` : ''}
+    <div class="chal-top"><b>${esc(c.title)}</b>${solved ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}</div>
+    <div class="chal-meta">${meta}</div>
+    <p class="chal-why">${esc(c.useful)}</p>
+    <details class="chal-more"><summary>The task and the bar</summary>
+      <p><span class="wt-l">The task</span>${esc(c.task)}</p>
+      <p><span class="wt-l">Done when</span>${esc(c.done_when)}</p>
+      ${res ? `<p class="chal-res"><span class="wt-l">Start from</span>${res}</p>` : ''}</details>
+    <div class="chal-act">
+      <span class="chal-n">${solved && c.solved_by ? `Solved by <a href="#/u/${encodeURIComponent(c.solved_by)}">@${esc(c.solved_by)}</a>${c.solved_post_id ? ` · <a href="#/p/${c.solved_post_id}">see it</a>` : ''}` : c.takers ? `${c.takers} ${c.takers === 1 ? 'person' : 'people'} on this` : 'No one on this yet'}</span>
+      ${taken ? '<button class="btn sm" type="button" data-chal-drop>You’re on it ✓</button>' : `<button class="btn sm" type="button" data-chal-take>${solved ? 'Try it too' : 'Take it on'}</button>`}
+      <button class="btn sm primary" type="button" data-chal-submit>Submit your work</button>
+    </div></article>`;
+}
+function challengeBlock(list, g) {
+  if (!list.length) return '';
+  return `<div class="sh-chal"><div class="kick">Challenges · ${list.length}</div><p class="fine2" style="margin:2px 0 10px">Real pieces of this problem you could solve from home. Meet the bar and your work is published on @${esc(g.handle)}’s feed.</p>${list.map((c) => challengeCard(c, g)).join('')}</div>`;
+}
+const chalIndex = new Map(); // id -> { c, g }
+function rememberChallenges(list, g) { for (const c of list || []) chalIndex.set(c.id, { c, g }); }
+
+document.addEventListener('click', async (e) => {
+  const card = e.target.closest('[data-chal]');
+  if (!card) return;
+  const id = Number(card.dataset.chal);
+  const take = e.target.closest('[data-chal-take]'), drop = e.target.closest('[data-chal-drop]'), sub = e.target.closest('[data-chal-submit]');
+  if (!take && !drop && !sub) return;
+  await authReady;
+  if (!me) { openSignIn('Sign in to take on a challenge and submit your work.'); return; }
+  if (take || drop) {
+    const btn = take || drop; btn.disabled = true;
+    const taken = await loadTaken();
+    const res = take ? await sb.from('challenge_takers').insert({ challenge_id: id, user_id: me.id }) : await sb.from('challenge_takers').delete().eq('challenge_id', id).eq('user_id', me.id);
+    btn.disabled = false;
+    if (res.error && res.error.code !== '23505') { toast(res.error.message); return; }
+    if (take) taken.add(id); else taken.delete(id);
+    const n = card.querySelector('.chal-n'); const cur = Number((/^(\d+)/.exec(n?.textContent || '') || [0, 0])[1]) + (take ? 1 : -1);
+    if (n && !card.classList.contains('solved')) n.textContent = cur > 0 ? `${cur} ${cur === 1 ? 'person' : 'people'} on this` : 'No one on this yet';
+    btn.outerHTML = take ? '<button class="btn sm" type="button" data-chal-drop>You’re on it ✓</button>' : '<button class="btn sm" type="button" data-chal-take>Take it on</button>';
+    if (take) toast('It’s yours. Submit your work here when it meets the bar.');
+    return;
+  }
+  const hit = chalIndex.get(id) || (goalCtx?.challenges || []).map((c) => ({ c, g: goalCtx.g })).find((x) => x.c.id === id);
+  if (hit) openChallengeSubmit(hit.c, hit.g);
+});
+
+function openChallengeSubmit(c, g) {
+  closeModal();
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="csT">
+    <h2 id="csT">Submit your work</h2>
+    <p><b>${esc(c.title)}</b></p>
+    <p class="fine" style="margin-top:4px"><b>Done when:</b> ${esc(c.done_when)}</p>
+    <label class="field"><span>Link to your work</span><input id="csUrl" type="url" maxlength="500" placeholder="https://github.com/you/project"></label>
+    <label class="field"><span>What you did and found <small style="display:inline;font-weight:400">(optional)</small></span><textarea id="csNote" maxlength="500" placeholder="For example: 240 runs; Q is most sensitive to pedestal height."></textarea></label>
+    <button class="btn primary wide" type="button" id="csGo">Submit for review</button>
+    <button class="btn wide" type="button" id="csX">Cancel</button>
+    <p class="fine">Parallax checks your work against the bar. If it meets it, it’s published on @${esc(g.handle)}’s feed under your name; if not, you get specific feedback. The link must be public.</p>
+    <div class="err" id="csErr"></div></div>`;
+  document.body.appendChild(back);
+  back.addEventListener('click', (e) => { if (e.target === back) closeModal(); });
+  $('#csX').onclick = closeModal;
+  $('#csUrl').focus();
+  $('#csGo').onclick = async () => {
+    const url = $('#csUrl').value.trim(), note = $('#csNote').value.trim().slice(0, 500);
+    if (!/^https?:\/\/\S+$/i.test(url)) { $('#csErr').textContent = 'Paste a full link starting with https://'; return; }
+    $('#csGo').disabled = true; $('#csGo').textContent = 'Reviewing… about a minute';
+    // One step per person per problem: reuse it if you already logged one here.
+    let { data: row } = await sb.from('contributions').select('id').eq('user_id', me.id).eq('goal_id', g.id).eq('node_key', c.node_key).maybeSingle();
+    if (row) {
+      const { error } = await sb.from('contributions').update({ work_url: url, challenge_id: c.id, ...(note ? { note } : {}) }).eq('id', row.id).eq('user_id', me.id);
+      if (error) { $('#csErr').textContent = error.message; $('#csGo').disabled = false; return; }
+    } else {
+      const node = (goalCtx?.g?.id === g.id ? goalCtx.leaves : [])?.find((l) => l.key === c.node_key);
+      const ins = await sb.from('contributions').insert({ user_id: me.id, goal_id: g.id, node_key: c.node_key, node_title: (node?.title || c.title).slice(0, 300), step: `Challenge: ${c.title}`.slice(0, 600), note, work_url: url, challenge_id: c.id }).select('id').single();
+      if (ins.error) { $('#csErr').textContent = ins.error.message; $('#csGo').disabled = false; return; }
+      row = ins.data;
+    }
+    const res = await submitWork(row.id, url, null);
+    closeModal();
+    if (res && !res.error) location.hash = '#/impact';
+  };
+}
+
+// Every open challenge, across goals, filtered by skill.
+async function challengesView(skill) {
+  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  let list, all;
+  try {
+    [list, all] = await Promise.all([rest('challenges?status=neq.retired&select=id,goal_id,node_key,title,useful,task,done_when,resources,skills,size,status,solved_post_id&order=id.desc&limit=600'), goals()]);
+    const takers = await rest('challenge_takers?select=challenge_id').catch(() => []);
+    const n = new Map(); for (const t of takers) n.set(t.challenge_id, (n.get(t.challenge_id) || 0) + 1);
+    for (const c of list) c.takers = n.get(c.id) || 0;
+  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
+  await authReady; await loadTaken();
+  const byId = new Map(all.map((g) => [g.id, g]));
+  const nodes = await rest(`nodes?goal_id=in.(${[...new Set(list.map((c) => c.goal_id))].join(',') || 0})&parent_key=not.is.null&select=goal_id,key,title,plain_title`).catch(() => []);
+  const ptitle = (c) => { const x = nodes.find((n) => n.goal_id === c.goal_id && n.key === c.node_key); return x ? (x.plain_title || x.title) : ''; };
+  const freq = new Map(); for (const s of list.flatMap((c) => c.skills || [])) freq.set(s, (freq.get(s) || 0) + 1);
+  const skills = [...freq.keys()].sort((a, b) => freq.get(b) - freq.get(a)); // most common first
+  const mine = me?.profile?.skills || [];
+  const sel = skill ? decodeURIComponent(skill) : '';
+  const shown = list.filter((c) => byId.has(c.goal_id) && (!sel || (sel === 'mine' ? (c.skills || []).some((s) => mine.some((m) => m.toLowerCase().includes(s) || s.includes(m.toLowerCase()))) : (c.skills || []).includes(sel))))
+    .sort((a, b) => (a.status === 'solved') - (b.status === 'solved') || b.takers - a.takers);
+  for (const c of shown) chalIndex.set(c.id, { c, g: byId.get(c.goal_id) });
+  view.innerHTML = navTabs('challenges') + `<h1 class="page-h">Challenges</h1>
+    <p class="page-sub">Real pieces of humanity’s biggest problems that one person could solve from home with public data, code and analysis. Each has a clear bar. Meet it and your work is published on the goal’s feed under your name.</p>
+    <div class="chips chal-filter"><a class="chip${sel ? '' : ' on'}" href="#/challenges">All ${list.length}</a>${mine.length ? `<a class="chip${sel === 'mine' ? ' on' : ''}" href="#/challenges/mine">Fits my skills</a>` : ''}${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
+    ${shown.length ? shown.map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c) })).join('') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
 }
 
 // ------------------------------------------------------------ terminal
@@ -5602,6 +5757,7 @@ function route() {
   if (parts[0] === 'g' && parts[1]) howState.from = `#/g/${parts[1]}`;
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1], parts[2] === 'impact');
   if (parts[0] === 'impact') return impactRoute();
+  if (parts[0] === 'challenges') return challengesView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'plus') return plusView();
   if (parts[0] === 'branch') return branchView();

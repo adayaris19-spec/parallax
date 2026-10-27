@@ -558,3 +558,13 @@ Run `schema-work.sql` and deploy `review-work` with Verify JWT on.
 - **Your impact:** `#/impact` opens your profile at the Impact section. It's linked from the account menu and from Your branch.
 - **Unpublishing:** delete the post (`delete from posts where id = …`); the step's `post_id` is cleared automatically.
 - **Admin dry run:** POST `{"dry_run": {"goal": "<slug>", "key": "<node key>", "url": "<link>"}}` with the admin header reviews a link without saving anything.
+
+## 42. Challenges
+
+Run `schema-challenges.sql` (tables, the hourly cron at :09) and deploy `challenges` with Verify JWT on.
+
+- **What they are:** concrete, bounded pieces of a goal's open problems that one person could do from home with public data, code, models or analysis. Each says what it unblocks and who would use it, the task, a measurable "done when", real starting links, the skills needed and its size.
+- **How they're written:** with Sonnet (`CHALLENGES_MODEL`), one goal per run. A second reader throws out vague, already-done, lab-only and fluff challenges. Every link is opened, and a challenge with no working link is dropped. Virus and pathogen problems (`ideas_declined`) get none.
+- **New goals:** `library` starts a goal's challenges when its first library is done. `{"slug": "<slug>"}` rewrites one goal's open challenges.
+- **Where people see them:** in each problem sheet, on `#/challenges` (filter by skill, or "Fits my skills"), and at the top of Your branch. People can take one on (`challenge_takers`) and submit their work.
+- **Judging:** a submission is a contribution with `challenge_id`. `review-work` judges it against that challenge's "done when". The first accepted solution marks the challenge solved and shows "Solved by @handle".
