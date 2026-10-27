@@ -569,3 +569,11 @@ Run `schema-challenges.sql` (tables, the hourly cron at :09) and deploy `challen
 - **Where people see them:** in each problem sheet and on `#/challenges`. That tab replaced Your branch: signed-in people land on "For you" (challenges matching their skills), with All and skill filters, their skills, and a link to Your impact. `#/branch` redirects to it. The `branch` function (per-person AI matches) is no longer called. People can take a challenge on (`challenge_takers`) and submit their work.
 - **Workspace (`#/c/<id>`):** taking a challenge on opens its workspace. It holds the brief, the bar, starting points, the problem's key papers and who else is on it. The person also gets their own plan (a to-do list), private notes that autosave, a status (working / ready / submitted) and a submit box that keeps the review feedback. Stored in `challenge_work`, private to its owner. The Challenges tab has sub-tabs: For you, All, Working on, Solved.
 - **Judging:** a submission is a contribution with `challenge_id`. `review-work` judges it against that challenge's "done when". The first accepted solution marks the challenge solved and shows "Solved by @handle".
+
+## 43. AI budget guard
+
+Run `schema-budget.sql`, then re-run the `parallax_seed_tick` function from `seed-queue.sql`.
+
+- **What it does:** new goals pause automatically when the Anthropic credit left (`parallax_budget.balance_usd` minus AI spend since `as_of`) would no longer cover running the existing goals until `refresh_on` (about $1.50 a day), plus a $4 buffer and one more goal (about $2.80). The guard switches off on `refresh_on`.
+- **Check it:** `select parallax_budget_status();`.
+- **When the balance changes:** `update parallax_budget set balance_usd = <credit left>, as_of = now(), refresh_on = '<next refresh>';`.
