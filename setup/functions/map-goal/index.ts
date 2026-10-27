@@ -511,11 +511,12 @@ ${cited.map(recLine).join("\n")}
     horizon_note: out.horizon_note,
     mapped_at: now, pulsed_at: now,
   });
-  // Cost estimates don't need the paper library: start them now rather than at the next hourly run.
-  const kick = fetch(`${SB}/functions/v1/costs`, {
+  // Cost estimates and the first videos don't need the paper library: start them now rather than
+  // at the next hourly run.
+  const kick = Promise.all(["costs", "reels"].map((fn) => fetch(`${SB}/functions/v1/${fn}`, {
     method: "POST", headers: { Authorization: `Bearer ${SRK}`, "Content-Type": "application/json", "x-parallax-admin": ADMIN },
     body: JSON.stringify({ slug }),
-  }).catch(() => {});
+  }).catch(() => {})));
   if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(kick);
 }
 
