@@ -755,7 +755,7 @@ async function revisual(items: { reel_id: number; si: number }[], space: boolean
 // Instead: gather the goal's real world first (many searches), judge every candidate once, then
 // write a short script around the approved shots only. Every scene has a shot that fits it.
 const ShotList = z.object({ terms: z.array(z.string()) });
-const ShotVerdict = z.object({ items: z.array(z.object({ id: z.number(), shows: z.string().describe("What the picture literally shows, at most 10 words."), fit: z.number().describe("1-10: how clearly it shows this goal's real world."), quality: z.number().describe("1-10: sharp, well composed, striking on a phone."), action: z.boolean().describe("Something visibly happening (people working, a procedure, motion).") })) });
+const ShotVerdict = z.object({ items: z.array(z.object({ id: z.number(), shows: z.string().describe("What the picture literally shows, at most 10 words."), fit: z.number().describe("1-10: how clearly it shows this goal's real world."), quality: z.number().describe("1-10: sharp, well composed, striking on a phone."), action: z.boolean().describe("Something visibly happening (people working, a procedure, motion)."), dynamic: z.number().describe("1-10: how dynamic and eye-catching it would be moving: fly-throughs, streams of particles, bursts, fast motion, strong colour and contrast score high; a static object on a plain background scores low.") })) });
 const ScriptScene = z.object({
   caption: z.string().describe("At most 9 words. Big text on screen."),
   sub: z.string().describe("Optional second line, at most 16 words. Empty if not needed."),
@@ -802,28 +802,42 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
     add(() => pixabayVideos(q, 6, "all")),
     ...(space && i < 8 ? [add(() => nasaVideos(q))] : []),
   ])));
-  const cands = pool.slice(0, 120);
+  const cands = pool.slice(0, 84);
   const blocks = await Promise.all(cands.map((c) => asBlock(c.preview ?? c.poster)));
 
   // 3. Judge every candidate once (25 per call).
-  const judged: { c: Cand; shows: string; fit: number; quality: number; action: boolean }[] = [];
+  const judged: { c: Cand; shows: string; fit: number; quality: number; action: boolean; dynamic: number }[] = [];
   const ids = cands.map((_, i) => i).filter((i) => blocks[i]);
   const parts: number[][] = [];
-  for (let from = 0; from < ids.length; from += 25) parts.push(ids.slice(from, from + 25));
+  for (let from = 0; from < ids.length; from += 21) parts.push(ids.slice(from, from + 21));
   await Promise.all(parts.map(async (part) => {
     // deno-lint-ignore no-explicit-any
-    const content: any[] = [{ type: "text", text: `You pick footage for cinematic science videos about "${g.name}". The look: animated 3D science visuals (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) and striking real footage of the goal's own subject. For each clip (shown as one still frame) say what it literally shows, how clearly it relates to this goal's science or subject (fit), and how cinematic, rich and beautiful it is full screen on a phone (quality). Fit 1 and quality 1 for cartoons, characters with faces, mascots, clip art, flat or childish illustrations, labelled diagrams, text and logos. Quality 3 or less for documentary snapshots: rooms, beds, hospital wards, X-ray films, offices, people posing or at computers, food, pets, unrelated landscapes.` }];
+    const content: any[] = [{ type: "text", text: `You pick footage for cinematic science videos about "${g.name}". The look: animated 3D science visuals (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) and striking real footage of the goal's own subject. For each clip (shown as one still frame) say what it literally shows, how clearly it relates to this goal's science or subject (fit), how cinematic, rich and beautiful it is full screen on a phone (quality), and how dynamic and eye-catching it would be in motion (dynamic). Fit 1 and quality 1 for cartoons, characters with faces, mascots, clip art, flat or childish illustrations, labelled diagrams, text and logos. Quality 3 or less for documentary snapshots: rooms, beds, hospital wards, X-ray films, offices, people posing or at computers, food, pets, unrelated landscapes.` }];
     for (const i of part) { content.push({ type: "text", text: `Picture ${i} (${cands[i].kind})` }); content.push(blocks[i]); }
     try {
       const v = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 8000, output_config: { effort: "low", format: betaZodOutputFormat(ShotVerdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output;
-      for (const it of v?.items ?? []) if (part.includes(it.id)) judged.push({ c: cands[it.id], shows: it.shows, fit: it.fit, quality: it.quality, action: it.action });
+      for (const it of v?.items ?? []) if (part.includes(it.id)) judged.push({ c: cands[it.id], shows: it.shows, fit: it.fit, quality: it.quality, action: it.action, dynamic: it.dynamic });
     } catch (e) { errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 80) : e}`); }
   }));
-  const strict = (j: { fit: number; quality: number }) => (j.fit >= 6 && j.quality >= 7) || (j.fit >= 8 && j.quality >= 6);
-  const shots = judged.filter(strict)
-    .sort((a, b) => (b.fit + b.quality + (b.c.kind === "video" ? 2 : 0) + (b.action ? 2 : 0)) - (a.fit + a.quality + (a.c.kind === "video" ? 2 : 0) + (a.action ? 2 : 0)))
-    .slice(0, 24);
-  const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
+  const strict = (j: { fit: number; quality: number; dynamic: number }) => j.dynamic >= 5 && ((j.fit >= 6 && j.quality >= 7) || (j.fit >= 8 && j.quality >= 6));
+  const rank = (j: { fit: number; quality: number; dynamic: number }) => j.fit + j.quality + j.dynamic * 1.5;
+  // No look-alikes: one clip per creator series (Pixabay ids close together from the same creator),
+  // none whose description matches a clip already kept or one in another goal's videos.
+  const pvNum = (c: Cand) => Number(/^pv(\d+)$/.exec(c.id ?? "")?.[1] ?? NaN);
+  const others: string[] = ((await db(`visuals?select=caption,url&order=created_at.desc&limit=600`).catch(() => [])) as { caption: string | null; url: string }[])
+    .filter((v) => v.caption && usedClips.has(clipId(v.url))).map((v) => v.caption!);
+  const otherIds = [...usedClips].map((x) => Number(/^pv(\d+)$/.exec(x)?.[1] ?? NaN)).filter((n) => !isNaN(n));
+  const alike = (a: string, b: string) => { const A = words(a), B = words(b); const shared = [...A].filter((w) => B.has(w)).length; return shared / Math.max(1, Math.min(A.size, B.size)) >= 0.6; };
+  const shots: typeof judged = [];
+  for (const j of judged.filter(strict).sort((a, b) => rank(b) - rank(a))) {
+    const n = pvNum(j.c);
+    if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 40)) continue;
+    if (shots.some((k) => (!isNaN(n) && k.c.credit === j.c.credit && Math.abs(pvNum(k.c) - n) < 400) || alike(k.shows, j.shows))) continue;
+    if (others.some((o) => alike(o, j.shows))) continue;
+    shots.push(j);
+    if (shots.length >= 22) break;
+  }
+  const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, dynamic: j.dynamic, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
   if (shots.length < 8) return { slug, error: "too few good shots", found: shots.length, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
 
   // 4. The script, written around the approved shots.
@@ -839,7 +853,7 @@ What makes people watch:
 - Every reel is one story with tension: a problem, the stakes for real people, a turn (what changed, what failed, who is trying something), and an ending that leaves a question or a next step.
 - Each caption is a punch, at most 9 words, spoken style. Concrete nouns and numbers beat adjectives. The sub line adds the detail.
 - Never: "revolutionary", "game-changer", "unlock", "the future of", "imagine", "journey", "landscape", "crucial", "key", vague words like "progress is being made".
-Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Vary them: never two of the same kind in a row.
+Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Vary them: never two of the same kind in a row, and open every reel on the most dynamic, eye-catching clip that fits.
 Score each reel's hook honestly; a reel under 7 is not worth making.`,
     messages: [{ role: "user", content: `${facts}\n\nAPPROVED SHOTS (${shots.length}; make ${shots.length >= 14 ? "up to 3 reels" : shots.length >= 10 ? "2 reels" : "1 intro reel"}):\n${list}` }],
   }).finalMessage().then(track("reels"))).parsed_output;
