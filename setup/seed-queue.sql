@@ -81,6 +81,12 @@ begin
     return 'retried ' || stuck;
   end if;
 
+  -- Budget guard (schema-budget.sql): new goals pause while the AI credit is needed to keep the
+  -- existing goals running until it refreshes. Retries above still run.
+  if not parallax_budget_ok() then
+    return 'paused: saving the AI budget until it refreshes';
+  end if;
+
   select id, query into nxt from seed_queue where sent_at is null order by id limit 1;
   if nxt.id is null then
     return 'queue empty';
