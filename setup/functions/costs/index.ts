@@ -20,6 +20,11 @@ const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
+// The web research (the bulk of the cost) runs on a cheaper model; structuring the notes stays on MODEL.
+const RESEARCH_MODEL = Deno.env.get("COSTS_RESEARCH_MODEL") ?? "claude-sonnet-5-5";
+// A new goal's first estimates as direct calls (minutes, full price) instead of the batch (hours,
+// half price). Off to save money; COSTS_DIRECT=1 turns it back on.
+const DIRECT = Deno.env.get("COSTS_DIRECT") === "1";
 const DAY = 86_400_000;
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
@@ -239,7 +244,7 @@ async function submit(slug?: string, fresh = false) {
     // Start from the budget library: figures other estimates already found.
     const known: Known[][] = await Promise.all(chapters.map((x) => db("rpc/parallax_match_facts", { method: "POST", body: { q: [x.c.title, ...x.probs.map((p) => p.plain_title || p.title)].join(" "), n: 25 } }).then((r: Known[]) => r.map((k) => ({ fact: k.fact, source_title: k.source_title, source_url: k.source_url }))).catch(() => [])));
     const params = (i: number) => ({
-      model: MODEL, max_tokens: 64000, output_config: { effort: "medium" as const }, system: SYSTEM,
+      model: RESEARCH_MODEL, max_tokens: 64000, output_config: { effort: "medium" as const }, system: SYSTEM,
       // Cache what the model has read: each search step re-reads earlier results at 10% of the price.
       cache_control: { type: "ephemeral" as const },
       tools: [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: known[i].length >= 15 ? 4 : known[i].length >= 6 ? 7 : 10 }],
@@ -248,7 +253,7 @@ async function submit(slug?: string, fresh = false) {
     const job = { goal_id: g.id, chapters: Object.fromEntries(chapters.map((x, i) => [`c${i}`, x.probs.map((p) => p.key)])), known: Object.fromEntries(chapters.map((_, i) => [`c${i}`, known[i]])) };
     // A goal's first estimates run now, one direct call per chapter side by side (full price),
     // instead of waiting hours in the half-price batch queue. Refreshes use the batch.
-    if (!started.has(g.id)) {
+    if (DIRECT && !started.has(g.id)) {
       const id = `direct-${crypto.randomUUID()}`;
       await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: id, ...job } });
       const errors: string[] = [];

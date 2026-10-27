@@ -28,7 +28,7 @@ const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
 const DAY = 86_400_000;
 const PER_BATCH = 4;
-const AUTO_PER_GOAL = 6; // problems per goal that get ideas automatically; others when someone asks
+const AUTO_PER_GOAL = 4; // problems per goal that get ideas automatically; others when someone asks
 
 const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
