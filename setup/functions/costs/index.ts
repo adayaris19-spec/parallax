@@ -18,6 +18,7 @@ import { z } from "npm:zod@4.6.7";
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
+declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
 const DAY = 86_400_000;
 
@@ -166,10 +167,25 @@ async function attention(): Promise<Map<number, number>> {
   return new Map(rows.map((r: { goal_id: number; score: number }) => [r.goal_id, r.score]));
 }
 
+// One chapter's research notes (from a batch or a direct call), structured and saved.
+// deno-lint-ignore no-explicit-any
+function useResearch(goalId: number, nodes: Node[], keys: string[], message: any, known: Known[], id: string, errors: string[]): Promise<number> {
+  const { text, pages } = readResearch(message.content);
+  const probs = keys.map((k) => nodes.find((n) => n.key === k)).filter(Boolean) as Node[];
+  if (!text.trim() || !probs.length) { errors.push(`${id}: no notes (${message.stop_reason})`); return Promise.resolve(0); }
+  return saveChapter({ id: goalId }, probs, text, pages, known).catch((e) => { errors.push(String(e).slice(0, 120)); return 0; });
+}
+
 async function collect() {
   const jobs = await db(`cost_jobs?status=eq.pending&select=batch_id,goal_id,chapters,known,created_at`);
   const out = [];
   for (const j of jobs) {
+    // A direct run (a new goal's first estimates) finishes on its own; one still pending after 45
+    // minutes died, so its chapters go back to the batch queue.
+    if (String(j.batch_id).startsWith("direct-")) {
+      if (Date.now() - new Date(j.created_at).getTime() > 45 * 60_000) await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      continue;
+    }
     const b = await claude.messages.batches.retrieve(j.batch_id);
     if (b.processing_status !== "ended") {
       // Stuck: nothing finished after 4 hours (Anthropic sometimes leaves a batch queued), or never
@@ -186,10 +202,7 @@ async function collect() {
     for await (const r of await claude.messages.batches.results(j.batch_id)) {
       if (r.result.type !== "succeeded") { errors.push(`${r.custom_id}: ${r.result.type}`); continue; }
       track("costs", true)(r.result.message);
-      const { text, pages } = readResearch(r.result.message.content);
-      const probs = (j.chapters[r.custom_id] ?? []).map((k: string) => nodes.find((n) => n.key === k)).filter(Boolean);
-      if (!text.trim() || !probs.length) { errors.push(`${r.custom_id}: no notes`); continue; }
-      work.push(saveChapter({ id: j.goal_id }, probs, text, pages, j.known?.[r.custom_id] ?? []).catch((e) => { errors.push(String(e).slice(0, 120)); return 0; }));
+      work.push(useResearch(j.goal_id, nodes, j.chapters[r.custom_id] ?? [], r.result.message, j.known?.[r.custom_id] ?? [], r.custom_id, errors));
     }
     const n = (await Promise.all(work)).reduce((a, x) => a + x, 0);
     await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "done" } });
@@ -225,19 +238,31 @@ async function submit(slug?: string, fresh = false) {
     if (!chapters.length) continue;
     // Start from the budget library: figures other estimates already found.
     const known: Known[][] = await Promise.all(chapters.map((x) => db("rpc/parallax_match_facts", { method: "POST", body: { q: [x.c.title, ...x.probs.map((p) => p.plain_title || p.title)].join(" "), n: 25 } }).then((r: Known[]) => r.map((k) => ({ fact: k.fact, source_title: k.source_title, source_url: k.source_url }))).catch(() => [])));
-    const batch = await claude.messages.batches.create({
-      requests: chapters.map((x, i) => ({
-        custom_id: `c${i}`,
-        params: {
-          model: MODEL, max_tokens: 64000, output_config: { effort: "medium" }, system: SYSTEM,
-          // Cache what the model has read: each search step re-reads earlier results at 10% of the price.
-          cache_control: { type: "ephemeral" },
-          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: known[i].length >= 15 ? 4 : known[i].length >= 6 ? 7 : 10 }],
-          messages: [{ role: "user", content: researchPrompt(g.name, x.c.title, x.probs, known[i]) }],
-        },
-      })),
+    const params = (i: number) => ({
+      model: MODEL, max_tokens: 64000, output_config: { effort: "medium" as const }, system: SYSTEM,
+      // Cache what the model has read: each search step re-reads earlier results at 10% of the price.
+      cache_control: { type: "ephemeral" as const },
+      tools: [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: known[i].length >= 15 ? 4 : known[i].length >= 6 ? 7 : 10 }],
+      messages: [{ role: "user" as const, content: researchPrompt(g.name, chapters[i].c.title, chapters[i].probs, known[i]) }],
     });
-    await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, goal_id: g.id, chapters: Object.fromEntries(chapters.map((x, i) => [`c${i}`, x.probs.map((p) => p.key)])), known: Object.fromEntries(chapters.map((_, i) => [`c${i}`, known[i]])) } });
+    const job = { goal_id: g.id, chapters: Object.fromEntries(chapters.map((x, i) => [`c${i}`, x.probs.map((p) => p.key)])), known: Object.fromEntries(chapters.map((_, i) => [`c${i}`, known[i]])) };
+    // A goal's first estimates run now, one direct call per chapter side by side (full price),
+    // instead of waiting hours in the half-price batch queue. Refreshes use the batch.
+    if (!started.has(g.id)) {
+      const id = `direct-${crypto.randomUUID()}`;
+      await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: id, ...job } });
+      const errors: string[] = [];
+      // deno-lint-ignore no-explicit-any
+      const work = Promise.all(chapters.map((x, i) => claude.messages.stream(params(i) as any).finalMessage().then(track("costs"))
+        .then((m) => useResearch(g.id, nodes as Node[], x.probs.map((p) => p.key), m, known[i], `c${i}`, errors))
+        .catch((e) => { errors.push(`c${i}: ${String(e).slice(0, 120)}`); return 0; })))
+        .then((n) => db(`cost_jobs?batch_id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: { status: n.some((x) => x > 0) ? "done" : "failed" } }));
+      if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work); else await work;
+      return { direct: id, slug: g.slug, chapters: chapters.length };
+    }
+    // deno-lint-ignore no-explicit-any
+    const batch = await claude.messages.batches.create({ requests: chapters.map((_, i) => ({ custom_id: `c${i}`, params: params(i) as any })) });
+    await db("cost_jobs", { method: "POST", prefer: "return=minimal", body: { batch_id: batch.id, ...job } });
     return { submitted: batch.id, slug: g.slug, chapters: chapters.length };
   }
   return { note: "every problem has a recent estimate" };
@@ -285,6 +310,16 @@ Deno.serve(async (req) => {
       return json(await Promise.all(jobs.map(async (j: { batch_id: string; goal_id: number; created_at: string }) => { const b = await claude.messages.batches.retrieve(j.batch_id); return { goal_id: j.goal_id, created_at: j.created_at, status: b.processing_status, counts: b.request_counts }; })));
     }
     if (body.action === "backfill") return json(await backfill());
+    // Start a goal's estimates now: drop its queued batch and run again (a new goal runs direct).
+    if (typeof body.rush === "string") {
+      const [g] = await db(`goals?slug=eq.${encodeURIComponent(body.rush)}&select=id`);
+      if (!g) return json({ error: "no such goal" }, 404);
+      for (const j of await db(`cost_jobs?goal_id=eq.${g.id}&status=eq.pending&select=batch_id`)) {
+        if (!String(j.batch_id).startsWith("direct-")) await claude.messages.batches.cancel(j.batch_id).catch(() => {});
+        await db(`cost_jobs?batch_id=eq.${j.batch_id}`, { method: "PATCH", prefer: "return=minimal", body: { status: "failed" } });
+      }
+      return json(await submit(body.rush));
+    }
     return json(await run(body.slug, !!body.fresh));
   } catch (e) {
     console.error("costs failed:", e instanceof Error ? e.message : e);

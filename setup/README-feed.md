@@ -534,3 +534,12 @@ Run `schema-goal-open.sql`. A goal page now loads in one request, `rpc/parallax_
 
 - **Caching:** the browser keeps each opened goal for 2 minutes, so switching tabs and going back show instantly. A goal that is still mapping is never kept, so its progress keeps updating.
 - **Prefetch:** hovering over or touching a goal link starts loading that goal before the click.
+
+## 40. New goals fill in fast
+
+A new goal's first ideas and cost estimates now skip the half-price batch queue, which often took 4–24 hours. They run as direct calls, side by side, and arrive in minutes. Later rounds and refreshes still use the batch.
+
+- **Ideas** run direct for a goal mapped in the last 3 days that has ideas on fewer than 6 problems. **Costs** run direct for a goal with no estimates yet.
+- **Triggers:** `map-goal` starts the costs as soon as a goal is ready. `library` starts the ideas when a goal's first paper library is done. Neither waits for the hourly run.
+- **Stuck runs:** a direct run still pending after 45 minutes is marked failed, and its work goes back to the batch queue.
+- **Manual restart:** `{"rush": "<slug>"}` (admin) on `ideas` or `costs` drops a goal's queued batch and starts again.

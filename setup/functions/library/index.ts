@@ -18,6 +18,7 @@
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
+declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const OA_KEY = Deno.env.get("OPENALEX_API_KEY") ?? "";
 const DAY = 86_400_000;
@@ -199,6 +200,15 @@ async function grow(slug?: string) {
   // it, instead of marking it done for a month with only the smaller sources.
   const oaFailed = errors.filter((e) => e.startsWith("openalex")).length > leaves.length / 2;
   await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: oaFailed ? { papers_count: count } : { library_at: new Date().toISOString(), papers_count: count } });
+  // A new goal's first library: its ideas can start now (they build on these papers) instead of at
+  // the next hourly run.
+  if (!oaFailed && !g.library_at) {
+    const kick = fetch(`${SB}/functions/v1/ideas`, {
+      method: "POST", headers: { Authorization: `Bearer ${SRK}`, "Content-Type": "application/json", "x-parallax-admin": ADMIN },
+      body: JSON.stringify({ slug: g.slug }),
+    }).catch(() => {});
+    if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(kick);
+  }
   // The goal page's field (research per year, shared papers) reads stored counts; refresh them now.
   await db("rpc/parallax_refresh_field", { method: "POST", body: {} }).catch((e) => errors.push(`field refresh: ${e instanceof Error ? e.message : e}`));
   const bySource: Record<string, number> = {};
