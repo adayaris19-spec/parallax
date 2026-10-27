@@ -49,3 +49,23 @@ notify pgrst, 'reload schema';
 select cron.unschedule('parallax-challenges') where exists (select 1 from cron.job where jobname = 'parallax-challenges');
 select cron.schedule('parallax-challenges', '9 * * * *',
   replace((select command from cron.job where jobname = 'parallax-promises'), '/functions/v1/promises', '/functions/v1/challenges'));
+
+-- A person's workspace on a challenge they took on: status, their own to-do list and notes (private).
+create table if not exists challenge_work (
+  challenge_id bigint not null references challenges(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  status text not null default 'working',  -- working | ready | submitted
+  todos jsonb not null default '[]',        -- [{t, done}]
+  notes text not null default '',
+  updated_at timestamptz not null default now(),
+  primary key (challenge_id, user_id)
+);
+alter table challenge_work enable row level security;
+drop policy if exists "own workspace" on challenge_work;
+create policy "own workspace" on challenge_work for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+grant select, insert, update, delete on challenge_work to authenticated;
+-- Handles of the people on a challenge (public, like follower lists).
+create or replace view challenge_people as
+  select t.challenge_id, p.handle, p.display_name, t.created_at from challenge_takers t join profiles p on p.id = t.user_id;
+grant select on challenge_people to anon, authenticated;
+notify pgrst, 'reload schema';

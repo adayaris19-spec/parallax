@@ -705,6 +705,24 @@ body.goalpage main{max-width:1120px}
 .chal-more{margin-top:6px}.chal-more summary{font-size:13px;color:var(--muted);cursor:pointer}.chal-more p{font-size:13.5px;line-height:1.5;margin:8px 0 0;color:var(--ink2)}.chal-more .wt-l{display:block}
 .chal-res a{color:var(--ink)}
 .chal-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}.chal-n{flex:1;min-width:140px;font-size:12.5px;color:var(--muted)}.chal-n a{color:inherit}
+.chal-t{font-weight:600;font-size:15.5px;line-height:1.35;color:var(--ink);text-decoration:none}.chal-t:hover{text-decoration:underline}
+.subtabs{display:flex;gap:4px;margin:4px 0 12px;padding:3px;background:var(--sunk);border-radius:12px;width:max-content;max-width:100%;overflow-x:auto}
+.subtabs a{padding:7px 14px;border-radius:9px;font-size:14px;color:var(--ink2);text-decoration:none;white-space:nowrap}.subtabs a.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}.subtabs small{color:var(--muted);font-weight:400}
+.ws{padding:18px 0 40px}.ws-back{font-size:13px;color:var(--muted);text-decoration:none}.ws-h{font-size:28px;letter-spacing:-.025em;line-height:1.15;margin:6px 0 8px}
+.ws-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;margin-top:16px;align-items:start}
+@media (max-width:860px){.ws-grid{grid-template-columns:minmax(0,1fr)}}
+.ws-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.ws-card p{font-size:14.5px;line-height:1.55;color:var(--ink2);margin:6px 0 0}.ws-sub{font-size:13.5px!important;color:var(--muted)!important}
+.ws-bar{border-color:var(--accent-line);background:var(--accent-soft)}
+.ws-todo{list-style:none;padding:0;margin:8px 0 0}.ws-todo li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14.5px}.ws-todo label{flex:1;display:flex;gap:8px;align-items:flex-start}
+.ws-todo input:checked+span{text-decoration:line-through;color:var(--muted)}.ws-x{border:0;background:none;color:var(--faint);cursor:pointer}
+.ws-notes{width:100%;min-height:220px;margin-top:8px;padding:12px;border:1px solid var(--line2);border-radius:12px;font:inherit;font-size:14.5px;line-height:1.55;background:var(--bg);resize:vertical}
+.ws-saved{font-weight:400;color:var(--muted);letter-spacing:0;text-transform:none}
+.ws-st{display:flex;flex-direction:column;gap:6px;margin-top:8px}.ws-st button{text-align:left;padding:8px 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);font:inherit;font-size:14px;cursor:pointer}.ws-st button.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+#wsSub input,#wsSub textarea{width:100%;margin-top:8px;padding:9px 12px;border:1px solid var(--line2);border-radius:10px;font:inherit;font-size:14px;background:var(--bg)}#wsSub textarea{min-height:70px}#wsSub button{margin-top:8px}
+.ws-fb{font-size:13.5px!important}
+.ws-list{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px;font-size:13.5px;line-height:1.4}.ws-list a{color:var(--ink)}.ws-list span{color:var(--muted)}
+.ws-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ws-people a{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--ink2);text-decoration:none}
 .chal-me{font-size:13.5px;color:var(--ink2);margin:0 0 12px}.chal-me a{color:var(--accent);text-decoration:none}
 .chal-filter .chip{text-decoration:none}.chal-filter .chip.on{background:var(--ink);color:var(--bg)}
 .br-impact{display:inline-block;margin:2px 0 6px;font-size:14px;color:var(--accent);text-decoration:none;font-weight:500}
@@ -3296,7 +3314,7 @@ function challengeCard(c, g, opts = {}) {
   const meta = [c.size, ...(c.skills || [])].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('');
   return `<article class="chal${solved ? ' solved' : ''}" data-chal="${c.id}">
     ${opts.goal && g ? `<a class="chal-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">@${esc(g.handle)}${opts.problem ? ` · ${esc(opts.problem)}` : ''}</a>` : ''}
-    <div class="chal-top"><b>${esc(c.title)}</b>${solved ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}</div>
+    <div class="chal-top"><a class="chal-t" href="#/c/${c.id}">${esc(c.title)}</a>${solved ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}</div>
     <div class="chal-meta">${meta}</div>
     <p class="chal-why">${esc(c.useful)}</p>
     <details class="chal-more"><summary>The task and the bar</summary>
@@ -3305,8 +3323,7 @@ function challengeCard(c, g, opts = {}) {
       ${res ? `<p class="chal-res"><span class="wt-l">Start from</span>${res}</p>` : ''}</details>
     <div class="chal-act">
       <span class="chal-n">${solved && c.solved_by ? `Solved by <a href="#/u/${encodeURIComponent(c.solved_by)}">@${esc(c.solved_by)}</a>${c.solved_post_id ? ` · <a href="#/p/${c.solved_post_id}">see it</a>` : ''}` : c.takers ? `${c.takers} ${c.takers === 1 ? 'person' : 'people'} on this` : 'No one on this yet'}</span>
-      ${taken ? '<button class="btn sm" type="button" data-chal-drop>You’re on it ✓</button>' : `<button class="btn sm" type="button" data-chal-take>${solved ? 'Try it too' : 'Take it on'}</button>`}
-      <button class="btn sm primary" type="button" data-chal-submit>Submit your work</button>
+      ${taken ? `<a class="btn sm primary" href="#/c/${c.id}">Open your workspace</a>` : `<button class="btn sm primary" type="button" data-chal-take>${solved ? 'Try it too' : 'Take it on'}</button><a class="btn sm" href="#/c/${c.id}">Details</a>`}
     </div></article>`;
 }
 function challengeBlock(list, g) {
@@ -3331,6 +3348,7 @@ document.addEventListener('click', async (e) => {
     btn.disabled = false;
     if (res.error && res.error.code !== '23505') { toast(res.error.message); return; }
     if (take) taken.add(id); else taken.delete(id);
+    if (take) { await sb.from('challenge_work').upsert({ challenge_id: id, user_id: me.id }, { onConflict: 'challenge_id,user_id', ignoreDuplicates: true }); location.hash = `#/c/${id}`; return; }
     const n = card.querySelector('.chal-n'); const cur = Number((/^(\d+)/.exec(n?.textContent || '') || [0, 0])[1]) + (take ? 1 : -1);
     if (n && !card.classList.contains('solved')) n.textContent = cur > 0 ? `${cur} ${cur === 1 ? 'person' : 'people'} on this` : 'No one on this yet';
     btn.outerHTML = take ? '<button class="btn sm" type="button" data-chal-drop>You’re on it ✓</button>' : '<button class="btn sm" type="button" data-chal-take>Take it on</button>';
@@ -3363,20 +3381,128 @@ function openChallengeSubmit(c, g) {
     const url = $('#csUrl').value.trim(), note = $('#csNote').value.trim().slice(0, 500);
     if (!/^https?:\/\/\S+$/i.test(url)) { $('#csErr').textContent = 'Paste a full link starting with https://'; return; }
     $('#csGo').disabled = true; $('#csGo').textContent = 'Reviewing… about a minute';
-    // One step per person per problem: reuse it if you already logged one here.
-    let { data: row } = await sb.from('contributions').select('id').eq('user_id', me.id).eq('goal_id', g.id).eq('node_key', c.node_key).maybeSingle();
-    if (row) {
-      const { error } = await sb.from('contributions').update({ work_url: url, challenge_id: c.id, ...(note ? { note } : {}) }).eq('id', row.id).eq('user_id', me.id);
-      if (error) { $('#csErr').textContent = error.message; $('#csGo').disabled = false; return; }
-    } else {
-      const node = (goalCtx?.g?.id === g.id ? goalCtx.leaves : [])?.find((l) => l.key === c.node_key);
-      const ins = await sb.from('contributions').insert({ user_id: me.id, goal_id: g.id, node_key: c.node_key, node_title: (node?.title || c.title).slice(0, 300), step: `Challenge: ${c.title}`.slice(0, 600), note, work_url: url, challenge_id: c.id }).select('id').single();
-      if (ins.error) { $('#csErr').textContent = ins.error.message; $('#csGo').disabled = false; return; }
-      row = ins.data;
-    }
-    const res = await submitWork(row.id, url, null);
+    const res = await submitChallenge(c, g, url, note);
+    if (res?.saveError) { $('#csErr').textContent = res.saveError; $('#csGo').disabled = false; return; }
     closeModal();
-    if (res && !res.error) location.hash = '#/impact';
+    if (res && !res.error) location.hash = `#/c/${c.id}`;
+  };
+}
+// Save a challenge submission as the person's step on that problem (one per problem), then review it.
+async function submitChallenge(c, g, url, note, nodeTitle) {
+  let { data: row } = await sb.from('contributions').select('id').eq('user_id', me.id).eq('goal_id', g.id).eq('node_key', c.node_key).maybeSingle();
+  if (row) {
+    const { error } = await sb.from('contributions').update({ work_url: url, challenge_id: c.id, ...(note ? { note } : {}) }).eq('id', row.id).eq('user_id', me.id);
+    if (error) return { saveError: error.message };
+  } else {
+    const ins = await sb.from('contributions').insert({ user_id: me.id, goal_id: g.id, node_key: c.node_key, node_title: (nodeTitle || c.title).slice(0, 300), step: `Challenge: ${c.title}`.slice(0, 600), note, work_url: url, challenge_id: c.id }).select('id').single();
+    if (ins.error) return { saveError: ins.error.message };
+    row = ins.data;
+  }
+  await sb.from('challenge_work').upsert({ challenge_id: c.id, user_id: me.id, status: 'submitted', updated_at: new Date().toISOString() }, { onConflict: 'challenge_id,user_id' });
+  return submitWork(row.id, url, null);
+}
+
+
+// A challenge's workspace: the brief and the bar, starting points and papers, your own plan, notes
+// and status, who else is on it, and where to submit. Your plan and notes are private to you.
+const WSTAT = [['working', 'Working on it'], ['ready', 'Ready to submit'], ['submitted', 'Submitted']];
+async function workspaceView(id) {
+  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  let c, all, node, papers, people;
+  try {
+    [[c], all] = await Promise.all([rest(`challenges?id=eq.${Number(id)}&select=*`), goals()]);
+    if (!c) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'It may have been retired.'); return; }
+    [[node], papers, people] = await Promise.all([
+      rest(`nodes?goal_id=eq.${c.goal_id}&key=eq.${encodeURIComponent(c.node_key)}&select=key,title,plain_title,why,plain_why,blocker,plain_blocker,status`),
+      rest(`node_papers?goal_id=eq.${c.goal_id}&node_key=eq.${encodeURIComponent(c.node_key)}&select=rank,papers(title,year,url,first_author)&order=rank.asc&limit=6`).catch(() => []),
+      rest(`challenge_people?challenge_id=eq.${c.id}&select=handle,display_name&order=created_at.asc&limit=30`).catch(() => []),
+    ]);
+  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
+  const g = all.find((x) => x.id === c.goal_id);
+  if (!g) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'Its goal is not available.'); return; }
+  await authReady;
+  await loadTaken();
+  const mineTaken = !!me && myTaken?.has(c.id);
+  let w = null, sub = null;
+  if (mineTaken) {
+    [{ data: w }, { data: sub }] = await Promise.all([
+      sb.from('challenge_work').select('status,todos,notes,updated_at').eq('challenge_id', c.id).eq('user_id', me.id).maybeSingle(),
+      sb.from('contributions').select('id,work_url,review_status,review,post_id').eq('user_id', me.id).eq('challenge_id', c.id).maybeSingle(),
+    ]);
+    if (!w) { await sb.from('challenge_work').upsert({ challenge_id: c.id, user_id: me.id }, { onConflict: 'challenge_id,user_id' }); w = { status: 'working', todos: [], notes: '' }; }
+  }
+  const res = (c.resources || []).map((r) => { const u = safeUrl(r.url); return u ? `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(r.title || u)}</a></li>` : ''; }).join('');
+  const pp = (papers || []).filter((x) => x.papers).map((x) => { const u = safeUrl(x.papers.url || ''); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.papers.title)}</a>` : esc(x.papers.title)} <span>(${esc(x.papers.year || '')})</span></li>`; }).join('');
+  const st = REVIEW[sub?.review_status];
+  const todos = (w?.todos || []);
+  view.innerHTML = navTabs('challenges') + `<article class="ws">
+    <a class="ws-back" href="#/challenges">← Challenges</a>
+    <a class="chal-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">@${esc(g.handle)} · ${esc(node ? (node.plain_title || node.title) : '')}</a>
+    <h1 class="ws-h">${esc(c.title)}</h1>
+    <div class="chal-meta">${[c.size, ...(c.skills || [])].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('')}${c.status === 'solved' ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}</div>
+    <div class="ws-grid">
+      <div class="ws-main">
+        <section class="ws-card"><div class="kick">Why it matters</div><p>${esc(c.useful)}</p>
+          ${node ? `<p class="ws-sub"><b>The problem:</b> ${esc(node.plain_blocker || node.blocker || node.plain_why || node.why || '')}</p>` : ''}</section>
+        <section class="ws-card"><div class="kick">The task</div><p>${esc(c.task)}</p></section>
+        <section class="ws-card ws-bar"><div class="kick">Done when</div><p>${esc(c.done_when)}</p><p class="ws-sub">Your work is checked against this bar. Meet it and it’s published on @${esc(g.handle)}’s feed under your name.</p></section>
+        ${mineTaken ? `<section class="ws-card"><div class="kick">Your plan</div>
+            <ul class="ws-todo" id="wsTodo">${todos.map((t, i) => `<li><label><input type="checkbox" data-i="${i}"${t.done ? ' checked' : ''}> <span>${esc(t.t)}</span></label><button type="button" class="ws-x" data-del="${i}" aria-label="Remove">✕</button></li>`).join('')}</ul>
+            <form id="wsAdd" class="workf"><input name="t" maxlength="200" placeholder="${todos.length ? 'Add a step' : 'Break it into steps, e.g. “Get the data running”'}"><button class="btn" type="submit">Add</button></form></section>
+          <section class="ws-card"><div class="kick">Your notes <small class="ws-saved" id="wsSaved"></small></div>
+            <textarea id="wsNotes" class="ws-notes" maxlength="20000" placeholder="Results, links, what worked and what didn’t. Only you can see this.">${esc(w?.notes || '')}</textarea></section>` : ''}
+      </div>
+      <aside class="ws-side">
+        ${mineTaken ? `<section class="ws-card"><div class="kick">Status</div>
+            <div class="ws-st">${WSTAT.map(([k, t]) => `<button type="button" class="${(w?.status || 'working') === k ? 'on' : ''}" data-st="${k}">${t}</button>`).join('')}</div></section>
+          <section class="ws-card"><div class="kick">Submit your work</div>
+            ${sub?.work_url ? `<p class="ws-sub">Submitted: <a href="${esc(safeUrl(sub.work_url) || '#')}" target="_blank" rel="noopener">${esc(sub.work_url.replace(/^https?:\/\//, '').slice(0, 50))}</a>${st ? ` <span class="wstat st-${st[1]}"><i></i>${esc(st[0])}</span>` : ''}</p>` : ''}
+            ${sub?.review?.feedback ? `<p class="ws-fb"><b>Feedback:</b> ${esc(sub.review.feedback)}</p>` : ''}
+            ${sub?.review_status === 'published' ? `<p><a href="#/p/${sub.post_id}">See it on the feed →</a></p>` : `<form id="wsSub"><input type="url" name="url" maxlength="500" placeholder="https://github.com/you/project" value="${esc(sub?.work_url || '')}" required><textarea name="note" maxlength="500" placeholder="What you did and found (optional)"></textarea><button class="btn primary wide" type="submit">${sub?.work_url ? 'Submit again' : 'Submit for review'}</button></form><p class="fine2" style="margin:6px 0 0">The link must be public. 3 reviews a day.</p>`}</section>`
+          : `<section class="ws-card"><div class="kick">Work on this</div><p class="ws-sub">Get a workspace with your own plan, notes and status, and submit when you meet the bar.</p><button class="btn primary wide" type="button" data-chal-take-ws>Take it on</button></section>`}
+        ${res ? `<section class="ws-card"><div class="kick">Start from</div><ul class="ws-list">${res}</ul></section>` : ''}
+        ${pp ? `<section class="ws-card"><div class="kick">Key papers on this problem</div><ul class="ws-list">${pp}</ul></section>` : ''}
+        <section class="ws-card"><div class="kick">On this challenge · ${people.length}</div>${people.length ? `<div class="ws-people">${people.map((p) => `<a href="#/u/${encodeURIComponent(p.handle)}">@${esc(p.handle)}</a>`).join('')}</div>` : '<p class="ws-sub">No one yet. You’d be first.</p>'}</section>
+        ${mineTaken ? '<button class="linkish" type="button" id="wsDrop">Drop this challenge</button>' : ''}
+      </aside>
+    </div></article>`;
+  chalIndex.set(c.id, { c, g });
+  const take = view.querySelector('[data-chal-take-ws]');
+  if (take) take.onclick = async () => {
+    if (!me) { openSignIn('Sign in to take on a challenge and get a workspace.'); return; }
+    take.disabled = true;
+    const r = await sb.from('challenge_takers').insert({ challenge_id: c.id, user_id: me.id });
+    if (r.error && r.error.code !== '23505') { toast(r.error.message); take.disabled = false; return; }
+    await sb.from('challenge_work').upsert({ challenge_id: c.id, user_id: me.id }, { onConflict: 'challenge_id,user_id', ignoreDuplicates: true });
+    myTaken?.add(c.id);
+    workspaceView(c.id);
+  };
+  if (!mineTaken) return;
+  const save = (patch) => sb.from('challenge_work').update({ ...patch, updated_at: new Date().toISOString() }).eq('challenge_id', c.id).eq('user_id', me.id);
+  const list = [...todos];
+  const redrawTodos = () => { save({ todos: list }); workspaceView(c.id); };
+  view.querySelector('#wsTodo').onchange = (e) => { const i = Number(e.target.dataset.i); if (list[i]) { list[i].done = e.target.checked; save({ todos: list }); } };
+  view.querySelector('#wsTodo').onclick = (e) => { const d = e.target.closest('[data-del]'); if (d) { list.splice(Number(d.dataset.del), 1); redrawTodos(); } };
+  view.querySelector('#wsAdd').onsubmit = (e) => { e.preventDefault(); const t = e.target.t.value.trim(); if (t) { list.push({ t: t.slice(0, 200), done: false }); redrawTodos(); } };
+  let timer = 0;
+  view.querySelector('#wsNotes').oninput = (e) => { clearTimeout(timer); $('#wsSaved').textContent = '…'; timer = setTimeout(async () => { await save({ notes: e.target.value }); const s = $('#wsSaved'); if (s) s.textContent = 'Saved'; }, 700); };
+  view.querySelectorAll('[data-st]').forEach((b) => { b.onclick = async () => { await save({ status: b.dataset.st }); view.querySelectorAll('[data-st]').forEach((x) => x.classList.toggle('on', x === b)); }; });
+  const f = view.querySelector('#wsSub');
+  if (f) f.onsubmit = async (e) => {
+    e.preventDefault();
+    const url = f.url.value.trim();
+    if (!/^https?:\/\/\S+$/i.test(url)) { toast('Paste a full link starting with https://'); return; }
+    const btn = f.querySelector('button'); btn.disabled = true; btn.textContent = 'Reviewing… about a minute';
+    const r = await submitChallenge(c, g, url, f.note.value.trim().slice(0, 500), node?.title);
+    if (r?.saveError) toast(r.saveError);
+    workspaceView(c.id);
+  };
+  $('#wsDrop').onclick = async () => {
+    if (!confirm('Drop this challenge? Your plan and notes for it are deleted.')) return;
+    await sb.from('challenge_takers').delete().eq('challenge_id', c.id).eq('user_id', me.id);
+    await sb.from('challenge_work').delete().eq('challenge_id', c.id).eq('user_id', me.id);
+    myTaken?.delete(c.id);
+    location.hash = '#/challenges/working';
   };
 }
 
@@ -3399,14 +3525,23 @@ async function challengesView(skill) {
   const mine = me?.profile?.skills || [];
   // Signed in with skills: open on the challenges that fit them.
   const sel = skill ? (skill === 'all' ? '' : decodeURIComponent(skill)) : (mine.length ? 'mine' : '');
-  const shown = list.filter((c) => byId.has(c.goal_id) && (!sel || (sel === 'mine' ? (c.skills || []).some((s) => mine.some((m) => m.toLowerCase().includes(s) || s.includes(m.toLowerCase()))) : (c.skills || []).includes(sel))))
-    .sort((a, b) => (a.status === 'solved') - (b.status === 'solved') || b.takers - a.takers);
+  const work = me && myTaken?.size ? (await sb.from('challenge_work').select('challenge_id,status').eq('user_id', me.id)).data || [] : [];
+  const wstat = new Map(work.map((w) => [w.challenge_id, w.status]));
+  const fits = (c) => (c.skills || []).some((s) => mine.some((m) => m.toLowerCase().includes(s) || s.includes(m.toLowerCase())));
+  const shown = list.filter((c) => byId.has(c.goal_id) && (
+    sel === 'working' ? myTaken?.has(c.id)
+      : sel === 'solved' ? c.status === 'solved'
+      : c.status !== 'solved' && (!sel || (sel === 'mine' ? fits(c) : (c.skills || []).includes(sel)))))
+    .sort((a, b) => b.takers - a.takers);
+  const nWork = list.filter((c) => myTaken?.has(c.id)).length, nSolved = list.filter((c) => c.status === 'solved').length, nOpen = list.filter((c) => c.status !== 'solved').length;
   for (const c of shown) chalIndex.set(c.id, { c, g: byId.get(c.goal_id) });
   view.innerHTML = navTabs('challenges') + `<h1 class="page-h">Challenges</h1>
     <p class="page-sub">Real pieces of humanity’s biggest problems that one person could solve from home with public data, code and analysis. Each has a clear bar. Meet it and your work is published on the goal’s feed under your name.</p>
     ${me ? `<div class="chal-me">${mine.length ? `<span>Your skills: ${mine.map((k) => `<b>${esc(k)}</b>`).join(', ')}</span> <a href="#/settings">Edit</a>` : '<span>Add your skills and Parallax shows the challenges that fit you.</span> <a href="#/settings">Add skills</a>'} · <a href="#/impact">Your impact →</a></div>` : ''}
-    <div class="chips chal-filter">${mine.length ? `<a class="chip${sel === 'mine' ? ' on' : ''}" href="#/challenges/mine">For you</a>` : ''}<a class="chip${sel ? '' : ' on'}" href="#/challenges/all">All ${list.length}</a>${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
-    ${shown.length ? shown.map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c) })).join('') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
+    <nav class="subtabs">${mine.length ? `<a href="#/challenges/mine" class="${sel === 'mine' ? 'on' : ''}">For you</a>` : ''}<a href="#/challenges/all" class="${!sel || skills.includes(sel) ? 'on' : ''}">All <small>${nOpen}</small></a>${me ? `<a href="#/challenges/working" class="${sel === 'working' ? 'on' : ''}">Working on <small>${nWork}</small></a>` : ''}<a href="#/challenges/solved" class="${sel === 'solved' ? 'on' : ''}">Solved <small>${nSolved}</small></a></nav>
+    ${sel === 'working' || sel === 'solved' || sel === 'mine' ? '' : `<div class="chips chal-filter">${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>`}
+    ${shown.length ? shown.map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c), status: wstat.get(c.id) })).join('')
+      : sel === 'working' ? note('Nothing on the go', 'Take on a challenge and it gets a workspace here: your plan, notes, starting points and the bar to meet.') : sel === 'solved' ? note('None solved yet', 'Be the first: meet a challenge’s bar and your work is published on the goal’s feed.') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
 }
 
 // ------------------------------------------------------------ terminal
@@ -5610,7 +5745,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', c: 'challenges', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
@@ -5641,6 +5776,7 @@ function route() {
   if (parts[0] === 'u' && parts[1]) return profileView(parts[1], parts[2] === 'impact');
   if (parts[0] === 'impact') return impactRoute();
   if (parts[0] === 'challenges') return challengesView(parts[1]);
+  if (parts[0] === 'c' && parts[1]) return workspaceView(parts[1]);
   if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'plus') return plusView();
   if (parts[0] === 'branch') { location.replace('#/challenges'); return; } // Your branch became Challenges
