@@ -16,6 +16,12 @@ language sql stable security invoker set search_path = public as $$
         order by tp.created_at) from team_problems tp where tp.goal_id = g.id and tp.status = 'active'), '[]'),
     'per_node', coalesce((select jsonb_agg(jsonb_build_object('node_key', f.node_key, 'raised_cents', f.raised_cents, 'backers', f.backers))
         from problem_funding f where f.goal_id = g.id), '[]'),
+    -- Challenges on the goal's problems, with how many people are on each.
+    'challenges', coalesce((select jsonb_agg(jsonb_build_object('id', ch.id, 'node_key', ch.node_key, 'title', ch.title, 'useful', ch.useful, 'task', ch.task,
+        'done_when', ch.done_when, 'resources', ch.resources, 'skills', ch.skills, 'size', ch.size, 'status', ch.status, 'solved_post_id', ch.solved_post_id,
+        'solved_by', (select p.meta->>'by_handle' from posts p where p.id = ch.solved_post_id),
+        'takers', (select count(*) from challenge_takers t where t.challenge_id = ch.id)) order by ch.id)
+        from challenges ch where ch.goal_id = g.id and ch.status <> 'retired'), '[]'),
     -- People's ratings and notes on the goal's ideas (the Ideas section shows them).
     'idea_scores', coalesce((select jsonb_agg(jsonb_build_object('idea_id', sc.idea_id, 'promising', sc.promising, 'flawed', sc.flawed, 'tried', sc.tried, 'test', sc.test))
         from idea_scores sc where sc.idea_id in (select i.id from ideas i where i.goal_id = g.id and i.status = 'open')), '[]'),

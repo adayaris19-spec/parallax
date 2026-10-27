@@ -11,7 +11,7 @@ alter table contributions add column if not exists post_id bigint references pos
 drop policy if exists "people update their own contributions" on contributions;
 create policy "people update their own contributions" on contributions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 revoke update on contributions from anon, authenticated;
-grant update (work_url, note) on contributions to authenticated;
+grant update (work_url, note, challenge_id) on contributions to authenticated;
 
 -- Review fields can't be written from the browser (service role only).
 create or replace function parallax_contribution_guard() returns trigger language plpgsql as $$

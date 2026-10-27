@@ -117,7 +117,9 @@ const SECOND = z.object({
 const SECOND_MODEL = Deno.env.get("REVIEW_CHECK_MODEL") ?? "claude-opus-5-5";
 
 // The review itself: the problem, the step, and the work, judged against RULES. null = declined.
-async function judge(goalId: number, key: string, nodeTitle: string, step: string | null, note: string | null, url: string, work: { title: string; text: string }) {
+type Challenge = { id: number; title: string; task: string; done_when: string } | null;
+async function judge(goalId: number, key: string, nodeTitle: string, step: string | null, note: string | null, url: string, work: { title: string; text: string }, ch: Challenge = null) {
+  const chText = ch ? `\nTHE CHALLENGE THEY TOOK ON: ${ch.title}\nTask: ${ch.task}\nDONE WHEN: ${ch.done_when}\nJudge first and above all whether the work meets DONE WHEN in full. If it does not, do not publish, and say exactly what is missing.\n` : "";
   const [[g], [n]] = await Promise.all([
     db(`goals?id=eq.${goalId}&select=id,slug,name`),
     db(`nodes?goal_id=eq.${goalId}&key=eq.${encodeURIComponent(key)}&select=title,plain_title,why,blocker,plain_blocker`),
@@ -126,7 +128,7 @@ async function judge(goalId: number, key: string, nodeTitle: string, step: strin
     model: MODEL, max_tokens: 4000,
     output_config: { effort: "medium", format: betaZodOutputFormat(Verdict) },
     system: RULES,
-    messages: [{ role: "user", content: `GOAL: ${g?.name}\nPROBLEM: ${n?.plain_title || n?.title || nodeTitle}\nWhy it matters: ${n?.why ?? ""}\nWhat stands in the way: ${n?.plain_blocker || n?.blocker || ""}\nThe step they took: ${step || "(none given)"}\nTheir note: ${note || "(none)"}\n\nTHE SUBMITTED WORK (${url}, page title "${work.title}"):\n<work>\n${work.text}\n</work>` }],
+    messages: [{ role: "user", content: `GOAL: ${g?.name}\nPROBLEM: ${n?.plain_title || n?.title || nodeTitle}\nWhy it matters: ${n?.why ?? ""}\nWhat stands in the way: ${n?.plain_blocker || n?.blocker || ""}${chText}\nThe step they took: ${step || "(none given)"}\nTheir note: ${note || "(none)"}\n\nTHE SUBMITTED WORK (${url}, page title "${work.title}"):\n<work>\n${work.text}\n</work>` }],
   }).finalMessage().then(track);
   const v = msg.stop_reason === "refusal" ? null : msg.parsed_output;
   if (!v || !v.publish || v.relevance < 4 || v.substance < 4) return v ? { ...v, publish: false } : null;
@@ -134,7 +136,7 @@ async function judge(goalId: number, key: string, nodeTitle: string, step: strin
     model: SECOND_MODEL, max_tokens: 3000,
     output_config: { effort: "medium", format: betaZodOutputFormat(SECOND) },
     system: `${RULES}\n\nA first reviewer wants to publish this. You are the last check before it appears publicly under Parallax's name. Look hard for any reason it falls short of every rule above: not clearly the submitter's own, thin, overclaimed, off-problem, or not worth an expert's time. Publish only if it clearly passes.`,
-    messages: [{ role: "user", content: `GOAL: ${g?.name}\nPROBLEM: ${n?.plain_title || n?.title || nodeTitle}\nWhat stands in the way: ${n?.plain_blocker || n?.blocker || ""}\nTheir note: ${note || "(none)"}\nFirst reviewer's headline: ${v.headline}\nFirst reviewer's summary: ${v.summary}\n\nTHE SUBMITTED WORK (${url}, page title "${work.title}"):\n<work>\n${work.text}\n</work>` }],
+    messages: [{ role: "user", content: `GOAL: ${g?.name}\nPROBLEM: ${n?.plain_title || n?.title || nodeTitle}\nWhat stands in the way: ${n?.plain_blocker || n?.blocker || ""}${chText}\nTheir note: ${note || "(none)"}\nFirst reviewer's headline: ${v.headline}\nFirst reviewer's summary: ${v.summary}\n\nTHE SUBMITTED WORK (${url}, page title "${work.title}"):\n<work>\n${work.text}\n</work>` }],
   }).finalMessage().then(track);
   const c = chk.stop_reason === "refusal" ? null : chk.parsed_output;
   if (!c || !c.publish) return { ...v, publish: false, feedback: c?.reason?.trim() ? `${c.reason.trim()} ${v.feedback}` : v.feedback };
@@ -154,13 +156,14 @@ Deno.serve(async (req) => {
         const [g] = await db(`goals?slug=eq.${encodeURIComponent(t.dry_run.goal)}&select=id`);
         const work = await readWork(String(t.dry_run.url));
         if (!g || !work) return json({ readable: !!work, goal: !!g });
-        return json({ title: work.title, chars: work.text.length, verdict: await judge(g.id, String(t.dry_run.key), "", t.dry_run.step ?? null, t.dry_run.note ?? null, String(t.dry_run.url), work) });
+        const [dch] = t.dry_run.challenge ? await db(`challenges?id=eq.${Number(t.dry_run.challenge)}&select=id,title,task,done_when`) : [null];
+        return json({ title: work.title, chars: work.text.length, verdict: await judge(g.id, String(t.dry_run.key), "", t.dry_run.step ?? null, t.dry_run.note ?? null, String(t.dry_run.url), work, dch ?? null) });
       }
     }
     const uid = await userFrom(req);
     if (!uid) return json({ error: "Sign in first." }, 401);
     const body = await req.json().catch(() => ({}));
-    const [c] = await db(`contributions?id=eq.${Number(body.id)}&user_id=eq.${uid}&select=id,goal_id,node_key,node_title,step,note,work_url,review_status,post_id`);
+    const [c] = await db(`contributions?id=eq.${Number(body.id)}&user_id=eq.${uid}&select=id,goal_id,node_key,node_title,step,note,work_url,review_status,post_id,challenge_id`);
     if (!c) return json({ error: "Step not found." }, 404);
     if (!c.work_url) return json({ error: "Add a link to your work first." }, 400);
     if (c.review_status === "pending") return json({ error: "This is already being reviewed." }, 409);
@@ -179,7 +182,8 @@ Deno.serve(async (req) => {
       return json({ status: "unreadable", feedback });
     }
     const [p] = await db(`profiles?id=eq.${uid}&select=handle,display_name`);
-    const v = await judge(c.goal_id, c.node_key, c.node_title, c.step, c.note, c.work_url, work);
+    const [ch] = c.challenge_id ? await db(`challenges?id=eq.${c.challenge_id}&select=id,title,task,done_when,status`) : [null];
+    const v = await judge(c.goal_id, c.node_key, c.node_title, c.step, c.note, c.work_url, work, ch ?? null);
     if (!v) {
       const feedback = "Parallax couldn't review this piece of work, so it wasn't published. You can still keep it on your impact.";
       await set({ review_status: "not_published", review: { feedback } });
@@ -193,8 +197,10 @@ Deno.serve(async (req) => {
       goal_id: c.goal_id, node_key: c.node_key, kind: "community",
       headline: v.headline.trim().slice(0, 200), body: v.summary.trim().slice(0, 1200),
       sources: [{ url: c.work_url, title: work.title }], independent_sources: 0,
-      meta: { by_handle: p?.handle ?? null, by_name: p?.display_name ?? null, contribution_id: c.id, relevance: v.relevance, substance: v.substance },
+      meta: { by_handle: p?.handle ?? null, by_name: p?.display_name ?? null, contribution_id: c.id, relevance: v.relevance, substance: v.substance, ...(ch ? { challenge_id: ch.id, challenge: ch.title } : {}) },
     } });
+    // The first accepted solution marks the challenge solved (others can still add theirs).
+    if (ch && ch.status === "open") await db(`challenges?id=eq.${ch.id}&status=eq.open`, { method: "PATCH", prefer: "return=minimal", body: { status: "solved", solved_post_id: post.id } });
     await set({ review_status: "published", post_id: post.id, review: { feedback: v.feedback, relevance: v.relevance, substance: v.substance } });
     return json({ status: "published", feedback: v.feedback, post_id: post.id });
   } catch (e) {
