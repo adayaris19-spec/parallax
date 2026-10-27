@@ -783,7 +783,7 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
   // 1. Search terms covering the goal's real, filmable world.
   const terms = (await claude.beta.messages.stream({
     model: QUERY_MODEL, max_tokens: 4000, output_config: { effort: "low", format: betaZodOutputFormat(ShotList) },
-    system: `You find footage for short videos about the goal "${g.name}". List 16 search terms for stock video and photo archives (Pixabay, Wikimedia Commons${space ? ", NASA" : ""}), each 1-3 plain words for something really filmed or photographed in this goal's world: its places, the people who work on it doing their work, its tools and machines, procedures, the organism or material itself, microscope and lab images. At least 8 must show something happening. Half include the goal's own key word (like "malaria clinic", "tuberculosis x-ray"). Nothing abstract, no feelings or metaphors.`,
+    system: `You find footage for cinematic science videos about the goal "${g.name}". The look is animated 3D science footage (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) plus a few striking real clips of the goal's own subject. List 16 search terms for the Pixabay video library, each 1-3 plain words. 12 should find animated science footage of this goal's world (for malaria: "red blood cells", "parasite", "blood vessel", "virus 3d", "immune cells"; for fusion: "plasma", "energy particles", "magnetic field"). Up to 4 may find real footage only where the subject itself is filmed (for malaria: "mosquito"; for Mars: "rocket launch"; for grid storage: "wind turbines"). Nothing abstract, no feelings or metaphors.`,
     messages: [{ role: "user", content: facts.slice(0, 2500) }],
   }).finalMessage().then(track("reels"))).parsed_output?.terms.slice(0, 16) ?? [];
   if (terms.length < 6) return { slug, error: "no search terms" };
@@ -795,12 +795,10 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
     try { for (const c of await f()) { const id = c.id ?? clipId(c.url); if (seen.has(id) || usedClips.has(id)) continue; seen.add(id); pool.push(c); } }
     catch (e) { errors.push(e instanceof Error ? e.message.slice(0, 80) : String(e)); }
   };
+  // Moving footage only: animated science clips and real clips (no photos, which looked flat).
   await Promise.all(terms.map((q, i) => Promise.all([
-    add(() => pixabayVideos(q, 4)),
-    space ? add(() => nasaVideos(q)) : add(() => commons(q)),
-    ...(i < 5 ? [add(() => unsplashPhotos(q))] : []),
-    ...(space && i < 6 ? [add(() => nasaImages(q))] : []),
-    ...(i < 4 ? [add(() => pixabayPhotos(q))] : []),
+    add(() => pixabayVideos(q, 6, "all")),
+    ...(space && i < 8 ? [add(() => nasaVideos(q))] : []),
   ])));
   const cands = pool.slice(0, 120);
   const blocks = await Promise.all(cands.map((c) => asBlock(c.preview ?? c.poster)));
@@ -812,17 +810,15 @@ async function footageFirst(slug: string, opts: { dry?: boolean } = {}) {
   for (let from = 0; from < ids.length; from += 25) parts.push(ids.slice(from, from + 25));
   await Promise.all(parts.map(async (part) => {
     // deno-lint-ignore no-explicit-any
-    const content: any[] = [{ type: "text", text: `You are the photo editor for short science videos about "${g.name}". For each picture say what it literally shows, how clearly it shows this goal's real world (fit), and its quality on a full-screen phone. Fit 1-3 for anything unrelated, and fit 1 and quality 1 for cartoons, animation, 3D characters, clip art, illustrations, text-heavy signs, posed stock portraits, gore or dissected organs. Videos are shown as one still frame.` }];
+    const content: any[] = [{ type: "text", text: `You pick footage for cinematic science videos about "${g.name}". The look: animated 3D science visuals (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) and striking real footage of the goal's own subject. For each clip (shown as one still frame) say what it literally shows, how clearly it relates to this goal's science or subject (fit), and how cinematic, rich and beautiful it is full screen on a phone (quality). Fit 1 and quality 1 for cartoons, characters with faces, mascots, clip art, flat or childish illustrations, labelled diagrams, text and logos. Quality 3 or less for documentary snapshots: rooms, beds, hospital wards, X-ray films, offices, people posing or at computers, food, pets, unrelated landscapes.` }];
     for (const i of part) { content.push({ type: "text", text: `Picture ${i} (${cands[i].kind})` }); content.push(blocks[i]); }
     try {
       const v = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 8000, output_config: { effort: "low", format: betaZodOutputFormat(ShotVerdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output;
       for (const it of v?.items ?? []) if (part.includes(it.id)) judged.push({ c: cands[it.id], shows: it.shows, fit: it.fit, quality: it.quality, action: it.action });
     } catch (e) { errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 80) : e}`); }
   }));
-  const strict = (j: { fit: number; quality: number }) => (j.fit >= 8 && j.quality >= 5) || (j.fit >= 6 && j.quality >= 6);
-  // Too few at the full bar: take on-topic shots of slightly plainer quality, never off-topic ones.
-  const enough = judged.filter(strict).length >= 8;
-  const shots = judged.filter((j) => strict(j) || (!enough && j.fit >= 6 && j.quality >= 5))
+  const strict = (j: { fit: number; quality: number }) => (j.fit >= 6 && j.quality >= 7) || (j.fit >= 8 && j.quality >= 6);
+  const shots = judged.filter(strict)
     .sort((a, b) => (b.fit + b.quality + (b.c.kind === "video" ? 2 : 0) + (b.action ? 2 : 0)) - (a.fit + a.quality + (a.c.kind === "video" ? 2 : 0) + (a.action ? 2 : 0)))
     .slice(0, 24);
   const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
@@ -841,7 +837,7 @@ What makes people watch:
 - Every reel is one story with tension: a problem, the stakes for real people, a turn (what changed, what failed, who is trying something), and an ending that leaves a question or a next step.
 - Each caption is a punch, at most 9 words, spoken style. Concrete nouns and numbers beat adjectives. The sub line adds the detail.
 - Never: "revolutionary", "game-changer", "unlock", "the future of", "imagine", "journey", "landscape", "crucial", "key", vague words like "progress is being made".
-Shots: every scene uses one approved shot (S number), each at most once. The shot must fit what the caption says or show the world it talks about; never a shot that contradicts the caption. Put action shots where the story moves; use at least 1 action shot in every reel. Vary the pictures: at most 2 of the same type per reel (2 microscope images, 2 X-rays, 2 of the same insect), and never two alike in a row.
+Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Vary them: never two of the same kind in a row.
 Score each reel's hook honestly; a reel under 7 is not worth making.`,
     messages: [{ role: "user", content: `${facts}\n\nAPPROVED SHOTS (${shots.length}; make ${shots.length >= 14 ? "up to 3 reels" : shots.length >= 10 ? "2 reels" : "1 intro reel"}):\n${list}` }],
   }).finalMessage().then(track("reels"))).parsed_output;
