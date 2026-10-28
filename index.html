@@ -2610,7 +2610,7 @@ if (sb) {
       await setSession(session);
       if (first) { first = false; resolveAuth(); }
       if (event === 'SIGNED_IN' && session && prev !== session.user.id) afterSignIn();
-      if (event === 'SIGNED_OUT') { localFollows.set([]); toast('Signed out'); route(); }
+      if (event === 'SIGNED_OUT') { localFollows.set([]); toast('Signed out'); entryRoute = true; route(); }
     }, 0);
   });
 }
@@ -6358,7 +6358,9 @@ $('#navMe').addEventListener('click', () => {
   else openSignIn();
 });
 
+let entryRoute = true; // the first route after a page load (or after signing out)
 function route() {
+  const entry = entryRoute; entryRoute = false;
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
@@ -6394,7 +6396,8 @@ function route() {
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { posts: 'posts', promises: 'promises' }[parts[2]] || 'overview', parts[2] === 'tree' ? parts[3] : undefined, parts[2] === 'map');
   if (parts[0] === 'welcome') return homeView();
   // Signed-out visitors who open the plain address get the homepage; inside the site, #/ is the feed.
-  if (!parts[0] && !me && !hasSession() && (!location.hash || !introSeen())) return homeView();
+  // Opening or refreshing the front page while signed out shows the homepage; inside the site, #/ is the feed.
+  if (!parts[0] && !me && !hasSession() && (entry || !introSeen())) return homeView();
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
@@ -6444,7 +6447,13 @@ const alerts = {
 };
 
 // Faster repeat visits and a usable site on a bad connection (sw.js).
-if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  // A new version just took over (right after a deploy): reload once so it shows now, not next visit.
+  // Only early in the visit, so nobody is interrupted mid-read.
+  const hadWorker = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker && !reloaded && performance.now() < 15000) { reloaded = true; location.reload(); } });
+}
 </script>
 </body>
 </html>
