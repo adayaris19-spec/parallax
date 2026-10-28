@@ -458,8 +458,14 @@ async function run(slug?: string, fresh = false, live = false) {
   const g = slug ? goals[0] : goals.find((x: { reels_at: string | null }) => !x.reels_at)
     ?? goals.filter((x: { id: number }) => (att.get(x.id) ?? 0) > 0).sort((a: { id: number }, b: { id: number }) => (att.get(b.id) ?? 0) - (att.get(a.id) ?? 0)).find(due);
   if (!g) return { note: "every goal has fresh reels" };
-  // New and remade videos are written footage first (cinematic clips, then the script around them).
-  if (!live) return footageFirst(g.slug);
+  // New goals get footage first (search, judge, script). Remakes rewrite the script from the latest
+  // facts around the goal's own approved clips (about 8 cents, vs 40 for a new search); a goal with
+  // too few clips gets a fresh search instead.
+  if (!live) {
+    if (!g.reels_at) return footageFirst(g.slug);
+    const r = await rescript(g.slug);
+    return "error" in r && r.error ? footageFirst(g.slug) : r;
+  }
   usedClips = new Set(((await db(`reels?select=scenes`).catch(() => [])) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
   const { facts, posts, have, done } = await goalFacts(g, fresh);
 
