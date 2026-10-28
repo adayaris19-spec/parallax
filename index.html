@@ -5460,10 +5460,12 @@ const firstSentenceOf = (t) => { const m = String(t || '').match(/^.*?[.!?](\s|$
 // ------------------------------------------------------------ post story (tap a post)
 // A post opens as a short story you scroll through, one screen at a time: what happened, why it
 // matters, the evidence, where the problem stands, and how to help.
-function bgMedia(media, seed) {
+function bgMedia(media, seed, lazy = false) {
   const h = hue(seed);
   const base = `background:radial-gradient(120% 80% at 70% 15%, hsl(${h} 45% 22%) 0%, #05060B 62%)`;
   if (!media || !media.url) return `<div class="sw-bg" style="${base}"></div>`;
+  // Later screens load their clip only when shown (see storyView), so a story doesn't pull five videos at once.
+  if (media.kind === 'video' && lazy) return `<div class="sw-bg" style="${base}"><video data-src="${esc(media.url)}" poster="${esc(media.poster || '')}" muted loop playsinline preload="none" aria-hidden="true"></video></div>`;
   if (media.kind === 'video') return `<div class="sw-bg" style="${base}"><video src="${esc(media.url)}" poster="${esc(media.poster || '')}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>`;
   return `<div class="sw-bg" style="${base}"><img src="${esc(media.url)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
 }
@@ -5473,16 +5475,23 @@ async function storyView(id) {
   view.innerHTML = `<div class="sw-wrap"><div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
   let p, g, node, total = 0, listing = null, nextPost = null;
+  const clips = [];
   try {
     p = (await rest(`posts?id=eq.${Number(id)}&select=${POST_COLS}`))[0];
     if (!p) { box.innerHTML = `<section class="sw-card"><div class="sw-text"><h2>This post is gone.</h2><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
     g = (await rest(`goals?id=eq.${p.goal_id}&select=${GOAL_COLS}`))[0];
-    const [nodes, lst, others] = await Promise.all([
+    const [nodes, lst, others, goalReels] = await Promise.all([
       p.node_key ? rest(`nodes?goal_id=eq.${g.id}&key=eq.${encodeURIComponent(p.node_key)}&select=key,title,why,status,blocker_kind,blocker,independent_sources,plain_title,plain_why,plain_blocker`) : [],
       p.node_key ? rest(`team_problems?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(p.node_key)}&status=eq.active&select=id,node_key,node_title,plan,target_cents,teams(id,name,kind,website,country,about)&limit=1`).catch(() => []) : [],
       rest(`posts?goal_id=eq.${g.id}&id=neq.${p.id}&kind=neq.mapped&select=id,headline,plain_headline,created_at&order=created_at.desc&limit=1&created_at=lte.${encodeURIComponent(p.created_at)}`).catch(() => []),
+      rest(`reels?goal_id=eq.${g.id}&select=post_id,kind,scenes`).catch(() => []),
     ]);
     node = nodes[0]; listing = lst.find((x) => x.teams) || null; nextPost = others[0] || null;
+    // Every screen gets one of this goal's own approved clips: this post's video first, then the rest.
+    const ordered = [...goalReels].sort((a, b) => Number(b.post_id === p.id) - Number(a.post_id === p.id) || Number(b.kind === 'intro') - Number(a.kind === 'intro'));
+    const seen = new Set();
+    for (const v of ordered.flatMap((r) => (r.scenes || []).map((x) => x.visual))) if (v?.url && !seen.has(v.url)) { seen.add(v.url); clips.push(v); }
+    clips.sort((a, b) => Number(b.kind === 'video') - Number(a.kind === 'video'));
     if (node) {
       const r = await fetch(`${SUPA_URL}/rest/v1/node_papers?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(node.key)}&select=paper_id&limit=1`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'count=exact' } });
       total = Number((r.headers.get('content-range') || '').split('/')[1]) || 0;
@@ -5491,13 +5500,15 @@ async function storyView(id) {
   if (!box.isConnected) return;
   if (listing) fundState = { goal: g, listings: [listing], perNode: {}, perListing: {} };
 
-  const media = p.media && p.media.url ? p.media : (g.media && g.media.url ? g.media : null);
+  const media = clips[0] || (p.media && p.media.url ? p.media : (g.media && g.media.url ? g.media : null));
+  let clipAt = 1;
+  const nextClip = () => (clips.length > 1 ? clips[clipAt++ % clips.length] : null);
   const seed = g.slug + p.id;
   const goalLink = `#/g/${encodeURIComponent(g.slug)}`;
   const dot = KIND_DOT[p.kind] || '#fff';
   const srcs = (p.sources || []).slice(0, 4);
   const st = node ? (node.status || 'open') : null;
-  const scr = (inner, bg = '') => `<section class="sw-card">${bg || bgMedia(null, seed)}<div class="sw-shade"></div>${inner}</section>`;
+  const scr = (inner, bg = '') => `<section class="sw-card">${bg || bgMedia(nextClip(), seed, true)}<div class="sw-shade"></div>${inner}</section>`;
 
   const s1 = `<section class="sw-card">${bgMedia(media, seed)}<div class="sw-shade"></div>
     <div class="sw-text"><span class="sw-chip"><i style="background:${dot}"></i>${esc(KIND_WORD[p.kind] || p.kind)} · @${esc(g.handle)}</span>
@@ -5533,6 +5544,14 @@ async function storyView(id) {
 
   const screens = [s1, s2, s3, s4, s5].filter(Boolean);
   box.innerHTML = screens.join('');
+  // Start each screen's clip as it comes into view; pause the ones scrolled away.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      const v = e.target.querySelector('video'); if (!v) return;
+      if (e.isIntersecting) { if (v.dataset.src && !v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause();
+    }), { root: box, threshold: 0.4 });
+    box.querySelectorAll('.sw-card').forEach((c) => io.observe(c));
+  } else box.querySelectorAll('video[data-src]').forEach((v) => { v.src = v.dataset.src; });
   box.insertAdjacentHTML('beforebegin', `<div class="sw-bar"><button type="button" class="sw-x" data-close aria-label="Close">✕</button><a href="${goalLink}" class="sw-who">@${esc(g.handle)}</a><div class="sw-dots">${screens.map((_, i) => `<i data-d="${i}"${i ? '' : ' class="on"'}></i>`).join('')}</div></div>`);
   const wrap = box.parentElement;
   wrap.querySelector('[data-close]').onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
