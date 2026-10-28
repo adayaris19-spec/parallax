@@ -597,3 +597,4 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 - **Run one goal:** POST `{"action": "footage_first", "slug": "<slug>"}` (add `"dry": true` to preview without saving). For a full remake run goals one at a time with `"avoid": [<goals already done>]`, so earlier goals' clips stay unique.
 - **Scheduled runs and new goals** use footage first automatically. About 40 cents per goal.
 - **Kept as they were:** Mars and Moon base (their footage was already right), and fusion's opening plasma clip.
+- **Avatars:** `goals.pic` holds a hand-picked avatar (the clearest single subject at circle size), and `goal_pictures` puts it first. Goals without one use their best judged shot automatically.
