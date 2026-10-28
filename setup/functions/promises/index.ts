@@ -255,6 +255,32 @@ ${pool60.map((r) => `[${r.id}] (${r.year}) ${r.title}\n${r.abstract}`).join("\n\
   return rows.length;
 }
 
+// ---------------------------------------------------------------- fact check
+// Before a verdict reaches the feed, a second reader checks what it says happened against the live
+// web (a few searches). The verdict partly rests on the model's own knowledge of events after the
+// cited papers, so this is the step most likely to catch a wrong date or outcome.
+// ok: publish as written · fixed: publish the corrected text · unsure/wrong: hold (status unclear).
+const CHECK_MODEL = Deno.env.get("FACTCHECK_MODEL") ?? "claude-sonnet-5-5";
+type Check = { result: "ok" | "fixed" | "wrong" | "unsure"; headline?: string; verdict?: string; note?: string };
+async function factCheck(headline: string, verdict: string, ctx: string): Promise<Check> {
+  const m = await claude.messages.stream({
+    model: CHECK_MODEL, max_tokens: 4000,
+    tools: [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: 6 }],
+    system: `You fact-check one short post for Parallax, a public feed about scientific progress. Search the web to confirm what actually happened (dates, outcomes, numbers). Check the main claim first. Do not "fix" wording that is fair; only fix factual errors. Be strict: a wrong year, a wrong outcome, or a claim you cannot confirm is not ok. Mild wording is fine. Today is ${new Date().toISOString().slice(0, 10)}.
+Reply with only a JSON object: {"result": "ok" | "fixed" | "wrong" | "unsure", "headline": "...", "verdict": "...", "note": "..."}.
+ok: every factual claim is confirmed. fixed: a small factual error you can correct with confidence; give the corrected headline and verdict (same length and style). wrong: the main claim is false. unsure: you could not confirm the main claim. note: one sentence on what you checked.`,
+    messages: [{ role: "user", content: `${ctx}\n\nHEADLINE: ${headline}\nPOST: ${verdict}` }],
+  // deno-lint-ignore no-explicit-any
+  } as any).finalMessage().then(track("promises"));
+  // deno-lint-ignore no-explicit-any
+  const text = (m.content as any[]).filter((c) => c.type === "text").map((c) => c.text).join("");
+  try {
+    const j = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+    if (["ok", "fixed", "wrong", "unsure"].includes(j.result)) return j;
+  } catch { /* unreadable */ }
+  return { result: "unsure", note: "check unreadable" };
+}
+
 // ---------------------------------------------------------------- check
 
 const VerdictSchema = z.object({
@@ -320,6 +346,16 @@ source_ids: the ids of the papers above your verdict rests on.`,
       body: { status, verdict: v.verdict, verdict_sources: sources, independent_sources: authors, checked_at: new Date().toISOString() },
     });
     if (status === "unclear") return 0;
+    // Second reader, against the live web.
+    let fc: Check;
+    try { fc = await factCheck(v.headline, v.verdict, `In ${p.made_year}, a paper ("${p.source.title}") promised: ${p.claim} Due by ${p.due_year}.`); }
+    catch { fc = { result: "unsure", note: "check failed" }; }
+    if (fc.result === "fixed" && fc.headline && fc.verdict) { v.headline = fc.headline.slice(0, 160); v.verdict = fc.verdict.slice(0, 400); }
+    else if (fc.result !== "ok") {
+      await db(`promises?id=eq.${p.id}`, { method: "PATCH", body: { status: "unclear", verdict: `Held back by fact check (${fc.result}): ${fc.note ?? ""}`.slice(0, 400) } });
+      return 0;
+    }
+    await db(`promises?id=eq.${p.id}`, { method: "PATCH", body: { verdict: v.verdict } });
     await db("posts", {
       method: "POST",
       prefer: "return=minimal",
@@ -331,7 +367,7 @@ source_ids: the ids of the papers above your verdict rests on.`,
         body: v.verdict,
         sources: [p.source, ...sources],
         independent_sources: authors,
-        meta: { promise_id: p.id, quote: p.quote, made_year: p.made_year, due_year: p.due_year, status, paper: p.source },
+        meta: { promise_id: p.id, quote: p.quote, made_year: p.made_year, due_year: p.due_year, status, paper: p.source, fact_check: { result: fc.result, note: fc.note ?? null, at: new Date().toISOString() } },
       },
     });
     return 1;
@@ -347,6 +383,24 @@ Deno.serve(async (req) => {
   try {
     // deno-lint-ignore no-explicit-any
     const body: any = await req.json().catch(() => ({}));
+    // One-off: fact-check promise posts already in the feed (up to 6 per call, unchecked first).
+    // ok: kept · fixed: text corrected · wrong/unsure: removed from the feed (the promise goes back to unclear).
+    if (body.action === "recheck_posts") {
+      const posts = (await db(`posts?kind=eq.promise&select=id,headline,body,meta&order=id.asc`)).filter((x: { meta: { fact_check?: unknown } }) => !x.meta?.fact_check).slice(0, 6);
+      const out = await Promise.all(posts.map(async (x: { id: number; headline: string; body: string; meta: Record<string, unknown> & { made_year?: number; due_year?: number; quote?: string; promise_id?: number } }) => {
+        let fc: Check;
+        try { fc = await factCheck(x.headline, x.body, `In ${x.meta.made_year}, a paper promised: "${x.meta.quote ?? ""}" Due by ${x.meta.due_year}.`); } catch { return { id: x.id, result: "error" }; }
+        const meta = { ...x.meta, fact_check: { result: fc.result, note: fc.note ?? null, at: new Date().toISOString() } };
+        if (fc.result === "ok") await db(`posts?id=eq.${x.id}`, { method: "PATCH", body: { meta } });
+        else if (fc.result === "fixed" && fc.headline && fc.verdict) await db(`posts?id=eq.${x.id}`, { method: "PATCH", body: { meta, headline: fc.headline.slice(0, 160), body: fc.verdict.slice(0, 400), plain_headline: null, plain_body: null } });
+        else if (!body.dry) {
+          await db(`posts?id=eq.${x.id}`, { method: "DELETE" });
+          if (x.meta.promise_id) await db(`promises?id=eq.${x.meta.promise_id}`, { method: "PATCH", body: { status: "unclear", verdict: `Removed by fact check (${fc.result}): ${fc.note ?? ""}`.slice(0, 400) } });
+        }
+        return { id: x.id, result: fc.result, note: fc.note, was: x.headline, now: fc.result === "fixed" ? fc.headline : undefined };
+      }));
+      return json({ checked: out, left: posts.length < 6 ? 0 : "more" });
+    }
     const cols = "id,slug,name,handle,promises_checked_at";
     let goal;
     if (typeof body.slug === "string") {
