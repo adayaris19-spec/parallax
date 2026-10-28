@@ -544,6 +544,27 @@ video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
 .rl-scene.on .rl-text > *{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .rl-scene.on .rl-text > *:nth-child(2){animation-delay:.12s}.rl-scene.on .rl-text > *:nth-child(3){animation-delay:.24s}.rl-scene.on .rl-text > *:nth-child(4){animation-delay:.36s}
 .rl-text h2{font-size:clamp(28px,7.6vw,38px);line-height:1.08;letter-spacing:-.03em;margin:0;text-wrap:balance}
+/* Scene variety: long captions shrink; entrances and camera moves differ scene to scene. */
+.rl-scene.cl-1 .rl-text h2{font-size:clamp(24px,6.4vw,31px)}
+.rl-scene.cl-2 .rl-text h2{font-size:clamp(21px,5.6vw,27px)}
+.rl-text h2 .w{display:inline-block}
+.rl-text h2 .w.num{background:linear-gradient(90deg,#fff,#AEB4FF 60%,#9CF0D8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rl-scene.on.ta1 .rl-text h2{animation:none}.rl-scene.on.ta1 .rl-text h2 .w{animation:wordup .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 70ms)}
+.rl-scene.on.ta2 .rl-text > *{animation-name:slidein}
+.rl-scene.on.ta3 .rl-text h2{animation:popin .55s cubic-bezier(.2,1.3,.4,1) both}
+.rl-scene.on.ta4 .rl-text h2{animation:none}.rl-scene.on.ta4 .rl-text h2 .w{animation:blurin .6s ease-out both;animation-delay:calc(var(--i) * 55ms)}
+@keyframes wordup{from{opacity:0;transform:translateY(.45em) rotate(2deg)}}
+@keyframes slidein{from{opacity:0;transform:translateX(-28px)}}
+@keyframes popin{from{opacity:0;transform:scale(.86)}}
+@keyframes blurin{from{opacity:0;filter:blur(8px)}}
+.rl-scene.on.mv1 video.rl-media{animation:panl 8s ease-in-out forwards}
+.rl-scene.on.mv2 video.rl-media{animation:pullout 8s ease-out forwards}
+.rl-scene.on.mv3 video.rl-media{animation:driftup 8s ease-in-out forwards}
+@keyframes panl{from{transform:scale(1.18) translateX(4%)}to{transform:scale(1.18) translateX(-4%)}}
+@keyframes pullout{from{transform:scale(1.22)}to{transform:scale(1.02)}}
+@keyframes driftup{from{transform:scale(1.14) translateY(3%)}to{transform:scale(1.14) translateY(-3%)}}
+@media (prefers-reduced-motion:reduce){.rl-scene.on .rl-text h2,.rl-scene.on .rl-text h2 .w,.rl-scene.on video.rl-media{animation:none!important}}
+
 .rl-text p{font-size:16.5px;line-height:1.45;color:rgba(255,255,255,.85);margin:12px 0 0}
 .rl-stat{font-size:clamp(64px,18vw,96px);letter-spacing:-.06em;line-height:.95}
 .rl-statl{font-size:14px;color:rgba(255,255,255,.7);margin:6px 0 14px}
@@ -5752,15 +5773,25 @@ function sceneBg(s, seed, k) {
   return base + `<div class="rl-media rl-img m${(hue(seed) + k) % 4}" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
 }
 
+// Caption words as spans (for word-by-word entrances), with numbers picked out in colour.
+const capWords = (t) => String(t || '').split(/\s+/).filter(Boolean).map((w, i) => `<span class="w${/\d/.test(w) ? ' num' : ''}" style="--i:${i}">${esc(w)}</span>`).join(' ');
 function reelCard(r, g, i) {
   const scenes = r.scenes || [];
   return `<section class="sw-card rl" data-reel="${i}">
-    ${scenes.map((s, k) => { const ly = ['bottom', 'center', 'top', 'number', 'quote'].includes(s.layout) ? s.layout : (s.stat && !s.visual ? 'number' : 'bottom'); return `<div class="rl-scene ly-${ly}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
+    ${scenes.map((s, k) => {
+      const len = String(s.caption || '').length;
+      let ly = ['bottom', 'center', 'top', 'number', 'quote'].includes(s.layout) ? s.layout : (s.stat && !s.visual ? 'number' : 'bottom');
+      // Long text never goes in the middle (it would overflow the top); it sits low and smaller.
+      if (len > 64 && (ly === 'center' || ly === 'quote')) ly = 'bottom';
+      const size = len > 95 ? ' cl-2' : len > 60 ? ' cl-1' : '';
+      // Each scene enters a little differently, so a run of videos doesn't feel like one template.
+      const ta = ` ta${(hue(g.slug + r.id) + k * 3) % 5}`, mv = ` mv${(hue(String(r.id)) + k) % 4}`;
+      return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
       <div class="rl-text">${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{4,}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
-        <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : esc(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
+        <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : capWords(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
       ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
-      <div class="rl-who"><a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a><b>@${esc(g.handle)}</b><span>${esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
+      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(g.pics[0]).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
     <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
     <button type="button" class="rl-tap next" data-rl="next" aria-label="Next scene"></button>
