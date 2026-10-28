@@ -529,6 +529,7 @@ body.goalstory .sw-bar{width:min(720px,100vw)}
 /* One look for clips from many creators: a light grade, slow camera motion, vignette and fine grain. */
 .rl-media{filter:contrast(1.07) saturate(1.1) brightness(.97)}
 video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
+canvas.rl-anim{width:100%;height:100%;display:block}
 .rl-scene.on video.rl-media{animation:push 8s cubic-bezier(.25,.6,.3,1) forwards}
 @keyframes push{from{transform:scale(1)}to{transform:scale(1.07)}}
 .rl-img{background-size:cover;background-position:center;transform:scale(1.04)}
@@ -2090,6 +2091,187 @@ body.wsw main{max-width:1000px}
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+// Parallax animated scenes v2: cinematic science backgrounds drawn live on a canvas (no files, no cost).
+// ParallaxScene(kind, canvas, {hue, seed}) -> {stop()}. Kinds: dna, neurons, bloodstream, cells, aurora, warp.
+(function () {
+  const TAU = Math.PI * 2;
+  const rng = (seed) => { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
+  const hsl = (h, s, l, a = 1) => `hsla(${h},${s}%,${l}%,${a})`;
+  // Pre-rendered soft glow sprites (fast, smooth).
+  const sprites = new Map();
+  function sprite(h, s, l) {
+    const k = `${Math.round(h)}|${s}|${l}`; if (sprites.has(k)) return sprites.get(k);
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, hsl(h, s, Math.min(97, l + 25), 1)); g.addColorStop(0.18, hsl(h, s, l, 0.85)); g.addColorStop(0.45, hsl(h, s, l, 0.25)); g.addColorStop(1, hsl(h, s, l, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128); sprites.set(k, c); return c;
+  }
+  const dot = (ctx, x, y, r, h, s, l, a) => { ctx.globalAlpha = Math.max(0, Math.min(1, a)); ctx.drawImage(sprite(h, s, l), x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1; };
+  function backdrop(ctx, w, h, hue, t) {
+    ctx.globalCompositeOperation = 'source-over';
+    const g = ctx.createRadialGradient(w * (0.5 + 0.12 * Math.sin(t * 0.05)), h * 0.4, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.9);
+    g.addColorStop(0, hsl(hue, 60, 13)); g.addColorStop(0.5, hsl(hue + 20, 65, 6)); g.addColorStop(1, '#020309');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  }
+  const K = {};
+
+  // DNA: a near and a far helix, glowing bases, floating motes.
+  K.dna = (R, hue) => {
+    const motes = Array.from({ length: 60 }, () => ({ x: R(), y: R(), z: R(), s: R() }));
+    const helix = (ctx, w, h, t, cx, amp, scale, alpha, tilt, speed) => {
+      const n = 34;
+      for (let i = 0; i < n; i++) {
+        const u = i / (n - 1), y = -h * 0.15 + u * h * 1.3, a = u * TAU * 2 + t * speed;
+        const off = (y - h / 2) * tilt;
+        const p = [0, Math.PI].map((s) => ({ x: cx + off + Math.sin(a + s) * amp, z: Math.cos(a + s) }));
+        if (i % 2 === 0) {
+          const g = ctx.createLinearGradient(p[0].x, y, p[1].x, y); g.addColorStop(0, hsl(hue, 90, 65, 0.35 * alpha)); g.addColorStop(1, hsl(hue + 50, 90, 65, 0.35 * alpha));
+          ctx.strokeStyle = g; ctx.lineWidth = 3 * scale; ctx.beginPath(); ctx.moveTo(p[0].x, y); ctx.lineTo(p[1].x, y); ctx.stroke();
+        }
+        p.forEach((q, k) => { const d = 0.5 + 0.5 * q.z; dot(ctx, q.x, y, (10 + 16 * d) * scale, hue + k * 50, 95, 55 + 15 * d, (0.35 + 0.65 * d) * alpha); });
+      }
+    };
+    return (ctx, w, h, t) => {
+      ctx.globalCompositeOperation = 'lighter';
+      helix(ctx, w, h, t, w * 0.78, Math.min(w, h) * 0.12, 0.55, 0.35, -0.25, 0.35);
+      helix(ctx, w, h, t, w * 0.45, Math.min(w, h) * 0.26, 1.15, 1, 0.3, 0.55);
+      for (const m of motes) { const y = ((m.y - t * 0.01 * (0.5 + m.z)) % 1 + 1) % 1; dot(ctx, m.x * w, y * h, 2 + 6 * m.z, hue + 30 * m.s, 90, 70, 0.15 + 0.35 * m.z); }
+    };
+  };
+
+  // Neurons: organic cells with branching dendrites; signals race along axons and flash on arrival.
+  K.neurons = (R, hue) => {
+    const N = Array.from({ length: 7 }, (_, i) => ({ x: [0.22, 0.72, 0.35, 0.8, 0.25, 0.65, 0.45][i] + (R() - 0.5) * 0.1, y: 0.1 + (i / 6) * 0.8 + (R() - 0.5) * 0.06, z: 0.5 + R() * 0.7,
+      br: Array.from({ length: 6 }, () => ({ a: R() * TAU, l: 0.1 + R() * 0.16, c: (R() - 0.5) * 1.6 })) }));
+    const E = []; N.forEach((a, i) => N.forEach((b, j) => { if (i < j && Math.hypot(a.x - b.x, a.y - b.y) < 0.38) E.push({ a, b, ph: R(), sp: 0.25 + R() * 0.35, bend: (R() - 0.5) * 0.5 }); }));
+    return (ctx, w, h, t) => {
+      ctx.globalCompositeOperation = 'lighter';
+      const P = (n) => [n.x * w + Math.sin(t * 0.12 + n.y * 9) * 10, n.y * h + Math.cos(t * 0.1 + n.x * 9) * 10];
+      const S = Math.min(w, h);
+      for (const n of N) {
+        const [x, y] = P(n);
+        for (const b of n.br) {
+          const ex = x + Math.cos(b.a) * b.l * S, ey = y + Math.sin(b.a) * b.l * S, mx = (x + ex) / 2 + Math.sin(b.a) * b.c * 20, my = (y + ey) / 2 - Math.cos(b.a) * b.c * 20;
+          const g = ctx.createLinearGradient(x, y, ex, ey); g.addColorStop(0, hsl(hue, 90, 65, 0.55 * n.z)); g.addColorStop(1, hsl(hue, 90, 65, 0));
+          ctx.strokeStyle = g; ctx.lineWidth = 2.2 * n.z; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(mx, my, ex, ey); ctx.stroke();
+        }
+      }
+      for (const e of E) {
+        const [x1, y1] = P(e.a), [x2, y2] = P(e.b), mx = (x1 + x2) / 2 + (y2 - y1) * e.bend, my = (y1 + y2) / 2 - (x2 - x1) * e.bend;
+        ctx.strokeStyle = hsl(hue + 10, 80, 60, 0.16); ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo(mx, my, x2, y2); ctx.stroke();
+        const k = (t * e.sp + e.ph) % 1;
+        for (let j = 0; j < 6; j++) { const kk = Math.max(0, k - j * 0.018), q = 1 - kk; dot(ctx, q * q * x1 + 2 * q * kk * mx + kk * kk * x2, q * q * y1 + 2 * q * kk * my + kk * kk * y2, 14 - j * 2, hue + 45, 100, 72, 0.9 - j * 0.14); }
+        if (k > 0.94) { const [bx, by] = P(e.b); dot(ctx, bx, by, 70 * (1 - (k - 0.94) / 0.06), hue + 45, 100, 75, 0.6); }
+      }
+      for (const n of N) { const [x, y] = P(n); dot(ctx, x, y, 48 * n.z, hue, 90, 55, 0.45); dot(ctx, x, y, 16 * n.z, hue + 25, 100, 80, 1); }
+    };
+  };
+
+  // Bloodstream: red blood cells streaming past in depth, inside a vessel's glow.
+  K.bloodstream = (R, hue0) => {
+    const hue = 352;
+    const C = Array.from({ length: 34 }, () => ({ x: R(), y: R(), z: 0.2 + R() * 1.1, rot: R() * TAU, sp: 0.6 + R() * 0.6, wob: R() * TAU }));
+    C.sort((a, b) => a.z - b.z);
+    return (ctx, w, h, t) => {
+      ctx.globalCompositeOperation = 'source-over';
+      const S = Math.min(w, h);
+      for (const c of C) {
+        const r = S * 0.055 * (0.5 + c.z), x = (((c.x + t * 0.04 * c.sp * c.z) % 1.2) - 0.1) * w, y = c.y * h + Math.sin(t * 0.6 + c.wob) * 14 * c.z;
+        const blur = Math.abs(c.z - 0.85), a = Math.max(0.25, 1 - blur * 0.9);
+        ctx.save(); ctx.translate(x, y); ctx.rotate(c.rot + t * 0.2 * c.sp); ctx.scale(1, 0.55 + 0.25 * Math.sin(t * 0.4 + c.wob));
+        if (blur > 0.45) ctx.filter = `blur(${Math.min(8, blur * 9)}px)`;
+        const g = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r);
+        g.addColorStop(0, hsl(hue, 70, 22, a)); g.addColorStop(0.45, hsl(hue, 80, 38, a)); g.addColorStop(0.82, hsl(hue + 5, 85, 52, a)); g.addColorStop(1, hsl(hue + 5, 85, 40, 0));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); ctx.restore();
+      }
+      ctx.globalCompositeOperation = 'lighter'; dot(ctx, w * 0.3, h * 0.35, S * 0.7, hue + 10, 80, 40, 0.25);
+    };
+  };
+
+  // Aurora: luminous curtains drifting (energy, climate, water, air).
+  K.aurora = (R, hue) => {
+    const B = Array.from({ length: 4 }, (_, i) => ({ y: 0.3 + i * 0.14, a: 0.05 + R() * 0.05, f: 1 + R() * 1.5, sp: 0.12 + R() * 0.2, dh: i * 22 + R() * 15, ph: R() * TAU }));
+    return (ctx, w, h, t) => {
+      ctx.globalCompositeOperation = 'lighter';
+      for (const b of B) {
+        const yAt = (u) => (b.y + Math.sin(u * b.f * TAU + t * b.sp + b.ph) * b.a + Math.sin(u * 6.3 - t * 0.33) * 0.012) * h;
+        for (const [tall, al, bl] of [[0.32, 0.10, 18], [0.16, 0.22, 6]]) {
+          ctx.save(); ctx.filter = `blur(${bl}px)`;
+          ctx.beginPath(); ctx.moveTo(0, yAt(0));
+          for (let x = 0; x <= w; x += 4) ctx.lineTo(x, yAt(x / w));
+          for (let x = w; x >= 0; x -= 4) ctx.lineTo(x, yAt(x / w) - h * tall * (0.7 + 0.3 * Math.sin(x / w * 5 + t * 0.25 + b.ph)));
+          ctx.closePath();
+          const g = ctx.createLinearGradient(0, b.y * h - h * tall, 0, b.y * h + h * b.a);
+          g.addColorStop(0, hsl(hue + b.dh + 50, 90, 60, 0)); g.addColorStop(0.7, hsl(hue + b.dh, 95, 58, al)); g.addColorStop(1, hsl(hue + b.dh - 10, 100, 72, al * 2.2));
+          ctx.fillStyle = g; ctx.fill(); ctx.restore();
+        }
+        ctx.strokeStyle = hsl(hue + b.dh, 100, 80, 0.5); ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = 0; x <= w; x += 4) { const y = yAt(x / w); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+      }
+    };
+  };
+
+  // Warp: streaks of light rushing toward the viewer (space, particles, speed).
+  K.warp = (R, hue) => {
+    const S = Array.from({ length: 260 }, () => ({ a: R() * TAU, d: R(), sp: 0.15 + R() * 0.5, dh: R() * 60 }));
+    return (ctx, w, h, t) => {
+      ctx.globalCompositeOperation = 'lighter';
+      const cx = w / 2, cy = h * 0.45, M = Math.hypot(w, h) * 0.6;
+      dot(ctx, cx, cy, M * 0.35, hue, 90, 55, 0.35);
+      for (const s of S) {
+        const d = (s.d + t * s.sp * 0.25) % 1, r1 = Math.pow(d, 2.2) * M, r0 = Math.pow(Math.max(0, d - 0.05), 2.2) * M;
+        const x0 = cx + Math.cos(s.a) * r0, y0 = cy + Math.sin(s.a) * r0, x1 = cx + Math.cos(s.a) * r1, y1 = cy + Math.sin(s.a) * r1;
+        ctx.strokeStyle = hsl(hue + s.dh, 100, 70, Math.min(1, d * 1.6)); ctx.lineWidth = 0.6 + 2.4 * d; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      }
+    };
+  };
+
+  // Cells: translucent cells with glowing nuclei drifting in depth.
+  K.cells = (R, hue) => {
+    const C = Array.from({ length: 11 }, () => ({ x: R(), y: R(), z: 0.25 + R() * 1, r: 0.07 + R() * 0.08, ph: R() * TAU, dh: (R() - 0.5) * 30 }));
+    C.sort((a, b) => a.z - b.z);
+    return (ctx, w, h, t) => {
+      const S = Math.min(w, h);
+      for (const c of C) {
+        const r = c.r * S * (0.6 + c.z), x = c.x * w + Math.sin(t * 0.08 + c.ph) * 50 * c.z, y = c.y * h + Math.cos(t * 0.07 + c.ph) * 40 * c.z;
+        const blur = Math.abs(c.z - 0.8), a = Math.max(0.3, 1 - blur), hh = hue + c.dh;
+        ctx.save(); if (blur > 0.4) ctx.filter = `blur(${Math.min(7, blur * 8)}px)`;
+        ctx.globalCompositeOperation = 'lighter';
+        const g = ctx.createRadialGradient(x - r * 0.25, y - r * 0.3, r * 0.05, x, y, r);
+        g.addColorStop(0, hsl(hh, 70, 60, 0.08 * a)); g.addColorStop(0.7, hsl(hh, 85, 50, 0.16 * a)); g.addColorStop(0.93, hsl(hh, 95, 72, 0.6 * a)); g.addColorStop(1, hsl(hh, 95, 72, 0));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+        ctx.restore();
+        ctx.globalCompositeOperation = 'lighter'; dot(ctx, x + Math.sin(t * 0.3 + c.ph) * r * 0.12, y, r * 0.55, hh + 150, 90, 60, 0.75 * a);
+      }
+    };
+  };
+
+  window.ParallaxScene = function (kind, canvas, opts = {}) {
+    const R = rng(opts.seed || 7), hue = opts.hue ?? 210, draw = (K[kind] || K.dna)(R, hue);
+    const D = Array.from({ length: 30 }, () => ({ x: R(), y: R(), r: 1.5 + R() * 3, v: 0.3 + R(), a: 0.15 + R() * 0.3 }));
+    const ctx = canvas.getContext('2d'); let raf = 0, t0 = performance.now(), on = true;
+    const frame = (now) => {
+      if (!on) return;
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1), w = canvas.clientWidth, h = canvas.clientHeight;
+      if (!w || !h) { raf = requestAnimationFrame(frame); return; }
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const t = (now - t0) / 1000 + (opts.t || 0);
+      backdrop(ctx, w, h, kind === 'bloodstream' ? 350 : hue, t); draw(ctx, w, h, t);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const p of D) { const y = ((p.y - t * 0.012 * p.v) % 1 + 1) % 1; dot(ctx, p.x * w, y * h, p.r, hue + 20, 80, 75, p.a); }
+      ctx.globalCompositeOperation = 'source-over';
+      const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.75); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return { stop() { on = false; cancelAnimationFrame(raf); } };
+  };
+  window.ParallaxScene.kinds = ['dna', 'neurons', 'bloodstream', 'cells', 'aurora', 'warp'];
+})();
+
+</script>
 <script>
 'use strict';
 // ------------------------------------------------------------ config
@@ -5535,7 +5717,7 @@ async function storyView(id) {
     // Every screen gets one of this goal's own approved clips: this post's video first, then the rest.
     const ordered = [...goalReels].sort((a, b) => Number(b.post_id === p.id) - Number(a.post_id === p.id) || Number(b.kind === 'intro') - Number(a.kind === 'intro'));
     const seen = new Set();
-    for (const v of ordered.flatMap((r) => (r.scenes || []).map((x) => x.visual))) if (v?.url && !seen.has(v.url)) { seen.add(v.url); clips.push(v); }
+    for (const v of ordered.flatMap((r) => (r.scenes || []).map((x) => x.visual))) if (v?.url && v.kind !== 'anim' && !seen.has(v.url)) { seen.add(v.url); clips.push(v); }
     clips.sort((a, b) => Number(b.kind === 'video') - Number(a.kind === 'video'));
     if (node) {
       const r = await fetch(`${SUPA_URL}/rest/v1/node_papers?goal_id=eq.${g.id}&node_key=eq.${encodeURIComponent(node.key)}&select=paper_id&limit=1`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'count=exact' } });
@@ -5741,7 +5923,7 @@ async function loadStories(list) {
   // Fallback visuals: each goal's own approved shots from its videos.
   const uniq = (arr) => [...new Map(arr.map((v) => [v.url, v])).values()];
   const videosFirst = (arr) => [...arr].sort((a, b) => Number(b.kind === 'video') - Number(a.kind === 'video'));
-  const own = new Map(goalIds.map((id) => [id, videosFirst(uniq(reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url))))]));
+  const own = new Map(goalIds.map((id) => [id, videosFirst(uniq(reels.filter((r) => r.goal_id === id).flatMap((r) => (r.scenes || []).map((x) => x.visual).filter((v) => v?.url && v.kind !== 'anim'))))]));
   // Matching shots from the visual library, every story in one request.
   const queries = chosen.map((p) => { const n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key); return `${n?.title || ''} ${p.headline}`; });
   const visuals = await fetch(`${SUPA_URL}/rest/v1/rpc/parallax_match_visuals_many`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ qs: queries, n: 6 }) })
@@ -5809,6 +5991,8 @@ function sceneBg(s, seed, k) {
   const base = `<div class="rl-bg rl-grad" style="--h:${h}"></div>`;
   const v = s.visual;
   if (!v || !v.url) return base;
+  // Animated scenes are drawn live (anim:<kind>), tinted with the goal's colour.
+  if (v.kind === 'anim') return base + `<canvas class="rl-media rl-anim" data-anim="${esc(String(v.url).replace(/^anim:/, ''))}" data-hue="${(hue(seed) + 200) % 360}" aria-hidden="true"></canvas>`;
   if (v.kind === 'video') return base + `<video class="rl-media" src="${esc(v.url)}" poster="${esc(v.poster || '')}" muted loop playsinline preload="none"></video>`;
   return base + `<div class="rl-media rl-img m${(hue(seed) + k) % 4}" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
 }
@@ -5829,7 +6013,7 @@ function reelCard(r, g, i) {
       return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
       <div class="rl-text">${s.kicker ? `<span class="rl-kick k${String(s.kicker).length % 4}">${esc(s.kicker)}</span>` : ''}${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 7 ? ' xlong' : String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{5,}$|^(?!1[89]\d\d$|20\d\d$)\d{4}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
         <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : capWords(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
-      ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
+      ${s.visual && s.visual.url && s.visual.kind === 'anim' ? `<div class="sw-credit">Animation: Parallax</div>` : s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
       <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(g.pics[0]).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
@@ -5862,10 +6046,13 @@ function reelPlayer(card) {
   };
   // Load the next clip while this one plays, so the cut never shows a blank frame.
   const preloadNext = () => { const nv = scenes[(k + 1) % scenes.length]?.querySelector('video'); if (nv && nv.preload !== 'auto') nv.preload = 'auto'; };
+  // Live animated scenes run only while their scene is on screen.
+  const anim = (s, on) => { const c = s?.querySelector('canvas.rl-anim'); if (!c || !window.ParallaxScene) return; if (on && !c._ps) c._ps = ParallaxScene(c.dataset.anim, c, { hue: Number(c.dataset.hue) || 210, seed: c.dataset.anim.length * 13 }); else if (!on && c._ps) { c._ps.stop(); c._ps = null; } };
   const show = (i) => {
     k = (i + scenes.length) % scenes.length;
     scenes.forEach((s, j) => {
       s.classList.toggle('on', j === k);
+      anim(s, j === k && !paused);
       const v = s.querySelector('video');
       if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3) v.currentTime = 0; v.play().catch(() => {}); } else v.pause(); }
     });
@@ -5888,9 +6075,10 @@ function reelPlayer(card) {
     left = Math.max(0, left - (performance.now() - t0));
     const b = bars[k]; if (b) { const w = getComputedStyle(b).width; b.style.transition = 'none'; b.style.width = w; }
     scenes[k].querySelector('video')?.pause();
+    anim(scenes[k], false);
   };
   return {
-    play() { if (!paused) return; paused = false; card.classList.remove('paused'); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
+    play() { if (!paused) return; paused = false; card.classList.remove('paused'); anim(scenes[k], true); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
     pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
     reset() { this.pause(); left = 0; show(0); },
     next() { stop(); show(k + 1); },

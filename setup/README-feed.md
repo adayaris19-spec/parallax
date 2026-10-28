@@ -618,3 +618,9 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 
 - **Before a promise verdict is posted,** a second reader (Sonnet with up to 6 web searches, `FACTCHECK_MODEL`) checks what it says happened. ok: posted as written. fixed: posted with the corrected text. wrong or unsure: held back and the promise is marked unclear. The result is kept in `posts.meta.fact_check`. About 3-5 cents per post.
 - **Existing posts:** POST `{"action": "recheck_posts"}` checks up to 6 unchecked promise posts per call. Add `"dry": true` to keep posts that fail (only ok and fixed are written).
+
+## 49. Animated scenes
+
+- **What:** `ParallaxScene` (inline in index.html) draws six cinematic scene types live on a canvas: dna, neurons, bloodstream, cells, aurora, warp. They're tinted with the goal's colour, cost nothing and need no files. A scene uses one when its visual is `{kind: "anim", url: "anim:<type>"}`. The player runs it only while that scene is on screen.
+- **Where:** only to fill gaps. `{"action": "rescript", "slug": "<slug>", "anim": true}` offers the goal's fitting animations next to its real clips. The script uses them only where footage is missing, never in scene 1, at most 2 per reel. Goals that had one video got a second this way.
+- **Not in** stories, post stories or goal pictures (they use real clips only).
