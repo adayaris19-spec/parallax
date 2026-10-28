@@ -709,6 +709,7 @@ body.goalpage main{max-width:1120px}
 .subtabs{display:flex;gap:4px;margin:4px 0 12px;padding:3px;background:var(--sunk);border-radius:12px;width:max-content;max-width:100%;overflow-x:auto}
 .subtabs a{padding:7px 14px;border-radius:9px;font-size:14px;color:var(--ink2);text-decoration:none;white-space:nowrap}.subtabs a.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}.subtabs small{color:var(--muted);font-weight:400}
 .ws{padding:18px 0 40px}.ws-back{display:block;width:max-content;font-size:13px;color:var(--muted);text-decoration:none}.ws-h{font-size:28px;letter-spacing:-.025em;line-height:1.15;margin:6px 0 8px}
+.more-wrap{display:flex;justify-content:center;margin:18px 0 8px}
 .ws-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;margin-top:16px;align-items:start}
 @media (max-width:860px){.ws-grid{grid-template-columns:minmax(0,1fr)}}
 .ws-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
@@ -1954,7 +1955,7 @@ body.wsw main{max-width:1000px}
 .ws-facts span{display:flex;align-items:center;gap:5px;font-family:var(--m);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.ws-facts svg{width:13px;height:13px}
 .ws-facts b{display:block;font-size:14px;margin-top:3px;font-weight:600;overflow-wrap:anywhere}
 @media (max-width:760px){.ws-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.ws-h{font-size:24px}.ws-hero{padding:18px 16px}}
-.ws-grid{grid-template-columns:minmax(0,1fr) 320px}
+@media (min-width:861px){.ws-grid{grid-template-columns:minmax(0,1fr) 320px}}
 @media (min-width:861px){.ws-side{position:sticky;top:76px}}
 .ws-card .kick{display:flex;align-items:center;gap:6px}.ws-card .kick svg{width:14px;height:14px}
 .ws-bar{background:hsl(var(--h) 70% 50% / .06);border-color:hsl(var(--h) 55% 50% / .3)}
@@ -2061,7 +2062,11 @@ const safeUrl = (u) => /^https?:\/\//i.test(String(u || '')) ? String(u) : null;
 const view = $('#view');
 
 async function rest(path) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
+  // Phones drop connections: a failed read (network error or server busy) is tried once more.
+  const get = () => fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
+  let r;
+  try { r = await get(); if (r.status >= 500 || r.status === 429) throw new Error('busy'); }
+  catch { await new Promise((ok) => setTimeout(ok, 700)); r = await get(); }
   if (!r.ok) throw new Error(`Parallax's data answered ${r.status}`);
   const rows = await r.json();
   return Array.isArray(rows) ? rows.map(plain) : rows;
@@ -2421,9 +2426,13 @@ function postCard(p, g, compact = false) {
 
 // Idea of the day: one open idea a day (the same for everyone that day), to invite a verdict.
 async function ideaOfTheDay(list) {
-  const ideas = await rest(`ideas?status=eq.open&novelty=in.(new,partly)&select=id,goal_id,title,pitch,test_low,test_high&order=id.asc&limit=300`);
-  if (!ideas.length) return '';
-  const day = Math.floor(Date.now() / 86400000), i = ideas[(day * 7919) % ideas.length], g = list.find((x) => x.id === i.goal_id);
+  // Pick by id first (a tiny list), then fetch just that one idea.
+  const ids = await rest(`ideas?status=eq.open&novelty=in.(new,partly)&select=id&order=id.asc&limit=300`);
+  if (!ids.length) return '';
+  const day = Math.floor(Date.now() / 86400000), pick = ids[(day * 7919) % ids.length].id;
+  const i = (await rest(`ideas?id=eq.${pick}&select=id,goal_id,title,pitch,test_low,test_high`))[0];
+  if (!i) return '';
+  const g = list.find((x) => x.id === i.goal_id);
   if (!g) return '';
   return `<a class="iday" href="#/idea/${i.id}">
     <span class="kick">Idea of the day · @${esc(g.handle)}</span>
@@ -2452,7 +2461,11 @@ function note(title, text, extra = '') {
   return `<div class="note"><h2>${esc(title)}</h2><div>${text}</div>${extra}</div>`;
 }
 function failNote(e, retry) {
-  return note("Parallax can't reach its data right now", esc(e.message || e), `<p><button class="btn" onclick="${retry}">Try again</button></p>`);
+  // Network failures read as plain words; other errors keep their message (they say what went wrong).
+  const msg = String(e?.message || e || '');
+  const why = !navigator.onLine ? 'You seem to be offline. Check your connection and try again.'
+    : /failed to fetch|networkerror|load failed|network request failed|timed? ?out|aborted/i.test(msg) ? 'The connection dropped or the server is slow. It usually works on a second try.' : msg;
+  return note("Parallax can't reach its data right now", esc(why), `<p><button class="btn" onclick="${retry}">Try again</button></p>`);
 }
 
 // First visit: one short intro above the feed, until dismissed or signed in.
@@ -2475,6 +2488,8 @@ async function feedView(tab) {
       <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
     </section>` : ''}<div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
+  // The first page of the main feed doesn't need the goal list to start loading: fetch both at once.
+  const early = tab === 'all' ? rest(`posts?select=${POST_COLS}&order=created_at.desc&limit=${PAGE}`).catch(() => null) : null;
   let list;
   try { list = await goals(); } catch (e) { box.innerHTML = failNote(e, 'route()'); return; }
   if (!list.length) {
@@ -2491,8 +2506,10 @@ async function feedView(tab) {
     filter = `&goal_id=in.(${mine.join(',')})`;
   }
   let before = null;
+  let head = early;
   const load = async () => {
-    const page = await rest(`posts?select=${POST_COLS}${filter}${before ? `&created_at=lt.${encodeURIComponent(before)}` : ''}&order=created_at.desc&limit=${PAGE}`);
+    const pre = head ? await head : null; head = null;
+    const page = pre ?? await rest(`posts?select=${POST_COLS}${filter}${before ? `&created_at=lt.${encodeURIComponent(before)}` : ''}&order=created_at.desc&limit=${PAGE}`);
     // Group the page by goal, in order of each goal's newest post.
     const groups = new Map();
     for (const p of page) {
@@ -2630,7 +2647,7 @@ function howView(section) {
 async function exploreView() {
   view.innerHTML = `${navTabs('explore')}<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
     <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
-    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal, for professionals</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
+    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal at once, in depth</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
   try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
   try {
@@ -3668,9 +3685,18 @@ async function challengesView(skill) {
     ${me ? `<div class="chal-me">${mine.length ? `<span>Your skills: ${mine.map((k) => `<b>${esc(k)}</b>`).join(', ')}</span> <a href="#/settings">Edit</a>` : '<span>Add your skills and Parallax shows the challenges that fit you.</span> <a href="#/settings">Add skills</a>'} · <a href="#/impact">Your impact →</a></div>` : ''}
     <nav class="subtabs">${mine.length ? `<a href="#/challenges/mine" class="${sel === 'mine' ? 'on' : ''}">For you</a>` : ''}<a href="#/challenges/all" class="${!sel || skills.includes(sel) ? 'on' : ''}">All <small>${nOpen}</small></a>${me ? `<a href="#/challenges/working" class="${sel === 'working' ? 'on' : ''}">Working on <small>${nWork}</small></a>` : ''}<a href="#/challenges/solved" class="${sel === 'solved' ? 'on' : ''}">Solved <small>${nSolved}</small></a></nav>
     ${sel === 'working' || sel === 'solved' || sel === 'mine' ? '' : `<div class="chips chal-filter">${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>`}
-    ${shown.length ? shown.map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c), status: wstat.get(c.id) })).join('')
+    ${shown.length ? shown.slice(0, CHAL_PAGE).map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c), status: wstat.get(c.id) })).join('') + (shown.length > CHAL_PAGE ? `<div class="more-wrap"><button class="btn" type="button" data-chal-more>Show more challenges (${shown.length - CHAL_PAGE} left)</button></div>` : '')
       : sel === 'working' ? note('Nothing on the go', 'Take on a challenge and it gets a workspace here: your plan, notes, starting points and the bar to meet.') : sel === 'solved' ? note('None solved yet', 'Be the first: meet a challenge’s bar and your work is published on the goal’s feed.') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
+  // Long lists come in pages so the tab opens fast on phones.
+  let at = CHAL_PAGE;
+  view.querySelector('[data-chal-more]')?.addEventListener('click', (e) => {
+    const wrap = e.currentTarget.parentElement;
+    wrap.insertAdjacentHTML('beforebegin', shown.slice(at, at + CHAL_PAGE).map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c), status: wstat.get(c.id) })).join(''));
+    at += CHAL_PAGE;
+    if (at >= shown.length) wrap.remove(); else e.currentTarget.textContent = `Show more challenges (${shown.length - at} left)`;
+  });
 }
+const CHAL_PAGE = 15;
 
 // ------------------------------------------------------------ terminal
 // The paid view: every goal side by side, every open problem, exports.
@@ -4463,8 +4489,11 @@ document.addEventListener('toggle', (e) => {
   const d = e.target; if (!(d instanceof HTMLDetailsElement) || !d.classList.contains('sec') || !d.open) return;
   document.querySelectorAll(`details.sec[data-tab="${d.dataset.tab}"]`).forEach((x) => { if (x !== d) x.open = false; });
   try { localStorage.setItem(`px.sec.${d.dataset.tab}`, d.dataset.sec); } catch { /* fine */ }
-  d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Only after a tap: sections that start open fire this too, and shouldn't move the page.
+  if (Date.now() - secTapAt < 800) d.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }, true);
+let secTapAt = 0;
+document.addEventListener('click', (e) => { if (e.target.closest('details.sec > summary')) secTapAt = Date.now(); }, true);
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-tsel]'); if (!b || !term) return;
@@ -4682,13 +4711,15 @@ function renderTerminal(box, tab = 'overview') {
     calendar: () => (own ? `<div data-mp="x-cal">${timeline(t)}</div>` : (WIDE.matches ? '' : watchBar(t)) + sections(t, 'calendar')),
     crossovers: () => (own && t.crossovers?.keystones ? `<div data-mp="x-cross">${mapRoom(t)}</div>` : sections(t, 'crossovers')),
   };
-  const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For investors, funders, analysts and newsrooms</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
+  const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For anyone who wants the full picture</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
       <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
       <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">${trialNote()} The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>${t.trial_days ? `Start your free ${t.trial_days} days` : 'Subscribe monthly'}</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
   const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
-  box.querySelector('.ttabs [aria-selected=true]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  // Centre the active tab inside the strip only (scrollIntoView would also scroll the page on phones).
+  const on = box.querySelector('.ttabs [aria-selected=true]'), strip = on?.parentElement;
+  if (on && strip) strip.scrollLeft = on.offsetLeft - (strip.clientWidth - on.offsetWidth) / 2;
   box.querySelectorAll('[data-sub]').forEach((b) => { b.onclick = () => subscribe(b); });
   if (tab === 'calendar') { wireWatch(box); loadEmailPref(); }
   const bill = box.querySelector('#tBill');

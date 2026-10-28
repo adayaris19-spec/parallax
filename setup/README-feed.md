@@ -598,3 +598,10 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 - **Scheduled runs and new goals** use footage first automatically. About 40 cents per goal.
 - **Kept as they were:** Mars and Moon base (their footage was already right), and fusion's opening plasma clip.
 - **Avatars:** `goals.pic` holds a hand-picked avatar (the clearest single subject at circle size), and `goal_pictures` puts it first. Goals without one use their best judged shot automatically.
+
+## 46. Polish pass (phone)
+
+- **Pro loads from a cache:** `schema-terminal-cache.sql`. The terminal function serves the last report at once and rebuilds it in the background when it's over 5 minutes old (one copy per access level, about 0.5s instead of 4-6s).
+- **Faster feed:** the first page of posts loads alongside the goal list, and the idea of the day fetches one idea, not 300.
+- **Reads retry once** on a dropped connection or a busy server, and connection errors read as plain words.
+- **Layout:** idea and challenge pages stack on phones (a desktop-only two-column rule had leaked), Challenges loads 15 at a time, and Pro no longer jumps down the page on open.
