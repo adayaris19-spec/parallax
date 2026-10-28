@@ -160,6 +160,8 @@ function bestPixabayFile(vs: any): { url: string; width: number; height: number;
 // Clips already in any goal's videos (by their source id, since the same clip is copied per goal).
 // A clip appears once across the whole feed, so the Watch tab never shows the same shot twice.
 let usedClips = new Set<string>();
+// Creators whose clips are off limits for this run (a series already used elsewhere).
+let blockedCreators = new Set<string>();
 // Money as people say it: $20K, $1.5M, $2B.
 const money = (n: number) => n >= 1e9 ? `$${+(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`;
 const clipId = (u: string) => /\b((?:p[vp]|xv)\d+)\b/.exec(u)?.[1] ?? /(photo-\d+-[0-9a-f]+)/.exec(u)?.[1] ?? u.split("?")[0];
@@ -173,7 +175,7 @@ async function pixabayVideos(q: string, n = 3, vtype = "film"): Promise<Cand[]> 
     const f = bestPixabayFile(vs);
     const thumb = vs.medium?.thumbnail || f?.thumbnail || vs.small?.thumbnail || (v.picture_id ? `https://i.vimeocdn.com/video/${v.picture_id}_960x540.jpg` : "");
     if (!f || !thumb || (v.duration ?? 0) < 6) return null;
-    if (usedClips.has(`pv${v.id}`)) return null;
+    if (usedClips.has(`pv${v.id}`) || blockedCreators.has(String(v.user ?? ""))) return null;
     return { kind: "video", url: f.url, poster: thumb, credit: `${String(v.user ?? "Pixabay creator").slice(0, 50)} via Pixabay`, license: "Pixabay Content License", source_url: v.pageURL, source: "pixabay", landscape: (f.width ?? 0) > (f.height ?? 0), rehost: true, id: `pv${v.id}`, preview: vs.tiny?.thumbnail || vs.small?.thumbnail || thumb }; // the smallest preview: a third of the judging cost
   }).filter(Boolean).slice(0, n);
 }
@@ -294,7 +296,7 @@ let lastScores: Record<string, { pick: number; score: number; of: number }> = {}
 
 // Up to 8 candidates for one scene from its search terms: filmed Pixabay footage first (NASA too
 // for space goals), photos only if footage is scarce. Never a clip already in the feed.
-async function gather(qs: string[], space: boolean, taken: Set<string>, errors: string[]): Promise<Cand[]> {
+async function gather(qs: string[], space: boolean, taken: Set<string>, errors: string[], vtype = "film"): Promise<Cand[]> {
   const list: Cand[] = [];
   const seen = new Set<string>();
   const add = async (f: () => Promise<Cand[]>) => {
@@ -302,7 +304,7 @@ async function gather(qs: string[], space: boolean, taken: Set<string>, errors: 
     catch (e) { errors.push(e instanceof Error ? e.message : String(e)); }
   };
   const terms = qs.map((q) => q.trim()).filter(Boolean).slice(0, 4);
-  await Promise.all(terms.flatMap((q) => [add(() => pexelsVideos(q, 3)), add(() => pixabayVideos(q, 3))]));
+  await Promise.all(terms.flatMap((q) => [add(() => pexelsVideos(q, 3)), add(() => pixabayVideos(q, 3, vtype))]));
   if (space) await Promise.all(terms.slice(0, 2).map((q) => add(() => nasaVideos(q))));
   // Real photos when footage is scarce (Unsplash, then Wikimedia Commons, which has real clinics,
   // mosquitoes and lab work from health agencies).
@@ -314,7 +316,7 @@ async function gather(qs: string[], space: boolean, taken: Set<string>, errors: 
 // Find, judge and copy a fitting shot for each scene (live, not batched: used for repairs and for
 // scenes the first pass left empty). Search terms are rewritten by a cheaper model when asked.
 type Ask = { key: string; caption: string; sub?: string | null; search?: string[] };
-async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space: boolean, taken: Set<string>, errors: string[], rewrite = false, avoid: string[] = []) {
+async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space: boolean, taken: Set<string>, errors: string[], rewrite = false, avoid: string[] = [], cinematic = false) {
   const out: Record<string, Cand & { score: number; query: string }> = {};
   if (!asks.length) return out;
   if (rewrite || asks.some((a) => !a.search?.length)) {
@@ -326,14 +328,14 @@ async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space
     }).finalMessage().then(track("reels"))).parsed_output;
     for (const a of asks) a.search = r?.items.find((x) => x.key === a.key)?.search ?? a.search ?? [a.caption];
   }
-  const cands = await Promise.all(asks.map((a) => gather(a.search!, space, taken, errors)));
+  const cands = await Promise.all(asks.map((a) => gather(a.search!, space, taken, errors, cinematic ? "all" : "film")));
   const blocks = await Promise.all(cands.map((l) => Promise.all(l.map((c) => asBlock(c.preview ?? c.poster)))));
   // Ten scenes per judgement keeps each call well under the picture limit.
   for (let from = 0; from < asks.length; from += 10) {
     const idx = asks.map((_, i) => i).slice(from, from + 10).filter((i) => blocks[i].some(Boolean));
     if (!idx.length) continue;
     // deno-lint-ignore no-explicit-any
-    const content: any[] = [{ type: "text", text: EDITOR }];
+    const content: any[] = [{ type: "text", text: cinematic ? `${EDITOR}\nThis channel's look is cinematic: animated 3D science and space visuals (glowing particles, planets, machines, molecules, brains, cells) fit well and score 7-8 when they show the scene's world. Cartoons, characters, diagrams, test patterns and circuit-board stock shots score 1.` : EDITOR }];
     for (const i of idx) {
       content.push({ type: "text", text: `\nScene ${i}: "${asks[i].caption}"${asks[i].sub ? ` (${asks[i].sub})` : ""} in a video about ${g.name}` });
       cands[i].forEach((c, k) => { if (blocks[i][k]) { content.push({ type: "text", text: `Scene ${i}, candidate ${k} (${c.kind})` }); content.push(blocks[i][k]); } });
@@ -344,7 +346,7 @@ async function pickVisuals(g: { slug: string; name: string }, asks: Ask[], space
     catch (e) {
       // One unreadable picture spoils the whole call: judge these scenes one at a time instead.
       errors.push(`judge: ${e instanceof Error ? e.message.slice(0, 120) : e}`);
-      if (idx.length > 1) { for (const i of idx) { const one = await pickVisuals(g, [asks[i]], space, taken, errors, false); Object.assign(out, one); } }
+      if (idx.length > 1) { for (const i of idx) { const one = await pickVisuals(g, [asks[i]], space, taken, errors, false, [], cinematic); Object.assign(out, one); } }
       continue;
     }
     // One copy at a time: videos are big, and an edge function has little memory.
@@ -721,16 +723,17 @@ async function dropOld() {
   return { files: names.length, deleted: gone.length, kept_in_use: names.length - gone.length };
 }
 
-async function revisual(items: { reel_id: number; si: number }[], space: boolean, avoid: string[]) {
+async function revisual(items: { reel_id: number; si: number }[], space: boolean, avoid: string[], cinematic = false, blockCreators: string[] = []) {
   const ids = [...new Set(items.map((x) => Number(x.reel_id)))];
   const rows: { id: number; goal_id: number; scenes: { caption: string; sub: string | null; visual: Cand | null }[] }[] = await db(`reels?id=in.(${ids.join(",")})&select=id,goal_id,scenes`);
   const goalIds = [...new Set(rows.map((r) => r.goal_id))];
   if (goalIds.length !== 1) return { error: "one goal per call" };
   const g = (await db(`goals?id=eq.${goalIds[0]}&select=slug,name`))[0];
   usedClips = new Set(((await db(`reels?select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  blockedCreators = new Set(blockCreators);
   const asks: Ask[] = items.slice(0, 8).map((x) => { const sc = rows.find((r) => r.id === Number(x.reel_id))?.scenes[x.si]; return sc ? { key: `${x.reel_id}:${x.si}`, caption: sc.caption, sub: sc.sub } : null; }).filter(Boolean) as Ask[];
   const errors: string[] = [];
-  const got = await pickVisuals(g, asks, space, new Set(), errors, true, avoid);
+  const got = await pickVisuals(g, asks, space, new Set(), errors, true, avoid, cinematic);
   const gone: string[] = [];
   for (const r of rows) {
     let changed = false;
@@ -780,6 +783,7 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   // During a full remake, only the goals already done in this pass (and those kept) are off limits.
   const avoidIds = opts.avoid ? ((await db(`goals?slug=in.(${opts.avoid.map((x) => `"${x}"`).join(",")})&select=id`)) as { id: number }[]).map((x) => x.id).filter((id) => id !== g.id) : null;
   usedClips = new Set(((await db(avoidIds ? `reels?goal_id=in.(${avoidIds.join(",") || 0})&select=scenes` : `reels?goal_id=neq.${g.id}&select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  blockedCreators = new Set();
   const { facts, posts } = await goalFacts(g, true);
   const space = /mars|moon|space|orbit|asteroid|planet|rocket|satellite/i.test(`${g.slug} ${g.name}`);
   const errors: string[] = [];
@@ -814,7 +818,7 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   for (let from = 0; from < ids.length; from += 21) parts.push(ids.slice(from, from + 21));
   await Promise.all(parts.map(async (part) => {
     // deno-lint-ignore no-explicit-any
-    const content: any[] = [{ type: "text", text: `You pick footage for cinematic science videos about "${g.name}". The look: animated 3D science visuals (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) and striking real footage of the goal's own subject. For each clip (shown as one still frame) say what it literally shows, how clearly it relates to this goal's science or subject (fit), how cinematic, rich and beautiful it is full screen on a phone (quality), and how dynamic and eye-catching it would be in motion (dynamic). Fit 1 and quality 1 for cartoons, characters with faces, mascots, clip art, flat or childish illustrations, labelled diagrams, text and logos. Quality 3 or less for documentary snapshots: rooms, beds, hospital wards, X-ray films, offices, people posing or at computers, food, pets, unrelated landscapes.` }];
+    const content: any[] = [{ type: "text", text: `You pick footage for cinematic science videos about "${g.name}". The look: animated 3D science visuals (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) and striking real footage of the goal's own subject. For each clip (shown as one still frame) say what it literally shows, how clearly it relates to this goal's science or subject (fit), how cinematic, rich and beautiful it is full screen on a phone (quality), and how dynamic and eye-catching it would be in motion (dynamic). Fit 1 and quality 1 for cartoons, characters with faces, mascots, clip art, flat or childish illustrations, labelled diagrams, text and logos, TV test patterns or colour bars, and blank or near-black frames. Quality 3 or less for documentary snapshots: rooms, beds, hospital wards, X-ray films, offices, people posing or at computers, food, pets, unrelated landscapes.` }];
     for (const i of part) { content.push({ type: "text", text: `Picture ${i} (${cands[i].kind})` }); content.push(blocks[i]); }
     try {
       const v = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 8000, output_config: { effort: "low", format: betaZodOutputFormat(ShotVerdict) }, messages: [{ role: "user", content }] }).finalMessage().then(track("reels"))).parsed_output;
@@ -828,8 +832,9 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   // No look-alikes: one clip per creator series (Pixabay ids close together from the same creator),
   // none whose description matches a clip already kept or one in another goal's videos.
   const pvNum = (c: Cand) => Number(/^pv(\d+)$/.exec(c.id ?? "")?.[1] ?? NaN);
-  const others: string[] = ((await db(`visuals?select=caption,url&order=created_at.desc&limit=600`).catch(() => [])) as { caption: string | null; url: string }[])
-    .filter((v) => v.caption && usedClips.has(clipId(v.url))).map((v) => v.caption!);
+  const otherVis = ((await db(`visuals?select=caption,url,credit&order=created_at.desc&limit=800`).catch(() => [])) as { caption: string | null; url: string; credit: string }[])
+    .filter((v) => v.caption && usedClips.has(clipId(v.url)));
+  const others: string[] = otherVis.map((v) => v.caption!);
   const otherIds = [...usedClips].map((x) => Number(/^pv(\d+)$/.exec(x)?.[1] ?? NaN)).filter((n) => !isNaN(n));
   const overlap = (a: string, b: string) => { const A = words(a), B = words(b); const shared = [...A].filter((w) => B.has(w)).length; return shared / Math.max(1, Math.min(A.size, B.size)); };
   const alike = (a: string, b: string) => overlap(a, b) >= 0.6;
@@ -840,7 +845,9 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
     if (!isNaN(n) && otherIds.some((m) => Math.abs(m - n) < 15)) { cut.near++; continue; }
     if (shots.some((k) => !isNaN(n) && k.c.credit === j.c.credit && Math.abs(pvNum(k.c) - n) < 400)) { cut.series++; continue; }
     if (shots.some((k) => alike(k.shows, j.shows))) { cut.alike++; continue; }
-    if (others.some((o) => overlap(o, j.shows) >= 0.8)) { cut.other++; continue; }
+    // Same creator elsewhere with a similar subject: a stock series (9 near-identical circuit chips once).
+    if (others.some((o) => overlap(o, j.shows) >= 0.8) || otherVis.some((o) => o.credit === j.c.credit && overlap(o.caption!, j.shows) >= 0.34)) { cut.other++; continue; }
+    if (shots.filter((k) => k.c.credit === j.c.credit).length >= 2) { cut.series++; continue; }
     shots.push(j);
     if (shots.length >= 22) break;
   }
@@ -945,7 +952,7 @@ Deno.serve(async (req) => {
     // and judged by the editor's rules. Replaced shots leave the library so they're never reused.
     // Footage first: {"action": "footage_first", "slug": "end-malaria", "dry": true} previews without saving.
     if (body.action === "footage_first" && typeof body.slug === "string") return json(await footageFirst(body.slug, { dry: body.dry === true, avoid: Array.isArray(body.avoid) ? body.avoid : undefined }));
-    if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : []));
+    if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : [], body.cinematic === true, Array.isArray(body.block_creators) ? body.block_creators : []));
     // Admin review: what the footage search finds for some terms, as pictures.
     if (body.action === "peek" && Array.isArray(body.terms)) {
       const errs: string[] = [];
