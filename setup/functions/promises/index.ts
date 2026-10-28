@@ -265,7 +265,7 @@ type Check = { result: "ok" | "fixed" | "wrong" | "unsure"; headline?: string; v
 async function factCheck(headline: string, verdict: string, ctx: string): Promise<Check> {
   const m = await claude.messages.stream({
     model: CHECK_MODEL, max_tokens: 4000,
-    tools: [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: 6 }],
+    tools: [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: 4 }],
     system: `You fact-check one short post for Parallax, a public feed about scientific progress. Search the web to confirm what actually happened (dates, outcomes, numbers). Check the main claim first. Do not "fix" wording that is fair; only fix factual errors. Be strict: a wrong year, a wrong outcome, or a claim you cannot confirm is not ok. Mild wording is fine. Today is ${new Date().toISOString().slice(0, 10)}.
 Reply with only a JSON object: {"result": "ok" | "fixed" | "wrong" | "unsure", "headline": "...", "verdict": "...", "note": "..."}.
 ok: every factual claim is confirmed. fixed: a small factual error you can correct with confidence; give the corrected headline and verdict (same length and style). wrong: the main claim is false. unsure: you could not confirm the main claim. note: one sentence on what you checked.`,

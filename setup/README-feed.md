@@ -616,7 +616,7 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 
 ## 48. Promise fact check
 
-- **Before a promise verdict is posted,** a second reader (Sonnet with up to 6 web searches, `FACTCHECK_MODEL`) checks what it says happened. ok: posted as written. fixed: posted with the corrected text. wrong or unsure: held back and the promise is marked unclear. The result is kept in `posts.meta.fact_check`. About 3-5 cents per post.
+- **Before a promise verdict is posted,** a second reader (Sonnet with up to 4 web searches, `FACTCHECK_MODEL`) checks what it says happened. ok: posted as written. fixed: posted with the corrected text. wrong or unsure: held back and the promise is marked unclear. The result is kept in `posts.meta.fact_check`. About 10-15 cents per post (search results are long).
 - **Existing posts:** POST `{"action": "recheck_posts"}` checks up to 6 unchecked promise posts per call. Add `"dry": true` to keep posts that fail (only ok and fixed are written).
 
 ## 49. Animated scenes
