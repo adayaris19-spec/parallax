@@ -776,6 +776,35 @@ const Script = z.object({ reels: z.array(z.object({
   scenes: z.array(ScriptScene).describe("4 or 5 scenes."),
 })) });
 
+// Formats per goal, rotated by goal so neighbouring goals in the feed don't share a shape.
+const FORMATS = ["the race", "then vs now", "one experiment", "myth vs fact", "3 things", "the bill", "a question", "what's in the way", "the people"];
+const formatsFor = (slug: string) => { let h = 0; for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return [0, 1, 2].map((k) => FORMATS[(h + k * 4) % FORMATS.length]).join("; "); };
+
+// Rewrite a goal's videos around clips it already has (no new search or judging): new scripts with
+// the variety rules, the same approved footage. About a quarter of the cost of footage first.
+async function rescript(slug: string, opts: { dry?: boolean } = {}) {
+  const g = (await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at`))[0];
+  if (!g) return { error: "no such goal" };
+  const { facts, posts } = await goalFacts(g, true);
+  const current = ((await db(`reels?goal_id=eq.${g.id}&select=scenes`)) as { scenes: { visual?: Cand | null }[] }[]).flatMap((r) => r.scenes.map((x) => x.visual).filter(Boolean)) as Cand[];
+  // Approved clips stored for this goal that no other goal uses.
+  const others = new Set(((await db(`reels?goal_id=neq.${g.id}&select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean)));
+  const lib = ((await db(`visuals?url=like.*${encodeURIComponent(`/${slug}/`)}*&select=url,poster,kind,credit,license,source_url,source,caption,query,score&order=score.desc&limit=60`).catch(() => [])) as (Cand & { caption: string | null; query: string | null; score: number | null })[]);
+  const info = new Map(lib.map((v) => [v.url, v]));
+  const seen = new Set<string>();
+  const shots: { c: Cand; shows: string; fit: number; quality: number; action: boolean; dynamic: number }[] = [];
+  for (const v of [...current, ...lib]) {
+    if (!v?.url || seen.has(v.url) || others.has(clipId(v.url)) || (v.kind && v.kind !== "video")) continue;
+    seen.add(v.url);
+    const meta = info.get(v.url);
+    const shows = meta?.caption && !/[.!?]$/.test(meta.caption) ? meta.caption : (meta?.query || meta?.caption || "a clip from this goal's videos");
+    shots.push({ c: { kind: "video", url: v.url, poster: v.poster ?? v.url, credit: v.credit, license: v.license, source_url: v.source_url, source: v.source }, shows: String(shows).slice(0, 90), fit: 7, quality: 7, action: false, dynamic: 6 });
+    if (shots.length >= 18) break;
+  }
+  if (shots.length < 5) return { slug, error: "too few clips to rewrite", found: shots.length };
+  return writeReels(g, facts, posts, shots, [], { dry: opts.dry, format: formatsFor(slug) }, { candidates: shots.length });
+}
+
 async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[] } = {}) {
   const g = (await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at`))[0];
   if (!g) return { error: "no such goal" };
@@ -854,6 +883,13 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   const verdicts = opts.dry ? judged.map((j) => ({ fit: j.fit, quality: j.quality, dynamic: j.dynamic, action: j.action, kind: j.c.kind, source: j.c.source, shows: j.shows, poster: j.c.preview ?? j.c.poster })) : undefined;
   if (shots.length < 5) return { slug, error: "too few good shots", found: shots.length, passed: judged.filter(strict).length, cut, judged: judged.length, candidates: cands.length, terms, verdicts, errors: [...new Set(errors)].slice(0, 5) };
 
+  return writeReels(g, facts, posts, shots, errors, { ...opts, format: formatsFor(slug) }, { terms, candidates: cands.length, verdicts });
+}
+
+// Steps 4-5 of footage first: the script around approved shots, then copy and save.
+// deno-lint-ignore no-explicit-any
+async function writeReels(g: any, facts: string, posts: any[], shots: { c: Cand; shows: string; fit: number; quality: number; action: boolean; dynamic: number }[], errors: string[], opts: { dry?: boolean; format?: string }, extra: { terms?: string[]; candidates?: number; verdicts?: unknown }) {
+  const slug = g.slug;
   // 4. The script, written around the approved shots.
   const list = shots.map((x, i) => `S${i} [${x.c.kind}${x.action ? ", action" : ""}] ${x.shows}`).join("\n");
   const script = (await claude.beta.messages.stream({
@@ -862,6 +898,10 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
     system: `You write short vertical videos for Parallax, a feed of humanity's big goals. Captions only, no voice, over real footage.
 Use ONLY the facts given. Never invent numbers, names, dates or events.
 Write 2 or 3 reels of 4-5 scenes: always one intro, then only stories strong enough to hold a stranger.
+People scroll through many goals in a row, so each video must feel different from the last:
+- Give each reel its own shape. Use these formats for this goal, one per reel, in this order: ${opts.format ?? "the race; then vs now; one experiment"}. Formats: "the race" (who is competing, who is ahead), "then vs now" (a promise or number from years ago against today), "one experiment" (a single real result told as a mini story), "myth vs fact", "3 things" (three short surprising facts, one per scene), "the bill" (what it costs and who pays), "a question" (open on a question, answer it scene by scene), "what's in the way" (the bottleneck, made concrete), "the people" (a team or person doing the work).
+- Never use these stock scenes: a count of problems ("21 problems. None solved yet."), "X to Y years at today's pace", "research is speeding up / papers doubled", "an open challenge anyone can take on". At most one scene in the whole set may mention a count, a timeline or research volume, and only if it is the surprising point.
+- Vary layouts: no two scenes in a row with the same layout, and use "number", "center" and "top" as well as "bottom".
 What makes people watch:
 - Scene 1 is a hook: a stark contrast, a startling concrete fact, or an open question ("A 100-year-old vaccine still can't stop it"). Never the goal's name, a definition or a summary.
 - Every reel is one story with tension: a problem, the stakes for real people, a turn (what changed, what failed, who is trying something), and an ending that leaves a question or a next step.
@@ -879,7 +919,7 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
     if (ok) usedShot.add(sc.shot);
     return { caption: sc.caption, sub: sc.sub, shot: ok ? sc.shot : -1, shows: ok ? shots[sc.shot].shows : null, poster: ok ? (shots[sc.shot].c.preview ?? shots[sc.shot].c.poster) : null };
   }) }));
-  if (opts.dry) return { slug, terms, candidates: cands.length, approved: shots.length, verdicts, reels: preview, errors: [...new Set(errors)].slice(0, 5) };
+  if (opts.dry) return { slug, terms: extra.terms, candidates: extra.candidates, approved: shots.length, verdicts: extra.verdicts, reels: preview, errors: [...new Set(errors)].slice(0, 5) };
 
   // 5. Copy the chosen files and save, replacing the goal's videos.
   const visualOf = new Map<number, Cand>();
@@ -920,7 +960,7 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
   const lib = [...usedShot].filter((i) => visualOf.has(i)).map((i) => { const v = visualOf.get(i)!; return { url: v.url, poster: v.poster, kind: v.kind, credit: v.credit, license: v.license, source_url: v.source_url, source: v.source, query: shots[i].shows, caption: shots[i].shows, score: shots[i].fit }; });
   if (lib.length) await db("visuals?on_conflict=url", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: lib }).catch(() => {});
   await db(`goals?id=eq.${g.id}`, { method: "PATCH", prefer: "return=minimal", body: { reels_at: new Date().toISOString() } });
-  return { slug, terms, candidates: cands.length, approved: shots.length, reels: preview.map((r) => ({ kind: r.kind, title: r.title, hook: r.hook, scenes: r.scenes.map((x) => `${x.caption} | ${x.shows ?? "NO SHOT"}`) })), errors: [...new Set(errors)].slice(0, 5) };
+  return { slug, terms: extra.terms, candidates: extra.candidates, approved: shots.length, reels: preview.map((r) => ({ kind: r.kind, title: r.title, hook: r.hook, scenes: r.scenes.map((x) => `${x.caption} | ${x.shows ?? "NO SHOT"}`) })), errors: [...new Set(errors)].slice(0, 5) };
 }
 
 Deno.serve(async (req) => {
@@ -951,6 +991,7 @@ Deno.serve(async (req) => {
     // Repair: new shots for chosen scenes only ({items: [{reel_id, si}]}, one goal per call), found
     // and judged by the editor's rules. Replaced shots leave the library so they're never reused.
     // Footage first: {"action": "footage_first", "slug": "end-malaria", "dry": true} previews without saving.
+    if (body.action === "rescript" && typeof body.slug === "string") return json(await rescript(body.slug, { dry: body.dry === true }));
     if (body.action === "footage_first" && typeof body.slug === "string") return json(await footageFirst(body.slug, { dry: body.dry === true, avoid: Array.isArray(body.avoid) ? body.avoid : undefined }));
     if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : [], body.cinematic === true, Array.isArray(body.block_creators) ? body.block_creators : []));
     // Admin review: what the footage search finds for some terms, as pictures.

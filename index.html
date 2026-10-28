@@ -548,6 +548,8 @@ video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
 .rl-scene.cl-1 .rl-text h2{font-size:clamp(24px,6.4vw,31px)}
 .rl-scene.cl-2 .rl-text h2{font-size:clamp(21px,5.6vw,27px)}
 .rl-text h2 .w{display:inline-block}
+.rl-kick{display:inline-block;width:fit-content;align-self:flex-start;margin:0 0 10px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:600 12px var(--f);letter-spacing:.02em;color:#fff}
+.ly-center .rl-kick,.ly-quote .rl-kick{align-self:center}
 .rl-text h2 .w.num{background:linear-gradient(90deg,#fff,#AEB4FF 60%,#9CF0D8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .rl-scene.on.ta1 .rl-text h2{animation:none}.rl-scene.on.ta1 .rl-text h2 .w{animation:wordup .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 70ms)}
 .rl-scene.on.ta2 .rl-text > *{animation-name:slidein}
@@ -1229,6 +1231,8 @@ body.labpage main{max-width:1080px}
 .ly-number .rl-stat{font-size:clamp(96px,30vw,150px)}
 .rl-stat.long{font-size:clamp(56px,16vw,96px)}
 .ly-number .rl-stat.long{font-size:clamp(64px,19vw,120px)}
+.rl-stat.xlong,.ly-number .rl-stat.xlong{font-size:clamp(44px,12.5vw,78px)}
+.ly-number .rl-text{top:104px}
 .ly-number .rl-statl{font-size:17px}
 .ly-quote .rl-text{top:80px;bottom:clamp(300px,51vh,430px);display:flex;flex-direction:column;justify-content:center;left:30px;right:30px}
 .ly-quote .rl-text h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-style:italic;font-size:clamp(28px,7.4vw,36px);line-height:1.25;letter-spacing:-.01em}
@@ -3967,7 +3971,7 @@ function pipelinePanel(t) {
 // ---- Crossovers: problems shared between goals. The map, keystone problems and ripples.
 // "Since your last visit": the previous visit's time, kept for this session.
 let lastSeen = 0, seenMarked = false, termTab = null;
-function markSeen() { // called when Pro opens
+function markTermSeen() { // called when Pro opens
   if (seenMarked) return; seenMarked = true;
   try {
     let prev = Number(sessionStorage.getItem('px.termPrev') || 0);
@@ -4705,7 +4709,7 @@ async function wireWatch(box) {
 
 function renderTerminal(box, tab = 'overview') {
   const t = term, k = t.kpis, full = t.access === 'full';
-  if (full) markSeen();
+  if (full) markTermSeen();
   tab = TAB_ALIAS[tab] || tab; // old links
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   termTab = tab;
@@ -5588,7 +5592,7 @@ async function storyView(id) {
 // Lean back: short vertical videos, one goal after another. Each reel is a few scenes played like
 // a video: footage or a photo, a big caption, maybe one number counting up. Captions and music.
 // Tap "Dive in" to study the goal.
-const REEL_KIND = { intro: 'Meet the goal', breakthrough: 'Breakthrough', setback: 'Setback', promise: 'Promise vs reality', people: 'Who is working on it' };
+const REEL_KIND = { intro: 'Meet the goal', breakthrough: 'Breakthrough', setback: 'Setback', promise: 'Promise vs reality', people: 'Who is working on it', today: 'Today' };
 let watchState = { reels: [], timers: [], obs: null };
 
 // Music made in the browser (no licences, no cost): a small composer. Every video gets its own piece:
@@ -5691,7 +5695,14 @@ function markSeen(id) { try { const s = seenStories(); s.add(id); localStorage.s
 async function loadStories(list) {
   if (storyState.list && Date.now() - storyState.at < 120_000) return storyState.list;
   const since = new Date(Date.now() - 48 * 3600_000).toISOString();
-  const posts = await rest(`posts?created_at=gte.${since}&kind=in.(${STORY_KINDS.join(',')})&select=${POST_COLS}&order=created_at.desc&limit=80`).catch(() => []);
+  const yday = new Date(Date.now() - 86400_000).toISOString().slice(0, 10);
+  const [posts, daily] = await Promise.all([
+    rest(`posts?created_at=gte.${since}&kind=in.(${STORY_KINDS.join(',')})&select=${POST_COLS}&order=created_at.desc&limit=80`).catch(() => []),
+    // Today's story for each goal (written daily by the stories function); yesterday's until today's is ready.
+    rest(`daily_stories?day=gte.${yday}&select=goal_id,day,title,slides,created_at&order=day.desc`).catch(() => []),
+  ]);
+  const dailyBy = new Map();
+  for (const d of daily) if (!dailyBy.has(d.goal_id) && list.some((g) => g.id === d.goal_id)) dailyBy.set(d.goal_id, d);
   // One story per goal per day: the most important post of that day.
   const rank = (p) => STORY_KINDS.indexOf(p.kind);
   const pick = new Map();
@@ -5701,8 +5712,8 @@ async function loadStories(list) {
     if (!cur || rank(p) < rank(cur)) pick.set(k, p);
   }
   const chosen = [...pick.values()];
-  if (!chosen.length) return (storyState.list = [], storyState.at = Date.now(), []);
-  const goalIds = [...new Set(chosen.map((p) => p.goal_id))];
+  if (!chosen.length && !dailyBy.size) return (storyState.list = [], storyState.at = Date.now(), []);
+  const goalIds = [...new Set([...chosen.map((p) => p.goal_id), ...dailyBy.keys()])];
   const [nodes, reels] = await Promise.all([
     rest(`nodes?goal_id=in.(${goalIds.join(',')})&parent_key=not.is.null&select=goal_id,key,title,plain_title,status`).catch(() => []),
     rest(`reels?goal_id=in.(${goalIds.join(',')})&select=id,goal_id,post_id,kind,title,scenes,score,mood`).catch(() => []),
@@ -5717,8 +5728,6 @@ async function loadStories(list) {
     .then((r) => (r.ok ? r.json() : [])).catch(() => []);
   const out = chosen.map((p, i) => {
     const g = list.find((x) => x.id === p.goal_id), n = nodes.find((x) => x.goal_id === p.goal_id && x.key === p.node_key);
-    const rich = reels.find((r) => r.post_id === p.id && (r.scenes || []).length);
-    if (rich) return { ...rich, id: `s${p.id}`, story: p.id, created_at: p.created_at };
     const mine = own.get(p.goal_id) || [], shift = p.id % Math.max(1, mine.length);
     const rot = [...mine.slice(shift), ...mine.slice(0, shift)];
     const v = videosFirst(uniq([...(visuals[i] || []), ...rot])), vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
@@ -5728,10 +5737,21 @@ async function loadStories(list) {
     const scenes = [
       { caption: p.headline, sub: null, stat: null, visual: vis(v[0]), layout: 'bottom' },
       why ? { caption: why, sub: n ? n.title : null, stat: null, visual: vis(v[1] || v[0]), layout: 'center' } : null,
-      { caption: n ? `${n.title}: ${lowerFirst(leafStatusLabel(n.status))}` : g.name, sub: g.horizon_low != null ? `About ${horizonText(g).replace(' yrs', ' years')} to go at today’s pace.` : null, stat: gl.length ? { value: `${solvedN}/${gl.length}`, label: `problems solved toward ${lowerFirst(g.name)}` } : null, visual: vis(v[2] || v[0]), layout: 'number' },
+      // (No stock 'N of M solved / years to go' slide: it made every story look the same.)
+      n && why ? null : { caption: n ? `${n.title}: ${lowerFirst(leafStatusLabel(n.status))}` : g.name, sub: g.tagline || null, stat: null, visual: vis(v[2] || v[1] || v[0]), layout: 'top' },
     ].filter(Boolean);
     return { id: `s${p.id}`, story: p.id, goal_id: p.goal_id, post_id: p.id, kind: p.kind, mood: STORY_MOOD[p.kind] || 'calm', scenes, created_at: p.created_at };
   });
+  // Daily stories: fresh slides over the goal's own clips, rotated by day so they look new too.
+  const dayN = Math.floor(Date.now() / 86400_000);
+  for (const [gid, d] of dailyBy) {
+    const mine = own.get(gid) || [], shift = (dayN * 3) % Math.max(1, mine.length);
+    const rot = [...mine.slice(shift), ...mine.slice(0, shift)];
+    const vis = (x) => (x ? { kind: x.kind, url: x.url, poster: x.poster, credit: x.credit, license: x.license, source_url: x.source_url } : null);
+    const scenes = (d.slides || []).map((sl, k) => ({ kicker: sl.kicker, caption: sl.caption, sub: sl.sub, stat: sl.stat, visual: vis(rot[k % Math.max(1, rot.length)]),
+      layout: sl.stat ? 'number' : ['bottom', 'center', 'top'][(k + dayN) % 3] }));
+    if (scenes.length) out.unshift({ id: `d${gid}-${d.day}`, story: `d${gid}-${d.day}`, goal_id: gid, post_id: null, kind: 'today', mood: 'uplifting', title: d.title, scenes, created_at: d.created_at });
+  }
   storyState.list = out; storyState.at = Date.now();
   return out;
 }
@@ -5787,7 +5807,7 @@ function reelCard(r, g, i) {
       // Each scene enters a little differently, so a run of videos doesn't feel like one template.
       const ta = ` ta${(hue(g.slug + r.id) + k * 3) % 5}`, mv = ` mv${(hue(String(r.id)) + k) % 4}`;
       return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
-      <div class="rl-text">${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{4,}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
+      <div class="rl-text">${s.kicker ? `<span class="rl-kick">${esc(s.kicker)}</span>` : ''}${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 7 ? ' xlong' : String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{5,}$|^(?!1[89]\d\d$|20\d\d$)\d{4}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
         <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : capWords(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
       ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
@@ -5815,7 +5835,8 @@ function reelPlayer(card) {
     const m = /^([^0-9]*)([0-9][0-9,.]*)(.*)$/.exec(el.dataset.stat || '');
     if (!m || REDUCED) return;
     const target = Number(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length, s0 = performance.now();
-    const fmt = (v) => (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US'));
+    const year = /^(1[89]|20)\d\d$/.test(m[2]) && !m[1] && !m[3]; // a year counts up without a comma
+    const fmt = (v) => (dec ? v.toFixed(dec) : year ? String(Math.round(v)) : Math.round(v).toLocaleString('en-US'));
     const step = (t) => { const p = Math.min(1, (t - s0) / 900), e = 1 - Math.pow(1 - p, 3); el.textContent = m[1] + fmt(target * e) + m[3]; if (p < 1 && el.isConnected) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   };
@@ -5872,7 +5893,8 @@ async function watchView(slug, storiesMode = false) {
     // Stories: this goal's first, then other goals with unseen stories, then the rest; oldest first within a goal.
     const st = await loadStories(list).catch(() => []), seen = seenStories();
     const byGoal = new Map();
-    for (const s of [...st].sort((a, b) => a.created_at.localeCompare(b.created_at))) byGoal.set(s.goal_id, [...(byGoal.get(s.goal_id) || []), s]);
+    // Today's story first, then the goal's news, oldest first.
+    for (const s of [...st].sort((a, b) => Number(b.kind === 'today') - Number(a.kind === 'today') || a.created_at.localeCompare(b.created_at))) byGoal.set(s.goal_id, [...(byGoal.get(s.goal_id) || []), s]);
     const start = list.find((g) => g.slug === slug);
     const goalsOrder = [...byGoal.keys()].sort((a, b) => (a === start?.id ? -1 : b === start?.id ? 1 : Number(byGoal.get(b).some((s) => !seen.has(s.story))) - Number(byGoal.get(a).some((s) => !seen.has(s.story)))));
     ordered = goalsOrder.flatMap((id) => byGoal.get(id));
