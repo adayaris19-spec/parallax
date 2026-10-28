@@ -1044,6 +1044,12 @@ Deno.serve(async (req) => {
       const c = body.vtype ? (await Promise.all((body.terms as string[]).map((q) => pixabayVideos(q, 4, String(body.vtype))))).flat() : await gather(body.terms, body.space === true, new Set(), errs);
       return json({ errors: errs, unsplash_left: unsplashLeft, items: await Promise.all(c.map(async (x) => { const block = await asBlock(x.preview ?? x.poster); return { id: x.id, kind: x.kind, source: x.source, block, why: block ? null : await fetch(x.preview ?? x.poster, { headers: { "User-Agent": `Parallax/1.0 (${MAIL})` } }).then((r) => `${r.status} ${r.headers.get("content-type")} ${r.headers.get("content-length")} ${x.preview ?? x.poster}`).catch((e) => String(e)) }; })) });
     }
+    // Admin: one of our own stored media files, as raw bytes (for editing social clips offline).
+    if (body.action === "file" && typeof body.path === "string" && R2_PUBLIC && /^[a-z0-9-]+\/[A-Za-z0-9._-]+\.(mp4|jpg)$/.test(body.path)) {
+      const r = await fetch(`${R2_PUBLIC}/${body.path}`);
+      if (!r.ok) return json({ error: `file ${r.status}` }, 404);
+      return new Response(r.body, { headers: { "Content-Type": r.headers.get("content-type") ?? "application/octet-stream" } });
+    }
     // Admin review: our own stored posters as data, for checking the videos by eye.
     if (body.action === "posters" && Array.isArray(body.urls)) {
       const urls = (body.urls as string[]).filter((u) => typeof u === "string" && /^https:\/\//.test(u)).slice(0, 40);
