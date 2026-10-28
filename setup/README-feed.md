@@ -613,3 +613,8 @@ Run `schema-pictures.sql` again and redeploy `reels`.
 - **Video variety:** `{"action": "rescript", "slug": "<slug>"}` rewrites a goal's videos around clips it already has (no new search; about 8 cents). Scripts follow per-goal formats (the race, then vs now, one experiment, myth vs fact, 3 things, the bill, a question, what's in the way, the people), rotated across goals. Stock scenes (problem counts, years at today's pace, research volume, open challenge) are banned, and layouts must vary. Footage first uses the same rules.
 - **Player:** five text entrances and four camera moves vary scene to scene, numbers glow, long captions shrink and sit low, years show without commas.
 - **Stories look different from Watch:** in stories mode (`.st-mode`) slide text sits on a frosted card with a coloured tag, the header reads "Today's story" with the date, the big white button becomes a small "See @goal" pill, and entrances are quick. Daily stories are 2-3 slides.
+
+## 48. Promise fact check
+
+- **Before a promise verdict is posted,** a second reader (Sonnet with up to 6 web searches, `FACTCHECK_MODEL`) checks what it says happened. ok: posted as written. fixed: posted with the corrected text. wrong or unsure: held back and the promise is marked unclear. The result is kept in `posts.meta.fact_check`. About 3-5 cents per post.
+- **Existing posts:** POST `{"action": "recheck_posts"}` checks up to 6 unchecked promise posts per call. Add `"dry": true` to keep posts that fail (only ok and fixed are written).
