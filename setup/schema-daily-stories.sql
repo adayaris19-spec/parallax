@@ -1,4 +1,4 @@
--- PARALLAX daily stories: the story circles at the top of the feed, one fresh 3-4 slide story per
+-- PARALLAX daily stories: the story circles at the top of the feed, one fresh 2-3 slide story per
 -- goal per day (written by the `stories` function), different from the Watch videos.
 create table if not exists daily_stories (
   goal_id bigint not null references goals(id) on delete cascade,

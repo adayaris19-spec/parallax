@@ -1,6 +1,6 @@
 // PARALLAX stories — Supabase Edge Function named `stories` (Verify JWT on, admin header).
 //
-// The story circles at the top of the feed: a fresh 3-4 slide story per goal every day, different
+// The story circles at the top of the feed: a fresh 2-3 slide story per goal every day, different
 // from the goal's Watch videos. Each day picks a rotating handful of real material for the goal (this
 // week's posts, a grant or trial, a problem's why, an idea to test, a challenge, a promise coming due)
 // and Sonnet writes short, surprising slides from it. Only facts given; nothing invented. The site
@@ -47,7 +47,7 @@ const Slide = z.object({
   stat_value: z.string().describe("A striking number from the facts, like 47% or $6.3M, at most 6 characters. Never a year. Empty if none."),
   stat_label: z.string().describe("What the number means, at most 6 words. Empty if no number."),
 });
-const Story = z.object({ title: z.string().describe("At most 7 words"), slides: z.array(Slide).describe("3 or 4 slides") });
+const Story = z.object({ title: z.string().describe("At most 7 words"), slides: z.array(Slide).describe("2 or 3 slides") });
 
 // A simple seeded shuffle, so each day (and each goal) gets a different handful of material.
 function pick<T>(arr: T[], n: number, seed: number): T[] {
@@ -91,7 +91,7 @@ async function write(g: { id: number; slug: string; name: string; handle: string
   const recent = (yesterday as any[]).flatMap((s) => (s.slides || []).map((x: { caption: string }) => x.caption)).slice(0, 12);
   const m = await claude.beta.messages.stream({
     model: MODEL, max_tokens: 4000, output_config: { effort: "low", format: betaZodOutputFormat(Story) },
-    system: `You write today's story for one goal on Parallax, a feed that follows humanity's biggest goals. It shows as 3-4 tap-through slides over video, like Instagram stories. It should make a curious person stop and learn something they didn't know.
+    system: `You write today's story for one goal on Parallax, a feed that follows humanity's biggest goals. It shows as 2-3 tap-through slides over video (a new one comes every day, so keep it short), like Instagram stories. It should make a curious person stop and learn something they didn't know.
 Use ONLY the material given; never invent numbers, names, dates or events. Plain words; explain any technical term in a few words.
 - Slide 1 is the most surprising single fact in the material, said in a way that makes people tap on.
 - Each slide is one idea. Mix kinds: a number, a person or team, a catch, something to try.
@@ -101,7 +101,7 @@ Use ONLY the material given; never invent numbers, names, dates or events. Plain
   }).finalMessage().then(track);
   const story = m.parsed_output as z.infer<typeof Story> | null;
   if (!story?.slides?.length) return null;
-  const slides = story.slides.slice(0, 4).map((s) => ({ kicker: s.kicker, caption: s.caption.trim().slice(0, 110), sub: s.sub.trim().slice(0, 200) || null, stat: s.stat_value.trim() ? { value: s.stat_value.trim().slice(0, 16), label: s.stat_label.trim().slice(0, 60) } : null }));
+  const slides = story.slides.slice(0, 3).map((s) => ({ kicker: s.kicker, caption: s.caption.trim().slice(0, 110), sub: s.sub.trim().slice(0, 200) || null, stat: s.stat_value.trim() ? { value: s.stat_value.trim().slice(0, 16), label: s.stat_label.trim().slice(0, 60) } : null }));
   await db("daily_stories?on_conflict=goal_id,day", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: { goal_id: g.id, day, title: story.title.slice(0, 80), slides } });
   return { slug: g.slug, title: story.title, slides: slides.map((s: { caption: string }) => s.caption) };
 }
