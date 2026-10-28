@@ -285,6 +285,8 @@ async function submit(slug?: string, key?: string) {
     // Problems the model declined (a safety refusal, or no ideas twice) aren't sent again: each
     // retry costs money and would come back empty the same way.
     const tries = new Map<string, number>();
+    const triedKeys = new Set<string>();
+    for (const j of await db(`idea_jobs?goal_id=eq.${g.id}&status=eq.done&select=keys`)) for (const k of (j.keys ?? []) as string[]) triedKeys.add(k);
     for (const j of await db(`idea_jobs?goal_id=eq.${g.id}&status=eq.done&note=not.is.null&select=note`)) {
       for (const part of String(j.note).split(" | ")) {
         const m = part.match(/^(\S+): no ideas( \(refusal\))?/);
@@ -294,7 +296,8 @@ async function submit(slug?: string, key?: string) {
     const declined = new Set([...tries].filter(([, n]) => n >= 2).map(([k]) => k));
     // Four or more problems declined and not one idea yet: the whole goal is the kind the model
     // won't write ideas for (virus research, for one). Every problem shows its trials instead.
-    if (declined.size >= 4 && !have.length) {
+    // (Only after a real sample: one first round of 4 refusals isn't enough to judge 20 problems.)
+    if (declined.size >= 4 && triedKeys.size >= 8 && declined.size >= triedKeys.size * 0.6 && !have.length) {
       await declineNodes(g.id, (nodes as Node[]).filter((n) => n.parent_key).map((n) => n.key));
       continue;
     }
