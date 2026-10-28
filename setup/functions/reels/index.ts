@@ -815,11 +815,23 @@ async function ownClips(g: any, slug: string) {
 
 // Rewrite a goal's videos around clips it already has (no new search or judging): new scripts with
 // the variety rules, the same approved footage. About a quarter of the cost of footage first.
-async function rescript(slug: string, opts: { dry?: boolean } = {}) {
+// Animated scenes the site draws itself (see ParallaxScene in index.html), for goals short on footage.
+const ANIMS: { url: string; shows: string; fits: RegExp }[] = [
+  { url: "anim:dna", shows: "animated glowing DNA double helix spinning, with floating motes", fits: /./ },
+  { url: "anim:cells", shows: "animated translucent cells with glowing nuclei drifting in depth", fits: /./ },
+  { url: "anim:bloodstream", shows: "animated red blood cells streaming past through a vessel", fits: /malaria|blood|cancer|hiv|diabet|organ|aging|tubercul|heart|vaccin/i },
+  { url: "anim:neurons", shows: "animated neurons with signals racing along branching connections", fits: /brain|alzheim|depress|spinal|sight|neur|interface|aging/i },
+  { url: "anim:aurora", shows: "animated luminous aurora curtains drifting", fits: /energy|grid|carbon|climate|water|desal|fusion|storage|battery|food|feed/i },
+  { url: "anim:warp", shows: "animated streaks of light rushing toward the viewer", fits: /fusion|quantum|supercond|space|mars|moon|battery|grid|interface/i },
+];
+const animShots = (g: { slug: string; name: string }) => ANIMS.filter((a) => a.fits.test(`${g.slug} ${g.name}`)).slice(0, 4)
+  .map((a) => ({ c: { kind: "anim" as Cand["kind"], url: a.url, poster: "", credit: "Animation by Parallax", license: "Parallax", source_url: "", source: "parallax" }, shows: `[animation] ${a.shows}`, fit: 7, quality: 7, action: true, dynamic: 7 }));
+
+async function rescript(slug: string, opts: { dry?: boolean; anim?: boolean } = {}) {
   const g = (await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,reels_at`))[0];
   if (!g) return { error: "no such goal" };
   const { facts, posts } = await goalFacts(g, true);
-  const shots = await ownClips(g, slug);
+  const shots = [...(await ownClips(g, slug)), ...(opts.anim ? animShots(g) : [])];
   if (shots.length < 5) return { slug, error: "too few clips to rewrite", found: shots.length };
   return writeReels(g, facts, posts, shots, [], { dry: opts.dry, format: formatsFor(slug) }, { candidates: shots.length });
 }
@@ -937,7 +949,7 @@ What makes people watch:
 - Every reel is one story with tension: a problem, the stakes for real people, a turn (what changed, what failed, who is trying something), and an ending that leaves a question or a next step.
 - Each caption is a punch, at most 9 words, spoken style. Concrete nouns and numbers beat adjectives. The sub line adds the detail.
 - Never: "revolutionary", "game-changer", "unlock", "the future of", "imagine", "journey", "landscape", "crucial", "key", vague words like "progress is being made".
-Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Clips marked [new] haven't been in this goal's videos yet: use every [new] clip that fits, so returning viewers see new footage. Vary them: never two of the same kind in a row, at most 2 clips of the same subject in the whole set (2 wind turbines, 2 smokestacks, 2 DNA helices), and open every reel on the most dynamic, eye-catching clip that fits. Fewer scenes beat repeats.
+Shots: every scene uses one approved clip (S number), each at most once. Animated science clips (cells, particles, molecules) suit captions about the science; real clips go where the caption is about that very thing. Never a clip that contradicts the caption. Clips marked [animation] are drawn animations: use them only where real footage is missing, never in scene 1, at most 2 per reel. Clips marked [new] haven't been in this goal's videos yet: use every [new] clip that fits, so returning viewers see new footage. Vary them: never two of the same kind in a row, at most 2 clips of the same subject in the whole set (2 wind turbines, 2 smokestacks, 2 DNA helices), and open every reel on the most dynamic, eye-catching clip that fits. Fewer scenes beat repeats.
 Score each reel's hook honestly; a reel under 7 is not worth making.`,
     messages: [{ role: "user", content: `${facts}\n\nAPPROVED SHOTS (${shots.length}; make ${shots.length >= 14 ? "up to 3 reels" : shots.length >= 10 ? "2 reels" : "1 intro reel of 4-5 scenes"}):\n${list}` }],
   }).finalMessage().then(track("reels"))).parsed_output;
@@ -955,6 +967,8 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
   const visualOf = new Map<number, Cand>();
   const copy = async (i: number) => {
     const c = shots[i].c;
+    // Animated scenes are drawn by the site itself: nothing to copy.
+    if (c.kind === ("anim" as Cand["kind"])) { visualOf.set(i, { kind: c.kind, url: c.url, poster: "", credit: "Animation by Parallax", license: "Parallax", source_url: "", source: "parallax" }); return; }
     try {
       let url = c.url, poster = c.poster;
       if (c.kind === "image" && !(await alive(url, /^image\//))) url = (await alive(c.poster, /^image\//)) ? c.poster : "";
@@ -1021,7 +1035,7 @@ Deno.serve(async (req) => {
     // Repair: new shots for chosen scenes only ({items: [{reel_id, si}]}, one goal per call), found
     // and judged by the editor's rules. Replaced shots leave the library so they're never reused.
     // Footage first: {"action": "footage_first", "slug": "end-malaria", "dry": true} previews without saving.
-    if (body.action === "rescript" && typeof body.slug === "string") return json(await rescript(body.slug, { dry: body.dry === true }));
+    if (body.action === "rescript" && typeof body.slug === "string") return json(await rescript(body.slug, { dry: body.dry === true, anim: body.anim === true }));
     if (body.action === "footage_first" && typeof body.slug === "string") return json(await footageFirst(body.slug, { dry: body.dry === true, light: body.light === true, avoid: Array.isArray(body.avoid) ? body.avoid : undefined }));
     if (body.action === "revisual" && Array.isArray(body.items)) return json(await revisual(body.items, body.space === true, Array.isArray(body.avoid) ? body.avoid : [], body.cinematic === true, Array.isArray(body.block_creators) ? body.block_creators : []));
     // Admin review: what the footage search finds for some terms, as pictures.

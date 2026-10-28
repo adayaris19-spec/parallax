@@ -9,7 +9,7 @@ create or replace view goal_pictures as
       (r.kind = 'intro') as intro, r.score, ord,
       exists (select 1 from visuals v where v.url = s->'visual'->>'url') as judged
     from reels r, jsonb_array_elements(r.scenes) with ordinality as e(s, ord)
-    where coalesce(s->'visual'->>'url', '') <> ''
+    where coalesce(s->'visual'->>'url', '') <> '' and coalesce(s->'visual'->>'kind', '') <> 'anim'
   ), uniq as (
     select distinct on (goal_id, url) goal_id, url, intro, score, ord, judged from shots where url is not null
     order by goal_id, url, judged desc, intro desc, score desc
