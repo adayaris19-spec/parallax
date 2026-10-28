@@ -6,7 +6,7 @@
 --   2. map the next goal waiting in the queue.
 -- A queued goal whose request never produced a goal (the model was down when it was
 -- understood) goes back in the queue, at most 3 times.
--- Scheduled every 2 hours (12 goals a day; prepaid OpenAlex credit covers the libraries). Run in the SQL Editor after replacing
+-- Scheduled every hour (up to 24 goals a day while the budget allows; prepaid OpenAlex credit covers the libraries). Run in the SQL Editor after replacing
 -- <ANON_KEY> and <ADMIN_TOKEN>. To stop it: select cron.unschedule('parallax-seed');
 
 create table if not exists seed_queue (
@@ -100,4 +100,4 @@ $fn$;
 revoke all on function parallax_seed_tick() from public, anon, authenticated;
 
 select cron.unschedule('parallax-seed') where exists (select 1 from cron.job where jobname = 'parallax-seed');
-select cron.schedule('parallax-seed', '17 */2 * * *', $$ select parallax_seed_tick(); $$);
+select cron.schedule('parallax-seed', '17 * * * *', $$ select parallax_seed_tick(); $$);
