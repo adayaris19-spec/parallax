@@ -2146,7 +2146,7 @@ body.wsw main{max-width:1000px}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
+  <br><a href="#/welcome">About Parallax</a> · <a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -2779,6 +2779,8 @@ const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TAB
 
 // Homepage: what a first-time visitor sees at the root (and anyone at #/welcome). Everything on it
 // is live: the goals, the counts and the example posts come from the same data as the feed.
+// A saved sign-in, known before the auth library loads (so signed-in people never see the homepage flash).
+const hasSession = () => { try { return !!localStorage.getItem('sb-zfmjjazkmolvywvayjzj-auth-token'); } catch { return false; } };
 const markIntroSeen = () => { try { localStorage.setItem('px.intro', '1'); } catch { /* private mode */ } };
 async function homeView() {
   document.body.classList.add('home');
@@ -6391,7 +6393,8 @@ function route() {
   if (parts[0] === 'g' && parts[4] === 'backed') { setTimeout(() => toast('Thank you for backing this problem. It shows here in a moment.'), 600); history.replaceState(null, '', location.pathname + `#/g/${encodeURIComponent(parts[1])}/tree/${encodeURIComponent(parts[3])}`); }
   if (parts[0] === 'g' && parts[1]) return goalView(parts[1], { posts: 'posts', promises: 'promises' }[parts[2]] || 'overview', parts[2] === 'tree' ? parts[3] : undefined, parts[2] === 'map');
   if (parts[0] === 'welcome') return homeView();
-  if (!parts[0] && !me && !introSeen()) return homeView();
+  // Signed-out visitors who open the plain address get the homepage; inside the site, #/ is the feed.
+  if (!parts[0] && !me && !hasSession() && (!location.hash || !introSeen())) return homeView();
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
