@@ -548,6 +548,26 @@ video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
 .rl-scene.cl-1 .rl-text h2{font-size:clamp(24px,6.4vw,31px)}
 .rl-scene.cl-2 .rl-text h2{font-size:clamp(21px,5.6vw,27px)}
 .rl-text h2 .w{display:inline-block}
+/* Stories look like stories, not like Watch: text on a frosted card, a bold tag, a small pill
+   instead of the big button, more of the video showing, quick snappy entrances. */
+.st-mode .rl-shade{background:linear-gradient(180deg,rgba(5,6,11,.45) 0%,rgba(5,6,11,0) 22%,rgba(5,6,11,0) 55%,rgba(5,6,11,.35) 100%)!important}
+.st-mode .rl-text,.st-mode .ly-center .rl-text,.st-mode .ly-top .rl-text,.st-mode .ly-number .rl-text,.st-mode .ly-quote .rl-text{top:auto;bottom:104px;left:16px;right:78px;display:block;text-align:left;padding:16px 18px 18px;border-radius:22px;background:rgba(12,14,24,.58);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.st-mode .ly-top .rl-text{top:104px;bottom:auto}
+.st-mode .rl-text h2,.st-mode .ly-center .rl-text h2,.st-mode .ly-quote .rl-text h2{font-family:var(--f);font-style:normal;font-weight:650;font-size:clamp(21px,5.8vw,27px);line-height:1.15;letter-spacing:-.02em}
+.st-mode .rl-text p{font-size:15px;margin-top:9px}
+.st-mode .rl-stat,.st-mode .ly-number .rl-stat,.st-mode .ly-number .rl-stat.long{font-size:clamp(46px,14vw,72px);line-height:1}
+.st-mode .rl-stat.xlong{font-size:clamp(34px,10vw,52px)}
+.st-mode .rl-statl{font-size:13px;margin:4px 0 10px}
+.st-mode .rl-kick{position:absolute;top:-14px;left:14px;margin:0;padding:6px 12px;border-radius:8px;transform:rotate(-2.5deg);font:700 12px var(--m);letter-spacing:.06em;text-transform:uppercase;color:#0B0C14;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.st-mode .rl-kick.k0{background:#FFD66B}.st-mode .rl-kick.k1{background:#9CF0D8}.st-mode .rl-kick.k2{background:#FFB4C8}.st-mode .rl-kick.k3{background:#B9C0FF}
+.st-mode .rl-text:has(.rl-kick){padding-top:24px}
+.st-mode .rl-scene.on .rl-text{animation:stcard .35s cubic-bezier(.2,1.2,.4,1) both}
+.st-mode .rl-scene.on .rl-text > *,.st-mode .rl-scene.on .rl-text h2,.st-mode .rl-scene.on .rl-text h2 .w{animation:none!important}
+@keyframes stcard{from{opacity:0;transform:translateY(14px) scale(.96)}}
+.st-mode .rl-dive{left:50%;right:auto;transform:translateX(-50%);width:auto;height:40px;padding:0 18px;bottom:40px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:14px}
+.st-mode .rl-bars i{height:2px}
+.st-mode .rl-text h2 .w.num{background:none;color:#FFD66B;-webkit-background-clip:initial;background-clip:initial}
+
 .rl-kick{display:inline-block;width:fit-content;align-self:flex-start;margin:0 0 10px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:600 12px var(--f);letter-spacing:.02em;color:#fff}
 .ly-center .rl-kick,.ly-quote .rl-kick{align-self:center}
 .rl-text h2 .w.num{background:linear-gradient(90deg,#fff,#AEB4FF 60%,#9CF0D8);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -5807,11 +5827,11 @@ function reelCard(r, g, i) {
       // Each scene enters a little differently, so a run of videos doesn't feel like one template.
       const ta = ` ta${(hue(g.slug + r.id) + k * 3) % 5}`, mv = ` mv${(hue(String(r.id)) + k) % 4}`;
       return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}">${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
-      <div class="rl-text">${s.kicker ? `<span class="rl-kick">${esc(s.kicker)}</span>` : ''}${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 7 ? ' xlong' : String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{5,}$|^(?!1[89]\d\d$|20\d\d$)\d{4}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
+      <div class="rl-text">${s.kicker ? `<span class="rl-kick k${String(s.kicker).length % 4}">${esc(s.kicker)}</span>` : ''}${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 7 ? ' xlong' : String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{5,}$|^(?!1[89]\d\d$|20\d\d$)\d{4}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
         <h2>${ly === 'quote' ? `“${esc(s.caption)}”` : capWords(s.caption)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
       ${s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
-      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(g.pics[0]).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
+      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(g.pics[0]).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
     <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
     <button type="button" class="rl-tap next" data-rl="next" aria-label="Next scene"></button>
@@ -5820,7 +5840,7 @@ function reelCard(r, g, i) {
       <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
       <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
     </div>
-    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">${r.story ? 'Read the research' : `Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`}`} <span aria-hidden="true">→</span></a>
+    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">${r.kind === 'today' ? `See @${esc(g.handle)}` : r.story ? 'Read the research' : `Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`}`} <span aria-hidden="true">→</span></a>
   </section>`;
 }
 const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
@@ -5881,7 +5901,7 @@ function reelPlayer(card) {
 
 async function watchView(slug, storiesMode = false) {
   document.body.classList.add('swipe');
-  view.innerHTML = `${storiesMode ? '' : navTabs('watch')}<div class="sw-wrap">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
+  view.innerHTML = `${storiesMode ? '' : navTabs('watch')}<div class="sw-wrap${storiesMode ? ' st-mode' : ''}">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
   const box = $('#sw');
   let list, reels;
   try {
