@@ -2,11 +2,12 @@
 // connection. The page shell is served from the phone at once and refreshed in the background (the
 // next visit gets any new version); fonts and libraries come from the phone; data is fetched fresh,
 // falling back to the last copy when offline. Videos are never cached here (they stream).
-const V = "px-v45";
+const V = "px-v46";
 const SHELL = ["./", "index.html", "icon.svg", "icon-180.png", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache, so a new version never installs an old page.
+  e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
