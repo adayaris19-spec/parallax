@@ -23,7 +23,6 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://zfmjjazkmolvywvayjzj.supabase.co" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
@@ -1080,8 +1079,8 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .wk-inc{list-style:none;padding:0;margin:18px 0 0;text-align:left;display:grid;gap:10px}
 .wk-inc li{font-size:clamp(14px,4.2cqw,17px);padding-left:22px;position:relative}
 .wk-inc li::before{content:"";position:absolute;left:0;top:.5em;width:10px;height:10px;border-radius:3px;background:#C4C8FF}
-.wk-chs{position:absolute;left:14px;right:14px;bottom:42px;z-index:3;display:flex;gap:6px;pointer-events:none}
-.wk-chs span{flex:1;text-align:center;font:600 clamp(8.5px,2.5cqw,10.5px) var(--m);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45);padding-top:6px;border-top:2px solid rgba(255,255,255,.22);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s,border-color .3s}
+.wk-chs{position:absolute;left:14px;right:14px;bottom:42px;z-index:3;display:flex;gap:6px}
+.wk-chs span{flex:1;cursor:pointer;text-align:center;font:600 clamp(8.5px,2.5cqw,10.5px) var(--m);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45);padding-top:6px;border-top:2px solid rgba(255,255,255,.22);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s,border-color .3s}
 .wk-chs span.on{color:#fff;border-top-color:#C4C8FF}
 .wk-tick{position:absolute;left:0;right:0;bottom:0;height:32px;z-index:3;display:flex;align-items:center;background:rgba(4,5,12,.82);border-top:1px solid rgba(255,255,255,.1);overflow:hidden;pointer-events:none}
 .wk-tick b{flex:none;position:relative;z-index:1;height:100%;display:flex;align-items:center;padding:0 10px;background:#C4C8FF;color:#0B0C14;font:700 10px var(--m);letter-spacing:.12em;text-transform:uppercase}
@@ -2293,7 +2292,7 @@ body.wsw main{max-width:1000px}
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
 </nav>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="lib/supabase-2.117.2.js"></script>
 <script>
 // Parallax animated scenes v2: cinematic science backgrounds drawn live on a canvas (no files, no cost).
 // ParallaxScene(kind, canvas, {hue, seed}) -> {stop()}. Kinds: dna, neurons, bloodstream, cells, aurora, warp.
@@ -2532,9 +2531,17 @@ function orb(seed, sat = 78) {
   void h; void h2; void sat;
   return `--glow:rgba(15,16,40,.45);background:radial-gradient(120% 120% at 28% 18%,#5B5E6E 0%,#2A2C36 45%,#0E0F14 100%)`;
 }
+// Small copies of the goal pictures (t/, made from the full stills): a circle is ~4KB instead of
+// ~115KB, a card background ~23KB. Pictures without a small copy yet use the original.
+const THUMBS = new Set(["brain-computer-interfaces_pv129921","brain-computer-interfaces_pv176794","brain-computer-interfaces_pv262464","brain-computer-interfaces_pv329197","brain-computer-interfaces_pv334173","brain-computer-interfaces_pv337736","brain-computer-interfaces_pv37837","brain-computer-interfaces_pv94745","cancer-blood-test_pv178598","cancer-blood-test_pv178599","cancer-blood-test_pv189681","cancer-blood-test_pv32667","cancer-blood-test_pv34275","cancer-blood-test_pv35461","cancer-blood-test_pv38819","cancer-blood-test_pv43272","carbon-removal_pv192100","carbon-removal_pv197283","carbon-removal_pv206689","carbon-removal_pv21777","carbon-removal_pv277145","carbon-removal_pv381333","carbon-removal_pv84625","carbon-removal_pv8947","cheap-desalination_pv112235","cheap-desalination_pv121795","cheap-desalination_pv136149","cheap-desalination_pv19368","cheap-desalination_pv239675","cheap-desalination_pv283533","cheap-desalination_pv381413","cheap-desalination_pv73863","clean-water_pv103891","clean-water_pv1085","clean-water_pv181541","clean-water_pv190323","clean-water_pv228447","clean-water_pv233867","clean-water_pv325570","clean-water_pv37712","cure-hiv_pv148397","cure-hiv_pv234416","cure-hiv_pv33646","cure-hiv_pv380337","cure-hiv_pv38719","cure-hiv_pv6102","cure-hiv_pv71930","cure-type-1-diabetes_pv197931","cure-type-1-diabetes_pv352552","cure-type-1-diabetes_pv65551","end-alzheimers_pv114977","end-alzheimers_pv159049","end-alzheimers_pv180514","end-alzheimers_pv206173","end-alzheimers_pv278388","end-alzheimers_pv346444","end-alzheimers_pv362487","end-alzheimers_pv47452","end-depression_pv120848","end-depression_pv201906","end-depression_pv29155","end-depression_pv362436","end-malaria_pv274935","end-malaria_pv286146","end-malaria_pv34824","end-malaria_pv35085","end-malaria_pv40781","end-malaria_pv57691","end-malaria_pv83237","end-malaria_pv91164","end-tuberculosis_pv16531","end-tuberculosis_pv166062","end-tuberculosis_pv197486","end-tuberculosis_pv33173","end-tuberculosis_pv344635","end-tuberculosis_pv348334","end-tuberculosis_pv380328","feed-ten-billion_pv167742","feed-ten-billion_pv216116","feed-ten-billion_pv232561","feed-ten-billion_pv337005","feed-ten-billion_pv339922","feed-ten-billion_pv368986","feed-ten-billion_pv42929","feed-ten-billion_pv44765","fusion_pv11414","fusion_pv121245","fusion_pv128312","fusion_pv198117","fusion_pv199581","fusion_pv218902","fusion_pv239829","fusion_pv313985","grid-storage_pv11578","grid-storage_pv176918","grid-storage_pv205944","grid-storage_pv2151","grid-storage_pv282086","grid-storage_pv378344","grid-storage_pv42388","grid-storage_pv91282","lab-grown-organs_pv116972","lab-grown-organs_pv26799","lab-grown-organs_pv324008","lab-grown-organs_pv57692","lab-grown-organs_pv85064","mars_pv10217","mars_pv145733","mars_pv189455","mars_pv2172","mars_pv284566","mars_pv4788","mars_pv89835","mars_pv9135","moon-base_pv228","moon-base_pv333526","restore-sight_pv171885","restore-sight_pv20834","restore-sight_pv208773","restore-sight_pv217018","restore-sight_pv323775","restore-sight_pv54087","restore-sight_pv6851","room-temperature-superconductors_pv255010","room-temperature-superconductors_pv260372","room-temperature-superconductors_pv30158","room-temperature-superconductors_pv7105","room-temperature-superconductors_pv92666","slow-aging_pv143567","slow-aging_pv21617","slow-aging_pv218955","slow-aging_pv23134","slow-aging_pv27019","slow-aging_pv314351","slow-aging_pv73914","solid-state-batteries_pv13232","solid-state-batteries_pv159935","solid-state-batteries_pv160986","solid-state-batteries_pv22318","solid-state-batteries_pv311570","solid-state-batteries_pv372065","solid-state-batteries_pv92407","solid-state-batteries_pv9789","spinal-cord-repair_pv285357","spinal-cord-repair_pv32267","spinal-cord-repair_pv324831","spinal-cord-repair_pv366796","spinal-cord-repair_pv383951","useful-quantum-computing_pv26909","useful-quantum-computing_pv311497","useful-quantum-computing_pv321537","useful-quantum-computing_pv329187","useful-quantum-computing_pv345428","useful-quantum-computing_pv365382","useful-quantum-computing_pv385110"]);
+function smallPic(u, size) {
+  const m = /r2\.dev\/([a-z0-9-]+)\/([A-Za-z0-9._-]+?)(?:-poster)?\.jpg$/.exec(String(u || ''));
+  const k = m && `${m[1]}_${m[2]}`;
+  return k && THUMBS.has(k) ? new URL(`t/${k}-${size === 'c' ? 'c' : 'a'}.webp`, document.baseURI).href : u;
+}
 function avatar(g, big = false) {
   const initials = String(g.handle || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
-  const pic = g.pics?.[0] || (goalsCache || []).find((x) => x.id === g.id)?.pics?.[0];
+  const pic = smallPic(g.pics?.[0] || (goalsCache || []).find((x) => x.id === g.id)?.pics?.[0], 'a');
   if (pic) return `<a class="av pic${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="background-image:url('${esc(pic).replace(/'/g, '%27')}')" aria-label="@${esc(g.handle)}"></a>`;
   return `<a class="av${big ? ' lg' : ''}" href="#/g/${encodeURIComponent(g.slug)}" style="${orb(g.slug)}" aria-label="@${esc(g.handle)}">${esc(initials)}</a>`;
 }
@@ -2829,7 +2836,7 @@ function postCard(p, g, compact = false) {
   }
   const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : `#/p/${p.id}`; // a post opens as its story
   const pics = g.pics || (goalsCache || []).find((x) => x.id === g.id)?.pics || [];
-  const pic = pics.length ? pics[(p.id * 7) % pics.length] : '';
+  const pic = pics.length ? smallPic(pics[(p.id * 7) % pics.length], 'c') : '';
   const coverStyle = `--h:${h};--h2:${h2}${pic ? `;--img:url('${esc(pic).replace(/'/g, '%27')}')` : ''}`, coverCls = pic ? 'cover has-img' : 'cover';
   const nPapers = (p.sources || []).length;
   const detail = [
@@ -3950,7 +3957,7 @@ function resKind(u) {
   return ['Site', 'site'];
 }
 // A goal's avatar as a plain picture (for use inside another link, where a nested link breaks the layout).
-const miniAv = (g) => { const pic = g?.pics?.[0] || (goalsCache || []).find((x) => x.id === g?.id)?.pics?.[0]; return pic ? `<span class="av pic mini" style="background-image:url('${esc(pic).replace(/'/g, '%27')}')"></span>` : `<span class="av mini" style="${orb(g?.slug || '')}"></span>`; };
+const miniAv = (g) => { const pic = smallPic(g?.pics?.[0] || (goalsCache || []).find((x) => x.id === g?.id)?.pics?.[0], 'a'); return pic ? `<span class="av pic mini" style="background-image:url('${esc(pic).replace(/'/g, '%27')}')"></span>` : `<span class="av mini" style="${orb(g?.slug || '')}"></span>`; };
 const gStyle = (g) => { const h = hue(g?.slug || ''); return `--h:${h};--h2:${(h + 34) % 360}`; };
 const ICON = {
   time: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.6V8l2.3 1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
@@ -4505,7 +4512,7 @@ function webSvg(web, sel) {
   for (const g of web.goals) if (!seen.has(g.slug)) order.push(g.slug);
   const W = 760, H = 470, cx = W / 2, cy = H / 2, R = 172, N = order.length;
   const pos = Object.fromEntries(order.map((s, i) => [s, [cx + R * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / N), cy + R * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / N)]]));
-  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
+  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(smallPic(g.pics[0], 'a')) }; };
   const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
   const rad = (s) => (deg[s] ? Math.min(25, 15 + Math.sqrt(deg[s]) * 2.6) : 11);
   const f = (n) => n.toFixed(1);
@@ -4543,7 +4550,7 @@ document.addEventListener('mouseover', (e) => {
 function problemGraph(c) {
   const nodes = [], idx = new Map(), edges = [];
   const add = (id, n) => { if (!idx.has(id)) { idx.set(id, nodes.length); nodes.push(n); } return idx.get(id); };
-  for (const g of c.web.goals) add(`g:${g.slug}`, { kind: 'goal', slug: g.slug, handle: g.handle, mapped_at: g.mapped_at || '', pic: (goalsCache || []).find((x) => x.slug === g.slug)?.pics?.[0] });
+  for (const g of c.web.goals) add(`g:${g.slug}`, { kind: 'goal', slug: g.slug, handle: g.handle, mapped_at: g.mapped_at || '', pic: smallPic((goalsCache || []).find((x) => x.slug === g.slug)?.pics?.[0], 'a') });
   for (const links of Object.values(c.links)) for (const l of links) {
     if (!l.a || !l.b) continue;
     const ia = add(`p:${l.a.slug}/${l.a.key}`, { kind: 'problem', ...l.a }), ib = add(`p:${l.b.slug}/${l.b.key}`, { kind: 'problem', ...l.b });
@@ -4660,7 +4667,7 @@ function globeLayout(web) {
 function globeSvg(web, sel) {
   const { order } = globeLayout(web);
   const deg = Object.fromEntries(order.map((s) => [s, web.edges.filter((e) => e.a === s || e.b === s).reduce((t, e) => t + e.n, 0)]));
-  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(g.pics[0]) }; };
+  const info = (s) => { const g = (goalsCache || []).find((x) => x.slug === s); return { handle: g?.handle || web.goals.find((x) => x.slug === s)?.handle || s, pic: g?.pics?.[0] && safeUrl(smallPic(g.pics[0], 'a')) }; };
   return `<div class="gwrap globe"><svg class="web gl" id="wglobe" viewBox="0 0 760 520" role="img" aria-label="Goals on a globe, linked by the problems they share; drag to turn it">
     <defs>${order.map((s, i) => `<clipPath id="glc${i}"><circle r="10"/></clipPath>`).join('')}<radialGradient id="glshade" cx="38%" cy="32%" r="75%"><stop offset="0" style="stop-color:var(--card)"/><stop offset="1" style="stop-color:var(--sunk)"/></radialGradient></defs>
     <circle class="gl-sphere" cx="380" cy="260" r="215"/><g class="gl-grid"></g>
@@ -4903,7 +4910,7 @@ const SECS = {
   ],
 };
 // ---- Distinct desktop layouts, one per Pro tab (subscribers). Phones and visitors use sections().
-const gpic = (slug) => { const g = (goalsCache || []).find((x) => x.slug === slug); const u = g?.pics?.[0] && safeUrl(g.pics[0]); return u ? `<img src="${esc(u)}" alt="" loading="lazy">` : `<span>${esc((g?.handle || slug).slice(0, 2))}</span>`; };
+const gpic = (slug) => { const g = (goalsCache || []).find((x) => x.slug === slug); const u = g?.pics?.[0] && safeUrl(smallPic(g.pics[0], 'a')); return u ? `<img src="${esc(u)}" alt="" loading="lazy">` : `<span>${esc((g?.handle || slug).slice(0, 2))}</span>`; };
 const monthLabel = (d, long) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: long ? 'long' : 'short', year: 'numeric' }) : d);
 
 // Overview: a front page.
@@ -5303,7 +5310,7 @@ async function plusView() {
   const full = d.access === 'full', b = d.brief;
   const goalOf = (h) => list.find((g) => g.handle === String(h || '').replace(/^@/, ''));
   const mine = new Set(localFollows.get());
-  const pic = (g, i = 0) => (g?.pics?.length ? g.pics[i % g.pics.length] : null);
+  const pic = (g, i = 0) => (g?.pics?.length ? smallPic(g.pics[i % g.pics.length], 'c') : null);
   // The weekly video: the brief's items, goals you follow first.
   const fmtDate = (x) => (/^\d{4}-\d{2}$/.test(x) ? new Date(`${x}-15`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : x);
   // The weekly episode: its own format, not a Watch video. A cover, your goals' scoreboard, what
@@ -5473,6 +5480,7 @@ async function plusView() {
     const p = reelPlayer(vc); p.play();
     vc.addEventListener('click', (e) => {
       const t = e.target.closest('[data-rl]'); if (t) { p[t.dataset.rl === 'pause' ? 'toggle' : t.dataset.rl](); return; }
+      const chp = e.target.closest('.wk-chs [data-c]'); if (chp) { const i = [...vc.querySelectorAll('.rl-scene')].findIndex((x) => x.dataset.ch === chp.dataset.c); if (i >= 0) p.go(i); return; }
       if (e.target.closest('[data-sound]')) { music.wanted = !music.wanted; if (music.wanted) music.start('parallax-weekly', 'epic', 'theme'); else music.stop(); view.querySelectorAll('[data-sound]').forEach((x) => { x.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; }); }
     });
   }
@@ -6440,7 +6448,7 @@ function reelCard(r, g, i, studio = true) {
     ${r.kind === 'weekly' && r.chapters?.length ? `<div class="wk-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.kind === 'weekly' && r.ticker?.length ? `<div class="wk-tick" aria-hidden="true"><b>This week</b><div class="wk-tt"><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span></div></div>` : ''}
     <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
-      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(g.pics[0]).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
+      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(smallPic(g.pics[0], 'a')).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
     <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
     <button type="button" class="rl-tap next" data-rl="next" aria-label="Next scene"></button>
@@ -6513,6 +6521,7 @@ function reelPlayer(card) {
     pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
     reset() { this.pause(); left = 0; show(0); },
     replay() { card.classList.remove('ended'); this.reset(); this.play(); },
+    go(i) { stop(); show(i); },
     next() { stop(); show(k + 1); },
     prev() { stop(); show(k - 1); },
     toggle() { paused ? this.play() : this.pause(); },
