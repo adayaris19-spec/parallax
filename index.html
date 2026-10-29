@@ -1711,6 +1711,12 @@ svg.gsim .ge.hl.cross{stroke:var(--accent);stroke-opacity:1}
 .st-av{display:grid;justify-items:center;gap:4px;border:0;background:none;font:inherit;cursor:pointer;opacity:.55;padding:0;flex:0 0 74px;width:74px}
 .st-av span{width:46px;height:46px;border:2px solid transparent}.st-av small{font-size:11px;color:var(--ink2);max-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .st-av.on{opacity:1}.st-av.on span{border-color:var(--ink)}.st-av:hover{opacity:.9}
+.st-all span{color:var(--ink);background:var(--card);box-shadow:inset 0 0 0 1px var(--line2)}
+.st-tags{display:inline-flex;align-items:center;margin-top:2px}
+.st-tags i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-left:-5px;box-shadow:0 0 0 2px var(--bg);background:var(--sunk);font-size:7px;font-style:normal}
+.st-tags i:first-child{margin-left:0}.st-tags i img{width:100%;height:100%;object-fit:cover}
+.st-tags em{font:500 11px var(--m);font-style:normal;color:var(--muted);margin-left:5px}
+.st-row small .st-tags{margin:0 0 0 8px;vertical-align:middle}
 .st-pod{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:end;margin:8px 0 6px}
 .st-p{display:grid;gap:4px;justify-items:center;text-align:center}
 .st-p b{font-size:14px;line-height:1.3}.st-p small{font-size:11.5px;color:var(--muted)}
@@ -4903,12 +4909,26 @@ function marketScreen(t) {
 
 // Players: standings.
 function standings(t) {
-  const r = t.race, cur = r.goals.find((g) => g.slug === termSel.race) || r.goals[0];
-  const pick = `<div class="st-pick">${r.goals.map((g) => `<button type="button" class="st-av${g.slug === cur.slug ? ' on' : ''}" data-tsel="race" data-v="${esc(g.slug)}" title="@${esc(g.goal)}"><span>${gpic(g.slug)}</span><small>@${esc(g.goal)}</small></button>`).join('')}</div>`;
-  const top = cur.orgs.slice(0, 3), order = [top[1], top[0], top[2]].filter(Boolean);
-  const stat = (o) => [o.grants ? `${usdShort(o.grants)} grants` : '', o.trials ? `${o.trials} trials` : '', o.papers ? `${o.papers.toLocaleString()} papers` : ''].filter(Boolean).join(' · ');
-  const podium = `<div class="st-pod">${order.map((o) => `<div class="st-p p${o.place}"><span class="st-place">${o.place}</span><b>${esc(o.name)}</b><small>${stat(o)}</small>${moveTxt(o)}<div class="st-block"></div></div>`).join('')}</div>`;
-  const rest = cur.orgs.slice(3).map((o) => `<div class="st-row"><span class="st-n">${o.place}</span><b>${esc(o.name)}</b><span class="st-mv">${moveTxt(o)}</span><small>${stat(o)}</small></div>`).join('');
+  const r = t.race;
+  // "All goals" (the default): who shows up across the most goals' top lists, with their totals.
+  const all = !termSel.race || termSel.race === 'all' || !r.goals.some((g) => g.slug === termSel.race);
+  const cur = all ? null : r.goals.find((g) => g.slug === termSel.race);
+  let orgs;
+  if (all) {
+    const by = new Map();
+    for (const g of r.goals) for (const o of g.orgs) {
+      const x = by.get(o.name) || { name: o.name, grants: 0, trials: 0, papers: 0, score: 0, goals: [] };
+      x.grants += o.grants || 0; x.trials += o.trials || 0; x.papers += o.papers || 0; x.score += o.score || 0; x.goals.push(g); by.set(o.name, x);
+    }
+    orgs = [...by.values()].sort((a, b) => b.goals.length - a.goals.length || b.score - a.score).slice(0, 12).map((o, i) => ({ ...o, place: i + 1 }));
+  } else orgs = cur.orgs;
+  const pick = `<div class="st-pick"><button type="button" class="st-av st-all${all ? ' on' : ''}" data-tsel="race" data-v="all" title="All goals"><span><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></span><small>All goals</small></button>${r.goals.map((g) => `<button type="button" class="st-av${!all && g.slug === cur.slug ? ' on' : ''}" data-tsel="race" data-v="${esc(g.slug)}" title="@${esc(g.goal)}"><span>${gpic(g.slug)}</span><small>@${esc(g.goal)}</small></button>`).join('')}</div>`;
+  const top = orgs.slice(0, 3), order = [top[1], top[0], top[2]].filter(Boolean);
+  const stat = (o) => [all ? `top ${r.goals[0]?.orgs.length || 12} in ${o.goals.length} goal${o.goals.length === 1 ? '' : 's'}` : '', o.grants ? `${usdShort(o.grants)} grants` : '', o.trials ? `${o.trials} trial${o.trials === 1 ? '' : 's'}` : '', o.papers ? `${o.papers.toLocaleString()} papers` : ''].filter(Boolean).join(' · ');
+  const tags = (o) => (all ? `<span class="st-tags">${o.goals.slice(0, 4).map((g) => `<i title="@${esc(g.goal)}">${gpic(g.slug)}</i>`).join('')}${o.goals.length > 4 ? `<em>+${o.goals.length - 4}</em>` : ''}</span>` : '');
+  const mv = (o) => (all ? '' : moveTxt(o));
+  const podium = `<div class="st-pod">${order.map((o) => `<div class="st-p p${o.place}"><span class="st-place">${o.place}</span><b>${esc(o.name)}</b><small>${stat(o)}</small>${mv(o)}${tags(o)}<div class="st-block"></div></div>`).join('')}</div>`;
+  const rest = orgs.slice(3).map((o) => `<div class="st-row"><span class="st-n">${o.place}</span><b>${esc(o.name)}</b><span class="st-mv">${mv(o)}</span><small>${stat(o)}${tags(o)}</small></div>`).join('');
   const movers = r.climbers.slice(0, 7).map((c) => `<div class="st-mover"><span class="st-jump">${c.prior_rank ? `<s>#${c.prior_rank}</s> #${c.rank}` : `<em>new</em> #${c.rank}`}</span><b>${esc(c.name)}</b><small>@${esc(c.goal)} · ${usdShort(c.grants)}</small></div>`).join('');
   // Pipeline lanes.
   const P = t.pipeline || [], pc = P.find((p) => p.slug === termSel.pipe) || P[0];
@@ -4917,7 +4937,7 @@ function standings(t) {
       ${selChips('pipe', P.map((p) => [p.slug, `@${p.goal} ${p.total}`]), pc.slug)}
       <div class="st-lane-row">${LANES.map((ph) => { const ts = pc.trials.filter((x) => x.phase === ph); return `<div class="st-lane"><span class="lbl">${esc(ph === 'Early phase 1' ? 'Early' : ph.replaceAll('Phase ', 'P').replace('/', '–'))}</span><b class="mono">${ts.length}</b>${ts.slice(0, 3).map((x) => `<a href="${esc(safeUrl(x.url) || '#')}" target="_blank" rel="noopener" title="${esc(x.title)}"><span>${esc(x.title)}</span><small>${esc(x.sponsor)}</small></a>`).join('')}${ts.length > 3 ? `<small class="st-plus">+${ts.length - 3} more</small>` : ''}</div>`; }).join('')}</div>
       <p class="gnote" style="padding:0 18px 14px">${(pc.by_phase.find((p) => p.phase === 'Not phased') || { n: 0 }).n} more are observational or device studies (not phased). ${pc.who.map((w) => `${esc(w.who)} ${Math.round(w.n / pc.total * 100)}%`).join(' · ')}</p></section>` : '';
-  return `<div class="st"><div class="st-top"><section class="st-board"><div class="fp-ch"><h3>The race</h3><span>who is putting the most into @${esc(cur.goal)}: grants, trials and papers</span></div>${pick}${podium}<div class="st-rest">${rest}</div></section>
+  return `<div class="st"><div class="st-top"><section class="st-board"><div class="fp-ch"><h3>The race</h3><span>${all ? `who shows up across the most goals: top places, grants, trials and papers · tap a goal for its own race` : `who is putting the most into @${esc(cur.goal)}: grants, trials and papers`}</span></div>${pick}${podium}<div class="st-rest">${rest}</div></section>
     <section class="st-movers"><div class="fp-ch"><h3>On the move</h3><span>climbed 5+ places or new in a top 10</span></div>${movers}</section></div>${lanes}</div>`;
 }
 
