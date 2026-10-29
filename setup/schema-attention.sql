@@ -28,3 +28,7 @@ create or replace view goal_attention as
   left join goal_followers f on f.goal_id = g.id
   left join (select goal_id, sum(views)::int as views from goal_views where day > current_date - 30 group by 1) v on v.goal_id = g.id;
 revoke all on goal_attention from anon, authenticated;
+
+-- Feed "Popular" order: one score per goal (followers x5 + visits in 30 days), nothing personal.
+create or replace view goal_popularity as select goal_id, score from goal_attention;
+grant select on goal_popularity to anon, authenticated;
