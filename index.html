@@ -664,6 +664,8 @@ body.goalpage main{max-width:1120px}
 .seg button{border:0;background:transparent;height:32px;padding:0 14px;border-radius:999px;font:500 13.5px var(--f);color:var(--muted);cursor:pointer}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .fx-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;margin-top:20px;align-items:start}
+/* Whichever side is shorter (usually the map) stays in view while the other scrolls, so no empty column. */
+.fx-left{position:sticky;top:116px}
 .fx-map{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;min-height:300px}
 .fx-map svg{display:block}
 .fx-e path{fill:none;stroke:var(--ink);stroke-opacity:.07;stroke-width:1}
@@ -713,7 +715,7 @@ body.goalpage main{max-width:1120px}
 
 @media (max-width:900px){
   .fx-grid{grid-template-columns:1fr}
-  .fx-sel{position:static}
+  .fx-sel,.fx-left{position:static}
 }
 @media (max-width:760px){
   .gx{border-radius:22px}
