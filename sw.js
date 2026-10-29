@@ -2,8 +2,8 @@
 // connection. The page shell is served from the phone at once and refreshed in the background (the
 // next visit gets any new version); fonts and libraries come from the phone; data is fetched fresh,
 // falling back to the last copy when offline. Videos are never cached here (they stream).
-const V = "px-v52";
-const SHELL = ["./", "index.html", "icon.svg", "icon-180.png", "manifest.webmanifest"];
+const V = "px-v53";
+const SHELL = ["./", "index.html", "icon.svg", "icon-180.png", "manifest.webmanifest", "lib/supabase-2.117.2.js"];
 
 self.addEventListener("install", (e) => {
   // cache: 'reload' skips the browser's HTTP cache, so a new version never installs an old page.
@@ -36,6 +36,11 @@ self.addEventListener("fetch", (e) => {
   // Data from the database: always fresh, the last copy when there is no connection.
   if (url.hostname.endsWith(".supabase.co") && url.pathname.startsWith("/rest/v1/")) {
     e.respondWith(fetch(req).then((r) => put(req, r)).catch(() => caches.match(req).then((hit) => hit || Response.error())));
+    return;
+  }
+  // Small goal pictures (t/) and the versioned library (lib/): their names never change, so keep them.
+  if (url.origin === location.origin && /\/(t|lib)\/[^/]+\.(webp|js)$/.test(url.pathname)) {
+    e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => put(req, r))));
     return;
   }
   // The site's own small files: from the phone, refreshed in the background.
