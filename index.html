@@ -1098,6 +1098,25 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .fsort button{border:0;background:none;font:500 13px var(--f);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
 .fsort button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--line)}
 .fsort button:hover{color:var(--ink)}
+/* Feed cards open a short video: say so */
+.cover{position:relative}
+.watch-chip{position:absolute;top:14px;right:14px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:5px 10px 5px 8px;border-radius:999px;background:rgba(10,12,22,.62);color:#fff;font:600 11.5px var(--f);letter-spacing:.01em;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.cover:not(.has-img) .watch-chip{background:var(--ink);color:var(--bg)}
+/* A post's video: one card that plays once */
+.sw.one{scroll-snap-type:none;overflow:hidden}
+.sw-bar.one{background:none;border:0;justify-content:flex-end;top:52px}
+.sw-bar.one .sw-x{width:34px;height:34px;font-size:13px}
+.rl-endbox{position:absolute;inset:0;z-index:4;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(4,5,12,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.rl.ended .rl-endbox{display:flex}
+.rl.ended .rl-tap.mid::after{display:none}
+.one-card .rl-kick,.one-card .ly-ig-hook .rl-kick,.one-card .ly-ig-low .rl-kick,.one-card .ly-ig-end .rl-kick{display:inline-block!important;align-self:flex-start;background:none;padding:0;margin:0 0 10px;font:500 clamp(10px,2.8cqw,12px) var(--m);letter-spacing:.14em;text-transform:uppercase;color:#C4C8FF;backdrop-filter:none;-webkit-backdrop-filter:none}
+.one-card .ly-ig-hook .ig-lab{display:none}
+/* Watch plays like a Reel: one continuous progress line, tap to pause (no skipping like a story) */
+.studio .rl-bars{gap:0}
+.studio .rl-bars i{border-radius:0;height:2.5px;background:rgba(255,255,255,.22)}
+.studio .rl-bars i:first-child{border-radius:2px 0 0 2px}.studio .rl-bars i:last-child{border-radius:0 2px 2px 0}
+.studio .rl-tap.prev,.studio .rl-tap.next{display:none}
+.studio .rl-tap.mid{left:0;width:100%}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -2780,6 +2799,7 @@ function quoteBlock(q, paper, made) {
   return `<blockquote class="quote">“${esc(q)}”<cite>${esc(made)} · ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${t}</a>` : t}</cite></blockquote>`;
 }
 
+const WATCH_CHIP = '<span class="watch-chip" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>Watch</span>';
 function postCard(p, g, compact = false) {
   const srcs = (p.sources || []).slice(0, 4).map((x) => {
     const url = safeUrl(x.url);
@@ -2825,13 +2845,13 @@ function postCard(p, g, compact = false) {
   if (compact) {
     // Inside a goal's row or on its own page: the goal is already named above, so no header.
     return `<article class="post compact">
-    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>${alsoLine}
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${p.kind !== 'mapped' ? WATCH_CHIP : ''}${big}<h3>${esc(p.headline)}</h3></a>${alsoLine}
     <div class="post-f">${more || '<span></span>'}<span class="spacer"></span><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time>${shareBtn}</div>
   </article>`;
   }
   return `<article class="post">
     <div class="post-h">${avatar(g)}<div class="who"><a class="h" href="#/g/${encodeURIComponent(g.slug)}">@${esc(g.handle)}</a><span class="n">${esc(g.name)}</span></div><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time></div>
-    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${big}<h3>${esc(p.headline)}</h3></a>
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${p.kind !== 'mapped' ? WATCH_CHIP : ''}${big}<h3>${esc(p.headline)}</h3></a>
     ${alsoLine}${more}
     <div class="post-f">${check}${followBtn(g.slug)}<button class="btn icon" data-share="/g/${esc(g.slug)}" data-title="${esc(p.headline)}" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div>
   </article>`;
@@ -2913,7 +2933,7 @@ async function homeView() {
       <div class="hm-k">The feed of human progress</div>
       <h1>How close is humanity to its biggest goals?</h1>
       <p class="hm-sub">Parallax follows the goals that would change everything, from curing Alzheimer’s to fusion power. It maps what stands in the way of each one, reads the new research every day, and links every claim to its papers.</p>
-      <div class="hm-cta"><a class="btn primary" href="#/" data-home-go>Start exploring</a><a class="btn" href="#/watch" data-home-go>Watch a 30-second story</a></div>
+      <div class="hm-cta"><a class="btn primary" href="#/" data-home-go>Start exploring</a></div>
       <div class="hm-free">Free to read. No account needed.</div>
     </div><div class="hm-stack" id="hmStack"></div></section>
     <div class="hm-stats" id="hmStats"><div><b>·</b><span>goals tracked</span></div><div><b>·</b><span>problems mapped</span></div><div><b>·</b><span>problems solved</span></div><div><b>·</b><span>papers read</span></div></div>
@@ -6100,57 +6120,35 @@ async function storyView(id) {
   const st = node ? (node.status || 'open') : null;
   const scr = (inner, bg = '') => `<section class="sw-card">${bg || bgMedia(nextClip(), seed, true)}<div class="sw-shade"></div>${inner}</section>`;
 
-  const s1 = `<section class="sw-card">${bgMedia(media, seed)}<div class="sw-shade"></div>
-    <div class="sw-text"><span class="sw-chip"><i style="background:${dot}"></i>${esc(KIND_WORD[p.kind] || p.kind)} · @${esc(g.handle)}</span>
-      ${p.kind === 'promise' && p.meta?.made_year ? `<div class="sw-num mono" style="font-size:52px">${esc(p.meta.made_year)} <span style="opacity:.5">→</span> ${esc(p.meta.due_year)}</div>` : ''}
-      <h2 style="font-size:clamp(28px,7.6vw,36px)">${esc(p.headline)}</h2>
-      ${p.body ? `<p>${esc(firstSentenceOf(p.body))}</p>` : ''}
-      <div class="sw-hint">Scroll ↓</div></div>
-    ${media ? `<div class="sw-credit">${media.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(media.source_url) ? `<a href="${esc(media.source_url)}" target="_blank" rel="noopener">${esc(media.credit)}</a>` : esc(media.credit)} · ${esc(media.license)}</div>` : ''}</section>`;
-
-  const s2 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span>
-      <h2>${esc(node.title)}</h2>${node.why ? `<p class="lg">${esc(node.why)}</p>` : ''}
-      <p>One of the problems standing between us and <b>${esc(lowerFirst(g.name))}</b>.</p></div>`)
-    : scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#AEB4FF"></i>Why it matters</span><h2>${esc(g.name)}</h2>${g.tagline ? `<p class="lg">${esc(g.tagline)}</p>` : ''}</div>`);
-
-  const s3 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:var(--solved)"></i>The evidence</span>
-      ${(() => { const n = p.independent_sources || srcs.length || 0; return `<div class="sw-num mono">${n}<small>${(p.independent_sources || 0) >= 2 ? 'independent sources' : n === 1 ? 'source so far' : 'sources'}</small></div>`; })()}
-      ${p.kind === 'promise' && p.meta?.quote ? `<blockquote class="sw-q">“${esc(p.meta.quote)}”<span>${esc(p.meta.paper?.title || '')}${p.meta.paper?.year ? `, ${esc(p.meta.paper.year)}` : ''}</span></blockquote>` : ''}
-      <div class="sw-src">${srcs.map((x) => { const u = safeUrl(x.url); return `<${u ? `a href="${esc(u)}" target="_blank" rel="noopener"` : 'div'} class="sw-s"><b>${esc(x.title)}</b><span>${esc([x.first_author, x.venue, x.year].filter(Boolean).join(' · '))}</span></${u ? 'a' : 'div'}>`; }).join('')}</div>
-      ${total ? `<p>${total.toLocaleString()} papers and reports on this problem in Parallax’s library.</p>` : ''}</div>`);
-
-  const s4 = node ? scr(`<div class="sw-text"><span class="sw-chip"><i style="background:${st === 'blocked' ? 'var(--blocked)' : st === 'solved' ? 'var(--solved)' : 'var(--progress)'}"></i>Where it stands · ${esc(leafStatusLabel(st))}</span>
-      <h2>${st === 'solved' ? 'What was done' : 'What’s in the way'}</h2>${node.blocker ? `<p class="lg">${esc(node.blocker)}</p>` : ''}
-      ${node.key === g.bottleneck_key ? '<p><b>This is the biggest bottleneck for the whole goal.</b></p>' : ''}</div>`) : '';
-
-  const s5 = scr(`<div class="sw-text"><span class="sw-chip"><i style="background:#fff"></i>Help make it happen</span>
-      <h2>${listing ? `${esc(listing.teams.name)} is working on this.` : `Follow @${esc(g.handle)} to see what happens next.`}</h2>
-      ${listing ? `<p>${esc(listing.plan)}</p>` : `<p>${g.horizon_low != null ? `About ${esc(g.horizon_low === g.horizon_high ? `${g.horizon_low}` : `${g.horizon_low}–${g.horizon_high}`)} years to go at today’s pace.` : ''}</p>`}
-      <div class="sw-acts">${listing ? `<button type="button" class="sw-cta" data-back="${listing.id}">Back this team</button>` : ''}
-        <button type="button" class="sw-cta${listing ? ' ghost' : ''}" data-follow="${esc(g.slug)}">${follows.has(g.slug) ? 'Following' : 'Follow'}</button>
-        <a class="sw-cta ghost" href="${goalLink}">Open @${esc(g.handle)}</a></div>
-      ${!listing && node ? `<a class="sw-go" href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(node.key)}">Working on this? Raise money for your team →</a>` : ''}
-      ${nextPost ? `<a class="sw-next" href="#/p/${nextPost.id}"><span>Next story</span><b>${esc(nextPost.plain_headline || nextPost.headline)}</b></a>` : ''}</div>`);
-
-  const screens = [s1, s2, s3, s4, s5].filter(Boolean);
-  box.innerHTML = screens.join('');
-  // Start each screen's clip as it comes into view; pause the ones scrolled away.
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((es) => es.forEach((e) => {
-      const v = e.target.querySelector('video'); if (!v) return;
-      if (e.isIntersecting) { if (v.dataset.src && !v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause();
-    }), { root: box, threshold: 0.4 });
-    box.querySelectorAll('.sw-card').forEach((c) => io.observe(c));
-  } else box.querySelectorAll('video[data-src]').forEach((v) => { v.src = v.dataset.src; });
-  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar"><button type="button" class="sw-x" data-close aria-label="Close">✕</button><a href="${goalLink}" class="sw-who">@${esc(g.handle)}</a><div class="sw-dots">${screens.map((_, i) => `<i data-d="${i}"${i ? '' : ' class="on"'}></i>`).join('')}</div></div>`);
+  // One short video, made from the post and its problem: the news, why it matters, the evidence,
+  // where it stands, and how to follow it. Plays once, then offers to replay or read the research.
+  const clip = (t, n) => { t = String(t || ''); return t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, '')}…` : t; };
+  const vis = (v) => (v && v.url ? { kind: v.kind, url: v.url, poster: v.poster, credit: v.credit, license: v.license, source_url: v.source_url } : null);
+  const n = p.independent_sources || srcs.length || 0;
+  const promise = p.kind === 'promise' && p.meta?.made_year;
+  const scenes = [
+    { kicker: `${KIND_WORD[p.kind] || p.kind} · @${g.handle}`, caption: p.plain_headline || p.headline, sub: promise ? `Promised in ${p.meta.made_year}, due ${p.meta.due_year}.` : p.body ? clip(firstSentenceOf(p.body), 120) : null, visual: vis(media) },
+    node ? { kicker: 'Why it matters', caption: clip(node.plain_title || node.title, 80), sub: clip(node.plain_why || node.why, 120) || null, visual: vis(nextClip()) }
+      : { kicker: 'Why it matters', caption: g.name, sub: g.tagline || null, visual: vis(nextClip()) },
+    n ? { kicker: 'The evidence', stat: { value: String(n), label: (p.independent_sources || 0) >= 2 ? 'independent sources' : n === 1 ? 'source so far' : 'sources' }, caption: srcs[0] ? clip(srcs[0].title, 80) : 'Linked to the research', sub: total ? `${total.toLocaleString()} papers on this problem in Parallax’s library.` : null, visual: vis(nextClip()) } : null,
+    node && (node.plain_blocker || node.blocker) ? { kicker: `Where it stands · ${leafStatusLabel(st)}`, caption: clip(node.plain_blocker || node.blocker, 90), sub: node.key === g.bottleneck_key ? 'The biggest bottleneck for the whole goal.' : null, visual: vis(nextClip()) } : null,
+    { caption: listing ? `${listing.teams.name} is working on this.` : `Follow @${g.handle} to see what happens next.`, sub: g.horizon_low != null ? `About ${g.horizon_low === g.horizon_high ? g.horizon_low : `${g.horizon_low}–${g.horizon_high}`} years to go at today’s pace.` : null, visual: vis(nextClip()) },
+  ].filter(Boolean);
+  const research = node ? `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(node.key)}` : goalLink;
+  const reel = { id: `p${p.id}`, kind: p.kind, title: p.headline, scenes, once: true, dive: { href: research, label: 'Read the research' } };
+  box.classList.add('one');
+  box.innerHTML = reelCard(reel, g, 0);
+  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar one"><button type="button" class="sw-x" data-close aria-label="Close">✕</button></div>`);
   const wrap = box.parentElement;
   wrap.querySelector('[data-close]').onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
-  box.addEventListener('scroll', () => {
-    const i = Math.round(box.scrollTop / box.clientHeight);
-    wrap.querySelectorAll('.sw-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
-  }, { passive: true });
-  // Follow buttons here are plain pill buttons: keep their look when followed.
-  box.addEventListener('click', (e) => { const f = e.target.closest('.sw-cta[data-follow]'); if (f) setTimeout(() => { f.className = 'sw-cta' + (listing ? ' ghost' : ''); f.textContent = follows.has(g.slug) ? 'Following' : 'Follow'; }, 0); });
+  const card = box.querySelector('.rl'), pl = reelPlayer(card);
+  pl.play();
+  if (music.wanted) music.start(g.slug, STORY_MOOD[p.kind] || 'calm', reel.id);
+  card.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-rl]');
+    if (t) { const a2 = t.dataset.rl; if (a2 === 'replay') { pl.replay(); if (music.wanted) music.start(g.slug, STORY_MOOD[p.kind] || 'calm', reel.id); } else pl[a2 === 'pause' ? 'toggle' : a2](); return; }
+    if (e.target.closest('[data-sound]')) { music.wanted = !music.wanted; if (music.wanted) music.start(g.slug, STORY_MOOD[p.kind] || 'calm', reel.id); else music.stop(); card.querySelectorAll('[data-sound]').forEach((x) => { x.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; }); }
+  });
 }
 
 // ------------------------------------------------------------ watch (short videos)
@@ -6419,7 +6417,8 @@ function studioLayouts(scenes, seed) {
 function reelCard(r, g, i, studio = true) {
   const scenes = r.scenes || [];
   const lys = studio ? studioLayouts(scenes, hue(String(r.id))) : null;
-  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}" data-reel="${i}">
+  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}" data-reel="${i}"${r.once ? ' data-once="1"' : ''}>
+    ${r.once ? `<div class="rl-endbox"><button type="button" class="sw-cta" data-rl="replay">↺ Watch again</button><a class="sw-cta ghost" href="${esc(r.dive.href)}">${esc(r.dive.label)}</a></div>` : ''}
     ${scenes.map((s, k) => {
       const len = String(s.caption || '').length;
       let ly = ['bottom', 'center', 'top', 'number', 'quote'].includes(s.layout) ? s.layout : (s.stat && !s.visual ? 'number' : 'bottom');
@@ -6450,7 +6449,7 @@ function reelCard(r, g, i, studio = true) {
       <button type="button" class="sw-b${follows.has(g.slug) ? ' on' : ''}" data-follow="${esc(g.slug)}" aria-label="Follow @${esc(g.handle)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><span>${follows.has(g.slug) ? 'Following' : 'Follow'}</span>
       <button type="button" class="sw-b" data-share="/g/${esc(g.slug)}" data-title="${esc(g.name)} on Parallax" aria-label="Share"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></button><span>Share</span>
     </div>
-    <a class="rl-dive" href="${r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">${r.kind === 'today' ? `See @${esc(g.handle)}` : r.story ? 'Read the research' : `Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`}`} <span aria-hidden="true">→</span></a>
+    <a class="rl-dive" href="${r.dive ? esc(r.dive.href) : r.post_id ? `#/p/${r.post_id}` : `#/g/${encodeURIComponent(g.slug)}`}">${r.dive ? esc(r.dive.label) : r.kind === 'today' ? `See @${esc(g.handle)}` : r.story ? 'Read the research' : `Dive into ${r.post_id ? 'the story' : `@${esc(g.handle)}`}`} <span aria-hidden="true">→</span></a>
   </section>`;
 }
 const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
@@ -6460,6 +6459,7 @@ const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" s
 function reelPlayer(card) {
   const scenes = [...card.querySelectorAll('.rl-scene')], bars = [...card.querySelectorAll('.rl-bars i b')];
   let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, raf = 0, paused = true;
+  const once = card.dataset.once === '1';
   const dur = (i) => Number(scenes[i].dataset.dur) || (scenes[i].querySelector('p') ? 5200 : 4200);
   const countUp = (el) => {
     const m = /^([^0-9]*)([0-9][0-9,.]*)(.*)$/.exec(el.dataset.stat || '');
@@ -6498,7 +6498,7 @@ function reelPlayer(card) {
     t0 = performance.now();
     const b = bars[k];
     if (b) { const done = 1 - left / dur(k); b.style.transition = 'none'; b.style.width = `${done * 100}%`; requestAnimationFrame(() => { b.style.transition = `width ${left}ms linear`; b.style.width = '100%'; }); }
-    timer = setTimeout(() => show(k + 1), left);
+    timer = setTimeout(() => { if (once && k === scenes.length - 1) { stop(); paused = true; card.classList.add('paused', 'ended'); return; } show(k + 1); }, left);
     clearTimeout(wtimer); if (left > 700) wtimer = setTimeout(() => music.whoosh(0.5), left - 520);
   };
   const stop = () => {
@@ -6512,6 +6512,7 @@ function reelPlayer(card) {
     play() { if (!paused) return; paused = false; card.classList.remove('paused'); anim(scenes[k], true); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
     pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
     reset() { this.pause(); left = 0; show(0); },
+    replay() { card.classList.remove('ended'); this.reset(); this.play(); },
     next() { stop(); show(k + 1); },
     prev() { stop(); show(k - 1); },
     toggle() { paused ? this.play() : this.pause(); },
@@ -6654,6 +6655,7 @@ $('#navMe').addEventListener('click', () => {
 let entryRoute = true; // the first route after a page load (or after signing out)
 function route() {
   const entry = entryRoute; entryRoute = false;
+  music.stop();
   clearTimeout(pollTimer);
   closeModal();
   document.querySelector('.sheet-back')?.remove();
@@ -6662,6 +6664,7 @@ function route() {
   const query = location.hash.includes('?') ? location.hash.split('?')[1] : '';
   const parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').map(decodeURIComponent);
   setNav(parts);
+  if (parts[0] && parts[0] !== 'welcome') { try { sessionStorage.setItem('px.in', '1'); } catch { /* private mode */ } }
   document.body.classList.toggle('wide', parts[0] === 'terminal');
   document.body.classList.toggle('wsw', parts[0] === 'c' || parts[0] === 'idea'); // workspaces and idea pages get more room
   window.scrollTo(0, 0);
@@ -6690,7 +6693,10 @@ function route() {
   if (parts[0] === 'welcome') return homeView();
   // Signed-out visitors who open the plain address get the homepage; inside the site, #/ is the feed.
   // Opening or refreshing the front page while signed out shows the homepage; inside the site, #/ is the feed.
-  if (!parts[0] && !me && !hasSession() && (entry || !introSeen())) return homeView();
+  // ...but only once per visit: after that, refreshing keeps you where you were.
+  let inSite = false; try { inSite = sessionStorage.getItem('px.in') === '1'; } catch { /* private mode */ }
+  if (!parts[0] && !me && !hasSession() && ((entry && !inSite) || !introSeen())) return homeView();
+  try { sessionStorage.setItem('px.in', '1'); } catch { /* private mode */ }
   return feedView('all');
 }
 window.addEventListener('hashchange', route);
