@@ -1094,6 +1094,10 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .wk-card .ly-ig-hook .rl-text,.wk-card .ly-ig-end .rl-text,.wk-card .ly-ig-stamp .rl-text,.wk-card .ly-ig-low .rl-text,.wk-card .ly-ig-card .rl-text{right:22px}
 .wk-card .ly-ig-low .rl-text{bottom:132px}.wk-card .ly-ig-card .rl-text{bottom:140px}
 @media (prefers-reduced-motion:reduce){.wk-tt{animation:none}}
+.fsort{display:flex;gap:4px;justify-content:flex-end;margin:12px 0 -4px}
+.fsort button{border:0;background:none;font:500 13px var(--f);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
+.fsort button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--line)}
+.fsort button:hover{color:var(--ink)}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -2877,6 +2881,14 @@ function failNote(e, retry) {
   return note("Parallax can't reach its data right now", esc(why), `<p><button class="btn" onclick="${retry}">Try again</button></p>`);
 }
 
+// Feed order: newest updates (default) or most popular goals; the choice is remembered.
+const feedSort = () => { try { return localStorage.getItem('px.sort') === 'popular' ? 'popular' : 'new'; } catch { return 'new'; } };
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-fsort]'); if (!b) return;
+  try { localStorage.setItem('px.sort', b.dataset.fsort); } catch { /* private mode */ }
+  route();
+});
+
 // First visit: one short intro above the feed, until dismissed or signed in.
 const introSeen = () => { try { return localStorage.getItem('px.intro') === '1'; } catch { return false; } };
 document.addEventListener('click', (e) => {
@@ -2964,10 +2976,12 @@ async function feedView(tab) {
       <h1>The feed of human progress</h1>
       <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
       <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
-    </section>` : ''}<div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
+    </section>` : ''}<div class="fsort" role="group" aria-label="Order goals by"><button type="button" data-fsort="new" aria-pressed="${feedSort() === 'new'}">Newest</button><button type="button" data-fsort="popular" aria-pressed="${feedSort() === 'popular'}">Popular</button></div><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
+  const popular = feedSort() === 'popular';
   // The first page of the main feed doesn't need the goal list to start loading: fetch both at once.
-  const early = tab === 'all' ? rest(`posts?select=${POST_COLS}&order=created_at.desc&limit=${PAGE}`).catch(() => null) : null;
+  const early = tab === 'all' && !popular ? rest(`posts?select=${POST_COLS}&order=created_at.desc&limit=${PAGE}`).catch(() => null) : null;
+  const pop = popular ? rest('goal_popularity?select=goal_id,score').catch(() => []) : null;
   let list;
   try { list = await goals(); } catch (e) { box.innerHTML = failNote(e, 'route()'); return; }
   if (!list.length) {
@@ -2985,7 +2999,23 @@ async function feedView(tab) {
   }
   let before = null;
   let head = early;
-  const load = async () => {
+  // Popular: goals in order of attention (followers count 5x, plus visits in the last 30 days),
+  // a few goals per page, each with its newest posts. Ties go to the goal updated most recently.
+  let order = null, at = 0;
+  if (popular) {
+    const score = new Map(((await pop) || []).map((x) => [x.goal_id, x.score]));
+    const ids = filter ? new Set(list.filter((g) => follows.has(g.slug)).map((g) => g.id)) : null;
+    order = list.filter((g) => g.status === 'ready' && (!ids || ids.has(g.id)))
+      .sort((a, b) => (score.get(b.id) || 0) - (score.get(a.id) || 0) || String(b.pulsed_at || b.mapped_at || '').localeCompare(String(a.pulsed_at || a.mapped_at || '')));
+  }
+  const loadPopular = async () => {
+    const batch = order.slice(at, at + 5); at += batch.length;
+    if (!batch.length) return { html: '', parts: [], more: false };
+    const page = await rest(`posts?select=${POST_COLS}&goal_id=in.(${batch.map((g) => g.id).join(',')})&order=created_at.desc&limit=80`);
+    const parts = batch.map((g) => { const ps = page.filter((p) => p.goal_id === g.id).slice(0, 12); return ps.length ? goalRow(g, ps) : ''; }).filter(Boolean);
+    return { html: parts.join(''), parts, more: at < order.length };
+  };
+  const load = popular ? loadPopular : async () => {
     const pre = head ? await head : null; head = null;
     const page = pre ?? await rest(`posts?select=${POST_COLS}${filter}${before ? `&created_at=lt.${encodeURIComponent(before)}` : ''}&order=created_at.desc&limit=${PAGE}`);
     // Group the page by goal, in order of each goal's newest post.
@@ -3127,13 +3157,14 @@ async function exploreView() {
     <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
     <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal at once, in depth</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
   let list;
-  try { list = await goals(true); } catch (e) { $('#grid').outerHTML = failNote(e, 'route()'); return; }
+  try { list = await goals(true); } catch (e) { $('#grid')?.replaceWith(Object.assign(document.createElement('div'), { innerHTML: failNote(e, 'route()') })); return; }
   try {
     const rows = await rest('nodes?parent_key=not.is.null&select=goal_id,status');
     const by = {};
     for (const n of rows) { const c = (by[n.goal_id] ||= { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }); c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; }
     for (const g of list) g._counts = by[g.id];
   } catch { /* the cards still show without counts */ }
+  if (!$('#grid')) return; // left the page while it loaded
   if (!list.length) { $('#grid').outerHTML = note('No goals yet', 'Search for any goal to map the first one.'); return; }
   $('#grid').innerHTML = list.map((g) => {
     const c = g._counts || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 };
@@ -3235,7 +3266,8 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   rememberChallenges(goalCtx.challenges, g);
   if (me) await loadTaken().catch(() => {});
   // Count one visit per goal per browser session; AI spend follows what people look at.
-  try { const k = `px.v.${g.id}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
+  // One visit per goal per session; automated browsers (tests, crawlers that say so) don't count.
+  try { const k = `px.v.${g.id}`; if (!navigator.webdriver && !sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); fetch(`${SUPA_URL}/rest/v1/rpc/parallax_view`, { method: 'POST', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ g: g.id }) }).catch(() => {}); } } catch { /* storage blocked: skip */ }
   for (const l of leaves) labState.nodes[`${g.id}:${l.key}`] = l.title;
   const count = (s) => leaves.filter((l) => (l.status || 'open') === s).length;
   const solved = count('solved'), going = count('in_progress'), blocked = count('blocked'), openN = leaves.length - solved - going - blocked;
