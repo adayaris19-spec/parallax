@@ -1120,6 +1120,7 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
    reveal, wipe, flash), the old one held underneath; the hook punches in. */
 .studio .rl-scene{transition:none}
 .studio .rl-scene.was{opacity:1;z-index:1}
+.studio .rl-scene.was .rl-text,.studio .rl-scene.was .sw-credit{opacity:0;transition:opacity .12s}
 .studio .rl-scene.on{z-index:2}
 .studio .rl-scene.on.tr0{animation:trZoom .55s cubic-bezier(.2,.8,.2,1) both}
 .studio .rl-scene.on.tr1{animation:trSlide .5s cubic-bezier(.7,0,.2,1) both}
