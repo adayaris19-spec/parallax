@@ -1228,6 +1228,55 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .pv-tabs{display:flex;gap:6px;margin:0 0 10px;justify-content:center}
 .pv-tabs button{border:0;background:var(--sunk);color:var(--ink2);font:600 13px var(--f);padding:8px 14px;border-radius:999px;cursor:pointer}
 .pv-tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+/* Plus motion graphics */
+.wk-ko .rl-text,.wk-yr .rl-text,.wk-cd .rl-text,.wk-cta .rl-text{align-items:center;text-align:center}
+.ko-w{font-weight:700;font-size:clamp(40px,15cqw,76px);line-height:1;letter-spacing:-.045em}
+.ko-w .mono{font-weight:500}
+.rl-scene.on.ly-wk .rl-text > .ko-w{animation:koIn .5s cubic-bezier(.2,1.25,.35,1) both;animation-delay:calc(.1s + var(--i) * .8s)}
+@keyframes koIn{from{opacity:0;transform:scale(1.5);filter:blur(10px)}}
+.yr-big{font-size:clamp(76px,30cqw,150px);line-height:.9;letter-spacing:-.06em;background:linear-gradient(180deg,#fff 30%,#C9CCFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.yr-sub{margin-top:14px;font-size:clamp(16px,5cqw,22px);font-weight:600}
+.yr-sub .mono{color:#C4C8FF}
+.yr-avs{display:flex;justify-content:center;gap:10px;margin-top:20px}.yr-avs .av{width:40px;height:40px}
+.rl-scene.on .yr-avs .av{animation:rise .5s ease-out both}.rl-scene.on .yr-avs .av:nth-child(2){animation-delay:.15s}.rl-scene.on .yr-avs .av:nth-child(3){animation-delay:.3s}
+.tl-note{text-align:center;margin-top:16px!important;font:500 clamp(10px,2.9cqw,12px) var(--m)!important;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)!important}
+.rip-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rip-row .av{width:56px;height:56px;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.rip-line{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);position:relative;overflow:hidden}
+.rip-line i{position:absolute;top:0;bottom:0;width:35%;background:linear-gradient(90deg,transparent,#9CF0D8,#fff);border-radius:2px}
+.rl-scene.on .rip-line i{animation:ripRun 1.3s ease-in-out .3s infinite}
+@keyframes ripRun{from{left:-35%}to{left:100%}}
+.rip-names{display:flex;justify-content:space-between;font-size:clamp(12px,3.6cqw,15px);margin-bottom:16px}
+.race{position:relative;margin-top:22px;display:grid;gap:14px;padding-right:8px}
+.lane{position:relative;height:46px;border-bottom:1px dashed rgba(255,255,255,.22)}
+.lane .runner{position:absolute;left:var(--x);bottom:6px;transform:translateX(-50%)}
+.lane .runner .av{width:38px;height:38px;box-shadow:0 0 0 2px #fff,0 0 22px rgba(196,200,255,.7)}
+.rl-scene.on .lane .runner{animation:raceIn 2.2s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(.4s + var(--i) * .2s)}
+@keyframes raceIn{from{left:0}}
+.lane small{position:absolute;right:0;bottom:-18px;font:500 11px var(--m);color:rgba(255,255,255,.65)}
+.finish{position:absolute;top:-10px;bottom:-6px;right:0;width:6px;background:repeating-linear-gradient(180deg,#fff 0 6px,#111 6px 12px);border-radius:2px}
+.finish span{position:absolute;top:-20px;right:-4px;font:600 10px var(--m);letter-spacing:.12em;text-transform:uppercase}
+.cd-big{font-size:clamp(88px,34cqw,170px);line-height:.9;letter-spacing:-.06em;background:linear-gradient(180deg,#fff 30%,#C9CCFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cd-big.now{font-family:var(--f);font-size:clamp(38px,13cqw,64px);font-weight:700;letter-spacing:-.04em}
+.cd-sub{margin-top:12px;font-size:clamp(15px,4.6cqw,20px);font-weight:600}
+.tug{display:flex;height:120px;border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.tug > div{display:flex;flex-direction:column;justify-content:center;padding:0 16px;transition:none}
+.tug-y{flex:0 0 var(--p);background:linear-gradient(90deg,rgba(61,214,140,.85),rgba(61,214,140,.55))}
+.tug-n{flex:0 0 var(--p);background:linear-gradient(270deg,rgba(255,99,105,.85),rgba(255,99,105,.55));align-items:flex-end}
+.rl-scene.on .tug-y,.rl-scene.on .tug-n{animation:tug 1.3s cubic-bezier(.3,1.4,.4,1) .4s both}
+@keyframes tug{from{flex-basis:50%}}
+.tug b{display:flex;align-items:baseline;font-size:clamp(30px,10cqw,46px);letter-spacing:-.04em}.tug b .mono{font-size:1em}.tug span{font:600 12px var(--m);letter-spacing:.14em;text-transform:uppercase}
+.tug-c{text-align:center;margin-top:12px!important}
+.wk-cta .rl-text h2{font-size:clamp(40px,14cqw,68px)}
+.cta-b{display:flex;gap:12px;margin-top:22px}
+.cta-b span{padding:14px 30px;border-radius:999px;font-weight:700;font-size:20px}
+.cta-b span:first-child{background:#3DD68C;color:#06070C}.cta-b span:last-child{background:#FF6369;color:#06070C}
+.rl-scene.on .cta-b span{animation:ctaPulse 1.4s ease-in-out .5s infinite}.rl-scene.on .cta-b span:last-child{animation-delay:1.2s}
+@keyframes ctaPulse{50%{transform:scale(1.08);box-shadow:0 0 30px rgba(255,255,255,.3)}}
+.nx-row{display:flex;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid rgba(255,255,255,.15)}
+.nx-row b{font:600 13px var(--m);color:#C4C8FF;white-space:nowrap;text-transform:uppercase}
+.nx-row span{font-size:clamp(14px,4.2cqw,17px)}
+.rl-scene.on.ly-wk .rl-text > .nx-row{animation:koIn .5s cubic-bezier(.2,1.2,.35,1) both;animation-delay:calc(.3s + var(--i) * .7s)}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -5466,48 +5515,52 @@ async function plusView() {
     const av = (g) => (g ? avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '') : '');
     const first = goalOf(shown[0]?.goal) || myGoals[0] || list[0];
     const yrs = Array.from({ length: Y1 - Y0 + 1 }, (_, i) => Y0 + i);
-    // Video 1, Your week: the hook, then the week's moves and the ripple.
-    weekS.push({ kicker: `Parallax Weekly · Week ${wk}`, caption: clip(b.headline, 72), sub: range, visual: vis(first, 1) });
-    // Video 2, Your goals: research growing 2014 → now, then where each stands.
-    goalS.push({ kicker: mine.size ? 'Your goals' : 'Goals to follow', caption: 'Then → now.', sub: `${myGoals.map((g) => `@${g.handle}`).join(' · ')}`, visual: vis(myGoals[0], 9) });
-    scenes = goalS;
-    // 2. Timelapse: each goal's research per year, growing in step with a year counter
-    if (myGoals.length && years.length) scenes.push({ type: 'tl', dur: 7600, visual: vis(myGoals[0], 2),
-      html: `<span class="wk-lab">${mine.size ? 'Your goals' : 'Goals to follow'} · research per year</span><div class="tl-yr mono" data-count-from="${Y0}" data-count-to="${Y1}" data-count-ms="3600" data-count-delay="400">${Y0}</div>
-        <div class="tl-rows">${myGoals.map((g) => { const m = perYear.get(g.id) || {}, mx = Math.max(1, ...yrs.map((y) => m[y] || 0)), tot = yrs.reduce((a2, y) => a2 + (m[y] || 0), 0);
-          return `<div class="tl-row">${av(g)}<div class="tl-mid"><b>@${esc(g.handle)}</b><div class="tl-bars">${yrs.map((y, i) => `<i style="--h:${Math.max(4, Math.round((m[y] || 0) / mx * 100))}%;--i:${i}"></i>`).join('')}</div></div><span class="tl-tot mono">${tot.toLocaleString()}<small>papers</small></span></div>`; }).join('')}</div>` });
-    // 3. Where they stand: progress bars fill to where each goal is now
-    if (myGoals.length && counts.size) scenes.push({ type: 'gs', dur: 6000, visual: vis(myGoals[1] || myGoals[0], 3),
-      html: `<span class="wk-lab">Where they stand</span><div class="gs-rows">${myGoals.map((g, i) => { const c = counts.get(g.id) || { solved: 0, total: 0 }, pct = c.total ? Math.round((c.solved + (c.moving || 0) * 0.5) / c.total * 100) : 0;
-        return `<div class="gs-row" style="--i:${i}"><div class="gs-h">${av(g)}<b>@${esc(g.handle)}</b><span class="mono">${esc(horizonText(g))}</span></div><div class="gs-bar"><i style="--p:${Math.max(3, pct)}%"></i></div><small>${c.solved} of ${c.total} problems solved · ${c.moving || 0} moving</small></div>`; }).join('')}</div>` });
-    scenes = weekS;
-    // 4. The highlight reel: the week's biggest moves
+    // Three short videos, each opening on motion graphics and never repeating the tab's own title.
+    const anim = (k2, g) => ({ kind: 'anim', url: `anim:${k2}`, poster: '', credit: 'Parallax', license: 'Parallax', source_url: '' });
+    const words = (lines) => lines.map((l, i) => `<div class="ko-w" style="--i:${i}">${l}</div>`).join('');
+    const num = (n, from = 0, ms = 900, delay = 0) => `<span class="mono" data-count-from="${from}" data-count-to="${n}" data-count-ms="${ms}" data-count-delay="${delay}">${from}</span>`;
+    // ---- Your week: a cold open, then the moves over each goal's footage, then the ripple
+    weekS.push({ type: 'ko', dur: 4200, visual: anim('warp'),
+      html: words([`${num(7, 0, 600, 100)} days.`, `${num(myGoals.length || 1, 0, 500, 900)} goal${myGoals.length === 1 ? '' : 's'}.`, (() => { const mv = items.filter((x) => x.k === 'moved').length; return mv ? `${num(mv, 0, 600, 1700)} move${mv === 1 ? '' : 's'}.` : 'A quiet week.'; })()]) });
     shown.forEach((x, i) => { const g = goalOf(x.goal);
-      scenes.push({ kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 100), visual: vis(g, i + 4) }); });
-    // 5. The ripple
-    const rp = d.ripple;
-    if (rp && full) scenes.push({ kicker: `Ripple · @${rp.from} → @${rp.to}`, caption: clip(rp.headline, 70), sub: rp.why ? clip(rp.why, 100) : `News on @${rp.from} moves @${rp.to} too: they share problems.`, visual: vis(goalOf(rp.to), 6) });
-    // Video 3, What's next: the call of the week, what's due, your record.
+      weekS.push({ kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 100), visual: vis(g, i + 4) }); });
+    const rp = d.ripple, rpFrom = goalOf(rp?.from), rpTo = goalOf(rp?.to);
+    if (rp && full) weekS.push({ type: 'rip', dur: 5600, visual: vis(rpTo, 6),
+      html: `<div class="rip-row">${av(rpFrom)}<div class="rip-line"><i></i></div>${av(rpTo)}</div><div class="rip-names"><b>@${esc(rp.from)}</b><b>@${esc(rp.to)}</b></div><h2>${esc(clip(rp.headline, 80))}</h2><p>${esc(rp.why ? clip(rp.why, 110) : `What happens on one moves the other: they share problems.`)}</p>` });
+    weekS.push(full
+      ? { type: 'end', dur: 4600, visual: vis(first, 7), html: `<h2>See you Monday.</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Plus</span></div>` }
+      : { type: 'end', dur: 6400, visual: vis(first, 7), html: `<h2>The rest is for Plus.</h2><ul class="wk-inc"><li>Every move on the goals you follow</li><li>Your goals racing year by year</li><li>What’s coming, and your calls</li></ul>` });
+    // ---- Your goals: years rush past, research rises, then the race
+    const totals = myGoals.map((g) => { const m = perYear.get(g.id) || {}; return yrs.reduce((a2, y) => a2 + (m[y] || 0), 0); });
+    const allPapers = totals.reduce((a2, n) => a2 + n, 0);
+    goalS.push({ type: 'yr', dur: 5200, visual: anim('warp'),
+      html: `<div class="yr-big mono" data-count-from="${Y0}" data-count-to="${Y1}" data-count-ms="3200" data-count-delay="200">${Y0}</div><div class="yr-sub">${num(allPapers, 0, 3200, 200)} papers on ${myGoals.length === 1 ? 'your goal' : 'your goals'}</div><div class="yr-avs">${myGoals.map((g) => av(g)).join('')}</div>` });
+    if (years.length) goalS.push({ type: 'tl', dur: 6400, visual: vis(myGoals[0], 2),
+      html: `<div class="tl-rows">${myGoals.map((g, gi2) => { const m = perYear.get(g.id) || {}, mx = Math.max(1, ...yrs.map((y) => m[y] || 0));
+        return `<div class="tl-row">${av(g)}<div class="tl-mid"><b>@${esc(g.handle)}</b><div class="tl-bars">${yrs.map((y, i) => `<i style="--h:${Math.max(4, Math.round((m[y] || 0) / mx * 100))}%;--i:${i}"></i>`).join('')}</div></div><span class="tl-tot mono">${totals[gi2].toLocaleString()}<small>papers</small></span></div>`; }).join('')}</div><p class="tl-note">Research a year, ${Y0} → ${Y1}</p>` });
+    const mid = (g) => (g.horizon_low != null && g.horizon_high != null ? (g.horizon_low + g.horizon_high) / 2 : null);
+    const racers = myGoals.filter((g) => mid(g) != null);
+    if (racers.length) { const minM = Math.max(1, Math.min(...racers.map(mid))), lead = [...racers].sort((p1, p2) => mid(p1) - mid(p2))[0];
+      goalS.push({ type: 'race', dur: 6600, visual: anim('aurora'),
+        html: `<h2>@${esc(lead.handle)} is closest.</h2><p>${esc(horizonText(lead))} to go at today’s pace.</p><div class="race">${racers.map((g, i) => `<div class="lane" style="--x:${Math.round(10 + 78 * Math.pow(minM / Math.max(minM, mid(g)), 2))}%;--i:${i}"><span class="runner">${av(g)}</span><small>${esc(horizonText(g))}</small></div>`).join('')}<div class="finish"><span>Goal</span></div></div>` }); }
+    goalS.push({ type: 'end', dur: 4200, visual: vis(myGoals[0], 8), html: `<h2>Follow more goals to race them.</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Plus</span></div>` });
+    // ---- What's next: the countdown, the question, the tug of war, your call
     const cnt = (k2) => d.counts.find((c) => c.key === k2) || { yes: 0, no: 0 };
     const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
     const cw = [...(soon.length ? soon : d.coming || [])].sort((x, y) => { const n2 = (k2) => { const c = cnt(k2); return c.yes + c.no; }; return n2(y.key) - n2(x.key) || x.date.localeCompare(y.date); })[0];
-    const due = (c) => { if (!/^\d{4}-\d{2}$/.test(c.date)) return `Due ${c.date}`; const days = Math.round((new Date(`${c.date}-28`) - Date.now()) / 864e5); return days <= 0 ? 'Results due now' : days < 21 ? `Results in ${days} days` : `Results in ${Math.round(days / 30)} month${Math.round(days / 30) === 1 ? '' : 's'}`; };
-    nextS.push({ kicker: 'What’s next', caption: d.coming_total ? `${d.coming_total} results are on the way.` : 'Results are on the way.', sub: 'Trials and promises coming due. Each one is a call you can make.', visual: vis(goalOf(cw?.goal) || first, 10) });
-    if (cw) { const n2 = cnt(cw.key), tot = n2.yes + n2.no, yp = tot ? Math.round(n2.yes / tot * 100) : 50;
-      nextS.push({ type: 'poll', dur: 6200, visual: vis(goalOf(cw.goal), 11),
-        html: `<span class="wk-lab">Call of the week · @${esc(cw.goal)}</span><h2>${esc(cw.question)}</h2><p class="wk-q">${esc(clip(cw.title, 90))}</p><div class="wk-bar"><i style="flex:${tot ? yp : 1}"></i><i style="flex:${tot ? 100 - yp : 1}"></i></div><div class="wk-pl"><span>${tot ? `${yp}% yes` : 'Yes'}</span><span>${tot ? `${100 - yp}% no` : 'No'}</span></div><span class="wk-due">${esc(due(cw))}${tot ? ` · ${tot} call${tot === 1 ? '' : 's'}` : ' · be the first call'}</span>` }); }
+    if (cw) {
+      const days = /^\d{4}-\d{2}$/.test(cw.date) ? Math.max(0, Math.round((new Date(`${cw.date}-28`) - Date.now()) / 864e5)) : null;
+      nextS.push({ type: 'cd', dur: 4400, visual: anim('aurora'),
+        html: days ? `<div class="cd-big mono" data-count-from="${days + 60}" data-count-to="${days}" data-count-ms="2600" data-count-delay="150">${days + 60}</div><div class="cd-sub">days until a result on @${esc(cw.goal)}</div>` : `<div class="cd-big now">Any day now.</div><div class="cd-sub">A result is due on @${esc(cw.goal)}</div>` });
+      nextS.push({ kicker: `@${cw.goal} · ${cw.kind === 'trial' ? 'trial' : 'promise'}`, caption: cw.question, sub: clip(cw.title, 100), visual: vis(goalOf(cw.goal), 11) });
+      const n2 = cnt(cw.key), tot = n2.yes + n2.no, yp = tot ? Math.round(n2.yes / tot * 100) : 50;
+      nextS.push({ type: 'tug', dur: 5400, visual: vis(goalOf(cw.goal), 12),
+        html: `<div class="tug"><div class="tug-y" style="--p:${yp}%"><b class="mono">${tot ? num(yp, 50, 1200, 400) : '?'}${tot ? '%' : ''}</b><span>Yes</span></div><div class="tug-n" style="--p:${100 - yp}%"><b class="mono">${tot ? num(100 - yp, 50, 1200, 400) : '?'}${tot ? '%' : ''}</b><span>No</span></div></div><p class="tug-c">${tot ? `${tot} call${tot === 1 ? '' : 's'} so far` : 'Nobody has called it yet'}</p>` });
+      nextS.push({ type: 'cta', dur: 4200, visual: vis(goalOf(cw.goal), 13), html: `<h2>Your call?</h2><div class="cta-b"><span>Yes</span><span>No</span></div><p>Make it on this page. Your record builds as results come in.</p>` });
+    }
     const nx = (d.coming || []).filter((c) => c !== cw).slice(0, 3);
-    if (nx.length) nextS.push({ type: 'next', dur: 6000, visual: vis(goalOf(nx[0].goal), 12),
-      html: `<span class="wk-lab">Coming up</span>${nx.map((c) => `<div class="wk-nx"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 70))}</span></div>`).join('')}` });
-    if (full) { const made = d.mine.length, judged = d.mine.filter((m) => { const r2 = d.results.find((x) => x.key === m.key); return r2 && r2.outcome !== 'void'; }), right = judged.filter((m) => d.results.find((x) => x.key === m.key).outcome === m.choice).length;
-      nextS.push({ kicker: 'Your record', caption: d.standing?.percentile != null ? `Ahead of ${d.standing.percentile}% of callers.` : judged.length ? `${right} of ${judged.length} calls right.` : made ? `${made} call${made === 1 ? '' : 's'} made, results pending.` : 'No calls yet. Make your first one below.', sub: made ? `${d.waiting.length} still waiting on a result.` : null, visual: vis(first, 13) }); }
-    const endCard = (t) => ({ type: 'end', dur: 4600, visual: vis(first, 14), html: `<h2>${t}</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` });
-    goalS.push(endCard('Follow more goals to see them here.'));
-    nextS.push(endCard('Make your calls below.'));
-    // 6. Sign-off (or, without Plus, what the full episode holds)
-    scenes.push(full
-      ? { type: 'end', dur: 5200, visual: vis(first, 7), html: `<h2>That’s your week.</h2><p>Next episode: Monday.</p><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` }
-      : { type: 'end', dur: 6400, visual: vis(first, 7), html: `<span class="wk-lab">The full episode is for Plus</span><h2>Every Monday, your goals in a minute.</h2><ul class="wk-inc"><li>Every move on the goals you follow</li><li>Their research, growing year by year</li><li>Where each one stands</li><li>The ripple between goals</li></ul>` });
+    if (nx.length) nextS.push({ type: 'nx', dur: 5600, visual: anim('neurons'),
+      html: `<span class="wk-lab">After that</span>${nx.map((c, i) => `<div class="nx-row" style="--i:${i}"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 64))}</span></div>`).join('')}` });
   }
   const reels = [['Your week', weekS], ['Your goals', goalS], ['What’s next', nextS]].filter(([, sc], i) => sc.length > 1 && (full || i === 0))
     .map(([t, sc], i) => ({ id: `week-${b?.week || 'x'}-${i}`, kind: 'weekly', title: t, scenes: sc, mood: 'uplifting', ticker: [], chapters: [] }));
@@ -6612,7 +6665,7 @@ const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" s
 // One player per reel: shows a scene, fills its bar, then moves on; loops at the end.
 function reelPlayer(card) {
   const scenes = [...card.querySelectorAll('.rl-scene')], bars = [...card.querySelectorAll('.rl-bars i b')];
-  let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, ptimer = 0, raf = 0, paused = true;
+  let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, ptimer = 0, raf = 0, paused = true, started = false;
   const once = card.dataset.once === '1';
   // A video fades in over its still once it is actually playing (no jump from still to first frame).
   card.addEventListener('playing', (e) => { if (e.target.tagName === 'VIDEO') e.target.classList.add('live'); }, true);
@@ -6678,7 +6731,7 @@ function reelPlayer(card) {
     clearTimeout(wtimer); if (left > 700) wtimer = setTimeout(() => music.whoosh(0.5), left - 520);
     // Studio: the next shot starts fading in under the current caption, so footage and words never change at the same moment.
     clearTimeout(ptimer);
-    if (studio && left > 1400 && !(once && k === scenes.length - 1)) ptimer = setTimeout(() => { const nx = scenes[(k + 1) % scenes.length]; nx.classList.add('pre'); const v = nx.querySelector('video'); if (v) { v.preload = 'auto'; v.currentTime = 0; v.play().catch(() => {}); } }, left - 1150);
+    if (studio && left > 1400 && !(once && k === scenes.length - 1)) ptimer = setTimeout(() => { const nx = scenes[(k + 1) % scenes.length]; nx.classList.add('pre'); anim(nx, true); const v = nx.querySelector('video'); if (v) { v.preload = 'auto'; v.currentTime = 0; v.play().catch(() => {}); } }, left - 1150);
   };
   const stop = () => {
     clearTimeout(timer); clearTimeout(wtimer); clearTimeout(ptimer);
@@ -6688,8 +6741,9 @@ function reelPlayer(card) {
     scenes[k].querySelector('video')?.pause();
     anim(scenes[k], false);
   };
+  left = dur(0); // the first scene plays its full length (players that start with play(), not reset())
   return {
-    play() { if (!paused) return; paused = false; card.classList.remove('paused'); anim(scenes[k], true); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
+    play() { if (!paused) return; if (!started) { started = true; paused = false; card.classList.remove('paused'); show(k); return; } paused = false; card.classList.remove('paused'); anim(scenes[k], true); const v = scenes[k].querySelector('video'); if (v) { v.preload = 'auto'; v.play().catch(() => {}); } preloadNext(); run(); },
     pause() { if (paused) return; paused = true; card.classList.add('paused'); stop(); },
     reset() { this.pause(); left = 0; show(0); },
     replay() { card.classList.remove('ended'); this.reset(); this.play(); },
