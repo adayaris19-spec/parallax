@@ -1277,6 +1277,26 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .nx-row b{font:600 13px var(--m);color:#C4C8FF;white-space:nowrap;text-transform:uppercase}
 .nx-row span{font-size:clamp(14px,4.2cqw,17px)}
 .rl-scene.on.ly-wk .rl-text > .nx-row{animation:koIn .5s cubic-bezier(.2,1.2,.35,1) both;animation-delay:calc(.3s + var(--i) * .7s)}
+.rv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#05060B}
+.rv-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(3,4,10,.45),rgba(3,4,10,0) 14%,rgba(3,4,10,0) 82%,rgba(3,4,10,.5))}
+.rv-card .rl-tap.prev,.rv-card .rl-tap.next{display:none}.rv-card .rl-tap.mid{left:0;width:100%}
+.qz{height:100%;background:#06070C;color:#fff}
+.qz-bg{position:absolute;inset:0}.qz-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.qz-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,5,12,.55),rgba(4,5,12,.35) 30%,rgba(4,5,12,.8) 75%,rgba(4,5,12,.92))}
+.qz-in{position:absolute;inset:0;padding:22px 20px 24px;display:flex;flex-direction:column;justify-content:flex-end;container-type:inline-size}
+.qz-dots{position:absolute;top:18px;left:20px;right:20px;display:flex;gap:6px}
+.qz-dots i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}.qz-dots i.done{background:#C4C8FF}.qz-dots i.now{background:#fff}
+.qz h2{font-size:clamp(20px,7.4cqw,30px);line-height:1.12;letter-spacing:-.025em;margin:0 0 16px;animation:rise .5s ease-out both;text-wrap:balance}
+.qz-opts{display:grid;gap:9px}
+.qz-opts button{border:0;border-radius:14px;padding:13px 14px;text-align:left;font:600 clamp(13px,4.2cqw,16px) var(--f);color:#fff;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);cursor:pointer;transition:background .25s,transform .2s;animation:rise .45s ease-out both}
+.qz-opts button:nth-child(2){animation-delay:.08s}.qz-opts button:nth-child(3){animation-delay:.16s}
+.qz-opts button:hover:not(:disabled){background:rgba(255,255,255,.22)}
+.qz-opts button.ok{background:#3DD68C;color:#06070C;transform:scale(1.02)}.qz-opts button.no{background:#FF6369;color:#06070C}
+.qz-opts button:disabled:not(.ok):not(.no){opacity:.5}
+.qz-fact{min-height:3.2em;margin:12px 0 0;font-size:clamp(12.5px,3.8cqw,15px);line-height:1.4;color:rgba(255,255,255,.85);opacity:0;transition:opacity .3s}.qz-fact.on{opacity:1}
+.qz-end .qz-in{justify-content:center;align-items:center;text-align:center}
+.qz-score{font-size:clamp(70px,30cqw,130px);line-height:.9;letter-spacing:-.06em;animation:statIn .7s cubic-bezier(.2,1.2,.3,1) both}.qz-score span{font-size:.45em;opacity:.6}
+.qz-again{margin-top:18px;border:0;border-radius:999px;padding:12px 24px;font:700 15px var(--f);background:#fff;color:#06070C;cursor:pointer}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -5478,7 +5498,7 @@ async function plusView() {
   // A hook, a timelapse of their research growing 2014 → now, where they stand, then a highlight
   // reel of the week's biggest moves over each goal's own footage, the ripple, and a sign-off.
   let scenes = [];
-  const weekS = [], goalS = [], nextS = [];
+  const weekS = [], goalS = [], nextS = [], quiz = [];
   if (b) {
     const items = [...(b.moved || []).map((x) => ({ ...x, k: 'moved' })), ...(b.watch || []).map((x) => ({ ...x, k: 'watch' }))]
       .sort((x, y) => Number(mine.has(goalOf(y.goal)?.slug)) - Number(mine.has(goalOf(x.goal)?.slug)));
@@ -5493,7 +5513,7 @@ async function plusView() {
     const gi = myGoals.map((g) => g.id).join(',');
     const [rows, nodes, years] = await Promise.all([
       ids.length ? rest(`reels?goal_id=in.(${ids.join(',')})&select=goal_id,scenes`).catch(() => []) : [],
-      gi ? rest(`nodes?goal_id=in.(${gi})&parent_key=not.is.null&select=goal_id,status`).catch(() => []) : [],
+      gi ? rest(`nodes?goal_id=in.(${gi})&parent_key=not.is.null&select=goal_id,key,parent_key,status,title,plain_title`).catch(() => []) : [],
       gi ? rest(`node_years?goal_id=in.(${gi})&year=gte.${Y0}&year=lte.${Y1}&select=goal_id,year,n`).catch(() => []) : [],
     ]);
     const clips = new Map();
@@ -5510,6 +5530,30 @@ async function plusView() {
     for (const n of nodes) { const c = counts.get(n.goal_id) || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }; c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; counts.set(n.goal_id, c); }
     const perYear = new Map();
     for (const r of years) { const m = perYear.get(r.goal_id) || {}; m[r.year] = (m[r.year] || 0) + r.n; perYear.set(r.goal_id, m); }
+    // The quiz: questions about the goals you follow, all from Parallax's own data (no AI).
+    {
+      const rnd = seededRandom(`quiz-${b.week}`), shuf = (a) => a.map((x) => [rnd(), x]).sort((p1, p2) => p1[0] - p2[0]).map((x) => x[1]);
+      const fmt = (n) => Number(n).toLocaleString('en-US');
+      const numOpts = (n) => { const o = [...new Set([n, Math.max(1, Math.round(n * (0.45 + rnd() * 0.15))), Math.round(n * (1.7 + rnd() * 0.5))])]; return o.length === 3 ? o : [n, n + 5, Math.max(1, n - 4)]; };
+      const ask = (g, q, opts, right, fact, i) => { const order = shuf(opts.map((o, j) => [o, j === right])); quiz.push({ g, q, opts: order.map((x) => x[0]), correct: order.findIndex((x) => x[1]), fact, visual: vis(g, 20 + i) }); };
+      const byGoal = (g) => nodes.filter((n2) => n2.goal_id === g.id), title = (n2) => n2.plain_title || n2.title;
+      const per = myGoals.map((g, gi2) => {
+        const qs = [], ns = byGoal(g), leaves = ns.filter((n2) => !ns.some((x) => x.parent_key === n2.key)), bn = ns.find((n2) => n2.key === g.bottleneck_key);
+        if (bn && leaves.length >= 3) { const others = shuf(leaves.filter((x) => x.key !== bn.key)).slice(0, 2); qs.push(Object.assign(() => ask(g, `What’s the biggest bottleneck for @${g.handle}?`, [title(bn), ...others.map(title)].map((t) => clip(t, 70)), 0, `Parallax rates it the problem holding up the rest. ${leaves.filter((x) => x.status === 'solved').length} of ${leaves.length} problems are solved so far.`, gi2 * 3), { t: 'bn' })); }
+        if (leaves.length) { const opts = numOpts(leaves.length); qs.push(Object.assign(() => ask(g, `How many problems stand between us and ${lowerFirst(g.name)}?`, opts.map(fmt), 0, `${leaves.length} mapped, from what science still doesn’t know to what nobody funds.`, gi2 * 3 + 1), { t: 'count' })); }
+        const m = perYear.get(g.id) || {}, ly = Y1 - 1;
+        if (m[ly]) { const opts = numOpts(m[ly]); qs.push(Object.assign(() => ask(g, `About how many papers on @${g.handle} came out in ${ly}?`, opts.map(fmt), 0, `${fmt(m[ly])}, up from ${fmt(m[Y0] || 0)} in ${Y0}.`, gi2 * 3 + 2), { t: 'papers' })); }
+        if (m[Y0] && m[ly]) { const r = m[ly] / m[Y0], right = r > 1.25 ? 0 : r < 0.8 ? 1 : 2; qs.push(Object.assign(() => ask(g, `Since ${Y0}, has research on @${g.handle} grown, shrunk or stayed flat?`, ['Grown', 'Shrunk', 'About the same'], right, `${fmt(m[Y0])} papers in ${Y0}, ${fmt(m[ly])} in ${ly}.`, gi2 * 3), { t: 'trend' })); }
+        return shuf(qs);
+      });
+      const withH = myGoals.filter((g) => g.horizon_low != null);
+      if (withH.length >= 2) { const mid2 = (g) => (g.horizon_low + g.horizon_high) / 2, best = [...withH].sort((p1, p2) => mid2(p1) - mid2(p2))[0], opts = withH.slice(0, 3);
+        per.unshift([Object.assign(() => ask(best, 'Which of your goals is closest, at today’s pace?', opts.map((g) => `@${g.handle}`), opts.indexOf(best), `@${best.handle}: ${horizonText(best)} to go.`, 9), { t: 'closest' })]); }
+      // Up to five questions, a different kind each time where possible, spread across the goals.
+      const used = new Set(), pool = per.map((qs) => [...qs]);
+      for (let pass = 0; pass < 2 && quiz.length < 5; pass++) for (let round = 0; round < 5 && quiz.length < 5; round++) for (const qs of pool) {
+        if (quiz.length >= 5) break; const j = qs.findIndex((f) => pass || !used.has(f.t)); if (j < 0) continue; const [f] = qs.splice(j, 1); used.add(f.t); f(); }
+    }
     const wk = (() => { const t = new Date(b.week); const d0 = new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); const day = d0.getUTCDay() || 7; d0.setUTCDate(d0.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(d0.getUTCFullYear(), 0, 1)); return Math.ceil(((d0 - y0) / 864e5 + 1) / 7); })();
     const range = (() => { const t = new Date(b.week), e = new Date(+t + 6 * 864e5), f = (x) => x.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); return `${f(t)} – ${f(e)}`; })();
     const av = (g) => (g ? avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '') : '');
@@ -5562,8 +5606,8 @@ async function plusView() {
     if (nx.length) nextS.push({ type: 'nx', dur: 5600, visual: anim('neurons'),
       html: `<span class="wk-lab">After that</span>${nx.map((c, i) => `<div class="nx-row" style="--i:${i}"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 64))}</span></div>`).join('')}` });
   }
-  const reels = [['Your week', weekS], ['Your goals', goalS], ['What’s next', nextS]].filter(([, sc], i) => sc.length > 1 && (full || i === 0))
-    .map(([t, sc], i) => ({ id: `week-${b?.week || 'x'}-${i}`, kind: 'weekly', title: t, scenes: sc, mood: 'uplifting', ticker: [], chapters: [] }));
+  const reels = [['Your week', weekS], ['Quiz', null], ['What’s next', nextS]].filter(([t, sc], i) => (sc ? sc.length > 1 : quiz.length >= 3) && (full || i === 0))
+    .map(([t, sc], i) => (sc ? { id: `week-${b?.week || 'x'}-${i}`, kind: 'weekly', title: t, scenes: sc, mood: 'uplifting', ticker: [], chapters: [] } : { title: t, quiz }));
   const reel = reels[0] || { id: 'week-x', kind: 'weekly', title: 'Your week', scenes: [], ticker: [], chapters: [] };
   scenes = reel.scenes;
   const pg = { slug: 'parallax-week', handle: 'Parallax', name: 'Your week', pics: [] };
@@ -5650,8 +5694,9 @@ async function plusView() {
   const mount = (i) => {
     cur?.pause();
     const box2 = view.querySelector('#pweek'); if (!box2 || !reels[i]) return;
-    box2.innerHTML = reelCard(reels[i], pg, 0);
     view.querySelectorAll('[data-pv]').forEach((x) => x.setAttribute('aria-selected', String(Number(x.dataset.pv) === i)));
+    if (reels[i].quiz) { cur = null; music.stop(); quizPlay(box2, reels[i].quiz, b?.week); return; }
+    box2.innerHTML = reelCard(reels[i], pg, 0);
     wire(i);
   };
   view.querySelectorAll('[data-pv]').forEach((x) => { x.onclick = () => mount(Number(x.dataset.pv)); });
@@ -6622,10 +6667,14 @@ function studioLayouts(scenes, seed) {
 function reelCard(r, g, i, studio = true) {
   const scenes = r.scenes || [];
   const lys = studio ? studioLayouts(scenes, hue(String(r.id))) : null;
-  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}${r.brief ? ' brief-card' : ''}" data-reel="${i}"${r.once ? ' data-once="1"' : ''}${r.accent ? ` style="--kc:${esc(r.accent)}"` : ''}>
+  // Watch videos rendered like the Reels: one continuous file with its own soundtrack.
+  const rv = studio && r.render?.url && !r.once && r.kind !== 'weekly' ? r.render : null;
+  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}${r.brief ? ' brief-card' : ''}${rv ? ' rv-card' : ''}" data-reel="${i}"${rv ? ` data-starts="${esc((rv.starts || []).join(','))}"` : ''}${r.once ? ' data-once="1"' : ''}${r.accent ? ` style="--kc:${esc(r.accent)}"` : ''}>
     ${r.brief ? `<div class="bf-tag"><i></i>${esc(r.tag)}</div><div class="bf-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.once ? `<div class="rl-endbox"><button type="button" class="sw-cta" data-rl="replay">↺ Watch again</button><a class="sw-cta ghost" href="${esc(r.dive.href)}">${esc(r.dive.label)}</a></div>` : ''}
-    ${scenes.map((s, k) => {
+    ${rv ? `<video class="rv-video" src="${esc(rv.url)}" poster="${esc(rv.poster || '')}" playsinline loop preload="none" muted aria-label="${esc(scenes.map((x) => x.caption).join('. '))}"></video><div class="rv-shade"></div>
+      <div class="sw-credit rv-credit" data-credits="${esc(JSON.stringify(scenes.map((x) => (x.visual?.kind === 'anim' ? 'Animation: Parallax' : x.visual?.credit ? `${x.visual.kind === 'video' ? 'Video' : 'Photo'}: ${x.visual.credit} · ${x.visual.license || ''}` : ''))))}"></div>` : ''}
+    ${rv ? '' : scenes.map((s, k) => {
       const len = String(s.caption || '').length;
       let ly = ['bottom', 'center', 'top', 'number', 'quote'].includes(s.layout) ? s.layout : (s.stat && !s.visual ? 'number' : 'bottom');
       // Long text never goes in the middle (it would overflow the top); it sits low and smaller.
@@ -6646,7 +6695,7 @@ function reelCard(r, g, i, studio = true) {
       ${s.visual && s.visual.url && s.visual.kind === 'anim' ? `<div class="sw-credit">Animation: Parallax</div>` : s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     ${r.kind === 'weekly' && r.chapters?.length ? `<div class="wk-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.kind === 'weekly' && r.ticker?.length ? `<div class="wk-tick" aria-hidden="true"><b>This week</b><div class="wk-tt"><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span></div></div>` : ''}
-    <div class="rl-top"><div class="rl-bars">${scenes.map(() => '<i><b></b></i>').join('')}</div>
+    <div class="rl-top"><div class="rl-bars">${rv ? '<i><b></b></i>' : scenes.map(() => '<i><b></b></i>').join('')}</div>
       <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(smallPic(g.pics[0], 'a')).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
     <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
@@ -6661,6 +6710,59 @@ function reelCard(r, g, i, studio = true) {
 }
 const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6"/></svg>';
+
+// Plus quiz: one question at a time over the goal's footage; tap an answer, see the fact, score at the end.
+function quizPlay(box, qs, week) {
+  let i = 0, score = 0;
+  const key = `px.quiz.${week}`;
+  const bg = (v) => (v?.kind === 'video' ? `${v.poster ? `<div class="rl-pst" style="background-image:url('${esc(v.poster).replace(/'/g, '%27')}')"></div>` : ''}<video class="qz-v" src="${esc(v.url)}" muted loop playsinline autoplay></video>` : v?.url ? `<div class="rl-pst" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>` : '');
+  const draw = () => {
+    if (i >= qs.length) {
+      try { localStorage.setItem(key, String(score)); } catch { /* private mode */ }
+      const msg = score === qs.length ? 'Perfect. You know your goals.' : score >= qs.length - 1 ? 'Nearly perfect.' : score >= qs.length / 2 ? 'Not bad. Next week’s is new.' : 'Now you know a bit more.';
+      box.innerHTML = `<section class="sw-card qz qz-end"><div class="qz-bg">${bg(qs[0].visual)}</div><div class="qz-shade"></div><div class="qz-in"><div class="qz-score mono">${score}<span>/${qs.length}</span></div><h2>${esc(msg)}</h2><button type="button" class="qz-again">Play again</button></div></section>`;
+      if (music.wanted) { music.start('parallax-weekly', 'epic', 'quiz'); music.resolve(); }
+      box.querySelector('.qz-again').onclick = () => { i = 0; score = 0; draw(); };
+      return;
+    }
+    const q = qs[i];
+    box.innerHTML = `<section class="sw-card qz"><div class="qz-bg">${bg(q.visual)}</div><div class="qz-shade"></div>
+      <div class="qz-in"><div class="qz-dots">${qs.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'now' : ''}"></i>`).join('')}</div>
+      <h2>${esc(q.q)}</h2><div class="qz-opts">${q.opts.map((o, j) => `<button type="button" data-q="${j}">${esc(o)}</button>`).join('')}</div><p class="qz-fact"></p></div></section>`;
+    box.querySelectorAll('[data-q]').forEach((btn) => { btn.onclick = () => {
+      const pick = Number(btn.dataset.q), right = pick === q.correct;
+      if (right) score++;
+      box.querySelectorAll('[data-q]').forEach((x) => { x.disabled = true; const j = Number(x.dataset.q); if (j === q.correct) x.classList.add('ok'); else if (j === pick) x.classList.add('no'); });
+      const f = box.querySelector('.qz-fact'); f.innerHTML = `<b>${right ? 'Right.' : 'Not quite.'}</b> ${esc(q.fact)}`; f.classList.add('on');
+      music.hit(right);
+      setTimeout(() => { i++; draw(); }, 2900);
+    }; });
+  };
+  draw();
+}
+
+// Player for a rendered Watch video (one file with its own soundtrack): same controls as reelPlayer.
+function renderedPlayer(card) {
+  const v = card.querySelector('video.rv-video'), bar = card.querySelector('.rl-bars b'), cred = card.querySelector('.rv-credit');
+  const starts = (card.dataset.starts || '0').split(',').map(Number), credits = JSON.parse(cred?.dataset.credits || '[]');
+  let raf = 0, paused = true, last = -1;
+  const sceneAt = (t) => { let k = 0; starts.forEach((s, i) => { if (t >= s - 0.3) k = i; }); return k; };
+  const tick = () => {
+    if (v.duration) { bar.style.width = `${(v.currentTime / v.duration) * 100}%`; const k = sceneAt(v.currentTime); if (k !== last) { last = k; if (cred) cred.textContent = credits[k] || ''; } }
+    if (!paused) raf = requestAnimationFrame(tick);
+  };
+  const sound = () => { v.muted = !music.wanted; };
+  const play = () => { paused = false; card.classList.remove('paused'); v.preload = 'auto'; sound(); v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
+  // Browsers start videos muted until the first tap: turn the sound on then, if it's wanted.
+  document.addEventListener('pointerdown', () => { if (!paused && music.wanted && v.muted) v.muted = false; }, { passive: true });
+  const seek = (d) => { const k = Math.max(0, Math.min(starts.length - 1, sceneAt(v.currentTime) + d)); v.currentTime = starts[k] + 0.05; };
+  return {
+    play, pause() { paused = true; card.classList.add('paused'); v.pause(); cancelAnimationFrame(raf); },
+    reset() { this.pause(); try { v.currentTime = 0; } catch { /* not loaded */ } bar.style.width = '0%'; },
+    next() { seek(1); }, prev() { seek(-1); }, replay() { v.currentTime = 0; play(); }, go(i) { v.currentTime = starts[i] || 0; },
+    toggle() { paused ? play() : this.pause(); }, sound,
+  };
+}
 
 // One player per reel: shows a scene, fills its bar, then moves on; loops at the end.
 function reelPlayer(card) {
@@ -6760,7 +6862,7 @@ async function watchView(slug, storiesMode = false) {
   const box = $('#sw');
   let list, reels;
   try {
-    [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score,mood&order=created_at.desc&limit=200')]);
+    [list, reels] = await Promise.all([goals(), rest('reels?select=id,goal_id,post_id,kind,title,scenes,score,mood,render&order=created_at.desc&limit=200')]);
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
   let ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
@@ -6780,7 +6882,7 @@ async function watchView(slug, storiesMode = false) {
   if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>Videos are on their way.</h2><p>Parallax is making short videos for every goal. Check back soon.</p><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
   watchState.reels = ordered;
   box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i, !storiesMode)).join('') + (storiesMode ? `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>You’re all caught up.</h2><p>New stories appear when goals move forward or hit a setback.</p><div class="sw-acts"><a class="sw-cta" href="#/">Back to the feed</a><a class="sw-cta ghost" href="#/watch">Watch videos</a></div></div></section>` : '');
-  const players = [...box.querySelectorAll('.rl')].map(reelPlayer);
+  const players = [...box.querySelectorAll('.rl')].map((c) => (c.classList.contains('rv-card') ? renderedPlayer(c) : reelPlayer(c)));
   let current = -1;
   const obs = new IntersectionObserver((entries) => {
     for (const e of entries) {
@@ -6790,7 +6892,7 @@ async function watchView(slug, storiesMode = false) {
         current = i; players[i].play();
         if (ordered[i].story) markSeen(ordered[i].story);
         const g = list.find((x) => x.id === ordered[i].goal_id);
-        if (music.wanted) music.start(g.slug, reelMood(ordered[i], g), ordered[i].id);
+        if (ordered[i].render?.url && !storiesMode) music.stop(); else if (music.wanted) music.start(g.slug, reelMood(ordered[i], g), ordered[i].id);
       } else if (i === current && e.intersectionRatio < 0.3) players[i].pause();
     }
   }, { root: box, threshold: [0, 0.3, 0.6, 1] });
@@ -6804,7 +6906,8 @@ async function watchView(slug, storiesMode = false) {
     const snd = e.target.closest('[data-sound]');
     if (snd) {
       music.wanted = !music.wanted;
-      if (music.wanted) { const r = ordered[Number(card.dataset.reel)], g = list.find((x) => x.id === r.goal_id); music.start(g.slug, reelMood(r, g), r.id); } else music.stop();
+      const r = ordered[Number(card.dataset.reel)];
+      if (card.classList.contains('rv-card')) { music.stop(); p.sound(); } else if (music.wanted) { const g = list.find((x) => x.id === r.goal_id); music.start(g.slug, reelMood(r, g), r.id); } else music.stop();
       box.querySelectorAll('[data-sound]').forEach((b) => { b.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; });
     }
   });
