@@ -1116,6 +1116,91 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .studio .rl-bars i:first-child{border-radius:2px 0 0 2px}.studio .rl-bars i:last-child{border-radius:0 2px 2px 0}
 .studio .rl-tap.prev,.studio .rl-tap.next{display:none}
 .studio .rl-tap.mid{left:0;width:100%}
+/* Watch cuts like a Reel: each scene arrives with its own transition (zoom-through, slide, circle
+   reveal, wipe, flash), the old one held underneath; the hook punches in. */
+.studio .rl-scene{transition:none}
+.studio .rl-scene.was{opacity:1;z-index:1}
+.studio .rl-scene.on{z-index:2}
+.studio .rl-scene.on.tr0{animation:trZoom .55s cubic-bezier(.2,.8,.2,1) both}
+.studio .rl-scene.on.tr1{animation:trSlide .5s cubic-bezier(.7,0,.2,1) both}
+.studio .rl-scene.on.tr2{animation:trCircle .6s cubic-bezier(.5,0,.2,1) both}
+.studio .rl-scene.on.tr3{animation:trWipe .5s cubic-bezier(.7,0,.2,1) both}
+.studio .rl-scene.on.tr4{animation:trFade .35s ease both}
+.studio .rl-scene.on.tr4::after{content:"";position:absolute;inset:0;background:#fff;z-index:5;pointer-events:none;animation:trFlash .4s ease-out both}
+@keyframes trZoom{from{opacity:0;transform:scale(1.22);filter:blur(10px)}}
+@keyframes trSlide{from{transform:translateY(100%)}}
+@keyframes trCircle{from{clip-path:circle(0% at 50% 50%)}to{clip-path:circle(120% at 50% 50%)}}
+@keyframes trWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes trFade{from{opacity:0}}
+@keyframes trFlash{from{opacity:.75}to{opacity:0}}
+.studio .rl-scene.on.ly-ig-hook .rl-text h2{animation:hookIn .7s cubic-bezier(.2,1.1,.3,1) .1s both!important}
+.studio .rl-scene.on.ly-ig-hook .rl-text h2 .w{animation:none!important}
+@keyframes hookIn{from{opacity:0;transform:scale(1.18);filter:blur(6px)}}
+.studio .rl-scene.on.ly-ig-stat .rl-stat{animation:statIn .6s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes statIn{from{opacity:0;transform:scale(.6)}}
+@media (prefers-reduced-motion:reduce){.studio .rl-scene.on[class*=" tr"],.studio .rl-scene.on[class*=" tr"]::after{animation:none!important}}
+/* The Briefing: a post's video. Footage in a framed window, a case-file panel below. */
+.brief-card{--kc:#AEB4FF;background:#06070C}
+.brief-card .rl-top{display:none}
+.brief-card .rl-scene{background:#06070C linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px) 0 0/100% 28px}
+.brief-card .rl-shade,.brief-card .rl-scene.has-visual .rl-grad{display:none}
+.brief-card .rl-media,.brief-card .rl-bg{top:96px;left:14px;right:14px;bottom:auto;height:max(150px,26%);border-radius:18px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 20px 50px rgba(0,0,0,.5)}
+.brief-card video.rl-media{width:calc(100% - 28px);height:max(150px,26%)}
+.brief-card .rl-media{transform:none!important;animation:none!important}
+.brief-card .rl-scene.on .rl-media{animation:bfDrift 7s ease-in-out both!important}
+@keyframes bfDrift{from{object-position:40% 50%;background-position:40% 50%}to{object-position:60% 50%;background-position:60% 50%}}
+.brief-card .rl-scene::after{content:"";position:absolute;top:96px;left:14px;right:14px;height:max(150px,26%);border-radius:18px;pointer-events:none;background:linear-gradient(180deg,rgba(6,7,12,0) 55%,rgba(6,7,12,.55));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.bf-tag{position:absolute;top:18px;left:16px;z-index:5;display:flex;align-items:center;gap:8px;font:600 clamp(10px,2.9cqw,12px) var(--m);letter-spacing:.14em;text-transform:uppercase;color:#fff}
+.bf-tag i{width:8px;height:8px;border-radius:50%;background:var(--kc);box-shadow:0 0 12px var(--kc);animation:bfPulse 1.6s ease-in-out infinite}
+@keyframes bfPulse{50%{opacity:.35}}
+.bf-chs{position:absolute;top:52px;left:16px;right:64px;z-index:5;display:flex;gap:5px}
+.bf-chs span{flex:1;padding-top:6px;border-top:2px solid rgba(255,255,255,.18);font:600 clamp(7.5px,2.2cqw,9.5px) var(--m);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s,border-color .3s}
+.bf-chs span.on{color:#fff;border-top-color:var(--kc)}
+.brief-card .rl-rail{top:calc(96px + max(150px,26%) - 54px);bottom:auto;right:24px;flex-direction:row;gap:8px}
+.brief-card .rl-rail span{display:none}.brief-card .rl-rail .sw-b{width:38px;height:38px;background:rgba(6,7,12,.55)}
+.brief-card .ly-wk .rl-text{top:calc(96px + max(150px,26%) + 16px);bottom:34px;left:20px;right:20px;display:block;overflow:hidden}
+.brief-card .bf-panel.fit h2{font-size:clamp(19px,5.8cqw,26px)}.brief-card .bf-panel.fit p{font-size:clamp(13px,3.6cqw,15px);margin-top:8px}.brief-card .bf-panel.fit .bf-paper{padding:7px 10px}
+.bf-panel{height:100%;display:flex;flex-direction:column;justify-content:flex-start}
+.brief-card .rl-scene.on .rl-text > *{animation:none}
+.bf-ch{display:flex;align-items:baseline;gap:10px;margin:0 0 12px;font:600 clamp(10px,2.9cqw,12px) var(--m);letter-spacing:.14em;text-transform:uppercase;color:var(--kc)}
+.bf-ch b{font-size:clamp(18px,5.4cqw,24px);letter-spacing:-.02em;color:#fff;opacity:.9}
+.brief-card .bf-panel h2{font-size:clamp(22px,7.2cqw,34px);line-height:1.08;letter-spacing:-.03em;font-weight:650;margin:0;text-wrap:balance}
+.brief-card .bf-panel p{font-size:clamp(14px,4.1cqw,17px);line-height:1.45;color:rgba(255,255,255,.78);margin:12px 0 0}
+.bf-w{display:inline-block;opacity:0}
+.rl-scene.on .bf-w{animation:bfType .28s ease-out both;animation-delay:calc(.25s + var(--i) * 55ms)}
+@keyframes bfType{from{opacity:0;transform:translateY(.25em)}to{opacity:1}}
+.rl-scene.on .bf-panel > p,.rl-scene.on .bf-goal,.rl-scene.on .bf-flag{animation:rise .5s ease-out 1.1s both}
+.rl-scene.on .bf-ch{animation:rise .4s ease-out both}
+.bf-goal{display:block;margin-top:14px;font-size:clamp(12px,3.4cqw,14px);color:rgba(255,255,255,.55)}
+.bf-years{display:flex;align-items:center;gap:10px;font-size:clamp(28px,10cqw,44px);letter-spacing:-.04em;margin:0 0 10px}
+.bf-years i{font-style:normal;color:var(--kc);font-size:.7em}
+.bf-ev{display:flex;align-items:center;gap:14px;margin:2px 0 14px}
+.bf-num{font-size:clamp(56px,20cqw,96px);line-height:.9;letter-spacing:-.06em;color:var(--kc);text-shadow:0 0 30px color-mix(in srgb,var(--kc) 45%,transparent)}
+.bf-ev span{font-size:clamp(14px,4.2cqw,17px);font-weight:600;line-height:1.3}
+.bf-ev small{font-weight:400;color:rgba(255,255,255,.6);font-size:.85em}
+.rl-scene.on .bf-num{animation:statIn .6s cubic-bezier(.2,1.2,.3,1) .15s both}
+.bf-papers{display:grid;gap:8px}
+.bf-paper{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06);border-left:3px solid var(--kc)}
+.bf-paper b{display:block;font-size:clamp(12.5px,3.6cqw,14.5px);font-weight:550;line-height:1.3}
+.bf-paper small{display:block;margin-top:3px;font-size:clamp(10.5px,3cqw,12px);color:rgba(255,255,255,.55)}
+.rl-scene.on .bf-paper{animation:bfPaper .5s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(.6s + var(--j) * .35s)}
+@keyframes bfPaper{from{opacity:0;transform:translateX(40px) rotate(2deg)}}
+.bf-meter{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 18px}
+.bf-seg i{display:block;height:8px;border-radius:999px;background:rgba(255,255,255,.12)}
+.bf-seg span{display:block;margin-top:6px;font:600 clamp(8px,2.4cqw,10px) var(--m);letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.bf-seg.on i{background:var(--kc);box-shadow:0 0 16px var(--kc)}
+.bf-seg.on span{color:#fff}
+.rl-scene.on .bf-seg.on i{animation:bfSeg .7s cubic-bezier(.2,1.2,.3,1) .3s both;transform-origin:left}
+@keyframes bfSeg{from{transform:scaleX(0)}}
+.bf-flag{display:inline-block;margin-top:14px;padding:6px 10px;border-radius:8px;font:600 clamp(10px,2.9cqw,12px) var(--m);text-transform:uppercase;letter-spacing:.08em;color:#06070C;background:var(--kc)}
+.brief-card .rl-dive{display:none}
+.brief-card .bf-panel.fit2 .bf-goal,.brief-card .bf-panel.fit2 .bf-paper + .bf-paper,.brief-card .bf-panel.fit2 .bf-ev small{display:none}
+.brief-card .bf-panel.fit3 > p{display:none}
+.brief-card .bf-panel.fit4 .bf-flag,.brief-card .bf-panel.fit4 .bf-seg span{display:none}.brief-card .bf-panel.fit4 .bf-meter{margin-bottom:8px}
+.brief-card .bf-panel.fit2 .bf-num{font-size:clamp(44px,15cqw,72px)}.brief-card .bf-panel.fit2 .bf-meter{margin-bottom:10px}
+.brief-card .sw-credit{bottom:10px}
+.sw-bar.one.bf{top:12px}
+@media (prefers-reduced-motion:reduce){.rl-scene.on .bf-w,.rl-scene.on .bf-paper,.rl-scene.on .bf-num{animation:none;opacity:1}}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -5478,6 +5563,7 @@ async function plusView() {
   const vc = view.querySelector('#pweek .rl');
   if (vc) {
     const p = reelPlayer(vc); p.play();
+    if (music.wanted) music.start('parallax-weekly', 'epic', 'theme');
     vc.addEventListener('click', (e) => {
       const t = e.target.closest('[data-rl]'); if (t) { p[t.dataset.rl === 'pause' ? 'toggle' : t.dataset.rl](); return; }
       const chp = e.target.closest('.wk-chs [data-c]'); if (chp) { const i = [...vc.querySelectorAll('.rl-scene')].findIndex((x) => x.dataset.ch === chp.dataset.c); if (i >= 0) p.go(i); return; }
@@ -6134,19 +6220,28 @@ async function storyView(id) {
   const vis = (v) => (v && v.url ? { kind: v.kind, url: v.url, poster: v.poster, credit: v.credit, license: v.license, source_url: v.source_url } : null);
   const n = p.independent_sources || srcs.length || 0;
   const promise = p.kind === 'promise' && p.meta?.made_year;
-  const scenes = [
-    { kicker: `${KIND_WORD[p.kind] || p.kind} · @${g.handle}`, caption: p.plain_headline || p.headline, sub: promise ? `Promised in ${p.meta.made_year}, due ${p.meta.due_year}.` : p.body ? clip(firstSentenceOf(p.body), 120) : null, visual: vis(media) },
-    node ? { kicker: 'Why it matters', caption: clip(node.plain_title || node.title, 80), sub: clip(node.plain_why || node.why, 120) || null, visual: vis(nextClip()) }
-      : { kicker: 'Why it matters', caption: g.name, sub: g.tagline || null, visual: vis(nextClip()) },
-    n ? { kicker: 'The evidence', stat: { value: String(n), label: (p.independent_sources || 0) >= 2 ? 'independent sources' : n === 1 ? 'source so far' : 'sources' }, caption: srcs[0] ? clip(srcs[0].title, 80) : 'Linked to the research', sub: total ? `${total.toLocaleString()} papers on this problem in Parallax’s library.` : null, visual: vis(nextClip()) } : null,
-    node && (node.plain_blocker || node.blocker) ? { kicker: `Where it stands · ${leafStatusLabel(st)}`, caption: clip(node.plain_blocker || node.blocker, 90), sub: node.key === g.bottleneck_key ? 'The biggest bottleneck for the whole goal.' : null, visual: vis(nextClip()) } : null,
-    { caption: listing ? `${listing.teams.name} is working on this.` : `Follow @${g.handle} to see what happens next.`, sub: g.horizon_low != null ? `About ${g.horizon_low === g.horizon_high ? g.horizon_low : `${g.horizon_low}–${g.horizon_high}`} years to go at today’s pace.` : null, visual: vis(nextClip()) },
-  ].filter(Boolean);
+  // The Briefing: a post's own video format, unlike Watch or Stories. Footage plays in a framed
+  // window; below it a case-file panel: numbered chapters, the headline typed out, the papers
+  // stacking in as cards, and a meter of where the problem stands. Coloured by the post's kind.
+  const ACC = { advance: '#3DD68C', solved: '#3DD68C', setback: '#FF6369', bottleneck: '#F5B83D', forgotten: '#AEB4FF', promise: '#AEB4FF' };
+  const typed = (t) => String(t || '').split(/\s+/).filter(Boolean).map((w, i) => `<span class="bf-w" style="--i:${i}">${esc(w)}</span>`).join(' ');
+  const chap = (i, label) => `<div class="bf-ch"><b class="mono">0${i + 1}</b><span>${esc(label)}</span></div>`;
+  const parts = [];
+  parts.push({ label: 'News', html: (i) => `${chap(i, KIND_WORD[p.kind] || p.kind)}${promise ? `<div class="bf-years mono">${esc(p.meta.made_year)}<i>→</i>${esc(p.meta.due_year)}</div>` : ''}<h2>${typed(p.plain_headline || p.headline)}</h2>${p.body ? `<p>${esc(clip(firstSentenceOf(p.body), 150))}</p>` : ''}`, visual: media });
+  parts.push({ label: 'Why', html: (i) => `${chap(i, 'Why it matters')}<h2>${typed(clip(node ? (node.plain_title || node.title) : g.name, 90))}</h2><p>${esc(clip(node ? (node.plain_why || node.why) : (g.tagline || ''), 160))}</p><span class="bf-goal">One of the problems between us and ${esc(lowerFirst(g.name))}.</span>`, visual: nextClip() });
+  if (n || srcs.length) parts.push({ label: 'Evidence', html: (i) => `${chap(i, 'The evidence')}<div class="bf-ev"><div class="bf-num mono">${n}</div><span>${(p.independent_sources || 0) >= 2 ? 'independent sources agree' : n === 1 ? 'source so far' : 'sources'}${total ? `<br><small>${total.toLocaleString()} papers on this problem</small>` : ''}</span></div>
+      <div class="bf-papers">${srcs.slice(0, 2).map((x, j) => `<div class="bf-paper" style="--j:${j}"><b>${esc(clip(x.title, 80))}</b><small>${esc([x.first_author, x.venue, x.year].filter(Boolean).join(' · '))}</small></div>`).join('')}</div>`, visual: nextClip() });
+  if (node) { const steps = ['open', 'in_progress', 'blocked', 'solved'], at = Math.max(0, steps.indexOf(st));
+    parts.push({ label: 'Status', html: (i) => `${chap(i, 'Where it stands')}<div class="bf-meter">${steps.map((x, j) => `<div class="bf-seg${j === at ? ' on' : ''} s-${x}" style="--j:${j}"><i></i><span>${esc(leafStatusLabel(x))}</span></div>`).join('')}</div>
+      <h2>${typed(clip(node.plain_blocker || node.blocker || (st === 'solved' ? 'Solved, with independent sources.' : 'Work continues.'), 110))}</h2>${node.key === g.bottleneck_key ? '<span class="bf-flag">The biggest bottleneck for the whole goal</span>' : ''}`, visual: nextClip() }); }
+  parts.push({ label: 'Next', html: (i) => `${chap(i, 'What next')}<h2>${typed(listing ? `${listing.teams.name} is working on this.` : `Follow @${g.handle} to see what happens next.`)}</h2>${g.horizon_low != null ? `<p>About ${esc(g.horizon_low === g.horizon_high ? String(g.horizon_low) : `${g.horizon_low}–${g.horizon_high}`)} years to go at today’s pace.</p>` : ''}`, visual: nextClip() });
+  const scenes = parts.map((x, i) => ({ type: 'bf', html: `<div class="bf-panel">${x.html(i)}</div>`, visual: vis(x.visual), dur: i === 2 ? 6200 : 5600, ch: i }));
   const research = node ? `#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(node.key)}` : goalLink;
-  const reel = { id: `p${p.id}`, kind: p.kind, title: p.headline, scenes, once: true, dive: { href: research, label: 'Read the research' } };
+  const reel = { id: `p${p.id}`, kind: p.kind, title: p.headline, scenes, once: true, brief: true, accent: ACC[p.kind] || '#AEB4FF',
+    chapters: parts.map((x) => x.label), tag: `${KIND_WORD[p.kind] || p.kind} · @${g.handle}`, dive: { href: research, label: 'Read the research' } };
   box.classList.add('one');
-  box.innerHTML = reelCard(reel, g, 0);
-  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar one"><button type="button" class="sw-x" data-close aria-label="Close">✕</button></div>`);
+  box.innerHTML = reelCard(reel, g, 0, false);
+  box.insertAdjacentHTML('beforebegin', `<div class="sw-bar one bf"><button type="button" class="sw-x" data-close aria-label="Close">✕</button></div>`);
   const wrap = box.parentElement;
   wrap.querySelector('[data-close]').onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
   const card = box.querySelector('.rl'), pl = reelPlayer(card);
@@ -6188,9 +6283,12 @@ function reelMood(r, g) {
   if (r.kind === 'intro') return ['epic', 'mysterious', 'uplifting', 'calm'][Math.floor(seededRandom(g.slug)() * 4)];
   return r.mood || ({ setback: 'tense', promise: 'bittersweet', breakthrough: 'uplifting' }[r.kind]) || 'calm';
 }
+// Browsers keep audio locked until the first tap or key press: unlock it then.
+['pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, () => { try { if (music.ctx && music.ctx.state === 'suspended') music.ctx.resume(); } catch { /* no audio */ } }, { passive: true }));
 const music = {
   ctx: null, out: null, on: false, step: 0, timer: 0, piece: null,
-  get wanted() { try { return localStorage.getItem('px.sound') === '1'; } catch { return false; } },
+  // Sound is on unless you've turned it off (like Reels); browsers only start audio after a tap.
+  get wanted() { try { return localStorage.getItem('px.sound') !== '0'; } catch { return true; } },
   set wanted(v) { try { localStorage.setItem('px.sound', v ? '1' : '0'); } catch {} },
   // goalKey: the goal (sets key and theme); pieceKey: the video or story (sets the arrangement).
   compose(goalKey, pieceKey, moodName) {
@@ -6425,7 +6523,8 @@ function studioLayouts(scenes, seed) {
 function reelCard(r, g, i, studio = true) {
   const scenes = r.scenes || [];
   const lys = studio ? studioLayouts(scenes, hue(String(r.id))) : null;
-  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}" data-reel="${i}"${r.once ? ' data-once="1"' : ''}>
+  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}${r.brief ? ' brief-card' : ''}" data-reel="${i}"${r.once ? ' data-once="1"' : ''}${r.accent ? ` style="--kc:${esc(r.accent)}"` : ''}>
+    ${r.brief ? `<div class="bf-tag"><i></i>${esc(r.tag)}</div><div class="bf-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.once ? `<div class="rl-endbox"><button type="button" class="sw-cta" data-rl="replay">↺ Watch again</button><a class="sw-cta ghost" href="${esc(r.dive.href)}">${esc(r.dive.label)}</a></div>` : ''}
     ${scenes.map((s, k) => {
       const len = String(s.caption || '').length;
@@ -6440,8 +6539,9 @@ function reelCard(r, g, i, studio = true) {
       const size = len > 95 ? ' cl-2' : len > 60 ? ' cl-1' : '';
       // Each scene enters a little differently, so a run of videos doesn't feel like one template.
       const ta = ` ta${(hue(g.slug + r.id) + k * 3) % 5}`, mv = ` mv${(hue(String(r.id)) + k) % 4}`;
+      const tr = studio && k ? ` tr${(hue(String(r.id)) + k * 2) % 5}` : '';
       if (s.html) return `<div class="rl-scene ly-wk wk-${esc(s.type)}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}"${s.dur ? ` data-dur="${Number(s.dur)}"` : ''}${s.ch != null ? ` data-ch="${Number(s.ch)}"` : ''}>${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div><div class="rl-text">${s.html}</div>${s.visual && s.visual.url && s.visual.kind === 'video' ? `<div class="sw-credit">Video: ${esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`;
-      return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}"${s.ch != null ? ` data-ch="${Number(s.ch)}"` : ''}>${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
+      return `<div class="rl-scene ly-${ly}${size}${ta}${mv}${tr}${s.visual && s.visual.url ? ' has-visual' : ''}${k ? '' : ' on'}" data-k="${k}"${s.ch != null ? ` data-ch="${Number(s.ch)}"` : ''}>${sceneBg(s, g.slug + r.id, k)}<div class="rl-shade"></div>
       <div class="rl-text">${s.kicker ? `<span class="rl-kick k${String(s.kicker).length % 4}">${esc(s.kicker)}</span>` : ''}${s.stat ? `<div class="rl-stat mono${String(s.stat.value).length > 7 ? ' xlong' : String(s.stat.value).length > 4 ? ' long' : ''}" data-stat="${esc(s.stat.value)}">${esc(String(s.stat.value).replace(/^\d{5,}$|^(?!1[89]\d\d$|20\d\d$)\d{4}$/, (n) => Number(n).toLocaleString('en-US')))}</div><div class="rl-statl">${esc(s.stat.label)}</div>` : ''}
         ${lead}<h2>${ly === 'quote' ? `“${esc(s.caption)}”` : capWords(cap)}</h2>${s.sub ? `<p>${esc(s.sub)}</p>` : ''}</div>
       ${s.visual && s.visual.url && s.visual.kind === 'anim' ? `<div class="sw-credit">Animation: Parallax</div>` : s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
@@ -6468,7 +6568,11 @@ function reelPlayer(card) {
   const scenes = [...card.querySelectorAll('.rl-scene')], bars = [...card.querySelectorAll('.rl-bars i b')];
   let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, raf = 0, paused = true;
   const once = card.dataset.once === '1';
-  const dur = (i) => Number(scenes[i].dataset.dur) || (scenes[i].querySelector('p') ? 5200 : 4200);
+  // Briefing panels: shrink the text of any that wouldn't fit this screen.
+  const fitPanel = (bp) => { bp.dataset.fit = '1'; for (const c of ['fit', 'fit2', 'fit3', 'fit4']) { if (bp.scrollHeight <= bp.parentElement.clientHeight + 6) break; bp.classList.add(c); } };
+  requestAnimationFrame(() => card.querySelectorAll('.bf-panel').forEach(fitPanel));
+  const studio = card.classList.contains('studio');
+  const dur = (i) => Number(scenes[i].dataset.dur) || (studio ? (scenes[i].querySelector('p') ? 4600 : 3600) : (scenes[i].querySelector('p') ? 5200 : 4200));
   const countUp = (el) => {
     const m = /^([^0-9]*)([0-9][0-9,.]*)(.*)$/.exec(el.dataset.stat || '');
     if (!m || REDUCED) return;
@@ -6485,9 +6589,11 @@ function reelPlayer(card) {
   const show = (i) => {
     const was = k;
     k = (i + scenes.length) % scenes.length;
-    if (scenes[k].dataset.ch != null) card.querySelectorAll('.wk-chs span').forEach((x) => x.classList.toggle('on', x.dataset.c === scenes[k].dataset.ch));
+    const bp = scenes[k].querySelector('.bf-panel'); if (bp && !bp.dataset.fit) requestAnimationFrame(() => fitPanel(bp));
+    if (scenes[k].dataset.ch != null) card.querySelectorAll('.wk-chs span, .bf-chs span').forEach((x) => x.classList.toggle('on', x.dataset.c === scenes[k].dataset.ch));
     // The music marks each cut (the player that is playing is the only one with sound).
     if (!paused && was !== k) { music.hit(k === scenes.length - 1); if (k === scenes.length - 1) music.resolve(); }
+    if (studio && was !== k) { const old = scenes[was]; old.classList.add('was'); setTimeout(() => old.classList.remove('was'), 700); }
     scenes.forEach((s, j) => {
       s.classList.toggle('on', j === k);
       anim(s, j === k && !paused);
