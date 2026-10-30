@@ -529,11 +529,11 @@ body.goalstory .sw-bar{width:min(720px,100vw)}
 .rl-media{filter:contrast(1.07) saturate(1.1) brightness(.97)}
 video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
 canvas.rl-anim{width:100%;height:100%;display:block}
-.rl-scene:is(.on,.was) video.rl-media{animation:push 8s cubic-bezier(.25,.6,.3,1) forwards}
+.rl-scene:is(.on,.was,.pre) video.rl-media{animation:push 9s cubic-bezier(.25,.6,.3,1) forwards}
 @keyframes push{from{transform:scale(1)}to{transform:scale(1.07)}}
 .rl-img{background-size:cover;background-position:center;transform:scale(1.04)}
-.rl-scene:is(.on,.was) .rl-img{animation:kb 9s ease-out forwards}
-.rl-scene:is(.on,.was) .rl-img.m1{animation-name:kb1}.rl-scene:is(.on,.was) .rl-img.m2{animation-name:kb2}.rl-scene:is(.on,.was) .rl-img.m3{animation-name:kb3}
+.rl-scene:is(.on,.was,.pre) .rl-img{animation:kb 9s ease-out forwards}
+.rl-scene:is(.on,.was,.pre) .rl-img.m1{animation-name:kb1}.rl-scene:is(.on,.was,.pre) .rl-img.m2{animation-name:kb2}.rl-scene:is(.on,.was,.pre) .rl-img.m3{animation-name:kb3}
 @keyframes kb{to{transform:scale(1.16) translate(-2%,-2%)}}
 @keyframes kb1{from{transform:scale(1.16) translate(2%,1%)}to{transform:scale(1.04)}}
 @keyframes kb2{from{transform:scale(1.1) translate(-3%,0)}to{transform:scale(1.1) translate(3%,0)}}
@@ -579,9 +579,9 @@ canvas.rl-anim{width:100%;height:100%;display:block}
 @keyframes slidein{from{opacity:0;transform:translateX(-28px)}}
 @keyframes popin{from{opacity:0;transform:scale(.86)}}
 @keyframes blurin{from{opacity:0;filter:blur(8px)}}
-.rl-scene:is(.on,.was).mv1 video.rl-media{animation:panl 8s ease-in-out forwards}
-.rl-scene:is(.on,.was).mv2 video.rl-media{animation:pullout 8s ease-out forwards}
-.rl-scene:is(.on,.was).mv3 video.rl-media{animation:driftup 8s ease-in-out forwards}
+.rl-scene:is(.on,.was,.pre).mv1 video.rl-media{animation:panl 9s ease-in-out forwards}
+.rl-scene:is(.on,.was,.pre).mv2 video.rl-media{animation:pullout 9s ease-out forwards}
+.rl-scene:is(.on,.was,.pre).mv3 video.rl-media{animation:driftup 9s ease-in-out forwards}
 @keyframes panl{from{transform:scale(1.18) translateX(4%)}to{transform:scale(1.18) translateX(-4%)}}
 @keyframes pullout{from{transform:scale(1.22)}to{transform:scale(1.02)}}
 @keyframes driftup{from{transform:scale(1.14) translateY(3%)}to{transform:scale(1.14) translateY(-3%)}}
@@ -1116,13 +1116,20 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .studio .rl-bars i:first-child{border-radius:2px 0 0 2px}.studio .rl-bars i:last-child{border-radius:0 2px 2px 0}
 .studio .rl-tap.prev,.studio .rl-tap.next{display:none}
 .studio .rl-tap.mid{left:0;width:100%}
+/* the still under each video (shown until the video draws its first frame) */
+.rl-pst{position:absolute;inset:0;background:center/cover no-repeat;transform:scale(1.03)}
+.studio video.rl-media{opacity:0;transition:opacity .9s ease}.studio video.rl-media.live{opacity:1}
+.brief-card .rl-pst{top:96px;left:14px;right:14px;bottom:auto;height:max(150px,26%);border-radius:18px}
 /* Watch plays as one continuous video, like the Reels: every cut is a soft dissolve or a smooth
    push (both shots moving together); the outgoing footage keeps moving and playing underneath. */
-.studio .rl-scene{transition:none}
 .studio .rl-scene.was{opacity:1;z-index:1}
 .studio .rl-scene.was .rl-text,.studio .rl-scene.was .sw-credit{opacity:0;transition:opacity .2s}
 .studio .rl-scene.on{z-index:2}
-.studio .rl-scene.on[class*=" tr"]{animation:dissolve .9s ease-in-out both}
+.studio .rl-scene{transition:opacity 1.4s ease-in-out}
+.studio .rl-scene.pre{opacity:1;z-index:3}
+.studio .rl-scene.pre .rl-text,.studio .rl-scene.pre .sw-credit{opacity:0}
+.studio .rl-scene.on .rl-text{transition:opacity .5s ease}
+.studio .rl-scene.dz{animation:dissolve 1s ease-in-out both}
 @keyframes dissolve{from{opacity:0}}
 /* captions in Watch only fade and rise a little: nothing slides in from the side */
 .studio .rl-scene.on.ta2 .rl-text > *{animation-name:rise}
@@ -6533,7 +6540,8 @@ function sceneBg(s, seed, k) {
   if (!v || !v.url) return base;
   // Animated scenes are drawn live (anim:<kind>), tinted with the goal's colour.
   if (v.kind === 'anim') return base + `<canvas class="rl-media rl-anim" data-anim="${esc(String(v.url).replace(/^anim:/, ''))}" data-hue="${(hue(seed) + 200) % 360}" aria-hidden="true"></canvas>`;
-  if (v.kind === 'video') return base + `<video class="rl-media" src="${esc(v.url)}" poster="${esc(v.poster || '')}" muted loop playsinline preload="none"></video>`;
+  // The still sits under the video, so the shot is visible (and can blend in) before the video has loaded.
+  if (v.kind === 'video') return base + (v.poster ? `<div class="rl-pst" style="background-image:url('${esc(v.poster).replace(/'/g, '%27')}')"></div>` : '') + `<video class="rl-media" src="${esc(v.url)}" poster="${esc(v.poster || '')}" muted loop playsinline preload="none"></video>`;
   return base + `<div class="rl-media rl-img m${(hue(seed) + k) % 4}" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>`;
 }
 
@@ -6604,8 +6612,10 @@ const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" s
 // One player per reel: shows a scene, fills its bar, then moves on; loops at the end.
 function reelPlayer(card) {
   const scenes = [...card.querySelectorAll('.rl-scene')], bars = [...card.querySelectorAll('.rl-bars i b')];
-  let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, raf = 0, paused = true;
+  let k = 0, t0 = 0, left = 0, timer = 0, wtimer = 0, ptimer = 0, raf = 0, paused = true;
   const once = card.dataset.once === '1';
+  // A video fades in over its still once it is actually playing (no jump from still to first frame).
+  card.addEventListener('playing', (e) => { if (e.target.tagName === 'VIDEO') e.target.classList.add('live'); }, true);
   // Briefing panels: shrink the text of any that wouldn't fit this screen.
   const fitPanel = (bp) => { bp.dataset.fit = '1'; for (const c of ['fit', 'fit2', 'fit3', 'fit4']) { if (bp.scrollHeight <= bp.parentElement.clientHeight + 6) break; bp.classList.add(c); } };
   requestAnimationFrame(() => card.querySelectorAll('.bf-panel').forEach(fitPanel));
@@ -6632,6 +6642,8 @@ function reelPlayer(card) {
     // The music marks each cut (the player that is playing is the only one with sound).
     if (!paused && was !== k) { music.hit(k === scenes.length - 1); if (k === scenes.length - 1) music.resolve(); }
     if (studio && was !== k) {
+      const nk = scenes[k];
+      if (nk.classList.contains('pre')) nk.classList.remove('pre'); else { nk.classList.add('dz'); setTimeout(() => nk.classList.remove('dz'), 1050); }
       const old = scenes[was];
       old.classList.add('was');
       const ov = old.querySelector('video'); if (ov && !paused) ov.play().catch(() => {});
@@ -6641,7 +6653,7 @@ function reelPlayer(card) {
       s.classList.toggle('on', j === k);
       anim(s, j === k && !paused);
       const v = s.querySelector('video');
-      if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3) v.currentTime = 0; v.play().catch(() => {}); } else if (!s.classList.contains('was')) v.pause(); }
+      if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3 && !(studio && was !== k && v.currentTime < 2)) v.currentTime = 0; v.play().catch(() => {}); } else if (!s.classList.contains('was')) v.pause(); }
     });
     if (!paused) preloadNext();
     bars.forEach((b, j) => { b.style.transition = 'none'; b.style.width = j < k ? '100%' : '0%'; });
@@ -6664,9 +6676,13 @@ function reelPlayer(card) {
     if (b) { const done = 1 - left / dur(k); b.style.transition = 'none'; b.style.width = `${done * 100}%`; requestAnimationFrame(() => { b.style.transition = `width ${left}ms linear`; b.style.width = '100%'; }); }
     timer = setTimeout(() => { if (once && k === scenes.length - 1) { stop(); paused = true; card.classList.add('paused', 'ended'); return; } show(k + 1); }, left);
     clearTimeout(wtimer); if (left > 700) wtimer = setTimeout(() => music.whoosh(0.5), left - 520);
+    // Studio: the next shot starts fading in under the current caption, so footage and words never change at the same moment.
+    clearTimeout(ptimer);
+    if (studio && left > 1400 && !(once && k === scenes.length - 1)) ptimer = setTimeout(() => { const nx = scenes[(k + 1) % scenes.length]; nx.classList.add('pre'); const v = nx.querySelector('video'); if (v) { v.preload = 'auto'; v.currentTime = 0; v.play().catch(() => {}); } }, left - 1150);
   };
   const stop = () => {
-    clearTimeout(timer); clearTimeout(wtimer);
+    clearTimeout(timer); clearTimeout(wtimer); clearTimeout(ptimer);
+    if (studio) scenes.forEach((x) => { if (!x.classList.contains('on')) { x.classList.remove('pre'); x.querySelector('video')?.pause(); } });
     left = Math.max(0, left - (performance.now() - t0));
     const b = bars[k]; if (b) { const w = getComputedStyle(b).width; b.style.transition = 'none'; b.style.width = w; }
     scenes[k].querySelector('video')?.pause();
