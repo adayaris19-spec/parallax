@@ -529,11 +529,11 @@ body.goalstory .sw-bar{width:min(720px,100vw)}
 .rl-media{filter:contrast(1.07) saturate(1.1) brightness(.97)}
 video.rl-media{width:100%;height:100%;object-fit:cover;transform-origin:50% 45%}
 canvas.rl-anim{width:100%;height:100%;display:block}
-.rl-scene.on video.rl-media{animation:push 8s cubic-bezier(.25,.6,.3,1) forwards}
+.rl-scene:is(.on,.was) video.rl-media{animation:push 8s cubic-bezier(.25,.6,.3,1) forwards}
 @keyframes push{from{transform:scale(1)}to{transform:scale(1.07)}}
 .rl-img{background-size:cover;background-position:center;transform:scale(1.04)}
-.rl-scene.on .rl-img{animation:kb 9s ease-out forwards}
-.rl-scene.on .rl-img.m1{animation-name:kb1}.rl-scene.on .rl-img.m2{animation-name:kb2}.rl-scene.on .rl-img.m3{animation-name:kb3}
+.rl-scene:is(.on,.was) .rl-img{animation:kb 9s ease-out forwards}
+.rl-scene:is(.on,.was) .rl-img.m1{animation-name:kb1}.rl-scene:is(.on,.was) .rl-img.m2{animation-name:kb2}.rl-scene:is(.on,.was) .rl-img.m3{animation-name:kb3}
 @keyframes kb{to{transform:scale(1.16) translate(-2%,-2%)}}
 @keyframes kb1{from{transform:scale(1.16) translate(2%,1%)}to{transform:scale(1.04)}}
 @keyframes kb2{from{transform:scale(1.1) translate(-3%,0)}to{transform:scale(1.1) translate(3%,0)}}
@@ -579,9 +579,9 @@ canvas.rl-anim{width:100%;height:100%;display:block}
 @keyframes slidein{from{opacity:0;transform:translateX(-28px)}}
 @keyframes popin{from{opacity:0;transform:scale(.86)}}
 @keyframes blurin{from{opacity:0;filter:blur(8px)}}
-.rl-scene.on.mv1 video.rl-media{animation:panl 8s ease-in-out forwards}
-.rl-scene.on.mv2 video.rl-media{animation:pullout 8s ease-out forwards}
-.rl-scene.on.mv3 video.rl-media{animation:driftup 8s ease-in-out forwards}
+.rl-scene:is(.on,.was).mv1 video.rl-media{animation:panl 8s ease-in-out forwards}
+.rl-scene:is(.on,.was).mv2 video.rl-media{animation:pullout 8s ease-out forwards}
+.rl-scene:is(.on,.was).mv3 video.rl-media{animation:driftup 8s ease-in-out forwards}
 @keyframes panl{from{transform:scale(1.18) translateX(4%)}to{transform:scale(1.18) translateX(-4%)}}
 @keyframes pullout{from{transform:scale(1.22)}to{transform:scale(1.02)}}
 @keyframes driftup{from{transform:scale(1.14) translateY(3%)}to{transform:scale(1.14) translateY(-3%)}}
@@ -1116,30 +1116,28 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .studio .rl-bars i:first-child{border-radius:2px 0 0 2px}.studio .rl-bars i:last-child{border-radius:0 2px 2px 0}
 .studio .rl-tap.prev,.studio .rl-tap.next{display:none}
 .studio .rl-tap.mid{left:0;width:100%}
-/* Watch cuts like a Reel: each scene arrives with its own transition (zoom-through, slide, circle
-   reveal, wipe, flash), the old one held underneath; the hook punches in. */
+/* Watch plays as one continuous video, like the Reels: every cut is a soft dissolve or a smooth
+   push (both shots moving together); the outgoing footage keeps moving and playing underneath. */
 .studio .rl-scene{transition:none}
 .studio .rl-scene.was{opacity:1;z-index:1}
-.studio .rl-scene.was .rl-text,.studio .rl-scene.was .sw-credit{opacity:0;transition:opacity .12s}
+.studio .rl-scene.was .rl-text,.studio .rl-scene.was .sw-credit{opacity:0;transition:opacity .2s}
 .studio .rl-scene.on{z-index:2}
-.studio .rl-scene.on.tr0{animation:trZoom .55s cubic-bezier(.2,.8,.2,1) both}
-.studio .rl-scene.on.tr1{animation:trSlide .5s cubic-bezier(.7,0,.2,1) both}
-.studio .rl-scene.on.tr2{animation:trCircle .6s cubic-bezier(.5,0,.2,1) both}
-.studio .rl-scene.on.tr3{animation:trWipe .5s cubic-bezier(.7,0,.2,1) both}
-.studio .rl-scene.on.tr4{animation:trFade .35s ease both}
-.studio .rl-scene.on.tr4::after{content:"";position:absolute;inset:0;background:#fff;z-index:5;pointer-events:none;animation:trFlash .4s ease-out both}
-@keyframes trZoom{from{opacity:0;transform:scale(1.22);filter:blur(10px)}}
-@keyframes trSlide{from{transform:translateY(100%)}}
-@keyframes trCircle{from{clip-path:circle(0% at 50% 50%)}to{clip-path:circle(120% at 50% 50%)}}
-@keyframes trWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
-@keyframes trFade{from{opacity:0}}
-@keyframes trFlash{from{opacity:.75}to{opacity:0}}
-.studio .rl-scene.on.ly-ig-hook .rl-text h2{animation:hookIn .7s cubic-bezier(.2,1.1,.3,1) .1s both!important}
+.studio .rl-scene.on.tr0,.studio .rl-scene.on.tr3,.studio .rl-scene.on.tr4{animation:dissolve .8s ease-in-out both}
+.studio .rl-scene.on.tr1{animation:pushInL .8s cubic-bezier(.65,0,.35,1) both}
+.studio .rl-scene.on.tr2{animation:pushInU .8s cubic-bezier(.65,0,.35,1) both}
+.studio .rl-scene.was.po-l{animation:pushOutL .8s cubic-bezier(.65,0,.35,1) both}
+.studio .rl-scene.was.po-u{animation:pushOutU .8s cubic-bezier(.65,0,.35,1) both}
+@keyframes dissolve{from{opacity:0}}
+@keyframes pushInL{from{transform:translateX(100%)}}
+@keyframes pushInU{from{transform:translateY(100%)}}
+@keyframes pushOutL{to{transform:translateX(-100%)}}
+@keyframes pushOutU{to{transform:translateY(-100%)}}
+.studio .rl-scene.on.ly-ig-hook .rl-text h2{animation:hookIn .9s cubic-bezier(.2,.8,.2,1) .25s both!important}
 .studio .rl-scene.on.ly-ig-hook .rl-text h2 .w{animation:none!important}
-@keyframes hookIn{from{opacity:0;transform:scale(1.18);filter:blur(6px)}}
-.studio .rl-scene.on.ly-ig-stat .rl-stat{animation:statIn .6s cubic-bezier(.2,1.2,.3,1) both}
-@keyframes statIn{from{opacity:0;transform:scale(.6)}}
-@media (prefers-reduced-motion:reduce){.studio .rl-scene.on[class*=" tr"],.studio .rl-scene.on[class*=" tr"]::after{animation:none!important}}
+@keyframes hookIn{from{opacity:0;transform:translateY(14px)}}
+.studio .rl-scene.on.ly-ig-stat .rl-stat{animation:statIn .8s cubic-bezier(.2,.8,.2,1) .2s both}
+@keyframes statIn{from{opacity:0;transform:scale(.92)}}
+@media (prefers-reduced-motion:reduce){.studio .rl-scene.on,.studio .rl-scene.was{animation:none!important}}
 /* The Briefing: a post's video. Footage in a framed window, a case-file panel below. */
 .brief-card{--kc:#AEB4FF;background:#06070C}
 .brief-card .rl-top{display:none}
@@ -1202,6 +1200,30 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .brief-card .sw-credit{bottom:10px}
 .sw-bar.one.bf{top:12px}
 @media (prefers-reduced-motion:reduce){.rl-scene.on .bf-w,.rl-scene.on .bf-paper,.rl-scene.on .bf-num{animation:none;opacity:1}}
+/* Plus episode: research timelapse and where-they-stand scenes */
+.tl-yr{font-size:clamp(44px,17cqw,84px);line-height:.95;letter-spacing:-.05em;margin:2px 0 14px;background:linear-gradient(180deg,#fff 30%,#C9CCFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tl-rows{display:grid;gap:12px}
+.tl-row{display:flex;align-items:center;gap:10px}
+.tl-row .av{width:34px;height:34px;flex:none}
+.tl-mid{flex:1;min-width:0}
+.tl-mid b{display:block;font-size:clamp(12px,3.6cqw,15px);margin-bottom:5px}
+.tl-bars{display:flex;align-items:flex-end;gap:3px;height:clamp(34px,11cqw,52px)}
+.tl-bars i{flex:1;height:var(--h);border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,#C4C8FF,rgba(196,200,255,.45));transform-origin:bottom}
+.rl-scene.on .tl-bars i{animation:tlBar .35s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(.4s + var(--i) * (3.6s / 13))}
+@keyframes tlBar{from{transform:scaleY(0);opacity:0}}
+.tl-tot{flex:none;text-align:right;font-size:clamp(15px,4.6cqw,20px);letter-spacing:-.03em}
+.tl-tot small{display:block;font:500 9.5px var(--f);color:rgba(255,255,255,.6);letter-spacing:0}
+.rl-scene.on .tl-tot{animation:rise .5s ease-out 4.1s both}
+.gs-rows{display:grid;gap:14px}
+.gs-h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.gs-h .av{width:28px;height:28px}
+.gs-h b{flex:1;font-size:clamp(13px,3.8cqw,16px)}.gs-h span{font-size:12px;color:rgba(255,255,255,.75)}
+.gs-bar{height:10px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.gs-bar i{display:block;height:100%;width:var(--p);border-radius:999px;background:linear-gradient(90deg,#9CF0D8,#C4C8FF);transform-origin:left}
+.rl-scene.on .gs-bar i{animation:gsFill 1.4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.4s + var(--i) * .35s)}
+@keyframes gsFill{from{transform:scaleX(0)}}
+.gs-row small{display:block;margin-top:6px;font-size:clamp(11px,3.2cqw,13px);color:rgba(255,255,255,.7)}
+.wk-card .ly-wk .rl-text{bottom:64px}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -2892,7 +2914,7 @@ function quoteBlock(q, paper, made) {
   return `<blockquote class="quote">“${esc(q)}”<cite>${esc(made)} · ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${t}</a>` : t}</cite></blockquote>`;
 }
 
-const WATCH_CHIP = '<span class="watch-chip" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>Watch</span>';
+const WATCH_CHIP = '<span class="watch-chip" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>Recap</span>';
 function postCard(p, g, compact = false) {
   const srcs = (p.sources || []).slice(0, 4).map((x) => {
     const url = safeUrl(x.url);
@@ -5399,24 +5421,26 @@ async function plusView() {
   const pic = (g, i = 0) => (g?.pics?.length ? smallPic(g.pics[i % g.pics.length], 'c') : null);
   // The weekly video: the brief's items, goals you follow first.
   const fmtDate = (x) => (/^\d{4}-\d{2}$/.test(x) ? new Date(`${x}-15`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : x);
-  // The weekly episode: its own format, not a Watch video. A cover, your goals' scoreboard, what
-  // moved (each over that goal's own footage), the ripple, your calls, the call of the week, what's
-  // next, and a sign-off; a chapter bar and a ticker of the week's headlines run throughout.
-  let scenes = [], ticker = [], chapters = [];
+  // The weekly episode: one continuous video (like the Reels), personal to the goals you follow.
+  // A hook, a timelapse of their research growing 2014 → now, where they stand, then a highlight
+  // reel of the week's biggest moves over each goal's own footage, the ripple, and a sign-off.
+  let scenes = [];
   if (b) {
     const items = [...(b.moved || []).map((x) => ({ ...x, k: 'moved' })), ...(b.watch || []).map((x) => ({ ...x, k: 'watch' }))]
       .sort((x, y) => Number(mine.has(goalOf(y.goal)?.slug)) - Number(mine.has(goalOf(x.goal)?.slug)));
     const shown = items.slice(0, full ? 6 : 1);
-    const boardGoals = (() => {
+    const myGoals = (() => {
       const followed = list.filter((g) => g.status === 'ready' && mine.has(g.slug));
       const moved = items.map((x) => goalOf(x.goal)).filter((g) => g && g.status === 'ready');
       return [...new Map([...followed, ...moved, ...list.filter((g) => g.status === 'ready')].map((g) => [g.id, g])).values()].slice(0, 3);
     })();
-    // Footage: each goal's own clips from its videos (pictures only when a goal has none yet).
-    const ids = [...new Set([...shown.map((x) => goalOf(x.goal)?.id), ...boardGoals.map((g) => g.id), goalOf(d.ripple?.to)?.id, goalOf(d.coming?.[0]?.goal)?.id].filter(Boolean))];
-    const [rows, nodes] = await Promise.all([
+    const Y0 = 2014, Y1 = new Date().getFullYear();
+    const ids = [...new Set([...shown.map((x) => goalOf(x.goal)?.id), ...myGoals.map((g) => g.id), goalOf(d.ripple?.to)?.id].filter(Boolean))];
+    const gi = myGoals.map((g) => g.id).join(',');
+    const [rows, nodes, years] = await Promise.all([
       ids.length ? rest(`reels?goal_id=in.(${ids.join(',')})&select=goal_id,scenes`).catch(() => []) : [],
-      boardGoals.length ? rest(`nodes?goal_id=in.(${boardGoals.map((g) => g.id).join(',')})&parent_key=not.is.null&select=goal_id,status`).catch(() => []) : [],
+      gi ? rest(`nodes?goal_id=in.(${gi})&parent_key=not.is.null&select=goal_id,status`).catch(() => []) : [],
+      gi ? rest(`node_years?goal_id=in.(${gi})&year=gte.${Y0}&year=lte.${Y1}&select=goal_id,year,n`).catch(() => []) : [],
     ]);
     const clips = new Map();
     for (const r of rows) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind !== 'video' || !v.url) continue; const a2 = clips.get(r.goal_id) || []; if (!a2.some((x) => x.url === v.url)) a2.push(v); clips.set(r.goal_id, a2); }
@@ -5430,57 +5454,36 @@ async function plusView() {
     const clip = (t, n) => { t = String(t || ''); return t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, '')}…` : t; };
     const counts = new Map();
     for (const n of nodes) { const c = counts.get(n.goal_id) || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }; c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; counts.set(n.goal_id, c); }
-    const movedIds = new Set(items.map((x) => goalOf(x.goal)?.id).filter(Boolean));
+    const perYear = new Map();
+    for (const r of years) { const m = perYear.get(r.goal_id) || {}; m[r.year] = (m[r.year] || 0) + r.n; perYear.set(r.goal_id, m); }
     const wk = (() => { const t = new Date(b.week); const d0 = new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); const day = d0.getUTCDay() || 7; d0.setUTCDate(d0.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(d0.getUTCFullYear(), 0, 1)); return Math.ceil(((d0 - y0) / 864e5 + 1) / 7); })();
     const range = (() => { const t = new Date(b.week), e = new Date(+t + 6 * 864e5), f = (x) => x.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); return `${f(t)} – ${f(e)}`; })();
     const av = (g) => (g ? avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '') : '');
-    const ch = (name) => { if (chapters[chapters.length - 1] !== name) chapters.push(name); return chapters.length - 1; };
-    const first = goalOf(shown[0]?.goal) || boardGoals[0] || list[0];
-    // 1. Cover
-    scenes.push({ type: 'cover', ch: ch('Week'), dur: 5200, visual: vis(first, 1),
-      html: `<span class="wk-lab">Parallax Weekly</span><div class="wk-num">Week ${wk}</div><span class="wk-range">${esc(range)}</span><p class="wk-head">${esc(clip(b.headline, 120))}</p>` });
-    // 2. Your goals: a scoreboard
-    if (boardGoals.length) scenes.push({ type: 'board', ch: ch('Week'), dur: 6200, visual: vis(boardGoals[0], 2),
-      html: `<span class="wk-lab">${mine.size ? 'Your goals' : 'Goals to follow'}</span><div class="wk-rows">${boardGoals.map((g) => { const c = counts.get(g.id) || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 };
-        return `<div class="wk-row">${av(g)}<div class="wk-rt"><b>@${esc(g.handle)}${movedIds.has(g.id) ? '<i class="wk-moved">moved</i>' : ''}</b>${statusBar(c)}<small class="mono">${c.solved} of ${c.total} solved · ${esc(horizonText(g))}</small></div></div>`; }).join('')}</div>` });
-    // 3. What moved
+    const first = goalOf(shown[0]?.goal) || myGoals[0] || list[0];
+    const yrs = Array.from({ length: Y1 - Y0 + 1 }, (_, i) => Y0 + i);
+    // 1. The hook
+    scenes.push({ kicker: `Parallax Weekly · Week ${wk}`, caption: clip(b.headline, 72), sub: range, visual: vis(first, 1) });
+    // 2. Timelapse: each goal's research per year, growing in step with a year counter
+    if (myGoals.length && years.length) scenes.push({ type: 'tl', dur: 7600, visual: vis(myGoals[0], 2),
+      html: `<span class="wk-lab">${mine.size ? 'Your goals' : 'Goals to follow'} · research per year</span><div class="tl-yr mono" data-count-from="${Y0}" data-count-to="${Y1}" data-count-ms="3600" data-count-delay="400">${Y0}</div>
+        <div class="tl-rows">${myGoals.map((g) => { const m = perYear.get(g.id) || {}, mx = Math.max(1, ...yrs.map((y) => m[y] || 0)), tot = yrs.reduce((a2, y) => a2 + (m[y] || 0), 0);
+          return `<div class="tl-row">${av(g)}<div class="tl-mid"><b>@${esc(g.handle)}</b><div class="tl-bars">${yrs.map((y, i) => `<i style="--h:${Math.max(4, Math.round((m[y] || 0) / mx * 100))}%;--i:${i}"></i>`).join('')}</div></div><span class="tl-tot mono">${tot.toLocaleString()}<small>papers</small></span></div>`; }).join('')}</div>` });
+    // 3. Where they stand: progress bars fill to where each goal is now
+    if (myGoals.length && counts.size) scenes.push({ type: 'gs', dur: 6000, visual: vis(myGoals[1] || myGoals[0], 3),
+      html: `<span class="wk-lab">Where they stand</span><div class="gs-rows">${myGoals.map((g, i) => { const c = counts.get(g.id) || { solved: 0, total: 0 }, pct = c.total ? Math.round((c.solved + (c.moving || 0) * 0.5) / c.total * 100) : 0;
+        return `<div class="gs-row" style="--i:${i}"><div class="gs-h">${av(g)}<b>@${esc(g.handle)}</b><span class="mono">${esc(horizonText(g))}</span></div><div class="gs-bar"><i style="--p:${Math.max(3, pct)}%"></i></div><small>${c.solved} of ${c.total} problems solved · ${c.moving || 0} moving</small></div>`; }).join('')}</div>` });
+    // 4. The highlight reel: the week's biggest moves
     shown.forEach((x, i) => { const g = goalOf(x.goal);
-      scenes.push({ ch: ch('Moved'), kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 110), visual: vis(g, i + 3), layout: 'bottom' });
-      ticker.push(`${x.goal}: ${x.short || clip(x.text, 60)}`); });
-    // 4. The ripple
+      scenes.push({ kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 100), visual: vis(g, i + 4) }); });
+    // 5. The ripple
     const rp = d.ripple;
-    if (rp && full) { scenes.push({ type: 'ripple', ch: ch('Ripple'), dur: 5600, visual: vis(goalOf(rp.to), 4),
-      html: `<span class="wk-lab">Ripple of the week</span><div class="wk-chips"><span>@${esc(rp.from)}</span><i>→</i><span>@${esc(rp.to)}</span></div><h2>${esc(clip(rp.headline, 90))}</h2><p>${esc(rp.why ? clip(rp.why, 110) : `News on @${rp.from} moves @${rp.to} too: they share problems.`)}</p>` });
-      ticker.push(`Ripple: @${rp.from} → @${rp.to}`); }
-    // 5. Your calls
-    if (full) {
-      const made = d.mine.length, judged = d.mine.filter((m) => { const r2 = d.results.find((x) => x.key === m.key); return r2 && r2.outcome !== 'void'; });
-      const right = judged.filter((m) => d.results.find((x) => x.key === m.key).outcome === m.choice).length;
-      const big = d.standing?.percentile != null ? `${d.standing.percentile}%` : judged.length ? `${right}/${judged.length}` : String(made);
-      const lab = d.standing?.percentile != null ? 'of callers are behind you' : judged.length ? 'of your calls right' : made === 1 ? 'call made, waiting on results' : 'calls made, waiting on results';
-      scenes.push({ type: 'calls', ch: ch('Calls'), dur: 5200, visual: null,
-        html: `<span class="wk-lab">Your calls</span><div class="wk-num mono">${esc(made ? big : '0')}</div><span class="wk-range">${esc(made ? lab : 'calls made so far')}</span><p>${made ? `${d.waiting.length} still waiting on a result.` : 'Call what happens next. Your record builds as results come in.'}</p>` });
-    }
-    // 6. Call of the week
-    const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
-    const cnt = (k) => d.counts.find((c) => c.key === k) || { yes: 0, no: 0 };
-    const cw = [...(soon.length ? soon : d.coming || [])].sort((x, y) => { const n = (k) => { const c = cnt(k); return c.yes + c.no; }; return n(y.key) - n(x.key) || x.date.localeCompare(y.date); })[0];
-    const due = (c) => { if (!/^\d{4}-\d{2}$/.test(c.date)) return `due ${c.date}`; const days = Math.round((new Date(`${c.date}-28`) - Date.now()) / 864e5); return days <= 0 ? 'Results due now' : days < 21 ? `Results in ${days} days` : `Results in ${Math.round(days / 30)} month${Math.round(days / 30) === 1 ? '' : 's'}`; };
-    if (cw) { const n = cnt(cw.key), tot = n.yes + n.no, yp = tot ? Math.round(n.yes / tot * 100) : 50;
-      scenes.push({ type: 'poll', ch: ch('Calls'), dur: 6000, visual: vis(goalOf(cw.goal), 5),
-        html: `<span class="wk-lab">Call of the week · @${esc(cw.goal)}</span><h2>${esc(cw.question)}</h2><p class="wk-q">${esc(clip(cw.title, 90))}</p><div class="wk-bar"><i style="flex:${tot ? yp : 1}"></i><i style="flex:${tot ? 100 - yp : 1}"></i></div><div class="wk-pl"><span>${tot ? `${yp}% yes` : 'Yes'}</span><span>${tot ? `${100 - yp}% no` : 'No'}</span></div><span class="wk-due">${esc(due(cw))}${tot ? ` · ${tot} call${tot === 1 ? '' : 's'}` : ' · be the first call'}</span>` }); }
-    // 7. Coming up
-    const nx = (d.coming || []).filter((c) => c !== cw).slice(0, 2);
-    if (d.coming_total) { scenes.push({ type: 'next', ch: ch('Next'), dur: 5600, visual: vis(goalOf(nx[0]?.goal || cw?.goal), 6),
-      html: `<span class="wk-lab">Coming up</span><div class="wk-num mono">${d.coming_total}</div><span class="wk-range">trials and promises due, each one a call</span>${nx.map((c) => `<div class="wk-nx"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 60))}</span></div>`).join('')}` });
-      ticker.push(`${d.coming_total} results coming`); }
-    // 8. Sign-off (or, without Plus, what the full episode holds)
+    if (rp && full) scenes.push({ kicker: `Ripple · @${rp.from} → @${rp.to}`, caption: clip(rp.headline, 70), sub: rp.why ? clip(rp.why, 100) : `News on @${rp.from} moves @${rp.to} too: they share problems.`, visual: vis(goalOf(rp.to), 6) });
+    // 6. Sign-off (or, without Plus, what the full episode holds)
     scenes.push(full
-      ? { type: 'end', ch: ch('Next'), dur: 5600, visual: vis(first, 7), html: `<h2>That’s your week.</h2><p>Next episode: Monday.</p><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` }
-      : { type: 'end', ch: ch('Next'), dur: 6400, visual: null, html: `<span class="wk-lab">The full episode is for Plus</span><h2>Every Monday, about a minute on your goals.</h2><ul class="wk-inc"><li>Every story that moved them</li><li>The ripple between goals</li><li>Your calls and how you rank</li><li>What’s due next</li></ul>` });
-    ticker.unshift(b.headline);
+      ? { type: 'end', dur: 5200, visual: vis(first, 7), html: `<h2>That’s your week.</h2><p>Next episode: Monday.</p><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` }
+      : { type: 'end', dur: 6400, visual: vis(first, 7), html: `<span class="wk-lab">The full episode is for Plus</span><h2>Every Monday, your goals in a minute.</h2><ul class="wk-inc"><li>Every move on the goals you follow</li><li>Their research, growing year by year</li><li>Where each one stands</li><li>The ripple between goals</li></ul>` });
   }
-  const reel = { id: `week-${b?.week || 'x'}`, kind: 'weekly', title: 'Your week', scenes, mood: 'uplifting', ticker, chapters };
+  const reel = { id: `week-${b?.week || 'x'}`, kind: 'weekly', title: 'Your week', scenes, mood: 'uplifting', ticker: [], chapters: [] };
   const pg = { slug: 'parallax-week', handle: 'Parallax', name: 'Your week', pics: [] };
   const countOf = (k) => d.counts.find((c) => c.key === k) || { yes: 0, no: 0 };
   const myCall = (k) => d.mine.find((m) => m.key === k)?.choice;
@@ -6594,15 +6597,27 @@ function reelPlayer(card) {
     if (scenes[k].dataset.ch != null) card.querySelectorAll('.wk-chs span, .bf-chs span').forEach((x) => x.classList.toggle('on', x.dataset.c === scenes[k].dataset.ch));
     // The music marks each cut (the player that is playing is the only one with sound).
     if (!paused && was !== k) { music.hit(k === scenes.length - 1); if (k === scenes.length - 1) music.resolve(); }
-    if (studio && was !== k) { const old = scenes[was]; old.classList.add('was'); setTimeout(() => old.classList.remove('was'), 700); }
+    if (studio && was !== k) {
+      const old = scenes[was], cls = scenes[k].classList.contains('tr1') ? 'po-l' : scenes[k].classList.contains('tr2') ? 'po-u' : '';
+      old.classList.add('was'); if (cls) old.classList.add(cls);
+      const ov = old.querySelector('video'); if (ov && !paused) ov.play().catch(() => {});
+      setTimeout(() => { old.classList.remove('was', 'po-l', 'po-u'); if (!old.classList.contains('on')) ov?.pause(); }, 850);
+    }
     scenes.forEach((s, j) => {
       s.classList.toggle('on', j === k);
       anim(s, j === k && !paused);
       const v = s.querySelector('video');
-      if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3) v.currentTime = 0; v.play().catch(() => {}); } else v.pause(); }
+      if (v) { if (j === k && !paused) { v.preload = 'auto'; if (v.currentTime > 0.3) v.currentTime = 0; v.play().catch(() => {}); } else if (!s.classList.contains('was')) v.pause(); }
     });
     if (!paused) preloadNext();
     bars.forEach((b, j) => { b.style.transition = 'none'; b.style.width = j < k ? '100%' : '0%'; });
+    scenes[k].querySelectorAll('[data-count-from]').forEach((el) => {
+      const a = Number(el.dataset.countFrom), b = Number(el.dataset.countTo), ms = Number(el.dataset.countMs) || 1500, wait = Number(el.dataset.countDelay) || 0;
+      el.textContent = a; if (REDUCED) { el.textContent = b; return; }
+      const t1 = performance.now() + wait;
+      const tick = (t) => { const q = Math.min(1, Math.max(0, (t - t1) / ms)); el.textContent = Math.round(a + (b - a) * q); if (q < 1 && el.isConnected) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
     const st = scenes[k].querySelector('[data-stat]');
     if (st) countUp(st);
     left = dur(k);
