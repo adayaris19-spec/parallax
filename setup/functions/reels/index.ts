@@ -1010,6 +1010,16 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
+  // Admin: store a pre-rendered video (Watch videos rendered offline, like the Instagram Reels).
+  // POST ?upload=renders/<name>.mp4 with the file as the body.
+  const upPath = new URL(req.url).searchParams.get("upload");
+  if (upPath) {
+    if (!r2 || !/^renders\/[a-z0-9-]+\.(mp4|jpg)$/.test(upPath)) return json({ error: "bad upload" }, 400);
+    const data = await req.arrayBuffer();
+    if (data.byteLength > 40_000_000) return json({ error: "too big" }, 413);
+    const url = await r2Put(upPath, data, upPath.endsWith(".mp4") ? "video/mp4" : "image/jpeg").catch((e) => { throw new Error(`R2: ${String(e).slice(0, 160)}`); });
+    return json({ url, bytes: data.byteLength });
+  }
   const body = await req.json().catch(() => ({}));
   try {
     if (body.action === "batch_status") {
