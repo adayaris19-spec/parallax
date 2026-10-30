@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Text overlays for Watch videos rendered like the Instagram Reels, laid out for the app:
+   clear of the header (top ~230px), the Dive in button (bottom ~330px) and the side buttons
+   (right ~240px in the lower half). Every caption shrinks until it fits its box. */
+html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hidden;font-family:Geist,sans-serif;color:#fff}
+.f{position:absolute;inset:0}
+h1,p,.kick{text-shadow:0 2px 28px rgba(0,0,0,.6)}
+h1{margin:0;font-weight:650;letter-spacing:-.035em;line-height:1.02;text-wrap:balance}
+h1 .num{color:#C9CCFF}
+p{margin:24px 0 0;font-size:44px;line-height:1.3;color:rgba(255,255,255,.84);font-weight:400;text-wrap:pretty}
+.kick{font:500 30px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#C4C8FF;margin-bottom:22px}
+.sh-top{background:linear-gradient(180deg,rgba(3,4,10,.8) 0%,rgba(3,4,10,.45) 28%,rgba(3,4,10,0) 52%,rgba(3,4,10,0) 78%,rgba(3,4,10,.55) 100%)}
+.sh-low{background:linear-gradient(180deg,rgba(3,4,10,.45) 0%,rgba(3,4,10,0) 18%,rgba(3,4,10,0) 38%,rgba(3,4,10,.66) 60%,rgba(3,4,10,.9) 100%)}
+.sh-mid{background:radial-gradient(80% 48% at 50% 44%,rgba(3,4,10,.66) 0%,rgba(3,4,10,.3) 72%,rgba(3,4,10,.15) 100%),linear-gradient(180deg,rgba(3,4,10,.45),rgba(3,4,10,0) 18%,rgba(3,4,10,0) 80%,rgba(3,4,10,.6))}
+.box{position:absolute;display:flex;flex-direction:column}
+.top{left:90px;right:140px;top:250px;height:820px;justify-content:flex-start}
+.low{left:90px;right:250px;bottom:350px;height:820px;justify-content:flex-end}
+.mid,.end{left:110px;right:110px;top:280px;height:1180px;justify-content:center;align-items:center;text-align:center}
+.card-w{left:80px;right:250px;bottom:370px;height:880px;justify-content:flex-end}
+.card{padding:44px 48px 48px;border-radius:40px;background:rgba(10,12,26,.66);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14),0 30px 90px rgba(0,0,0,.45)}
+.card h1{font-weight:600}
+.card p{font-size:40px;margin-top:20px}
+.card .kick{font-size:26px;margin-bottom:16px}
+.stamp-w{left:90px;right:150px;top:500px;height:900px;justify-content:flex-start}
+.stamp{align-self:flex-start;border:3px solid rgba(255,140,120,.95);color:#FFB3A6;padding:14px 26px 12px;border-radius:12px;font:500 34px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase;transform:rotate(-4deg);margin-bottom:44px;background:rgba(40,8,8,.25)}
+.stamp.ok{border-color:rgba(156,240,216,.95);color:#C6F7E8;background:rgba(6,30,24,.25)}
+.stat-w{left:80px;right:80px;top:260px;height:1220px;justify-content:center;align-items:center;text-align:center}
+.big{font:500 250px 'Geist Mono',monospace;letter-spacing:-.06em;line-height:.92;background:linear-gradient(180deg,#fff 30%,#C9CCFF);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.statl{font:500 30px 'Geist Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);margin:14px 0 26px}
+.stat-w h1{font-weight:600}
+</style></head><body><div class="f" id="f"></div>
+<script>
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const words = (t) => esc(t).split(/\s+/).map((w) => (/\d/.test(w) ? `<span class="num">${w}</span>` : w)).join(' ');
+// Shrink the caption (then the subtitle) until the box's content fits its height and width.
+function fit(box, h1Start) {
+  const h1 = box.querySelector('h1'), p = box.querySelector('p'), big = box.querySelector('.big');
+  let fs = h1Start; if (h1) h1.style.fontSize = fs + 'px';
+  if (big) { let bs = 250; big.style.fontSize = bs + 'px'; while (big.scrollWidth > box.clientWidth && bs > 90) { bs -= 10; big.style.fontSize = bs + 'px'; } }
+  const over = () => box.scrollHeight > box.clientHeight + 1 || [...box.querySelectorAll('h1,p')].some((e) => e.scrollWidth > box.clientWidth + 2);
+  while (over() && fs > 44) { fs -= 4; if (h1) h1.style.fontSize = fs + 'px'; }
+  let ps = 44; while (over() && p && ps > 30) { ps -= 2; p.style.fontSize = ps + 'px'; }
+}
+window.render = (o) => {
+  const f = document.getElementById('f'), s = o.s, L = o.lay;
+  const kick = s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : '';
+  const sub = (cls) => (s.sub ? `<p class="${cls}">${esc(s.sub)}</p>` : '');
+  const shade = { top: 'sh-top', low: 'sh-low', card: 'sh-low', mid: 'sh-mid', end: 'sh-mid', stamp: 'sh-mid', stat: 'sh-mid' }[L];
+  let html = '', start = 100, cls = '';
+  if (L === 'top') { html = `${kick}<h1>${words(s.caption)}</h1>${sub('pb')}`; start = 112; cls = 'top'; }
+  if (L === 'low') { html = `${kick}<h1>${words(s.caption)}</h1>${sub('pb')}`; start = 96; cls = 'low'; }
+  if (L === 'mid' || L === 'end') { html = `${kick}<h1>${words(s.caption)}</h1>${sub('pb')}`; start = L === 'end' ? 108 : 100; cls = L; }
+  if (L === 'card') { html = `<div class="card">${kick}<h1>${words(s.caption)}</h1>${sub('pb')}</div>`; start = 76; cls = 'card-w'; }
+  if (L === 'stamp') { html = `<div class="stamp${/^fact/i.test(s.stampWord) ? ' ok' : ''}">${esc(s.stampWord)}</div><h1>${words(s.caption)}</h1>${sub('pb')}`; start = 104; cls = 'stamp-w'; }
+  if (L === 'stat') { html = `${kick}<div class="big">${esc(s.stat.value)}</div><div class="statl pb">${esc(s.stat.label || '')}</div><h1 class="pb">${words(s.caption)}</h1>${sub('pb')}`; start = 66; cls = 'stat-w'; }
+  if (o.layer === 'bg') { f.innerHTML = `<div class="f ${shade}"></div>`; return document.fonts.ready; }
+  f.innerHTML = `<div class="box ${cls}">${html}</div>`;
+  return document.fonts.ready.then(() => {
+    fit(f.querySelector('.box'), start);
+    // Layer A: everything but the late parts; layer B: only the late parts (subtitle, stat words).
+    if (o.layer === 'A') f.querySelectorAll('.pb').forEach((e) => { e.style.visibility = 'hidden'; });
+    else { f.querySelectorAll('*').forEach((e) => { if (!e.closest('.pb')) e.style.visibility = 'hidden'; }); f.querySelectorAll('.pb, .pb *').forEach((e) => { e.style.visibility = 'visible'; }); }
+  });
+};
+</script></body></html>
