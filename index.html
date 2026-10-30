@@ -1122,16 +1122,10 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .studio .rl-scene.was{opacity:1;z-index:1}
 .studio .rl-scene.was .rl-text,.studio .rl-scene.was .sw-credit{opacity:0;transition:opacity .2s}
 .studio .rl-scene.on{z-index:2}
-.studio .rl-scene.on.tr0,.studio .rl-scene.on.tr3,.studio .rl-scene.on.tr4{animation:dissolve .8s ease-in-out both}
-.studio .rl-scene.on.tr1{animation:pushInL .8s cubic-bezier(.65,0,.35,1) both}
-.studio .rl-scene.on.tr2{animation:pushInU .8s cubic-bezier(.65,0,.35,1) both}
-.studio .rl-scene.was.po-l{animation:pushOutL .8s cubic-bezier(.65,0,.35,1) both}
-.studio .rl-scene.was.po-u{animation:pushOutU .8s cubic-bezier(.65,0,.35,1) both}
+.studio .rl-scene.on[class*=" tr"]{animation:dissolve .9s ease-in-out both}
 @keyframes dissolve{from{opacity:0}}
-@keyframes pushInL{from{transform:translateX(100%)}}
-@keyframes pushInU{from{transform:translateY(100%)}}
-@keyframes pushOutL{to{transform:translateX(-100%)}}
-@keyframes pushOutU{to{transform:translateY(-100%)}}
+/* captions in Watch only fade and rise a little: nothing slides in from the side */
+.studio .rl-scene.on.ta2 .rl-text > *{animation-name:rise}
 .studio .rl-scene.on.ly-ig-hook .rl-text h2{animation:hookIn .9s cubic-bezier(.2,.8,.2,1) .25s both!important}
 .studio .rl-scene.on.ly-ig-hook .rl-text h2 .w{animation:none!important}
 @keyframes hookIn{from{opacity:0;transform:translateY(14px)}}
@@ -1224,6 +1218,9 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 @keyframes gsFill{from{transform:scaleX(0)}}
 .gs-row small{display:block;margin-top:6px;font-size:clamp(11px,3.2cqw,13px);color:rgba(255,255,255,.7)}
 .wk-card .ly-wk .rl-text{bottom:64px}
+.pv-tabs{display:flex;gap:6px;margin:0 0 10px;justify-content:center}
+.pv-tabs button{border:0;background:var(--sunk);color:var(--ink2);font:600 13px var(--f);padding:8px 14px;border-radius:999px;cursor:pointer}
+.pv-tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
 /* homepage (first visit, and #/welcome) */
 body.home main{max-width:1080px}
 .hm{padding:8px 0 20px}
@@ -5425,6 +5422,7 @@ async function plusView() {
   // A hook, a timelapse of their research growing 2014 → now, where they stand, then a highlight
   // reel of the week's biggest moves over each goal's own footage, the ripple, and a sign-off.
   let scenes = [];
+  const weekS = [], goalS = [], nextS = [];
   if (b) {
     const items = [...(b.moved || []).map((x) => ({ ...x, k: 'moved' })), ...(b.watch || []).map((x) => ({ ...x, k: 'watch' }))]
       .sort((x, y) => Number(mine.has(goalOf(y.goal)?.slug)) - Number(mine.has(goalOf(x.goal)?.slug)));
@@ -5461,8 +5459,11 @@ async function plusView() {
     const av = (g) => (g ? avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '') : '');
     const first = goalOf(shown[0]?.goal) || myGoals[0] || list[0];
     const yrs = Array.from({ length: Y1 - Y0 + 1 }, (_, i) => Y0 + i);
-    // 1. The hook
-    scenes.push({ kicker: `Parallax Weekly · Week ${wk}`, caption: clip(b.headline, 72), sub: range, visual: vis(first, 1) });
+    // Video 1, Your week: the hook, then the week's moves and the ripple.
+    weekS.push({ kicker: `Parallax Weekly · Week ${wk}`, caption: clip(b.headline, 72), sub: range, visual: vis(first, 1) });
+    // Video 2, Your goals: research growing 2014 → now, then where each stands.
+    goalS.push({ kicker: mine.size ? 'Your goals' : 'Goals to follow', caption: 'Then → now.', sub: `${myGoals.map((g) => `@${g.handle}`).join(' · ')}`, visual: vis(myGoals[0], 9) });
+    scenes = goalS;
     // 2. Timelapse: each goal's research per year, growing in step with a year counter
     if (myGoals.length && years.length) scenes.push({ type: 'tl', dur: 7600, visual: vis(myGoals[0], 2),
       html: `<span class="wk-lab">${mine.size ? 'Your goals' : 'Goals to follow'} · research per year</span><div class="tl-yr mono" data-count-from="${Y0}" data-count-to="${Y1}" data-count-ms="3600" data-count-delay="400">${Y0}</div>
@@ -5472,18 +5473,39 @@ async function plusView() {
     if (myGoals.length && counts.size) scenes.push({ type: 'gs', dur: 6000, visual: vis(myGoals[1] || myGoals[0], 3),
       html: `<span class="wk-lab">Where they stand</span><div class="gs-rows">${myGoals.map((g, i) => { const c = counts.get(g.id) || { solved: 0, total: 0 }, pct = c.total ? Math.round((c.solved + (c.moving || 0) * 0.5) / c.total * 100) : 0;
         return `<div class="gs-row" style="--i:${i}"><div class="gs-h">${av(g)}<b>@${esc(g.handle)}</b><span class="mono">${esc(horizonText(g))}</span></div><div class="gs-bar"><i style="--p:${Math.max(3, pct)}%"></i></div><small>${c.solved} of ${c.total} problems solved · ${c.moving || 0} moving</small></div>`; }).join('')}</div>` });
+    scenes = weekS;
     // 4. The highlight reel: the week's biggest moves
     shown.forEach((x, i) => { const g = goalOf(x.goal);
       scenes.push({ kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 100), visual: vis(g, i + 4) }); });
     // 5. The ripple
     const rp = d.ripple;
     if (rp && full) scenes.push({ kicker: `Ripple · @${rp.from} → @${rp.to}`, caption: clip(rp.headline, 70), sub: rp.why ? clip(rp.why, 100) : `News on @${rp.from} moves @${rp.to} too: they share problems.`, visual: vis(goalOf(rp.to), 6) });
+    // Video 3, What's next: the call of the week, what's due, your record.
+    const cnt = (k2) => d.counts.find((c) => c.key === k2) || { yes: 0, no: 0 };
+    const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
+    const cw = [...(soon.length ? soon : d.coming || [])].sort((x, y) => { const n2 = (k2) => { const c = cnt(k2); return c.yes + c.no; }; return n2(y.key) - n2(x.key) || x.date.localeCompare(y.date); })[0];
+    const due = (c) => { if (!/^\d{4}-\d{2}$/.test(c.date)) return `Due ${c.date}`; const days = Math.round((new Date(`${c.date}-28`) - Date.now()) / 864e5); return days <= 0 ? 'Results due now' : days < 21 ? `Results in ${days} days` : `Results in ${Math.round(days / 30)} month${Math.round(days / 30) === 1 ? '' : 's'}`; };
+    nextS.push({ kicker: 'What’s next', caption: d.coming_total ? `${d.coming_total} results are on the way.` : 'Results are on the way.', sub: 'Trials and promises coming due. Each one is a call you can make.', visual: vis(goalOf(cw?.goal) || first, 10) });
+    if (cw) { const n2 = cnt(cw.key), tot = n2.yes + n2.no, yp = tot ? Math.round(n2.yes / tot * 100) : 50;
+      nextS.push({ type: 'poll', dur: 6200, visual: vis(goalOf(cw.goal), 11),
+        html: `<span class="wk-lab">Call of the week · @${esc(cw.goal)}</span><h2>${esc(cw.question)}</h2><p class="wk-q">${esc(clip(cw.title, 90))}</p><div class="wk-bar"><i style="flex:${tot ? yp : 1}"></i><i style="flex:${tot ? 100 - yp : 1}"></i></div><div class="wk-pl"><span>${tot ? `${yp}% yes` : 'Yes'}</span><span>${tot ? `${100 - yp}% no` : 'No'}</span></div><span class="wk-due">${esc(due(cw))}${tot ? ` · ${tot} call${tot === 1 ? '' : 's'}` : ' · be the first call'}</span>` }); }
+    const nx = (d.coming || []).filter((c) => c !== cw).slice(0, 3);
+    if (nx.length) nextS.push({ type: 'next', dur: 6000, visual: vis(goalOf(nx[0].goal), 12),
+      html: `<span class="wk-lab">Coming up</span>${nx.map((c) => `<div class="wk-nx"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 70))}</span></div>`).join('')}` });
+    if (full) { const made = d.mine.length, judged = d.mine.filter((m) => { const r2 = d.results.find((x) => x.key === m.key); return r2 && r2.outcome !== 'void'; }), right = judged.filter((m) => d.results.find((x) => x.key === m.key).outcome === m.choice).length;
+      nextS.push({ kicker: 'Your record', caption: d.standing?.percentile != null ? `Ahead of ${d.standing.percentile}% of callers.` : judged.length ? `${right} of ${judged.length} calls right.` : made ? `${made} call${made === 1 ? '' : 's'} made, results pending.` : 'No calls yet. Make your first one below.', sub: made ? `${d.waiting.length} still waiting on a result.` : null, visual: vis(first, 13) }); }
+    const endCard = (t) => ({ type: 'end', dur: 4600, visual: vis(first, 14), html: `<h2>${t}</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` });
+    goalS.push(endCard('Follow more goals to see them here.'));
+    nextS.push(endCard('Make your calls below.'));
     // 6. Sign-off (or, without Plus, what the full episode holds)
     scenes.push(full
       ? { type: 'end', dur: 5200, visual: vis(first, 7), html: `<h2>That’s your week.</h2><p>Next episode: Monday.</p><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Weekly</span></div>` }
       : { type: 'end', dur: 6400, visual: vis(first, 7), html: `<span class="wk-lab">The full episode is for Plus</span><h2>Every Monday, your goals in a minute.</h2><ul class="wk-inc"><li>Every move on the goals you follow</li><li>Their research, growing year by year</li><li>Where each one stands</li><li>The ripple between goals</li></ul>` });
   }
-  const reel = { id: `week-${b?.week || 'x'}`, kind: 'weekly', title: 'Your week', scenes, mood: 'uplifting', ticker: [], chapters: [] };
+  const reels = [['Your week', weekS], ['Your goals', goalS], ['What’s next', nextS]].filter(([, sc], i) => sc.length > 1 && (full || i === 0))
+    .map(([t, sc], i) => ({ id: `week-${b?.week || 'x'}-${i}`, kind: 'weekly', title: t, scenes: sc, mood: 'uplifting', ticker: [], chapters: [] }));
+  const reel = reels[0] || { id: 'week-x', kind: 'weekly', title: 'Your week', scenes: [], ticker: [], chapters: [] };
+  scenes = reel.scenes;
   const pg = { slug: 'parallax-week', handle: 'Parallax', name: 'Your week', pics: [] };
   const countOf = (k) => d.counts.find((c) => c.key === k) || { yes: 0, no: 0 };
   const myCall = (k) => d.mine.find((m) => m.key === k)?.choice;
@@ -5539,7 +5561,7 @@ async function plusView() {
     <div class="plus-h"><div><span class="kick">Parallax Plus${full ? ` · ${d.plan === 'plus' ? 'yours' : 'included with Pro'}` : ''}</span><h1>Your week in progress</h1>
       <p>What moved on the goals you follow, what’s coming next, and your calls on how it turns out. A minute a week.</p></div>${full ? '' : cta('top')}</div>
     <div class="plus-top">
-      <div class="pweek"><div class="sw pweek-sw" id="pweek">${scenes.length ? reelCard(reel, pg, 0) : `<section class="sw-card"><div class="sw-text"><h2>The first weekly video arrives Monday.</h2></div></section>`}</div>
+      <div class="pweek">${reels.length > 1 ? `<div class="pv-tabs" role="tablist">${reels.map((r, i) => `<button type="button" role="tab" data-pv="${i}" aria-selected="${i === 0}">${esc(r.title)}</button>`).join('')}</div>` : ''}<div class="sw pweek-sw" id="pweek">${scenes.length ? reelCard(reel, pg, 0) : `<section class="sw-card"><div class="sw-text"><h2>The first weekly video arrives Monday.</h2></div></section>`}</div>
         <p class="pweek-n">${b ? `Week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))} · ${mine.size ? 'the goals you follow first' : 'follow goals to make it yours'}` : ''}</p></div>
       <div class="pmain">
         ${hero}
@@ -5564,16 +5586,28 @@ async function plusView() {
   view.querySelectorAll('[data-strip]').forEach((x) => { x.onclick = () => { const st = view.querySelector('.pstrip'); st.scrollBy({ left: Number(x.dataset.strip) * st.clientWidth * 0.85, behavior: 'smooth' }); }; });
   view.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
   // Play the weekly video in place.
+  let cur = null;
+  const mount = (i) => {
+    cur?.pause();
+    const box2 = view.querySelector('#pweek'); if (!box2 || !reels[i]) return;
+    box2.innerHTML = reelCard(reels[i], pg, 0);
+    view.querySelectorAll('[data-pv]').forEach((x) => x.setAttribute('aria-selected', String(Number(x.dataset.pv) === i)));
+    wire(i);
+  };
+  view.querySelectorAll('[data-pv]').forEach((x) => { x.onclick = () => mount(Number(x.dataset.pv)); });
+  const wire = (ri) => {
   const vc = view.querySelector('#pweek .rl');
   if (vc) {
-    const p = reelPlayer(vc); p.play();
-    if (music.wanted) music.start('parallax-weekly', 'epic', 'theme');
+    const p = reelPlayer(vc); p.play(); cur = p;
+    if (music.wanted) music.start('parallax-weekly', 'epic', `theme-${ri}`);
     vc.addEventListener('click', (e) => {
       const t = e.target.closest('[data-rl]'); if (t) { p[t.dataset.rl === 'pause' ? 'toggle' : t.dataset.rl](); return; }
       const chp = e.target.closest('.wk-chs [data-c]'); if (chp) { const i = [...vc.querySelectorAll('.rl-scene')].findIndex((x) => x.dataset.ch === chp.dataset.c); if (i >= 0) p.go(i); return; }
-      if (e.target.closest('[data-sound]')) { music.wanted = !music.wanted; if (music.wanted) music.start('parallax-weekly', 'epic', 'theme'); else music.stop(); view.querySelectorAll('[data-sound]').forEach((x) => { x.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; }); }
+      if (e.target.closest('[data-sound]')) { music.wanted = !music.wanted; if (music.wanted) music.start('parallax-weekly', 'epic', `theme-${ri}`); else music.stop(); view.querySelectorAll('[data-sound]').forEach((x) => { x.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; }); }
     });
   }
+  };
+  wire(0);
   // Make a call.
   view.querySelectorAll('[data-call]').forEach((btn) => { btn.onclick = async () => {
     if (!full) return;
@@ -6598,10 +6632,10 @@ function reelPlayer(card) {
     // The music marks each cut (the player that is playing is the only one with sound).
     if (!paused && was !== k) { music.hit(k === scenes.length - 1); if (k === scenes.length - 1) music.resolve(); }
     if (studio && was !== k) {
-      const old = scenes[was], cls = scenes[k].classList.contains('tr1') ? 'po-l' : scenes[k].classList.contains('tr2') ? 'po-u' : '';
-      old.classList.add('was'); if (cls) old.classList.add(cls);
+      const old = scenes[was];
+      old.classList.add('was');
       const ov = old.querySelector('video'); if (ov && !paused) ov.play().catch(() => {});
-      setTimeout(() => { old.classList.remove('was', 'po-l', 'po-u'); if (!old.classList.contains('on')) ov?.pause(); }, 850);
+      setTimeout(() => { old.classList.remove('was'); if (!old.classList.contains('on')) ov?.pause(); }, 950);
     }
     scenes.forEach((s, j) => {
       s.classList.toggle('on', j === k);
