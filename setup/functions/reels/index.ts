@@ -9,7 +9,8 @@
 //
 // Every 2 hours, one goal per call, header x-parallax-admin: <ADMIN_TOKEN>.
 //   POST {}  the goal whose reels are oldest (or missing) · POST {"slug": "mars"}  one goal now
-// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, PARALLAX_MODEL, CONTACT_EMAIL. Optional: PIXABAY_API_KEY, UNSPLASH_ACCESS_KEY.
+// Secrets: ANTHROPIC_API_KEY, ADMIN_TOKEN, CONTACT_EMAIL. Optional: PIXABAY_API_KEY, UNSPLASH_ACCESS_KEY,
+// REELS_SCRIPT_MODEL, REELS_JUDGE_MODEL, RENDER_TOKEN (the GitHub news-video job: render actions only).
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { betaZodOutputFormat } from "npm:@anthropic-ai/sdk@1.3.0/helpers/beta/zod";
@@ -19,7 +20,9 @@ import { AwsClient } from "npm:aws4fetch@1.0.20";
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN = Deno.env.get("ADMIN_TOKEN") ?? "";
-const MODEL = Deno.env.get("PARALLAX_MODEL") ?? "claude-opus-5-5";
+// Video scripts use a mid-priced model by default (set REELS_SCRIPT_MODEL to change it); video-making
+// was the biggest AI cost when it ran on the top model.
+const MODEL = Deno.env.get("REELS_SCRIPT_MODEL") ?? "claude-sonnet-5-5";
 const MAIL = Deno.env.get("CONTACT_EMAIL") ?? "";
 const DAY = 86_400_000;
 
@@ -291,7 +294,7 @@ The score is about FIT only: 9-10 shows exactly the scene's subject; 7-8 clearly
 const fits = (_c: Cand, score: number) => score >= 7;
 const QUERY_MODEL = "claude-sonnet-5-5";
 // Repairs are judged live, so by the cheaper model with the same rules (new videos use the batch, at half price).
-const JUDGE_MODEL = Deno.env.get("REELS_JUDGE_MODEL") ?? "claude-sonnet-5-5";
+const JUDGE_MODEL = Deno.env.get("REELS_JUDGE_MODEL") ?? "claude-haiku-5-5"; // the cheapest model checks footage
 let lastScores: Record<string, { pick: number; score: number; of: number }> = {};
 
 // Up to 8 candidates for one scene from its search terms: filmed Pixabay footage first (NASA too
@@ -853,7 +856,7 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
     model: QUERY_MODEL, max_tokens: 4000, output_config: { effort: "low", format: betaZodOutputFormat(ShotList) },
     system: `You find footage for cinematic science videos about the goal "${g.name}". The look is animated 3D science footage (cells, molecules, viruses, DNA, neurons, blood vessels, plasma, particles, glowing technology, planets) plus a few striking real clips of the goal's own subject. List 16 search terms for the Pixabay video library, each 1-3 plain words. 12 should find animated science footage of this goal's world (for malaria: "red blood cells", "parasite", "blood vessel", "virus 3d", "immune cells"; for fusion: "plasma", "energy particles", "magnetic field"). Up to 4 may find real footage only where the subject itself is filmed (for malaria: "mosquito"; for Mars: "rocket launch"; for grid storage: "wind turbines"). Nothing abstract, no feelings or metaphors.`,
     messages: [{ role: "user", content: facts.slice(0, 2500) }],
-  }).finalMessage().then(track("reels"))).parsed_output?.terms.slice(0, opts.light ? 6 : 16) ?? [];
+  }).finalMessage().then(track("reels"))).parsed_output?.terms.slice(0, opts.light ? 6 : 10) ?? [];
   if (terms.length < (opts.light ? 3 : 6)) return { slug, error: "no search terms" };
 
   // 2. Candidates from every term.
@@ -870,7 +873,7 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   ])));
   // A remake (light) skips clips the goal already has, so whatever passes is new to its videos.
   const mine = opts.light ? new Set(((await db(`reels?goal_id=eq.${g.id}&select=scenes`)) as { scenes: { visual?: { url?: string } }[] }[]).flatMap((r) => (r.scenes || []).map((x) => x.visual?.url ? clipId(x.visual.url) : "").filter(Boolean))) : new Set<string>();
-  const cands = pool.filter((c) => !mine.has(c.id ?? clipId(c.url))).slice(0, opts.light ? 30 : 84);
+  const cands = pool.filter((c) => !mine.has(c.id ?? clipId(c.url))).slice(0, opts.light ? 30 : 42); // fewer candidates, fewer paid checks
   const blocks = await Promise.all(cands.map((c) => asBlock(c.preview ?? c.poster)));
 
   // 3. Judge every candidate once (25 per call).
