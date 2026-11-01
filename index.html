@@ -1441,6 +1441,7 @@ body.labpage main{max-width:1080px}
 .chip3{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;text-decoration:none;color:var(--ink2);background:var(--card)}
 .chip3.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .seg a{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;font:500 13.5px var(--f);color:var(--muted);text-decoration:none}
+.imode{margin:18px 0 0}
 .seg a.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .ideas{display:grid;gap:14px;margin-top:16px}
 .ideas.two{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -2171,11 +2172,11 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
 .bnav{display:none}
 @media (max-width:760px){
   :root{--navh:calc(62px + env(safe-area-inset-bottom))}
-  .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;height:var(--navh);padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid var(--line)}
+  .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;height:var(--navh);padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid var(--line)}
   .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
-  /* phones reach Watch, Challenges and Ideas from the bottom bar: the feed keeps Everything / Following */
+  /* phones reach Watch and Ideas from the bottom bar: the feed keeps Everything / Following */
   .feedtabs .tab:not([href="#/"]):not([href="#/following"]){display:none}
   .feedtabs:not(:has(.tab[href="#/"][aria-selected="true"], .tab[href="#/following"][aria-selected="true"])){display:none}
   .acct.out{display:none}
@@ -2468,7 +2469,6 @@ body.wsw main{max-width:1000px}
 <nav class="bnav" id="bnav" aria-label="Main">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
   <a href="#/watch" data-nav="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/></svg>Watch</a>
-  <a href="#/challenges" data-nav="challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Challenges</a>
   <a href="#/lab" data-nav="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Ideas</a>
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
 </nav>
@@ -3103,7 +3103,9 @@ document.addEventListener('click', (e) => {
 
 // The site's sections, in one tab bar under the header (the header keeps search and Plus).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
+const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['following', '#/following', 'Following']];
+// Ideas holds both: AI-proposed ideas, and challenges one person can try from home.
+const ideaMode = (which) => `<div class="imode"><div class="seg"><a class="${which === 'ideas' ? 'on' : ''}" href="#/lab">All ideas</a><a class="${which === 'try' ? 'on' : ''}" href="#/challenges">Try it yourself</a></div></div>`;
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 // Homepage: what a first-time visitor sees at the root (and anyone at #/welcome). Everything on it
@@ -3947,7 +3949,7 @@ async function profileView(handle, toImpact = false) {
       ${p.bio ? `<p class="sum">${esc(p.bio)}</p>` : ''}
       ${(p.skills || []).length ? `<div class="chips">${p.skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="followers">Joined ${esc(joined)}</div>
-      <div class="act">${own ? '<a class="btn primary" href="#/challenges">Challenges for you</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
+      <div class="act">${own ? '<a class="btn primary" href="#/challenges">Things to try</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
     </div></div>
     <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
     ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
@@ -4222,19 +4224,19 @@ async function submitChallenge(c, g, url, note, nodeTitle) {
 // and status, who else is on it, and where to submit. Your plan and notes are private to you.
 const WSTAT = [['working', 'Working on it'], ['ready', 'Ready to submit'], ['submitted', 'Submitted']];
 async function workspaceView(id) {
-  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  view.innerHTML = navTabs('lab') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
   let c, all, node, papers, people;
   try {
     [[c], all] = await Promise.all([rest(`challenges?id=eq.${Number(id)}&select=*`), goals()]);
-    if (!c) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'It may have been retired.'); return; }
+    if (!c) { view.innerHTML = navTabs('lab') + note('Challenge not found', 'It may have been retired.'); return; }
     [[node], papers, people] = await Promise.all([
       rest(`nodes?goal_id=eq.${c.goal_id}&key=eq.${encodeURIComponent(c.node_key)}&select=key,title,plain_title,why,plain_why,blocker,plain_blocker,status`),
       rest(`node_papers?goal_id=eq.${c.goal_id}&node_key=eq.${encodeURIComponent(c.node_key)}&select=rank,papers(title,year,url,first_author)&order=rank.asc&limit=6`).catch(() => []),
       rest(`challenge_people?challenge_id=eq.${c.id}&select=handle,display_name&order=created_at.asc&limit=30`).catch(() => []),
     ]);
-  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
+  } catch (e) { view.innerHTML = navTabs('lab') + failNote(e, 'route()'); return; }
   const g = all.find((x) => x.id === c.goal_id);
-  if (!g) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'Its goal is not available.'); return; }
+  if (!g) { view.innerHTML = navTabs('lab') + note('Challenge not found', 'Its goal is not available.'); return; }
   await authReady;
   await loadTaken();
   const mineTaken = !!me && myTaken?.has(c.id);
@@ -4255,9 +4257,9 @@ async function workspaceView(id) {
   const kinds = (c.resources || []).map((r) => { const u = safeUrl(r.url); if (!u) return ''; const [k, cls] = resKind(u); return `<a class="ws-res" href="${esc(u)}" target="_blank" rel="noopener"><span class="rk ${cls}">${k}</span><span class="rt">${esc(r.title || u)}</span><span class="rd">${esc(new URL(u).hostname.replace(/^www\./, ''))}</span></a>`; }).join('');
   const papersList = (papers || []).filter((x) => x.papers);
   const stIdx = Math.max(0, WSTAT.findIndex(([k]) => k === (w?.status || 'working')));
-  view.innerHTML = navTabs('challenges') + `<article class="ws" style="${gStyle(g)}">
+  view.innerHTML = navTabs('lab') + `<article class="ws" style="${gStyle(g)}">
     <header class="ws-hero">
-      <a class="ws-back" href="#/challenges">← Challenges</a>
+      <a class="ws-back" href="#/challenges">← Try it yourself</a>
       <a class="ws-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b><small>${esc(node ? (node.plain_title || node.title) : g.name)}</small></span></a>
       <h1 class="ws-h">${esc(c.title)}</h1>
       <p class="ws-hook">${esc(why[0] || c.useful)}</p>
@@ -4344,14 +4346,14 @@ async function workspaceView(id) {
 
 // Every open challenge, across goals, filtered by skill.
 async function challengesView(skill) {
-  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  view.innerHTML = navTabs('lab') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
   let list, all;
   try {
     [list, all] = await Promise.all([rest('challenges?status=neq.retired&select=id,goal_id,node_key,title,useful,task,done_when,resources,skills,size,status,solved_post_id&order=id.desc&limit=600'), goals()]);
     const takers = await rest('challenge_takers?select=challenge_id').catch(() => []);
     const n = new Map(); for (const t of takers) n.set(t.challenge_id, (n.get(t.challenge_id) || 0) + 1);
     for (const c of list) c.takers = n.get(c.id) || 0;
-  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
+  } catch (e) { view.innerHTML = navTabs('lab') + failNote(e, 'route()'); return; }
   await authReady; await loadTaken();
   const byId = new Map(all.map((g) => [g.id, g]));
   const nodes = await rest(`nodes?goal_id=in.(${[...new Set(list.map((c) => c.goal_id))].join(',') || 0})&parent_key=not.is.null&select=goal_id,key,title,plain_title`).catch(() => []);
@@ -4371,7 +4373,7 @@ async function challengesView(skill) {
     .sort((a, b) => b.takers - a.takers);
   const nWork = list.filter((c) => myTaken?.has(c.id)).length, nSolved = list.filter((c) => c.status === 'solved').length, nOpen = list.filter((c) => c.status !== 'solved').length;
   for (const c of shown) chalIndex.set(c.id, { c, g: byId.get(c.goal_id) });
-  view.innerHTML = navTabs('challenges') + `<h1 class="page-h">Challenges</h1>
+  view.innerHTML = navTabs('lab') + ideaMode('try') + `<h1 class="page-h">Try it yourself</h1>
     <p class="page-sub">Real pieces of humanity’s biggest problems that one person could solve from home with public data, code and analysis. Each has a clear bar. Meet it and your work is published on the goal’s feed under your name.</p>
     ${me ? `<div class="chal-me">${mine.length ? `<span>Your skills: ${mine.map((k) => `<b>${esc(k)}</b>`).join(', ')}</span> <a href="#/settings">Edit</a>` : '<span>Add your skills and Parallax shows the challenges that fit you.</span> <a href="#/settings">Add skills</a>'} · <a href="#/impact">Your impact →</a></div>` : ''}
     <nav class="subtabs">${mine.length ? `<a href="#/challenges/mine" class="${sel === 'mine' ? 'on' : ''}">For you</a>` : ''}<a href="#/challenges/all" class="${!sel || skills.includes(sel) ? 'on' : ''}">All <small>${nOpen}</small></a>${me ? `<a href="#/challenges/working" class="${sel === 'working' ? 'on' : ''}">Working on <small>${nWork}</small></a>` : ''}<a href="#/challenges/solved" class="${sel === 'solved' ? 'on' : ''}">Solved <small>${nSolved}</small></a></nav>
@@ -5698,7 +5700,7 @@ async function labView(slug, sort = 'top') {
   const voters = Object.values(labState.scores).reduce((a, s) => a + s.promising + s.flawed + s.tried + s.test, 0);
   const base = slug ? `#/lab/${encodeURIComponent(slug)}` : '#/lab';
   document.body.classList.add('labpage');
-  view.innerHTML = `${navTabs('lab')}<section class="lab-h"><div class="kick">Ideas lab</div>
+  view.innerHTML = `${navTabs('lab')}${ideaMode('ideas')}<section class="lab-h"><div class="kick">Ideas lab</div>
       <h1>${ideas.length} idea${ideas.length === 1 ? '' : 's'} to try${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
       <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
     <div class="lab-bar"><div class="chips lab-goals">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
@@ -6684,7 +6686,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', c: 'challenges', lab: 'lab', idea: 'lab', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'lab', challenges: 'lab', c: 'lab', lab: 'lab', idea: 'lab', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
