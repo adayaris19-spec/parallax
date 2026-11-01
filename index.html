@@ -2461,7 +2461,7 @@ body.wsw main{max-width:1000px}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/welcome">About Parallax</a> · <a href="#/plus">Parallax Plus</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
+  <br><a href="#/welcome">About Parallax</a> · <a href="#/plus">Parallax Plus</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
@@ -2829,11 +2829,8 @@ function toggleMenu(force) {
   const h = me.profile ? me.profile.handle : '';
   m.innerHTML = `<div class="who2">Signed in as <b>@${esc(h)}</b></div>
     ${h ? `<a href="#/u/${encodeURIComponent(h)}" role="menuitem">Your profile</a>` : ''}
-    <a href="#/challenges" role="menuitem">Challenges for you</a>
-    <a href="#/impact" role="menuitem">Your impact</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/plus" role="menuitem">Parallax Plus</a>
-    <a href="#/team" role="menuitem">Raise money for your team</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
   m.classList.remove('hide');
@@ -5884,7 +5881,8 @@ function fundingPanel(g, l, { compact = false, sheet = false } = {}) {
   // Nobody raising yet: the "Support this goal" box covers giving, so stay quiet. The research sheet keeps
   // one small line, because that is how teams working on the problem join.
   if (!sheet) return '';
-  return `<p class="fp-join">Working on this problem? <a href="#/team/claim/${encodeURIComponent(g.slug)}/${encodeURIComponent(l.key)}">Raise money for your team →</a>${goalCtx?.giving?.orgs?.length ? ` · <a href="#give" data-togive>Support organisations working on this goal</a>` : ''}</p>`;
+  // Team fundraising is hidden for now (the #/team pages still work for teams already listed).
+  return goalCtx?.giving?.orgs?.length ? `<p class="fp-join"><a href="#give" data-togive>Support organisations working on this goal</a></p>` : '';
 }
 
 
