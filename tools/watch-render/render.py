@@ -13,7 +13,7 @@ ANON = open(os.environ['PARALLAX_ANON_FILE']).read().strip(); ADMIN = open(os.en
 FN = 'https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/reels'
 MGMT = 'https://api.supabase.com/v1/projects/zfmjjazkmolvywvayjzj/database/query'
 W, H, FPS, X = 720, 1280, 30, 0.6
-VERSION = 1
+VERSION = 2  # 2: each reel is cut into short parts of about two scenes (~10 s each)
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 UPLOAD = '--no-upload' not in sys.argv
 
@@ -63,11 +63,35 @@ PROGS = [[(0, 'm'), (8, 'M'), (3, 'M'), (10, 'M'), (5, 'm'), (0, 'm9'), (8, 'M')
          [(0, 'm'), (5, 'm'), (8, 'M'), (7, 'M'), (3, 'M'), (0, 'm9'), (5, 'm'), (0, 'm')],
          [(8, 'M'), (10, 'M'), (0, 'm'), (3, 'M'), (5, 'm'), (0, 'm9'), (10, 'M'), (0, 'm')]]
 
+def split(n):
+    # Short parts for short attention spans: two scenes each; an odd scene joins the last part.
+    if n <= 3: return [(0, n)]
+    sizes = [2] * (n // 2)
+    if n % 2: sizes[-1] += 1
+    out, a = [], 0
+    for z in sizes: out.append((a, a + z)); a += z
+    return out
+
 def render(r):
-    rid, slug = r['id'], r['slug']; scenes = r['scenes']; n = len(scenes)
+    rid, slug = r['id'], r['slug']; ranges = split(len(r['scenes'])); title = str(r.get('title') or '').strip()
+    parts = []
+    for k, (a, b) in enumerate(ranges):
+        scenes = [dict(x) for x in r['scenes'][a:b]]
+        # Later parts open with the series title, so each one makes sense on its own.
+        if k and not scenes[0].get('kicker') and 0 < len(title) <= 40: scenes[0]['kicker'] = title
+        # ...and doesn't lean on the part before it ("But a ride home..." -> "A ride home...").
+        m = re.match(r'^(But|And|So|Yet),?\s+', str(scenes[0].get('caption') or '')) if k else None
+        if m: rest = scenes[0]['caption'][m.end():]; scenes[0]['caption'] = rest[:1].upper() + rest[1:]
+        info = render_clip(r, scenes, f'{slug}-{rid}-p{k + 1}', f'{rid}p{k}' if k else str(rid))
+        info.update({'from': a, 'to': b}); parts.append(info)
+    rec = {'v': VERSION, 'parts': parts}
+    if UPLOAD: sql(f"update reels set render = '{json.dumps(rec).replace(chr(39), chr(39) * 2)}'::jsonb where id = {int(rid)}")
+    return {'parts': len(parts), 'durs': [p['dur'] for p in parts]}
+
+def render_clip(r, scenes, tag, seed):
+    rid, slug = seed, r['slug']; n = len(scenes)
     lays = layouts(scenes, hue(str(rid)))
     durs = [dur(s, i, n, lays[i]) for i, s in enumerate(scenes)]
-    tag = f'{slug}-{rid}'
     # 1. footage for every scene
     media = []
     for i, s in enumerate(scenes):
@@ -134,7 +158,7 @@ def render(r):
     sh(['ffmpeg', '-y', '-v', 'error', '-ss', '0.9', '-i', final, '-frames:v', '1', '-q:v', '4', poster])
     for p, _ in segs: os.remove(p)
     os.remove(video); os.remove(wav)
-    info = {'dur': round(total, 2), 'bytes': os.path.getsize(final), 'scenes': n, 'starts': [round(x, 2) for x in starts]}
+    info = {'dur': round(total, 2), 'starts': [round(x, 2) for x in starts]}
     if UPLOAD:
         urls = {}
         for p in (final, poster):
@@ -142,16 +166,14 @@ def render(r):
             res = json.loads(sh(['curl', '-s', '-X', 'POST', f'{FN}?upload={name}', '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/octet-stream', '--data-binary', '@' + p]).stdout)
             if 'url' not in res: raise RuntimeError(f'upload failed: {res}')
             urls[p.rsplit('.', 1)[1]] = res['url']
-        rec = {'url': urls['mp4'], 'poster': urls['jpg'], 'dur': info['dur'], 'starts': info['starts'], 'v': VERSION}
-        sql(f"update reels set render = '{json.dumps(rec)}'::jsonb where id = {int(rid)}")
-        info['url'] = urls['mp4']
+        info.update({'url': urls['mp4'], 'poster': urls['jpg']})
     return info
 
 if __name__ == '__main__':
-    rows = sql("select r.id, g.slug, r.kind, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
+    rows = sql("select r.id, g.slug, r.kind, r.title, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
     part = next((x for x in sys.argv if x.startswith('--part=')), None)  # --part=i/n splits the goals between processes
     if args == ['all'] or not args:
-        rows = [r for r in rows if not (r.get('render') or {}).get('v') == VERSION]
+        rows = [r for r in rows if r.get('kind') != 'weekly' and not (r.get('render') or {}).get('v') == VERSION]
         if part:
             i, n = map(int, part.split('=')[1].split('/')); slugs = sorted({r['slug'] for r in rows}); mine = set(slugs[i::n])
             rows = [r for r in rows if r['slug'] in mine]

@@ -1114,6 +1114,7 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .studio .rl-bars{gap:0}
 .studio .rl-bars i{border-radius:0;height:2.5px;background:rgba(255,255,255,.22)}
 .studio .rl-bars i:first-child{border-radius:2px 0 0 2px}.studio .rl-bars i:last-child{border-radius:0 2px 2px 0}
+.studio.rv-card .rl-bars{gap:4px}.studio.rv-card .rl-bars i{border-radius:2px}.rl-bars i.done b{width:100%}
 .studio .rl-tap.prev,.studio .rl-tap.next{display:none}
 .studio .rl-tap.mid{left:0;width:100%}
 /* the still under each video (shown until the video draws its first frame) */
@@ -6399,7 +6400,7 @@ function reelCard(r, g, i, studio = true) {
   const lys = studio ? studioLayouts(scenes, hue(String(r.id))) : null;
   // Watch videos rendered like the Reels: one continuous file with its own soundtrack.
   const rv = studio && r.render?.url && !r.once && r.kind !== 'weekly' ? r.render : null;
-  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}${r.brief ? ' brief-card' : ''}${rv ? ' rv-card' : ''}" data-reel="${i}"${rv ? ` data-starts="${esc((rv.starts || []).join(','))}"` : ''}${r.once ? ' data-once="1"' : ''}${r.accent ? ` style="--kc:${esc(r.accent)}"` : ''}>
+  return `<section class="sw-card rl${studio ? ' studio' : ''}${r.kind === 'weekly' ? ' wk-card' : ''}${r.once ? ' one-card' : ''}${r.brief ? ' brief-card' : ''}${rv ? ' rv-card' : ''}" data-reel="${i}"${rv ? ` data-starts="${esc((rv.starts || []).join(','))}"` : ''}${rv && r.part < r.parts ? ' data-more="1"' : ''}${r.once ? ' data-once="1"' : ''}${r.accent ? ` style="--kc:${esc(r.accent)}"` : ''}>
     ${r.brief ? `<div class="bf-tag"><i></i>${esc(r.tag)}</div><div class="bf-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.once ? `<div class="rl-endbox"><button type="button" class="sw-cta" data-rl="replay">↺ Watch again</button><a class="sw-cta ghost" href="${esc(r.dive.href)}">${esc(r.dive.label)}</a></div>` : ''}
     ${rv ? `<video class="rv-video" src="${esc(rv.url)}" poster="${esc(rv.poster || '')}" playsinline loop preload="none" muted aria-label="${esc(scenes.map((x) => x.caption).join('. '))}"></video><div class="rv-shade"></div>
@@ -6425,8 +6426,8 @@ function reelCard(r, g, i, studio = true) {
       ${s.visual && s.visual.url && s.visual.kind === 'anim' ? `<div class="sw-credit">Animation: Parallax</div>` : s.visual && s.visual.url ? `<div class="sw-credit">${s.visual.kind === 'video' ? 'Video' : 'Photo'}: ${safeUrl(s.visual.source_url) ? `<a href="${esc(s.visual.source_url)}" target="_blank" rel="noopener">${esc(s.visual.credit)}</a>` : esc(s.visual.credit)} · ${esc(s.visual.license)}</div>` : ''}</div>`; }).join('')}
     ${r.kind === 'weekly' && r.chapters?.length ? `<div class="wk-chs">${r.chapters.map((c, j) => `<span data-c="${j}"${j ? '' : ' class="on"'}>${esc(c)}</span>`).join('')}</div>` : ''}
     ${r.kind === 'weekly' && r.ticker?.length ? `<div class="wk-tick" aria-hidden="true"><b>This week</b><div class="wk-tt"><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span><span>${r.ticker.map(esc).join('<i>•</i>')}<i>•</i></span></div></div>` : ''}
-    <div class="rl-top"><div class="rl-bars">${rv ? '<i><b></b></i>' : scenes.map(() => '<i><b></b></i>').join('')}</div>
-      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(smallPic(g.pics[0], 'a')).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}</span></div></div>
+    <div class="rl-top"><div class="rl-bars">${rv ? (r.parts > 1 ? Array.from({ length: r.parts }, (_, k) => (k + 1 < r.part ? '<i class="done"><b></b></i>' : k + 1 === r.part ? '<i class="cur"><b></b></i>' : '<i><b></b></i>')).join('') : '<i><b></b></i>') : scenes.map(() => '<i><b></b></i>').join('')}</div>
+      <div class="rl-who">${g.pics?.[0] ? `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="background:center/cover url('${esc(smallPic(g.pics[0], 'a')).replace(/'/g, '%27')}')"></a>` : `<a href="#/g/${encodeURIComponent(g.slug)}" class="rl-av" style="${orb(g.slug)}">${esc(String(g.handle).slice(0, 2).toUpperCase())}</a>`}<b>@${esc(g.handle)}</b><span>${r.kind === 'today' ? `Today’s story · ${new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : esc(REEL_KIND[r.kind] || r.kind)}${r.parts > 1 ? ` · ${r.part}/${r.parts}` : ''}</span></div></div>
     <button type="button" class="rl-tap prev" data-rl="prev" aria-label="Previous scene"></button>
     <button type="button" class="rl-tap mid" data-rl="pause" aria-label="Pause or play"></button>
     <button type="button" class="rl-tap next" data-rl="next" aria-label="Next scene"></button>
@@ -6443,16 +6444,19 @@ const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" s
 
 // Player for a rendered Watch video (one file with its own soundtrack): same controls as reelPlayer.
 function renderedPlayer(card) {
-  const v = card.querySelector('video.rv-video'), bar = card.querySelector('.rl-bars b'), cred = card.querySelector('.rv-credit');
+  const v = card.querySelector('video.rv-video'), bar = card.querySelector('.rl-bars .cur b') || card.querySelector('.rl-bars b'), cred = card.querySelector('.rv-credit');
   const starts = (card.dataset.starts || '0').split(',').map(Number), credits = JSON.parse(cred?.dataset.credits || '[]');
   let raf = 0, paused = true, last = -1;
   const sceneAt = (t) => { let k = 0; starts.forEach((s, i) => { if (t >= s - 0.3) k = i; }); return k; };
+  // A part with more to come plays once, then the next part slides in (and starts loading early).
+  const more = card.dataset.more === '1', nextV = () => card.nextElementSibling?.querySelector('video.rv-video');
+  if (more) { v.loop = false; v.addEventListener('ended', () => { if (!paused) card.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
   const tick = () => {
     if (v.duration) { bar.style.width = `${(v.currentTime / v.duration) * 100}%`; const k = sceneAt(v.currentTime); if (k !== last) { last = k; if (cred) cred.textContent = credits[k] || ''; } }
     if (!paused) raf = requestAnimationFrame(tick);
   };
   const sound = () => { v.muted = !music.wanted; };
-  const play = () => { paused = false; card.classList.remove('paused'); v.preload = 'auto'; sound(); v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
+  const play = () => { paused = false; card.classList.remove('paused'); v.preload = 'auto'; sound(); v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); if (more && nextV()) nextV().preload = 'auto'; };
   // Browsers start videos muted until the first tap: turn the sound on then, if it's wanted.
   document.addEventListener('pointerdown', () => { if (!paused && music.wanted && v.muted) v.muted = false; }, { passive: true });
   const seek = (d) => { const k = Math.max(0, Math.min(starts.length - 1, sceneAt(v.currentTime) + d)); v.currentTime = starts[k] + 0.05; };
@@ -6566,6 +6570,8 @@ async function watchView(slug, storiesMode = false) {
   } catch (e) { box.innerHTML = `<section class="sw-card"><div class="sw-text">${failNote(e, 'route()')}</div></section>`; return; }
   if (!box.isConnected) return;
   let ordered = reelOrder(reels.filter((r) => list.some((g) => g.id === r.goal_id) && (r.scenes || []).length));
+  // A rendered reel can come cut into short parts: each plays as its own video, one after another.
+  ordered = ordered.flatMap((r) => (r.render?.parts?.length ? r.render.parts.map((p, k, all) => ({ ...r, scenes: r.scenes.slice(p.from, p.to), render: p, part: k + 1, parts: all.length })) : [r]));
   if (storiesMode) {
     // Stories: this goal's first, then other goals with unseen stories, then the rest; oldest first within a goal.
     const st = await loadStories(list).catch(() => []), seen = seenStories();
