@@ -2442,6 +2442,11 @@ body.wsw main{max-width:1000px}
 .ws-h{font-size:30px;letter-spacing:-.03em;line-height:1.12;margin:10px 0 0;max-width:24ch}
 .ws-hook{font-size:16.5px;line-height:1.5;color:var(--ink2);margin:10px 0 0;max-width:62ch}
 .ws-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:16px}
+.ws-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;color:var(--ink2);font-size:14px}.ws-meta span{display:inline-flex;align-items:center;gap:6px}.ws-meta svg{width:14px;height:14px;opacity:.7}
+.ws-go{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px}.ws-go span{font-size:13px;color:var(--muted);max-width:42ch}
+details.ws-fold>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center}details.ws-fold>summary .kick{margin:0}
+details.ws-fold>summary::-webkit-details-marker{display:none}details.ws-fold>summary::after{content:'+';font-size:20px;color:var(--muted)}details.ws-fold[open]>summary::after{content:'–'}
+details.ws-fold[open]>summary{margin-bottom:12px}
 .ws-facts div{background:color-mix(in srgb,var(--card) 80%,transparent);border:1px solid var(--line);border-radius:12px;padding:9px 12px;min-width:0}
 .ws-facts span{display:flex;align-items:center;gap:5px;font-family:var(--m);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.ws-facts svg{width:13px;height:13px}
 .ws-facts b{display:block;font-size:14px;margin-top:3px;font-weight:600;overflow-wrap:anywhere}
@@ -4325,23 +4330,17 @@ async function workspaceView(id) {
       <a class="ws-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b><small>${esc(node ? (node.plain_title || node.title) : g.name)}</small></span></a>
       <h1 class="ws-h">${esc(c.title)}</h1>
       <p class="ws-hook">${esc(why[0] || c.useful)}</p>
-      <div class="ws-facts">
-        <div><span>${ICON.time}Time</span><b>${esc(c.size || '—')}</b></div>
-        <div><span>${ICON.people}On it</span><b>${people.length || 'No one yet'}</b></div>
-        <div><span>Skills</span><b>${(c.skills || []).map(esc).join(' · ') || '—'}</b></div>
-        <div><span>${ICON.target}Status</span><b>${c.status === 'solved' ? 'Solved' : 'Open'}</b></div>
-      </div>
+      <p class="ws-meta">${c.size ? `<span>${ICON.time}${esc(c.size)}</span>` : ''}${(c.skills || []).length ? `<span>${(c.skills || []).slice(0, 3).map(esc).join(', ')}</span>` : ''}<span>${ICON.people}${people.length ? `${people.length} on it` : 'No one on it yet'}</span>${c.status === 'solved' ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}</p>
+      ${mineTaken ? '' : `<div class="ws-go"><button class="btn primary" type="button" data-chal-take-ws>${c.status === 'solved' ? 'Try it too' : 'Take it on'}</button><span>You get a private plan, notes and progress, and submit when you meet the bar.</span></div>`}
     </header>
     <div class="ws-grid">
       <div class="ws-main">
         <section class="ws-card ws-bar"><div class="kick">${ICON.target} The bar: done when</div>
           <ul class="ws-checks">${bars.map((b) => `<li>${ICON.check}<span>${esc(b)}</span></li>`).join('')}</ul>
           <p class="ws-sub">Meet every point and your work is published on @${esc(g.handle)}’s feed under your name.</p></section>
-        <section class="ws-card"><div class="kick">How to approach it</div>
-          <ol class="ws-steps">${steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></section>
-        <section class="ws-card"><div class="kick">Why it matters</div>
-          ${why.length > 1 ? `<p>${esc(why.slice(1).join(' '))}</p>` : ''}
-          ${node ? `<p class="ws-sub"><b>Where the problem stands:</b> ${esc(node.plain_blocker || node.blocker || node.plain_why || node.why || '')}</p>` : ''}</section>
+        ${steps.length ? `<details class="ws-card ws-fold"${mineTaken ? ' open' : ''}><summary><span class="kick">How to approach it · ${steps.length} step${steps.length === 1 ? '' : 's'}</span></summary>
+          <ol class="ws-steps">${steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
+        ${why.length > 1 ? `<details class="ws-card ws-fold"><summary><span class="kick">Who would use it</span></summary><p>${esc(why.slice(1).join(' '))}</p></details>` : ''}
         ${mineTaken ? `<section class="ws-card"><div class="kick">Your plan ${todos.length ? `<small class="ws-saved">${todos.filter((t) => t.done).length} of ${todos.length} done</small>` : ''}</div>
             ${todos.length ? `<div class="ws-pbar"><i style="width:${Math.round(100 * todos.filter((t) => t.done).length / todos.length)}%"></i></div>` : ''}
             <ul class="ws-todo" id="wsTodo">${todos.map((t, i) => `<li><label><input type="checkbox" data-i="${i}"${t.done ? ' checked' : ''}> <span>${esc(t.t)}</span></label><button type="button" class="ws-x" data-del="${i}" aria-label="Remove">✕</button></li>`).join('')}</ul>
@@ -4357,10 +4356,10 @@ async function workspaceView(id) {
             ${sub?.work_url ? `<p class="ws-sub">Submitted <a href="${esc(safeUrl(sub.work_url) || '#')}" target="_blank" rel="noopener">${esc(sub.work_url.replace(/^https?:\/\//, '').slice(0, 44))}</a>${st ? ` <span class="wstat st-${st[1]}"><i></i>${esc(st[0])}</span>` : ''}</p>` : ''}
             ${sub?.review?.feedback ? `<div class="ws-fb"><b>Feedback</b><p>${esc(sub.review.feedback)}</p></div>` : ''}
             ${sub?.review_status === 'published' ? `<p><a href="#/p/${sub.post_id}">See it on the feed →</a></p>` : `<form id="wsSub"><input type="url" name="url" maxlength="500" placeholder="https://github.com/you/project" value="${esc(sub?.work_url || '')}" required><textarea name="note" maxlength="500" placeholder="What you did and found (optional)"></textarea><button class="btn primary wide" type="submit">${sub?.work_url ? 'Submit again' : 'Submit for review'}</button></form><p class="ws-fine">Public link · checked against the bar · 3 reviews a day</p>`}</section>`
-          : `<section class="ws-card ws-cta"><div class="kick">Work on this</div><p>Get a workspace with your own plan, notes and progress, and submit when you meet the bar.</p><button class="btn primary wide" type="button" data-chal-take-ws>Take it on</button></section>`}
+          : ''}
         ${kinds ? `<section class="ws-card"><div class="kick">Start from</div><div class="ws-resl">${kinds}</div></section>` : ''}
         ${papersList.length ? `<section class="ws-card"><details class="ws-papers"><summary><span class="kick" style="margin:0">Key papers · ${papersList.length}</span></summary><ul class="ws-list">${papersList.map((x) => { const u = safeUrl(x.papers.url || ''); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.papers.title)}</a>` : esc(x.papers.title)} <span>(${esc(x.papers.year || '')})</span></li>`; }).join('')}</ul></details></section>` : ''}
-        <section class="ws-card"><div class="kick">On this challenge · ${people.length}</div>${people.length ? `<div class="ws-people">${people.map((p) => `<a href="#/u/${encodeURIComponent(p.handle)}">@${esc(p.handle)}</a>`).join('')}</div>` : '<p class="ws-sub">No one yet. You’d be first.</p>'}</section>
+        ${people.length ? `<section class="ws-card"><div class="kick">On this challenge · ${people.length}</div><div class="ws-people">${people.map((p) => `<a href="#/u/${encodeURIComponent(p.handle)}">@${esc(p.handle)}</a>`).join('')}</div></section>` : ''}
         ${mineTaken ? '<button class="linkish ws-drop" type="button" id="wsDrop">Drop this challenge</button>' : ''}
       </aside>
     </div></article>`;
