@@ -152,15 +152,16 @@ def render(cuts, total, cfg, seed=7):
         while t < total - 0.7:
             seg = max(i for i in range(len(edges) - 1) if edges[i] <= t); last = seg == len(edges) - 2
             root, notes = chord_notes(cfg['key'], *cfg['prog'][seg])
-            if seg >= 1 and not last:
+            drive = cfg.get('drive')  # short Watch videos: the beat runs from the first frame to the last bar
+            if (drive and t < total - 1.0) or (seg >= 1 and not last):
                 if k % 4 == 0: m.add(t, kick(int(0.5 * SR)), wet=False, gain=0.42)
                 if k % 4 == 2: m.add(t, hat(int(0.15 * SR), m.rng), pan=0.65, wet=False, gain=0.10)
-                if seg >= 3 and k % 2 == 1: m.add(t, hat(int(0.08 * SR), m.rng), pan=0.35, wet=False, gain=0.05)
-            if not last:
+                if (drive or seg >= 3) and k % 2 == 1: m.add(t, hat(int(0.08 * SR), m.rng), pan=0.35, wet=False, gain=0.05)
+            if not last or (cfg.get('drive') and t < total - 1.0):
                 n = int(spb / 4 * 0.9 * SR); tt = np.arange(n) / SR
                 f = midi(root - 12 + (12 if k % 8 == 6 else 0))
                 bass = lp(saw(f, n, 900, m.rng, (0,)), 900 + 500 * seg) * np.exp(-tt * 9) * (0.55 if k % 4 == 0 else 1.0)
-                m.add(t, bass, wet=False, gain=0.22 if seg >= 1 else 0.12)
+                m.add(t, bass, wet=False, gain=0.22 if (seg >= 1 or cfg.get('drive')) else 0.12)
             t += spb / 4; k += 1
         if cfg.get('sweep'):
             for c in cuts[2:]:

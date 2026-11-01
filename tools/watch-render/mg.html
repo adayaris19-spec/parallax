@@ -1,0 +1,134 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Motion graphics for Watch videos: every frame is drawn from the time alone (frame(t)), so the
+   recorder can step through it. Laid out at 720x1280, clear of the app's header (top ~150px), the
+   Dive in button (bottom ~220px) and the side buttons (right ~160px in the lower half). */
+html,body{margin:0;width:720px;height:1280px;background:transparent;overflow:hidden;font-family:Geist,sans-serif;color:#fff}
+.sc{position:absolute;inset:0;visibility:hidden}
+.shade{position:absolute;inset:0}
+.sh-top{background:linear-gradient(180deg,rgba(3,4,10,.82) 0%,rgba(3,4,10,.45) 30%,rgba(3,4,10,0) 54%,rgba(3,4,10,0) 78%,rgba(3,4,10,.55) 100%)}
+.sh-low{background:linear-gradient(180deg,rgba(3,4,10,.45) 0%,rgba(3,4,10,0) 18%,rgba(3,4,10,0) 36%,rgba(3,4,10,.7) 60%,rgba(3,4,10,.92) 100%)}
+.sh-mid{background:radial-gradient(85% 50% at 50% 45%,rgba(3,4,10,.7) 0%,rgba(3,4,10,.32) 72%,rgba(3,4,10,.18) 100%),linear-gradient(180deg,rgba(3,4,10,.45),rgba(3,4,10,0) 18%,rgba(3,4,10,0) 80%,rgba(3,4,10,.6))}
+.box{position:absolute;display:flex;flex-direction:column}
+.top{left:56px;right:92px;top:168px;height:540px;justify-content:flex-start}
+.low{left:56px;right:164px;bottom:236px;height:560px;justify-content:flex-end}
+.mid,.end{left:64px;right:64px;top:180px;height:800px;justify-content:center;align-items:center;text-align:center}
+.cardw{left:48px;right:164px;bottom:250px;height:600px;justify-content:flex-end}
+.stampw{left:56px;right:96px;top:300px;height:640px;justify-content:flex-start}
+.statw{left:48px;right:48px;top:170px;height:820px;justify-content:center;align-items:center;text-align:center}
+h1{margin:0;font-weight:700;letter-spacing:-.035em;line-height:1.04;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+h1 .w{display:inline-block;white-space:pre;will-change:transform}
+h1 .n{position:relative;color:#0b0c18;padding:0 .12em;margin:0 .02em;z-index:0}
+h1 .n::before{content:'';position:absolute;inset:.06em -.02em .02em;background:var(--acc);border-radius:.14em;z-index:-1;transform-origin:left center;transform:scaleX(var(--hl,0))}
+p.sub{margin:18px 0 0;font-size:29px;line-height:1.3;color:rgba(255,255,255,.88);font-weight:450;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.kick{display:inline-flex;align-self:flex-start;align-items:center;gap:10px;font:600 22px 'Geist Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#0b0c18;background:var(--acc);padding:7px 12px 6px;border-radius:6px;margin-bottom:18px}
+.mid .kick,.end .kick,.statw .kick{align-self:center}
+.card{padding:30px 32px 32px;border-radius:28px;background:rgba(10,12,26,.72);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.16),0 24px 70px rgba(0,0,0,.5)}
+.stamp{align-self:flex-start;border:4px solid #FF7A66;color:#FFB3A6;padding:10px 18px 8px;border-radius:10px;font:700 26px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase;margin-bottom:34px;background:rgba(60,8,8,.35)}
+.stamp.ok{border-color:#7FF0CF;color:#C6F7E8;background:rgba(6,40,30,.35)}
+.big{font:600 170px 'Geist Mono',monospace;letter-spacing:-.06em;line-height:.95;white-space:nowrap;color:#fff;text-shadow:0 0 40px var(--glow)}
+.statl{font:600 24px 'Geist Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.8);margin:14px 0 8px}
+.meter{width:440px;height:12px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;margin:10px 0 26px}
+.meter i{display:block;height:100%;width:0;background:var(--acc);border-radius:6px;box-shadow:0 0 18px var(--acc)}
+.uline{height:6px;width:0;background:var(--acc);border-radius:3px;margin:14px auto 0;box-shadow:0 0 18px var(--acc)}
+</style></head><body><div id="root"></div>
+<script>
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const outBack = (x) => { const c = 1.9; x = clamp(x); return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const outExpo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * clamp(x)));
+const outCubic = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const inQuad = (x) => clamp(x) * clamp(x);
+const words = (t) => String(t || '').split(/\s+/).filter(Boolean).map((w) => `<span class="w${/\d/.test(w) ? ' n' : ''}">${esc(w)}</span>`).join(' ');
+// A stat that can count up: one number with a prefix and suffix ("−91%", "~30%", "354 h", "2.6M").
+function parseStat(v) {
+  const m = /^([^\d]*?)(\d[\d,]*(?:\.\d+)?)([^\d]*)$/.exec(String(v || '').trim());
+  if (!m) return null;
+  const num = parseFloat(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length;
+  if (!m[1] && !m[3] && dec === 0 && num >= 1800 && num <= 2200) return null; // a year: no counting
+  return { pre: m[1], num, dec, comma: m[2].includes(','), suf: m[3] };
+}
+const fmt = (x, s) => { let t = x.toFixed(s.dec); if (s.comma) t = Number(t).toLocaleString('en-US', { minimumFractionDigits: s.dec, maximumFractionDigits: s.dec }); return s.pre + t + s.suf; };
+
+let S = [];
+window.setup = (o) => {
+  // o: {scenes:[{s, lay, start, dur, last}], acc}
+  const root = document.getElementById('root'); root.innerHTML = '';
+  document.documentElement.style.setProperty('--acc', o.acc || '#C9CCFF'); document.documentElement.style.setProperty('--glow', o.glow || 'rgba(160,170,255,.55)');
+  S = o.scenes.map((sc) => {
+    const s = sc.s, L = sc.lay, el = document.createElement('div'); el.className = 'sc';
+    const shade = { top: 'sh-top', low: 'sh-low', card: 'sh-low', mid: 'sh-mid', end: 'sh-mid', stamp: 'sh-mid', stat: 'sh-mid' }[L];
+    const kick = s.kicker ? `<div class="kick">${esc(s.kicker)}</div>` : '';
+    const sub = s.sub ? `<p class="sub">${esc(s.sub)}</p>` : '';
+    let inner = '', cls = L, start = 70;
+    if (L === 'top') { inner = `${kick}<h1>${words(s.caption)}</h1>${sub}`; start = 78; }
+    if (L === 'low') { inner = `${kick}<h1>${words(s.caption)}</h1>${sub}`; start = 66; }
+    if (L === 'mid' || L === 'end') { inner = `${kick}<h1>${words(s.caption)}</h1>${sub}${L === 'end' ? '<div class="uline"></div>' : ''}`; start = L === 'end' ? 74 : 68; }
+    if (L === 'card') { inner = `<div class="card">${kick}<h1>${words(s.caption)}</h1>${sub}</div>`; start = 54; cls = 'cardw'; }
+    if (L === 'stamp') { inner = `<div class="stamp${/^fact/i.test(s.stampWord) ? ' ok' : ''}">${esc(s.stampWord)}</div><h1>${words(s.caption)}</h1>${sub}`; start = 70; cls = 'stampw'; }
+    if (L === 'stat') {
+      const st = parseStat(s.stat.value), pct = st && /^%/.test(st.suf.trim()) && st.num <= 100 ? st.num : null;
+      inner = `${kick}<div class="big">${esc(s.stat.value)}</div>${s.stat.label ? `<div class="statl">${esc(s.stat.label)}</div>` : ''}${pct != null ? `<div class="meter"><i></i></div>` : '<div class="uline"></div>'}<h1>${words(s.caption)}</h1>${sub}`;
+      start = 56; cls = 'statw'; sc.parsed = st; sc.pct = pct;
+    }
+    el.innerHTML = `<div class="shade ${shade}"></div><div class="box ${cls}">${inner}</div>`;
+    root.appendChild(el);
+    fit(el.querySelector('.box'), start);
+    return { ...sc, el, box: el.querySelector('.box'), shade: el.querySelector('.shade'), kick: el.querySelector('.kick'), ws: [...el.querySelectorAll('h1 .w')], sub: el.querySelector('p.sub'),
+      big: el.querySelector('.big'), statl: el.querySelector('.statl'), meter: el.querySelector('.meter i'), uline: el.querySelector('.uline'), card: el.querySelector('.card'), stamp: el.querySelector('.stamp') };
+  });
+  return document.fonts.ready;
+};
+function fit(box, h1Start) {
+  const h1 = box.querySelector('h1'), p = box.querySelector('p.sub'), big = box.querySelector('.big');
+  let fs = h1Start; if (h1) h1.style.fontSize = fs + 'px';
+  if (big) { let bs = 170; big.style.fontSize = bs + 'px'; while (big.scrollWidth > box.clientWidth && bs > 60) { bs -= 6; big.style.fontSize = bs + 'px'; } }
+  const over = () => box.scrollHeight > box.clientHeight + 1 || [...box.querySelectorAll('h1,p')].some((e) => e.scrollWidth > box.clientWidth + 2);
+  while (over() && fs > 32) { fs -= 3; if (h1) h1.style.fontSize = fs + 'px'; }
+  let ps = 29; while (over() && p && ps > 20) { ps -= 1; p.style.fontSize = ps + 'px'; }
+}
+const tf = (el, x) => { if (el) el.style.transform = x; };
+window.frame = (t) => {
+  for (const sc of S) {
+    const lt = t - sc.start, on = lt >= -0.001 && lt < sc.dur + (sc.last ? 1 : 0.001);
+    sc.el.style.visibility = on ? 'visible' : 'hidden'; if (!on) continue;
+    const e0 = sc.first ? 0.15 : 0.08;
+    // exit: everything lifts and fades in the last 0.26 s before the cut
+    const q = sc.last ? 0 : clamp((lt - (sc.dur - 0.26)) / 0.26), qe = inQuad(q);
+    sc.box.style.opacity = 1 - qe; sc.box.style.filter = qe > 0.01 ? `blur(${(qe * 8).toFixed(1)}px)` : '';
+    sc.shade.style.opacity = clamp(lt / 0.25);
+    let base = `translateY(${(-40 * qe).toFixed(1)}px)`;
+    // the stamp lands with a shake
+    if (sc.stamp) {
+      const p = clamp((lt - e0) / 0.2), r = -14 + 9 * p;
+      sc.stamp.style.opacity = p > 0 ? 1 : 0; tf(sc.stamp, `scale(${(2.6 - 1.6 * inQuad(p)).toFixed(3)}) rotate(${r.toFixed(2)}deg)`);
+      const k = lt - e0 - 0.2; if (k > 0 && k < 0.3) { const a = 14 * (1 - k / 0.3); base += ` translate(${(Math.sin(k * 90) * a).toFixed(1)}px,${(Math.cos(k * 70) * a * 0.6).toFixed(1)}px)`; }
+    }
+    tf(sc.box, base);
+    if (sc.card) { const p = (lt - e0) / 0.42; sc.card.style.opacity = clamp(p * 2); tf(sc.card, `translateY(${(50 * (1 - outBack(p))).toFixed(1)}px) scale(${(0.86 + 0.14 * outBack(p)).toFixed(3)})`); }
+    if (sc.kick) { const p = outCubic((lt - e0) / 0.35); sc.kick.style.clipPath = `inset(0 ${(100 - 100 * p).toFixed(1)}% 0 0)`; }
+    let w0 = e0 + (sc.kick ? 0.2 : 0.05) + (sc.stamp ? 0.35 : 0) + (sc.card ? 0.2 : 0);
+    if (sc.big) {
+      const b0 = e0 + 0.05, p = (lt - b0) / 0.5;
+      sc.big.style.opacity = clamp(p * 3); tf(sc.big, `scale(${(0.55 + 0.45 * outBack(p)).toFixed(3)})`);
+      if (sc.parsed) sc.big.textContent = fmt(sc.parsed.num * outExpo((lt - b0) / 1.0), sc.parsed);
+      if (sc.statl) { const pl = outCubic((lt - b0 - 0.4) / 0.4); sc.statl.style.opacity = pl; tf(sc.statl, `translateY(${(14 * (1 - pl)).toFixed(1)}px)`); }
+      if (sc.meter) sc.meter.style.width = `${(sc.pct * outExpo((lt - b0 - 0.3) / 1.0)).toFixed(1)}%`;
+      w0 = b0 + 0.85;
+    }
+    if (sc.uline && sc.big) sc.uline.style.width = `${(220 * outCubic((lt - e0 - 0.5) / 0.6)).toFixed(0)}px`;
+    const step = Math.min(0.075, 0.9 / Math.max(1, sc.ws.length));
+    sc.ws.forEach((w, i) => {
+      const p = (lt - w0 - i * step) / 0.38, b = outBack(p);
+      w.style.opacity = clamp(p * 2.2);
+      w.style.filter = p < 1 ? `blur(${(9 * (1 - clamp(p))).toFixed(1)}px)` : '';
+      tf(w, `translateY(${(48 * (1 - b)).toFixed(1)}px) scale(${(1.22 - 0.22 * b).toFixed(3)})`);
+      if (w.classList.contains('n')) w.style.setProperty('--hl', outCubic((lt - w0 - i * step - 0.22) / 0.3).toFixed(3));
+    });
+    const wEnd = w0 + sc.ws.length * step + 0.25;
+    if (sc.sub) { const p = outCubic((lt - wEnd) / 0.42); sc.sub.style.opacity = p; tf(sc.sub, `translateY(${(22 * (1 - p)).toFixed(1)}px)`); }
+    if (sc.uline && !sc.big) sc.uline.style.width = `${(200 * outCubic((lt - wEnd) / 0.5)).toFixed(0)}px`;
+  }
+};
+</script></body></html>
