@@ -2,3 +2,5 @@
 # Research notes and reports written during planning (not part of the site)
 research_notes/
 reports/
+__pycache__/
+*.pyc
