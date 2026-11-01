@@ -1,0 +1,108 @@
+{
+  "brain-computer-interfaces": {
+    "today": "Millions of people live with paralysis or have lost their speech after a stroke, spinal injury or ALS. Implants have let a small number of trial volunteers type, talk through a computer or move a cursor, but none is a standard treatment yet.",
+    "changes": ["Talk and type again at close to natural speed", "Control a computer, wheelchair or robotic arm by thought", "Live more independently, with less round-the-clock care"]
+  },
+  "cancer-blood-test": {
+    "today": "Cancer kills about 10 million people a year. Most cancers have no screening test, so many are found only after they have spread, when they are much harder to treat.",
+    "source": "WHO, 2020",
+    "changes": ["Catch cancers early, while treatment works best", "Screen for many cancers with one blood draw", "Fewer late diagnoses and fewer deaths"]
+  },
+  "carbon-removal": {
+    "today": "Humans put about 40 billion tons of CO2 into the air each year. Even with deep cuts, climate targets assume billions of tons a year must also be pulled back out, and today's removal is a tiny fraction of that.",
+    "source": "Global Carbon Project; IPCC",
+    "changes": ["Cancel emissions that are hard to cut, like from planes and cement", "Bring CO2 levels back down over time", "Limit warming and the damage it causes"]
+  },
+  "cheap-desalination": {
+    "today": "About 4 billion people face severe water shortage for at least one month a year. Desalination works, but it uses a lot of energy, so it stays too expensive for many towns, farms and poorer regions.",
+    "source": "Mekonnen & Hoekstra, Science Advances, 2016",
+    "changes": ["Reliable fresh water for coastal towns and cities", "Water for farms in dry regions", "Less strain on rivers and groundwater"]
+  },
+  "clean-water": {
+    "today": "About 2.2 billion people still lack safely managed drinking water. Dirty water spreads diarrhoea and other diseases that hit young children hardest.",
+    "source": "WHO/UNICEF, 2022",
+    "changes": ["Far fewer deaths from waterborne disease", "Hours saved every day carrying water, mostly by women and girls", "Healthier children who stay in school"]
+  },
+  "cure-hiv": {
+    "today": "About 40 million people live with HIV. Pills keep the virus in check, but they must be taken every day for life, and if they stop, the virus comes back.",
+    "source": "UNAIDS, 2023",
+    "changes": ["No more daily pills for life", "No risk of the virus coming back", "A one-time treatment that could reach everyone"]
+  },
+  "cure-type-1-diabetes": {
+    "today": "More than 8 million people live with type 1 diabetes. To stay alive, they must check their blood sugar and take insulin every day.",
+    "source": "T1D Index, 2021",
+    "changes": ["No more insulin injections or pumps", "No constant blood sugar checks", "Fewer complications in the eyes, kidneys and nerves"]
+  },
+  "end-alzheimers": {
+    "today": "About 57 million people live with dementia, and Alzheimer's causes most of it. The newest drugs slow decline a little; none stops it.",
+    "source": "WHO, 2021",
+    "changes": ["Keep memory and independence into old age", "Spare families years of caregiving", "Cut one of the biggest costs in health care"]
+  },
+  "end-depression": {
+    "today": "About 280 million people live with depression. Many don't get better on the first treatments they try, and in poorer countries most people get no treatment at all.",
+    "source": "WHO",
+    "changes": ["Treatment that works on the first try", "Relief in days, not months", "Care anyone can afford, anywhere"]
+  },
+  "end-malaria": {
+    "today": "Malaria killed about 600,000 people in 2023, most of them children under five in Africa. Cases are rising again where funding has fallen.",
+    "source": "WHO World Malaria Report, 2024",
+    "changes": ["Hundreds of thousands of children's lives saved every year", "Fewer sick days, more school and work", "Money freed from nets and drugs for other needs"]
+  },
+  "end-tuberculosis": {
+    "today": "TB killed about 1.25 million people in 2023, making it the deadliest single infection again. Treatment takes months, and drug-resistant strains are spreading.",
+    "source": "WHO Global TB Report, 2024",
+    "changes": ["Over a million lives saved a year", "No more months-long treatments", "Drug-resistant TB stops spreading"]
+  },
+  "feed-ten-billion": {
+    "today": "More than 700 million people went hungry in 2023, while farming already uses about half of the world's habitable land and drives most forest loss.",
+    "source": "FAO, 2024; Our World in Data",
+    "changes": ["Enough nutritious food for everyone", "Farming that stops eating into forests", "Harvests that hold up as the climate changes"]
+  },
+  "fusion": {
+    "today": "Most of the world's energy still comes from fossil fuels. Fusion could give steady, low-carbon power from abundant fuel, but no machine has yet sent net electricity to a grid.",
+    "changes": ["Steady power, day and night, without CO2", "Fuel from seawater and lithium, found almost everywhere", "Little long-lived radioactive waste"]
+  },
+  "grid-storage": {
+    "today": "Wind and solar are now among the cheapest ways to make electricity, but they rise and fall with the weather. Without cheap storage that lasts days or weeks, grids still lean on gas and coal.",
+    "changes": ["A grid that runs on wind and sun around the clock", "Fewer blackouts and steadier prices", "Fewer fossil plants kept running on standby"]
+  },
+  "lab-grown-organs": {
+    "today": "More than 100,000 people are on the US transplant waiting list alone, and about 17 die each day waiting for an organ.",
+    "source": "HRSA",
+    "changes": ["No more waiting lists", "No lifelong anti-rejection drugs", "Organs made from the patient's own cells"]
+  },
+  "mars": {
+    "today": "No human has travelled farther than the Moon. Mars is months away, with deadly radiation, thin air and no help nearby, so a crew would have to keep itself alive.",
+    "changes": ["A second home for people beyond Earth", "Recycling of air, water and food that helps on Earth too", "Science only people on the ground can do"]
+  },
+  "moon-base": {
+    "today": "No one has been on the Moon since 1972. A base would need power through two-week nights, protection from radiation and dust, and regular supply flights.",
+    "changes": ["A permanent outpost for science and exploration", "A place to practise living on Mars", "Using Moon water and soil instead of shipping everything from Earth"]
+  },
+  "restore-sight": {
+    "today": "About 43 million people are blind, and most of it could have been prevented or treated. For blindness from damaged retinas or optic nerves, there is often no cure.",
+    "source": "Lancet Global Health, 2021",
+    "changes": ["Read, recognise faces and get around alone", "Work and live independently", "Treat kinds of blindness that have no cure today"]
+  },
+  "room-temperature-superconductors": {
+    "today": "Superconductors already run MRI scanners and fusion magnets, but they need deep cooling, which makes them costly and limits where they can be used.",
+    "changes": ["Power lines that lose no electricity as heat", "Cheaper MRI scanners and stronger magnets", "More efficient motors and electronics"]
+  },
+  "slow-aging": {
+    "today": "Age is the biggest risk factor for heart disease, cancer and dementia. People live longer than ever, but many spend their last years in poor health.",
+    "changes": ["More years of good health, not just more years", "Delay several diseases at once", "Lower care costs as populations age"]
+  },
+  "solid-state-batteries": {
+    "today": "Today's lithium-ion batteries use a flammable liquid and are close to their limits. Solid materials could store more energy more safely, but they are hard to make cheaply at scale.",
+    "changes": ["Electric cars that go further and charge faster", "Batteries that don't catch fire", "Lighter batteries for planes and devices"]
+  },
+  "spinal-cord-repair": {
+    "today": "About 15 million people live with a spinal cord injury. There is still no treatment that repairs the damaged cord.",
+    "source": "WHO, 2024",
+    "changes": ["Walk, stand or use your hands again", "Regain bladder, bowel and sexual function", "Less pain and fewer complications"]
+  },
+  "useful-quantum-computing": {
+    "today": "Some problems in chemistry and materials are too hard for any ordinary computer. Today's quantum computers make too many errors to solve them yet.",
+    "changes": ["Design new drugs, catalysts and materials faster", "Better batteries, fertilisers and solar cells", "Today's encryption would have to be replaced"]
+  }
+}

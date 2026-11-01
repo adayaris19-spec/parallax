@@ -1435,10 +1435,21 @@ body.labpage main{max-width:1080px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .lab-h{padding:40px 0 8px}
 .glinks{display:grid;gap:10px}
+.gwhy{padding:22px 0 4px}.gwhy-t{font-size:clamp(18px,2.4vw,22px);line-height:1.45;letter-spacing:-.01em;margin:8px 0 0;max-width:62ch;color:var(--ink)}
+.gwhy-s{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.gwhy-k{font:400 11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.gwhy-c{list-style:none;margin:0;padding:0;display:grid;gap:8px}.gwhy-c li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.45}
+.gwhy-c li::before{content:'✓';position:absolute;left:0;color:var(--accent,#5b5bd6);font-weight:600}
+.gt-n{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.gt-n div{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.gt-n b{font-size:clamp(19px,3vw,24px);letter-spacing:-.02em}.gt-n span{font-size:13.5px;color:var(--muted);line-height:1.35}
+.gt-more{margin-top:12px}.gt-more>summary{cursor:pointer;font-size:14px;color:var(--muted)}.gt-more .take{margin-top:10px}
+.lt{display:grid;gap:2px;margin-top:8px}.lt-r{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.lt-r .sig{grid-row:1;grid-column:1;justify-self:start}.lt-r time{grid-row:1;grid-column:3;color:var(--muted);font-size:12px}
+.lt-r b{grid-column:1/-1;font-size:15.5px;line-height:1.35}.lt-s{grid-column:1/-1;color:var(--ink2);font-size:14.5px;line-height:1.5}
 .rn .rn-h{font-size:clamp(24px,4vw,32px);line-height:1.15;letter-spacing:-.025em;margin:6px 0 8px}.rn .rn-h a{color:inherit;text-decoration:none}
 .rn-lede{color:var(--muted);margin:0 0 14px;font-size:14.5px}
 .rn-qa{margin:0 0 14px;display:grid;gap:12px}.rn-qa div{display:grid;gap:3px}
-.rn-qa dt{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.rn-qa dd{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.rn-qa dt{font:400 11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.rn-qa dd{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink)}
 .rn-news{margin-top:14px}.rn-news .wt-l{display:block;margin-bottom:6px}
 .pits{display:grid;gap:10px}
 .pit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
@@ -2691,7 +2702,7 @@ body.wsw main{max-width:1000px}
 // ------------------------------------------------------------ config
 const SUPA_URL = 'https://zfmjjazkmolvywvayjzj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbWpqYXprbW9sdnl3dmF5anpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMzQ2NjEsImV4cCI6MjEwMTYxMDY2MX0.NA72AfuZ7axlxGBfKJwR4aNKyufjUz--fm3CG1_dCY8';
-const GOAL_COLS = 'id,slug,handle,name,summary,tagline,plain_summary,papers_count,media,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
+const GOAL_COLS = 'id,slug,handle,name,summary,tagline,plain_summary,why,papers_count,media,status,stage,progress,horizon_low,horizon_high,horizon_note,bottleneck_key,error,created_at,mapped_at,pulsed_at';
 const POST_COLS = 'id,goal_id,node_key,kind,headline,body,plain_headline,plain_body,media,sources,independent_sources,expert_reviewed,reviewer,created_at,meta';
 const PROMISE_COLS = 'id,node_key,claim,quote,made_year,due_year,source,status,verdict,verdict_sources,independent_sources,checked_at';
 const PAGE = 30;
@@ -3450,7 +3461,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     const [O, all] = await Promise.all([goalOpen(slug), goals().catch(() => [])]);
     opened = O;
     g = O?.goal;
-    if (g) g.pics = all.find((x) => x.id === g.id)?.pics || [];
+    if (g) { const x = all.find((y) => y.id === g.id); g.pics = x?.pics || []; g.why ||= x?.why; }
   } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
   if (!g) { view.innerHTML = note('No goal here', 'This goal does not exist yet. Search for it to map it.'); return; }
 
@@ -3544,16 +3555,18 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     .map(([id, label, href]) => `<a class="tab" role="tab" href="${href}" aria-selected="${tab === id}">${label}</a>`).join('')}</nav>`;
 
   // 1. Right now: the one thing everything waits on, and the money for it.
-  const now = bn ? `<section class="rn"><div class="kick red">Right now</div>
+  // 0. Why it matters: the stakes today, and what solving it would change.
+  const w = g.why;
+  const why = w?.today ? `<section class="gwhy"><div class="kick">Why it matters</div>
+      <p class="gwhy-t">${esc(w.today)}${w.source ? ` <span class="gwhy-s">${esc(w.source)}</span>` : ''}</p>
+      ${(w.changes || []).length ? `<div class="gwhy-k">If it’s solved</div><ul class="gwhy-c">${w.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</section>` : '';
+
+  const now = bn ? `<section class="rn"><div class="kick red">Right now · what everything waits on</div>
       <h2 class="rn-h"><a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc((bn.plain_title || bn.title).replace(/\.$/, ''))}</a></h2>
-      <p class="rn-lede">Of ${leaves.length} problems, this is the one the rest wait on${(() => { const br = branches.find((x) => x.key === bn.parent_key); return br ? ` (part of ${esc(lowerFirst(br.plain_title || br.title))})` : ''; })()}.</p>
-      <dl class="rn-qa">
-        ${bn.plain_why || bn.why ? `<div><dt>What it is</dt><dd>${esc(bn.plain_why || bn.why)}</dd></div>` : ''}
-        ${bn.plain_blocker || bn.blocker ? `<div><dt>Why it’s stuck</dt><dd>${esc(bn.plain_blocker || bn.blocker)}</dd></div>` : ''}
-      </dl>
+      ${bn.plain_why || bn.why ? `<p class="rn-lede">${esc(bn.plain_why || bn.why)}</p>` : ''}
+      ${bn.plain_blocker || bn.blocker ? `<dl class="rn-qa"><div><dt>Why it’s stuck</dt><dd>${esc(bn.plain_blocker || bn.blocker)}</dd></div></dl>` : ''}
       ${!bnListing && costs[bn.key]?.next_high ? `<div class="rn-cost"><span class="wt-l">What would unblock it</span><b>${esc(costs[bn.key].next_step)}</b><span class="mono">${esc(usdRange(costs[bn.key].next_low, costs[bn.key].next_high))}${costs[bn.key].next_time ? ` · ${esc(costs[bn.key].next_time)}` : ''}</span></div>` : ''}
       ${fundingPanel(g, bn)}
-      ${(() => { const lp = posts.find((p) => p.node_key === bn.key && p.kind !== 'mapped'); return lp ? `<div class="rn-news"><span class="wt-l">Latest on it</span>${postItem(lp, g, [], { open: false })}</div>` : ''; })()}
       <div class="rn-act" style="margin-top:14px"><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div></section>` : '';
 
   // 2. The problem field: every problem, sized by recent research, linked by shared papers.
@@ -3577,19 +3590,19 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   const priced = leaves.filter((l) => costs[l.key] && l.status !== 'solved' && costs[l.key].next_high);
   const sumOf = (f) => priced.reduce((a, l) => a + (costs[l.key][f] || 0), 0);
   const cheap = [...priced].sort((a, b) => costs[a.key].next_high - costs[b.key].next_high).slice(0, 5);
-  const take = priced.length >= 3 ? `<details class="glink gtake" id="take"><summary><b>What it would take</b><span>About ${esc(usdRange(sumOf('next_low'), sumOf('next_high')))} for the next step on ${priced.length === leaves.length ? 'every problem' : `${priced.length} of ${leaves.length} problems`}</span></summary>
-      <p class="cap">Solving them all for this goal: roughly ${esc(usdRange(sumOf('solve_low'), sumOf('solve_high')))}. Every figure is a range built from public budgets and contracts, with its sources.</p>
-      <div class="kick" style="margin-top:26px">Where a little money goes far</div>
+  const take = priced.length >= 3 ? `<section class="gs gtake" id="take"><div class="kick">What it would take</div>
+      <div class="gt-n"><div><b class="mono">${esc(usdRange(sumOf('next_low'), sumOf('next_high')))}</b><span>funds the next step on ${priced.length === leaves.length ? 'every problem' : `${priced.length} of ${leaves.length} problems`}</span></div><div><b class="mono">${esc(usdRange(sumOf('solve_low'), sumOf('solve_high')))}</b><span>to solve them all</span></div></div>
+      <details class="gt-more"><summary>Where a little money goes far</summary>
       <div class="take">${cheap.map((l) => { const c = costs[l.key]; return `<button type="button" class="take-row" data-pick="${esc(l.key)}"><span class="take-t"><b>${esc(c.next_step)}</b><small>${esc(l.title)}</small></span><span class="take-n mono">${esc(usdRange(c.next_low, c.next_high))}</span></button>`; }).join('')}</div>
-    </details>` : '';
+      <p class="cap">Every figure is a range built from public budgets and contracts, with its sources.</p></details></section>` : '';
 
   // What changed lately: the latest few moves, one line each (all of them are under Posts).
-  const recent = posts.filter((p) => !['mapped', 'promise'].includes(p.kind) && !(bn && p.node_key === bn.key && p.kind === 'bottleneck')).slice(0, 3);
+  const recent = posts.filter((p) => !['mapped', 'promise'].includes(p.kind)).slice(0, 3);
   const news = recent.length ? `<section class="gs gnews"><div class="kick">Latest</div>
-    <div class="pits">${recent.map((p) => postItem(p, g, leaves, { open: false })).join('')}</div>
+    <div class="lt">${recent.map((p) => `<a class="lt-r" href="${base}/posts"><span class="sig ${esc(p.kind)}">${esc(POST_SIGN[p.kind] || p.kind)}</span><b>${esc(p.plain_headline || p.headline)}</b>${p.plain_body || p.body ? `<span class="lt-s">${esc(firstSentence(p.plain_body || p.body))}</span>` : ''}<time class="mono">${esc(ago(p.created_at))}</time></a>`).join('')}</div>
     <a class="more" href="${base}/posts">All ${posts.length} posts →</a></section>` : '';
   // Below the field: the rest, one tap away.
-  const more = (take || goalIdeas.length) ? `<section class="gs glinks">${goalIdeas.length ? `<a class="glink" href="#/lab/${encodeURIComponent(g.slug)}"><b>${goalIdeas.length} big idea${goalIdeas.length === 1 ? '' : 's'} to judge</b><span>For labs and experts →</span></a>` : ''}${take}</section>` : '';
+  const more = goalIdeas.length ? `<section class="gs glinks"><a class="glink" href="#/lab/${encodeURIComponent(g.slug)}"><b>${goalIdeas.length} big idea${goalIdeas.length === 1 ? '' : 's'} to judge</b><span>For labs and experts →</span></a></section>` : '';
 
   let body;
   if (tab === 'promises') {
@@ -3611,7 +3624,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   } else if (tab === 'posts') {
     body = posts.length ? `<div class="pits pits-all">${posts.filter((p) => p.kind !== 'mapped').map((p) => postItem(p, g, leaves)).join('')}</div>` : note('No posts yet', 'New research on this goal will appear here.');
   } else {
-    body = now + news + give + field + more;
+    body = why + now + take + give + field + news + more;
   }
 
   document.body.classList.add('goalpage');
