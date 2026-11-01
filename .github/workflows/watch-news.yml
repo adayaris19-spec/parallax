@@ -1,0 +1,52 @@
+# Every 3 hours: new Parallax posts become short Watch videos (no AI: the post's own words over
+# footage already chosen for that goal), rendered and uploaded with tools/watch-render. Free on a
+# public repository. Needs the repository secret RENDER_TOKEN (the same value as the reels
+# function's RENDER_TOKEN secret); without it the job does nothing.
+name: Watch news videos
+on:
+  schedule:
+    - cron: "41 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: watch-news
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      HAS_TOKEN: ${{ secrets.RENDER_TOKEN != '' }}
+    steps:
+      - name: Skip without a render token
+        if: env.HAS_TOKEN != 'true'
+        run: echo "RENDER_TOKEN is not set; nothing to do."
+      - uses: actions/checkout@v4
+        if: env.HAS_TOKEN == 'true'
+      - uses: actions/setup-python@v5
+        if: env.HAS_TOKEN == 'true'
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        if: env.HAS_TOKEN == 'true'
+        with:
+          node-version: 22
+      - name: Tools
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q numpy scipy
+          cd tools/watch-render && npm init -y >/dev/null && npm install -q playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Make and render news videos
+        if: env.HAS_TOKEN == 'true'
+        env:
+          RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys" "$RUNNER_TEMP/wr"
+          grep -o "const SUPA_KEY = '[^']*'" index.html | cut -d"'" -f2 > "$RUNNER_TEMP/keys/anon"
+          printf '%s' "$RENDER_TOKEN" > "$RUNNER_TEMP/keys/render"
+          python3 -m http.server 8765 >/dev/null 2>&1 &
+          sleep 1
+          PARALLAX_VIA_FN=1 PARALLAX_ANON_FILE="$RUNNER_TEMP/keys/anon" PARALLAX_ADMIN_FILE="$RUNNER_TEMP/keys/render" WATCH_RENDER_DIR="$RUNNER_TEMP/wr" \
+            python3 tools/watch-render/render.py all --news
