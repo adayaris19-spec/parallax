@@ -12,14 +12,14 @@
 // except the webhook (see setup/README-feed.md).
 //
 // Secrets: STRIPE_SECRET_KEY (sk_test_... while testing, sk_live_... when live).
-// Optional: TERMINAL_PRICE_CENTS (default 5500 = $55/month), PLUS_PRICE_CENTS (default 1200 = $12/month), SITE_URL.
+// Optional: TERMINAL_PRICE_CENTS (default 1500 = $15/month; the one plan, shown as Parallax Plus), PLUS_PRICE_CENTS (default 1200 = $12/month), SITE_URL.
 
 import Stripe from "npm:stripe@22.6.2";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE = Deno.env.get("SITE_URL") ?? "https://adayaris19-spec.github.io/parallax/";
-const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "5500");
+const CENTS = Number(Deno.env.get("TERMINAL_PRICE_CENTS") ?? "1500");
 const LOOKUP = "parallax_terminal_monthly";
 
 // Made on first use: the library refuses to start without a key, and the key may not be set yet.
@@ -88,11 +88,17 @@ async function plusPrice(plan: "month" | "year" = "month"): Promise<string> {
 // The Terminal's prices, created once and found by their lookup keys afterwards.
 async function terminalPrice(plan: "month" | "year" = "month"): Promise<string> {
   const key = plan === "year" ? LOOKUP_YEAR : LOOKUP;
-  return currentPrice(key, "pro", plan === "year" ? YEAR_CENTS : CENTS, plan, async () => {
+  const id = await currentPrice(key, "pro", plan === "year" ? YEAR_CENTS : CENTS, plan, async () => {
     const other = (await stripeApi().prices.list({ lookup_keys: [plan === "year" ? LOOKUP : LOOKUP_YEAR], active: true, limit: 1 })).data[0];
-    return other ? String(other.product) : (await stripeApi().products.create({ name: "Parallax Pro", description: "Every goal at once: money flows, the race, the trial pipeline, crossovers, opportunities and a weekly brief, with exports." })).id;
+    return other ? String(other.product) : (await stripeApi().products.create({ name: PRODUCT.name, description: PRODUCT.description })).id;
   });
+  // The plan was renamed from Pro to Plus: keep the Stripe product's name (shown at checkout) in step.
+  const pr = await stripeApi().prices.retrieve(id, { expand: ["product"] });
+  const prod = pr.product as { id: string; name?: string };
+  if (prod?.name && prod.name !== PRODUCT.name) await stripeApi().products.update(prod.id, PRODUCT);
+  return id;
 }
+const PRODUCT = { name: "Parallax Plus", description: "Every goal at once: a weekly brief, crossovers between goals, the calendar of what is coming, alerts and a weekly email." };
 
 async function customerFor(user: { id: string; email: string }): Promise<string> {
   const row = (await db(`subscriptions?user_id=eq.${user.id}&select=stripe_customer_id`))?.[0];
@@ -149,16 +155,12 @@ Deno.serve(async (req) => {
 
     if (body.action === "checkout") {
       const row = (await db(`subscriptions?user_id=eq.${user.id}&select=status,plan,stripe_subscription_id`))?.[0];
-      const tier = body.tier === "plus" ? "plus" : "pro";
-      if (row && ["active", "trialing", "comp"].includes(row.status)) {
-        // Already subscribed: Pro covers Plus; moving between plans happens in the billing portal.
-        if (row.plan !== "plus" || tier === "plus") return json({ already: true });
-        return json({ switch: true, error: "You have Plus. Switch to Pro from Manage billing." });
-      }
-      const [price, customer] = await Promise.all([tier === "plus" ? plusPrice(body.plan === "year" ? "year" : "month") : terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
+      // One plan now (shown as Parallax Plus); the old Plus-only plan is no longer sold.
+      if (row && ["active", "trialing", "comp"].includes(row.status)) return json({ already: true });
+      const [price, customer] = await Promise.all([terminalPrice(body.plan === "year" ? "year" : "month"), customerFor(user)]);
       // One Pro trial per person: only if they have never had a subscription (here or in Stripe).
       let trial = false;
-      if (tier === "pro" && TRIAL_DAYS > 0 && !row?.stripe_subscription_id) trial = !(await stripeApi().subscriptions.list({ customer, status: "all", limit: 1 })).data.length;
+      if (TRIAL_DAYS > 0 && !row?.stripe_subscription_id) trial = !(await stripeApi().subscriptions.list({ customer, status: "all", limit: 1 })).data.length;
       const session = await stripeApi().checkout.sessions.create({
         mode: "subscription",
         customer,
@@ -168,8 +170,8 @@ Deno.serve(async (req) => {
         subscription_data: { metadata: { user_id: user.id }, ...(trial ? { trial_period_days: TRIAL_DAYS, trial_settings: { end_behavior: { missing_payment_method: "cancel" } } } : {}) },
         allow_promotion_codes: true,
         custom_text: { submit: { message: `Renews automatically until you cancel; cancel any time from Manage billing. By subscribing you accept the Parallax terms (${SITE}#/terms) and privacy policy (${SITE}#/privacy).` } },
-        success_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal/welcome`,
-        cancel_url: tier === "plus" ? `${SITE}#/plus` : `${SITE}#/terminal`,
+        success_url: `${SITE}#/plus/welcome`,
+        cancel_url: `${SITE}#/plus`,
       });
       return json({ url: session.url });
     }

@@ -2174,7 +2174,7 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
   .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
-  /* phones reach Explore, Watch and Your branch from the bottom bar: the feed keeps Everything / Following */
+  /* phones reach Watch, Challenges and Ideas from the bottom bar: the feed keeps Everything / Following */
   .feedtabs .tab:not([href="#/"]):not([href="#/following"]){display:none}
   .feedtabs:not(:has(.tab[href="#/"][aria-selected="true"], .tab[href="#/following"][aria-selected="true"])){display:none}
   .acct.out{display:none}
@@ -2453,7 +2453,6 @@ body.wsw main{max-width:1000px}
       <div class="suggest hide" id="suggest" role="listbox"></div>
     </form>
     <a class="navlink x" href="#/plus">Plus</a>
-    <a class="navlink x" href="#/terminal">Pro</a>
     <button class="btn acct out" id="acct" type="button">Sign in</button>
   </div>
   <div class="menu hide" id="menu" role="menu"></div>
@@ -2462,14 +2461,14 @@ body.wsw main{max-width:1000px}
 <main id="view" aria-live="polite"></main>
 <footer class="foot">
   Parallax maps goals from published research with AI. Every post links the papers it rests on, and a problem is only marked solved when two independent sources agree.
-  <br><a href="#/welcome">About Parallax</a> · <a href="#/plus">Parallax Plus</a> · <a href="#/terminal">Parallax Pro</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
+  <br><a href="#/welcome">About Parallax</a> · <a href="#/plus">Parallax Plus</a> · <a href="#/team">Raise money for your team</a> · <a href="instruments.html">The original Parallax instruments</a> · <a href="#/how">How it works</a> · <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <nav class="bnav" id="bnav" aria-label="Main">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
   <a href="#/watch" data-nav="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/></svg>Watch</a>
   <a href="#/challenges" data-nav="challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Challenges</a>
-  <a href="#/explore" data-nav="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Explore</a>
+  <a href="#/lab" data-nav="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Ideas</a>
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
 </nav>
 
@@ -2834,7 +2833,6 @@ function toggleMenu(force) {
     <a href="#/impact" role="menuitem">Your impact</a>
     <a href="#/following" role="menuitem">Goals you follow</a>
     <a href="#/plus" role="menuitem">Parallax Plus</a>
-    <a href="#/terminal" role="menuitem">Parallax Pro</a>
     <a href="#/team" role="menuitem">Raise money for your team</a>
     <a href="#/settings" role="menuitem">Settings</a>
     <button type="button" id="signOut" role="menuitem">Sign out</button>`;
@@ -3105,9 +3103,9 @@ document.addEventListener('click', (e) => {
   $('#intro')?.remove();
 });
 
-// The site's sections, in one tab bar under the header (the header keeps search, Plus and Pro).
+// The site's sections, in one tab bar under the header (the header keeps search and Plus).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['explore', '#/explore', 'Explore'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
+const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 // Homepage: what a first-time visitor sees at the root (and anyone at #/welcome). Everything on it
@@ -3183,7 +3181,7 @@ async function feedView(tab) {
   view.innerHTML = `${navTabs(tab)}${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
       <h1>The feed of human progress</h1>
       <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
-      <div class="intro-a"><a class="btn primary" href="#/explore">See every goal</a><a class="btn" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
+      <div class="intro-a"><a class="btn primary" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
     </section>` : ''}<div class="fsort" role="group" aria-label="Order goals by"><button type="button" data-fsort="new" aria-pressed="${feedSort() === 'new'}">Newest</button><button type="button" data-fsort="popular" aria-pressed="${feedSort() === 'popular'}">Popular</button></div><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
   const popular = feedSort() === 'popular';
@@ -3200,7 +3198,7 @@ async function feedView(tab) {
   if (tab === 'following') {
     const mine = list.filter((g) => follows.has(g.slug)).map((g) => g.id);
     if (!mine.length) {
-      box.innerHTML = note('Follow a goal to fill this tab', 'Pick goals you care about from Explore, or tap Follow on any post.', `<p><a class="btn primary" href="#/explore">Explore goals</a></p>`);
+      box.innerHTML = note('Follow a goal to fill this tab', 'Tap Follow on any post, or search for a goal at the top.', `<p><a class="btn primary" href="#/">Back to the feed</a></p>`);
       return;
     }
     filter = `&goal_id=in.(${mine.join(',')})`;
@@ -3292,14 +3290,14 @@ function legalView(kind, section) {
     <span class="kick">Terms of use</span>
     <h1 class="page-h">The rules for using Parallax</h1>
     <p class="how-lede">These terms are an agreement between you and ${who} (“Parallax”, “we”). By using the site or signing in, you accept them. Last updated ${esc(LEGAL.updated)}.</p>
-    <nav class="how-toc">${[['what', 'What Parallax is'], ['medical', 'Not medical advice'], ['accounts', 'Accounts'], ['paid', 'Plus and Pro'], ['donations', 'Donations'], ['content', 'What you post'], ['calls', 'Calls and predictions'], ['ours', 'Our content'], ['liability', 'Limits of liability'], ['changes', 'Changes'], ['contact', 'Contact']].map(([id, t]) => `<a href="#/terms/${id}">${t}</a>`).join('')}</nav>
+    <nav class="how-toc">${[['what', 'What Parallax is'], ['medical', 'Not medical advice'], ['accounts', 'Accounts'], ['paid', 'Parallax Plus'], ['donations', 'Donations'], ['content', 'What you post'], ['calls', 'Calls and predictions'], ['ours', 'Our content'], ['liability', 'Limits of liability'], ['changes', 'Changes'], ['contact', 'Contact']].map(([id, t]) => `<a href="#/terms/${id}">${t}</a>`).join('')}</nav>
     ${sec('what', 'What Parallax is', `<p>Parallax follows big goals (curing diseases, clean energy, space) by reading published research with AI. Maps, statuses, timelines, cost estimates, ideas, posts and videos are written by an AI (Claude, by Anthropic) under rules described on <a href="#/how">How Parallax works</a>. They are a starting point for your own judgement, not facts we guarantee. The AI can be wrong, sources can be incomplete, and numbers are estimates.</p>`)}
     ${sec('medical', 'Not medical advice', `<p>Nothing on Parallax is medical advice, diagnosis or treatment. Health goals, problems, trials, ideas and posts describe research, not what is right for any person. Always ask a doctor or other qualified health professional about your own health, and never ignore professional advice or delay getting it because of something on Parallax. Ideas to try are research suggestions for scientists to judge, not treatments to try on yourself. If you think you have a medical emergency, call your local emergency number.</p>`)}
     ${sec('accounts', 'Accounts', `<p>You can read Parallax without an account. To follow goals, make calls or subscribe, you sign in with Google or an email code. You need to be at least 13 (or the minimum age in your country), and old enough to make a payment to subscribe. Keep your sign-in safe; you are responsible for what happens under your account. You can delete your account at any time in Settings; this also cancels any subscription.</p>`)}
-    ${sec('paid', 'Plus and Pro', `<ul><li><b>Prices.</b> Plus is $12 a month and Pro is $55 a month, or the yearly prices shown at checkout, plus any tax. Payments are handled by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>; Parallax never sees your full card number.</li><li><b>Renewal.</b> Subscriptions renew automatically each month or year until you cancel.</li><li><b>Cancelling.</b> Cancel any time from Manage billing. You keep access until the end of the period you paid for, and you are not charged again.</li><li><b>Refunds.</b> Payments are not refunded for partly used periods, except where the law requires it. If something went wrong, contact us and we will look at it.</li><li><b>Changes.</b> If a price goes up we tell you before it applies to you, and you can cancel before then.</li><li><b>What you get.</b> Paid features may change as Parallax improves. Data in Pro (funding, trials, crossovers, calls) comes from public sources and AI, with the same limits as the rest of the site.</li><li><b>Not financial advice.</b> Funding, grants, trials and “where money would go furthest” are information, not investment, financial or giving advice.</li></ul>`)}
+    ${sec('paid', 'Parallax Plus', `<ul><li><b>Price.</b> Plus is $15 a month or $150 a year, plus any tax. If you subscribed earlier at a different price, you keep the price you signed up at. Payments are handled by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>; Parallax never sees your full card number.</li><li><b>Renewal.</b> Subscriptions renew automatically each month or year until you cancel.</li><li><b>Cancelling.</b> Cancel any time from Manage billing. You keep access until the end of the period you paid for, and you are not charged again.</li><li><b>Refunds.</b> Payments are not refunded for partly used periods, except where the law requires it. If something went wrong, contact us and we will look at it.</li><li><b>Changes.</b> If a price goes up we tell you before it applies to you, and you can cancel before then.</li><li><b>What you get.</b> Paid features may change as Parallax improves. Data in Plus (trials, crossovers, promises, calls) comes from public sources and AI, with the same limits as the rest of the site.</li><li><b>Not financial advice.</b> Funding, grants, trials and “where money would go furthest” are information, not investment, financial or giving advice.</li></ul>`)}
     ${sec('donations', 'Donations', `<p>Donations go to registered charities through <a href="https://www.every.org" target="_blank" rel="noopener">Every.org</a>, a nonprofit platform, under its own terms. Every.org takes the gift, pays the organisation and sends the receipt; Parallax never holds the money and takes no cut. Parallax does not guarantee how an organisation uses a gift.</p>`)}
     ${sec('content', 'What you post', `<p>When you post on Parallax (a profile, ratings and notes on ideas, idea requests, mistake reports, team pages), you keep ownership of it and let Parallax show it on the site and use it to run and improve Parallax. Don’t post anything illegal, harmful, misleading, hateful or that you have no right to share, don’t impersonate others, and don’t try to break, overload or scrape the site. We may remove content or close accounts that break these rules.</p>`)}
-    ${sec('calls', 'Calls and predictions', `<p>Calls in Plus are for fun and for tracking your own judgement. No money is staked or won, and results are settled from public sources (ClinicalTrials.gov, Europe PMC, the promises Parallax tracks), which can be wrong or late.</p>`)}
+    ${sec('calls', 'Calls and predictions', `<p>Calls are for fun and for tracking your own judgement. No money is staked or won, and results are settled from public sources (ClinicalTrials.gov, Europe PMC, the promises Parallax tracks), which can be wrong or late.</p>`)}
     ${sec('ours', 'Our content', `<p>The Parallax site, design and text belong to Parallax. Research, grants and trials belong to their sources, and stock footage to its creators, as credited. You may share links and quote small parts with a link back. Please don’t copy the site or its data wholesale.</p>`)}
     ${sec('liability', 'Limits of liability', `<p>Parallax is provided “as is”, without warranties of any kind, including accuracy, completeness or fitness for a purpose. To the fullest extent the law allows, Parallax is not liable for indirect or consequential losses, or for decisions made using its content, and our total liability is limited to what you paid us in the 12 months before the claim. Some places don’t allow these limits, so they may not all apply to you; nothing here limits rights you have under consumer law.</p>`)}
     ${sec('changes', 'Changes', `<p>We may update these terms. If a change matters, we say so on the site or by email before it applies. Using Parallax after that means you accept the new terms.${LEGAL.law ? ` These terms are governed by the laws of ${esc(LEGAL.law)}.` : ''}</p>`)}
@@ -3358,29 +3356,6 @@ function howView(section) {
   </article>`;
   const el = section && document.getElementById(`how-${section}`);
   if (el) requestAnimationFrame(() => el.scrollIntoView({ block: 'start' })); else scrollTo(0, 0);
-}
-
-async function exploreView() {
-  view.innerHTML = `${navTabs('explore')}<h1 class="page-h">Explore goals</h1><p class="page-sub">Every goal Parallax has mapped. Search for one that is missing and it will be mapped. <a href="#/how">How Parallax works</a></p>
-    <div class="tiers"><a class="plus-link" href="#/plus"><span class="kick">Parallax Plus</span><b>Your week in progress</b><span>A one-minute video on the goals you follow, what's coming next, and your calls on it →</span></a>
-    <a class="plus-link" href="#/terminal"><span class="kick">Parallax Pro</span><b>Every goal at once, in depth</b><span>Where the money flows, who's in the race, and what's about to happen, across every goal →</span></a></div><div id="grid" class="grid"></div>`;
-  let list;
-  try { list = await goals(true); } catch (e) { $('#grid')?.replaceWith(Object.assign(document.createElement('div'), { innerHTML: failNote(e, 'route()') })); return; }
-  try {
-    const rows = await rest('nodes?parent_key=not.is.null&select=goal_id,status');
-    const by = {};
-    for (const n of rows) { const c = (by[n.goal_id] ||= { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }); c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; }
-    for (const g of list) g._counts = by[g.id];
-  } catch { /* the cards still show without counts */ }
-  if (!$('#grid')) return; // left the page while it loaded
-  if (!list.length) { $('#grid').outerHTML = note('No goals yet', 'Search for any goal to map the first one.'); return; }
-  $('#grid').innerHTML = list.map((g) => {
-    const c = g._counts || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 };
-    const sub = g.status === 'mapping' ? 'Being mapped now' : '';
-    return `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}">${avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '')}
-      <span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small>
-      ${g.status === 'ready' && c.total ? `<span class="gp">${statusBar(c)}<span>${c.solved} of ${c.total} solved</span></span>` : `<small style="margin-top:8px">${esc(sub || `${c.total || ''} problems mapped`)}</small>`}</span></a>`;
-  }).join('');
 }
 
 const STAGES = [['tree', 'Understanding the goal'], ['evidence', 'Searching the research'], ['assess', 'Judging every problem against the evidence'], ['synthesize', 'Finding the bottleneck and writing the first posts']];
@@ -4099,7 +4074,7 @@ async function settingsView(welcome) {
   if (out) out.onclick = () => sb.auth.signOut();
   const del = $('#pfDel');
   if (del) del.onclick = async () => {
-    if (!confirm('Delete your Parallax account? Your profile, follows and calls will be removed, and any Plus or Pro subscription is cancelled right away. This cannot be undone.')) return;
+    if (!confirm('Delete your Parallax account? Your profile, follows and calls will be removed, and any Plus subscription is cancelled right away. This cannot be undone.')) return;
     del.disabled = true;
     // Through billing, so a paid plan is cancelled in Stripe before the account goes.
     const res = await callFn('billing', { action: 'delete_account' }).catch((e) => ({ error: e.message }));
@@ -4442,12 +4417,12 @@ async function subscribe(btn) {
   await authReady;
   if (!me) { openSignIn('Sign in first, then you can subscribe.'); return; }
   if (btn) btn.disabled = true;
-  const tier = btn?.dataset.tier === 'plus' ? 'plus' : 'pro';
+  const tier = 'pro'; // one plan (shown as Plus); billing still calls it pro
   const data = await callFn('billing', { action: 'checkout', tier, plan: btn?.dataset.sub === 'year' ? 'year' : 'month' });
   if (data.switch) { toast(data.error); if (btn) btn.disabled = false; return; }
   if (data.url) { location.href = data.url; return; }
   if (btn) btn.disabled = false;
-  if (data.already) { toast(tier === 'plus' ? 'You already have Plus (or Pro, which includes it)' : 'You already have Pro'); if (tier === 'plus') { plusView(); return; } termAt = 0; terminalView(); return; }
+  if (data.already) { toast('You already have Plus'); termAt = 0; terminalView(); return; }
   toast(data.error || 'Could not start checkout. Try again.');
 }
 async function manageBilling(btn) {
@@ -5053,7 +5028,7 @@ function rippleBox(t) {
   if (t.access !== 'full' || !t.crossovers?.ripples?.length) return '';
   const all = t.crossovers.ripples, fresh = all.filter((r) => lastSeen && new Date(r.at).getTime() > lastSeen);
   const list = (fresh.length ? fresh : all).slice(0, 4);
-  return `<section class="panel"><div class="panel-h"><h2>${fresh.length ? `${fresh.length} new ripple${fresh.length === 1 ? '' : 's'} since your last visit` : 'Latest ripples'}</h2><a class="lbl" href="#/terminal/crossovers">All crossovers →</a></div>
+  return `<section class="panel"><div class="panel-h"><h2>${fresh.length ? `${fresh.length} new ripple${fresh.length === 1 ? '' : 's'} since your last visit` : 'Latest ripples'}</h2><a class="lbl" href="#/plus/crossovers">All crossovers →</a></div>
     <div class="rips">${rippleRows(list)}</div></section>`;
 }
 
@@ -5105,14 +5080,14 @@ function frontPage(t, kstrip) {
       ${b.tldr?.length ? `<div class="fp-lede">${b.tldr.slice(0, 3).map((x) => `<p>${esc(x)}</p>`).join('')}</div>` : ''}
       <details class="bdet fp-more"><summary>Read the full brief</summary>${(() => { const fb = briefPanel(t); return fb.slice(fb.indexOf('<div class="bfilter"')).replace(/<\/section>$/, ''); })()}</details></header>` : '';
   const wire = `<section class="fp-col"><div class="fp-ch"><h3>The wire</h3><span>${fresh ? `${fresh} new since your last visit` : 'moves that reach other goals'}</span></div>
-      <div class="rips fp-wire">${rippleRows(rips.slice(0, 3)) || '<p class="gnote">No ripples in the last 30 days.</p>'}</div><a class="fp-link" href="#/terminal/crossovers">All crossovers →</a></section>`;
+      <div class="rips fp-wire">${rippleRows(rips.slice(0, 3)) || '<p class="gnote">No ripples in the last 30 days.</p>'}</div><a class="fp-link" href="#/plus/crossovers">All crossovers →</a></section>`;
   const index = `<section class="fp-col"><div class="fp-ch"><h3>The index</h3><span>research last full year</span></div>
       <div class="fp-idx">${rows.map((g, i) => `<a class="fp-row" href="#/g/${encodeURIComponent(g.slug)}"><span class="fp-n">${i + 1}</span><span class="fp-av">${gpic(g.slug)}</span>
         <span class="fp-g"><b>@${esc(g.handle)}</b><small>${g.bottleneck ? `Held back by: ${esc(g.bottleneck)}` : esc(g.name)}</small></span>
         <span class="fp-bar">${statusBar({ solved: g.solved, moving: g.in_progress, blocked: g.blocked, open: g.open })}<small>${g.solved}/${g.problems} solved</small></span>
         <span class="fp-gr ${g.field_growth3 > 0 ? 'up' : g.field_growth3 < 0 ? 'down' : ''}">${pctTxt(g.field_growth3)}</span><span class="fp-hz">${horizon(g)}</span></a>`).join('')}</div></section>`;
   const next = (t.catalysts || []).slice(0, 3);
-  const dates = next.length ? `<section class="fp-next">${next.map((c) => `<a class="fp-date" href="#/terminal/calendar"><span class="fp-m">${esc(monthLabel(c.date))}</span><b>${esc(c.title)}</b><small>@${esc(c.goal)} · ${c.kind === 'trial' ? 'trial readout' : 'promise due'}</small></a>`).join('')}<a class="fp-date more" href="#/terminal/calendar"><b>${t.catalysts_total} on the calendar</b><small>Open the timeline →</small></a></section>` : '';
+  const dates = next.length ? `<section class="fp-next">${next.map((c) => `<a class="fp-date" href="#/plus/calendar"><span class="fp-m">${esc(monthLabel(c.date))}</span><b>${esc(c.title)}</b><small>@${esc(c.goal)} · ${c.kind === 'trial' ? 'trial readout' : 'promise due'}</small></a>`).join('')}<a class="fp-date more" href="#/plus/calendar"><b>${t.catalysts_total} on the calendar</b><small>Open the timeline →</small></a></section>` : '';
   return `<div class="fp">${head}${kstrip}<div class="fp-cols">${wire}${index}</div>${dates}</div>`;
 }
 
@@ -5205,6 +5180,12 @@ const openSec = (tab) => { try { return localStorage.getItem(`px.sec.${tab}`); }
 const WIDE = matchMedia('(min-width: 980px)');
 function sections(t, tab) {
   const list = SECS[tab].filter((x) => (!x.full || t.access === 'full') && (!x.wide || WIDE.matches)).map((x) => ({ ...x, html: x.body(t) })).filter((x) => x.html);
+  // A half-width tile left without a partner (its neighbour had nothing to show) takes the full row.
+  for (let i = 0, run = []; i <= list.length; i++) {
+    if (i < list.length && list[i].w !== 2) { run.push(list[i]); continue; }
+    if (run.length % 2) run[run.length - 1] = Object.assign(run[run.length - 1], { w: 2 });
+    run = [];
+  }
   if (WIDE.matches) return `<div class="bento">${list.map((x) => `<section class="ptile${x.w === 2 ? ' w2' : ''}" data-tile="${x.id}"><header class="tile-h"><span class="sec-t">${x.title}</span><span class="sec-k">${x.take(t)}</span>${x.h ? `<button class="linkish tile-x" type="button" data-expand>Expand</button>` : ''}</header><div class="tile-b${x.h ? ' tcap' : ''}" data-mp="${x.id}"${x.h ? ` style="--h:${x.h}px"` : ''}>${x.html}</div></section>`).join('')}</div>`;
   const want = openSec(tab), open = list.some((x) => x.id === want) ? want : list[0]?.id;
   return list.map((x) => `<details class="sec" data-sec="${x.id}" data-tab="${tab}"${x.id === open ? ' open' : ''}><summary><span class="sec-t">${x.title}</span><span class="sec-k">${x.take(t)}</span><span class="sec-c" aria-hidden="true"></span></summary><div class="sec-b" data-mp="${x.id}">${x.html}</div></details>`).join('');
@@ -5249,8 +5230,8 @@ document.addEventListener('click', (e) => {
 
 // Four tabs: the overview, and one each for money, players and dates. Old links land on the tab
 // that now holds what they pointed to.
-const TTABS = [['overview', 'Overview'], ['crossovers', 'Crossovers'], ['money', 'Money'], ['players', 'Players'], ['calendar', 'Calendar']];
-const TAB_ALIAS = { radar: 'money', opportunities: 'money', race: 'players', pipeline: 'players', leaders: 'players', watch: 'calendar', brief: 'overview', bottlenecks: 'overview', signals: 'overview', data: 'overview' };
+const TTABS = [['overview', 'Overview'], ['crossovers', 'Crossovers'], ['calendar', 'Calendar']];
+const TAB_ALIAS = { money: 'overview', players: 'overview', radar: 'overview', opportunities: 'overview', race: 'overview', pipeline: 'calendar', leaders: 'overview', watch: 'calendar', brief: 'overview', bottlenecks: 'overview', signals: 'overview', data: 'overview' };
 const mp = (id, html) => `<div data-mp="${id}">${html}</div>`;
 
 // This week, short: the brief's headline and three bullets; the full brief opens in place.
@@ -5269,7 +5250,7 @@ function upNext(t) {
   const items = (t.access === 'full' ? t.catalysts : t.preview?.catalysts || []).slice(0, 3);
   if (!items.length) return '';
   const label = (d) => (/^\d{4}-\d{2}$/.test(d) ? new Date(`${d}-15`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : d);
-  return `<section class="panel"><div class="panel-h"><h2>Up next</h2><a class="lbl" href="#/terminal/calendar">All ${t.catalysts_total} on the calendar →</a></div>
+  return `<section class="panel"><div class="panel-h"><h2>Up next</h2><a class="lbl" href="#/plus/calendar">All ${t.catalysts_total} on the calendar →</a></div>
     <div class="mrows">${items.map((c) => `<div class="mrow"><b class="mono amt">${esc(label(c.date))}</b><div class="mrow-t"><b>${esc(c.title)}</b> <a class="hchip" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a><small>${c.kind === 'trial' ? 'Trial readout' : 'Promise due'} · ${esc(c.detail || '')}</small></div></div>`).join('')}</div></section>`;
 }
 
@@ -5290,7 +5271,7 @@ function goalIndex(t) {
       <td class="num">${g.papers_last == null ? '—' : g.papers_last.toLocaleString()}</td>
       <td class="num ${g.field_growth3 > 0 ? 'up' : g.field_growth3 < 0 ? 'down' : ''}">${pctTxt(g.field_growth3)}</td>
       <td class="num">${g.funded_problems ?? 0}/${g.problems}</td>
-      <td class="num">${g.catalysts ? `<a href="#/terminal/calendar">${g.catalysts}</a>` : '—'}</td>
+      <td class="num">${g.catalysts ? `<a href="#/plus/calendar">${g.catalysts}</a>` : '—'}</td>
       <td class="num">${horizon(g)}</td></tr>`).join('');
   return `<section class="panel"><div class="panel-h"><h2>Goal index ${full ? `<small>${rows.length}</small>` : ''}</h2><span class="lbl">Every goal, side by side · research figures for the last full year</span></div>
     ${answerBox(t.answers?.index)}
@@ -5355,7 +5336,7 @@ function calendarPanel(t) {
 // Watchlist: goals a subscriber watches, and what they want to hear about (sent as alerts).
 const WRULES = [['signals', 'Advances, setbacks and new bottlenecks', 'As soon as they are posted.'], ['catalysts', 'Catalysts within 30 days', 'A trial readout or a promise coming due on a watched goal.'], ['opportunities', 'New on the opportunity radar', 'When one of your goals’ problems enters the opportunity corner.'], ['ripples', 'Ripples from other goals', 'When a move or a big grant on another goal reaches a problem your goal shares.']];
 const wlState = { goals: null, rules: { signals: true, catalysts: true, opportunities: true, ripples: true }, loaded: false };
-// The weekly email switch (Plus and Pro), saved to email_prefs. On unless turned off.
+// The weekly email switch (Plus), saved to email_prefs. On unless turned off.
 let emailWeekly = null;
 const emailSwitch = () => `<label class="emsw"><input type="checkbox" data-email-weekly${emailWeekly === false ? '' : ' checked'}><span><b>Weekly email, Mondays</b><small>The week in 30 seconds, ripples, big new grants, your calls and what’s coming up.</small></span></label>`;
 async function loadEmailPref() {
@@ -5390,7 +5371,7 @@ function watchPanel(t) {
 function watchBar(t) {
   const full = t.access === 'full', w = wlState.goals || [], on = WRULES.filter(([k]) => wlState.rules[k] !== false).length;
   const handles = w.map((sl) => (goalsCache || []).find((g) => g.slug === sl)?.handle).filter(Boolean);
-  const sum = !full ? 'Alerts for the goals you pick · Pro' : handles.length ? `Watching ${handles.slice(0, 4).map((h) => `<span class="hchip">@${esc(h)}</span>`).join(' ')}${handles.length > 4 ? ` +${handles.length - 4}` : ''} · ${on} alert type${on === 1 ? '' : 's'} on` : 'Pick goals to get alerts about';
+  const sum = !full ? 'Alerts for the goals you pick · Plus' : handles.length ? `Watching ${handles.slice(0, 4).map((h) => `<span class="hchip">@${esc(h)}</span>`).join(' ')}${handles.length > 4 ? ` +${handles.length - 4}` : ''} · ${on} alert type${on === 1 ? '' : 's'} on` : 'Pick goals to get alerts about';
   return `<details class="sec wbar"><summary><span class="sec-t">Watchlist</span><span class="sec-k">${sum}</span><span class="sec-c" aria-hidden="true"></span></summary><div class="sec-b">${watchPanel(t)}</div></details>`;
 }
 async function wireWatch(box) {
@@ -5421,10 +5402,10 @@ function renderTerminal(box, tab = 'overview') {
   if (!TTABS.some(([id]) => id === tab)) tab = 'overview';
   termTab = tab;
   const thisYear = new Date().getFullYear();
-  const head = `<div class="term-h"><div><h1 class="page-h">Parallax Pro</h1>
-      <p class="page-sub">Every goal at once: who is leading, what is stuck, and where money would matter. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
+  const head = `<div class="term-h"><div><h1 class="page-h">Parallax Plus</h1>
+      <p class="page-sub">Every goal at once: what moved, what is stuck, how goals affect each other, and what is coming. Updated ${esc(whenAgo(t.generated_at) === 'now' ? 'just now' : whenAgo(t.generated_at))}.</p></div>
       <div class="act">${full ? `<span class="pill">${t.status === 'comp' ? 'Complimentary' : 'Subscribed'}</span>${['comp', 'none'].includes(t.status) ? '' : '<button class="btn" type="button" id="tBill">Manage billing</button>'}` : `<button class="btn primary" type="button" data-sub>${proCta('Subscribe')}</button>`}</div></div>
-    <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/terminal/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
+    <nav class="tabs ttabs" role="tablist" aria-label="Terminal sections">${TTABS.map(([id, label]) => `<a class="tab" role="tab" href="#/plus/${id}" aria-selected="${id === tab}">${label}</a>`).join('')}</nav>`;
   const kstrip = `<section class="kstrip">
       <div><span class="lbl">Problems solved</span><b class="mono">${k.solved ?? 0}<small> / ${k.problems}</small></b>${statusBar({ solved: k.solved ?? 0, moving: k.moving ?? 0, blocked: k.blocked ?? 0, open: k.open ?? 0 })}</div>
       <div><span class="lbl">Last 30 days</span><b class="mono"><span class="up">+${k.advances30}</span> <span class="down">−${k.setbacks30}</span></b><small>advances · setbacks</small></div>
@@ -5443,11 +5424,11 @@ function renderTerminal(box, tab = 'overview') {
     calendar: () => (own ? `<div data-mp="x-cal">${timeline(t)}</div>` : (WIDE.matches ? '' : watchBar(t)) + sections(t, 'calendar')),
     crossovers: () => (own && t.crossovers?.keystones ? `<div data-mp="x-cross">${mapRoom(t)}</div>` : sections(t, 'crossovers')),
   };
-  const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For anyone who wants the full picture</span><h2>Know where progress is, who is leading it, and where money would move it</h2>
-      <ul><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>Every new federal grant of $1M+ on each goal, and funding by quarter</li><li>Who is leading each goal on grants, trials and papers, and who is climbing</li><li>Every active trial on the health goals, by phase and sponsor</li><li>The opportunity radar, catalysts calendar, watchlist alerts and a weekly brief</li><li>Every problem, filterable, with CSV downloads</li></ul></div>
+  const offer = full || tab !== 'overview' ? '' : `<section class="panel"><div class="offer"><div><span class="lbl">For anyone who wants the full picture</span><h2>Every goal at once, and what is coming next</h2>
+      <ul><li>A weekly brief: what moved across every goal, in a few minutes</li><li>Crossovers: the problems goals share, ranked keystones, and every ripple from one goal to another</li><li>The calendar: trial readouts and promises coming due</li><li>Alerts for the goals you pick, and a weekly email</li></ul></div>
       <div style="text-align:center"><div class="price">${esc(t.price.replace('/month', ''))}<small> / month</small></div><p style="color:var(--muted);font-size:13px;margin:4px 0 14px">${trialNote()} The feed stays free for everyone.</p><button class="btn primary" style="width:100%;height:44px" type="button" data-sub>${t.trial_days ? `Start your free ${t.trial_days} days` : 'Subscribe monthly'}</button>${t.year_price ? `<button class="btn" style="width:100%;height:44px;margin-top:8px" type="button" data-sub="year">${esc(t.year_price.replace('/year', ''))} a year · two months free</button>` : ''}</div></div></section>`;
   const i = TTABS.findIndex(([id]) => id === tab);
-  const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/terminal/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
+  const next = tab !== 'overview' && TTABS[i + 1] ? `<p class="nexttab"><a class="btn" href="#/plus/${TTABS[i + 1][0]}">Next: ${TTABS[i + 1][1]} →</a></p>` : '';
   box.innerHTML = `<div class="tm">${head}<div class="tpane">${panes[tab]()}</div>${offer}${next}</div>`;
   // Centre the active tab inside the strip only (scrollIntoView would also scroll the page on phones).
   const on = box.querySelector('.ttabs [aria-selected=true]'), strip = on?.parentElement;
@@ -5478,255 +5459,6 @@ document.addEventListener('pointerover', (e) => {
 addEventListener('scroll', () => tipEl.classList.remove('on'), { passive: true });
 
 let termAt = 0, termWho = null;
-// ------------------------------------------------------------ Parallax Plus: your week
-// The week as a short video (from the weekly brief, the goals you follow first), what's coming next as
-// cards, and predictions on them. $12/month; Pro includes it. Visitors get a sample.
-async function plusView() {
-  view.innerHTML = `<div class="note"><span class="spin" style="display:inline-block"></span></div>`;
-  document.title = 'Your week · Parallax Plus';
-  document.body.classList.add('labpage'); // the wide layout
-  let d, list;
-  try { [d, list] = await Promise.all([callFn('plus', {}), goals()]); } catch (e) { view.innerHTML = failNote(e, 'route()'); return; }
-  if (d.error) { view.innerHTML = note('Your week isn’t ready', esc(d.error)); return; }
-  const full = d.access === 'full', b = d.brief;
-  const goalOf = (h) => list.find((g) => g.handle === String(h || '').replace(/^@/, ''));
-  const mine = new Set(localFollows.get());
-  const pic = (g, i = 0) => (g?.pics?.length ? smallPic(g.pics[i % g.pics.length], 'c') : null);
-  // The weekly video: the brief's items, goals you follow first.
-  const fmtDate = (x) => (/^\d{4}-\d{2}$/.test(x) ? new Date(`${x}-15`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : x);
-  // The weekly episode: one continuous video (like the Reels), personal to the goals you follow.
-  // A hook, a timelapse of their research growing 2014 → now, where they stand, then a highlight
-  // reel of the week's biggest moves over each goal's own footage, the ripple, and a sign-off.
-  let scenes = [];
-  const weekS = [], goalS = [], nextS = [], quiz = [];
-  if (b) {
-    const items = [...(b.moved || []).map((x) => ({ ...x, k: 'moved' })), ...(b.watch || []).map((x) => ({ ...x, k: 'watch' }))]
-      .sort((x, y) => Number(mine.has(goalOf(y.goal)?.slug)) - Number(mine.has(goalOf(x.goal)?.slug)));
-    const shown = items.slice(0, full ? 6 : 1);
-    const myGoals = (() => {
-      const followed = list.filter((g) => g.status === 'ready' && mine.has(g.slug));
-      const moved = items.map((x) => goalOf(x.goal)).filter((g) => g && g.status === 'ready');
-      return [...new Map([...followed, ...moved, ...list.filter((g) => g.status === 'ready')].map((g) => [g.id, g])).values()].slice(0, 3);
-    })();
-    const Y0 = 2014, Y1 = new Date().getFullYear();
-    const ids = [...new Set([...shown.map((x) => goalOf(x.goal)?.id), ...myGoals.map((g) => g.id), goalOf(d.ripple?.to)?.id].filter(Boolean))];
-    const gi = myGoals.map((g) => g.id).join(',');
-    const [rows, nodes, years] = await Promise.all([
-      ids.length ? rest(`reels?goal_id=in.(${ids.join(',')})&select=goal_id,scenes`).catch(() => []) : [],
-      gi ? rest(`nodes?goal_id=in.(${gi})&parent_key=not.is.null&select=goal_id,key,parent_key,status,title,plain_title`).catch(() => []) : [],
-      gi ? rest(`node_years?goal_id=in.(${gi})&year=gte.${Y0}&year=lte.${Y1}&select=goal_id,year,n`).catch(() => []) : [],
-    ]);
-    const clips = new Map();
-    for (const r of rows) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind !== 'video' || !v.url) continue; const a2 = clips.get(r.goal_id) || []; if (!a2.some((x) => x.url === v.url)) a2.push(v); clips.set(r.goal_id, a2); }
-    const used = new Set();
-    const vis = (g, i) => {
-      const c = (g && clips.get(g.id)) || [];
-      const v = c.find((x, j) => j >= i % Math.max(1, c.length) && !used.has(x.url)) || c.find((x) => !used.has(x.url));
-      if (v) { used.add(v.url); return { kind: 'video', url: v.url, poster: v.poster, credit: v.credit, license: v.license, source_url: v.source_url || '' }; }
-      const u = pic(g, i); return u ? { kind: 'image', url: u, poster: u, credit: `@${g.handle}`, license: 'Parallax', source_url: '' } : null;
-    };
-    const clip = (t, n) => { t = String(t || ''); return t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, '')}…` : t; };
-    const counts = new Map();
-    for (const n of nodes) { const c = counts.get(n.goal_id) || { solved: 0, moving: 0, blocked: 0, open: 0, total: 0 }; c.total++; c[n.status === 'solved' ? 'solved' : n.status === 'in_progress' ? 'moving' : n.status === 'blocked' ? 'blocked' : 'open']++; counts.set(n.goal_id, c); }
-    const perYear = new Map();
-    for (const r of years) { const m = perYear.get(r.goal_id) || {}; m[r.year] = (m[r.year] || 0) + r.n; perYear.set(r.goal_id, m); }
-    // The quiz: questions about the goals you follow, all from Parallax's own data (no AI).
-    {
-      const rnd = seededRandom(`quiz-${b.week}`), shuf = (a) => a.map((x) => [rnd(), x]).sort((p1, p2) => p1[0] - p2[0]).map((x) => x[1]);
-      const fmt = (n) => Number(n).toLocaleString('en-US');
-      const numOpts = (n) => { const o = [...new Set([n, Math.max(1, Math.round(n * (0.45 + rnd() * 0.15))), Math.round(n * (1.7 + rnd() * 0.5))])]; return o.length === 3 ? o : [n, n + 5, Math.max(1, n - 4)]; };
-      const ask = (g, q, opts, right, fact, i) => { const order = shuf(opts.map((o, j) => [o, j === right])); quiz.push({ g, q, opts: order.map((x) => x[0]), correct: order.findIndex((x) => x[1]), fact, visual: vis(g, 20 + i) }); };
-      const byGoal = (g) => nodes.filter((n2) => n2.goal_id === g.id), title = (n2) => n2.plain_title || n2.title;
-      const per = myGoals.map((g, gi2) => {
-        const qs = [], ns = byGoal(g), leaves = ns.filter((n2) => !ns.some((x) => x.parent_key === n2.key)), bn = ns.find((n2) => n2.key === g.bottleneck_key);
-        if (bn && leaves.length >= 3) { const others = shuf(leaves.filter((x) => x.key !== bn.key)).slice(0, 2); qs.push(Object.assign(() => ask(g, `What’s the biggest bottleneck for @${g.handle}?`, [title(bn), ...others.map(title)].map((t) => clip(t, 70)), 0, `Parallax rates it the problem holding up the rest. ${leaves.filter((x) => x.status === 'solved').length} of ${leaves.length} problems are solved so far.`, gi2 * 3), { t: 'bn' })); }
-        if (leaves.length) { const opts = numOpts(leaves.length); qs.push(Object.assign(() => ask(g, `How many problems stand between us and ${lowerFirst(g.name)}?`, opts.map(fmt), 0, `${leaves.length} mapped, from what science still doesn’t know to what nobody funds.`, gi2 * 3 + 1), { t: 'count' })); }
-        const m = perYear.get(g.id) || {}, ly = Y1 - 1;
-        if (m[ly]) { const opts = numOpts(m[ly]); qs.push(Object.assign(() => ask(g, `About how many papers on @${g.handle} came out in ${ly}?`, opts.map(fmt), 0, `${fmt(m[ly])}, up from ${fmt(m[Y0] || 0)} in ${Y0}.`, gi2 * 3 + 2), { t: 'papers' })); }
-        if (m[Y0] && m[ly]) { const r = m[ly] / m[Y0], right = r > 1.25 ? 0 : r < 0.8 ? 1 : 2; qs.push(Object.assign(() => ask(g, `Since ${Y0}, has research on @${g.handle} grown, shrunk or stayed flat?`, ['Grown', 'Shrunk', 'About the same'], right, `${fmt(m[Y0])} papers in ${Y0}, ${fmt(m[ly])} in ${ly}.`, gi2 * 3), { t: 'trend' })); }
-        return shuf(qs);
-      });
-      const withH = myGoals.filter((g) => g.horizon_low != null);
-      if (withH.length >= 2) { const mid2 = (g) => (g.horizon_low + g.horizon_high) / 2, best = [...withH].sort((p1, p2) => mid2(p1) - mid2(p2))[0], opts = withH.slice(0, 3);
-        per.unshift([Object.assign(() => ask(best, 'Which of your goals is closest, at today’s pace?', opts.map((g) => `@${g.handle}`), opts.indexOf(best), `@${best.handle}: ${horizonText(best)} to go.`, 9), { t: 'closest' })]); }
-      // Up to five questions, a different kind each time where possible, spread across the goals.
-      const used = new Set(), pool = per.map((qs) => [...qs]);
-      for (let pass = 0; pass < 2 && quiz.length < 5; pass++) for (let round = 0; round < 5 && quiz.length < 5; round++) for (const qs of pool) {
-        if (quiz.length >= 5) break; const j = qs.findIndex((f) => pass || !used.has(f.t)); if (j < 0) continue; const [f] = qs.splice(j, 1); used.add(f.t); f(); }
-    }
-    const wk = (() => { const t = new Date(b.week); const d0 = new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); const day = d0.getUTCDay() || 7; d0.setUTCDate(d0.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(d0.getUTCFullYear(), 0, 1)); return Math.ceil(((d0 - y0) / 864e5 + 1) / 7); })();
-    const range = (() => { const t = new Date(b.week), e = new Date(+t + 6 * 864e5), f = (x) => x.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); return `${f(t)} – ${f(e)}`; })();
-    const av = (g) => (g ? avatar(g).replace('<a ', '<span ').replace('</a>', '</span>').replace(/ href="[^"]*"/, '') : '');
-    const first = goalOf(shown[0]?.goal) || myGoals[0] || list[0];
-    const yrs = Array.from({ length: Y1 - Y0 + 1 }, (_, i) => Y0 + i);
-    // Three short videos, each opening on motion graphics and never repeating the tab's own title.
-    const anim = (k2, g) => ({ kind: 'anim', url: `anim:${k2}`, poster: '', credit: 'Parallax', license: 'Parallax', source_url: '' });
-    const words = (lines) => lines.map((l, i) => `<div class="ko-w" style="--i:${i}">${l}</div>`).join('');
-    const num = (n, from = 0, ms = 900, delay = 0) => `<span class="mono" data-count-from="${from}" data-count-to="${n}" data-count-ms="${ms}" data-count-delay="${delay}">${from}</span>`;
-    // ---- Your week: a cold open, then the moves over each goal's footage, then the ripple
-    weekS.push({ type: 'ko', dur: 4200, visual: anim('warp'),
-      html: words([`${num(7, 0, 600, 100)} days.`, `${num(myGoals.length || 1, 0, 500, 900)} goal${myGoals.length === 1 ? '' : 's'}.`, (() => { const mv = items.filter((x) => x.k === 'moved').length; return mv ? `${num(mv, 0, 600, 1700)} move${mv === 1 ? '' : 's'}.` : 'A quiet week.'; })()]) });
-    shown.forEach((x, i) => { const g = goalOf(x.goal);
-      weekS.push({ kicker: `${x.goal}${x.k === 'watch' ? ' · watch next' : ''}`, caption: x.short || clip(x.text, 60), sub: clip(x.text, 100), visual: vis(g, i + 4) }); });
-    const rp = d.ripple, rpFrom = goalOf(rp?.from), rpTo = goalOf(rp?.to);
-    if (rp && full) weekS.push({ type: 'rip', dur: 5600, visual: vis(rpTo, 6),
-      html: `<div class="rip-row">${av(rpFrom)}<div class="rip-line"><i></i></div>${av(rpTo)}</div><div class="rip-names"><b>@${esc(rp.from)}</b><b>@${esc(rp.to)}</b></div><h2>${esc(clip(rp.headline, 80))}</h2><p>${esc(rp.why ? clip(rp.why, 110) : `What happens on one moves the other: they share problems.`)}</p>` });
-    weekS.push(full
-      ? { type: 'end', dur: 4600, visual: vis(first, 7), html: `<h2>See you Monday.</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Plus</span></div>` }
-      : { type: 'end', dur: 6400, visual: vis(first, 7), html: `<h2>The rest is for Plus.</h2><ul class="wk-inc"><li>Every move on the goals you follow</li><li>Your goals racing year by year</li><li>What’s coming, and your calls</li></ul>` });
-    // ---- Your goals: years rush past, research rises, then the race
-    const totals = myGoals.map((g) => { const m = perYear.get(g.id) || {}; return yrs.reduce((a2, y) => a2 + (m[y] || 0), 0); });
-    const allPapers = totals.reduce((a2, n) => a2 + n, 0);
-    goalS.push({ type: 'yr', dur: 5200, visual: anim('warp'),
-      html: `<div class="yr-big mono" data-count-from="${Y0}" data-count-to="${Y1}" data-count-ms="3200" data-count-delay="200">${Y0}</div><div class="yr-sub">${num(allPapers, 0, 3200, 200)} papers on ${myGoals.length === 1 ? 'your goal' : 'your goals'}</div><div class="yr-avs">${myGoals.map((g) => av(g)).join('')}</div>` });
-    if (years.length) goalS.push({ type: 'tl', dur: 6400, visual: vis(myGoals[0], 2),
-      html: `<div class="tl-rows">${myGoals.map((g, gi2) => { const m = perYear.get(g.id) || {}, mx = Math.max(1, ...yrs.map((y) => m[y] || 0));
-        return `<div class="tl-row">${av(g)}<div class="tl-mid"><b>@${esc(g.handle)}</b><div class="tl-bars">${yrs.map((y, i) => `<i style="--h:${Math.max(4, Math.round((m[y] || 0) / mx * 100))}%;--i:${i}"></i>`).join('')}</div></div><span class="tl-tot mono">${totals[gi2].toLocaleString()}<small>papers</small></span></div>`; }).join('')}</div><p class="tl-note">Research a year, ${Y0} → ${Y1}</p>` });
-    const mid = (g) => (g.horizon_low != null && g.horizon_high != null ? (g.horizon_low + g.horizon_high) / 2 : null);
-    const racers = myGoals.filter((g) => mid(g) != null);
-    if (racers.length) { const minM = Math.max(1, Math.min(...racers.map(mid))), lead = [...racers].sort((p1, p2) => mid(p1) - mid(p2))[0];
-      goalS.push({ type: 'race', dur: 6600, visual: anim('aurora'),
-        html: `<h2>@${esc(lead.handle)} is closest.</h2><p>${esc(horizonText(lead))} to go at today’s pace.</p><div class="race">${racers.map((g, i) => `<div class="lane" style="--x:${Math.round(10 + 78 * Math.pow(minM / Math.max(minM, mid(g)), 2))}%;--i:${i}"><span class="runner">${av(g)}</span><small>${esc(horizonText(g))}</small></div>`).join('')}<div class="finish"><span>Goal</span></div></div>` }); }
-    goalS.push({ type: 'end', dur: 4200, visual: vis(myGoals[0], 8), html: `<h2>Follow more goals to race them.</h2><div class="wk-lock"><img src="icon.svg" alt=""><b>Parallax</b><span>Plus</span></div>` });
-    // ---- What's next: the countdown, the question, the tug of war, your call
-    const cnt = (k2) => d.counts.find((c) => c.key === k2) || { yes: 0, no: 0 };
-    const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
-    const cw = [...(soon.length ? soon : d.coming || [])].sort((x, y) => { const n2 = (k2) => { const c = cnt(k2); return c.yes + c.no; }; return n2(y.key) - n2(x.key) || x.date.localeCompare(y.date); })[0];
-    if (cw) {
-      const days = /^\d{4}-\d{2}$/.test(cw.date) ? Math.max(0, Math.round((new Date(`${cw.date}-28`) - Date.now()) / 864e5)) : null;
-      nextS.push({ type: 'cd', dur: 4400, visual: anim('aurora'),
-        html: days ? `<div class="cd-big mono" data-count-from="${days + 60}" data-count-to="${days}" data-count-ms="2600" data-count-delay="150">${days + 60}</div><div class="cd-sub">days until a result on @${esc(cw.goal)}</div>` : `<div class="cd-big now">Any day now.</div><div class="cd-sub">A result is due on @${esc(cw.goal)}</div>` });
-      nextS.push({ kicker: `@${cw.goal} · ${cw.kind === 'trial' ? 'trial' : 'promise'}`, caption: cw.question, sub: clip(cw.title, 100), visual: vis(goalOf(cw.goal), 11) });
-      const n2 = cnt(cw.key), tot = n2.yes + n2.no, yp = tot ? Math.round(n2.yes / tot * 100) : 50;
-      nextS.push({ type: 'tug', dur: 5400, visual: vis(goalOf(cw.goal), 12),
-        html: `<div class="tug"><div class="tug-y" style="--p:${yp}%"><b class="mono">${tot ? num(yp, 50, 1200, 400) : '?'}${tot ? '%' : ''}</b><span>Yes</span></div><div class="tug-n" style="--p:${100 - yp}%"><b class="mono">${tot ? num(100 - yp, 50, 1200, 400) : '?'}${tot ? '%' : ''}</b><span>No</span></div></div><p class="tug-c">${tot ? `${tot} call${tot === 1 ? '' : 's'} so far` : 'Nobody has called it yet'}</p>` });
-      nextS.push({ type: 'cta', dur: 4200, visual: vis(goalOf(cw.goal), 13), html: `<h2>Your call?</h2><div class="cta-b"><span>Yes</span><span>No</span></div><p>Make it on this page. Your record builds as results come in.</p>` });
-    }
-    const nx = (d.coming || []).filter((c) => c !== cw).slice(0, 3);
-    if (nx.length) nextS.push({ type: 'nx', dur: 5600, visual: anim('neurons'),
-      html: `<span class="wk-lab">After that</span>${nx.map((c, i) => `<div class="nx-row" style="--i:${i}"><b>${esc(fmtDate(c.date))}</b><span>@${esc(c.goal)} · ${esc(clip(c.question, 64))}</span></div>`).join('')}` });
-  }
-  const reels = [['Your week', weekS], ['Quiz', null], ['What’s next', nextS]].filter(([t, sc], i) => (sc ? sc.length > 1 : quiz.length >= 3) && (full || i === 0))
-    .map(([t, sc], i) => (sc ? { id: `week-${b?.week || 'x'}-${i}`, kind: 'weekly', title: t, scenes: sc, mood: 'uplifting', ticker: [], chapters: [] } : { title: t, quiz }));
-  const reel = reels[0] || { id: 'week-x', kind: 'weekly', title: 'Your week', scenes: [], ticker: [], chapters: [] };
-  scenes = reel.scenes;
-  const pg = { slug: 'parallax-week', handle: 'Parallax', name: 'Your week', pics: [] };
-  const countOf = (k) => d.counts.find((c) => c.key === k) || { yes: 0, no: 0 };
-  const myCall = (k) => d.mine.find((m) => m.key === k)?.choice;
-  const resultOf = (k) => d.results.find((r) => r.key === k);
-  const split = (n) => { const tot = n.yes + n.no; return tot ? `<span class="cc-split"><span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% yes · ${tot}</small></span>` : `<span class="cc-split"><small>${full ? 'No calls yet' : 'Plus members call it'}</small></span>`; };
-  // Coming up: compact cards in a row you swipe through.
-  const card = (c, i) => {
-    const g = goalOf(c.goal), my = myCall(c.key), u = safeUrl(c.url), p = pic(g, i);
-    return `<article class="cc"${p ? ` style="--img:url('${esc(p).replace(/'/g, '%27')}')"` : ''}>
-      <div class="cc-top"><span class="sig ${c.kind === 'trial' ? 'advance' : 'promise'}">${c.kind === 'trial' ? 'Trial' : 'Promise'}</span><span class="coming-d">${esc(fmtDate(c.date))}</span></div>
-      <a class="cc-g" href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a>
-      <h3>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(c.title)}</a>` : esc(c.title)}</h3>
-      <div class="call" data-key="${esc(c.key)}"><b>${esc(c.question)}</b>
-        <div class="cc-b"><button type="button" class="btn sm${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn sm${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button>${split(countOf(c.key))}</div></div></article>`;
-  };
-  const calls = d.mine.length, judged = d.mine.filter((m) => resultOf(m.key) && resultOf(m.key).outcome !== 'void'), right = judged.filter((m) => resultOf(m.key).outcome === m.choice).length;
-  // Results: one compact row each, opening in place for the details.
-  const RES = { yes: 'Yes', no: 'No', void: 'No result' };
-  const resRow = (c) => {
-    const res = resultOf(c.key), my = myCall(c.key), u = safeUrl(res.source_url || c.url), n = countOf(c.key), tot = n.yes + n.no;
-    const mark = !my || res.outcome === 'void' ? '–' : my === res.outcome ? '✓' : '✗';
-    const cls = !my || res.outcome === 'void' ? '' : my === res.outcome ? ' right' : ' wrong';
-    return `<details class="rr${cls}"><summary><span class="rr-m" aria-hidden="true">${mark}</span><span class="rr-t"><b>${esc(c.title)}</b><small>@${esc(c.goal)} · result: ${RES[res.outcome]}${my && res.outcome !== 'void' ? ` · you said ${my}` : ''}</small></span></summary>
-      <div class="rr-d"><p><b>${esc(c.question)}</b> ${RES[res.outcome]}.</p>${res.note ? `<p>${esc(res.note)}</p>` : ''}<small>${[tot ? `${Math.round(n.yes / tot * 100)}% of ${tot} said yes` : '', res.outcome === 'void' && my ? 'Your call doesn’t count' : '', u ? `<a href="${esc(u)}" target="_blank" rel="noopener">Source</a>` : ''].filter(Boolean).join(' · ')}</small></div></details>`;
-  };
-  const settled = (d.settled || []).filter((c) => resultOf(c.key));
-  const waiting = d.waiting || [];
-  const cta = (where) => `<div class="plus-cta ${where}"><div><b>Parallax Plus</b><span>${esc(d.price.replace('/month', ''))} a month · or ${esc(d.year_price.replace('/year', ''))} a year (two months free)</span></div><div class="plus-cta-b"><button class="btn primary" type="button" data-sub data-tier="plus">Get Plus</button><button class="linkish" type="button" data-sub="year" data-tier="plus">Yearly</button></div><p class="sub-fine">Renews until you cancel · cancel any time · <a href="#/terms/paid">Terms</a></p></div>`;
-  const comingList = (d.coming || []).slice(0, full ? 24 : 1);
-  const ghosts = full ? '' : Array.from({ length: Math.min(3, Math.max(0, d.coming_total - 1)) }, () => `<div class="cc ghost" aria-hidden="true"><span></span><span></span><span></span></div>`).join('')
-    + (d.coming_total > 1 ? `<div class="cc cc-more"><b>${d.coming_total - 1} more coming up</b><p>Each with a call to make. Your record builds as results come in.</p><button class="btn primary sm" type="button" data-sub data-tier="plus">Get Plus</button></div>` : '');
-  const tldr = b ? (b.tldr || []).slice(0, full ? 3 : 1) : [];
-  // Call of the week: of what's due in the next ~4 months, the one most people have called (then the soonest).
-  const soon = (d.coming || []).filter((c) => /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-15`) - Date.now() < 125 * 864e5);
-  const cotw = [...(soon.length ? soon : d.coming || [])].sort((a, b) => { const n = (k) => { const x = countOf(k); return x.yes + x.no; }; return n(b.key) - n(a.key) || a.date.localeCompare(b.date); })[0];
-  const dueIn = (c) => { if (!/^\d{4}-\d{2}$/.test(c.date)) return `due ${c.date}`; const days = Math.round((new Date(`${c.date}-28`) - Date.now()) / 864e5); return days <= 0 ? 'results due now' : days === 1 ? 'results tomorrow' : days < 21 ? `results in ${days} days` : `results in ~${Math.round(days / 7)} weeks`; };
-  const hero = cotw ? (() => { const n = countOf(cotw.key), tot = n.yes + n.no, my = myCall(cotw.key), u = safeUrl(cotw.url);
-    return `<div class="pbox cotw"><div class="pbox-h"><span class="lbl">Call of the week</span><span class="cotw-d">${esc(dueIn(cotw))}</span></div>
-      <h2>${esc(cotw.question)}</h2><p class="cotw-t">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(cotw.title)}</a>` : esc(cotw.title)} · <a href="#/g/${encodeURIComponent(cotw.slug)}">@${esc(cotw.goal)}</a></p>
-      <div class="call cotw-b" data-key="${esc(cotw.key)}"><button type="button" class="btn${my === 'yes' ? ' primary' : ''}" data-call="yes"${full ? '' : ' disabled'}>Yes</button><button type="button" class="btn${my === 'no' ? ' primary' : ''}" data-call="no"${full ? '' : ' disabled'}>No</button>
-        <span class="cotw-s">${tot ? `<span class="stbar"><i class="st-solved" style="flex:${n.yes}"></i><i class="st-blocked" style="flex:${n.no}"></i></span><small>${Math.round(n.yes / tot * 100)}% say yes · ${tot} call${tot === 1 ? '' : 's'}${my ? ` · you said ${my}` : ''}</small>` : `<small>${full ? 'Be the first to call it' : 'Plus members make the call'}</small>`}</span></div></div>`; })() : '';
-  // Your web: the goals you follow and the goals they share problems with.
-  const followSet = new Set(localFollows.get()), linkCount = new Map();
-  for (const [id, arr] of crossIdx) { const gid = Number(id.split('/')[0]); for (const x of arr) { const a = list.find((g) => g.id === gid)?.slug, b2 = list.find((g) => g.id === x.gid)?.slug; if (!a || !b2 || a > b2) continue; linkCount.set(`${a}|${b2}`, (linkCount.get(`${a}|${b2}`) || 0) + 1); } }
-  const allEdges = [...linkCount].map(([k, n]) => { const [a, b2] = k.split('|'); return { a, b: b2, n }; });
-  const myEdges = followSet.size ? allEdges.filter((e) => followSet.has(e.a) || followSet.has(e.b)) : allEdges;
-  const webGoals = list.filter((g) => g.status === 'ready' && (!followSet.size || followSet.has(g.slug) || myEdges.some((e) => e.a === g.slug || e.b === g.slug)));
-  const reach = followSet.size ? new Set(myEdges.flatMap((e) => [e.a, e.b]).filter((x) => !followSet.has(x))) : null;
-  const yourWeb = webGoals.length > 1 && myEdges.length ? `<div class="pbox pweb"><div class="pbox-h"><span class="lbl">${followSet.size ? 'Your web' : 'The goal web'}</span>${full ? '' : ''}</div>
-      <p class="pnote">${followSet.size ? (reach.size ? `The goals you follow share problems with <b>${reach.size}</b> other goal${reach.size === 1 ? '' : 's'}: progress there moves yours too.` : 'The goals you follow don’t share problems with other goals yet.') : 'Follow goals to see which other goals move them. Lines are problems two goals share.'}</p>
-      ${webSvg({ goals: webGoals.map((g) => ({ slug: g.slug, handle: g.handle })), edges: myEdges }, '')}</div>` : '';
-  view.innerHTML = `<section class="plus">
-    <div class="plus-h"><div><span class="kick">Parallax Plus${full ? ` · ${d.plan === 'plus' ? 'yours' : 'included with Pro'}` : ''}</span><h1>Your week in progress</h1>
-      <p>What moved on the goals you follow, what’s coming next, and your calls on how it turns out. A minute a week.</p></div>${full ? '' : cta('top')}</div>
-    <div class="plus-top">
-      <div class="pweek">${reels.length > 1 ? `<div class="pv-tabs" role="tablist">${reels.map((r, i) => `<button type="button" role="tab" data-pv="${i}" aria-selected="${i === 0}">${esc(r.title)}</button>`).join('')}</div>` : ''}<div class="sw pweek-sw" id="pweek">${scenes.length ? reelCard(reel, pg, 0) : `<section class="sw-card"><div class="sw-text"><h2>The first weekly video arrives Monday.</h2></div></section>`}</div>
-        <p class="pweek-n">${b ? `Week of ${esc(new Date(b.week).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }))} · ${mine.size ? 'the goals you follow first' : 'follow goals to make it yours'}` : ''}</p></div>
-      <div class="pmain">
-        ${hero}
-        ${b ? `<div class="pbox"><span class="lbl">This week</span><h2>${esc(b.headline)}</h2>${tldr.length ? `<ul>${tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
-        <div class="pbox"><div class="pbox-h"><span class="lbl">Your calls</span>${full ? `<a class="linkish" href="#pstrip">Make a call →</a>` : ''}</div>
-          <div class="pstats"><div><b class="mono">${calls}</b><small>made</small></div><div><b class="mono">${judged.length ? `${right}/${judged.length}` : '—'}</b><small>right</small></div><div><b class="mono">${waiting.length}</b><small>waiting</small></div></div>
-          ${d.standing ? `<p class="pstand">${d.standing.percentile == null ? `You’re the first caller to get results: ${d.standing.accuracy}% right so far.` : `You’re ahead of <b>${d.standing.percentile}%</b> of ${d.standing.callers - 1} other caller${d.standing.callers === 2 ? '' : 's'} (${d.standing.accuracy}% right).`}</p>` : ''}
-          ${settled.length ? `<div class="rrs">${settled.slice(0, full ? 4 : 1).map(resRow).join('')}</div>${full && settled.length > 4 ? `<details class="rr-more"><summary>All ${settled.length} results</summary><div class="rrs">${settled.slice(4).map(resRow).join('')}</div></details>` : ''}`
-            : `<p class="pnote">${full ? 'Results appear here as trials report and promises come due. Each is settled automatically from the trial’s results or the promise check.' : 'Plus members call what happens next and build a record as results come in.'}</p>`}
-          ${waiting.length ? `<details class="rr-more"><summary>${waiting.length} call${waiting.length === 1 ? '' : 's'} waiting on a result</summary>${waiting.map((c) => `<p class="rr-w"><a href="#/g/${encodeURIComponent(c.slug)}">@${esc(c.goal)}</a> ${esc(c.title)}<small>Due ${esc(fmtDate(c.date))}${c.status_note ? `, ${esc(c.status_note)}` : ', checked weekly'}</small></p>`).join('')}</details>` : ''}
-        </div>
-        ${full ? `<div class="pbox">${emailSwitch()}</div>` : ''}
-      </div>
-    </div>
-    ${yourWeb || (d.ripple ? 1 : 0) ? `<div class="plus-row${yourWeb && (d.ripple ? 1 : 0) ? '' : ' one'}">${yourWeb}${d.ripple ? `<div class="pbox pripple"><span class="lbl">Ripple of the week</span><p class="pr-t"><a href="#/p/${d.ripple.post}">${esc(d.ripple.headline)}</a></p>
-          <p class="pr-to"><a class="hchip" href="#/g/${encodeURIComponent(d.ripple.from_slug)}">@${esc(d.ripple.from)}</a> <span aria-hidden="true">→</span> also moves <a class="hchip" href="#/g/${encodeURIComponent(d.ripple.to_slug)}">@${esc(d.ripple.to)}</a></p><p class="pr-w">${esc(d.ripple.why)}</p></div>` : ''}</div>` : ''}
-    <div class="pstrip-h" id="pstrip"><h2>Coming up <small>${d.coming_total}</small></h2><div class="pstrip-a"><button class="btn sm" type="button" data-strip="-1" aria-label="Back">‹</button><button class="btn sm" type="button" data-strip="1" aria-label="More">›</button></div></div>
-    <div class="pstrip">${comingList.map(card).join('') || '<p class="radar-note">Nothing due yet.</p>'}${ghosts}</div>
-    ${full ? '' : cta('bottom')}
-  </section>`;
-  if (full) loadEmailPref();
-  view.querySelectorAll('[data-strip]').forEach((x) => { x.onclick = () => { const st = view.querySelector('.pstrip'); st.scrollBy({ left: Number(x.dataset.strip) * st.clientWidth * 0.85, behavior: 'smooth' }); }; });
-  view.querySelectorAll('[data-sub]').forEach((x) => { x.onclick = () => subscribe(x); });
-  // Play the weekly video in place.
-  let cur = null;
-  const mount = (i) => {
-    cur?.pause();
-    const box2 = view.querySelector('#pweek'); if (!box2 || !reels[i]) return;
-    view.querySelectorAll('[data-pv]').forEach((x) => x.setAttribute('aria-selected', String(Number(x.dataset.pv) === i)));
-    if (reels[i].quiz) { cur = null; music.stop(); quizPlay(box2, reels[i].quiz, b?.week); return; }
-    box2.innerHTML = reelCard(reels[i], pg, 0);
-    wire(i);
-  };
-  view.querySelectorAll('[data-pv]').forEach((x) => { x.onclick = () => mount(Number(x.dataset.pv)); });
-  const wire = (ri) => {
-  const vc = view.querySelector('#pweek .rl');
-  if (vc) {
-    const p = reelPlayer(vc); p.play(); cur = p;
-    if (music.wanted) music.start('parallax-weekly', 'epic', `theme-${ri}`);
-    vc.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-rl]'); if (t) { p[t.dataset.rl === 'pause' ? 'toggle' : t.dataset.rl](); return; }
-      const chp = e.target.closest('.wk-chs [data-c]'); if (chp) { const i = [...vc.querySelectorAll('.rl-scene')].findIndex((x) => x.dataset.ch === chp.dataset.c); if (i >= 0) p.go(i); return; }
-      if (e.target.closest('[data-sound]')) { music.wanted = !music.wanted; if (music.wanted) music.start('parallax-weekly', 'epic', `theme-${ri}`); else music.stop(); view.querySelectorAll('[data-sound]').forEach((x) => { x.innerHTML = music.wanted ? SOUND_ON : SOUND_OFF; }); }
-    });
-  }
-  };
-  wire(0);
-  // Make a call.
-  view.querySelectorAll('[data-call]').forEach((btn) => { btn.onclick = async () => {
-    if (!full) return;
-    const key = btn.closest('.call').dataset.key, choice = btn.dataset.call;
-    const { error } = await sb.from('predictions').upsert({ user_id: me.id, key, choice });
-    if (error) return toast('Could not save your call.');
-    const m = d.mine.find((x) => x.key === key), c = d.counts.find((x) => x.key === key) || (d.counts.push({ key, yes: 0, no: 0 }), d.counts[d.counts.length - 1]);
-    if (m) c[m.choice]--; c[choice]++;
-    if (m) m.choice = choice; else d.mine.push({ key, choice });
-    toast(choice === 'yes' ? 'Called: yes.' : 'Called: no.');
-    plusView();
-  }; });
-}
-
 async function terminalView(tab = 'overview') {
   const welcome = tab === 'welcome';
   await goals().catch(() => []); // the watchlist and the goal web use the goal list
@@ -5743,7 +5475,7 @@ async function terminalView(tab = 'overview') {
   // Right after checkout, Stripe's confirmation can take a few seconds to arrive.
   for (let i = 0; i < (welcome ? 10 : 1); i++) {
     if (welcome && i) {
-      box.innerHTML = note('Setting up Parallax Pro', 'Your payment went through. Switching on your access, this takes a few seconds.', '<p><span class="spin" style="display:inline-block"></span></p>');
+      box.innerHTML = note('Setting up Parallax Plus', 'Your payment went through. Switching on your access, this takes a few seconds.', '<p><span class="spin" style="display:inline-block"></span></p>');
       await new Promise((r) => setTimeout(r, 2500));
       if (!box.isConnected) return;
     }
@@ -5755,8 +5487,8 @@ async function terminalView(tab = 'overview') {
   termAt = Date.now(); termWho = me ? me.id : null;
   renderTerminal(box, welcome ? 'overview' : tab);
   if (welcome) {
-    history.replaceState(null, '', location.pathname + '#/terminal');
-    toast(term.access === 'full' ? 'Welcome to Parallax Pro' : 'Payment received. Access can take a minute, reload soon.');
+    history.replaceState(null, '', location.pathname + '#/plus');
+    toast(term.access === 'full' ? 'Welcome to Parallax Plus' : 'Payment received. Access can take a minute, reload soon.');
   }
 }
 
@@ -6711,36 +6443,6 @@ function reelCard(r, g, i, studio = true) {
 const SOUND_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6"/></svg>';
 
-// Plus quiz: one question at a time over the goal's footage; tap an answer, see the fact, score at the end.
-function quizPlay(box, qs, week) {
-  let i = 0, score = 0;
-  const key = `px.quiz.${week}`;
-  const bg = (v) => (v?.kind === 'video' ? `${v.poster ? `<div class="rl-pst" style="background-image:url('${esc(v.poster).replace(/'/g, '%27')}')"></div>` : ''}<video class="qz-v" src="${esc(v.url)}" muted loop playsinline autoplay></video>` : v?.url ? `<div class="rl-pst" style="background-image:url('${esc(v.url).replace(/'/g, '%27')}')"></div>` : '');
-  const draw = () => {
-    if (i >= qs.length) {
-      try { localStorage.setItem(key, String(score)); } catch { /* private mode */ }
-      const msg = score === qs.length ? 'Perfect. You know your goals.' : score >= qs.length - 1 ? 'Nearly perfect.' : score >= qs.length / 2 ? 'Not bad. Next week’s is new.' : 'Now you know a bit more.';
-      box.innerHTML = `<section class="sw-card qz qz-end"><div class="qz-bg">${bg(qs[0].visual)}</div><div class="qz-shade"></div><div class="qz-in"><div class="qz-score mono">${score}<span>/${qs.length}</span></div><h2>${esc(msg)}</h2><button type="button" class="qz-again">Play again</button></div></section>`;
-      if (music.wanted) { music.start('parallax-weekly', 'epic', 'quiz'); music.resolve(); }
-      box.querySelector('.qz-again').onclick = () => { i = 0; score = 0; draw(); };
-      return;
-    }
-    const q = qs[i];
-    box.innerHTML = `<section class="sw-card qz"><div class="qz-bg">${bg(q.visual)}</div><div class="qz-shade"></div>
-      <div class="qz-in"><div class="qz-dots">${qs.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'now' : ''}"></i>`).join('')}</div>
-      <h2>${esc(q.q)}</h2><div class="qz-opts">${q.opts.map((o, j) => `<button type="button" data-q="${j}">${esc(o)}</button>`).join('')}</div><p class="qz-fact"></p></div></section>`;
-    box.querySelectorAll('[data-q]').forEach((btn) => { btn.onclick = () => {
-      const pick = Number(btn.dataset.q), right = pick === q.correct;
-      if (right) score++;
-      box.querySelectorAll('[data-q]').forEach((x) => { x.disabled = true; const j = Number(x.dataset.q); if (j === q.correct) x.classList.add('ok'); else if (j === pick) x.classList.add('no'); });
-      const f = box.querySelector('.qz-fact'); f.innerHTML = `<b>${right ? 'Right.' : 'Not quite.'}</b> ${esc(q.fact)}`; f.classList.add('on');
-      music.hit(right);
-      setTimeout(() => { i++; draw(); }, 2900);
-    }; });
-  };
-  draw();
-}
-
 // Player for a rendered Watch video (one file with its own soundtrack): same controls as reelPlayer.
 function renderedPlayer(card) {
   const v = card.querySelector('video.rv-video'), bar = card.querySelector('.rl-bars b'), cred = card.querySelector('.rv-credit');
@@ -6978,7 +6680,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', c: 'challenges', explore: 'explore', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', c: 'challenges', lab: 'lab', idea: 'lab', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
@@ -7003,11 +6705,11 @@ function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').map(decodeURIComponent);
   setNav(parts);
   if (parts[0] && parts[0] !== 'welcome') { try { sessionStorage.setItem('px.in', '1'); } catch { /* private mode */ } }
-  document.body.classList.toggle('wide', parts[0] === 'terminal');
+  document.body.classList.toggle('wide', parts[0] === 'plus');
   document.body.classList.toggle('wsw', parts[0] === 'c' || parts[0] === 'idea'); // workspaces and idea pages get more room
   window.scrollTo(0, 0);
   if (parts[0] === 'following') return feedView('following');
-  if (parts[0] === 'explore') return exploreView();
+  if (parts[0] === 'explore') { location.replace('#/'); return; } // Explore was folded into the feed and search
   if (parts[0] === 'how') return howView(parts[1]);
   if (parts[0] === 'terms' || parts[0] === 'privacy') return legalView(parts[0], parts[1]);
   if (parts[0] === 'g' && parts[1]) howState.from = `#/g/${parts[1]}`;
@@ -7015,8 +6717,8 @@ function route() {
   if (parts[0] === 'impact') return impactRoute();
   if (parts[0] === 'challenges') return challengesView(parts[1]);
   if (parts[0] === 'c' && parts[1]) return workspaceView(parts[1]);
-  if (parts[0] === 'terminal') return terminalView(parts[1] || 'overview');
-  if (parts[0] === 'plus') return plusView();
+  if (parts[0] === 'terminal') { location.replace(`#/plus${parts[1] ? `/${parts[1]}` : ''}`); return; } // Pro became Plus
+  if (parts[0] === 'plus') return terminalView(parts[1] || 'overview');
   if (parts[0] === 'branch') { location.replace('#/challenges'); return; } // Your branch became Challenges
   if (parts[0] === 'settings') return settingsView(parts[1] === 'welcome');
   if (parts[0] === 'search' && parts[1]) return searchView(parts.slice(1).join('/'));
