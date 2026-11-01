@@ -1435,6 +1435,26 @@ body.labpage main{max-width:1080px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .lab-h{padding:40px 0 8px}
 .glinks{display:grid;gap:10px}
+.goalpage .gbody > .gs{padding-top:36px}.goalpage .gbody > .fx{padding-top:36px}.goalpage .gbody > .glinks{margin-top:8px}
+.goalpage .gbody > .gwhy,.goalpage .gbody > .gnews{max-width:820px}
+.pit.pit{border-left:4px solid var(--kc,var(--line))}.pit.k-advance,.pit.k-solved{--kc:#2f9e6e}.pit.k-setback{--kc:#d9534f}.pit.k-bottleneck{--kc:#c79a3b}.pit.k-forgotten{--kc:#7b6fd6}.pit.k-community{--kc:#3b82c4}.pit.k-promise{--kc:#5b5bd6}
+.pit-top .pit{padding:20px 22px;box-shadow:var(--shadow)}.pit-top .pit-t{font-size:clamp(18px,2.2vw,22px)}
+.pfilter{margin:4px 0 12px;display:flex;flex-wrap:wrap;gap:6px}.pfilter .chip{border:0;cursor:pointer}.pfilter .chip.on{background:var(--ink);color:var(--bg)}.pfilter .chip small{opacity:.6;margin-left:3px}
+.pr-board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 6px}
+.pr-sc{border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:color-mix(in srgb,var(--pc) 12%,var(--card));border:1px solid color-mix(in srgb,var(--pc) 30%,transparent)}
+.pr-sc b{font-size:30px;line-height:1;color:var(--pc)}.pr-sc span{font-size:13px;color:var(--ink2)}
+.pr-kept{--pc:#2f9e6e}.pr-partly{--pc:#c98a1b}.pr-broken{--pc:#d9534f}.pr-pending{--pc:#5b5bd6}.pr-unclear{--pc:#8a8f98}
+.prs{display:grid;gap:12px}
+.pr{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--pc);border-radius:18px;padding:18px 20px}
+.pr-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pr-yrs{font-size:20px;letter-spacing:-.02em;color:var(--pc)}.pr-yrs i{font-style:normal;margin:0 8px;color:var(--muted)}
+.pr-st{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;color:var(--pc);background:color-mix(in srgb,var(--pc) 14%,transparent)}
+.pr-c{font-size:17px;line-height:1.4;margin:10px 0 0}
+.pr-v{margin-top:12px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--pc) 9%,transparent)}.pr-v b{font-size:12.5px;color:var(--pc)}.pr-v p{margin:4px 0 0;font-size:15px;line-height:1.5}
+.pr-cd{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:13px;color:var(--muted)}.pr-bar{flex:1;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}.pr-bar i{display:block;height:100%;background:var(--pc)}
+.pr-more{margin-top:10px;font-size:13.5px;color:var(--muted)}.pr-more summary{cursor:pointer}
+.pr-on{display:inline-block;margin-top:10px;font-size:13.5px;color:var(--muted);text-decoration:none}.pr-on b{color:var(--ink);font-weight:550}
+@media (max-width:760px){.pr-board{grid-template-columns:repeat(2,1fr)}}
 .gwhy{padding:22px 0 4px}.gwhy-t{font-size:clamp(18px,2.4vw,22px);line-height:1.45;letter-spacing:-.01em;margin:8px 0 0;max-width:62ch;color:var(--ink)}
 .gwhy-s{font-size:12.5px;color:var(--muted);white-space:nowrap}
 .gwhy-k{font:400 11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
@@ -3026,7 +3046,7 @@ function quoteBlock(q, paper, made) {
 }
 
 const WATCH_CHIP = '<span class="watch-chip" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>Recap</span>';
-function postCard(p, g, compact = false) {
+function postCard(p, g, compact = false, { recap = true } = {}) {
   const srcs = (p.sources || []).slice(0, 4).map((x) => {
     const url = safeUrl(x.url);
     const meta = [x.year, x.venue].filter(Boolean).join(', ');
@@ -3053,7 +3073,7 @@ function postCard(p, g, compact = false) {
     const m = /mapped (\d+) problems across (\d+) branches/.exec(p.body || '');
     if (m) big = `<div class="big">${esc(m[1])}<span class="lbl">problems mapped</span></div>`;
   }
-  const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : `#/p/${p.id}`; // a post opens as its story
+  const target = p.kind === 'mapped' ? `#/g/${encodeURIComponent(g.slug)}` : recap ? `#/p/${p.id}` : `#/g/${encodeURIComponent(g.slug)}/posts`; // one Recap per row; the rest open the readable list
   const pics = g.pics || (goalsCache || []).find((x) => x.id === g.id)?.pics || [];
   const pic = pics.length ? smallPic(pics[(p.id * 7) % pics.length], 'c') : '';
   const coverStyle = `--h:${h};--h2:${h2}${pic ? `;--img:url('${esc(pic).replace(/'/g, '%27')}')` : ''}`, coverCls = pic ? 'cover has-img' : 'cover';
@@ -3071,7 +3091,7 @@ function postCard(p, g, compact = false) {
   if (compact) {
     // Inside a goal's row or on its own page: the goal is already named above, so no header.
     return `<article class="post compact">
-    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${p.kind !== 'mapped' ? WATCH_CHIP : ''}${big}<h3>${esc(p.headline)}</h3></a>${alsoLine}
+    <a class="${coverCls}" href="${target}" style="${coverStyle}">${kindLabel}${p.kind !== 'mapped' && recap ? WATCH_CHIP : ''}${big}<h3>${esc(p.headline)}</h3></a>${alsoLine}
     <div class="post-f">${more || '<span></span>'}<span class="spacer"></span><time class="when" datetime="${esc(p.created_at)}">${esc(ago(p.created_at))}</time>${shareBtn}</div>
   </article>`;
   }
@@ -3094,9 +3114,15 @@ function postItem(p, g, leaves = [], { open = true } = {}) {
     ${leaf ? `<a class="pit-on" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(leaf.key)}">About: <b>${esc(leaf.plain_title || leaf.title)}</b> →</a>` : ''}
     ${srcs ? `<details class="pit-src"><summary>${(p.sources || []).length} source${(p.sources || []).length === 1 ? '' : 's'}${backed}</summary><ul class="srcs">${srcs}</ul></details>` : ''}`;
   const head = `<span class="sig ${esc(p.kind)}">${esc(POST_SIGN[p.kind] || p.kind)}</span><b class="pit-t">${esc(p.plain_headline || p.headline)}</b><time class="mono">${esc(ago(p.created_at))}</time>`;
-  return open ? `<article class="pit" id="post-${p.id}"><div class="pit-h">${head}</div>${inner}</article>`
-    : `<details class="pit chg-pit" id="post-${p.id}"><summary class="pit-h">${head}</summary>${inner}</details>`;
+  return open ? `<article class="pit k-${esc(p.kind)}" id="post-${p.id}"><div class="pit-h">${head}</div>${inner}</article>`
+    : `<details class="pit chg-pit k-${esc(p.kind)}" id="post-${p.id}"><summary class="pit-h">${head}</summary>${inner}</details>`;
 }
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pkind]'); if (!b) return;
+  b.parentElement.querySelectorAll('[data-pkind]').forEach((x) => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pits-all .pit').forEach((x) => { x.hidden = !!b.dataset.pkind && !x.classList.contains(`k-${b.dataset.pkind}`); });
+});
 
 // Idea of the day: one open idea a day (the same for everyone that day), to invite a verdict.
 async function ideaOfTheDay(list) {
@@ -3125,7 +3151,7 @@ function goalRow(g, posts) {
       <span class="spacer"></span>
       <button class="btn icon sbtn" type="button" data-slide="${id}" data-dir="-1" aria-label="Previous">‹</button><button class="btn icon sbtn" type="button" data-slide="${id}" data-dir="1" aria-label="Next">›</button>
       ${followBtn(g.slug)}</div>
-    <div class="slides" id="${id}">${posts.map((p) => postCard(p, g, true)).join('')}</div>
+    <div class="slides" id="${id}">${posts.map((p, i) => postCard(p, g, true, { recap: i === 0 })).join('')}</div>
   </section>`;
 }
 
@@ -3607,22 +3633,36 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
   let body;
   if (tab === 'promises') {
 
+    // Each promise: the years, the claim, what happened (coloured by verdict); quote and sources on tap.
+    const nowY = new Date().getFullYear();
     const card = (p) => {
       const leaf = leaves.find((l) => l.key === p.node_key);
       const vs = (p.verdict_sources || []).slice(0, 3).map((s) => { const u = safeUrl(s.url); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}${s.year ? ` <span>(${esc(s.year)})</span>` : ''}</li>`; }).join('');
-      return `<article class="post"><span class="kind promise">Due ${esc(p.due_year)}<span class="pill ${esc(p.status)}">${esc(PSTATUS[p.status] || p.status)}</span></span>
-        <h3>${esc(p.claim)}</h3>${quoteBlock(p.quote, p.source, `Written in ${p.made_year}`)}
-        ${p.verdict ? `<p><b>What happened:</b> ${esc(p.verdict)}</p>` : ''}${vs ? `<ul class="srcs">${vs}</ul>` : ''}
-        ${leaf ? `<div class="post-f"><span class="check"></span><button class="btn" type="button" data-leaf="${esc(leaf.key)}">See the problem</button></div>` : ''}</article>`;
+      const left = p.due_year - nowY, span = Math.max(1, p.due_year - p.made_year), gone = Math.min(1, Math.max(0, (nowY - p.made_year) / span));
+      return `<article class="pr pr-${esc(p.status)}">
+        <div class="pr-top"><span class="pr-yrs mono">${esc(p.made_year)}<i>→</i>${esc(p.due_year)}</span><span class="pr-st">${esc(PSTATUS[p.status] || p.status)}</span></div>
+        <h3 class="pr-c">${esc(p.claim)}</h3>
+        ${p.status === 'pending' ? `<div class="pr-cd"><div class="pr-bar"><i style="width:${(gone * 100).toFixed(0)}%"></i></div><span>${left > 0 ? `${left} year${left === 1 ? '' : 's'} left` : 'Due this year'}</span></div>` : ''}
+        ${p.verdict ? `<div class="pr-v"><b>What happened</b><p>${esc(p.verdict)}</p></div>` : ''}
+        <details class="pr-more"><summary>The original promise${vs ? ' and sources' : ''}</summary>${quoteBlock(p.quote, p.source, `Written in ${p.made_year}`)}${vs ? `<ul class="srcs">${vs}</ul>` : ''}</details>
+        ${leaf ? `<a class="pr-on" href="${base}/tree/${encodeURIComponent(leaf.key)}">About: <b>${esc(leaf.plain_title || leaf.title)}</b> →</a>` : ''}</article>`;
     };
-    const coming = promises.filter((p) => p.status === 'pending');
+    const coming = promises.filter((p) => p.status === 'pending').sort((a, b) => a.due_year - b.due_year);
     const done = promises.filter((p) => p.status !== 'pending').sort((a, b) => b.due_year - a.due_year);
+    const cnt = (st) => promises.filter((p) => p.status === st).length;
+    const board = `<div class="pr-board">${[['kept', 'Kept'], ['partly', 'Partly kept'], ['broken', 'Broken'], ['pending', 'Not due yet']].map(([k, label]) => `<div class="pr-sc pr-${k}"><b class="mono">${cnt(k)}</b><span>${label}</span></div>`).join('')}</div>`;
     body = promises.length
-      ? `<p class="cap" style="margin-top:18px">Dated promises from older research, quoted word for word, and checked once their deadline passes.</p>` +
-        (done.length ? `<div class="prom-h">Checked</div>${done.map(card).join('')}` : '') + (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
+      ? `<p class="cap" style="margin-top:18px">What older research promised, by when, and what happened. Quoted word for word and checked once the deadline passes.</p>${board}` +
+        (done.length ? `<div class="prom-h">Checked</div><div class="prs">${done.map(card).join('')}</div>` : '') + (coming.length ? `<div class="prom-h">Coming due</div><div class="prs">${coming.map(card).join('')}</div>` : '')
       : note('No promises found yet', 'Parallax searches older research on this goal for dated promises once a month.');
   } else if (tab === 'posts') {
-    body = posts.length ? `<div class="pits pits-all">${posts.filter((p) => p.kind !== 'mapped').map((p) => postItem(p, g, leaves)).join('')}</div>` : note('No posts yet', 'New research on this goal will appear here.');
+    const list = posts.filter((p) => p.kind !== 'mapped');
+    const RANK = { solved: 5, advance: 4, setback: 3, bottleneck: 2, forgotten: 1 };
+    const top = [...list].sort((a, b) => (RANK[b.kind] || 0) - (RANK[a.kind] || 0) || b.created_at.localeCompare(a.created_at))[0];
+    const kinds = [...new Set(list.map((p) => p.kind))];
+    body = list.length ? `${top ? `<div class="prom-h">The one to read</div><div class="pit-top">${postItem(top, g, leaves)}</div>` : ''}
+      ${list.length > 1 ? `<div class="prom-h">More posts</div>${kinds.length > 1 ? `<div class="chips pfilter" role="group" aria-label="Show">${[['', 'All'], ...kinds.map((k) => [k, POST_SIGN[k] || k])].map(([k, label]) => `<button type="button" class="chip${k ? '' : ' on'}" data-pkind="${esc(k)}">${esc(label)}${k ? ` <small>${list.filter((p) => p.kind === k).length}</small>` : ''}</button>`).join('')}</div>` : ''}
+      <div class="pits pits-all">${list.filter((p) => p !== top).map((p) => postItem(p, g, leaves, { open: false })).join('')}</div>` : ''}` : note('No posts yet', 'New research on this goal will appear here.');
   } else {
     body = why + now + take + give + field + news + more;
   }
