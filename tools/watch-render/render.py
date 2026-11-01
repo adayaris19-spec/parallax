@@ -100,9 +100,12 @@ def render_clip(r, scenes, tag, seed):
     lays = layouts(scenes, hue(str(rid)))
     used = {(s.get('visual') or {}).get('url') for s in scenes}
     durs = [dur(s, i, n, lays[i]) for i, s in enumerate(scenes)]
-    # 1. footage for every scene
-    media = []
+    # 1. footage for every scene (or an animated background, when ANIMBG names one per scene)
+    media = []; anim = [k for k in os.environ.get('ANIMBG', '').split(',') if k]
     for i, s in enumerate(scenes):
+        if anim:
+            f = f'{WR}/anim/{anim[i % len(anim)]}-{hue(slug) % 360}-{i}.mp4'
+            sh(['node', f'{CODE}/anim2rec.js', anim[i % len(anim)], str(hue(slug) % 360 if slug != 'mars' else 0), f'{durs[i] + 1.2:.2f}', f]); media.append(('anim', f)); continue
         v = s.get('visual') or {}
         if v.get('kind') == 'video':
             f = fetch(v.get('url'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', v['url'].split('r2.dev/')[-1])}")
@@ -150,7 +153,7 @@ def render_clip(r, scenes, tag, seed):
               f"[1:v]scale={W}:{H},format=rgba[s];[2:v]scale={W}:{H},format=rgba,fade=in:st={ta}:d=0.5:alpha=1[a];[3:v]scale={W}:{H},format=rgba,fade=in:st={tb:.2f}:d=0.5:alpha=1[b];"
               f"[v][s]overlay=0:0[v1];[v1][a]overlay=x=0:y='max(0,18-18*min(1,max(0,(t-{ta})/0.5)))'[v2];[v2][b]overlay=x=0:y='max(0,12-12*min(1,max(0,(t-{tb:.2f})/0.5)))',format=yuv420p")
         out = f'{WR}/out/{tag}-{i}.mp4'; pre = f'{WR}/ov/{tag}-{i}-'
-        src = ['-f', 'lavfi', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not f else (['-ss', '0.4', '-stream_loop', '-1', '-i', f] if kind == 'video' else ['-loop', '1', '-i', f])
+        src = ['-f', 'lavfi', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not f else (['-i', f] if kind == 'anim' else ['-ss', '0.4', '-stream_loop', '-1', '-i', f] if kind == 'video' else ['-loop', '1', '-i', f])
         sh(['ffmpeg', '-y', '-v', 'error', *src, '-loop', '1', '-i', pre + 'bg.png', '-loop', '1', '-i', pre + 'A.png', '-loop', '1', '-i', pre + 'B.png',
             *(['-ss', '0.4', '-stream_loop', '-1', '-i', f2] if f2 else []),
             '-t', f'{D:.2f}', '-filter_complex', vf, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-r', str(FPS), out])

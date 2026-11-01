@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style></head><body>
+<canvas id="c" width="720" height="1280"></canvas>
+<script>
+// Animated backgrounds for Watch videos, drawn from the time alone (draw(kind, t, opts)) so a
+// recorder can step through them frame by frame. 720x1280. Illustrated, not realistic.
+const C = document.getElementById('c'), X = C.getContext('2d'), W = 720, H = 1280;
+const rng = (seed) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const hsl = (h, s, l, a = 1) => `hsla(${h},${s}%,${l}%,${a})`;
+const glow = (x, y, r, col) => { const g = X.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); X.fillStyle = g; X.beginPath(); X.arc(x, y, r, 0, 7); X.fill(); };
+function stars(t, seed, n = 160, drift = 6) {
+  const r = rng(seed);
+  for (let i = 0; i < n; i++) { const x = (r() * W + t * drift * (0.3 + r())) % W, y = r() * H, s = 0.6 + r() * 1.8, tw = 0.5 + 0.5 * Math.sin(t * (1 + r() * 3) + i);
+    X.fillStyle = `rgba(255,255,255,${(0.25 + 0.75 * tw) * (0.4 + r() * 0.6)})`; X.fillRect(x, y, s, s); }
+}
+function dunes(t, base, amp, speed, col, seed) {
+  X.fillStyle = col; X.beginPath(); X.moveTo(0, H);
+  for (let x = 0; x <= W; x += 8) { const u = x + t * speed; X.lineTo(x, base + Math.sin(u / 140 + seed) * amp + Math.sin(u / 57 + seed * 2) * amp * 0.35); }
+  X.lineTo(W, H); X.closePath(); X.fill();
+}
+const KINDS = {
+  // A planet's horizon at dusk: layered dunes sliding past, dust, a rover rolling along.
+  horizon(t, o) {
+    const h = o.hue;
+    const sky = X.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, hsl(h + 250, 45, 8)); sky.addColorStop(0.45, hsl(h + 300, 40, 20)); sky.addColorStop(0.62, hsl(h + 20, 75, 55)); sky.addColorStop(0.7, hsl(h + 30, 85, 70));
+    X.fillStyle = sky; X.fillRect(0, 0, W, H); stars(t, 7, 120, 2);
+    const sy = 760 - t * 14; glow(470, sy, 360, hsl(h + 35, 95, 75, 0.55)); X.fillStyle = hsl(h + 45, 100, 92); X.beginPath(); X.arc(470, sy, 46, 0, 7); X.fill();
+    dunes(t, 790, 34, 18, hsl(h + 10, 45, 38), 1); dunes(t, 860, 40, 42, hsl(h + 5, 55, 28), 2);
+    // rover on the middle ridge
+    const rx = (t * 70) % (W + 300) - 150, ry = 860 + Math.sin((rx + t * 42) / 140 + 2) * 40 + Math.sin((rx + t * 42) / 57 + 4) * 14 - 34;
+    X.save(); X.translate(rx, ry); X.fillStyle = '#1b1012'; X.fillRect(-46, -26, 92, 26); X.fillRect(-10, -52, 6, 26); X.fillRect(-22, -60, 30, 10);
+    for (const wx of [-34, 0, 34]) { X.save(); X.translate(wx, 4); X.rotate(t * 6); X.fillStyle = '#120a0c'; X.beginPath(); X.arc(0, 0, 12, 0, 7); X.fill(); X.fillStyle = hsl(h + 20, 40, 45); X.fillRect(-2, -12, 4, 24); X.restore(); }
+    glow(-28, -56, 26, 'rgba(160,220,255,.7)'); X.restore();
+    dunes(t, 980, 52, 90, hsl(h, 60, 17), 3);
+    const r = rng(11); for (let i = 0; i < 90; i++) { const x = (r() * W * 1.5 - t * (60 + r() * 120)) % W, y = 600 + r() * 600 + Math.sin(t * 2 + i) * 10; X.fillStyle = hsl(h + 25, 80, 80, 0.15 + r() * 0.35); X.beginPath(); X.arc(x < 0 ? x + W : x, y, 1 + r() * 2.5, 0, 7); X.fill(); }
+  },
+  // A planet turning in space, with pulses where something happens and a craft in orbit.
+  globe(t, o) {
+    const h = o.hue; X.fillStyle = hsl(h + 240, 50, 5); X.fillRect(0, 0, W, H); stars(t, 3, 220, 4);
+    const cx = 360, cy = 760, R = 300;
+    glow(cx, cy, R * 1.35, hsl(h + 15, 90, 55, 0.35));
+    X.save(); X.beginPath(); X.arc(cx, cy, R, 0, 7); X.clip();
+    X.fillStyle = hsl(h + 8, 62, 42); X.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    const r = rng(5);
+    for (let i = 0; i < 26; i++) { const lat = (r() - 0.5) * 1.8 * R, w0 = 40 + r() * 120, sp = (r() * 4 * R + t * 38) % (4 * R) - 2 * R; const x = cx + sp, y = cy + lat;
+      X.fillStyle = hsl(h + (r() > 0.5 ? 18 : -4), 55, 30 + r() * 25, 0.85); X.beginPath(); X.ellipse(x, y, w0, w0 * (0.25 + r() * 0.3), 0, 0, 7); X.fill(); }
+    for (let i = 0; i < 4; i++) { const ph = (t * 0.9 + i * 0.6) % 2.4, px = cx - 120 + i * 80, py = cy - 60 + (i % 2) * 110; X.strokeStyle = `rgba(170,255,240,${Math.max(0, 1 - ph / 2.4)})`; X.lineWidth = 4; X.beginPath(); X.ellipse(px, py, ph * 40, ph * 18, 0, 0, 7); X.stroke(); glow(px, py, 26, 'rgba(170,255,240,.8)'); }
+    const sh = X.createRadialGradient(cx - R * 0.45, cy - R * 0.4, R * 0.2, cx, cy, R * 1.05); sh.addColorStop(0, 'rgba(255,240,220,.18)'); sh.addColorStop(0.6, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,10,.75)');
+    X.fillStyle = sh; X.fillRect(cx - R, cy - R, 2 * R, 2 * R); X.restore();
+    X.strokeStyle = hsl(h + 20, 90, 70, 0.6); X.lineWidth = 3; X.beginPath(); X.arc(cx, cy, R + 2, 0, 7); X.stroke();
+    const a = t * 0.9; X.strokeStyle = 'rgba(255,255,255,.18)'; X.lineWidth = 2; X.beginPath(); X.ellipse(cx, cy, R + 110, 70, -0.25, 0, 7); X.stroke();
+    for (let k = 0; k < 18; k++) { const b = a - k * 0.04, x = cx + Math.cos(b) * (R + 110), y = cy + Math.sin(b) * 70; const xx = cx + (x - cx) * Math.cos(-0.25) - (y - cy) * Math.sin(-0.25), yy = cy + (x - cx) * Math.sin(-0.25) + (y - cy) * Math.cos(-0.25);
+      if (Math.sin(b) < 0 && Math.hypot(xx - cx, yy - cy) < R) continue; X.fillStyle = `rgba(255,255,255,${1 - k / 18})`; X.beginPath(); X.arc(xx, yy, 6 - k * 0.3, 0, 7); X.fill(); }
+  },
+  // Molecules drifting up; every so often one splits and its oxygen pairs off, glowing.
+  molecules(t, o) {
+    const h = o.hue; const bg = X.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, hsl(h + 230, 55, 10)); bg.addColorStop(1, hsl(h + 280, 50, 18)); X.fillStyle = bg; X.fillRect(0, 0, W, H);
+    const r0 = rng(9); for (let i = 0; i < 18; i++) glow(r0() * W, (r0() * H - t * 20 * (0.5 + r0())) % H + (r0() < 0 ? 0 : 0), 60 + r0() * 120, hsl(h + 200 + r0() * 80, 70, 60, 0.12));
+    const r = rng(21);
+    for (let i = 0; i < 22; i++) {
+      const x0 = r() * W, sp = 40 + r() * 70, ph = r() * 10, y = H + 80 - ((t * sp + ph * 140) % (H + 200)), x = x0 + Math.sin(t + i) * 30, rot = t * (r() - 0.5) * 2 + i;
+      const split = (t * 0.8 + i * 0.37) % 3, s = split > 2 ? Math.min(1, (split - 2) * 2) : 0, sc = 0.7 + r() * 0.6;
+      X.save(); X.translate(x, y); X.rotate(rot); X.scale(sc, sc);
+      X.fillStyle = '#3b3f4f'; X.beginPath(); X.arc(0, 0, 22, 0, 7); X.fill(); // carbon
+      for (const d of [-1, 1]) { const ox = d * (46 + s * 60), oy = -s * 40; if (s > 0) { glow(ox, oy, 60 * s, 'rgba(120,230,255,.6)'); }
+        X.fillStyle = s > 0 ? '#7fe3ff' : '#ff5a4f'; X.beginPath(); X.arc(ox, oy, 19, 0, 7); X.fill(); X.fillStyle = 'rgba(255,255,255,.35)'; X.beginPath(); X.arc(ox - 6, oy - 6, 6, 0, 7); X.fill(); }
+      X.fillStyle = 'rgba(255,255,255,.3)'; X.beginPath(); X.arc(-7, -7, 7, 0, 7); X.fill(); X.restore();
+    }
+  },
+};
+window.draw = (kind, t, o) => { X.clearRect(0, 0, W, H); (KINDS[kind] || KINDS.globe)(t, o || { hue: 0 }); };
+window.kinds = Object.keys(KINDS);
+</script></body></html>
