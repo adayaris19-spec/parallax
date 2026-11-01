@@ -1435,6 +1435,21 @@ body.labpage main{max-width:1080px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .lab-h{padding:40px 0 8px}
 .glinks{display:grid;gap:10px}
+.rn .rn-h{font-size:clamp(24px,4vw,32px);line-height:1.15;letter-spacing:-.025em;margin:6px 0 8px}.rn .rn-h a{color:inherit;text-decoration:none}
+.rn-lede{color:var(--muted);margin:0 0 14px;font-size:14.5px}
+.rn-qa{margin:0 0 14px;display:grid;gap:12px}.rn-qa div{display:grid;gap:3px}
+.rn-qa dt{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.rn-qa dd{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.rn-news{margin-top:14px}.rn-news .wt-l{display:block;margin-bottom:6px}
+.pits{display:grid;gap:10px}
+.pit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.pit-h{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:baseline}
+.pit-h .sig{grid-column:1;grid-row:1;justify-self:start}.pit-h time{grid-column:3;grid-row:1;color:var(--muted);font-size:12px}.pit-t{grid-column:1/-1;grid-row:2;font-size:15.5px;line-height:1.35}
+details.pit>summary{list-style:none;cursor:pointer}details.pit>summary::-webkit-details-marker{display:none}
+details.pit>summary .pit-t::after{content:' +';color:var(--muted);font-weight:400}details.pit[open]>summary .pit-t::after{content:''}
+.pit-b{margin:10px 0 0;color:var(--ink2);font-size:15px;line-height:1.55}
+.pit-on{display:inline-block;margin-top:10px;font-size:13.5px;color:var(--muted);text-decoration:none}.pit-on b{color:var(--ink);font-weight:550}
+.pit-src{margin-top:8px;font-size:13px;color:var(--muted)}.pit-src summary{cursor:pointer}.pit-src .srcs{margin:8px 0 0}
+.pits-all{margin-top:16px}
 .glink{display:flex;flex-direction:column;gap:3px;padding:16px 18px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink)}
 .glink span{color:var(--muted);font-size:14px}.glink b{font-size:15.5px}
 details.glink>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:3px;position:relative;padding-right:24px}
@@ -3057,6 +3072,21 @@ function postCard(p, g, compact = false) {
   </article>`;
 }
 
+// A post on a goal page: what happened, in plain words, right there (the Recap video is for the feed).
+const POST_SIGN = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'Bottleneck', forgotten: 'Old idea', promise: 'Promise check', mapped: 'New', community: 'Member work' };
+function postItem(p, g, leaves = [], { open = true } = {}) {
+  const leaf = p.node_key && leaves.find((l) => l.key === p.node_key);
+  const srcs = (p.sources || []).slice(0, 6).map((x) => { const u = safeUrl(x.url), meta = [x.year, x.venue].filter(Boolean).join(', '); return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(x.title)}</a>` : esc(x.title)}${meta ? ` <span>(${esc(meta)})</span>` : ''}</li>`; }).join('');
+  const backed = p.kind === 'mapped' || p.kind === 'community' ? '' : p.independent_sources >= 2 ? ` · ✓ ${p.independent_sources} independent` : '';
+  const text = p.plain_body || p.body || '';
+  const inner = `${text ? `<p class="pit-b">${esc(text)}</p>` : ''}
+    ${leaf ? `<a class="pit-on" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(leaf.key)}">About: <b>${esc(leaf.plain_title || leaf.title)}</b> →</a>` : ''}
+    ${srcs ? `<details class="pit-src"><summary>${(p.sources || []).length} source${(p.sources || []).length === 1 ? '' : 's'}${backed}</summary><ul class="srcs">${srcs}</ul></details>` : ''}`;
+  const head = `<span class="sig ${esc(p.kind)}">${esc(POST_SIGN[p.kind] || p.kind)}</span><b class="pit-t">${esc(p.plain_headline || p.headline)}</b><time class="mono">${esc(ago(p.created_at))}</time>`;
+  return open ? `<article class="pit" id="post-${p.id}"><div class="pit-h">${head}</div>${inner}</article>`
+    : `<details class="pit chg-pit" id="post-${p.id}"><summary class="pit-h">${head}</summary>${inner}</details>`;
+}
+
 // Idea of the day: one open idea a day (the same for everyone that day), to invite a verdict.
 async function ideaOfTheDay(list) {
   // Pick by id first (a tiny list), then fetch just that one idea.
@@ -3515,10 +3545,15 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
 
   // 1. Right now: the one thing everything waits on, and the money for it.
   const now = bn ? `<section class="rn"><div class="kick red">Right now</div>
-      <h2>Everything waits on one problem: <a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc(lowerFirst(bn.title).replace(/\.$/, ''))}</a>.</h2>
-      ${bn.blocker ? `<p>${esc(firstSentence(bn.blocker))}</p>` : ''}
-      ${!bnListing && costs[bn.key]?.next_high ? `<div class="rn-cost"><span class="wt-l">Next step</span><b>${esc(costs[bn.key].next_step)}</b><span class="mono">${esc(usdRange(costs[bn.key].next_low, costs[bn.key].next_high))}${costs[bn.key].next_time ? ` · ${esc(costs[bn.key].next_time)}` : ''}</span></div>` : ''}
+      <h2 class="rn-h"><a class="rn-t" href="${base}/tree/${encodeURIComponent(bn.key)}" data-pick="${esc(bn.key)}">${esc((bn.plain_title || bn.title).replace(/\.$/, ''))}</a></h2>
+      <p class="rn-lede">Of ${leaves.length} problems, this is the one the rest wait on${(() => { const br = branches.find((x) => x.key === bn.parent_key); return br ? ` (part of ${esc(lowerFirst(br.plain_title || br.title))})` : ''; })()}.</p>
+      <dl class="rn-qa">
+        ${bn.plain_why || bn.why ? `<div><dt>What it is</dt><dd>${esc(bn.plain_why || bn.why)}</dd></div>` : ''}
+        ${bn.plain_blocker || bn.blocker ? `<div><dt>Why it’s stuck</dt><dd>${esc(bn.plain_blocker || bn.blocker)}</dd></div>` : ''}
+      </dl>
+      ${!bnListing && costs[bn.key]?.next_high ? `<div class="rn-cost"><span class="wt-l">What would unblock it</span><b>${esc(costs[bn.key].next_step)}</b><span class="mono">${esc(usdRange(costs[bn.key].next_low, costs[bn.key].next_high))}${costs[bn.key].next_time ? ` · ${esc(costs[bn.key].next_time)}` : ''}</span></div>` : ''}
       ${fundingPanel(g, bn)}
+      ${(() => { const lp = posts.find((p) => p.node_key === bn.key && p.kind !== 'mapped'); return lp ? `<div class="rn-news"><span class="wt-l">Latest on it</span>${postItem(lp, g, [], { open: false })}</div>` : ''; })()}
       <div class="rn-act" style="margin-top:14px"><button class="btn" type="button" data-leaf="${esc(bn.key)}">The research</button></div></section>` : '';
 
   // 2. The problem field: every problem, sized by recent research, linked by shared papers.
@@ -3549,10 +3584,9 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
     </details>` : '';
 
   // What changed lately: the latest few moves, one line each (all of them are under Posts).
-  const SIGN = { advance: 'Step forward', solved: 'Solved', setback: 'Setback', bottleneck: 'Bottleneck', forgotten: 'Old idea', promise: 'Promise check', mapped: 'New' };
-  const recent = posts.filter((p) => !['mapped', 'promise'].includes(p.kind)).slice(0, 3);
+  const recent = posts.filter((p) => !['mapped', 'promise'].includes(p.kind) && !(bn && p.node_key === bn.key && p.kind === 'bottleneck')).slice(0, 3);
   const news = recent.length ? `<section class="gs gnews"><div class="kick">Latest</div>
-    <div class="chg">${recent.map((p) => `<a class="chg-row" href="#/p/${p.id}"><span class="sig ${esc(p.kind)}">${SIGN[p.kind] || esc(p.kind)}</span><b>${esc(p.headline)}</b><span class="t mono">${esc(whenAgo(p.created_at))}</span></a>`).join('')}</div>
+    <div class="pits">${recent.map((p) => postItem(p, g, leaves, { open: false })).join('')}</div>
     <a class="more" href="${base}/posts">All ${posts.length} posts →</a></section>` : '';
   // Below the field: the rest, one tap away.
   const more = (take || goalIdeas.length) ? `<section class="gs glinks">${goalIdeas.length ? `<a class="glink" href="#/lab/${encodeURIComponent(g.slug)}"><b>${goalIdeas.length} big idea${goalIdeas.length === 1 ? '' : 's'} to judge</b><span>For labs and experts →</span></a>` : ''}${take}</section>` : '';
@@ -3575,7 +3609,7 @@ async function goalView(slug, tab, focusKey, scrollField = false) {
         (done.length ? `<div class="prom-h">Checked</div>${done.map(card).join('')}` : '') + (coming.length ? `<div class="prom-h">Not due yet</div>${coming.map(card).join('')}` : '')
       : note('No promises found yet', 'Parallax searches older research on this goal for dated promises once a month.');
   } else if (tab === 'posts') {
-    body = posts.length ? posts.map((p) => postCard(p, g, true)).join('') : note('No posts yet', 'New research on this goal will appear here.');
+    body = posts.length ? `<div class="pits pits-all">${posts.filter((p) => p.kind !== 'mapped').map((p) => postItem(p, g, leaves)).join('')}</div>` : note('No posts yet', 'New research on this goal will appear here.');
   } else {
     body = now + news + give + field + more;
   }
