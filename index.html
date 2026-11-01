@@ -1434,6 +1434,14 @@ body.labpage main{max-width:1080px}
 .idea{min-width:0;overflow-wrap:anywhere}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .lab-h{padding:40px 0 8px}
+.ip-quick{display:flex;flex-wrap:wrap;gap:8px 18px;margin:14px 0 0;color:var(--ink2);font-size:14.5px}
+.ip-quick span{display:inline-flex;align-items:center;gap:6px}.ip-quick svg{width:15px;height:15px;opacity:.7}
+details.ip-more>summary{cursor:pointer;list-style:none;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+details.ip-more>summary::-webkit-details-marker{display:none}
+details.ip-more>summary::after{content:'+';font-weight:400;font-size:20px;color:var(--muted)}
+details.ip-more[open]>summary::after{content:'–'}
+details.ip-more .ip-sec{margin-top:18px}details.ip-more .ip-evgrid{margin-top:14px}
+.chal-hook{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .lab-h h1{font-size:clamp(30px,4.6vw,46px);line-height:1.08;letter-spacing:-.04em;margin:0 0 12px;max-width:22ch}
 .lab-h p{margin:0;color:var(--ink2);font-size:16.5px;line-height:1.55;max-width:62ch}
 .lab-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:22px 0 4px}
@@ -1441,7 +1449,6 @@ body.labpage main{max-width:1080px}
 .chip3{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;text-decoration:none;color:var(--ink2);background:var(--card)}
 .chip3.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .seg a{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;font:500 13.5px var(--f);color:var(--muted);text-decoration:none}
-.imode{margin:18px 0 0}
 .seg a.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .ideas{display:grid;gap:14px;margin-top:16px}
 .ideas.two{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -2172,11 +2179,11 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
 .bnav{display:none}
 @media (max-width:760px){
   :root{--navh:calc(62px + env(safe-area-inset-bottom))}
-  .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;height:var(--navh);padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid var(--line)}
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:15;height:var(--navh);padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid var(--line)}
   .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
-  /* phones reach Watch and Ideas from the bottom bar: the feed keeps Everything / Following */
+  /* phones reach Watch, Challenges and Ideas from the bottom bar: the feed keeps Everything / Following */
   .feedtabs .tab:not([href="#/"]):not([href="#/following"]){display:none}
   .feedtabs:not(:has(.tab[href="#/"][aria-selected="true"], .tab[href="#/following"][aria-selected="true"])){display:none}
   .acct.out{display:none}
@@ -2469,6 +2476,7 @@ body.wsw main{max-width:1000px}
 <nav class="bnav" id="bnav" aria-label="Main">
   <a href="#/" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>Feed</a>
   <a href="#/watch" data-nav="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/></svg>Watch</a>
+  <a href="#/challenges" data-nav="challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11.4 6.6"/></svg>Challenges</a>
   <a href="#/lab" data-nav="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Ideas</a>
   <button type="button" data-nav="me" id="navMe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.3-3.3 4-5 7-5s5.7 1.7 7 5"/></svg><span id="navMeLabel">Sign in</span></button>
 </nav>
@@ -3103,9 +3111,7 @@ document.addEventListener('click', (e) => {
 
 // The site's sections, in one tab bar under the header (the header keeps search and Plus).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['following', '#/following', 'Following']];
-// Ideas holds both: AI-proposed ideas, and challenges one person can try from home.
-const ideaMode = (which) => `<div class="imode"><div class="seg"><a class="${which === 'ideas' ? 'on' : ''}" href="#/lab">All ideas</a><a class="${which === 'try' ? 'on' : ''}" href="#/challenges">Try it yourself</a></div></div>`;
+const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 // Homepage: what a first-time visitor sees at the root (and anyone at #/welcome). Everything on it
@@ -3949,7 +3955,7 @@ async function profileView(handle, toImpact = false) {
       ${p.bio ? `<p class="sum">${esc(p.bio)}</p>` : ''}
       ${(p.skills || []).length ? `<div class="chips">${p.skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="followers">Joined ${esc(joined)}</div>
-      <div class="act">${own ? '<a class="btn primary" href="#/challenges">Things to try</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
+      <div class="act">${own ? '<a class="btn primary" href="#/challenges">Challenges for you</a><a class="btn" href="#/settings">Edit profile</a>' : ''}<button class="btn" data-share="/u/${esc(p.handle)}" data-title="${esc(p.display_name || p.handle)} on Parallax">Share</button></div>
     </div></div>
     <div class="prom-h">Following ${mine.length} ${mine.length === 1 ? 'goal' : 'goals'}</div>
     ${mine.length ? `<div class="grid" style="margin-top:6px">${mine.map((g) => `<a class="gcard" href="#/g/${encodeURIComponent(g.slug)}"><span class="t"><b>@${esc(g.handle)}</b><small>${esc(g.name)}</small></span></a>`).join('')}</div>`
@@ -4125,7 +4131,6 @@ function challengeCard(c, g, opts = {}) {
   const taken = myTaken?.has(c.id);
   const solved = c.status === 'solved';
   const hook = sentences(c.useful)[0] || c.useful;
-  const bar = barItems(c.done_when)[0];
   const ppl = solved && c.solved_by ? `Solved by <a href="#/u/${encodeURIComponent(c.solved_by)}">@${esc(c.solved_by)}</a>` : c.takers ? `${c.takers} on it` : 'Be the first';
   return `<article class="chal${solved ? ' solved' : ''}" data-chal="${c.id}" style="${gStyle(g)}">
     <div class="chal-band"></div>
@@ -4133,11 +4138,9 @@ function challengeCard(c, g, opts = {}) {
       ${opts.goal && g ? `<a class="chal-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b>${opts.problem ? ` · ${esc(opts.problem)}` : ''}</span></a>` : ''}
       <a class="chal-t" href="#/c/${c.id}">${esc(c.title)}</a>
       <p class="chal-hook">${esc(hook)}</p>
-      ${bar ? `<p class="chal-bar">${ICON.target}<span><b>Done when</b> ${esc(bar)}${barItems(c.done_when).length > 1 ? ' …' : ''}</span></p>` : ''}
       <div class="chal-foot">
         <span class="chal-f">${ICON.time}${esc(c.size || '')}</span>
         <span class="chal-f">${ICON.people}${ppl}</span>
-        <span class="chal-skills">${(c.skills || []).slice(0, 3).map((s) => `<span>${esc(s)}</span>`).join('')}</span>
         ${solved ? '<span class="wstat st-solved"><i></i>Solved</span>' : ''}
         <span class="chal-go">${taken ? `<a class="btn sm primary" href="#/c/${c.id}">Open workspace</a>` : `<a class="btn sm" href="#/c/${c.id}">See it</a><button class="btn sm primary" type="button" data-chal-take>${solved ? 'Try it too' : 'Take it on'}</button>`}</span>
       </div>
@@ -4224,19 +4227,19 @@ async function submitChallenge(c, g, url, note, nodeTitle) {
 // and status, who else is on it, and where to submit. Your plan and notes are private to you.
 const WSTAT = [['working', 'Working on it'], ['ready', 'Ready to submit'], ['submitted', 'Submitted']];
 async function workspaceView(id) {
-  view.innerHTML = navTabs('lab') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
   let c, all, node, papers, people;
   try {
     [[c], all] = await Promise.all([rest(`challenges?id=eq.${Number(id)}&select=*`), goals()]);
-    if (!c) { view.innerHTML = navTabs('lab') + note('Challenge not found', 'It may have been retired.'); return; }
+    if (!c) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'It may have been retired.'); return; }
     [[node], papers, people] = await Promise.all([
       rest(`nodes?goal_id=eq.${c.goal_id}&key=eq.${encodeURIComponent(c.node_key)}&select=key,title,plain_title,why,plain_why,blocker,plain_blocker,status`),
       rest(`node_papers?goal_id=eq.${c.goal_id}&node_key=eq.${encodeURIComponent(c.node_key)}&select=rank,papers(title,year,url,first_author)&order=rank.asc&limit=6`).catch(() => []),
       rest(`challenge_people?challenge_id=eq.${c.id}&select=handle,display_name&order=created_at.asc&limit=30`).catch(() => []),
     ]);
-  } catch (e) { view.innerHTML = navTabs('lab') + failNote(e, 'route()'); return; }
+  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
   const g = all.find((x) => x.id === c.goal_id);
-  if (!g) { view.innerHTML = navTabs('lab') + note('Challenge not found', 'Its goal is not available.'); return; }
+  if (!g) { view.innerHTML = navTabs('challenges') + note('Challenge not found', 'Its goal is not available.'); return; }
   await authReady;
   await loadTaken();
   const mineTaken = !!me && myTaken?.has(c.id);
@@ -4257,9 +4260,9 @@ async function workspaceView(id) {
   const kinds = (c.resources || []).map((r) => { const u = safeUrl(r.url); if (!u) return ''; const [k, cls] = resKind(u); return `<a class="ws-res" href="${esc(u)}" target="_blank" rel="noopener"><span class="rk ${cls}">${k}</span><span class="rt">${esc(r.title || u)}</span><span class="rd">${esc(new URL(u).hostname.replace(/^www\./, ''))}</span></a>`; }).join('');
   const papersList = (papers || []).filter((x) => x.papers);
   const stIdx = Math.max(0, WSTAT.findIndex(([k]) => k === (w?.status || 'working')));
-  view.innerHTML = navTabs('lab') + `<article class="ws" style="${gStyle(g)}">
+  view.innerHTML = navTabs('challenges') + `<article class="ws" style="${gStyle(g)}">
     <header class="ws-hero">
-      <a class="ws-back" href="#/challenges">← Try it yourself</a>
+      <a class="ws-back" href="#/challenges">← Challenges</a>
       <a class="ws-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(c.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b><small>${esc(node ? (node.plain_title || node.title) : g.name)}</small></span></a>
       <h1 class="ws-h">${esc(c.title)}</h1>
       <p class="ws-hook">${esc(why[0] || c.useful)}</p>
@@ -4346,14 +4349,14 @@ async function workspaceView(id) {
 
 // Every open challenge, across goals, filtered by skill.
 async function challengesView(skill) {
-  view.innerHTML = navTabs('lab') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
+  view.innerHTML = navTabs('challenges') + '<div class="note"><span class="spin" style="display:inline-block"></span></div>';
   let list, all;
   try {
     [list, all] = await Promise.all([rest('challenges?status=neq.retired&select=id,goal_id,node_key,title,useful,task,done_when,resources,skills,size,status,solved_post_id&order=id.desc&limit=600'), goals()]);
     const takers = await rest('challenge_takers?select=challenge_id').catch(() => []);
     const n = new Map(); for (const t of takers) n.set(t.challenge_id, (n.get(t.challenge_id) || 0) + 1);
     for (const c of list) c.takers = n.get(c.id) || 0;
-  } catch (e) { view.innerHTML = navTabs('lab') + failNote(e, 'route()'); return; }
+  } catch (e) { view.innerHTML = navTabs('challenges') + failNote(e, 'route()'); return; }
   await authReady; await loadTaken();
   const byId = new Map(all.map((g) => [g.id, g]));
   const nodes = await rest(`nodes?goal_id=in.(${[...new Set(list.map((c) => c.goal_id))].join(',') || 0})&parent_key=not.is.null&select=goal_id,key,title,plain_title`).catch(() => []);
@@ -4373,11 +4376,11 @@ async function challengesView(skill) {
     .sort((a, b) => b.takers - a.takers);
   const nWork = list.filter((c) => myTaken?.has(c.id)).length, nSolved = list.filter((c) => c.status === 'solved').length, nOpen = list.filter((c) => c.status !== 'solved').length;
   for (const c of shown) chalIndex.set(c.id, { c, g: byId.get(c.goal_id) });
-  view.innerHTML = navTabs('lab') + ideaMode('try') + `<h1 class="page-h">Try it yourself</h1>
-    <p class="page-sub">Real pieces of humanity’s biggest problems that one person could solve from home with public data, code and analysis. Each has a clear bar. Meet it and your work is published on the goal’s feed under your name.</p>
+  view.innerHTML = navTabs('challenges') + `<h1 class="page-h">Challenges</h1>
+    <p class="page-sub">Small, real tasks you can do yourself, from home, with public data and code. Finish one and it’s published under your name. <a href="#/lab">Bigger ideas are in the Ideas lab →</a></p>
     ${me ? `<div class="chal-me">${mine.length ? `<span>Your skills: ${mine.map((k) => `<b>${esc(k)}</b>`).join(', ')}</span> <a href="#/settings">Edit</a>` : '<span>Add your skills and Parallax shows the challenges that fit you.</span> <a href="#/settings">Add skills</a>'} · <a href="#/impact">Your impact →</a></div>` : ''}
     <nav class="subtabs">${mine.length ? `<a href="#/challenges/mine" class="${sel === 'mine' ? 'on' : ''}">For you</a>` : ''}<a href="#/challenges/all" class="${!sel || skills.includes(sel) ? 'on' : ''}">All <small>${nOpen}</small></a>${me ? `<a href="#/challenges/working" class="${sel === 'working' ? 'on' : ''}">Working on <small>${nWork}</small></a>` : ''}<a href="#/challenges/solved" class="${sel === 'solved' ? 'on' : ''}">Solved <small>${nSolved}</small></a></nav>
-    ${sel === 'working' || sel === 'solved' || sel === 'mine' ? '' : `<div class="chips chal-filter">${skills.slice(0, 10).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>`}
+    ${sel === 'working' || sel === 'solved' || sel === 'mine' ? '' : `<div class="chips chal-filter">${skills.slice(0, 6).map((s) => `<a class="chip${sel === s ? ' on' : ''}" href="#/challenges/${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>`}
     ${shown.length ? shown.slice(0, CHAL_PAGE).map((c) => challengeCard(c, byId.get(c.goal_id), { goal: true, problem: ptitle(c), status: wstat.get(c.id) })).join('') + (shown.length > CHAL_PAGE ? `<div class="more-wrap"><button class="btn" type="button" data-chal-more>Show more challenges (${shown.length - CHAL_PAGE} left)</button></div>` : '')
       : sel === 'working' ? note('Nothing on the go', 'Take on a challenge and it gets a workspace here: your plan, notes, starting points and the bar to meet.') : sel === 'solved' ? note('None solved yet', 'Be the first: meet a challenge’s bar and your work is published on the goal’s feed.') : note('Nothing here yet', 'Try another skill, or check back as more goals get challenges.')}`;
   // Long lists come in pages so the tab opens fast on phones.
@@ -5562,9 +5565,7 @@ function ideaTile(i, g, { problem = true } = {}) {
   return `<a class="itile" href="#/idea/${i.id}" style="${gStyle(g)}">
     ${problem && g ? `<span class="itile-where">${miniAv(g)}<span><b>@${esc(g.handle)}</b>${node ? ` · ${esc(node)}` : ''}</span></span>` : ''}
     <b class="itile-t">${esc(i.title)}</b>
-    <span class="itile-p">${esc(firstSentenceOf(i.pitch))}</span>
-    ${i.borrowed_from ? `<span class="itile-b">${ICON2.swap}<span>Borrows from <b>${esc(i.borrowed_from)}</b></span></span>` : ''}
-    <span class="itile-f">${i.test_high ? `<span class="itile-cost">${ICON2.flask}<span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span><small>first test</small></span>` : ''}${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}
+    <span class="itile-f">${i.test_high ? `<span class="itile-cost">${ICON2.flask}<span class="mono">${esc(usdRange(i.test_low, i.test_high))}</span><small>first test</small></span>` : ''}
       <span class="itile-v">${votes ? `<span class="vbar" aria-hidden="true"><i style="width:${(good / votes * 100).toFixed(0)}%"></i></span>${good}/${votes} worth testing` : 'Be the first to judge it'}</span></span>
   </a>`;
 }
@@ -5595,34 +5596,30 @@ function ideaPage(i, g, siblings) {
     <header class="ip-hero">
       <nav class="ip-crumbs"><a href="#/lab${g ? `/${encodeURIComponent(g.slug)}` : ''}">← Ideas lab</a></nav>
       ${g ? `<a class="ws-goal" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">${miniAv(g)}<span><b>@${esc(g.handle)}</b><small>${esc(node || g.name)}</small></span></a>` : ''}
-      <div class="ip-badges">${nv ? `<span class="nov ${esc(i.novelty)}" title="${esc(nv[1])}">${esc(nv[0])}</span>` : ''}<span class="ip-ai">Proposed by Parallax’s AI · for experts to judge</span></div>
+      <div class="ip-badges"><span class="ip-ai">A big idea from Parallax’s AI · for labs and experts to judge</span></div>
       <h1 class="ip-h">${esc(i.title)}</h1>
       <p class="ip-hook">${esc(pitch[0] || i.pitch)}</p>
-      <div class="ws-facts">
-        <div><span>${ICON2.flask}First test</span><b class="mono">${i.test_high ? esc(usdRange(i.test_low, i.test_high)) : '—'}</b></div>
-        <div><span>${ICON2.swap}Borrows from</span><b>${esc(i.borrowed_from || '—')}</b></div>
-        <div><span>${ICON2.book}Builds on</span><b>${papers} paper${papers === 1 ? '' : 's'}</b></div>
-        <div><span>${ICON.people}Verdict</span><b>${votes ? `${good} of ${votes} say test it` : 'Not judged yet'}</b></div>
-      </div>
+      <p class="ip-quick">${i.test_high ? `<span>${ICON2.flask}First test <b class="mono">${esc(usdRange(i.test_low, i.test_high))}</b></span>` : ''}<span>${ICON.people}${votes ? `<b>${good} of ${votes}</b> say test it` : 'Not judged yet'}</span></p>
     </header>
     <div class="ws-grid">
       <div class="ws-main">
-        ${pitch.length > 1 ? `<section class="ws-card"><div class="kick">${ICON2.bulb} The idea</div><p>${esc(pitch.slice(1).join(' '))}</p></section>` : ''}
-        ${test.length ? `<section class="ws-card ip-test"><div class="kick">${ICON2.flask} The cheapest test${i.test_high ? ` <span class="ip-cost">${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</div><ol class="ws-steps">${test.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></section>` : ''}
-        ${i.mechanism ? `<section class="ws-card"><div class="kick">Why it might work</div><p>${esc(i.mechanism)}</p>${i.borrowed_from ? `<p class="ws-sub"><b>Borrowed from:</b> ${esc(i.borrowed_from)}</p>` : ''}</section>` : ''}
-        ${i.risk ? `<section class="ws-card ip-risk"><div class="kick">${ICON2.warn} Main risk</div><p>${esc(i.risk)}</p></section>` : ''}
-        <section class="ws-card"><div class="kick">${ICON2.book} The evidence</div>
+        <details class="ws-card ip-more"><summary>How it would work, the test, and the risks</summary>
+        ${pitch.length > 1 ? `<div class="ip-sec"><div class="kick">${ICON2.bulb} The idea</div><p>${esc(pitch.slice(1).join(' '))}</p></div>` : ''}
+        ${test.length ? `<div class="ip-sec"><div class="kick">${ICON2.flask} The cheapest test${i.test_high ? ` <span class="ip-cost">${esc(usdRange(i.test_low, i.test_high))}</span>` : ''}</div><ol class="ws-steps">${test.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>` : ''}
+        ${i.mechanism ? `<div class="ip-sec"><div class="kick">Why it might work</div><p>${esc(i.mechanism)}</p>${i.borrowed_from ? `<p class="ws-sub"><b>Borrowed from:</b> ${esc(i.borrowed_from)}</p>` : ''}</div>` : ''}
+        ${i.risk ? `<div class="ip-sec"><div class="kick">${ICON2.warn} Main risk</div><p>${esc(i.risk)}</p></div>` : ''}
+        </details>
+        <details class="ws-card ip-more"><summary>The evidence${nv ? ` · ${esc(nv[0])}` : ''}</summary>
           <div class="ip-evgrid">
             <div><div class="ip-k">Builds on</div>${papers ? `<ul class="ws-list">${i.builds_on.map((p) => `<li>${link(p)}${p.year ? ` <span>(${esc(p.year)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="ws-sub">No library papers cited.</p>'}</div>
             <div><div class="ip-k">Has it been tried?${nv ? ` · ${esc(nv[0])}` : ''}</div>${i.novelty_note ? `<p>${esc(i.novelty_note)}</p>` : ''}${(i.prior_art || []).length ? `<ul class="ws-list">${i.prior_art.map((p) => `<li>${link(p)}</li>`).join('')}</ul>` : ''}</div>
-          </div></section>
+          </div></details>
         ${notes.length > 2 ? `<section class="ws-card ip-notes" id="ideaNotes"><div class="kick">All notes · ${notes.length}</div><div class="notes">${notes.map(noteHtml).join('')}</div></section>` : ''}
         ${g && isHealthGoal(g) ? medNote() : ''}
       </div>
       <aside class="ws-side">
         <section class="ws-card ip-people" id="ideaPanel-${i.id}">${verdictPanel(i)}</section>
-        ${siblings.length ? `<section class="ws-card"><div class="kick">More ideas for this problem</div><div class="ip-sib">${siblings.slice(0, 5).map((x) => `<a href="#/idea/${x.id}"><b>${esc(x.title)}</b>${x.test_high ? `<span class="mono">${esc(usdRange(x.test_low, x.test_high))}</span>` : ''}</a>`).join('')}</div></section>` : ''}
-        ${g ? `<section class="ws-card"><div class="kick">Want to build something?</div><p class="ws-sub">This problem may have challenges: real pieces you can solve from home and get published.</p><a class="btn wide" href="#/g/${encodeURIComponent(g.slug)}/tree/${encodeURIComponent(i.node_key)}">See the problem</a></section>` : ''}
+        ${siblings.length ? `<section class="ws-card"><div class="kick">More ideas for this problem</div><div class="ip-sib">${siblings.slice(0, 3).map((x) => `<a href="#/idea/${x.id}"><b>${esc(x.title)}</b>${x.test_high ? `<span class="mono">${esc(usdRange(x.test_low, x.test_high))}</span>` : ''}</a>`).join('')}</div></section>` : ''}
       </aside>
     </div>
   </article>`;
@@ -5700,9 +5697,9 @@ async function labView(slug, sort = 'top') {
   const voters = Object.values(labState.scores).reduce((a, s) => a + s.promising + s.flawed + s.tried + s.test, 0);
   const base = slug ? `#/lab/${encodeURIComponent(slug)}` : '#/lab';
   document.body.classList.add('labpage');
-  view.innerHTML = `${navTabs('lab')}${ideaMode('ideas')}<section class="lab-h"><div class="kick">Ideas lab</div>
-      <h1>${ideas.length} idea${ideas.length === 1 ? '' : 's'} to try${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
-      <p>Parallax’s AI reads the research behind each problem and proposes ideas, each with a cheap first test. It checks whether they have been tried. You judge them${voters ? `: ${voters} verdict${voters === 1 ? '' : 's'} so far` : ''}.</p></section>
+  view.innerHTML = `${navTabs('lab')}<section class="lab-h"><div class="kick">Ideas lab · big ideas for labs and experts</div>
+      <h1>${ideas.length} big idea${ideas.length === 1 ? '' : 's'}${slug ? ` for ${esc(list.find((x) => x.slug === slug)?.name || slug)}` : ''}. Which are worth testing?</h1>
+      <p>Too big for one person to do, but you can judge them${voters ? ` (${voters} verdict${voters === 1 ? '' : 's'} so far)` : ''}. Want something you can do yourself? <a href="#/challenges">See challenges →</a></p></section>
     <div class="lab-bar"><div class="chips lab-goals">${[['', 'All goals'], ...withIdeas.map((g) => [g.slug, `@${g.handle}`])].map(([s, label]) => `<a class="chip3${(slug || '') === s ? ' on' : ''}" href="#/lab${s ? `/${encodeURIComponent(s)}` : ''}${sort === 'new' ? '?new' : ''}">${esc(label)}</a>`).join('')}</div>
       <div class="seg"><a class="${sort === 'top' ? 'on' : ''}" href="${base}">Most promising</a><a class="${sort === 'new' ? 'on' : ''}" href="${base}?new">Newest</a></div></div>
     ${shown.length ? `<div class="itiles" id="itiles">${shown.slice(0, LAB_PAGE).map((i) => ideaTile(i, list.find((g) => g.id === i.goal_id))).join('')}</div>${shown.length > LAB_PAGE ? `<p class="lab-more"><button class="btn" type="button" id="labMore">Show more ideas (${shown.length - LAB_PAGE} left)</button></p>` : ''}` : note('No ideas yet', 'Parallax adds new ideas every hour, starting with each goal’s hardest problems.')}`;
@@ -6686,7 +6683,7 @@ new MutationObserver(() => enhance(view)).observe(view, { childList: true, subtr
 
 // ------------------------------------------------------------ router
 function setNav(parts) {
-  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'lab', challenges: 'lab', c: 'lab', lab: 'lab', idea: 'lab', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
+  const key = { '': 'home', following: 'home', watch: 'watch', branch: 'challenges', challenges: 'challenges', c: 'challenges', lab: 'lab', idea: 'lab', u: 'me', settings: 'me', team: 'me' }[parts[0]] ?? '';
   document.querySelectorAll('#bnav [data-nav]').forEach((el) => {
     const on = el.dataset.nav === key;
     el.classList.toggle('on', on);
