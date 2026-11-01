@@ -1094,9 +1094,9 @@ table.gindex td .sub{display:block;font-size:12px;color:var(--muted);max-width:2
 .wk-card .ly-ig-low .rl-text{bottom:132px}.wk-card .ly-ig-card .rl-text{bottom:140px}
 @media (prefers-reduced-motion:reduce){.wk-tt{animation:none}}
 .fsort{display:flex;gap:4px;justify-content:flex-end;margin:12px 0 -4px}
-.fsort button{border:0;background:none;font:500 13px var(--f);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
-.fsort button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--line)}
-.fsort button:hover{color:var(--ink)}
+.fsort button,.fsort a{text-decoration:none;border:0;background:none;font:500 13px var(--f);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
+.fsort button[aria-pressed="true"],.fsort a[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--line)}
+.fsort button:hover,.fsort a:hover{color:var(--ink)}
 /* Feed cards open a short video: say so */
 .cover{position:relative}
 .watch-chip{position:absolute;top:14px;right:14px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:5px 10px 5px 8px;border-radius:999px;background:rgba(10,12,22,.62);color:#fff;font:600 11.5px var(--f);letter-spacing:.01em;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -2237,9 +2237,8 @@ table.tt{width:100%;min-width:860px;border-collapse:collapse;font-size:13.5px}
   .bnav a,.bnav button{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:500;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
   .bnav svg{width:23px;height:23px}
   .bnav .on{color:var(--ink)}
-  /* phones reach Watch, Challenges and Ideas from the bottom bar: the feed keeps Everything / Following */
-  .feedtabs .tab:not([href="#/"]):not([href="#/following"]){display:none}
-  .feedtabs:not(:has(.tab[href="#/"][aria-selected="true"], .tab[href="#/following"][aria-selected="true"])){display:none}
+  /* phones reach every section from the bottom bar */
+  .feedtabs{display:none} /* phones use the bottom bar */
   .acct.out{display:none}
   main{padding-bottom:calc(40px + var(--navh))}
   .navlink.x{display:none}
@@ -3173,7 +3172,7 @@ const feedSort = () => { try { return localStorage.getItem('px.sort') === 'popul
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-fsort]'); if (!b) return;
   try { localStorage.setItem('px.sort', b.dataset.fsort); } catch { /* private mode */ }
-  route();
+  if (location.hash.startsWith('#/following')) location.hash = '#/'; else route(); // Newest and Popular are the whole feed
 });
 
 // First visit: one short intro above the feed, until dismissed or signed in.
@@ -3186,7 +3185,7 @@ document.addEventListener('click', (e) => {
 
 // The site's sections, in one tab bar under the header (the header keeps search and Plus).
 // Public sections first, then the personal ones (they need an account).
-const NAV_TABS = [['all', '#/', 'Everything'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges'], ['following', '#/following', 'Following']];
+const NAV_TABS = [['all', '#/', 'Feed'], ['watch', '#/watch', 'Watch'], ['lab', '#/lab', 'Ideas'], ['challenges', '#/challenges', 'Challenges']];
 const navTabs = (active) => `<nav class="tabs feedtabs" role="tablist">${NAV_TABS.map(([k, href, t]) => `<a class="tab" role="tab" href="${href}" aria-selected="${k === active}">${t}</a>`).join('')}</nav>`;
 
 // Homepage: what a first-time visitor sees at the root (and anyone at #/welcome). Everything on it
@@ -3259,11 +3258,11 @@ document.addEventListener('click', (e) => {
 });
 
 async function feedView(tab) {
-  view.innerHTML = `${navTabs(tab)}${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
+  view.innerHTML = `${navTabs('all')}${tab === 'all' && !me && !introSeen() ? `<section class="intro" id="intro">
       <h1>The feed of human progress</h1>
       <p>Parallax follows humanity’s biggest goals, from curing Alzheimer’s to fusion power. For each one: what is blocking it, what moved this week, who funds it, and where help would matter. Built from the research itself, with every claim linked to its papers.</p>
       <div class="intro-a"><a class="btn primary" href="#/watch">Watch a 30-second story</a><a class="intro-x" href="#/how">How it works</a><button class="intro-x" type="button" data-intro-x style="margin-left:0">Got it</button></div>
-    </section>` : ''}<div class="fsort" role="group" aria-label="Order goals by"><button type="button" data-fsort="new" aria-pressed="${feedSort() === 'new'}">Newest</button><button type="button" data-fsort="popular" aria-pressed="${feedSort() === 'popular'}">Popular</button></div><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
+    </section>` : ''}<div class="fsort" role="group" aria-label="Show"><button type="button" data-fsort="new" aria-pressed="${tab === 'all' && feedSort() === 'new'}">Newest</button><button type="button" data-fsort="popular" aria-pressed="${tab === 'all' && feedSort() === 'popular'}">Popular</button><a href="#/following" role="button" aria-pressed="${tab === 'following'}">Following</a></div><div id="posts"><div class="note"><span class="spin" style="display:inline-block"></span></div></div>`;
   const box = $('#posts');
   const popular = feedSort() === 'popular';
   // The first page of the main feed doesn't need the goal list to start loading: fetch both at once.
@@ -3279,7 +3278,7 @@ async function feedView(tab) {
   if (tab === 'following') {
     const mine = list.filter((g) => follows.has(g.slug)).map((g) => g.id);
     if (!mine.length) {
-      box.innerHTML = note('Follow a goal to fill this tab', 'Tap Follow on any post, or search for a goal at the top.', `<p><a class="btn primary" href="#/">Back to the feed</a></p>`);
+      box.innerHTML = note('You don’t follow any goals yet', 'Tap Follow on any post, or search for a goal at the top.', `<p><a class="btn primary" href="#/">Back to the feed</a></p>`);
       return;
     }
     filter = `&goal_id=in.(${mine.join(',')})`;
