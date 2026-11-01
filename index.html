@@ -6617,6 +6617,11 @@ function reelPlayer(card) {
   };
 }
 
+// Which Watch videos this device has played (each short video by its file), so new ones come first.
+const watchKey = (r) => r.render?.url || `r${r.id}`;
+const watchSeen = () => { try { return new Set(JSON.parse(localStorage.getItem('px.wseen') || '[]')); } catch { return new Set(); } };
+function watchMark(k) { try { const a = JSON.parse(localStorage.getItem('px.wseen') || '[]'); if (a.includes(k)) return; a.push(k); localStorage.setItem('px.wseen', JSON.stringify(a.slice(-800))); } catch { /* private mode */ } }
+
 async function watchView(slug, storiesMode = false) {
   document.body.classList.add('swipe');
   view.innerHTML = `${storiesMode ? '' : navTabs('watch')}<div class="sw-wrap${storiesMode ? ' st-mode' : ''}">${storiesMode ? '<a class="st-x" href="#/" aria-label="Close stories">✕</a>' : ''}<div class="sw" id="sw"><section class="sw-card"><div class="sw-text"><span class="spin" style="display:inline-block"></span></div></section></div></div>`;
@@ -6644,8 +6649,15 @@ async function watchView(slug, storiesMode = false) {
   const want = !storiesMode && slug && list.find((g) => g.slug === slug);
   if (want) { const mine = ordered.filter((r) => r.goal_id === want.id); ordered.splice(0, ordered.length, ...mine, ...ordered.filter((r) => r.goal_id !== want.id)); }
   if (!ordered.length) { box.innerHTML = `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>Videos are on their way.</h2><p>Parallax is making short videos for every goal. Check back soon.</p><a class="sw-go" href="#/">Back to the feed →</a></div></section>`; return; }
+  // Videos you haven't seen come first; after them, a caught-up card, then the ones you've seen.
+  let caughtAt = -1;
+  if (!storiesMode && !want) {
+    const seen = watchSeen(), fresh = ordered.filter((r) => !seen.has(watchKey(r))), old = ordered.filter((r) => seen.has(watchKey(r)));
+    if (old.length) { ordered = [...fresh, ...old]; caughtAt = fresh.length; }
+  }
   watchState.reels = ordered;
-  box.innerHTML = ordered.map((r, i) => reelCard(r, list.find((g) => g.id === r.goal_id), i, !storiesMode)).join('') + (storiesMode ? `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>You’re all caught up.</h2><p>New stories appear when goals move forward or hit a setback.</p><div class="sw-acts"><a class="sw-cta" href="#/">Back to the feed</a><a class="sw-cta ghost" href="#/watch">Watch videos</a></div></div></section>` : '');
+  const caught = caughtAt < 0 ? '' : `<section class="sw-card sw-caught"><div class="sw-shade"></div><div class="sw-text"><h2>${caughtAt ? 'You’re all caught up.' : 'You’ve watched them all.'}</h2><p>New videos arrive as goals move forward. ${caughtAt ? 'Keep scrolling to watch the earlier ones again.' : 'Until then, here they are again.'}</p><a class="sw-go" href="#/">See what’s new in the feed →</a></div></section>`;
+  box.innerHTML = ordered.map((r, i) => (i === caughtAt ? caught : '') + reelCard(r, list.find((g) => g.id === r.goal_id), i, !storiesMode)).join('') + (storiesMode ? `<section class="sw-card"><div class="sw-shade"></div><div class="sw-text"><h2>You’re all caught up.</h2><p>New stories appear when goals move forward or hit a setback.</p><div class="sw-acts"><a class="sw-cta" href="#/">Back to the feed</a><a class="sw-cta ghost" href="#/watch">Watch videos</a></div></div></section>` : '');
   const players = [...box.querySelectorAll('.rl')].map((c) => (c.classList.contains('rv-card') ? renderedPlayer(c) : reelPlayer(c)));
   let current = -1;
   const obs = new IntersectionObserver((entries) => {
@@ -6654,7 +6666,7 @@ async function watchView(slug, storiesMode = false) {
       if (e.isIntersecting && e.intersectionRatio > 0.6) {
         if (current !== i) { if (current >= 0) players[current].reset(); players[i].reset(); }
         current = i; players[i].play();
-        if (ordered[i].story) markSeen(ordered[i].story);
+        if (ordered[i].story) markSeen(ordered[i].story); else if (!storiesMode) watchMark(watchKey(ordered[i]));
         const g = list.find((x) => x.id === ordered[i].goal_id);
         if (ordered[i].render?.url && !storiesMode) music.stop(); else if (music.wanted) music.start(g.slug, reelMood(ordered[i], g), ordered[i].id);
       } else if (i === current && e.intersectionRatio < 0.3) players[i].pause();
