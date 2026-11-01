@@ -13,7 +13,7 @@ ANON = open(os.environ['PARALLAX_ANON_FILE']).read().strip(); ADMIN = open(os.en
 FN = 'https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/reels'
 MGMT = 'https://api.supabase.com/v1/projects/zfmjjazkmolvywvayjzj/database/query'
 W, H, FPS, X = 720, 1280, 30, 0.6
-VERSION = 4  # 4: the earlier look, shorter, with a second shot inside each scene
+VERSION = 2  # 2: each reel is cut into short parts of about two scenes (~10 s each)
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 UPLOAD = '--no-upload' not in sys.argv
 
@@ -43,17 +43,10 @@ def layouts(scenes, seed):
 
 def words(s): return len(re.sub(r'\s+', ' ', ' '.join(str(s.get(k) or '') for k in ('kicker', 'caption', 'sub'))).split())
 def dur(s, i, n, ly):
-    d = 1.3 + 0.17 * words(s)
-    if ly == 'stat': d += 0.4
-    if i == n - 1: d += 0.5
-    return round(min(max(d, 3.0), 4.6), 2)
-
-POOL = {}  # goal slug -> footage URLs from all its videos, for the second shot in each scene
-def second_shot(slug, used, k):
-    opts = [u for u in POOL.get(slug, []) if u not in used]
-    if not opts: return None
-    u = opts[(hue(slug) + k * 7) % len(opts)]; used.add(u)
-    return fetch(u, f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', u.split('r2.dev/')[-1])}")
+    d = 1.6 + 0.2 * words(s)
+    if ly == 'stat': d += 0.5
+    if i == n - 1: d += 0.8
+    return round(min(max(d, 3.4), 5.4), 2)
 
 def fetch(url, dest):
     if os.path.exists(dest) and os.path.getsize(dest) > 2000: return dest
@@ -98,14 +91,10 @@ def render(r):
 def render_clip(r, scenes, tag, seed):
     rid, slug = seed, r['slug']; n = len(scenes)
     lays = layouts(scenes, hue(str(rid)))
-    used = {(s.get('visual') or {}).get('url') for s in scenes}
     durs = [dur(s, i, n, lays[i]) for i, s in enumerate(scenes)]
-    # 1. footage for every scene (or an animated background, when ANIMBG names one per scene)
-    media = []; anim = [k for k in os.environ.get('ANIMBG', '').split(',') if k]
+    # 1. footage for every scene
+    media = []
     for i, s in enumerate(scenes):
-        if anim:
-            f = f'{WR}/anim/{anim[i % len(anim)]}-{hue(slug) % 360}-{i}.mp4'
-            sh(['node', f'{CODE}/anim2rec.js', anim[i % len(anim)], str(hue(slug) % 360 if slug != 'mars' else 0), f'{durs[i] + 1.2:.2f}', f]); media.append(('anim', f)); continue
         v = s.get('visual') or {}
         if v.get('kind') == 'video':
             f = fetch(v.get('url'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', v['url'].split('r2.dev/')[-1])}")
@@ -131,31 +120,21 @@ def render_clip(r, scenes, tag, seed):
     segs = []
     for i, s in enumerate(scenes):
         D = durs[i] + (X if i < n - 1 else 0); kind, f = media[i]
+        mo = ['zin', 'panr', 'zout', 'panl'][(hue(str(rid)) + i) % 4]
         cover = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}'
-        def move(mo, d):
-            if mo in ('zin', 'zout'):
-                z = f'(1+0.13*t/{d:.2f})' if mo == 'zin' else f'(1.13-0.13*t/{d:.2f})'
-                return f"{cover},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,crop={W}:{H}"
-            sg = '+' if mo == 'panr' else '-'
-            return f"scale={int(W*1.18)}:{int(H*1.18)}:force_original_aspect_ratio=increase,crop={W}:{H}:x='(iw-ow)/2{sg}(iw-ow)/2*0.9*(2*t/{d:.2f}-1)':y='(ih-oh)/2'"
-        mos = ['zin', 'panr', 'zout', 'panl']; mo = mos[(hue(str(rid)) + i) % 4]
-        f2 = second_shot(slug, used, i) if kind == 'video' and D > 3.2 else None
-        Da = round(D * 0.55, 3) if f2 else D
-        ta = 0.35 if i else 0.15; tb = ta + (0.75 if lays[i] == 'stat' else 0.9)
-        look = f"eq=brightness=-0.02:saturation=1.1:contrast=1.04,fps={FPS},setsar=1"
-        if f2:
-            Db = round(D - Da, 3); mo2 = mos[(mos.index(mo) + 2) % 4]
-            head = (f"[0:v]{move(mo, Da)},trim=duration={Da},setpts=PTS-STARTPTS,{look}[va];"
-                    f"[4:v]{move(mo2, Db)},trim=duration={Db},setpts=PTS-STARTPTS,{look}[vb];[va][vb]concat=n=2:v=1:a=0[v];")
+        if mo in ('zin', 'zout'):
+            z = f'(1+0.09*t/{D})' if mo == 'zin' else f'(1.09-0.09*t/{D})'
+            bg = f"{cover},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,crop={W}:{H}"
         else:
-            head = f"[0:v]{move(mo, D)},{look}[v];"
-        vf = (head +
+            sg = '+' if mo == 'panr' else '-'
+            bg = f"scale={int(W*1.14)}:{int(H*1.14)}:force_original_aspect_ratio=increase,crop={W}:{H}:x='(iw-ow)/2{sg}(iw-ow)/2*0.8*(2*t/{D}-1)':y='(ih-oh)/2'"
+        ta = 0.35 if i else 0.15; tb = ta + (0.75 if lays[i] == 'stat' else 0.9)
+        vf = (f"[0:v]{bg},eq=brightness=-0.02:saturation=1.1:contrast=1.04,fps={FPS},setsar=1[v];"
               f"[1:v]scale={W}:{H},format=rgba[s];[2:v]scale={W}:{H},format=rgba,fade=in:st={ta}:d=0.5:alpha=1[a];[3:v]scale={W}:{H},format=rgba,fade=in:st={tb:.2f}:d=0.5:alpha=1[b];"
               f"[v][s]overlay=0:0[v1];[v1][a]overlay=x=0:y='max(0,18-18*min(1,max(0,(t-{ta})/0.5)))'[v2];[v2][b]overlay=x=0:y='max(0,12-12*min(1,max(0,(t-{tb:.2f})/0.5)))',format=yuv420p")
         out = f'{WR}/out/{tag}-{i}.mp4'; pre = f'{WR}/ov/{tag}-{i}-'
-        src = ['-f', 'lavfi', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not f else (['-i', f] if kind == 'anim' else ['-ss', '0.4', '-stream_loop', '-1', '-i', f] if kind == 'video' else ['-loop', '1', '-i', f])
+        src = ['-f', 'lavfi', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not f else (['-ss', '0.4', '-stream_loop', '-1', '-i', f] if kind == 'video' else ['-loop', '1', '-i', f])
         sh(['ffmpeg', '-y', '-v', 'error', *src, '-loop', '1', '-i', pre + 'bg.png', '-loop', '1', '-i', pre + 'A.png', '-loop', '1', '-i', pre + 'B.png',
-            *(['-ss', '0.4', '-stream_loop', '-1', '-i', f2] if f2 else []),
             '-t', f'{D:.2f}', '-filter_complex', vf, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-r', str(FPS), out])
         segs.append((out, D))
     # 4. one continuous piece: crossfades between every scene
@@ -184,18 +163,19 @@ def render_clip(r, scenes, tag, seed):
         urls = {}
         for p in (final, poster):
             name = 'renders/' + os.path.basename(p)
-            res = json.loads(sh(['curl', '-s', '-X', 'POST', f'{FN}?upload={name}', '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/octet-stream', '--data-binary', '@' + p]).stdout)
-            if 'url' not in res: raise RuntimeError(f'upload failed: {res}')
+            res = None
+            for attempt in range(3):  # the upload occasionally answers with an empty body: try again
+                try:
+                    res = json.loads(sh(['curl', '-s', '-X', 'POST', f'{FN}?upload={name}', '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/octet-stream', '--data-binary', '@' + p]).stdout)
+                    if 'url' in res: break
+                except Exception: pass
+            if not res or 'url' not in res: raise RuntimeError(f'upload failed: {res}')
             urls[p.rsplit('.', 1)[1]] = res['url']
         info.update({'url': urls['mp4'], 'poster': urls['jpg']})
     return info
 
 if __name__ == '__main__':
     rows = sql("select r.id, g.slug, r.kind, r.title, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
-    for r0 in rows:
-        for sc0 in r0['scenes'] or []:
-            v0 = sc0.get('visual') or {}
-            if v0.get('kind') == 'video' and 'r2.dev/' in str(v0.get('url')) and v0['url'] not in POOL.setdefault(r0['slug'], []): POOL[r0['slug']].append(v0['url'])
     part = next((x for x in sys.argv if x.startswith('--part=')), None)  # --part=i/n splits the goals between processes
     if args == ['all'] or not args:
         rows = [r for r in rows if r.get('kind') != 'weekly' and not (r.get('render') or {}).get('v') == VERSION]

@@ -11,9 +11,7 @@ with Playwright and ffmpeg, and stores files in R2 through the reels function's 
     python3 render.py 390 391            # specific reels
 
 Needs: Python 3 with numpy and scipy, Node with Playwright (Chromium), ffmpeg.
-Each reel is cut into standalone short videos of about two scenes (~10 s), with motion graphics drawn
-frame by frame (mg.html, mg.js), beat-timed cuts with a zoom punch, and a driving score; later parts open
-with the series title.
+Each reel is cut into short parts of about two scenes (~10 s); later parts open with the series title.
 Each render records `{v, parts: [{url, poster, dur, starts, from, to}]}` in `reels.render`; the app plays
 the parts as separate videos, back to back, and falls back to the live scene player when there is no render. Bump `VERSION` to re-render everything.
 New videos made by the reels job (when it runs) need rendering here; until then they use the live player.
