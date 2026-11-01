@@ -19,6 +19,9 @@ UPLOAD = '--no-upload' not in sys.argv
 
 def sh(cmd, **kw): return subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kw)
 def sql(q): return json.loads(sh(['curl', '-s', '-X', 'POST', MGMT, '-H', 'content-type: application/json', '-d', json.dumps({'query': q})]).stdout or '[]')
+# On GitHub (no database access), the queue and the saving go through the reels function's admin actions.
+VIA_FN = bool(os.environ.get('PARALLAX_VIA_FN'))
+def api(action, **kw): return json.loads(sh(['curl', '-s', '-X', 'POST', FN, '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/json', '-d', json.dumps({'action': action, **kw})]).stdout or 'null')
 def hue(s):
     h = 0
     for c in str(s): h = (h * 31 + ord(c)) & 0xFFFFFFFF
@@ -85,7 +88,11 @@ def render(r):
         info = render_clip(r, scenes, f'{slug}-{rid}-p{k + 1}', f'{rid}p{k}' if k else str(rid))
         info.update({'from': a, 'to': b}); parts.append(info)
     rec = {'v': VERSION, 'parts': parts}
-    if UPLOAD: sql(f"update reels set render = '{json.dumps(rec).replace(chr(39), chr(39) * 2)}'::jsonb where id = {int(rid)}")
+    if UPLOAD:
+        if VIA_FN:
+            res = api('render_set', reel_id=int(rid), render=rec)
+            if not (res or {}).get('ok'): raise RuntimeError(f'render_set failed: {res}')
+        else: sql(f"update reels set render = '{json.dumps(rec).replace(chr(39), chr(39) * 2)}'::jsonb where id = {int(rid)}")
     return {'parts': len(parts), 'durs': [p['dur'] for p in parts]}
 
 def render_clip(r, scenes, tag, seed):
@@ -175,7 +182,11 @@ def render_clip(r, scenes, tag, seed):
     return info
 
 if __name__ == '__main__':
-    rows = sql("select r.id, g.slug, r.kind, r.title, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
+    if '--news' in sys.argv: print('news:', json.dumps(api('news_make', limit=8)), flush=True)  # new posts become videos first
+    if VIA_FN:
+        rows = [dict(r, slug=r['goals']['slug']) for r in (api('render_queue', v=VERSION, limit=40) or [])]
+    else:
+        rows = sql("select r.id, g.slug, r.kind, r.title, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
     part = next((x for x in sys.argv if x.startswith('--part=')), None)  # --part=i/n splits the goals between processes
     if args == ['all'] or not args:
         rows = [r for r in rows if r.get('kind') != 'weekly' and not (r.get('render') or {}).get('v') == VERSION]

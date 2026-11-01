@@ -546,7 +546,7 @@ Craft:
 type Reel = z.infer<typeof Plan>["reels"][number];
 // Keep the visuals the photo editor approved (8/10 or better), copy Pixabay files, save the reels.
 async function finalize(g: { id: number; slug: string }, reels: Reel[], wants: { r: number; s: number; q: string; search?: string[] }[], cands: Cand[][], present: boolean[][], postIds: (number | null)[], verdict: z.infer<typeof Verdict> | null, fresh: boolean, errors: string[], pre: Record<string, Cand & { lib?: number }> = {}, space = false) {
-  if (fresh) await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
+  if (fresh) await db(`reels?goal_id=eq.${g.id}&kind=neq.news`, { method: "DELETE", prefer: "return=minimal" }); // news videos stay
   const visual: Record<string, Cand> = {};
   for (const [k, v] of Object.entries(pre)) {
     const { lib, ...c } = v;
@@ -990,7 +990,7 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
       if (visualOf.has(j)) { sc.shot = j; sc.shows = shots[j].shows; break; }
     }
   }
-  await db(`reels?goal_id=eq.${g.id}`, { method: "DELETE", prefer: "return=minimal" });
+  await db(`reels?goal_id=eq.${g.id}&kind=neq.news`, { method: "DELETE", prefer: "return=minimal" }); // news videos stay
   const postIds = new Set(posts.map((p: { id: number }) => p.id));
   for (const r of reels) {
     const scenes = r.scenes.slice(0, 5).map((sc, k) => ({
@@ -1007,9 +1007,47 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
   return { slug, terms: extra.terms, candidates: extra.candidates, approved: shots.length, reels: preview.map((r) => ({ kind: r.kind, title: r.title, hook: r.hook, scenes: r.scenes.map((x) => `${x.caption} | ${x.shows ?? "NO SHOT"}`) })), errors: [...new Set(errors)].slice(0, 5) };
 }
 
+// News videos: one per post, no AI. The words are the post's own (headline, then its first sentences);
+// the footage is reused from that goal's existing videos, a different mix for each post.
+const NEWS_KINDS = ["advance", "solved", "setback", "bottleneck", "forgotten"];
+const NEWS_MOOD: Record<string, string> = { advance: "uplifting", solved: "uplifting", setback: "tense", bottleneck: "mysterious", forgotten: "bittersweet" };
+const NEWS_LABEL: Record<string, string> = { advance: "Step forward", solved: "Solved", setback: "Setback", bottleneck: "Bottleneck", forgotten: "Old idea" };
+async function newsMake(limit: number, days: number) {
+  const since = new Date(Date.now() - days * DAY).toISOString();
+  const posts: { id: number; goal_id: number; kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null }[] =
+    await db(`posts?kind=in.(${NEWS_KINDS.join(",")})&created_at=gte.${since}&select=id,goal_id,kind,headline,plain_headline,body,plain_body&order=created_at.desc&limit=200`);
+  const have = new Set(((await db(`reels?kind=eq.news&select=post_id`)) as { post_id: number }[]).map((x) => x.post_id));
+  const todo = posts.filter((p) => !have.has(p.id)).slice(0, limit);
+  const made: { id: number; post_id: number }[] = [];
+  for (const p of todo) {
+    const pool: Record<string, unknown>[] = [];
+    for (const r of (await db(`reels?goal_id=eq.${p.goal_id}&kind=neq.news&select=scenes`)) as { scenes: { visual?: { kind?: string; url?: string } }[] }[]) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind === "video" && R2_PUBLIC && String(v.url).startsWith(R2_PUBLIC) && !pool.some((x) => x.url === v.url)) pool.push(v); }
+    if (pool.length < 2) continue;
+    const sent = String(p.plain_body || p.body || "").match(/[^.!?]+[.!?]+(\s|$)/g)?.map((x) => x.trim()).filter((x) => x.length > 12 && x.length <= 170) ?? [];
+    const head = String(p.plain_headline || p.headline || "").trim();
+    if (!head || !sent.length) continue;
+    const pick = (k: number) => pool[(p.id * 7 + k * 5) % pool.length];
+    const scenes = [{ caption: head.length > 110 ? head.slice(0, 107).replace(/\s+\S*$/, "") + "…" : head, kicker: NEWS_LABEL[p.kind], sub: null, stat: null, layout: "top", visual: pick(0) },
+      ...sent.slice(0, 2).map((x, k) => ({ caption: x, sub: null, stat: null, layout: "bottom", visual: pick(k + 1) }))];
+    const row = (await db("reels", { method: "POST", prefer: "return=representation", body: { goal_id: p.goal_id, post_id: p.id, kind: "news", title: head.slice(0, 80), scenes, score: 0.9, mood: NEWS_MOOD[p.kind] ?? "calm" } }))[0];
+    made.push({ id: row.id, post_id: p.id });
+  }
+  // Keep the last 30 days of news videos.
+  await db(`reels?kind=eq.news&created_at=lt.${new Date(Date.now() - 30 * DAY).toISOString()}`, { method: "DELETE", prefer: "return=minimal" });
+  return { made, candidates: todo.length };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
-  if (!ADMIN || req.headers.get("x-parallax-admin") !== ADMIN) return json({ error: "not allowed" }, 403);
+  // The admin token can do everything; the render token (the GitHub job that makes news videos) only
+  // what that job needs: read our own clips, make news videos, fetch the render queue, upload, save.
+  const tok = req.headers.get("x-parallax-admin") ?? "", RENDER = Deno.env.get("RENDER_TOKEN") ?? "";
+  const isAdmin = !!ADMIN && tok === ADMIN, isRender = !isAdmin && RENDER.length >= 24 && tok === RENDER;
+  if (!isAdmin && !isRender) return json({ error: "not allowed" }, 403);
+  if (isRender && !new URL(req.url).searchParams.get("upload")) {
+    const peek = await req.clone().json().catch(() => ({}));
+    if (!["file", "news_make", "render_queue", "render_set"].includes(peek.action)) return json({ error: "not allowed" }, 403);
+  }
   // Admin: store a pre-rendered video (Watch videos rendered offline, like the Instagram Reels).
   // POST ?upload=renders/<name>.mp4 with the file as the body.
   const upPath = new URL(req.url).searchParams.get("upload");
@@ -1022,6 +1060,17 @@ Deno.serve(async (req) => {
   }
   const body = await req.json().catch(() => ({}));
   try {
+    // Admin, no AI: a short Watch video for each new post, built from the post's own words over
+    // footage already chosen for that goal's videos. Rendered offline (tools/watch-render).
+    if (body.action === "news_make") return json(await newsMake(Math.min(20, Number(body.limit) || 6), Math.min(30, Number(body.days) || 10)));
+    // Admin: the videos still waiting for a render, and saving a finished render.
+    if (body.action === "render_queue") return json(await db(`reels?select=id,kind,title,mood,scenes,render,goals!inner(slug)&kind=neq.weekly&or=(render.is.null,render->>v.neq.${Number(body.v) || 2})&order=created_at.asc&limit=${Math.min(60, Number(body.limit) || 20)}`));
+    if (body.action === "render_set" && Number.isInteger(body.reel_id) && body.render && Array.isArray(body.render.parts)) {
+      const ok = body.render.parts.every((p: { url?: string; poster?: string }) => typeof p.url === "string" && R2_PUBLIC && p.url.startsWith(`${R2_PUBLIC}/renders/`) && typeof p.poster === "string" && p.poster.startsWith(`${R2_PUBLIC}/renders/`));
+      if (!ok || body.render.parts.length > 4) return json({ error: "bad render" }, 400);
+      await db(`reels?id=eq.${body.reel_id}`, { method: "PATCH", prefer: "return=minimal", body: { render: body.render } });
+      return json({ ok: true });
+    }
     if (body.action === "batch_status") {
       const jobs = await db(`reel_jobs?status=eq.pending&select=batch_id,slug,created_at,fresh`);
       return json(await Promise.all(jobs.map(async (j: { batch_id: string; slug: string; created_at: string; fresh: boolean }) => { const b = await claude.messages.batches.retrieve(j.batch_id); return { slug: j.slug, fresh: j.fresh, created_at: j.created_at, status: b.processing_status, counts: b.request_counts }; })));
