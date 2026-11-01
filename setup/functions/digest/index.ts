@@ -1,4 +1,4 @@
-// PARALLAX digest — Supabase Edge Function named `digest`. The weekly email for Plus and Pro.
+// PARALLAX digest — Supabase Edge Function named `digest`. The weekly email for Parallax Plus subscribers.
 //
 // Every Monday (cron parallax-digest, after the weekly brief), each paying subscriber with the weekly
 // email on gets one email: the week in three lines, the ripples (Pro), new big grants (Pro), their
@@ -103,7 +103,7 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
   const soon = (t.catalysts ?? []).filter((c: { kind: string; date: string }) => c.kind === "trial" && /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-28`).getTime() - Date.now() < 125 * DAY && new Date(`${c.date}-28`).getTime() > Date.now());
   const crowd = (k: string | null) => S.counts.find((x: { key: string }) => x.key === k) ?? { yes: 0, no: 0 };
   const cotw = [...soon].sort((a, c) => (crowd(keyOf(c)).yes + crowd(keyOf(c)).no) - (crowd(keyOf(a)).yes + crowd(keyOf(a)).no))[0];
-  const home = sub.pro ? `${SITE}#/terminal` : `${SITE}#/plus`;
+  const home = `${SITE}#/plus`;
 
   // Building blocks (tables and inline styles only: they render the same in Gmail, Apple Mail and Outlook).
   const F = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif", INK = "#111214", INK2 = "#3C3F45", MUTED = "#73767E", LINE = "#ECECE9", SUNK = "#F2F2F0", ACC = "#3D4BF2", GREEN = "#14955F", RED = "#E0484E";
@@ -187,7 +187,7 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
       <td valign="top" style="padding-top:2px"><div style="font:600 14.5px/1.35 ${F};color:${INK}">${esc(c.title)}</div><div style="font:13px/1.4 ${F};color:${MUTED};margin-top:3px">@${esc(c.goal)} · ${c.kind === "trial" ? "trial readout" : "promise due"}</div></td></tr></table>`;
   }).join("")}`));
 
-  inner.push(section(`<div style="text-align:center;padding:6px 0 4px">${button(home, sub.pro ? "Open Parallax Pro →" : "Open your week →", ACC)}</div>`));
+  inner.push(section(`<div style="text-align:center;padding:6px 0 4px">${button(home, "Open Parallax Plus →", ACC)}</div>`));
   const unsub = `${FN}?action=unsub&t=${token}`;
   const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" });
   const subject = b?.headline ? `Your week: ${b.headline}` : `Your week in progress · ${date}`;
@@ -195,12 +195,12 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(subject)}</title></head>
 <body style="margin:0;background:#FAFAF9"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(pre)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAF9"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px"><tr><td style="padding:0 4px 12px;font:700 15px/1 ${F};color:${INK}">Parallax <span style="color:${MUTED};font-weight:400">${sub.pro ? "Pro" : "Plus"}</span></td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px"><tr><td style="padding:0 4px 12px;font:700 15px/1 ${F};color:${INK}">Parallax <span style="color:${MUTED};font-weight:400">Plus</span></td></tr></table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#FFFFFF;border:1px solid ${LINE};border-radius:18px">
 ${blocks.join("")}
 <tr><td style="padding:0 28px 30px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${inner.join("")}</table></td></tr>
 </table>
-<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax ${sub.pro ? "Pro" : "Plus"}. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a> · <a href="${SITE}#/privacy" style="color:${MUTED}">Privacy</a>${ADDRESS ? `<br>Parallax · ${esc(ADDRESS)}` : ""}</p>
+<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax Plus. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a> · <a href="${SITE}#/privacy" style="color:${MUTED}">Privacy</a>${ADDRESS ? `<br>Parallax · ${esc(ADDRESS)}` : ""}</p>
 </td></tr></table></body></html>`;
   return { subject, html, unsub };
 }
