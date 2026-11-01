@@ -13,7 +13,7 @@ ANON = open(os.environ['PARALLAX_ANON_FILE']).read().strip(); ADMIN = open(os.en
 FN = 'https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/reels'
 MGMT = 'https://api.supabase.com/v1/projects/zfmjjazkmolvywvayjzj/database/query'
 W, H, FPS, X = 720, 1280, 30, 0.6
-VERSION = 3  # 3: standalone short videos with motion graphics (mg.html), beat-timed cuts and zoom punches
+VERSION = 4  # 4: the earlier look, shorter, with a second shot inside each scene
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 UPLOAD = '--no-upload' not in sys.argv
 
@@ -43,10 +43,17 @@ def layouts(scenes, seed):
 
 def words(s): return len(re.sub(r'\s+', ' ', ' '.join(str(s.get(k) or '') for k in ('kicker', 'caption', 'sub'))).split())
 def dur(s, i, n, ly):
-    d = 1.6 + 0.2 * words(s)
-    if ly == 'stat': d += 0.5
-    if i == n - 1: d += 0.8
-    return round(min(max(d, 3.4), 5.4), 2)
+    d = 1.3 + 0.17 * words(s)
+    if ly == 'stat': d += 0.4
+    if i == n - 1: d += 0.5
+    return round(min(max(d, 3.0), 4.6), 2)
+
+POOL = {}  # goal slug -> footage URLs from all its videos, for the second shot in each scene
+def second_shot(slug, used, k):
+    opts = [u for u in POOL.get(slug, []) if u not in used]
+    if not opts: return None
+    u = opts[(hue(slug) + k * 7) % len(opts)]; used.add(u)
+    return fetch(u, f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', u.split('r2.dev/')[-1])}")
 
 def fetch(url, dest):
     if os.path.exists(dest) and os.path.getsize(dest) > 2000: return dest
@@ -88,14 +95,11 @@ def render(r):
     if UPLOAD: sql(f"update reels set render = '{json.dumps(rec).replace(chr(39), chr(39) * 2)}'::jsonb where id = {int(rid)}")
     return {'parts': len(parts), 'durs': [p['dur'] for p in parts]}
 
-ACCENTS = ['#C9CCFF', '#9CF0D8', '#FFD48A', '#FFB3C7', '#A8E1FF', '#D6C2FF']
-
 def render_clip(r, scenes, tag, seed):
     rid, slug = seed, r['slug']; n = len(scenes)
     lays = layouts(scenes, hue(str(rid)))
-    bpm = 112 + hue(slug) % 5 * 4; beat = 60 / bpm
-    # scene lengths snap to the beat, so every cut lands on a kick
-    durs = [max(6, round(dur(s, i, n, lays[i]) / beat)) * beat for i, s in enumerate(scenes)]
+    used = {(s.get('visual') or {}).get('url') for s in scenes}
+    durs = [dur(s, i, n, lays[i]) for i, s in enumerate(scenes)]
     # 1. footage for every scene
     media = []
     for i, s in enumerate(scenes):
@@ -106,75 +110,89 @@ def render_clip(r, scenes, tag, seed):
         elif v.get('kind') == 'anim':
             kind = str(v.get('url', 'anim:dna')).split(':')[-1]; hh = (hue(slug + str(rid)) + 200) % 360
             f = f'{WR}/anim/{kind}-{hh}.webm'
-            if not os.path.exists(f): sh(['node', f'{CODE}/animrec.js', kind, str(hh), f])
+            if not os.path.exists(f):
+                os.makedirs(f'{WR}/anim', exist_ok=True)
+                sh(['node', f'{CODE}/animrec.js', kind, str(hh), f])
             media.append(('video', f))
         else:
             media.append(('image', fetch(v.get('url') or v.get('poster'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', str(v.get('url')).split('/')[-1])[:80]}")))
-    # 2. footage with a zoom punch on every cut, then a slow drift
-    XC = 0.12; segs = []
-    for i in range(n):
-        D = durs[i] + (XC if i < n - 1 else 0); kind, f = media[i]
+    # 2. text layers
+    jobs = []
+    for i, s in enumerate(scenes):
+        s2 = dict(s); m = STAMP.match(str(s.get('caption') or ''))
+        if lays[i] == 'stamp' and m: s2['stampWord'] = m.group(1); rest = s['caption'][m.end():]; s2['caption'] = rest[:1].upper() + rest[1:]
+        for L in ('bg', 'A', 'B'): jobs.append([f'{WR}/ov/{tag}-{i}-{L}.png', {'s': s2, 'lay': lays[i], 'layer': L}])
+    jf = f'{WR}/ov/{tag}.json'; json.dump(jobs, open(jf, 'w'))
+    sh(['node', f'{CODE}/ov.js', jf])
+    # 3. scenes with camera motion; the text arrives just after each crossfade
+    segs = []
+    for i, s in enumerate(scenes):
+        D = durs[i] + (X if i < n - 1 else 0); kind, f = media[i]
         cover = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}'
-        drift = ['0.07*t/{D}', '-0.05*t/{D}'][(hue(str(rid)) + i) % 2].format(D=D)
-        z = f'(1.06+0.13*exp(-t*7)+{drift})'
-        bg = f"{cover},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,crop={W}:{H}"
-        vf = f"[0:v]{bg},eq=brightness=-0.02:saturation=1.15:contrast=1.06,fps={FPS},setsar=1,format=yuv420p"
-        out = f'{WR}/out/{tag}-{i}.mp4'
+        def move(mo, d):
+            if mo in ('zin', 'zout'):
+                z = f'(1+0.13*t/{d:.2f})' if mo == 'zin' else f'(1.13-0.13*t/{d:.2f})'
+                return f"{cover},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,crop={W}:{H}"
+            sg = '+' if mo == 'panr' else '-'
+            return f"scale={int(W*1.18)}:{int(H*1.18)}:force_original_aspect_ratio=increase,crop={W}:{H}:x='(iw-ow)/2{sg}(iw-ow)/2*0.9*(2*t/{d:.2f}-1)':y='(ih-oh)/2'"
+        mos = ['zin', 'panr', 'zout', 'panl']; mo = mos[(hue(str(rid)) + i) % 4]
+        f2 = second_shot(slug, used, i) if kind == 'video' and D > 3.2 else None
+        Da = round(D * 0.55, 3) if f2 else D
+        ta = 0.35 if i else 0.15; tb = ta + (0.75 if lays[i] == 'stat' else 0.9)
+        look = f"eq=brightness=-0.02:saturation=1.1:contrast=1.04,fps={FPS},setsar=1"
+        if f2:
+            Db = round(D - Da, 3); mo2 = mos[(mos.index(mo) + 2) % 4]
+            head = (f"[0:v]{move(mo, Da)},trim=duration={Da},setpts=PTS-STARTPTS,{look}[va];"
+                    f"[4:v]{move(mo2, Db)},trim=duration={Db},setpts=PTS-STARTPTS,{look}[vb];[va][vb]concat=n=2:v=1:a=0[v];")
+        else:
+            head = f"[0:v]{move(mo, D)},{look}[v];"
+        vf = (head +
+              f"[1:v]scale={W}:{H},format=rgba[s];[2:v]scale={W}:{H},format=rgba,fade=in:st={ta}:d=0.5:alpha=1[a];[3:v]scale={W}:{H},format=rgba,fade=in:st={tb:.2f}:d=0.5:alpha=1[b];"
+              f"[v][s]overlay=0:0[v1];[v1][a]overlay=x=0:y='max(0,18-18*min(1,max(0,(t-{ta})/0.5)))'[v2];[v2][b]overlay=x=0:y='max(0,12-12*min(1,max(0,(t-{tb:.2f})/0.5)))',format=yuv420p")
+        out = f'{WR}/out/{tag}-{i}.mp4'; pre = f'{WR}/ov/{tag}-{i}-'
         src = ['-f', 'lavfi', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not f else (['-ss', '0.4', '-stream_loop', '-1', '-i', f] if kind == 'video' else ['-loop', '1', '-i', f])
-        sh(['ffmpeg', '-y', '-v', 'error', *src, '-t', f'{D:.3f}', '-filter_complex', vf, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-r', str(FPS), out])
+        sh(['ffmpeg', '-y', '-v', 'error', *src, '-loop', '1', '-i', pre + 'bg.png', '-loop', '1', '-i', pre + 'A.png', '-loop', '1', '-i', pre + 'B.png',
+            *(['-ss', '0.4', '-stream_loop', '-1', '-i', f2] if f2 else []),
+            '-t', f'{D:.2f}', '-filter_complex', vf, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-r', str(FPS), out])
         segs.append((out, D))
+    # 4. one continuous piece: crossfades between every scene
     inputs = []; [inputs.extend(['-i', p]) for p, _ in segs]
     fc = ''; prev = '[0:v]'; off = 0.0; starts = [0.0]
     for j in range(1, n):
-        off += segs[j - 1][1] - XC; starts.append(off); lab = f'[v{j}]'
-        fc += f'{prev}[{j}:v]xfade=transition=fade:duration={XC}:offset={off:.3f}{lab};'; prev = lab
+        off += segs[j - 1][1] - X; starts.append(off); lab = f'[v{j}]'
+        fc += f'{prev}[{j}:v]xfade=transition=fade:duration={X}:offset={off:.3f}{lab};'; prev = lab
     total = off + segs[-1][1]
-    foot = f'{WR}/out/{tag}-foot.mp4'
-    sh(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', fc.rstrip(';') if fc else 'null', '-map', prev if fc else '0:v', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-pix_fmt', 'yuv420p', foot])
-    # 3. the motion-graphics layer, drawn frame by frame
-    sc = []
-    for i, s0 in enumerate(scenes):
-        s2 = dict(s0); m = STAMP.match(str(s0.get('caption') or ''))
-        if lays[i] == 'stamp' and m: s2['stampWord'] = m.group(1); rest = s0['caption'][m.end():]; s2['caption'] = rest[:1].upper() + rest[1:]
-        end = starts[i + 1] if i < n - 1 else total
-        sc.append({'s': s2, 'lay': lays[i], 'start': round(starts[i], 3), 'dur': round(end - starts[i], 3), 'last': i == n - 1, 'first': i == 0})
-    acc = ACCENTS[hue(slug) % len(ACCENTS)]
-    spec = f'{WR}/ov/{tag}.json'; json.dump({'scenes': sc, 'acc': acc}, open(spec, 'w'))
-    frames = f'{WR}/ov/{tag}-f'; shutil.rmtree(frames, ignore_errors=True)
-    sh(['node', f'{CODE}/mg.js', spec, frames, str(FPS), f'{total:.3f}'])
     video = f'{WR}/out/{tag}-v.mp4'
-    sh(['ffmpeg', '-y', '-v', 'error', '-i', foot, '-framerate', str(FPS), '-i', f'{frames}/%05d.png', '-filter_complex', '[0:v][1:v]overlay=0:0:eof_action=pass,format=yuv420p', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', video])
-    shutil.rmtree(frames, ignore_errors=True)
-    # 4. the score: a driving beat from the first frame, hits on the cuts
-    cuts = starts[1:]
-    cfg = dict(style='pulse', drive=True, bpm=bpm, bright=0.75 + (hue(slug + 'b') % 4) * 0.08, sweep=False)
+    sh(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', fc.rstrip(';') if fc else 'null', '-map', prev if fc else '0:v', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', video])
+    # 5. the score, timed to the crossfades
+    cuts = [s0 + X / 2 for s0 in starts[1:]]
+    cfg = dict(STYLE.get(r.get('mood') or '', STYLE['mysterious']))
     cfg['key'] = 48 + hue(str(rid) + slug) % 9; base = PROGS[hue(slug) % 3]; cfg['prog'] = [base[i % len(base)] for i in range(n)]
     mix, _ = score3.render(cuts, total, cfg, hue(str(rid)) or 7)
     wav = f'{WR}/out/{tag}.wav'; score3.write(mix, wav)
     final = f'{WR}/final/{tag}-v{VERSION}.mp4'
-    sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-maxrate', '2800k', '-bufsize', '5600k', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', final])
+    sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '24', '-maxrate', '2600k', '-bufsize', '5200k', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', final])
     poster = final.replace('.mp4', '.jpg')
-    sh(['ffmpeg', '-y', '-v', 'error', '-ss', '1.6', '-i', final, '-frames:v', '1', '-q:v', '4', poster])
+    sh(['ffmpeg', '-y', '-v', 'error', '-ss', '0.9', '-i', final, '-frames:v', '1', '-q:v', '4', poster])
     for p, _ in segs: os.remove(p)
-    for p in (foot, video, wav): os.remove(p)
+    os.remove(video); os.remove(wav)
     info = {'dur': round(total, 2), 'starts': [round(x, 2) for x in starts]}
     if UPLOAD:
         urls = {}
         for p in (final, poster):
             name = 'renders/' + os.path.basename(p)
-            res = None
-            for attempt in range(3):  # the upload occasionally answers with an empty body: try again
-                try:
-                    res = json.loads(sh(['curl', '-s', '-X', 'POST', f'{FN}?upload={name}', '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/octet-stream', '--data-binary', '@' + p]).stdout)
-                    if 'url' in res: break
-                except Exception: pass
-            if not res or 'url' not in res: raise RuntimeError(f'upload failed: {res}')
+            res = json.loads(sh(['curl', '-s', '-X', 'POST', f'{FN}?upload={name}', '-H', f'Authorization: Bearer {ANON}', '-H', f'x-parallax-admin: {ADMIN}', '-H', 'content-type: application/octet-stream', '--data-binary', '@' + p]).stdout)
+            if 'url' not in res: raise RuntimeError(f'upload failed: {res}')
             urls[p.rsplit('.', 1)[1]] = res['url']
         info.update({'url': urls['mp4'], 'poster': urls['jpg']})
     return info
 
 if __name__ == '__main__':
     rows = sql("select r.id, g.slug, r.kind, r.title, r.mood, r.scenes, r.render from reels r join goals g on g.id = r.goal_id order by g.slug, r.id")
+    for r0 in rows:
+        for sc0 in r0['scenes'] or []:
+            v0 = sc0.get('visual') or {}
+            if v0.get('kind') == 'video' and 'r2.dev/' in str(v0.get('url')) and v0['url'] not in POOL.setdefault(r0['slug'], []): POOL[r0['slug']].append(v0['url'])
     part = next((x for x in sys.argv if x.startswith('--part=')), None)  # --part=i/n splits the goals between processes
     if args == ['all'] or not args:
         rows = [r for r in rows if r.get('kind') != 'weekly' and not (r.get('render') or {}).get('v') == VERSION]
