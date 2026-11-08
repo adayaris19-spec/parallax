@@ -1,9 +1,8 @@
 // PARALLAX digest — Supabase Edge Function named `digest`. The weekly email for Parallax Plus subscribers.
 //
 // Every Monday (cron parallax-digest, after the weekly brief), each paying subscriber with the weekly
-// email on gets one email: the week in three lines, the ripples (Pro), new big grants (Pro), their
-// calls that were settled, and what's coming up. Goals they watch (Pro watchlist) or get alerts for
-// come first. No AI here: it reuses the terminal function's data.
+// email on gets one email: the week in 30 seconds, what moved, what to watch, ripples between goals
+// and what's coming up. Goals they watch or get alerts for come first. No AI here: it reuses the terminal function's data.
 //
 // Sending uses Resend (secret RESEND_API_KEY; sender DIGEST_FROM, default Resend's test sender, which
 // can only send to the Resend account's own address until a domain is verified).
@@ -78,31 +77,21 @@ async function shared() {
 type Sub = { user_id: string; email: string; pro: boolean };
 async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: string) {
   const { t, picOf } = S, since = Date.now() - 7 * DAY;
-  const [wl, pushes, calls, all] = await Promise.all([
+  const [wl, pushes] = await Promise.all([
     db(`watchlists?user_id=eq.${sub.user_id}&select=goals`).catch(() => []),
     db(`push_subscriptions?user_id=eq.${sub.user_id}&select=goals`).catch(() => []),
-    db(`predictions?user_id=eq.${sub.user_id}&select=key,choice`).catch(() => []),
-    db("prediction_results?select=key,outcome").catch(() => []),
   ]);
-  // Goals this person cares about (Pro watchlist, alert goals) come first everywhere.
+  // Goals this person watches or gets alerts for come first everywhere.
   const mine = new Set<string>([...(wl[0]?.goals ?? []), ...pushes.flatMap((p: { goals: string[] }) => p.goals ?? [])]);
   // deno-lint-ignore no-explicit-any
   const first = (arr: any[]): any[] => [...arr].sort((a, b) => Number(mine.has(b.from?.slug ?? b.slug)) - Number(mine.has(a.from?.slug ?? a.slug)));
   const slugOfHandle = (h: string) => (t.goals ?? []).find((g: { handle: string }) => g.handle === String(h ?? "").replace(/^@/, ""))?.slug;
   const b = t.brief;
   const allRipples = first((t.crossovers?.ripples ?? []).filter((r: { at: string }) => new Date(r.at).getTime() >= since));
-  const ripples = sub.pro ? allRipples.slice(0, 3) : allRipples.slice(0, 1); // Plus: the ripple of the week
-  const grants = sub.pro ? first((t.money?.awards ?? []).filter((a: { first_seen: string }) => new Date(a.first_seen).getTime() >= since)) : [];
+  const ripples = allRipples.slice(0, 3);
   const nextUp = first(t.catalysts ?? []).slice(0, 3);
-  const settled = calls.map((c: { key: string; choice: string }) => ({ ...c, r: S.results.find((x: { key: string }) => x.key === c.key), q: S.questions.find((x: { key: string }) => x.key === c.key) })).filter((c: { r: unknown; q: unknown }) => c.r && c.q);
-  const judged = calls.filter((c: { key: string }) => all.some((r: { key: string; outcome: string }) => r.key === c.key && r.outcome !== "void"));
-  const right = judged.filter((c: { key: string; choice: string }) => all.find((r: { key: string }) => r.key === c.key)?.outcome === c.choice).length;
-  // Call of the week: a trial readout due in the next ~4 months most people have called, else the next one.
-  const myKeys = new Set(calls.map((c: { key: string }) => c.key));
-  const keyOf = (c: { kind: string; url: string | null; title: string }) => (c.kind === "trial" ? `trial:${String(c.url ?? "").split("/").pop()}` : null);
-  const soon = (t.catalysts ?? []).filter((c: { kind: string; date: string }) => c.kind === "trial" && /^\d{4}-\d{2}$/.test(c.date) && new Date(`${c.date}-28`).getTime() - Date.now() < 125 * DAY && new Date(`${c.date}-28`).getTime() > Date.now());
-  const crowd = (k: string | null) => S.counts.find((x: { key: string }) => x.key === k) ?? { yes: 0, no: 0 };
-  const cotw = [...soon].sort((a, c) => (crowd(keyOf(c)).yes + crowd(keyOf(c)).no) - (crowd(keyOf(a)).yes + crowd(keyOf(a)).no))[0];
+  const firstGoal = (arr: { goal: string }[]) => [...arr].sort((x, y) => Number(mine.has(slugOfHandle(y.goal) ?? "")) - Number(mine.has(slugOfHandle(x.goal) ?? "")));
+  const moved = firstGoal(b?.moved ?? []).slice(0, 4), watch = firstGoal(b?.watch ?? []).slice(0, 2);
   const home = `${SITE}#/plus`;
 
   // Building blocks (tables and inline styles only: they render the same in Gmail, Apple Mail and Outlook).
@@ -124,74 +113,41 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
 
   const inner: string[] = [];
   // 2. The week in numbers.
-  const stats = [
-    sub.pro ? [String(allRipples.length), "ripples"] : null,
-    sub.pro ? [String(grants.length), "new $1M+ grants"] : null,
-    sub.pro && grants.length ? [usd(grants.reduce((s2: number, a: { amount: number }) => s2 + a.amount, 0)), "in new grants"] : null,
-    [String(calls.length), calls.length === 1 ? "call made" : "calls made"],
-    judged.length ? [`${right}/${judged.length}`, "called right"] : null,
-    [String((t.catalysts ?? []).length), "coming up"],
-  ].filter(Boolean).slice(0, 4) as string[][];
+  const stats = [[String(b?.moved?.length ?? 0), "big moves"], [String(allRipples.length), allRipples.length === 1 ? "ripple" : "ripples"], [String(b?.watch?.length ?? 0), "to watch"], [String((t.catalysts ?? []).length), "coming up"]];
   inner.push(section(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${SUNK};border-radius:14px"><tr>${stats.map(([n, l], i) => `<td align="center" style="padding:14px 6px;${i ? `border-left:1px solid ${LINE};` : ""}"><div style="font:800 24px/1.1 ${F};color:${INK}">${esc(n)}</div><div style="font:12px/1.3 ${F};color:${MUTED};margin-top:4px">${esc(l)}</div></td>`).join("")}</tr></table>`));
 
-  // 3. Call of the week.
-  if (cotw) {
-    const k = keyOf(cotw), n = crowd(k), tot = n.yes + n.no, yes = tot ? Math.round(n.yes / tot * 100) : 0, phase = (String(cotw.detail ?? "").match(/Phase [0-9/ Phase]+/) ?? ["Phase 2"])[0].trim();
-    const done = k && myKeys.has(k);
-    inner.push(section(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #C8CCFA;border-radius:16px;background:#F4F5FF"><tr><td style="padding:18px 20px">
-      ${label(`Call of the week · results due ${esc(month(cotw.date))}`, ACC)}
-      <div style="font:700 19px/1.3 ${F};color:${INK}">Will this ${esc(phase)} trial meet its main goal?</div>
-      <div style="font:13.5px/1.45 ${F};color:${MUTED};margin:6px 0 14px">${esc(cotw.title)} · @${esc(cotw.goal)}</div>
-      ${tot ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;overflow:hidden"><tr><td width="${Math.max(yes, 1)}%" style="background:${GREEN};height:8px;font-size:0;line-height:0">&nbsp;</td><td width="${Math.max(100 - yes, 1)}%" style="background:${RED};height:8px;font-size:0;line-height:0">&nbsp;</td></tr></table><div style="font:12.5px/1.4 ${F};color:${MUTED};margin:6px 0 14px">${yes}% say yes · ${tot} call${tot === 1 ? "" : "s"}</div>` : `<div style="font:12.5px/1.4 ${F};color:${MUTED};margin:0 0 14px">Nobody has called it yet. Be the first.</div>`}
-      ${done ? `<div style="font:600 14px/1.4 ${F};color:${INK2}">You’ve made your call. <a href="${SITE}#/plus" style="color:${ACC}">See it →</a></div>` : `${button(`${SITE}#/plus`, "Yes", GREEN)}&nbsp;&nbsp;${button(`${SITE}#/plus`, "No", RED)}`}
-      </td></tr></table>`));
-  }
+  // 3. What moved, and what to watch (the weekly brief), each with its goal's picture.
+  const items = (arr: { goal: string; short?: string; text: string }[], tag: string, bg: string, color: string) => arr.map((m) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
+      <td width="52" valign="top" style="padding:14px 0">${avatar(slugOfHandle(m.goal))}</td>
+      <td valign="top" style="padding:14px 0">${chip(tag, bg, color)} <span style="font:600 12px/1 ${F};color:${MUTED}">${esc(m.goal)}</span>
+        <div style="font:600 16px/1.35 ${F};color:${INK};margin:8px 0 4px">${esc(m.short ?? "")}</div><div style="font:13.5px/1.5 ${F};color:${INK2}">${esc(m.text)}</div></td></tr></table>`).join("");
+  if (moved.length) inner.push(section(`${label("What moved")}${items(moved, "Moved", "#E8F5EE", GREEN)}`));
+  if (watch.length) inner.push(section(`${label("Worth watching")}${items(watch, "Watch", "#FFF4E0", "#B26A00")}`));
 
   // 4. Ripples, with goal pictures.
-  if (ripples.length) inner.push(section(`${label(sub.pro ? `Ripples · moves that reached another goal` : "Ripple of the week")}${ripples.map((r: { headline: string; post?: number; kind: string; from: { goal: string; slug: string }; affects: { goal: string; slug: string; title: string }[] }) => {
+  if (ripples.length) inner.push(section(`${label("Ripples · moves that reached another goal")}${ripples.map((r: { headline: string; kind: string; from: { goal: string; slug: string }; affects: { goal: string; slug: string; title: string }[] }) => {
     const to = [...new Map(r.affects.map((a) => [a.goal, a])).values()].slice(0, 2);
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
       <td width="52" valign="top" style="padding:14px 0">${avatar(r.from.slug)}</td>
       <td valign="top" style="padding:14px 0">${chip(r.kind === "grant" ? "Big grant" : r.kind === "setback" ? "Setback" : r.kind === "bottleneck" ? "Bottleneck" : "Advance", r.kind === "setback" ? "#FDECEC" : r.kind === "grant" ? "#EEF0FF" : "#E8F5EE", r.kind === "setback" ? RED : r.kind === "grant" ? ACC : GREEN)}
-        <div style="font:600 16px/1.35 ${F};color:${INK};margin:8px 0 6px">${r.post ? `<a href="${SITE}#/p/${r.post}" style="color:${INK};text-decoration:none">${esc(r.headline)}</a>` : esc(r.headline)}</div>
+        <div style="font:600 16px/1.35 ${F};color:${INK};margin:8px 0 6px"><a href="${SITE}#/plus/crossovers" style="color:${INK};text-decoration:none">${esc(r.headline)}</a></div>
         <div style="font:13.5px/1.45 ${F};color:${MUTED}">@${esc(r.from.goal)} <span style="color:${ACC}">→</span> also moves ${to.map((a) => `<b style="color:${INK2}">@${esc(a.goal)}</b>`).join(" and ")}</div></td>
       <td width="${to.length * 30 + 6}" valign="top" align="right" style="padding:14px 0 0 8px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>${to.map((a) => `<td style="padding-left:4px">${avatar(a.slug, 26)}</td>`).join("")}</tr></table></td></tr></table>`;
   }).join("")}`));
 
-  // 5. Money (Pro): a small bar chart of funding by goal, then the biggest new grants.
-  if (sub.pro && t.money?.goals?.length) {
-    const top = (t.money.goals as { goal: string; slug: string; last4: number; change: number | null }[]).filter((g) => g.last4 > 0).slice(0, 5), max = Math.max(1, ...top.map((g) => g.last4));
-    inner.push(section(`${label("Federal grant money, last 12 months")}${top.map((g) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px"><tr>
-      <td width="34" valign="middle">${avatar(g.slug, 26)}</td><td width="128" valign="middle" style="font:600 13px/1.2 ${F};color:${INK}">@${esc(g.goal)}</td>
-      <td valign="middle"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td width="${Math.max(2, Math.round(g.last4 / max * 100))}%" style="background:${mine.has(g.slug) ? ACC : INK};height:12px;border-radius:4px;font-size:0;line-height:0">&nbsp;</td><td style="font-size:0">&nbsp;</td></tr></table></td>
-      <td width="64" align="right" valign="middle" style="font:600 13px/1 ${F};color:${INK}">${usd(g.last4)}</td>
-      <td width="52" align="right" valign="middle" style="font:600 12px/1 ${F};color:${g.change == null ? MUTED : g.change > 0 ? GREEN : RED}">${g.change == null ? "—" : `${g.change > 0 ? "▲" : "▼"}${Math.round(Math.abs(g.change) * 100)}%`}</td></tr></table>`).join("")}
-      ${grants.length ? `<div style="margin-top:16px">${grants.slice(0, 3).map((a: { amount: number; recipient: string; goal: string; slug: string; title: string }) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
-        <td width="86" valign="top" style="padding:12px 0;font:800 18px/1.2 ${F};color:${INK}">${usd(a.amount)}</td>
-        <td valign="top" style="padding:12px 0"><div style="font:600 14px/1.35 ${F};color:${INK}">${esc(a.recipient)}</div><div style="font:13px/1.45 ${F};color:${MUTED}">@${esc(a.goal)} · ${esc((() => { const x = calm(a.title); return x.length > 90 ? `${x.slice(0, 88).replace(/\s+\S*$/, "")}…` : x; })())}</div></td></tr></table>`).join("")}</div>` : ""}`));
-  }
-
-  // 6. Your calls, settled this week.
-  if (settled.length) inner.push(section(`${label("Your calls, settled")}${settled.map((c: { choice: string; r: { outcome: string; note: string }; q: { title: string; question: string } }) => {
-    const ok = c.r.outcome === c.choice, none = c.r.outcome === "void";
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE}"><tr>
-      <td width="44" valign="top" style="padding:14px 0"><div style="width:32px;height:32px;border-radius:50%;background:${none ? SUNK : ok ? "#E8F5EE" : "#FDECEC"};color:${none ? MUTED : ok ? GREEN : RED};font:700 16px/32px ${F};text-align:center">${none ? "–" : ok ? "✓" : "✗"}</div></td>
-      <td valign="top" style="padding:14px 0"><div style="font:600 15px/1.35 ${F};color:${INK}">${none ? "No result" : ok ? "You called it" : "Not this time"}: ${esc(c.q.question)}</div><div style="font:13px/1.45 ${F};color:${MUTED};margin-top:3px">${esc(c.q.title)}. ${esc(c.r.note ?? "")}</div></td></tr></table>`;
-  }).join("")}`));
-
-  // 7. Coming up, as date tiles.
+  // 5. Coming up, as date tiles.
   if (nextUp.length) inner.push(section(`${label("Coming up")}${nextUp.map((c: { date: string; title: string; goal: string; kind: string }) => {
     const d = /^\d{4}-\d{2}$/.test(c.date) ? new Date(`${c.date}-15`) : null;
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px"><tr>
-      <td width="64" valign="top"><table role="presentation" width="52" cellpadding="0" cellspacing="0" style="border:1px solid ${LINE};border-radius:10px;overflow:hidden"><tr><td align="center" style="background:${ACC};color:#FFFFFF;font:700 10px/1 ${F};letter-spacing:.08em;padding:5px 0">${d ? d.toLocaleDateString("en-US", { month: "short" }).toUpperCase() : "DUE"}</td></tr><tr><td align="center" style="font:800 17px/1 ${F};color:${INK};padding:8px 0">’${d ? String(d.getFullYear()).slice(2) : esc(c.date).slice(2)}</td></tr></table></td>
+      <td width="64" valign="top"><table role="presentation" width="52" cellpadding="0" cellspacing="0" style="border:1px solid ${LINE};border-radius:10px;overflow:hidden"><tr><td align="center" style="background:${ACC};color:#FFFFFF;font:700 10px/1 ${F};letter-spacing:.08em;padding:5px 0">${d ? d.toLocaleDateString("en-US", { month: "short" }).toUpperCase() : "SOON"}</td></tr><tr><td align="center" style="font:800 16px/1 ${F};color:${INK};padding:7px 0">${d ? d.getFullYear() : ""}</td></tr></table></td>
       <td valign="top" style="padding-top:2px"><div style="font:600 14.5px/1.35 ${F};color:${INK}">${esc(c.title)}</div><div style="font:13px/1.4 ${F};color:${MUTED};margin-top:3px">@${esc(c.goal)} · ${c.kind === "trial" ? "trial readout" : "promise due"}</div></td></tr></table>`;
-  }).join("")}`));
+  }).join("")}<div style="font:13px/1.4 ${F};margin-top:4px"><a href="${SITE}#/plus/calendar" style="color:${ACC}">The full calendar →</a></div>`));
 
   inner.push(section(`<div style="text-align:center;padding:6px 0 4px">${button(home, "Open Parallax Plus →", ACC)}</div>`));
   const unsub = `${FN}?action=unsub&t=${token}`;
   const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" });
   const subject = b?.headline ? `Your week: ${b.headline}` : `Your week in progress · ${date}`;
-  const pre = `${sub.pro ? `${allRipples.length} ripples, ${grants.length} new big grants` : "Your call of the week"}, and what's coming up.`;
+  const pre = `${b?.moved?.length ?? 0} big moves, ${allRipples.length} ripples between goals, and what's coming up.`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(subject)}</title></head>
 <body style="margin:0;background:#FAFAF9"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(pre)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAF9"><tr><td align="center" style="padding:24px 12px">
@@ -200,7 +156,7 @@ async function build(sub: Sub, S: Awaited<ReturnType<typeof shared>>, token: str
 ${blocks.join("")}
 <tr><td style="padding:0 28px 30px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${inner.join("")}</table></td></tr>
 </table>
-<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax Plus. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/${sub.pro ? "terminal/calendar" : "plus"}" style="color:${MUTED}">Email settings</a> · <a href="${SITE}#/privacy" style="color:${MUTED}">Privacy</a>${ADDRESS ? `<br>Parallax · ${esc(ADDRESS)}` : ""}</p>
+<p style="max-width:560px;font:12px/1.55 ${F};color:#A3A6AD;margin:16px auto 0;text-align:center">You get this because you subscribe to Parallax Plus. One email a week, on Mondays.<br><a href="${unsub}" style="color:${MUTED}">Unsubscribe</a> · <a href="${SITE}#/settings" style="color:${MUTED}">Email settings</a> · <a href="${SITE}#/privacy" style="color:${MUTED}">Privacy</a>${ADDRESS ? `<br>Parallax · ${esc(ADDRESS)}` : ""}</p>
 </td></tr></table></body></html>`;
   return { subject, html, unsub };
 }
