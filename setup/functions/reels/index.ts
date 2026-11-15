@@ -1010,34 +1010,77 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
   return { slug, terms: extra.terms, candidates: extra.candidates, approved: shots.length, reels: preview.map((r) => ({ kind: r.kind, title: r.title, hook: r.hook, scenes: r.scenes.map((x) => `${x.caption} | ${x.shows ?? "NO SHOT"}`) })), errors: [...new Set(errors)].slice(0, 5) };
 }
 
-// News videos: one per post, no AI. The words are the post's own (headline, then its first sentences);
-// the footage is reused from that goal's existing videos, a different mix for each post.
+// Short videos in the style of Parallax's Instagram Reels: a hook, what happened, the number that
+// matters, the catch, and the payoff. Written by a mid-priced model from the goal's own facts, over
+// footage already chosen for that goal's videos. Used for news (one per new post) and to rewrite each
+// older video into two full standalone ones.
+const SHORTS_MODEL = Deno.env.get("SHORTS_MODEL") ?? "claude-sonnet-5-5";
+const Shorts = z.object({ videos: z.array(z.object({ title: z.string(), mood: z.enum(["tense", "uplifting", "epic", "mysterious", "bittersweet", "calm"]),
+  scenes: z.array(z.object({ caption: z.string(), sub: z.string().nullable(), kicker: z.string().nullable(), stat: z.object({ value: z.string(), label: z.string() }).nullable(), clip: z.number().int() })) })) });
+const SHORTS_SYSTEM = `You write short vertical videos in the style of Instagram Reels for Parallax, which follows humanity's biggest goals. Captions only, no voice, over footage.
+The aim: leave the viewer excited about the goal: why it matters, how close we are, what is at stake. Inspire without overselling.
+Use ONLY the facts given. Never invent numbers, names, dates or events; every number on screen must appear in the facts. No claims beyond the facts either (not "takes forever", "everyone", "the first ever") unless the facts say so.
+Each video: 4 or 5 scenes (15-20 seconds), one clear story:
+1. Hook: stops the scroll in 2 seconds with a surprising number, a stark contrast, a broken promise or a sharp question. At most 9 words. Never open with the goal's name or a definition.
+2. What happened, concretely: who, what, the result.
+3. The number that matters, as a stat: value of at most 8 characters (like "14 mo", "47%", "263M", "1,200") and a short label; the caption says what it means. The number must belong to this story (a result, a size, a time, a count from the story itself). If the story has no fitting number, make this scene another concrete fact instead, with no stat. Never pad with field-wide totals such as paper counts.
+4. The catch: what still stands in the way, honestly (often the goal's biggest bottleneck).
+5. The payoff: what reaching the goal would change for real people, concrete and inspiring (like "If it works: no more daily insulin."). Never ask anyone to donate, buy, click or follow.
+Style: caption at most 60 characters, sub at most 90 (optional), plain words, active verbs. No hype words (revolutionary, game-changer, breakthrough of the century), no emoji, no hashtags.
+You may start one caption with a stamp word and a colon, which slams onto the screen: "Breaking:", "Setback:", "Missed:", "The catch:" or "Fact:". A kicker is a tiny label above a caption (a year, a place, "The catch"); optional.
+Clips: give each scene a different clip number from the list, matching what the scene says when possible.`;
+async function clipPool(goalId: number) {
+  const seen = new Set<string>(), urls: Record<string, unknown>[] = [];
+  for (const r of (await db(`reels?goal_id=eq.${goalId}&select=scenes`)) as { scenes: { visual?: { kind?: string; url?: string } }[] }[]) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind === "video" && R2_PUBLIC && String(v.url).startsWith(R2_PUBLIC) && !seen.has(String(v.url))) { seen.add(String(v.url)); urls.push(v as Record<string, unknown>); } }
+  const desc = urls.length ? await db(`visuals?url=in.(${urls.map((v) => `"${v.url}"`).join(",")})&select=url,caption,query`).catch(() => []) : [];
+  return urls.map((v, i) => ({ i, v, d: (() => { const x = (desc as { url: string; caption: string | null; query: string | null }[]).find((y) => y.url === v.url); return String(x?.query || x?.caption || "footage").slice(0, 90); })() }));
+}
+// deno-lint-ignore no-explicit-any
+async function writeShorts(g: any, task: string, count: number) {
+  const pool = await clipPool(g.id);
+  if (pool.length < 3) return { error: "too little footage" };
+  const { facts } = await goalFacts(g, true);
+  const why = g.why?.today ? `\nWHY IT MATTERS: ${g.why.today} If it is solved: ${(g.why.changes ?? []).join("; ")}.` : "";
+  const msg = await claude.beta.messages.stream({ model: SHORTS_MODEL, max_tokens: 6000, output_config: { effort: "low", format: betaZodOutputFormat(Shorts) }, system: SHORTS_SYSTEM,
+    messages: [{ role: "user", content: `${facts}${why}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
+  const out = msg.parsed_output?.videos ?? [];
+  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: sc.kicker ? sc.kicker.slice(0, 40) : null, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
+}
+const GOAL_FIELDS = "id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,why";
+// News: one short per new post (the post is the story; the goal's facts give the stakes and payoff).
 const NEWS_KINDS = ["advance", "solved", "setback", "bottleneck", "forgotten"];
-const NEWS_MOOD: Record<string, string> = { advance: "uplifting", solved: "uplifting", setback: "tense", bottleneck: "mysterious", forgotten: "bittersweet" };
-const NEWS_LABEL: Record<string, string> = { advance: "Step forward", solved: "Solved", setback: "Setback", bottleneck: "Bottleneck", forgotten: "Old idea" };
 async function newsMake(limit: number, days: number) {
   const since = new Date(Date.now() - days * DAY).toISOString();
   const posts: { id: number; goal_id: number; kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null }[] =
     await db(`posts?kind=in.(${NEWS_KINDS.join(",")})&created_at=gte.${since}&select=id,goal_id,kind,headline,plain_headline,body,plain_body&order=created_at.desc&limit=200`);
   const have = new Set(((await db(`reels?kind=eq.news&select=post_id`)) as { post_id: number }[]).map((x) => x.post_id));
   const todo = posts.filter((p) => !have.has(p.id)).slice(0, limit);
-  const made: { id: number; post_id: number }[] = [];
+  const made: { id: number; post_id: number }[] = [], errors: string[] = [];
   for (const p of todo) {
-    const pool: Record<string, unknown>[] = [];
-    for (const r of (await db(`reels?goal_id=eq.${p.goal_id}&kind=neq.news&select=scenes`)) as { scenes: { visual?: { kind?: string; url?: string } }[] }[]) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind === "video" && R2_PUBLIC && String(v.url).startsWith(R2_PUBLIC) && !pool.some((x) => x.url === v.url)) pool.push(v); }
-    if (pool.length < 2) continue;
-    const sent = String(p.plain_body || p.body || "").match(/[^.!?]+[.!?]+(\s|$)/g)?.map((x) => x.trim()).filter((x) => x.length > 12 && x.length <= 170) ?? [];
-    const head = String(p.plain_headline || p.headline || "").trim();
-    if (!head || !sent.length) continue;
-    const pick = (k: number) => pool[(p.id * 7 + k * 5) % pool.length];
-    const scenes = [{ caption: head.length > 110 ? head.slice(0, 107).replace(/\s+\S*$/, "") + "…" : head, kicker: NEWS_LABEL[p.kind], sub: null, stat: null, layout: "top", visual: pick(0) },
-      ...sent.slice(0, 2).map((x, k) => ({ caption: x, sub: null, stat: null, layout: "bottom", visual: pick(k + 1) }))];
-    const row = (await db("reels", { method: "POST", prefer: "return=representation", body: { goal_id: p.goal_id, post_id: p.id, kind: "news", title: head.slice(0, 80), scenes, score: 0.9, mood: NEWS_MOOD[p.kind] ?? "calm" } }))[0];
-    made.push({ id: row.id, post_id: p.id });
+    try {
+      const g = (await db(`goals?id=eq.${p.goal_id}&select=${GOAL_FIELDS}`))[0];
+      const r = await writeShorts(g, `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`, 1);
+      const v = "videos" in r ? r.videos?.[0] : null; if (!v) { errors.push(`${p.id}: ${"error" in r ? r.error : "no video"}`); continue; }
+      const row = (await db("reels", { method: "POST", prefer: "return=representation", body: { goal_id: p.goal_id, post_id: p.id, kind: "news", title: v.title, scenes: v.scenes, score: 0.9, mood: v.mood } }))[0];
+      made.push({ id: row.id, post_id: p.id });
+    } catch (e) { errors.push(`${p.id}: ${e instanceof Error ? e.message.slice(0, 120) : e}`); }
   }
-  // Keep the last 30 days of news videos.
   await db(`reels?kind=eq.news&created_at=lt.${new Date(Date.now() - 30 * DAY).toISOString()}`, { method: "DELETE", prefer: "return=minimal" });
-  return { made, candidates: todo.length };
+  return { made, candidates: todo.length, errors };
+}
+// Rewrite one older video into two full standalone shorts (same goal and kind): the first replaces it,
+// the second is added. Both wait for a render.
+async function remake(reelId: number) {
+  const r = (await db(`reels?id=eq.${reelId}&select=id,goal_id,post_id,kind,title,scenes`))[0];
+  if (!r || r.kind === "news" || r.kind === "weekly") return { error: "not a remakeable video" };
+  const g = (await db(`goals?id=eq.${r.goal_id}&select=${GOAL_FIELDS}`))[0];
+  const src = (r.scenes as { caption: string; sub: string | null; stat: { value: string; label: string } | null }[]).map((s) => `- ${s.caption}${s.sub ? ` (${s.sub})` : ""}${s.stat ? ` [${s.stat.value} ${s.stat.label}]` : ""}`).join("\n");
+  const out = await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2);
+  if (!("videos" in out) || !out.videos || out.videos.length < 2) return { error: "error" in out ? out.error : "not enough videos" };
+  const [a, b] = out.videos;
+  await db(`reels?id=eq.${r.id}`, { method: "PATCH", prefer: "return=minimal", body: { title: a.title, scenes: a.scenes, mood: a.mood, render: null } });
+  const row = (await db("reels", { method: "POST", prefer: "return=representation", body: { goal_id: r.goal_id, post_id: r.post_id, kind: r.kind, title: b.title, scenes: b.scenes, score: 0.8, mood: b.mood } }))[0];
+  return { ok: true, kept: r.id, added: row.id };
 }
 
 Deno.serve(async (req) => {
@@ -1065,8 +1108,19 @@ Deno.serve(async (req) => {
   try {
     // Admin, no AI: a short Watch video for each new post, built from the post's own words over
     // footage already chosen for that goal's videos. Rendered offline (tools/watch-render).
-    if (body.action === "news_make") return json(await newsMake(Math.min(20, Number(body.limit) || 6), Math.min(30, Number(body.days) || 10)));
+    // News videos are paused until the new style is approved (SHORTS_ON=1 turns them on).
+    if (body.action === "news_make") return json(Deno.env.get("SHORTS_ON") === "1" ? await newsMake(Math.min(20, Number(body.limit) || 6), Math.min(30, Number(body.days) || 10)) : { made: [], paused: true });
+    // Admin: write example shorts without saving anything (for review before rolling out).
+    if (body.action === "shorts_preview") {
+      if (Number.isInteger(body.post_id)) { const p = (await db(`posts?id=eq.${body.post_id}&select=goal_id,kind,headline,plain_headline,body,plain_body`))[0]; const g = (await db(`goals?id=eq.${p.goal_id}&select=${GOAL_FIELDS}`))[0];
+        return json({ slug: g.slug, ...(await writeShorts(g, `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`, 1)) }); }
+      if (Number.isInteger(body.reel_id)) { const r = (await db(`reels?id=eq.${body.reel_id}&select=goal_id,kind,title,scenes`))[0]; const g = (await db(`goals?id=eq.${r.goal_id}&select=${GOAL_FIELDS}`))[0];
+        const src = (r.scenes as { caption: string; sub: string | null; stat: { value: string; label: string } | null }[]).map((s2) => `- ${s2.caption}${s2.sub ? ` (${s2.sub})` : ""}${s2.stat ? ` [${s2.stat.value} ${s2.stat.label}]` : ""}`).join("\n");
+        return json({ slug: g.slug, ...(await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2)) }); }
+      return json({ error: "post_id or reel_id" }, 400);
+    }
     // Admin: the videos still waiting for a render, and saving a finished render.
+    if (body.action === "remake" && Number.isInteger(body.reel_id)) return json(await remake(body.reel_id));
     if (body.action === "render_queue") return json(await db(`reels?select=id,kind,title,mood,scenes,render,goals!inner(slug)&kind=neq.weekly&or=(render.is.null,render->>v.neq.${Number(body.v) || 2})&order=created_at.asc&limit=${Math.min(60, Number(body.limit) || 20)}`));
     if (body.action === "render_set" && Number.isInteger(body.reel_id) && body.render && Array.isArray(body.render.parts)) {
       const ok = body.render.parts.every((p: { url?: string; poster?: string }) => typeof p.url === "string" && R2_PUBLIC && p.url.startsWith(`${R2_PUBLIC}/renders/`) && typeof p.poster === "string" && p.poster.startsWith(`${R2_PUBLIC}/renders/`));

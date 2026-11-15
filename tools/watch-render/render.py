@@ -68,7 +68,7 @@ PROGS = [[(0, 'm'), (8, 'M'), (3, 'M'), (10, 'M'), (5, 'm'), (0, 'm9'), (8, 'M')
 
 def split(n):
     # Short parts for short attention spans: two scenes each; an odd scene joins the last part.
-    if n <= 3: return [(0, n)]
+    if n <= 5: return [(0, n)]  # a full short (hook to payoff) stays one video
     sizes = [2] * (n // 2)
     if n % 2: sizes[-1] += 1
     out, a = [], 0
