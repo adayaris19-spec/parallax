@@ -12,8 +12,9 @@ import score3
 ANON = open(os.environ['PARALLAX_ANON_FILE']).read().strip(); ADMIN = open(os.environ['PARALLAX_ADMIN_FILE']).read().strip()
 FN = 'https://zfmjjazkmolvywvayjzj.supabase.co/functions/v1/reels'
 MGMT = 'https://api.supabase.com/v1/projects/zfmjjazkmolvywvayjzj/database/query'
-W, H, FPS, X = 720, 1280, 30, 0.2
-VERSION = 3  # 3: 2-3 shots per scene with quick cuts, no labels or cards, slow cinematic scores only
+W, H, FPS, X = 1080, 1920, 30, 0.2
+VERSION = 3  # 3: full HD, 2-3 shots per scene with quick cuts, three caption looks, no labels or cards, slow scores only
+LOOKS = ('classic', 'bold', 'pop')
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 UPLOAD = '--no-upload' not in sys.argv
 
@@ -61,7 +62,11 @@ def fetch_pool(r, scenes):
     used = {(x.get('visual') or {}).get('url') for x in scenes}
     pool = r.get('pool')
     if pool is None and not VIA_FN:
-        try: pool = [x['u'] for x in sql(f"select distinct e->'visual'->>'url' u from reels r join goals g on g.id = r.goal_id, jsonb_array_elements(r.scenes) e where g.slug = '{re.sub(r'[^a-z0-9-]', '', r['slug'])}' and e->'visual'->>'kind' = 'video'")]
+        slug = re.sub(r'[^a-z0-9-]', '', r['slug'])
+        # Only clips that passed the footage check (goal_clips ok); the goal's video clips if it has none yet.
+        try:
+            pool = [x['u'] for x in sql(f"select c.url u from goal_clips c join goals g on g.id = c.goal_id where g.slug = '{slug}' and c.ok")]
+            if not pool: pool = [x['u'] for x in sql(f"select distinct e->'visual'->>'url' u from reels r join goals g on g.id = r.goal_id, jsonb_array_elements(r.scenes) e where g.slug = '{slug}' and e->'visual'->>'kind' = 'video'")]
         except Exception: pool = []
     out = []
     for u in sorted(set(pool or []) - used, key=lambda u: hue(u + str(r['id']))):
@@ -110,6 +115,7 @@ def render(r):
 def render_clip(r, scenes, tag, seed):
     rid, slug = seed, r['slug']; n = len(scenes)
     lays = layouts(scenes, hue(str(rid)))
+    look = r.get('look') or LOOKS[hue(str(rid) + 'look') % len(LOOKS)]  # videos rotate between caption looks
     durs = [dur(s, i, n, lays[i]) for i, s in enumerate(scenes)]
     # 1. footage for every scene
     media = []
@@ -132,7 +138,7 @@ def render_clip(r, scenes, tag, seed):
     for i, s in enumerate(scenes):
         s2 = dict(s); s2['kicker'] = None; m = STAMP.match(str(s.get('caption') or ''))
         if lays[i] == 'stamp' and m: s2['stampWord'] = m.group(1); rest = s['caption'][m.end():]; s2['caption'] = rest[:1].upper() + rest[1:]
-        for L in ('bg', 'A', 'B'): jobs.append([f'{WR}/ov/{tag}-{i}-{L}.png', {'s': s2, 'lay': lays[i], 'layer': L}])
+        for L in ('bg', 'A', 'B'): jobs.append([f'{WR}/ov/{tag}-{i}-{L}.png', {'s': s2, 'lay': lays[i], 'layer': L, 'look': look}])
     jf = f'{WR}/ov/{tag}.json'; json.dump(jobs, open(jf, 'w'))
     sh(['node', f'{CODE}/ov.js', jf])
     # 3. each scene is 2-3 quick shots under one text layer: the clip wide, the same clip later and
@@ -147,7 +153,7 @@ def render_clip(r, scenes, tag, seed):
         for j in range(k):
             sd = cuts_[j + 1] - cuts_[j]
             if j == 0: src, off, z0, z1, xo = (kind, f), 0.4, 1.0, 1.07, 0.0
-            elif j == 1: src, off, z0, z1, xo = (kind, f), 0.4 + cuts_[1] + 1.2, 1.34, 1.42, 0.5 * sg
+            elif j == 1: src, off, z0, z1, xo = (kind, f), 0.4 + cuts_[1] + 1.2, 1.18, 1.24, 0.5 * sg
             else:
                 alt = extra.pop(0) if extra else None
                 src, off, z0, z1, xo = (alt or (kind, f)), (0.4 if alt else 5.5), 1.12, 1.02, -0.3 * sg
@@ -158,7 +164,7 @@ def render_clip(r, scenes, tag, seed):
             z = f'({z0}+{z1 - z0:.3f}*t/{sd:.2f})'
             fc += (f"[{j}:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
                    f"crop={W}:{H}:x='(iw-ow)/2+(iw-ow)/2*{xo}':y='(ih-oh)/2',fps={FPS},setsar=1,trim=duration={sd:.2f},setpts=PTS-STARTPTS[s{j}];")
-        fc += ''.join(f'[s{j}]' for j in range(k)) + f'concat=n={k}:v=1:a=0,eq=brightness=-0.02:saturation=1.12:contrast=1.06[v];'
+        fc += ''.join(f'[s{j}]' for j in range(k)) + f'concat=n={k}:v=1:a=0,eq=brightness=-0.02:saturation=1.12:contrast=1.06,unsharp=5:5:0.55[v];'
         o = k; ta = 0.12 if i else 0.08; tb = ta + (0.5 if lays[i] == 'stat' else 0.55)
         fc += (f"[{o}:v]scale={W}:{H},format=rgba[sh];[{o+1}:v]scale={W}:{H},format=rgba,fade=in:st={ta}:d=0.28:alpha=1[a];[{o+2}:v]scale={W}:{H},format=rgba,fade=in:st={tb:.2f}:d=0.28:alpha=1[b];"
                f"[v][sh]overlay=0:0[v1];[v1][a]overlay=x=0:y='max(0,22-22*min(1,max(0,(t-{ta})/0.28)))'[v2];[v2][b]overlay=x=0:y='max(0,14-14*min(1,max(0,(t-{tb:.2f})/0.28)))',format=yuv420p")
@@ -182,7 +188,7 @@ def render_clip(r, scenes, tag, seed):
     mix, _ = score3.render(cuts, total, cfg, hue(str(rid)) or 7)
     wav = f'{WR}/out/{tag}.wav'; score3.write(mix, wav)
     final = f'{WR}/final/{tag}-v{VERSION}.mp4'
-    sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '24', '-maxrate', '2600k', '-bufsize', '5200k', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', final])
+    sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-maxrate', '6000k', '-bufsize', '12000k', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', final])
     poster = final.replace('.mp4', '.jpg')
     sh(['ffmpeg', '-y', '-v', 'error', '-ss', '0.9', '-i', final, '-frames:v', '1', '-q:v', '4', poster])
     for p, _ in segs: os.remove(p)
