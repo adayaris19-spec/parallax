@@ -34,8 +34,8 @@ def layouts(scenes, seed):
     for k, s in enumerate(scenes):
         cap = str(s.get('caption') or '').strip(); stat = s.get('stat')
         if s.get('layout') == 'quote': ly = 'mid'
+        elif k == 0: ly = 'top'  # the hook is always the big line, never a number card
         elif stat and stat.get('value'): ly = 'stat'
-        elif k == 0: ly = 'top'
         elif k == n - 1 and n >= 3: ly = 'end'
         else:
             opts = [x for x in ('low', 'mid') if x != prev]; ly = opts[(seed + k) % len(opts)]
@@ -72,7 +72,7 @@ def fetch_pool(r, scenes):
     for u in sorted(set(pool or []) - used, key=lambda u: hue(u + str(r['id']))):
         f = fetch(u, f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', u.split('r2.dev/')[-1])}")
         if f: out.append(('video', f))
-        if len(out) >= len(scenes): break
+        if len(out) >= 2 * len(scenes): break
     return out
 
 STYLE = {  # mood -> score style (the same palettes as the Reels)
@@ -153,7 +153,11 @@ def render_clip(r, scenes, tag, seed):
         for j in range(k):
             sd = cuts_[j + 1] - cuts_[j]
             if j == 0: src, off, z0, z1, xo = (kind, f), 0.4, 1.0, 1.07, 0.0
-            elif j == 1: src, off, z0, z1, xo = (kind, f), 0.4 + cuts_[1] + 1.2, 1.18, 1.24, 0.5 * sg
+            elif j == 1:
+                # Another clip when there are enough to go round (one is kept for each later scene's last shot);
+                # otherwise a punched-in moment from later in the same clip.
+                if len(extra) > (n - i): src, off, z0, z1, xo = extra.pop(0), 0.4, 1.04, 1.1, 0.3 * sg
+                else: src, off, z0, z1, xo = (kind, f), 0.4 + cuts_[1] + 1.2, 1.18, 1.24, 0.5 * sg
             else:
                 alt = extra.pop(0) if extra else None
                 src, off, z0, z1, xo = (alt or (kind, f)), (0.4 if alt else 5.5), 1.12, 1.02, -0.3 * sg

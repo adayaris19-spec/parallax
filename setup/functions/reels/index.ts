@@ -93,7 +93,7 @@ async function nasaVideos(q: string): Promise<Cand[]> {
       const files: string[] = await getJson(it.href);
       const mp4 = ["~medium.mp4", "~small.mp4", "~mobile.mp4", "~preview.mp4"].map((s) => files.find((f) => f.endsWith(s))).find(Boolean);
       if (!mp4) continue;
-      out.push({ kind: "video", url: fix(mp4), poster: fix(poster), credit: nasaCredit(m), license: "NASA media (not copyrighted)", source_url: `https://images.nasa.gov/details/${encodeURIComponent(m.nasa_id)}`, source: "nasa" });
+      out.push({ kind: "video", url: fix(mp4), poster: fix(poster), credit: nasaCredit(m), license: "NASA media (not copyrighted)", source_url: `https://images.nasa.gov/details/${encodeURIComponent(m.nasa_id)}`, source: "nasa", rehost: true, id: `nv${String(m.nasa_id).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60)}`, landscape: true });
     } catch { /* skip this one */ }
     if (out.length >= 2) break;
   }
@@ -936,6 +936,20 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
 // cheap judge, then a second, stricter check by a better model, so nothing off-topic or cartoonish slips in.
 // dry: judge only, return what would be kept (with posters) and copy nothing.
 const BankCheck = z.object({ items: z.array(z.object({ id: z.number(), keep: z.boolean(), why: z.string().describe("At most 10 words.") })) });
+// Look-alikes: shots that would look nearly the same on screen (six Moons on black) make videos feel
+// repetitive. A text-only check groups them by description; each group keeps its best two.
+const Alike = z.object({ items: z.array(z.object({ id: z.number(), look: z.string().describe("2-4 words naming what the viewer sees, shared by shots that look alike (\"moon sphere in space\", \"lunar surface close-up\", \"earthrise over horizon\", \"rocket launch\").") })) });
+async function dedupeBank(goalId: number, name: string) {
+  const clips = (await db(`goal_clips?goal_id=eq.${goalId}&ok=eq.true&select=id,shows,rank&order=rank.desc`)) as { id: number; shows: string; rank: number }[];
+  if (clips.length < 4) return { dropped: 0 };
+  const v = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 3000, output_config: { effort: "low", format: betaZodOutputFormat(Alike) },
+    messages: [{ role: "user", content: `Footage for short videos about "${name}". Label every shot with what a viewer sees on screen, in 2-4 words. Shots that would look nearly the same in a video MUST get the exact same label (every whole or crescent Moon floating in space is "moon sphere in space"; every clownfish with anemone is "clownfish in anemone"). Different subjects or framings get different labels.\n${clips.map((c) => `${c.id}: ${c.shows}`).join("\n")}` }] }).finalMessage().then(track("bank"))).parsed_output;
+  const look = new Map((v?.items ?? []).map((x) => [x.id, x.look.toLowerCase().trim()]));
+  const count = new Map<string, number>(); const drop: number[] = [];
+  for (const c of clips) { const l = look.get(c.id); if (!l) continue; const n = (count.get(l) ?? 0) + 1; count.set(l, n); if (n > 2) drop.push(c.id); }  // best two of each look
+  if (drop.length) await db(`goal_clips?id=in.(${drop.join(",")})`, { method: "PATCH", prefer: "return=minimal", body: { ok: false } });
+  return { dropped: drop.length, looks: Object.fromEntries(count) };
+}
 async function footageBank(slug: string, opts: { dry?: boolean; max?: number } = {}) {
   const g = (await db(`goals?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,summary`))[0];
   if (!g) return { error: "no such goal" };
@@ -947,17 +961,18 @@ async function footageBank(slug: string, opts: { dry?: boolean; max?: number } =
   const space = /mars|moon|space|orbit|asteroid|planet|rocket|satellite/i.test(`${g.slug} ${g.name}`);
   const terms = (await claude.beta.messages.stream({
     model: QUERY_MODEL, max_tokens: 3000, output_config: { effort: "low", format: betaZodOutputFormat(ShotList) },
-    system: `You find footage for exciting short science videos about the goal "${g.name}". The look: realistic, cinematic 3D animation of this goal's science (cells, molecules, viruses, neurons, plasma, particles, glowing machines, planets, landers) plus striking real footage of the goal's own subject in action (launches, surgeons, labs, reefs, turbines). List 14 search terms for stock video libraries, each 1-3 plain words: 9 for realistic 3D animation of this goal's world, 5 for real action footage. Nothing abstract, no feelings or metaphors.`,
+    system: `You find footage for exciting short science videos about the goal "${g.name}". The look: realistic, cinematic 3D animation of this goal's science (cells, molecules, viruses, neurons, plasma, particles, glowing machines, planets, landers) plus striking real footage of the goal's own subject in action (launches, surgeons, labs, reefs, turbines). List ${space ? 20 : 14} search terms, each 1-4 plain words: 9 for realistic 3D animation of this goal's world, 5 for real action footage${space ? ", then 6 for NASA's public-domain film archive (real missions and hardware, like \"Apollo 15 lunar rover\", \"Artemis II launch\", \"lunar surface flyover\", \"astronaut moonwalk\")" : ""}. Nothing abstract, no feelings or metaphors.`,
     messages: [{ role: "user", content: `${g.name}: ${String(g.summary ?? "").slice(0, 600)}` }],
-  }).finalMessage().then(track("bank"))).parsed_output?.terms.slice(0, 14) ?? [];
+  }).finalMessage().then(track("bank"))).parsed_output?.terms.slice(0, space ? 20 : 14) ?? [];
   const pool: Cand[] = []; const seen = new Set<string>();
   const add = async (f: () => Promise<Cand[]>) => {
     try { for (const c of await f()) { const id = c.id ?? clipId(c.url); if (seen.has(id) || usedClips.has(id)) continue; seen.add(id); pool.push(c); } }
     catch (e) { errors.push(e instanceof Error ? e.message.slice(0, 80) : String(e)); }
   };
-  await Promise.all(terms.map((q, i) => Promise.all([add(() => pexelsVideos(q, 8, true)), add(() => pixabayVideos(q, 8, i < 9 ? "animation" : "all")), ...(space && i >= 9 ? [add(() => nasaVideos(q))] : [])])));
+  // Space goals: NASA's real footage (free, public domain) for the real-action and archive terms.
+  await Promise.all(terms.map((q, i) => Promise.all(i >= 14 ? [add(() => nasaVideos(q))] : [add(() => pexelsVideos(q, 8, true)), add(() => pixabayVideos(q, 8, i < 9 ? "animation" : "all")), ...(space && i >= 9 ? [add(() => nasaVideos(q))] : [])])));
   // Vertical first: a phone shows all of it, so it stays sharp.
-  pool.sort((a, b) => Number(!!a.landscape) - Number(!!b.landscape));
+  pool.sort((a, b) => Number(!!a.landscape) - Number(!!b.landscape) || (space ? Number(b.source === "nasa") - Number(a.source === "nasa") : 0));
   // The goal's own older clips go through the same check (some were off-topic filler), once each.
   const banked = new Set(((await db(`goal_clips?goal_id=eq.${g.id}&select=url`).catch(() => [])) as { url: string }[]).map((b) => b.url));
   const mineOld: Cand[] = [];
@@ -996,7 +1011,7 @@ async function footageBank(slug: string, opts: { dry?: boolean; max?: number } =
   // One clip per creator series.
   const pvNum = (c: Cand) => Number(/^pv(\d+)$/.exec(c.id ?? "")?.[1] ?? NaN);
   const final: typeof kept = [];
-  for (const j of kept) { const c = cands[j.i], n = pvNum(c); if ((c as Cand & { old?: boolean }).old) { final.push(j); continue; } if (final.some((k) => cands[k.i].credit === c.credit && (isNaN(n) || Math.abs(pvNum(cands[k.i]) - n) < 400))) continue; final.push(j); }
+  for (const j of kept) { const c = cands[j.i], n = pvNum(c); if ((c as Cand & { old?: boolean }).old) { final.push(j); continue; } if (!isNaN(n) && final.some((k) => cands[k.i].credit === c.credit && Math.abs(pvNum(cands[k.i]) - n) < 400)) continue; final.push(j); }
   const report = { slug, terms, candidates: cands.length, old: mineOld.length, oldFailed: cands.filter((c, i) => (c as Cand & { old?: boolean }).old && !final.some((k) => k.i === i)).length, judged: judged.length, passed: passed.length, kept: final.length, errors: [...new Set(errors)].slice(0, 5) };
   if (opts.dry) return { ...report, clips: final.map((j) => ({ shows: j.shows, why: j.why, fit: j.fit, quality: j.quality, dynamic: j.dynamic, vertical: !cands[j.i].landscape, poster: cands[j.i].preview ?? cands[j.i].poster, source: cands[j.i].source_url })), rejected: judged.filter((j) => !final.some((k) => k.i === j.i)).map((j) => ({ shows: j.shows, fit: j.fit, quality: j.quality, poster: cands[j.i].preview ?? cands[j.i].poster })) };
   // Older clips that failed: remembered as not ok, so they are neither used nor checked again.
@@ -1013,7 +1028,8 @@ async function footageBank(slug: string, opts: { dry?: boolean; max?: number } =
       saved++;
     } catch (e) { errors.push(`save: ${e instanceof Error ? e.message.slice(0, 80) : e}`); }
   }));
-  return { ...report, saved };
+  const alike = await dedupeBank(g.id, g.name).catch((e) => ({ dropped: 0, error: String(e).slice(0, 80) }));
+  return { ...report, saved, alike };
 }
 // Steps 4-5 of footage first: the script around approved shots, then copy and save.
 // deno-lint-ignore no-explicit-any
@@ -1099,7 +1115,7 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
 // footage already chosen for that goal's videos. Used for news (one per new post) and to rewrite each
 // older video into two full standalone ones.
 const SHORTS_MODEL = Deno.env.get("SHORTS_MODEL") ?? "claude-sonnet-5-5";
-const Shorts = z.object({ videos: z.array(z.object({ title: z.string(), shape: z.enum(["story", "then-now", "countdown", "question", "obstacle", "myth-fact"]), mood: z.enum(["tense", "uplifting", "epic", "mysterious", "bittersweet", "calm"]),
+const Shorts = z.object({ videos: z.array(z.object({ title: z.string(), shape: z.enum(["story", "then-now", "countdown", "question", "obstacle", "myth-fact"]), angle: z.enum(["future", "you", "race", "people", "stakes", "wonder"]), mood: z.enum(["tense", "uplifting", "epic", "mysterious", "bittersweet", "calm"]),
   scenes: z.array(z.object({ caption: z.string(), sub: z.string().nullable(), kicker: z.string().nullable(), stat: z.object({ value: z.string(), label: z.string() }).nullable(), clip: z.number().int() })) })) });
 const SHORTS_SYSTEM = `You write short vertical videos in the style of Instagram Reels for Parallax, which follows humanity's biggest goals. Captions only, no voice, over footage.
 The aim: leave the viewer excited about the goal: why it matters, how close we are, what is at stake. Inspire without overselling.
@@ -1111,7 +1127,16 @@ Each video: 4 or 5 scenes (15-20 seconds), one clear story. Pick ONE shape per v
 - question: open with a sharp question a viewer actually wonders about, answer it beat by beat, end on what the answer means.
 - obstacle: name the one thing in the way like a villain, show what it costs, who is attacking it and how, what happens if they win.
 - myth-fact: a common belief, then what the facts actually say, why it matters, the payoff.
-Rules for every shape: the first scene stops the scroll in 2 seconds (a surprising number, a stark contrast, a broken promise or a sharp question; at most 9 words; never the goal's name or a definition). At most one scene has a stat: value of at most 8 characters (like "14 mo", "47%", "263M") and a short label; it must belong to this story (never field-wide totals such as paper counts). Somewhere, honestly, say what still stands in the way. The last scene leaves the viewer excited about what reaching the goal would change for real people, in a concrete image; vary how it is phrased (not always "If it works:"; also "Imagine...", "Next:", a date, a plain statement). Never ask anyone to donate, buy, click or follow.
+Pick ONE angle per video too, and mix them across videos (each video in a batch takes a different one, and none repeats the angle of the goal's other videos listed below when it can be avoided):
+- the future, shown: a vivid, concrete scene from the world after the goal is reached (only what the facts support).
+- you: put the viewer in it ("You could see this in your lifetime", "Your next blood test could catch it").
+- the race: who is pushing hardest, the deadlines, the clock.
+- the people: the scientists, engineers, patients or communities in the story (only names and roles from the facts).
+- the stakes: what is lost every year it is not solved, made concrete.
+- the wonder: how strange or astonishing the science itself is.
+The hook (first scene) stops the scroll in 2 seconds: bold and a little provocative, but true (like "Nobody has survived a lunar night.", "This could end insulin shots."). At most 9 words. It must make sense on its own to someone who has never heard of the goal: no wordplay, no pronouns or references that need context, never the goal's name or a definition. Read every caption back as a stranger would; if any line is unclear, rewrite it.
+At most one scene, never the first, has a stat: value of at most 8 characters (like "14 mo", "47%", "263M") and a short label; it must belong to this story (never field-wide totals such as paper counts). Somewhere, honestly, say what still stands in the way.
+The ending fits this goal and this story, and differs from the goal's other videos listed below: a vivid image of the future, a question that makes people think, a short punchline, a date to watch, or a plain powerful fact. It should leave the viewer wanting this goal to happen. Never ask anyone to donate, buy, click or follow.
 Style: caption at most 60 characters, sub at most 90 (optional), plain words, active verbs. No hype words (revolutionary, game-changer, breakthrough of the century), no emoji, no hashtags.
 Do not use labels or kickers (leave kicker empty).
 Clips: give each scene a different clip number from the list, matching what the scene says when possible.`;
@@ -1134,10 +1159,13 @@ async function writeShorts(g: any, task: string, count: number) {
   if (pool.length < 3) return { error: "too little footage" };
   const { facts } = await goalFacts(g, true);
   const why = g.why?.today ? `\nWHY IT MATTERS: ${g.why.today} If it is solved: ${(g.why.changes ?? []).join("; ")}.` : "";
+  // The goal's other videos (newest first): their hooks and endings, so new ones don't repeat them.
+  const others = ((await db(`reels?goal_id=eq.${g.id}&kind=neq.weekly&select=title,scenes&order=created_at.desc&limit=12`).catch(() => [])) as { title: string; scenes: { caption: string }[] }[])
+    .filter((r) => r.scenes?.length).map((r) => `- "${r.scenes[0].caption}" ... "${r.scenes[r.scenes.length - 1].caption}"`).join("\n");
   const msg = await claude.beta.messages.stream({ model: SHORTS_MODEL, max_tokens: 6000, output_config: { effort: "low", format: betaZodOutputFormat(Shorts) }, system: SHORTS_SYSTEM,
-    messages: [{ role: "user", content: `${facts}${why}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
+    messages: [{ role: "user", content: `${facts}${why}${others ? `\n\nTHE GOAL'S OTHER VIDEOS (hook ... ending; do not repeat these):\n${others}` : ""}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
   const out = msg.parsed_output?.videos ?? [];
-  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), shape: v.shape, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
+  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), shape: v.shape, angle: v.angle, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
 }
 const GOAL_FIELDS = "id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,why";
 // News: one short per new post (the post is the story; the goal's facts give the stakes and payoff).
@@ -1214,6 +1242,7 @@ Deno.serve(async (req) => {
     }
     // Admin: the videos still waiting for a render, and saving a finished render.
     if (body.action === "remake" && Number.isInteger(body.reel_id)) return json(await remake(body.reel_id));
+    if (body.action === "bank_dedupe" && typeof body.slug === "string") { const g = (await db(`goals?slug=eq.${encodeURIComponent(body.slug)}&select=id,name`))[0]; return json(g ? await dedupeBank(g.id, g.name) : { error: "no such goal" }); }
     if (body.action === "footage_bank" && typeof body.slug === "string") return json(await footageBank(body.slug, { dry: body.dry === true, max: Number(body.max) || undefined }));
     if (body.action === "render_queue") return json(await db(`reels?select=id,kind,title,mood,scenes,render,goals!inner(slug)&kind=neq.weekly&or=(render.is.null,render->>v.neq.${Number(body.v) || 2})&order=created_at.asc&limit=${Math.min(60, Number(body.limit) || 20)}`));
     if (body.action === "render_set" && Number.isInteger(body.reel_id) && body.render && Array.isArray(body.render.parts)) {
