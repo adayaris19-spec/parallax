@@ -31,7 +31,7 @@ Confirmed Nov 21.
 
 ## 2. Subject matter
 
-Partly answered Nov 21; story selection and imagery kinds are still open.
+Draft confirmed Nov 21.
 
 - **Always moving.** No still real-life photo is held on screen as a shot. (Owner: "I don't want videos to be static real life images.")
 - **The vision (owner, Nov 21): original made imagery at NASA's level of detail, not NASA's clips re-used.** NASA's computer-made pictures (for example a Milky Way view no camera could take) are the model for detail and visual quality. Parallax makes its own in that style. Real footage may be mixed in for goals where it fits. This corrects section 6.7 of `SUMMARY.md`, which read the references as "real photographs".
@@ -42,4 +42,13 @@ Partly answered Nov 21; story selection and imagery kinds are still open.
 - **Source facts are checked against the record before a graphic is drawn.** Example: the laser-tile study is dated 2026 by Crossref (Open Ceramics vol. 28, DOI 10.1016/j.oceram.2026.101082, CC BY 4.0); the Nov 21 sample's clipping said 2024.
 - **Level (confirmed Nov 21):** more dramatic than NASA's plain data renders (clips B and C of Nov 21). The target is the richer look of NASA's artist illustrations: more colour, atmosphere and depth.
 - **Mix (confirmed Nov 21): made by default, real for real events.** Real camera footage appears only under a line about an event that was filmed (a launch, a landing, a field trial). It is never used as generic background.
-- **Open:** the exact dramatic look (examples to be shown); which stories get a video; whether swipeable photo posts in Watch are in scope.
+- **Look reference (confirmed Nov 21):** NASA/JPL artist illustrations; see `reference/look-nasa-artist-concepts.jpg`. The owner accepted all four kinds, so the kind follows the subject:
+  - cosmic, vivid colour (PIA22085) for deep-space and physics subjects;
+  - landscape with cinematic light (PIA21423) for places;
+  - people and hardware in a place (PIA23302) for "the goal achieved";
+  - clean orbital realism (PIA23690) for planets and spacecraft.
+  - What they share, and what ours must have: one clear light source, deep shadows, real surface texture, a sense of scale, no flat or untextured shapes.
+- **Story selection (confirmed Nov 21): goal story first, news when it's big.**
+  - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
+  - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.
+- **Open:** whether swipeable photo posts in Watch are in scope (the owner raised it once; not pursued).
