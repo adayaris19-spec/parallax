@@ -478,7 +478,7 @@ async function run(slug?: string, fresh = false, live = false) {
     output_config: { effort: "medium", format: betaZodOutputFormat(Plan) },
     system: `You write short vertical videos for Parallax, a feed of humanity's big goals. Captions only, no voice.
 Write like the best science channels: concrete, surprising, honest. Keep correct technical terms; explain uncommon ones in a few words.
-Use ONLY the facts given. Never invent numbers, names, dates or events. Numbers on screen must appear in the facts.
+Use ONLY the facts given, and never drop a qualifier that changes the meaning (simulated or fake soil, in mice, in a lab, a proposal, an estimate): a bold hook must still be accurate. Never invent numbers, names, dates or events. Numbers on screen must appear in the facts.
 Craft:
 - Scene 1 must stop a scroll in under 2 seconds: the most surprising concrete fact, a stark contrast, or a question the reel answers. Never open with the goal's name or a definition.
 - One idea per scene. Each scene should make the viewer want the next: hook, then stakes, then the turn (what changed or what's in the way), then why it matters or what happens next.
@@ -1116,7 +1116,10 @@ Score each reel's hook honestly; a reel under 7 is not worth making.`,
 // older video into two full standalone ones.
 const SHORTS_MODEL = Deno.env.get("SHORTS_MODEL") ?? "claude-sonnet-5-5";
 const Shorts = z.object({ videos: z.array(z.object({ title: z.string(), shape: z.enum(["story", "then-now", "countdown", "question", "obstacle", "myth-fact"]), angle: z.enum(["future", "you", "race", "people", "stakes", "wonder"]), mood: z.enum(["tense", "uplifting", "epic", "mysterious", "bittersweet", "calm"]),
-  scenes: z.array(z.object({ caption: z.string(), sub: z.string().nullable(), kicker: z.string().nullable(), stat: z.object({ value: z.string(), label: z.string() }).nullable(), clip: z.number().int() })) })) });
+  scenes: z.array(z.object({ say: z.string().describe("What the narrator says over this scene."), caption: z.string(), sub: z.string().nullable(), kicker: z.string().nullable(), stat: z.object({ value: z.string(), label: z.string() }).nullable(), clip: z.number().int(),
+    graphic: z.object({ type: z.enum(["paper", "counter", "timeline", "globe", "chart"]), value: z.string().nullable(), label: z.string().nullable(),
+      points: z.array(z.object({ year: z.string(), label: z.string() })).nullable(), body: z.enum(["earth", "moon", "mars"]).nullable(), place: z.string().nullable(), lat: z.number().nullable(), lon: z.number().nullable(),
+      bars: z.array(z.object({ label: z.string(), value: z.number() })).nullable(), unit: z.string().nullable() }).nullable() })) })) });
 const SHORTS_SYSTEM = `You write short vertical videos in the style of Instagram Reels for Parallax, which follows humanity's biggest goals. Captions only, no voice, over footage.
 The aim: leave the viewer excited about the goal: why it matters, how close we are, what is at stake. Inspire without overselling.
 Use ONLY the facts given. Never invent numbers, names, dates or events; every number on screen must appear in the facts. No claims beyond the facts either (not "takes forever", "everyone", "the first ever") unless the facts say so.
@@ -1136,9 +1139,17 @@ Pick ONE angle per video too, and mix them across videos (each video in a batch 
 - the wonder: how strange or astonishing the science itself is.
 The hook (first scene) stops the scroll in 2 seconds: bold and a little provocative, but true (like "Nobody has survived a lunar night.", "This could end insulin shots."). At most 9 words. It must make sense on its own to someone who has never heard of the goal: no wordplay, no pronouns or references that need context, never the goal's name or a definition. Read every caption back as a stranger would; if any line is unclear, rewrite it.
 At most one scene, never the first, has a stat: value of at most 8 characters (like "14 mo", "47%", "263M") and a short label; it must belong to this story (never field-wide totals such as paper counts). Somewhere, honestly, say what still stands in the way.
-The ending fits this goal and this story, and differs from the goal's other videos listed below: a vivid image of the future, a question that makes people think, a short punchline, a date to watch, or a plain powerful fact. It should leave the viewer wanting this goal to happen. Never ask anyone to donate, buy, click or follow.
+The ending fits this goal and this story, and differs from the goal's other videos listed below: a vivid image of the future, a question that makes people think, a short punchline, a date to watch, or a plain powerful fact. It should leave the viewer wanting this goal to happen. The last scene is never the catch: put the catch earlier. Never ask anyone to donate, buy, click or follow.
 Style: caption at most 60 characters, sub at most 90 (optional), plain words, active verbs. No hype words (revolutionary, game-changer, breakthrough of the century), no emoji, no hashtags.
 Do not use labels or kickers (leave kicker empty).
+NARRATION: a narrator reads "say" aloud while it appears as word-by-word captions; "caption" is a short on-screen version of the same line. The narrator talks like a sharp science creator, not a news anchor: direct, conversational, energetic, short sentences, contractions. The first words grab attention within one second. Each say is 5-22 words; the whole video 45-75 words (20-30 seconds). Same facts rule: nothing beyond the facts. Write numbers the way they are spoken ("three hundred fifty-four hours" may stay "354 hours"; never symbols the voice would misread).
+GRAPHICS: exactly 2 or 3 scenes (never the first, never two in a row) MUST show an animated graphic instead of footage, each a different type. Prefer a counter for the story's key number and a paper when SOURCES are listed:
+- paper: the actual study or report behind the story, shown as a clipping. Only when SOURCES are listed; the renderer takes the title, journal, year and author from there, so just set type "paper" and label to the one short phrase from the title to highlight (copied exactly from the title).
+- counter: one number from the facts that counts up; value like "15 cm" or "354 h", label at most 5 words.
+- timeline: 2-4 points in time from the facts (year as written, label at most 4 words), in order; the last may be an estimate ("2040s?").
+- globe: zoom onto a world; body earth, moon or mars; place and lat/lon only for a real place named in the facts (else null: the globe just turns).
+- chart: 2-4 bars from the facts in the same unit (label at most 3 words, value a number, unit like "%").
+Set graphic to null for footage scenes.
 Clips: give each scene a different clip number from the list, matching what the scene says when possible.`;
 async function clipPool(goalId: number) {
   const seen = new Set<string>(), urls: Record<string, unknown>[] = [];
@@ -1154,7 +1165,10 @@ async function clipPool(goalId: number) {
   return out;
 }
 // deno-lint-ignore no-explicit-any
-async function writeShorts(g: any, task: string, count: number) {
+type Source = { title?: string; venue?: string; year?: number; first_author?: string; url?: string };
+const newsTask = (p: { kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null }) => `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`;
+// deno-lint-ignore no-explicit-any
+async function writeShorts(g: any, task: string, count: number, sources: Source[] | null = null) {
   const pool = await clipPool(g.id);
   if (pool.length < 3) return { error: "too little footage" };
   const { facts } = await goalFacts(g, true);
@@ -1163,24 +1177,30 @@ async function writeShorts(g: any, task: string, count: number) {
   const others = ((await db(`reels?goal_id=eq.${g.id}&kind=neq.weekly&select=title,scenes&order=created_at.desc&limit=12`).catch(() => [])) as { title: string; scenes: { caption: string }[] }[])
     .filter((r) => r.scenes?.length).map((r) => `- "${r.scenes[0].caption}" ... "${r.scenes[r.scenes.length - 1].caption}"`).join("\n");
   const msg = await claude.beta.messages.stream({ model: SHORTS_MODEL, max_tokens: 6000, output_config: { effort: "low", format: betaZodOutputFormat(Shorts) }, system: SHORTS_SYSTEM,
-    messages: [{ role: "user", content: `${facts}${why}${others ? `\n\nTHE GOAL'S OTHER VIDEOS (hook ... ending; do not repeat these):\n${others}` : ""}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
+    messages: [{ role: "user", content: `${facts}${why}${others ? `\n\nTHE GOAL'S OTHER VIDEOS (hook ... ending; do not repeat these):\n${others}` : ""}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}${sources?.length ? `\n\nSOURCES:\n${sources.slice(0, 3).map((x) => `- \"${x.title}\" (${x.venue || "report"}, ${x.year ?? ""}, ${x.first_author ?? ""})`).join("\n")}` : ""}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
   const out = msg.parsed_output?.videos ?? [];
-  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), shape: v.shape, angle: v.angle, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
+  const src = sources?.find((x) => x.title) ?? null;
+  for (const v of out) for (const sc of v.scenes) if (sc.graphic?.type === "paper") {
+    if (!src) sc.graphic = null;
+    // deno-lint-ignore no-explicit-any
+    else (sc.graphic as any).paper = { title: src.title, venue: src.venue || null, year: src.year ?? null, author: src.first_author || null };
+  }
+  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), shape: v.shape, angle: v.angle, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, say: sc.say.slice(0, 200), graphic: sc.graphic, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
 }
 const GOAL_FIELDS = "id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,why";
 // News: one short per new post (the post is the story; the goal's facts give the stakes and payoff).
 const NEWS_KINDS = ["advance", "solved", "setback", "bottleneck", "forgotten"];
 async function newsMake(limit: number, days: number) {
   const since = new Date(Date.now() - days * DAY).toISOString();
-  const posts: { id: number; goal_id: number; kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null }[] =
-    await db(`posts?kind=in.(${NEWS_KINDS.join(",")})&created_at=gte.${since}&select=id,goal_id,kind,headline,plain_headline,body,plain_body&order=created_at.desc&limit=200`);
+  const posts: { id: number; goal_id: number; kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null; sources?: Source[] | null }[] =
+    await db(`posts?kind=in.(${NEWS_KINDS.join(",")})&created_at=gte.${since}&select=id,goal_id,kind,headline,plain_headline,body,plain_body,sources&order=created_at.desc&limit=200`);
   const have = new Set(((await db(`reels?kind=eq.news&select=post_id`)) as { post_id: number }[]).map((x) => x.post_id));
   const todo = posts.filter((p) => !have.has(p.id)).slice(0, limit);
   const made: { id: number; post_id: number }[] = [], errors: string[] = [];
   for (const p of todo) {
     try {
       const g = (await db(`goals?id=eq.${p.goal_id}&select=${GOAL_FIELDS}`))[0];
-      const r = await writeShorts(g, `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`, 1);
+      const r = await writeShorts(g, newsTask(p), 1, p.sources);
       const v = "videos" in r ? r.videos?.[0] : null; if (!v) { errors.push(`${p.id}: ${"error" in r ? r.error : "no video"}`); continue; }
       const row = (await db("reels", { method: "POST", prefer: "return=representation", body: { goal_id: p.goal_id, post_id: p.id, kind: "news", title: v.title, scenes: v.scenes, score: 0.9, mood: v.mood } }))[0];
       made.push({ id: row.id, post_id: p.id });
@@ -1233,8 +1253,8 @@ Deno.serve(async (req) => {
     if (body.action === "news_make") return json(Deno.env.get("SHORTS_ON") === "1" ? await newsMake(Math.min(20, Number(body.limit) || 6), Math.min(30, Number(body.days) || 10)) : { made: [], paused: true });
     // Admin: write example shorts without saving anything (for review before rolling out).
     if (body.action === "shorts_preview") {
-      if (Number.isInteger(body.post_id)) { const p = (await db(`posts?id=eq.${body.post_id}&select=goal_id,kind,headline,plain_headline,body,plain_body`))[0]; const g = (await db(`goals?id=eq.${p.goal_id}&select=${GOAL_FIELDS}`))[0];
-        return json({ slug: g.slug, ...(await writeShorts(g, `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`, 1)) }); }
+      if (Number.isInteger(body.post_id)) { const p = (await db(`posts?id=eq.${body.post_id}&select=goal_id,kind,headline,plain_headline,body,plain_body,sources`))[0]; const g = (await db(`goals?id=eq.${p.goal_id}&select=${GOAL_FIELDS}`))[0];
+        return json({ slug: g.slug, ...(await writeShorts(g, newsTask(p), 1, p.sources)) }); }
       if (Number.isInteger(body.reel_id)) { const r = (await db(`reels?id=eq.${body.reel_id}&select=goal_id,kind,title,scenes`))[0]; const g = (await db(`goals?id=eq.${r.goal_id}&select=${GOAL_FIELDS}`))[0];
         const src = (r.scenes as { caption: string; sub: string | null; stat: { value: string; label: string } | null }[]).map((s2) => `- ${s2.caption}${s2.sub ? ` (${s2.sub})` : ""}${s2.stat ? ` [${s2.stat.value} ${s2.stat.label}]` : ""}`).join("\n");
         return json({ slug: g.slug, ...(await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2)) }); }

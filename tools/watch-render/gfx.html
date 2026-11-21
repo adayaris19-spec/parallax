@@ -1,0 +1,136 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Animated graphics for narrated Watch videos (render4.py). Each type draws itself for any time t
+   (seconds) through window.frame(t), so frames can be captured one by one, crisp and in sync.
+   Two looks: clean (space, energy, computing) and collage (health, climate, water, food: paper,
+   grain, a warmer palette). Layout keeps clear of the app's header (top ~230px) and the bottom
+   buttons (~330px), and leaves the lower middle for the spoken captions. */
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#05060b;font-family:Inter,sans-serif;color:#fff}
+#bg{position:absolute;inset:0}
+.clean #bg{background:radial-gradient(120% 70% at 50% 30%,#141a33 0%,#070912 55%,#03040a 100%)}
+.collage #bg{background:#d9d2c3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .22 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+#grain{position:absolute;inset:-40px;pointer-events:none;opacity:.10;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E")}
+.clean #grain{opacity:.05}
+#stage{position:absolute;inset:0}
+.wrap{position:absolute;left:90px;right:90px;top:300px;height:760px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+/* counter */
+.num{font:900 300px/0.9 Inter;letter-spacing:-.05em;white-space:nowrap}
+.clean .num{background:linear-gradient(180deg,#fff 35%,#9fb0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.collage .num{color:#1d1a16}
+.unit{font:800 120px Inter;letter-spacing:-.03em;margin-left:18px}
+.lab{font:700 44px Inter;letter-spacing:.02em;margin-top:34px;text-transform:uppercase}
+.clean .lab{color:#b9c3ff}.collage .lab{color:#7a2e1c}
+.ring{position:absolute;width:860px;height:860px;left:110px;top:250px}
+/* paper */
+.paper{position:absolute;left:110px;right:110px;top:330px;padding:70px 64px 80px;background:#fbf8f1;color:#1b1a17;box-shadow:0 40px 120px rgba(0,0,0,.55),0 2px 0 rgba(0,0,0,.08);transform-origin:50% 40%}
+.paper:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.5) 50%,rgba(255,255,255,0) 60%);opacity:.0}
+.jr{font:700 30px 'JetBrains Mono';letter-spacing:.14em;text-transform:uppercase;color:#7a2e1c;border-bottom:3px solid #1b1a17;padding-bottom:22px;margin-bottom:36px;display:flex;justify-content:space-between}
+.pt{font:600 70px/1.12 Newsreader;letter-spacing:-.01em}
+.pt mark{color:inherit;background:linear-gradient(#ffd84a,#ffd84a) no-repeat 0 88%/var(--w,0%) 62%;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 4px}
+.pa{font:500 italic 40px Newsreader;color:#555;margin-top:44px}
+.tear{position:absolute;left:0;right:0;bottom:-26px;height:28px;background:linear-gradient(-45deg,transparent 14px,#fbf8f1 0) 0 0/28px 28px repeat-x,linear-gradient(45deg,transparent 14px,#fbf8f1 0) 0 0/28px 28px repeat-x}
+/* timeline */
+.tl{position:absolute;left:0;top:520px;height:520px;width:100%}
+.tl .line{position:absolute;top:250px;height:8px;border-radius:4px}
+.clean .tl .line{background:linear-gradient(90deg,#6f86ff,#c7d0ff)}.collage .tl .line{background:#1d1a16}
+.pt-y{position:absolute;top:120px;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.pt-y b{display:block;font:900 110px Inter;letter-spacing:-.04em}
+.pt-y s{display:block;text-decoration:none;font:700 38px Inter;margin-top:120px;max-width:420px;white-space:normal}
+.clean .pt-y s{color:#c8cff7}.collage .pt-y s{color:#2a2520}
+.pt-y u{position:absolute;left:50%;top:162px;width:38px;height:38px;margin-left:-19px;border-radius:50%;text-decoration:none}
+.clean .pt-y u{background:#fff;box-shadow:0 0 40px #8ea0ff}.collage .pt-y u{background:#c2391b}
+.collage .pt-y b{color:#1d1a16}
+/* chart */
+.ch{position:absolute;left:120px;right:120px;top:420px;height:640px;display:flex;align-items:flex-end;gap:60px}
+.bar{flex:1;position:relative;border-radius:18px 18px 4px 4px;transform-origin:50% 100%}
+.clean .bar{background:linear-gradient(180deg,#a9b6ff,#5468e8)}.collage .bar{background:#c2391b}
+.clean .bar.dim{background:linear-gradient(180deg,#4a5070,#2b3048)}.collage .bar.dim{background:#8d8476}
+.bar b{position:absolute;left:0;right:0;top:-104px;font:900 78px Inter;letter-spacing:-.03em;text-align:center}
+.collage .bar b{color:#1d1a16}
+.bar s{position:absolute;left:-30px;right:-30px;bottom:-84px;text-decoration:none;font:700 36px Inter;text-align:center}
+.clean .bar s{color:#c8cff7}.collage .bar s{color:#2a2520}
+canvas{position:absolute;inset:0}
+.place{position:absolute;left:0;right:0;top:330px;text-align:center;font:800 64px Inter;letter-spacing:-.02em}
+.place small{display:block;font:700 30px 'JetBrains Mono';letter-spacing:.18em;opacity:.7;margin-top:12px}
+</style></head><body><div id="bg"></div><div id="stage"></div><div id="grain"></div>
+<script type="module">
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
+const back = (x) => { if (x <= 0) return 0; if (x >= 1) return 1; const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const cl = (x) => Math.max(0, Math.min(1, x));
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const st = document.getElementById('stage'); let G = null, D = 4, three = null;
+
+function numParts(v) { const m = String(v ?? '').match(/^([^\d-]*)(-?[\d.,]+)(.*)$/); if (!m) return null; const n = parseFloat(m[2].replace(/,/g, '')); const dec = (m[2].split('.')[1] || '').length; return { pre: m[1], n, dec, comma: m[2].includes(','), post: m[3].trim() }; }
+function fmt(p, x) { let s = x.toFixed(p.dec); if (p.comma) s = Number(s).toLocaleString('en-US', { minimumFractionDigits: p.dec, maximumFractionDigits: p.dec }); return s; }
+
+const T = {
+  counter: {
+    init(g) { const p = numParts(g.value); g._p = p;
+      st.innerHTML = `<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/><circle id="arc" cx="50" cy="50" r="46" fill="none" stroke="${document.body.className === 'collage' ? '#c2391b' : '#8ea0ff'}" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="289" transform="rotate(-90 50 50)"/></svg>
+      <div class="wrap"><div><span class="num" id="n"></span>${p && p.post ? `<span class="unit" id="u">${esc(p.post)}</span>` : ''}</div><div class="lab" id="l">${esc(g.label)}</div></div>`;
+      const n = document.getElementById('n'); if (!p) n.textContent = g.value; },
+    frame(t, g) { const p = g._p, k = ease(cl((t - 0.15) / Math.min(1.6, D * 0.5)));
+      if (p) document.getElementById('n').textContent = p.pre + fmt(p, p.n * k);
+      const w = document.querySelector('.wrap'); w.style.transform = `scale(${0.86 + 0.14 * back(cl(t / 0.5)) + 0.03 * t / D})`; w.style.opacity = cl(t / 0.25);
+      document.getElementById('arc').setAttribute('stroke-dashoffset', 289 * (1 - k));
+      const l = document.getElementById('l'); l.style.opacity = cl((t - 0.9) / 0.3); l.style.transform = `translateY(${20 * (1 - ease(cl((t - 0.9) / 0.4)))}px)`; },
+  },
+  paper: {
+    init(g) { const P = g.paper || {}; const title = esc(P.title || ''), hl = esc(g.label || '');
+      const i = hl && title.toLowerCase().indexOf(hl.toLowerCase());
+      const body = hl && i >= 0 ? `${title.slice(0, i)}<mark id="hl">${title.slice(i, i + hl.length)}</mark>${title.slice(i + hl.length)}` : title;
+      st.innerHTML = `<div class="paper" id="pp"><div class="jr"><span>${esc(P.venue || 'Study')}</span><span>${esc(P.year || '')}</span></div><div class="pt">${body}</div>${P.author ? `<div class="pa">${esc(P.author)} et al.</div>` : ''}<div class="tear"></div></div>`; },
+    frame(t) { const pp = document.getElementById('pp'), k = back(cl(t / 0.55));
+      pp.style.transform = `translateY(${(1 - k) * 900}px) rotate(${-2.5 + 1.2 * (1 - k) + 0.4 * t / D}deg) scale(${1 + 0.05 * t / D})`;
+      const h = document.getElementById('hl'); if (h) h.style.setProperty('--w', `${100 * ease(cl((t - 0.8) / 0.7))}%`); },
+  },
+  timeline: {
+    init(g) { const pts = (g.points || []).slice(0, 4); g._n = pts.length; const gap = 440;
+      st.innerHTML = `<div class="tl" id="tl" style="width:${200 + gap * (pts.length - 1) + 400}px"><div class="line" id="ln" style="left:200px;width:0"></div>${pts.map((p, i) => `<div class="pt-y" id="p${i}" style="left:${200 + gap * i}px"><b>${esc(p.year)}</b><u></u><s>${esc(p.label)}</s></div>`).join('')}</div>`; g._gap = gap; },
+    frame(t, g) { const n = g._n, per = (D - 0.6) / Math.max(1, n), gap = g._gap;
+      const cur = Math.min(n - 1, (t - 0.2) / per); const fx = Math.max(0, cur);
+      document.getElementById('tl').style.transform = `translateX(${540 - 200 - gap * ease(cl(fx / Math.max(1, n - 1))) * (n - 1)}px)`;
+      document.getElementById('ln').style.width = `${Math.max(0, gap * Math.min(n - 1, (t - 0.2) / per))}px`;
+      for (let i = 0; i < n; i++) { const e = document.getElementById('p' + i), k = back(cl((t - 0.2 - i * per) / 0.4)); e.style.opacity = cl((t - 0.2 - i * per) / 0.2); e.style.transform = `translateX(-50%) scale(${0.6 + 0.4 * k})`; } },
+  },
+  chart: {
+    init(g) { const bars = (g.bars || []).slice(0, 4); const max = Math.max(...bars.map((b) => b.value), 1); g._b = bars;
+      st.innerHTML = `<div class="ch">${bars.map((b, i) => `<div class="bar${b.value === max ? '' : ' dim'}" id="b${i}" style="height:${Math.max(4, 100 * b.value / max)}%"><b id="v${i}"></b><s>${esc(b.label)}</s></div>`).join('')}</div>`; },
+    frame(t, g) { g._b.forEach((b, i) => { const k = ease(cl((t - 0.2 - i * 0.25) / 0.9)); document.getElementById('b' + i).style.transform = `scaleY(${k})`;
+      const p = numParts(String(b.value)); document.getElementById('v' + i).textContent = (p ? fmt(p, p.n * k) : b.value) + (g.unit || ''); document.getElementById('v' + i).style.transform = `scaleY(${k > 0.02 ? 1 / k : 1})`; }); },
+  },
+  globe: {
+    async init(g) {
+      const THREE = await import('./three.module.min.js');
+      st.innerHTML = `<canvas id="cv" width="1080" height="1920"></canvas>${g.place ? `<div class="place" id="pl">${esc(g.place)}<small>${esc((g.body || 'earth').toUpperCase())}</small></div>` : ''}`;
+      const r = new THREE.WebGLRenderer({ canvas: document.getElementById('cv'), antialias: true, alpha: true, preserveDrawingBuffer: true });
+      r.setSize(1080, 1920, false);
+      const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1080 / 1920, 0.1, 100);
+      const tex = await new THREE.TextureLoader().loadAsync(`./${g.body === 'moon' ? 'moon' : g.body === 'mars' ? 'mars' : 'earth'}.jpg`);
+      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), new THREE.MeshStandardMaterial({ map: tex, roughness: 1, metalness: 0 }));
+      sc.add(m); const sun = new THREE.DirectionalLight(0xffffff, 3.2); sun.position.set(-3, 1.2, 2.5); sc.add(sun); sc.add(new THREE.AmbientLight(0x404a66, 0.35));
+      // stars
+      const sg = new THREE.BufferGeometry(), N = 1400, pos = new Float32Array(N * 3); let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+      for (let i = 0; i < N; i++) { const th = rnd() * 6.283, ph = Math.acos(2 * rnd() - 1), R = 40; pos.set([R * Math.sin(ph) * Math.cos(th), R * Math.sin(ph) * Math.sin(th), R * Math.cos(ph)], i * 3); }
+      sg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); sc.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, sizeAttenuation: true })));
+      let pin = null;
+      if (g.lat != null && g.lon != null) { pin = new THREE.Mesh(new THREE.SphereGeometry(0.018, 24, 24), new THREE.MeshBasicMaterial({ color: 0xffd84a })); const la = g.lat * Math.PI / 180, lo = g.lon * Math.PI / 180;
+        pin.position.set(1.005 * Math.cos(la) * Math.sin(lo), 1.005 * Math.sin(la), 1.005 * Math.cos(la) * Math.cos(lo)); m.add(pin); }
+      three = { r, sc, cam, m, pin, THREE };
+    },
+    frame(t, g) { const { r, sc, cam, m, pin } = three, k = ease(cl(t / D));
+      const la = (g.lat ?? 12) * Math.PI / 180, lo = (g.lon ?? 0) * Math.PI / 180;
+      // turn so the place faces the camera, while drifting in
+      m.rotation.y = -lo - (1 - k) * 1.4; m.rotation.x = la * k * 0.9;
+      const dist = pin ? 12 - 6 * k : 10 - 2.6 * k; cam.position.set(0, -0.15 + 0.15 * k, dist); cam.lookAt(0, 0.08, 0);
+      if (pin) pin.scale.setScalar(1 + 0.4 * Math.sin(t * 6));
+      r.render(sc, cam);
+      const pl = document.getElementById('pl'); if (pl) { pl.style.opacity = cl((t - 0.8) / 0.4); pl.style.transform = `translateY(${16 * (1 - ease(cl((t - 0.8) / 0.5)))}px)`; } },
+  },
+};
+window.setup = async (g, dur, look) => { document.body.className = look || 'clean'; G = g; D = dur; await document.fonts.ready; await T[g.type].init(g); window.frame(0); return true; };
+window.frame = (t) => { T[G.type].frame(t, G); const gr = document.getElementById('grain'); gr.style.transform = `translate(${(Math.floor(t * 24) * 37) % 40 - 20}px,${(Math.floor(t * 24) * 53) % 40 - 20}px)`; };
+window.ready = true;
+</script></body></html>
