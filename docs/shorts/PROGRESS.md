@@ -2,7 +2,7 @@
 
 Checklist of the phases in `MASTER_PROMPT.md`. Times are UTC+1.
 
-- [ ] **Phase 1: Check understanding** — summary sent Nov 21; waiting for the owner to confirm or correct.
+- [x] **Phase 1: Check understanding** — confirmed by the owner Nov 21. The "Moon by 2020" Reel worked because of its story (real promise, real miss, real dates, punchline), not its text styling; the settled narration and text rules stand.
 - [ ] **Phase 2: Discovery interview** (11 topics → draft rules in `RULES.md`)
   - [ ] 1 Purpose and feeling
   - [ ] 2 Subject matter
