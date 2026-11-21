@@ -40,4 +40,6 @@ Partly answered Nov 21; story selection and imagery kinds are still open.
   - the footage under the graphic is the place or object the story is about, not just the goal's general world;
   - the graphic states the thing the line says (the study, the number, the date).
 - **Source facts are checked against the record before a graphic is drawn.** Example: the laser-tile study is dated 2026 by Crossref (Open Ceramics vol. 28, DOI 10.1016/j.oceram.2026.101082, CC BY 4.0); the Nov 21 sample's clipping said 2024.
-- **Open:** which kinds of moving imagery are right (real camera, data render, artist animation; three clips sent Nov 21); which stories get a video; whether swipeable photo posts in Watch are in scope.
+- **Level (confirmed Nov 21):** more dramatic than NASA's plain data renders (clips B and C of Nov 21). The target is the richer look of NASA's artist illustrations: more colour, atmosphere and depth.
+- **Mix (confirmed Nov 21): made by default, real for real events.** Real camera footage appears only under a line about an event that was filmed (a launch, a landing, a field trial). It is never used as generic background.
+- **Open:** the exact dramatic look (examples to be shown); which stories get a video; whether swipeable photo posts in Watch are in scope.
