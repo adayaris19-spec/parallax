@@ -48,6 +48,11 @@ Draft confirmed Nov 21.
   - people and hardware in a place (PIA23302) for "the goal achieved";
   - clean orbital realism (PIA23690) for planets and spacecraft.
   - What they share, and what ours must have: one clear light source, deep shadows, real surface texture, a sense of scale, no flat or untextured shapes.
+- **Visual richness (owner, Nov 21, on the first 3D still):** "anywhere you look in that image, you're gonna be looking at it for at least 5 seconds." Detail must fill the frame, not sit in one object.
+  - Draft measure: split the 1080×1920 frame into a 6×10 grid of 180×192 px cells. At most 15% of cells may be "empty" (local contrast below a threshold to be set from the NASA references). The first 3D still fails: its sky and its shadows are empty.
+  - No region of pure black larger than 2% of the frame. Shadows keep visible detail.
+  - No surface with a single flat colour: every surface shows variation at three scales (large shapes, mid texture, fine grain).
+  - Named failure to avoid: "nice thing that AI made". A viewer with no stake should be held, not just pleased.
 - **Story selection (confirmed Nov 21): goal story first, news when it's big.**
   - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
   - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.
