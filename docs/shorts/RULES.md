@@ -31,7 +31,7 @@ Confirmed Nov 21.
 
 ## 2. Subject matter
 
-Draft confirmed Nov 21.
+Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
 
 - **Always moving.** No still real-life photo is held on screen as a shot. (Owner: "I don't want videos to be static real life images.")
 - **The vision (owner, Nov 21): original made imagery at NASA's level of detail, not NASA's clips re-used.** NASA's computer-made pictures (for example a Milky Way view no camera could take) are the model for detail and visual quality. Parallax makes its own in that style. Real footage may be mixed in for goals where it fits. This corrects section 6.7 of `SUMMARY.md`, which read the references as "real photographs".
@@ -50,7 +50,7 @@ Draft confirmed Nov 21.
   - What they share, and what ours must have: one clear light source, deep shadows, real surface texture, a sense of scale, no flat or untextured shapes.
 - **Visual richness (owner, Nov 21, on the first 3D still):** "anywhere you look in that image, you're gonna be looking at it for at least 5 seconds." Detail must fill the frame, not sit in one object.
   - Draft measure: split the 1080×1920 frame into a 6×10 grid of 180×192 px cells. At most 15% of cells may be "empty" (local contrast below a threshold to be set from the NASA references). The first 3D still fails: its sky and its shadows are empty.
-  - No region of pure black larger than 2% of the frame. Shadows keep visible detail.
+  - No region of pure black larger than 2% of the frame. Shadows keep visible detail. Exception (Nov 22): sky that a real camera would record as black; see "Only what a real camera could record".
   - No surface with a single flat colour: every surface shows variation at three scales (large shapes, mid texture, fine grain).
   - Named failure to avoid: "nice thing that AI made". A viewer with no stake should be held, not just pleased.
 - **One picture, not layers (owner, Nov 21, on the Moon still):** "everything individually looks good, but when they all blend together it looks very separate… the Earth is good by itself, but against the background it just looks fake."
@@ -58,6 +58,28 @@ Draft confirmed Nov 21.
   - Bright objects affect what is around them: glare lifts the sky next to them and dims faint detail there, and background light wraps a few pixels over object edges.
   - No two layers may be exposed as if for different cameras (for example a long-exposure star field behind a daylight-exposed planet at full strength).
 - **Judged in motion (owner, Nov 21):** stills are not enough; every look is approved as a moving shot.
+- **Something is going on in every shot (owner, Nov 22, on the moving Moon clip):** "right now it's just three objects, the Earth, the Moon's surface and the background… moving just vertically up or down"; "more elements, more individual things"; "it can still move around slowly".
+  - Four kinds of "going on", all accepted; which one "really depends on the clip":
+    1. things at work: hardware and people doing something in a real place;
+    2. a camera that travels: it goes somewhere, and near things pass close to the lens;
+    3. the science happening: the shot shows the process itself;
+    4. many small details: small things moving all over a calm shot.
+  - Draft measures, to confirm on the next sample:
+    - at least 6 separately identifiable things in frame (the Nov 22 Moon clip had 3);
+    - at least 2 of them move on their own, not only because the camera moves;
+    - depth is visible: something sits close to the camera, and near things cross the frame at least 4 times faster than the farthest thing (in the Moon clip everything moved the same way at about 1 px per frame);
+    - the camera may be slow. Speed is not the fix.
+  - Named failure to avoid: "layers sliding", meaning the whole picture moving in one direction as two or three flat layers. A long lens from far away causes it.
+- **Only what a real camera could record (confirmed Nov 22).** Parallax is science-based; the owner called the Moon clip "not even scientifically right".
+  - True places, sizes, distances and light direction.
+  - One exposure for the whole frame. No bright stars beside sunlit ground or a sunlit planet. This withdraws the brightened star field of Nov 21.
+  - Speed is real, or an honest time-lapse in which everything in the frame speeds up by the same factor. A camera that flies faster than a real spacecraft while the rest stays in real time is not allowed (the Nov 22 Moon clip flew 2.7 times too fast).
+  - Consequence for richness: where a real camera shows a black sky, the subject has to fill the frame. Draft limit, to set on the next sample: black sky covers at most 15% of the frame.
+  - Each made shot records what in it is measured (data, published models) and what is modelled (anything we added), with sources.
+- **Things that do not exist yet (confirmed Nov 22): published designs, or our own built from published plans; the mix depends on the goal.**
+  - First choice: real hardware and official prototypes or designs (for example NASA's published 3D models), in real places with real light.
+  - Our own designs are allowed where no published model exists, when every part follows a published plan: its size, its place, the number of people. The source is recorded per element.
+  - The narration says it is the plan, not a photo. No on-screen label (settled).
 - **Story selection (confirmed Nov 21): goal story first, news when it's big.**
   - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
   - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.

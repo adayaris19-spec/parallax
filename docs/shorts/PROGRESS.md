@@ -8,6 +8,7 @@ Checklist of the phases in `MASTER_PROMPT.md`. Times are UTC+1.
   - [x] 2 Subject matter — own made imagery in NASA artist-illustration style, real footage only for filmed events; goal story first, news when big
   - [x] 3 Structure and timing — 4 shots of 4.5–7 s, strongest picture first, peak in shot 3
   - [ ] **Feasibility test pulled forward (owner's choice, Nov 21):** can the artist-illustration look be made for free? Stills sent; waiting for the owner's verdict. Details below.
+  - [x] Added Nov 22 after the first moving clip — what goes on in a shot, how true a made picture must be, how to show things that do not exist yet (rules in section 2)
   - [ ] 4 Visual continuity
   - [ ] 5 Spacing and composition
   - [ ] 6 Colour and grade
@@ -58,15 +59,20 @@ No black frames longer than 0.2 s were detected in any of the files.
 
 | Clip | Camera move | Render | Checks | Owner's verdict |
 |---|---|---|---|---|
-| Moon south pole, v3 lens pass | Flies 22 km forward at 100 km height; Earth rises 129 px (0.7°), ground slides about 1 px per frame at the bottom of the frame | 20 samples, 45 s per frame, 90 min | Fine detail stays attached to the ground between frames (0.93–0.99 correlation after motion compensation); stars stay locked to Earth; 0 empty cells, 0% pure black | pending |
+| Moon south pole, v3 lens pass | Flies 22 km forward at 100 km height; Earth rises 129 px (0.7°), ground slides about 1 px per frame at the bottom of the frame | 20 samples, 45 s per frame, 90 min | Fine detail stays attached to the ground between frames (0.93–0.99 correlation after motion compensation); stars stay locked to Earth; 0 empty cells, 0% pure black | "Not exactly what I was looking for": only three things in it, all sliding vertically; "not even scientifically right"; not engaging past a second. "If you could do this, you could definitely do what I want": more elements, more going on; slow is fine |
 
 - The Moon camera moves 2.7 times faster than a real orbiter at that height (a real one covers about 8 km in 5 s). At real speed the move would be barely visible. Camera speed needs a rule.
 - The film grain makes the file large: 16 MB for 5 s at this quality setting.
+- Why it read as three sliding layers: a 10.6° lens from 100 km up has no near field, so flying forward only slides the ground down and Earth up.
+- Two liberties in that clip are now ruled out (`RULES.md` section 2, Nov 22): the faster-than-real camera, and bright stars beside a sunlit Earth and sunlit ground.
+- The capsid clip was not rendered: one object turning slowly would fail the same way. The Earth clip (a single surface gliding at real orbital speed) was finished for completeness.
+- Owner's answers, Nov 22: all four kinds of "going on" are wanted, depending on the clip; future things may be published designs or our own designs built from published plans; pictures show only what a real camera could record.
+- Next test: one shot with many separate things at work, built from NASA's published hardware models, with a real-camera exposure.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
-- NASA publishes 257 spacecraft and hardware models as `.glb` (github.com/nasa/NASA-3D-Resources), including the lunar Gateway (imports with full textures). The Lunar Reconnaissance Orbiter models need a Blender build with Draco support; the `bpy` pip package lacks it.
+- NASA publishes 257 spacecraft and hardware models as `.glb` (github.com/nasa/NASA-3D-Resources). For a Moon base they include the Habitat Demonstration Unit, the Space Exploration Vehicle (crew rover), the RASSOR digging robot, the Mark III and Z2 spacesuits, an astronaut, the Apollo Lunar Module, dishes and the Gateway core. Most are Draco-compressed, which the `bpy` pip package cannot read (only the Gateway and three simple models load as they are); they need decompressing first.
 - NASA's Deep Star Maps 2020 at 64k is 0.0055° per pixel, which is 1:1 with a 1920 px frame at a 10.6° field of view. Orientation was verified against Antares (within 2 px).
 - NASA GIBS serves daily true-colour imagery as tiles with no key. Single-day mosaics have visible boundaries between satellite passes; shots must be framed inside one pass.
 - EOX "Sentinel-2 cloudless 2016" tiles (CC BY 4.0) are sharp on land (about 140 m per pixel at zoom 10 here, finer at higher zooms), but the sea has visible coverage halos and seams around the coast and reefs. Usable for land only, under a land mask; not tried in a render yet.
