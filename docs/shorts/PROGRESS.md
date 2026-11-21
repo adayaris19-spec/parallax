@@ -51,8 +51,17 @@ No black frames longer than 0.2 s were detected in any of the files.
 **Known weaknesses**
 - Earth example: soft at full size. VIIRS true colour is gridded at 250 m but its real sharpness is coarser. Open ocean and space leave 23% of the frame empty.
 - Moon v2: the largest shadows are still close to black (6.4% of the frame under 8/255). No hardware or people.
-- Motion is untested; the owner asked to see all three moving (clips rendering Nov 21). A 5 s shot is 120 frames: about 1.5–10 hours of CPU per shot at these settings, to be reduced before it is practical.
+- Motion: see the motion test below. A 5 s shot is 120 frames, which costs 35 minutes to 2.5 hours of CPU per shot at these settings; to be reduced before it is practical.
 - Each new subject needs its own scene script. That does not yet scale to 26 goals.
+
+**Motion test (Nov 21–22): the same three scenes as 5 s clips, 1080×1920, 24 fps**
+
+| Clip | Camera move | Render | Checks | Owner's verdict |
+|---|---|---|---|---|
+| Moon south pole, v3 lens pass | Flies 22 km forward at 100 km height; Earth rises 129 px (0.7°), ground slides about 1 px per frame at the bottom of the frame | 20 samples, 45 s per frame, 90 min | Fine detail stays attached to the ground between frames (0.93–0.99 correlation after motion compensation); stars stay locked to Earth; 0 empty cells, 0% pure black | pending |
+
+- The Moon camera moves 2.7 times faster than a real orbiter at that height (a real one covers about 8 km in 5 s). At real speed the move would be barely visible. Camera speed needs a rule.
+- The film grain makes the file large: 16 MB for 5 s at this quality setting.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
@@ -60,4 +69,5 @@ No black frames longer than 0.2 s were detected in any of the files.
 - NASA publishes 257 spacecraft and hardware models as `.glb` (github.com/nasa/NASA-3D-Resources), including the lunar Gateway (imports with full textures). The Lunar Reconnaissance Orbiter models need a Blender build with Draco support; the `bpy` pip package lacks it.
 - NASA's Deep Star Maps 2020 at 64k is 0.0055° per pixel, which is 1:1 with a 1920 px frame at a 10.6° field of view. Orientation was verified against Antares (within 2 px).
 - NASA GIBS serves daily true-colour imagery as tiles with no key. Single-day mosaics have visible boundaries between satellite passes; shots must be framed inside one pass.
+- EOX "Sentinel-2 cloudless 2016" tiles (CC BY 4.0) are sharp on land (about 140 m per pixel at zoom 10 here, finer at higher zooms), but the sea has visible coverage halos and seams around the coast and reefs. Usable for land only, under a land mask; not tried in a render yet.
 - `eoimages.gsfc.nasa.gov` (Blue Marble) and `sciencedirect.com` cannot be reached from this environment.
