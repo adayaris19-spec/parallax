@@ -67,4 +67,13 @@ for look in ("AgX - Medium High Contrast", "Medium High Contrast"):
     try: scene.view_settings.look = look; break
     except Exception: pass
 scene.view_settings.exposure = E("EXPO", 0.0); scene.render.image_settings.file_format = "PNG"
-scene.render.filepath = OUT; bpy.ops.render.render(write_still=True); log("rendered")
+ARGS = sys.argv[3:]
+if not ARGS:
+    scene.render.filepath = OUT; bpy.ops.render.render(write_still=True); log("rendered")
+else:                                   # frames: <first> <last> <count>; slow turn about the capsid's long axis with a small push-in
+    a_, b_, nf = int(ARGS[0]), int(ARGS[1]), int(ARGS[2]); scene.render.use_persistent_data = True
+    axis = (math.sin(tilt), 0.0, math.cos(tilt)); ob.rotation_mode = "AXIS_ANGLE"
+    for i in range(a_, b_ + 1):
+        t = i / (nf - 1); ang = math.radians(E("ROT", 14.0)) * (t - 0.5); ob.rotation_axis_angle = (ang, *axis)
+        dd = dist - E("PUSH", 1.2) * t; cam.location = (E("CX", 0.0), -dd, E("CZ", 0.3)); cd.dof.focus_distance = dd - E("FOCUS_IN", 2.6)
+        scene.render.filepath = f"{OUT}/f_{i:04d}.png"; bpy.ops.render.render(write_still=True); log("frame", i)

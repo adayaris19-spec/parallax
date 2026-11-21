@@ -53,6 +53,11 @@ Draft confirmed Nov 21.
   - No region of pure black larger than 2% of the frame. Shadows keep visible detail.
   - No surface with a single flat colour: every surface shows variation at three scales (large shapes, mid texture, fine grain).
   - Named failure to avoid: "nice thing that AI made". A viewer with no stake should be held, not just pleased.
+- **One picture, not layers (owner, Nov 21, on the Moon still):** "everything individually looks good, but when they all blend together it looks very separate… the Earth is good by itself, but against the background it just looks fake."
+  - Every element in a frame goes through one shared lens pass: the same softness, the same grain, the same colour grade and the same black level.
+  - Bright objects affect what is around them: glare lifts the sky next to them and dims faint detail there, and background light wraps a few pixels over object edges.
+  - No two layers may be exposed as if for different cameras (for example a long-exposure star field behind a daylight-exposed planet at full strength).
+- **Judged in motion (owner, Nov 21):** stills are not enough; every look is approved as a moving shot.
 - **Story selection (confirmed Nov 21): goal story first, news when it's big.**
   - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
   - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.
