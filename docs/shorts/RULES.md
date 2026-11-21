@@ -34,7 +34,8 @@ Confirmed Nov 21.
 Partly answered Nov 21; story selection and imagery kinds are still open.
 
 - **Always moving.** No still real-life photo is held on screen as a shot. (Owner: "I don't want videos to be static real life images.")
-- **The bar is NASA's moving imagery, including its computer-made work**, not only real photographs. This corrects section 6.7 of `SUMMARY.md`.
+- **The vision (owner, Nov 21): original made imagery at NASA's level of detail, not NASA's clips re-used.** NASA's computer-made pictures (for example a Milky Way view no camera could take) are the model for detail and visual quality. Parallax makes its own in that style. Real footage may be mixed in for goals where it fits. This corrects section 6.7 of `SUMMARY.md`, which read the references as "real photographs".
+  - Constraint still standing: no paid AI image or video tools. How to make such imagery for free is the Phase 4 question; nothing is promised until a test render is shown.
 - **Lines with no footage of their own** (a lab result, a number, a policy): a thin-type graphic over real moving footage. Draft conditions, to confirm:
   - the footage under the graphic is the place or object the story is about, not just the goal's general world;
   - the graphic states the thing the line says (the study, the number, the date).
