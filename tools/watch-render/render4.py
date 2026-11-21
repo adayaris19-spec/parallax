@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 CODE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, CODE)
 import render as R, score3
-W, H, FPS, X = R.W, R.H, R.FPS, 0.18
+W, H, FPS, X = R.W, R.H, 24, 0.4  # film rate; soft dissolves
 WR = R.WR; VERSION = 4
 GFX_URL = os.environ.get('GFX_URL', 'http://localhost:8766/gfx.html')
 KPY = os.environ.get('KOKORO_PY', sys.executable)
@@ -21,10 +21,10 @@ sh = R.sh
 
 def shade():
     # A soft dark band behind the captions (lower middle) and at the top, so white text reads on any footage.
-    f = f'{WR}/gfx/shade.png'
+    f = f'{WR}/gfx/shade2.png'
     if not os.path.exists(f):
         y = np.linspace(0, 1, H)[:, None]
-        a = np.clip(0.55 * np.exp(-((y - 0.66) / 0.16) ** 2) + 0.45 * np.clip(1 - y / 0.16, 0, 1), 0, 0.75)
+        a = np.clip(0.5 * np.clip((y - 0.62) / 0.2, 0, 1) ** 1.4 + 0.3 * np.clip(1 - y / 0.14, 0, 1), 0, 0.6)
         img = np.zeros((H, W, 4), np.uint8); img[..., 3] = (np.repeat(a, W, 1) * 255).astype(np.uint8)
         Image.fromarray(img, 'RGBA').save(f)
     return f
@@ -38,40 +38,41 @@ def word_times(text, t0, dur):
     for w, k in zip(ws, wt): d = dur * k / tot; out.append((w, t, t + d)); t += d
     return out
 def chunks(words):
-    # 1-3 words per caption, breaking after punctuation, so each line lands as it is said.
-    out, cur = [], []
+    # Documentary subtitles: a phrase at a time (up to ~34 characters a line, two lines), breaking at punctuation.
+    out, cur, n = [], [], 0
     for w in words:
-        cur.append(w)
-        if len(cur) >= 3 or re.search(r'[.,?!:;]$', w[0]): out.append(cur); cur = []
+        cur.append(w); n += len(w[0]) + 1
+        if n >= 52 or (re.search(r'[.?!:;]$', w[0]) and n > 14) or (w[0].endswith(',') and n > 30): out.append(cur); cur, n = [], 0
     if cur: out.append(cur)
     return out
+def wrap2(t):
+    if len(t) <= 34: return t
+    ws = t.split(); best = None
+    for i in range(1, len(ws)):
+        a, b = ' '.join(ws[:i]), ' '.join(ws[i:]); d = abs(len(a) - len(b))
+        if best is None or d < best[0]: best = (d, a, b)
+    return best[1] + '\\N' + best[2]
 def ass_file(lines, path, look):
-    hi = '&H004AD8FF&' if look == 'clean' else '&H004AD8FF&'
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {W}
 PlayResY: {H}
-WrapStyle: 0
+WrapStyle: 2
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,Inter Black,104,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,-1,0,1,7,3,2,90,90,640,1
+Style: Sub,Inter Display Medium,54,&H00F2F2F2,&H00F2F2F2,&H00000000,&H96000000,0,0,0,0,100,100,0.4,0,1,0,2.2,2,120,120,470,1
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
-    # One event per spoken word (that word highlighted); each ends where the next begins, so lines never overlap.
     ev = []
     for words in lines:
-        for ch in chunks(words):
-            for j, (w, s, e) in enumerate(ch):
-                txt = ' '.join((f'{{\\c{hi}}}{x[0]}{{\\c&H00FFFFFF&}}' if k == j else x[0]) for k, x in enumerate(ch))
-                pop = '{\\fscx86\\fscy86\\t(0,90,\\fscx100\\fscy100)}' if j == 0 else ''
-                ev.append([s, e + (0.25 if j == len(ch) - 1 else 0), pop + txt])
+        for ch in chunks(words): ev.append([ch[0][1] - 0.05, ch[-1][2] + 0.35, wrap2(' '.join(x[0] for x in ch))])
     for a, b in zip(ev, ev[1:]): a[1] = min(a[1], b[0])
-    open(path, 'w').write(head + '\n'.join(f'Dialogue: 0,{ass_time(a)},{ass_time(b)},Cap,,0,0,0,,{t}' for a, b, t in ev) + '\n')
+    open(path, 'w').write(head + '\n'.join(f'Dialogue: 0,{ass_time(a)},{ass_time(b)},Sub,,0,0,0,,{{\\fad(120,120)\\blur0.6}}{t}' for a, b, t in ev) + '\n')
 
 # ---------- footage ----------
 def footage(scene_media, extras, D, i, n, seed, look, out):
-    k = max(1, min(3, round(D / 1.7))); cuts = [round(D * j / k, 2) for j in range(k + 1)]; sg = 1 if (seed + i) % 2 else -1
+    k = max(1, min(3, round(D / (1.4 if i == 0 else 3.0)))); cuts = [round(D * j / k, 2) for j in range(k + 1)]; sg = 1 if (seed + i) % 2 else -1
     ins, fc = [], ''
     for j in range(k):
         sd = cuts[j + 1] - cuts[j]
@@ -83,15 +84,17 @@ def footage(scene_media, extras, D, i, n, seed, look, out):
         z = f'({z0}+{z1 - z0:.3f}*t/{sd:.2f})'
         fc += (f"[{j}:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
                f"crop={W}:{H}:x='(iw-ow)/2+(iw-ow)/2*{xo}':y='(ih-oh)/2',fps={FPS},setsar=1,trim=duration={sd:.2f},setpts=PTS-STARTPTS[s{j}];")
-    grade = ('eq=brightness=-0.02:saturation=1.12:contrast=1.06,unsharp=5:5:0.55' if look == 'clean' else
-             'eq=brightness=-0.01:saturation=0.86:contrast=1.08,colorbalance=rs=0.05:gs=0.02:bs=-0.06,noise=alls=14:allf=t,vignette=PI/5')
+    # Film look: soft contrast, lifted blacks, gentle colour (cool for space and tech, warm for life and climate), fine grain.
+    grade = ('eq=contrast=0.97:brightness=-0.015:saturation=0.88,colorbalance=rs=-0.03:gs=-0.01:bs=0.04:rh=0.03:bh=-0.03,curves=all=0/0.03 0.5/0.48 1/0.96,noise=alls=6:allf=t,vignette=PI/6'
+             if look == 'clean' else
+             'eq=contrast=0.97:brightness=-0.01:saturation=0.9,colorbalance=rs=0.04:gs=0.01:bs=-0.04:rh=0.04:bh=-0.04,curves=all=0/0.03 0.5/0.49 1/0.96,noise=alls=6:allf=t,vignette=PI/6')
     fc += ''.join(f'[s{j}]' for j in range(k)) + f'concat=n={k}:v=1:a=0,{grade}[v];[{k}:v]format=rgba[sh];[v][sh]overlay=0:0,format=yuv420p'
     sh(['ffmpeg', '-y', '-v', 'error', *ins, '-loop', '1', '-i', shade(), '-t', f'{D:.2f}', '-filter_complex', fc, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-r', str(FPS), out])
 
 def graphic(g, D, look, out):
     spec = f'{out}.json'; json.dump(g, open(spec, 'w'))
     raw = out.replace('.mp4', '-raw.mp4')
-    sh(['node', f'{CODE}/gfxrec.js', GFX_URL, spec, f'{D:.2f}', look, raw])
+    sh(['node', f'{CODE}/gfxrec.js', GFX_URL, spec, f'{D:.2f}', look, raw, str(FPS)])
     # the same band behind the captions as on footage
     sh(['ffmpeg', '-y', '-v', 'error', '-i', raw, '-loop', '1', '-i', shade(), '-t', f'{D:.2f}', '-filter_complex', '[1:v]format=rgba[s];[0:v][s]overlay=0:0,format=yuv420p', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-r', str(FPS), out])
     os.remove(raw); os.remove(spec)

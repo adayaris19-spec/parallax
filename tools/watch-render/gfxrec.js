@@ -4,8 +4,8 @@ const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const fs = require('fs');
 (async () => {
-  const [url, specFile, dur, look, out] = process.argv.slice(2);
-  const spec = JSON.parse(fs.readFileSync(specFile, 'utf8')), D = Number(dur), FPS = 30;
+  const [url, specFile, dur, look, out, fps] = process.argv.slice(2);
+  const spec = JSON.parse(fs.readFileSync(specFile, 'utf8')), D = Number(dur), FPS = Number(fps) || 30;
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   p.on('pageerror', (e) => console.error('page:', e.message));
