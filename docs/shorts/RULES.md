@@ -31,4 +31,12 @@ Confirmed Nov 21.
 
 ## 2. Subject matter
 
-_Pending._
+Partly answered Nov 21; story selection and imagery kinds are still open.
+
+- **Always moving.** No still real-life photo is held on screen as a shot. (Owner: "I don't want videos to be static real life images.")
+- **The bar is NASA's moving imagery, including its computer-made work**, not only real photographs. This corrects section 6.7 of `SUMMARY.md`.
+- **Lines with no footage of their own** (a lab result, a number, a policy): a thin-type graphic over real moving footage. Draft conditions, to confirm:
+  - the footage under the graphic is the place or object the story is about, not just the goal's general world;
+  - the graphic states the thing the line says (the study, the number, the date).
+- **Source facts are checked against the record before a graphic is drawn.** Example: the laser-tile study is dated 2026 by Crossref (Open Ceramics vol. 28, DOI 10.1016/j.oceram.2026.101082, CC BY 4.0); the Nov 21 sample's clipping said 2024.
+- **Open:** which kinds of moving imagery are right (real camera, data render, artist animation; three clips sent Nov 21); which stories get a video; whether swipeable photo posts in Watch are in scope.
