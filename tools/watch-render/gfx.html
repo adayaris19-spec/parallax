@@ -7,6 +7,9 @@
    Content sits between the app's header (top ~230px) and the subtitles (from ~1400px down). */
 :root{--fg:#efece6;--dim:rgba(239,236,230,.55);--line:rgba(239,236,230,.28);--acc:#a9c4e8}
 .collage{--acc:#e2b57a}
+/* over footage: no backdrop (the footage is dimmed underneath), soft shadow for legibility */
+.over,.over body{background:transparent!important}.over #bg,.over #grain{display:none}
+.over .num,.over .unit,.over .cap,.over .pt-y b,.over .pt-y s,.over .bar b,.over .bar s{text-shadow:0 2px 30px rgba(0,0,0,.6)}
 html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#050505;font-family:Inter,sans-serif;color:var(--fg)}
 #bg{position:absolute;inset:0;background:radial-gradient(90% 55% at 50% 40%,#16171a 0%,#0a0a0b 55%,#040404 100%)}
 .collage #bg{background:radial-gradient(90% 55% at 50% 40%,#1a1613 0%,#0b0a09 55%,#040404 100%)}
@@ -118,7 +121,7 @@ const T = {
       const pl = document.getElementById('pl'); if (pl) { pl.style.opacity = cl((t - 0.8) / 0.4); pl.style.transform = `translateY(${16 * (1 - ease(cl((t - 0.8) / 0.5)))}px)`; } },
   },
 };
-window.setup = async (g, dur, look) => { document.body.className = look || 'clean'; G = g; D = dur; await document.fonts.ready; await T[g.type].init(g); window.frame(0); return true; };
+window.setup = async (g, dur, look, over) => { document.body.className = (look || 'clean') + (over ? ' over' : ''); if (over) document.documentElement.classList.add('over'); G = g; D = dur; await document.fonts.ready; await T[g.type].init(g); window.frame(0); return true; };
 window.frame = (t) => { T[G.type].frame(t, G); const gr = document.getElementById('grain'); gr.style.transform = `translate(${(Math.floor(t * 24) * 37) % 40 - 20}px,${(Math.floor(t * 24) * 53) % 40 - 20}px)`; };
 window.ready = true;
 </script></body></html>

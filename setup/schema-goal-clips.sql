@@ -21,3 +21,6 @@ create policy "goal clips are public" on goal_clips for select using (true);
 grant select on goal_clips to anon, authenticated;
 -- ok: false for a goal's older clips that failed the check (kept only so they are not checked again).
 alter table goal_clips add column if not exists ok boolean not null default true;
+-- scale: how far the camera is from its subject (space, orbit, aerial, ground, close, macro), so a video's
+-- shots can travel in one direction.
+alter table goal_clips add column if not exists scale text;

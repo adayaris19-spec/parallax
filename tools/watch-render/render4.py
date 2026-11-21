@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 CODE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, CODE)
 import render as R, score3
-W, H, FPS, X = R.W, R.H, 24, 0.4  # film rate; soft dissolves
+W, H, FPS, X = R.W, R.H, 24, 0.5  # film rate; half-second joins
 WR = R.WR; VERSION = 4
 GFX_URL = os.environ.get('GFX_URL', 'http://localhost:8766/gfx.html')
 KPY = os.environ.get('KOKORO_PY', sys.executable)
@@ -71,33 +71,37 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     open(path, 'w').write(head + '\n'.join(f'Dialogue: 0,{ass_time(a)},{ass_time(b)},Sub,,0,0,0,,{{\\fad(120,120)\\blur0.6}}{t}' for a, b, t in ev) + '\n')
 
 # ---------- footage ----------
-def footage(scene_media, extras, D, i, n, seed, look, out):
-    k = max(1, min(3, round(D / (1.4 if i == 0 else 3.0)))); cuts = [round(D * j / k, 2) for j in range(k + 1)]; sg = 1 if (seed + i) % 2 else -1
-    ins, fc = [], ''
-    for j in range(k):
-        sd = cuts[j + 1] - cuts[j]
-        if j == 0: (sk, sf), off, z0, z1, xo = scene_media, 0.4, 1.0, 1.07, 0.0
-        elif extras: (sk, sf), off, z0, z1, xo = extras.pop(0), 0.4, 1.05, 1.11, 0.3 * sg
-        else: (sk, sf), off, z0, z1, xo = scene_media, 0.4 + cuts[1] + 1.2, 1.18, 1.24, 0.5 * sg
-        ins += (['-f', 'lavfi', '-t', f'{sd:.2f}', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not sf else
-                (['-ss', f'{off:.2f}', '-stream_loop', '-1', '-t', f'{sd:.2f}', '-i', sf] if sk == 'video' else ['-loop', '1', '-t', f'{sd:.2f}', '-i', sf]))
-        z = f'({z0}+{z1 - z0:.3f}*t/{sd:.2f})'
-        fc += (f"[{j}:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
-               f"crop={W}:{H}:x='(iw-ow)/2+(iw-ow)/2*{xo}':y='(ih-oh)/2',fps={FPS},setsar=1,trim=duration={sd:.2f},setpts=PTS-STARTPTS[s{j}];")
-    # Film look: soft contrast, lifted blacks, gentle colour (cool for space and tech, warm for life and climate), fine grain.
+SCALE = {'space': 0, 'orbit': 1, 'aerial': 2, 'ground': 3, 'close': 4, 'macro': 5}
+def footage(media, D, look, out, push, hook=False, over=None):
+    # One shot per scene, held: the camera keeps moving the same way through every cut (pushing in for a journey
+    # inward, easing out for one outward), a little harder on the hook. With a graphic, the footage dims and softens
+    # underneath it and the graphic (transparent) sits on top.
+    sk, sf = media
+    z0, z1 = (1.0, 1.16 if hook else 1.10) if push == 'in' else (1.12, 1.0)
+    ins = (['-f', 'lavfi', '-t', f'{D:.2f}', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not sf else
+           (['-ss', '0.40', '-stream_loop', '-1', '-t', f'{D:.2f}', '-i', sf] if sk == 'video' else ['-loop', '1', '-t', f'{D:.2f}', '-i', sf]))
+    z = f'({z0}+{z1 - z0:.3f}*t/{D:.2f})'
     grade = ('eq=contrast=0.97:brightness=-0.015:saturation=0.88,colorbalance=rs=-0.03:gs=-0.01:bs=0.04:rh=0.03:bh=-0.03,curves=all=0/0.03 0.5/0.48 1/0.96,noise=alls=6:allf=t,vignette=PI/6'
              if look == 'clean' else
              'eq=contrast=0.97:brightness=-0.01:saturation=0.9,colorbalance=rs=0.04:gs=0.01:bs=-0.04:rh=0.04:bh=-0.04,curves=all=0/0.03 0.5/0.49 1/0.96,noise=alls=6:allf=t,vignette=PI/6')
-    fc += ''.join(f'[s{j}]' for j in range(k)) + f'concat=n={k}:v=1:a=0,{grade}[v];[{k}:v]format=rgba[sh];[v][sh]overlay=0:0,format=yuv420p'
-    sh(['ffmpeg', '-y', '-v', 'error', *ins, '-loop', '1', '-i', shade(), '-t', f'{D:.2f}', '-filter_complex', fc, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-r', str(FPS), out])
+    fc = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
+          f"crop={W}:{H},fps={FPS},setsar=1,trim=duration={D:.2f},setpts=PTS-STARTPTS,{grade}")
+    extra = []
+    if over:
+        fc += ",eq=brightness=-0.2:saturation=0.7,gblur=sigma=6[v0];[2:v]format=rgba[g];[v0][g]overlay=0:0[v];"; extra = ['-i', over]
+    else: fc += '[v];'
+    fc += '[1:v]format=rgba[sh];[v][sh]overlay=0:0,format=yuv420p'
+    sh(['ffmpeg', '-y', '-v', 'error', *ins, '-loop', '1', '-i', shade(), *extra, '-t', f'{D:.2f}', '-filter_complex', fc, '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-r', str(FPS), out])
 
-def graphic(g, D, look, out):
+def graphic(g, D, look, out, over=False):
+    # A globe is its own picture; everything else is drawn transparent, to sit over the scene's footage.
     spec = f'{out}.json'; json.dump(g, open(spec, 'w'))
-    raw = out.replace('.mp4', '-raw.mp4')
-    sh(['node', f'{CODE}/gfxrec.js', GFX_URL, spec, f'{D:.2f}', look, raw, str(FPS)])
-    # the same band behind the captions as on footage
-    sh(['ffmpeg', '-y', '-v', 'error', '-i', raw, '-loop', '1', '-i', shade(), '-t', f'{D:.2f}', '-filter_complex', '[1:v]format=rgba[s];[0:v][s]overlay=0:0,format=yuv420p', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-r', str(FPS), out])
-    os.remove(raw); os.remove(spec)
+    raw = out.replace('.mp4', '.mov' if over else '-raw.mp4')
+    sh(['node', f'{CODE}/gfxrec.js', GFX_URL, spec, f'{D:.2f}', look, raw, str(FPS), 'over' if over else 'full'])
+    os.remove(spec)
+    if over: return raw
+    sh(['ffmpeg', '-y', '-v', 'error', '-i', raw, '-loop', '1', '-i', shade(), '-t', f'{D:.2f}', '-filter_complex', '[1:v]format=rgba[s];[0:v][s]overlay=0:0,format=yuv420p', '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-r', str(FPS), out])
+    os.remove(raw)
 
 def render(r):
     rid, slug = r['id'], r['slug']; scenes = r['scenes']; n = len(scenes); look = r.get('look') or look_for(slug)
@@ -106,29 +110,27 @@ def render(r):
     lines = [str(s.get('say') or s.get('caption') or '').strip() for s in scenes]
     jf = f'{tmp}/lines.json'; json.dump(lines, open(jf, 'w'))
     lens = json.loads(sh([KPY, f'{CODE}/tts.py', jf, tmp, VOICE]).stdout.decode().strip().splitlines()[-1])
-    lead = 0.12; durs = [round(max(L + 0.3, 2.0), 2) for L in lens]; durs[-1] += 0.9
+    lead = 0.12; durs = [round(max(L + 0.35, 2.4), 2) for L in lens]; durs[-1] += 1.0
     # 2. pictures: graphics where the script asks, footage elsewhere (every clip once per goal)
     media = []
     for s in scenes:
         v = s.get('visual') or {}
         f = R.fetch(v.get('url'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', str(v.get('url')).split('r2.dev/')[-1])}") if v.get('kind') == 'video' else None
         media.append(('video', f) if f else ('image', None))
-    extras = R.fetch_pool({**r, 'id': rid}, scenes) or []
-    avoid = set(r.get('avoid_clips') or [])
-    extras = [e for e in extras if os.path.basename(e[1]) not in avoid]
+    sc_idx = [SCALE.get((s.get('visual') or {}).get('scale') or '', -1) for s in scenes]; known = [x for x in sc_idx if x >= 0]
+    push = 'out' if len(known) >= 2 and known[-1] < known[0] else 'in'
     segs, used = [], [os.path.basename(m[1]) for m in media if m[1]]
     for i, s in enumerate(scenes):
-        D = durs[i] + (X if i < n - 1 else 0); out = f'{tmp}/seg{i}.mp4'
-        if s.get('graphic') and s['graphic'].get('type'): graphic(s['graphic'], D, look, out)
-        else:
-            before = len(extras); footage(media[i], extras, D, i, n, R.hue(str(rid)), look, out)
+        D = durs[i] + (X if i < n - 1 else 0); out = f'{tmp}/seg{i}.mp4'; g = s.get('graphic') if (s.get('graphic') or {}).get('type') else None
+        if g and g['type'] == 'globe': graphic(g, D, look, out)
+        else: footage(media[i], D, look, out, push, hook=i == 0, over=graphic(g, D, look, out, over=True) if g else None)
         segs.append((out, D))
-    # 3. join with short dissolves
+    # 3. join: a zoom-through travelling inward, a dissolve otherwise
     inputs = []; [inputs.extend(['-i', p]) for p, _ in segs]
-    fc = ''; prev = '[0:v]'; off = 0.0; starts = [0.0]
+    fc = ''; prev = '[0:v]'; off = 0.0; starts = [0.0]; tr = 'zoomin' if push == 'in' else 'fade'
     for j in range(1, n):
         off += segs[j - 1][1] - X; starts.append(off); lab = f'[v{j}]'
-        fc += f'{prev}[{j}:v]xfade=transition=fade:duration={X}:offset={off:.3f}{lab};'; prev = lab
+        fc += f'{prev}[{j}:v]xfade=transition={tr}:duration={X}:offset={off:.3f}{lab};'; prev = lab
     total = off + segs[-1][1]
     # 4. captions timed to the voice
     cap = []
@@ -143,7 +145,7 @@ def render(r):
     voice = f'{tmp}/voice.wav'; sh(['ffmpeg', '-y', '-v', 'error', *vin, '-filter_complex', vfc, '-map', '[vo]', '-ar', '48000', '-ac', '2', voice])
     cfg = dict(R.STYLE.get(r.get('mood') or '', R.STYLE['mysterious'])); cfg['key'] = 48 + R.hue(str(rid) + slug) % 9
     base = R.PROGS[R.hue(slug) % 3]; cfg['prog'] = [base[i % len(base)] for i in range(n)]
-    mix, _ = score3.render([s0 + X / 2 for s0 in starts[1:]], total, cfg, R.hue(str(rid)) or 7)
+    mix, _ = score3.render([s0 + X / 2 for s0 in starts[1:]], total, cfg, R.hue(str(rid)) or 7)  # an impact on the first frame and each join
     music = f'{tmp}/music.wav'; score3.write(mix, music)
     final = f'{WR}/final/{tag}-v{VERSION}.mp4'
     sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', music, '-i', voice, '-filter_complex',

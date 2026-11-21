@@ -938,13 +938,14 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
 const BankCheck = z.object({ items: z.array(z.object({ id: z.number(), keep: z.boolean(), why: z.string().describe("At most 10 words.") })) });
 // Look-alikes: shots that would look nearly the same on screen (six Moons on black) make videos feel
 // repetitive. A text-only check groups them by description; each group keeps its best two.
-const Alike = z.object({ items: z.array(z.object({ id: z.number(), look: z.string().describe("2-4 words naming what the viewer sees, shared by shots that look alike (\"moon sphere in space\", \"lunar surface close-up\", \"earthrise over horizon\", \"rocket launch\").") })) });
+const Alike = z.object({ items: z.array(z.object({ id: z.number(), scale: z.enum(["space", "orbit", "aerial", "ground", "close", "macro"]).describe("How far the camera is from the subject: space (planets, stars), orbit (a planet or the Moon filling the frame, a spacecraft in orbit), aerial (from high above a landscape or reef), ground (a scene at human scale), close (a hand, a machine part, a face), macro (cells, crystals, tiny detail)."), look: z.string().describe("2-4 words naming what the viewer sees, shared by shots that look alike (\"moon sphere in space\", \"lunar surface close-up\", \"earthrise over horizon\", \"rocket launch\").") })) });
 async function dedupeBank(goalId: number, name: string) {
   const clips = (await db(`goal_clips?goal_id=eq.${goalId}&ok=eq.true&select=id,shows,rank&order=rank.desc`)) as { id: number; shows: string; rank: number }[];
   if (clips.length < 4) return { dropped: 0 };
   const v = (await claude.beta.messages.stream({ model: JUDGE_MODEL, max_tokens: 3000, output_config: { effort: "low", format: betaZodOutputFormat(Alike) },
-    messages: [{ role: "user", content: `Footage for short videos about "${name}". Label every shot with what a viewer sees on screen, in 2-4 words. Shots that would look nearly the same in a video MUST get the exact same label (every whole or crescent Moon floating in space is "moon sphere in space"; every clownfish with anemone is "clownfish in anemone"). Different subjects or framings get different labels.\n${clips.map((c) => `${c.id}: ${c.shows}`).join("\n")}` }] }).finalMessage().then(track("bank"))).parsed_output;
+    messages: [{ role: "user", content: `Footage for short videos about "${name}". Label every shot with its scale, and with what a viewer sees on screen, in 2-4 words. Shots that would look nearly the same in a video MUST get the exact same label (every whole or crescent Moon floating in space is "moon sphere in space"; every clownfish with anemone is "clownfish in anemone"). Different subjects or framings get different labels.\n${clips.map((c) => `${c.id}: ${c.shows}`).join("\n")}` }] }).finalMessage().then(track("bank"))).parsed_output;
   const look = new Map((v?.items ?? []).map((x) => [x.id, x.look.toLowerCase().trim()]));
+  await Promise.all((v?.items ?? []).filter((x) => clips.some((c) => c.id === x.id)).map((x) => db(`goal_clips?id=eq.${x.id}`, { method: "PATCH", prefer: "return=minimal", body: { scale: x.scale } })));
   const count = new Map<string, number>(); const drop: number[] = [];
   for (const c of clips) { const l = look.get(c.id); if (!l) continue; const n = (count.get(l) ?? 0) + 1; count.set(l, n); if (n > 2) drop.push(c.id); }  // best two of each look
   if (drop.length) await db(`goal_clips?id=in.(${drop.join(",")})`, { method: "PATCH", prefer: "return=minimal", body: { ok: false } });
@@ -1142,8 +1143,10 @@ At most one scene, never the first, has a stat: value of at most 8 characters (l
 The ending fits this goal and this story, and differs from the goal's other videos listed below: a vivid image of the future, a question that makes people think, a short punchline, a date to watch, or a plain powerful fact. It should leave the viewer wanting this goal to happen. The last scene is never the catch: put the catch earlier. Never ask anyone to donate, buy, click or follow.
 Style: caption at most 60 characters, sub at most 90 (optional), plain words, active verbs. No hype words (revolutionary, game-changer, breakthrough of the century), no emoji, no hashtags.
 Do not use labels or kickers (leave kicker empty).
-NARRATION: a narrator reads "say" aloud while it appears as word-by-word captions; "caption" is a short on-screen version of the same line. The narrator talks like a sharp science creator, not a news anchor: direct, conversational, energetic, short sentences, contractions. The first words grab attention within one second. Each say is 5-22 words; the whole video 45-75 words (20-30 seconds). Same facts rule: nothing beyond the facts. Write numbers the way they are spoken ("three hundred fifty-four hours" may stay "354 hours"; never symbols the voice would misread).
-GRAPHICS: exactly 2 or 3 scenes (never the first, never two in a row) MUST show an animated graphic instead of footage, each a different type. Prefer a counter for the story's key number and a paper when SOURCES are listed:
+NARRATION: a narrator reads "say" aloud while it appears as word-by-word captions; "caption" is a short on-screen version of the same line. The narrator talks like a sharp science creator, not a news anchor: direct, conversational, energetic, short sentences, contractions. The first words grab attention within one second. Each say is 5-18 words; the whole video 40-60 words (20-25 seconds), 4 or 5 scenes. Same facts rule: nothing beyond the facts. Write numbers the way they are spoken ("three hundred fifty-four hours" may stay "354 hours"; never symbols the voice would misread).
+OPENING: the first scene is the peak. Open on the most dramatic moment or image of the story, with the most spectacular clip, then explain how we got there. The energy is highest at the start.
+ONE VISUAL JOURNEY: the clips are labelled with their scale ([space], [orbit], [aerial], [ground], [close], [macro]). Order the scenes' clips so the scale travels in one direction through the video: zooming in (space, orbit, aerial, ground, close, macro) or pulling out (the reverse); the same scale twice in a row is fine, a jump back is not. Every scene, including graphic scenes, gets a different clip (a graphic is shown over its clip).
+GRAPHICS: exactly 2 or 3 scenes (never the first, never two in a row) MUST show an animated graphic over their footage, each a different type. Prefer a counter for the story's key number and a paper when SOURCES are listed:
 - paper: the actual study or report behind the story, shown as a clipping. Only when SOURCES are listed; the renderer takes the title, journal, year and author from there, so just set type "paper" and label to the one short phrase from the title to highlight (copied exactly from the title).
 - counter: one number from the facts that counts up; value like "15 cm" or "354 h", label at most 5 words.
 - timeline: 2-4 points in time from the facts (year as written, label at most 4 words), in order; the last may be an estimate ("2040s?").
@@ -1151,25 +1154,31 @@ GRAPHICS: exactly 2 or 3 scenes (never the first, never two in a row) MUST show 
 - chart: 2-4 bars from the facts in the same unit (label at most 3 words, value a number, unit like "%").
 Set graphic to null for footage scenes.
 Clips: give each scene a different clip number from the list, matching what the scene says when possible.`;
-async function clipPool(goalId: number) {
+async function clipPool(goalId: number, exceptReel = 0) {
+  // Once a goal has a checked footage bank, only its best clips are used (quality 8+, or 7+ if too few), each
+  // labelled with its scale so a video's shots can travel in one direction. A clip already in another
+  // narrated video of this goal is skipped: no clip appears twice across a goal's videos.
+  const bank = (await db(`goal_clips?goal_id=eq.${goalId}&ok=eq.true&select=url,poster,shows,credit,license,source_url,source,vertical,quality,scale&order=rank.desc&limit=80`).catch(() => [])) as Record<string, unknown>[];
+  if (bank.length) {
+    const taken = new Set<string>();
+    for (const r of (await db(`reels?goal_id=eq.${goalId}&id=neq.${exceptReel}&select=scenes`)) as { scenes: { say?: string; visual?: { url?: string } }[] }[])
+      if ((r.scenes || []).some((x) => x.say)) for (const sc of r.scenes) if (sc.visual?.url) taken.add(sc.visual.url);
+    const free = bank.filter((b) => !taken.has(String(b.url)));
+    const best = free.filter((b) => Number(b.quality) >= 8);
+    const use = best.length >= 6 ? best : free.filter((b) => Number(b.quality) >= 7);
+    return use.map((b, i) => ({ i, v: { kind: "video", url: b.url, poster: b.poster, credit: b.credit, license: b.license, source_url: b.source_url, source: b.source, vertical: b.vertical, scale: b.scale }, d: `[${b.scale ?? "?"}] ${String(b.shows).slice(0, 90)}` }));
+  }
   const seen = new Set<string>(), urls: Record<string, unknown>[] = [];
   for (const r of (await db(`reels?goal_id=eq.${goalId}&select=scenes`)) as { scenes: { visual?: { kind?: string; url?: string } }[] }[]) for (const sc of r.scenes || []) { const v = sc.visual; if (v?.kind === "video" && R2_PUBLIC && String(v.url).startsWith(R2_PUBLIC) && !seen.has(String(v.url))) { seen.add(String(v.url)); urls.push(v as Record<string, unknown>); } }
-  // Once a goal's clips have been checked (footage bank), only clips that passed are used.
-  const checked = (await db(`goal_clips?goal_id=eq.${goalId}&select=url,ok`).catch(() => [])) as { url: string; ok: boolean }[];
-  if (checked.length) { const bad = new Set(checked.filter((c) => !c.ok).map((c) => c.url)); for (let k = urls.length - 1; k >= 0; k--) if (bad.has(String(urls[k].url))) urls.splice(k, 1); }
   const desc = urls.length ? await db(`visuals?url=in.(${urls.map((v) => `"${v.url}"`).join(",")})&select=url,caption,query`).catch(() => []) : [];
-  const out = urls.map((v, i) => ({ i, v, d: (() => { const x = (desc as { url: string; caption: string | null; query: string | null }[]).find((y) => y.url === v.url); return String(x?.query || x?.caption || "footage").slice(0, 90); })() }));
-  // Plus the goal's footage bank (clips found and double-checked for it, not yet in any video).
-  const bank = (await db(`goal_clips?goal_id=eq.${goalId}&ok=eq.true&select=url,poster,shows,credit,license,source_url,source,vertical&order=rank.desc&limit=60`).catch(() => [])) as Record<string, unknown>[];
-  for (const b of bank) if (!seen.has(String(b.url))) { seen.add(String(b.url)); out.push({ i: out.length, v: { kind: "video", url: b.url, poster: b.poster, credit: b.credit, license: b.license, source_url: b.source_url, source: b.source, vertical: b.vertical }, d: String(b.shows).slice(0, 90) }); }
-  return out;
+  return urls.map((v, i) => ({ i, v, d: (() => { const x = (desc as { url: string; caption: string | null; query: string | null }[]).find((y) => y.url === v.url); return String(x?.query || x?.caption || "footage").slice(0, 90); })() }));
 }
 // deno-lint-ignore no-explicit-any
 type Source = { title?: string; venue?: string; year?: number; first_author?: string; url?: string };
 const newsTask = (p: { kind: string; headline: string; plain_headline: string | null; body: string | null; plain_body: string | null }) => `One video about this new post (a ${p.kind}): "${p.plain_headline || p.headline}". ${p.plain_body || p.body || ""} Tell this story; use the goal's other facts only for the catch and the payoff.`;
 // deno-lint-ignore no-explicit-any
-async function writeShorts(g: any, task: string, count: number, sources: Source[] | null = null) {
-  const pool = await clipPool(g.id);
+async function writeShorts(g: any, task: string, count: number, sources: Source[] | null = null, exceptReel = 0) {
+  const pool = await clipPool(g.id, exceptReel);
   if (pool.length < 3) return { error: "too little footage" };
   const { facts } = await goalFacts(g, true);
   const why = g.why?.today ? `\nWHY IT MATTERS: ${g.why.today} If it is solved: ${(g.why.changes ?? []).join("; ")}.` : "";
@@ -1178,14 +1187,35 @@ async function writeShorts(g: any, task: string, count: number, sources: Source[
     .filter((r) => r.scenes?.length).map((r) => `- "${r.scenes[0].caption}" ... "${r.scenes[r.scenes.length - 1].caption}"`).join("\n");
   const msg = await claude.beta.messages.stream({ model: SHORTS_MODEL, max_tokens: 6000, output_config: { effort: "low", format: betaZodOutputFormat(Shorts) }, system: SHORTS_SYSTEM,
     messages: [{ role: "user", content: `${facts}${why}${others ? `\n\nTHE GOAL'S OTHER VIDEOS (hook ... ending; do not repeat these):\n${others}` : ""}\n\nCLIPS (number: what it shows):\n${pool.map((c) => `${c.i}: ${c.d}`).join("\n")}${sources?.length ? `\n\nSOURCES:\n${sources.slice(0, 3).map((x) => `- \"${x.title}\" (${x.venue || "report"}, ${x.year ?? ""}, ${x.first_author ?? ""})`).join("\n")}` : ""}\n\nTASK: ${task}\nWrite exactly ${count} video${count === 1 ? "" : "s"}.` }] }).finalMessage().then(track("shorts"));
-  const out = msg.parsed_output?.videos ?? [];
+  let out = msg.parsed_output?.videos ?? [];
+  // A second pass checks the draft against the facts and the rules, and returns it corrected: claims beyond the
+  // facts, dropped qualifiers ("Moon dirt" for simulated soil), lines too long, an ending on the catch.
+  if (out.length) {
+    try {
+      const fix = await claude.beta.messages.stream({ model: SHORTS_MODEL, max_tokens: 6000, output_config: { effort: "low", format: betaZodOutputFormat(Shorts) },
+        system: `You check scripts for short narrated science videos before they are published. Return the same videos, corrected only where needed:
+- Every claim must be supported by the FACTS (and SOURCES). Remove or soften anything that goes beyond them.
+- Keep every qualifier that changes the meaning: simulated or fake material is never called the real thing ("fake Moon soil", not "Moon dirt"); in mice, in a lab, a proposal, an estimate.
+- Each "say" at most 18 words; all says together at most 60 words. Shorten by cutting, keeping the strongest words.
+- The first scene stays the boldest line. The last scene must leave the viewer excited about what this could lead to (the payoff from the facts, like what reaching the goal would change). If the draft ends on a limitation, move the limitation into an earlier scene and end on the payoff.
+Keep the same number of scenes, the same clip numbers and the same graphics unless one breaks a rule.`,
+        messages: [{ role: "user", content: `FACTS:\n${facts}${why}${sources?.length ? `\n\nSOURCES:\n${sources.slice(0, 3).map((x) => `- "${x.title}" (${x.venue || "report"}, ${x.year ?? ""})`).join("\n")}` : ""}\n\nDRAFT:\n${JSON.stringify({ videos: out })}` }] }).finalMessage().then(track("shorts"));
+      const fixed = fix.parsed_output?.videos ?? [];
+      if (fixed.length === out.length && fixed.every((v, k) => v.scenes.length >= 4 && v.scenes.length === out[k].scenes.length)) out = fixed;
+    } catch { /* keep the draft */ }
+  }
   const src = sources?.find((x) => x.title) ?? null;
   for (const v of out) for (const sc of v.scenes) if (sc.graphic?.type === "paper") {
     if (!src) sc.graphic = null;
     // deno-lint-ignore no-explicit-any
     else (sc.graphic as any).paper = { title: src.title, venue: src.venue || null, year: src.year ?? null, author: src.first_author || null };
   }
-  return { videos: out.slice(0, count).map((v) => ({ title: v.title.slice(0, 80), shape: v.shape, angle: v.angle, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, say: sc.say.slice(0, 200), graphic: sc.graphic, stat: sc.stat, layout: k ? "bottom" : "top", visual: (pool.find((c) => c.i === sc.clip) ?? pool[(k * 3) % pool.length]).v })) })).filter((v) => v.scenes.length >= 4) };
+  // A different clip in every scene, even if the writer repeats one.
+  const pick = (used: Set<number>, want: number) => { let c = pool.find((x) => x.i === want && !used.has(x.i)) ?? pool.find((x) => !used.has(x.i)) ?? pool[want % pool.length]; used.add(c.i); return c.v; };
+  // One visual journey, guaranteed: the clips chosen for a video are re-ordered by scale (far to near).
+  const SC: Record<string, number> = { space: 0, orbit: 1, aerial: 2, ground: 3, close: 4, macro: 5 };
+  const journey = <T extends { visual: Record<string, unknown> }>(scenes: T[]) => { const vs = scenes.map((x) => x.visual).sort((a, b) => (SC[String(a.scale)] ?? 3) - (SC[String(b.scale)] ?? 3)); scenes.forEach((x, k) => { x.visual = vs[k]; }); return scenes; };
+  return { videos: out.slice(0, count).map((v) => { const used = new Set<number>(); return { title: v.title.slice(0, 80), shape: v.shape, angle: v.angle, mood: v.mood, scenes: v.scenes.slice(0, 5).map((sc, k) => ({ caption: sc.caption.slice(0, 90), sub: sc.sub ? sc.sub.slice(0, 120) : null, kicker: null, say: sc.say.slice(0, 200), graphic: sc.graphic, stat: sc.stat, layout: k ? "bottom" : "top", visual: pick(used, sc.clip) as Record<string, unknown> })) }; }).map((v) => ({ ...v, scenes: journey(v.scenes) })).filter((v) => v.scenes.length >= 4) };
 }
 const GOAL_FIELDS = "id,slug,handle,name,tagline,summary,progress,horizon_low,horizon_high,bottleneck_key,papers_count,why";
 // News: one short per new post (the post is the story; the goal's facts give the stakes and payoff).
@@ -1216,7 +1246,7 @@ async function remake(reelId: number) {
   if (!r || r.kind === "news" || r.kind === "weekly") return { error: "not a remakeable video" };
   const g = (await db(`goals?id=eq.${r.goal_id}&select=${GOAL_FIELDS}`))[0];
   const src = (r.scenes as { caption: string; sub: string | null; stat: { value: string; label: string } | null }[]).map((s) => `- ${s.caption}${s.sub ? ` (${s.sub})` : ""}${s.stat ? ` [${s.stat.value} ${s.stat.label}]` : ""}`).join("\n");
-  const out = await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2);
+  const out = await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2, null, r.id);
   if (!("videos" in out) || !out.videos || out.videos.length < 2) return { error: "error" in out ? out.error : "not enough videos" };
   const [a, b] = out.videos;
   await db(`reels?id=eq.${r.id}`, { method: "PATCH", prefer: "return=minimal", body: { title: a.title, scenes: a.scenes, mood: a.mood, render: null } });
@@ -1257,7 +1287,7 @@ Deno.serve(async (req) => {
         return json({ slug: g.slug, ...(await writeShorts(g, newsTask(p), 1, p.sources)) }); }
       if (Number.isInteger(body.reel_id)) { const r = (await db(`reels?id=eq.${body.reel_id}&select=goal_id,kind,title,scenes`))[0]; const g = (await db(`goals?id=eq.${r.goal_id}&select=${GOAL_FIELDS}`))[0];
         const src = (r.scenes as { caption: string; sub: string | null; stat: { value: string; label: string } | null }[]).map((s2) => `- ${s2.caption}${s2.sub ? ` (${s2.sub})` : ""}${s2.stat ? ` [${s2.stat.value} ${s2.stat.label}]` : ""}`).join("\n");
-        return json({ slug: g.slug, ...(await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2)) }); }
+        return json({ slug: g.slug, ...(await writeShorts(g, `Retell this existing ${r.kind} video "${r.title}" as TWO different standalone videos, each with its own hook and angle (for example one on the event, one on the people or the numbers), each a complete story. You may bring in other facts from this goal.\n${src}`, 2, null, body.reel_id)) }); }
       return json({ error: "post_id or reel_id" }, 400);
     }
     // Admin: the videos still waiting for a render, and saving a finished render.
