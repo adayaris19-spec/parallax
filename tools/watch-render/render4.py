@@ -76,15 +76,15 @@ def footage(media, D, look, out, push, hook=False, over=None):
     # One shot per scene, held: the camera keeps moving the same way through every cut (pushing in for a journey
     # inward, easing out for one outward), a little harder on the hook. With a graphic, the footage dims and softens
     # underneath it and the graphic (transparent) sits on top.
-    sk, sf = media
+    sk, sf = media[0], media[1]; start = media[2] if len(media) > 2 else 0.4
     z0, z1 = (1.0, 1.16 if hook else 1.10) if push == 'in' else (1.12, 1.0)
     ins = (['-f', 'lavfi', '-t', f'{D:.2f}', '-i', f'color=c=0x07080d:s={W}x{H}:r={FPS}'] if not sf else
-           (['-ss', '0.40', '-stream_loop', '-1', '-t', f'{D:.2f}', '-i', sf] if sk == 'video' else ['-loop', '1', '-t', f'{D:.2f}', '-i', sf]))
+           (['-ss', f'{start:.2f}', '-stream_loop', '-1', '-t', f'{D:.2f}', '-i', sf] if sk == 'video' else ['-loop', '1', '-t', f'{D:.2f}', '-i', sf]))
     z = f'({z0}+{z1 - z0:.3f}*t/{D:.2f})'
-    grade = ('eq=contrast=0.97:brightness=-0.015:saturation=0.88,colorbalance=rs=-0.03:gs=-0.01:bs=0.04:rh=0.03:bh=-0.03,curves=all=0/0.03 0.5/0.48 1/0.96,noise=alls=6:allf=t,vignette=PI/6'
+    grade = ('eq=contrast=0.97:brightness=-0.015:saturation=0.88,colorbalance=rs=-0.03:gs=-0.01:bs=0.04:rh=0.03:bh=-0.03,curves=all=0/0.03 0.5/0.48 1/0.96,noise=alls=3:allf=t,vignette=PI/6'
              if look == 'clean' else
-             'eq=contrast=0.97:brightness=-0.01:saturation=0.9,colorbalance=rs=0.04:gs=0.01:bs=-0.04:rh=0.04:bh=-0.04,curves=all=0/0.03 0.5/0.49 1/0.96,noise=alls=6:allf=t,vignette=PI/6')
-    fc = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
+             'eq=contrast=0.97:brightness=-0.01:saturation=0.9,colorbalance=rs=0.04:gs=0.01:bs=-0.04:rh=0.04:bh=-0.04,curves=all=0/0.03 0.5/0.49 1/0.96,noise=alls=3:allf=t,vignette=PI/6')
+    fc = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},scale=w='2*trunc({W}*{z}/2)':h=-2:eval=frame,"
           f"crop={W}:{H},fps={FPS},setsar=1,trim=duration={D:.2f},setpts=PTS-STARTPTS,{grade}")
     extra = []
     if over:
@@ -115,8 +115,9 @@ def render(r):
     media = []
     for s in scenes:
         v = s.get('visual') or {}
-        f = R.fetch(v.get('url'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', str(v.get('url')).split('r2.dev/')[-1])}") if v.get('kind') == 'video' else None
-        media.append(('video', f) if f else ('image', None))
+        # the sharpest copy we have: a local original (4K) if given, else our stored clip; 'start' picks a moment in a long clip
+        f = v.get('local') if v.get('local') and os.path.exists(v['local']) else (R.fetch(v.get('url'), f"{WR}/clips/{re.sub(r'[^A-Za-z0-9.-]', '_', str(v.get('url')).split('r2.dev/')[-1])}") if v.get('kind') == 'video' else None)
+        media.append(('video', f, float(v.get('start') or 0.4)) if f else ('image', None))
     sc_idx = [SCALE.get((s.get('visual') or {}).get('scale') or '', -1) for s in scenes]; known = [x for x in sc_idx if x >= 0]
     push = 'out' if len(known) >= 2 and known[-1] < known[0] else 'in'
     segs, used = [], [os.path.basename(m[1]) for m in media if m[1]]
@@ -150,7 +151,7 @@ def render(r):
     final = f'{WR}/final/{tag}-v{VERSION}.mp4'
     sh(['ffmpeg', '-y', '-v', 'error', '-i', video, '-i', music, '-i', voice, '-filter_complex',
         '[1:a]volume=0.42[m];[2:a]asplit[v1][v2];[m][v1]sidechaincompress=threshold=0.03:ratio=8:attack=15:release=350[d];[d][v2]amix=inputs=2:normalize=0,loudnorm=I=-15:TP=-1.5:LRA=11,aresample=48000[a]',
-        '-map', '0:v', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-maxrate', '6000k', '-bufsize', '12000k', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', final])
+        '-map', '0:v', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-maxrate', '10000k', '-bufsize', '20000k', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', final])
     sh(['ffmpeg', '-y', '-v', 'error', '-ss', '0.9', '-i', final, '-frames:v', '1', '-q:v', '4', final.replace('.mp4', '.jpg')])
     shutil.rmtree(tmp, ignore_errors=True)
     return {'file': final, 'dur': round(total, 2), 'starts': [round(x, 2) for x in starts], 'look': look, 'clips': used}

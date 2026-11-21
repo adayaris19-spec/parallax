@@ -931,6 +931,34 @@ async function footageFirst(slug: string, opts: { dry?: boolean; avoid?: string[
   return writeReels(g, facts, posts, shots, errors, { ...opts, format: formatsFor(slug) }, { terms, candidates: cands.length, verdicts });
 }
 
+// Sharpest source: where a stored clip came from, the highest-resolution original (up to 4K) the library offers,
+// looked up by the clip's own page (no other addresses are fetched). A vertical phone frame uses only the middle
+// third of a landscape clip, so a 1080p file ends up stretched about 2x; a 4K original stays sharp.
+async function hiresFor(sourceUrl: string): Promise<{ url: string; w: number; h: number } | null> {
+  try {
+    let m = /pixabay\.com\/videos\/(?:[a-z0-9-]*-)?(?:id-)?(\d+)\/?$/.exec(sourceUrl);
+    if (m && PIXABAY) {
+      const v = (await getJson(`https://pixabay.com/api/videos/?key=${PIXABAY}&id=${m[1]}`)).hits?.[0]?.videos ?? {};
+      // deno-lint-ignore no-explicit-any
+      const f = [v.large, v.medium].filter((x: any) => x?.url).sort((a: any, b: any) => (b.width ?? 0) - (a.width ?? 0))[0];
+      return f ? { url: f.url, w: f.width, h: f.height } : null;
+    }
+    m = /pexels\.com\/video\/(?:[a-z0-9-]*-)?(\d+)\/?$/.exec(sourceUrl);
+    if (m && PEXELS) {
+      const r = await fetch(`https://api.pexels.com/videos/videos/${m[1]}`, { headers: { Authorization: PEXELS }, signal: AbortSignal.timeout(15000) });
+      // deno-lint-ignore no-explicit-any
+      const f = ((await r.json()).video_files ?? []).filter((x: any) => x.file_type === "video/mp4" && Math.max(x.width ?? 0, x.height ?? 0) <= 4096).sort((a: any, b: any) => (b.width * b.height) - (a.width * a.height))[0];
+      return f ? { url: f.link, w: f.width, h: f.height } : null;
+    }
+    m = /images\.nasa\.gov\/details\/([^/?#]+)/.exec(sourceUrl);
+    if (m) {
+      const items: { href: string }[] = (await getJson(`https://images-api.nasa.gov/asset/${m[1]}`)).collection?.items ?? [];
+      const f = ["~orig.mp4", "~large.mp4", "~medium.mp4"].map((s) => items.find((x) => x.href.endsWith(s))).find(Boolean);
+      return f ? { url: fix(f.href), w: 0, h: 0 } : null;
+    }
+  } catch { /* fall back to the stored copy */ }
+  return null;
+}
 // Admin: a footage bank for one goal. More clips for its short videos: realistic animated 3D science
 // footage and striking real footage of the goal's own subject, vertical clips first. Every clip passes the
 // cheap judge, then a second, stricter check by a better model, so nothing off-topic or cartoonish slips in.
@@ -1263,7 +1291,7 @@ Deno.serve(async (req) => {
   if (!isAdmin && !isRender) return json({ error: "not allowed" }, 403);
   if (isRender && !new URL(req.url).searchParams.get("upload")) {
     const peek = await req.clone().json().catch(() => ({}));
-    if (!["file", "news_make", "render_queue", "render_set"].includes(peek.action)) return json({ error: "not allowed" }, 403);
+    if (!["file", "hires", "news_make", "render_queue", "render_set"].includes(peek.action)) return json({ error: "not allowed" }, 403);
   }
   // Admin: store a pre-rendered video (Watch videos rendered offline, like the Instagram Reels).
   // POST ?upload=renders/<name>.mp4 with the file as the body.
@@ -1293,6 +1321,12 @@ Deno.serve(async (req) => {
     // Admin: the videos still waiting for a render, and saving a finished render.
     if (body.action === "remake" && Number.isInteger(body.reel_id)) return json(await remake(body.reel_id));
     if (body.action === "bank_dedupe" && typeof body.slug === "string") { const g = (await db(`goals?slug=eq.${encodeURIComponent(body.slug)}&select=id,name`))[0]; return json(g ? await dedupeBank(g.id, g.name) : { error: "no such goal" }); }
+    // Render: the sharpest original for each of our stored clips (looked up from the clip's recorded source page).
+    if (body.action === "hires" && Array.isArray(body.urls)) {
+      const urls = (body.urls as unknown[]).filter((u): u is string => typeof u === "string" && !!R2_PUBLIC && u.startsWith(R2_PUBLIC)).slice(0, 40);
+      const rows = urls.length ? ((await db(`goal_clips?url=in.(${urls.map((u) => `"${u}"`).join(",")})&select=url,source_url`)) as { url: string; source_url: string }[]) : [];
+      return json(Object.fromEntries(await Promise.all(rows.map(async (r) => [r.url, await hiresFor(r.source_url)]))));
+    }
     if (body.action === "footage_bank" && typeof body.slug === "string") return json(await footageBank(body.slug, { dry: body.dry === true, max: Number(body.max) || undefined }));
     if (body.action === "render_queue") return json(await db(`reels?select=id,kind,title,mood,scenes,render,goals!inner(slug)&kind=neq.weekly&or=(render.is.null,render->>v.neq.${Number(body.v) || 2})&order=created_at.asc&limit=${Math.min(60, Number(body.limit) || 20)}`));
     if (body.action === "render_set" && Number.isInteger(body.reel_id) && body.render && Array.isArray(body.render.parts)) {
