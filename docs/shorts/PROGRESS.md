@@ -6,7 +6,8 @@ Checklist of the phases in `MASTER_PROMPT.md`. Times are UTC+1.
 - [ ] **Phase 2: Discovery interview** (11 topics → draft rules in `RULES.md`)
   - [x] 1 Purpose and feeling — stakes then momentum; viewer action is keep watching
   - [x] 2 Subject matter — own made imagery in NASA artist-illustration style, real footage only for filmed events; goal story first, news when big
-  - [ ] 3 Structure and timing
+  - [x] 3 Structure and timing — 4 shots of 4.5–7 s, strongest picture first, peak in shot 3
+  - [ ] **Feasibility test pulled forward (owner's choice, Nov 21):** can the artist-illustration look be made for free? 2–3 test shots before topic 4.
   - [ ] 4 Visual continuity
   - [ ] 5 Spacing and composition
   - [ ] 6 Colour and grade

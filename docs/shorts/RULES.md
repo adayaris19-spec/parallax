@@ -52,3 +52,14 @@ Draft confirmed Nov 21.
   - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
   - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.
 - **Open:** whether swipeable photo posts in Watch are in scope (the owner raised it once; not pursued).
+
+## 3. Structure and timing
+
+Draft confirmed Nov 21.
+
+- **Length:** 20.0–25.0 s (settled).
+- **Shots:** exactly 4, one per beat (hook, build, peak, end). Each shot runs 4.5–7.0 s. 3 joins.
+- **First frame:** the most striking picture of the video, at full brightness from frame 1. The hook line starts inside the first 1.0 s.
+- **Peak:** shot 3. It starts between 50% and 70% of the running time (about 11–16 s).
+- **End:** shot 4. One forward-looking line; the last word ends 0.5–1.5 s before the final frame; no end card (see section 1).
+- **Avoid:** any shot shorter than 4.5 s; more than 4 shots; opening on a fade, a title or a dark frame.
