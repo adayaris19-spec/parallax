@@ -15,4 +15,20 @@ Draft. Each rule comes from an answer the owner gave; the date and topic are not
 
 ## 1. Purpose and feeling
 
+Confirmed Nov 21.
+
+- **Arc: stakes, then momentum.** Every video runs hook → build → peak → end.
+  - Hook: the stake or obstacle, as one concrete fact (a number, a date or a named thing). Spoken by 1.0 s; finished by 4.0 s.
+  - Build: why that makes the goal hard. One or two lines.
+  - Peak: the real advance, with its qualifier. Starts between 50% and 70% of the running time.
+  - End: one forward-looking line. The qualifier or catch may come before it, never after it.
+- **Feeling to test for:** tension, then release, then "I want this". Scorecard question: "Did the peak feel like a pay-off to the hook?"
+- **Viewer action: keep watching.** The video is judged on completion and on the next video starting, not on clicks.
+  - No spoken or written ask of any kind (donate, follow, share, "learn more").
+  - No end card. The last narrated word ends 0.5–1.5 s before the final frame, and the last shot holds to the end.
+  - No Parallax logo or tagline inside the video; the app already shows whose it is.
+  - The first frame must work as the next video's opening: a full picture, never a fade from black.
+
+## 2. Subject matter
+
 _Pending._
