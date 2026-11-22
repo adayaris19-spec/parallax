@@ -1,10 +1,23 @@
 {
- "note": "first AI realism test: one frame of our render made to look photographed, then turned into video; and the same from the untouched frame",
+ "note": "second AI test: first and last frame both from our render; and the photographed-look step again with automatic size",
  "render_run": 45001884675,
  "frames": [
-  40
+  0,
+  40,
+  119
  ],
  "steps": [
+  {
+   "name": "between_first_and_last",
+   "kind": "flf",
+   "space": "linoyts/wan2-1-VACE-fast",
+   "input": "frame0",
+   "last": "frame119",
+   "prompt": "Real documentary footage filmed on the Moon, one continuous handheld shot. The camera drifts slowly to the right. The white crew rover drives in slowly from the right on its six wheels and keeps exactly the same shape. The astronaut in the foreground stays standing and slowly raises one arm. Hard low sunlight, long black shadows, pure black sky with no stars, the small Earth stays still. No clouds of dust, no wind, nothing new appears.",
+   "seconds": 5,
+   "steps": 6,
+   "seed": 7
+  },
   {
    "name": "photo40",
    "kind": "edit",
@@ -12,8 +25,6 @@
    "input": "frame40",
    "prompt": "Make this computer-rendered image look like a real photograph taken by a camera standing on the surface of the Moon. Keep every object exactly where it is, with exactly the same shape, size and colour: the astronaut seen from behind, the white habitat, the second astronaut at its door, the crew rover with blue solar panels, the small grey robot, the wheel tracks, the rocks, and the small Earth in the black sky. Do not add or remove anything. The sky stays pure black with no stars. Give the surfaces real detail: worn, dusty white fabric, scuffed painted metal, fine grey lunar soil, hard low sunlight with long black shadows, natural lens softness and film grain.",
    "steps": 4,
-   "height": 1344,
-   "width": 768,
    "seed": 1
   },
   {
@@ -21,16 +32,6 @@
    "kind": "i2v",
    "space": "zerogpu-aoti/wan2-2-fp8da-aoti-faster",
    "input": "photo40",
-   "prompt": "Real documentary footage filmed on the Moon. The white crew rover on the right drives slowly to the left on its wheels, throwing a little grey dust that falls straight back to the ground. The astronaut in the foreground slowly raises one arm toward the rover and shifts his weight. The second astronaut by the habitat door moves a little. The camera drifts slowly to the right, handheld. Hard low sunlight, long black shadows, pure black sky with no stars, the small Earth stays still. No clouds of dust, no wind, nothing new appears.",
-   "steps": 6,
-   "seconds": 5,
-   "seed": 7
-  },
-  {
-   "name": "video_from_render",
-   "kind": "i2v",
-   "space": "zerogpu-aoti/wan2-2-fp8da-aoti-faster",
-   "input": "frame40",
    "prompt": "Real documentary footage filmed on the Moon. The white crew rover on the right drives slowly to the left on its wheels, throwing a little grey dust that falls straight back to the ground. The astronaut in the foreground slowly raises one arm toward the rover and shifts his weight. The second astronaut by the habitat door moves a little. The camera drifts slowly to the right, handheld. Hard low sunlight, long black shadows, pure black sky with no stars, the small Earth stays still. No clouds of dust, no wind, nothing new appears.",
    "steps": 6,
    "seconds": 5,

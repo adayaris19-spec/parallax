@@ -16,9 +16,14 @@ for st in req["steps"]:
         src = files[st["input"]]; c = client(st["space"])
         if st["kind"] == "edit":
             r = c.predict(images=[{"image": handle_file(src), "caption": None}], prompt=st["prompt"], seed=int(st.get("seed", 1)), randomize_seed=False, true_guidance_scale=1.0,
-                          num_inference_steps=int(st.get("steps", 4)), height=int(st.get("height", 1344)), width=int(st.get("width", 768)), rewrite_prompt=False, api_name="/infer")
+                          num_inference_steps=int(st.get("steps", 4)), height=int(st.get("height", 256)), width=int(st.get("width", 256)), rewrite_prompt=False, api_name="/infer")
             g = r[0][0]; p = g.get("image", g) if isinstance(g, dict) else g; p = p.get("path") if isinstance(p, dict) else p
             dst = f"{out}/{st['name']}{os.path.splitext(p)[1] or '.png'}"; shutil.copy(p, dst)
+        elif st["kind"] == "flf":                       # first and last frame both come from our render; the model fills in the motion between them
+            r = c.predict(gallery_images=[{"image": handle_file(src), "caption": None}, {"image": handle_file(files[st["last"]]), "caption": None}], mode="First - Last Frame", prompt=st["prompt"],
+                          height=int(st.get("height", 832)), width=int(st.get("width", 480)), duration_seconds=float(st.get("seconds", 5)), guidance_scale=1.0, steps=int(st.get("steps", 6)),
+                          seed=int(st.get("seed", 7)), randomize_seed=False, remove_bg=False, api_name="/generate_video")
+            v = r[0]; v = v.get("video", v) if isinstance(v, dict) else v; dst = f"{out}/{st['name']}.mp4"; shutil.copy(v, dst)
         else:
             r = c.predict(input_image=handle_file(src), prompt=st["prompt"], steps=int(st.get("steps", 6)), duration_seconds=float(st.get("seconds", 5)), guidance_scale=1, guidance_scale_2=1,
                           seed=int(st.get("seed", 7)), randomize_seed=False, api_name="/generate_video")
