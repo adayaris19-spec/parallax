@@ -1,7 +1,7 @@
 # Fetch only the data the Moon base shot needs, so a fresh machine is ready in about a minute instead of downloading 2.4 GB.
 # usage: python prep_site_data.py OUT_DIR
 import os, sys, subprocess, numpy as np
-OUT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__)); CX, CY = -11.82, -12.54
+OUT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__)); CX, CY = -11.52, -12.44          # the summit of the Connecting Ridge; the windows below reach 5 km and 33 km around it
 PDS = "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/"
 N3D = "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/"
 NAIF = "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/"
@@ -18,9 +18,11 @@ for d in ("", "spice", "models_plain", "earthglobal", "tmp"): os.makedirs(f"{OUT
 window("ldem_875s_5m.img", 30336, 0.005, 5.2, f"{OUT}/dem5.npz"); window("ldem_80s_40m.img", 15200, 0.04, 33.0, f"{OUT}/dem40.npz"); window("ldem_80s_20m.img", 30400, 0.02, 33.0, f"{OUT}/dem20.npz")
 if not os.path.exists(f"{OUT}/dem80.npz"):
     curl(PDS + "ldem_80s_80m.img", f"{OUT}/tmp/d80.img"); a = np.fromfile(f"{OUT}/tmp/d80.img", "<i2").reshape(7600, 7600); np.savez_compressed(f"{OUT}/dem80.npz", a=a, r_off=0, c_off=0); os.remove(f"{OUT}/tmp/d80.img")
+curl("https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/starmap_2020_8k.exr", f"{OUT}/starmap_2020_8k.exr")          # NASA SVS Deep Star Maps 2020, for night shots
 for k, u in (("de421.bsp", "spk/planets/a_old_versions/de421.bsp"), ("moon_pa_de421_1900-2050.bpc", "pck/moon_pa_de421_1900-2050.bpc"), ("moon_080317.tf", "fk/satellites/moon_080317.tf"), ("pck00008.tpc", "pck/a_old_versions/pck00008.tpc")): curl(NAIF + u, f"{OUT}/spice/{k}")
 for k, u in (("sev", "Space%20Exploration%20Vehicle/Space%20Exploration%20Vehicle.glb"), ("z2", "Z2%20Spacesuit/Z2%20Spacesuit.glb"), ("hdu1", "Habitat%20Demonstration%20Unit/Habitat%20Demonstration%20Unit%20(part%201).glb"),
              ("rassor", "Regolith%20Advanced%20Surface%20Systems%20Operations%20Robot%20(RASSOR)/Regolith%20Advanced%20Surface%20Systems%20Operations%20Robot%20(RASSOR).glb")):
     if not os.path.exists(f"{OUT}/models_plain/{k}.glb"): curl(N3D + u, f"{OUT}/tmp/{k}.glb"); subprocess.run([sys.executable, f"{HERE}/undraco.py", f"{OUT}/tmp/{k}.glb", f"{OUT}/models_plain/{k}.glb"], check=True); os.remove(f"{OUT}/tmp/{k}.glb")
-if not os.path.exists(f"{OUT}/earthglobal/earth_2026-09-06.png"): subprocess.run([sys.executable, f"{HERE}/gibs_fetch.py", "2026-09-06", "3", "-180", "180", "-90", "90", f"{OUT}/tmp", f"{OUT}/earthglobal/earth_2026-09-06.png"], check=True)
+for day in ("2026-09-06", "2026-04-22", "2026-04-24"):           # Earth's real clouds on the days the shots show
+    if not os.path.exists(f"{OUT}/earthglobal/earth_{day}.png"): subprocess.run([sys.executable, f"{HERE}/gibs_fetch.py", day, "3", "-180", "180", "-90", "90", f"{OUT}/tmp", f"{OUT}/earthglobal/earth_{day}.png"], check=True)
 subprocess.run(["rm", "-rf", f"{OUT}/tmp"]); print("ready", flush=True)

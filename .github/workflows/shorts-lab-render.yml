@@ -1,7 +1,7 @@
-# Test renders for the short-form video work (docs/shorts). Splits one shot's frames across GitHub's free
-# machines so a 5-second shot takes minutes instead of hours. Free on a public repository; uses no secrets.
+# Test renders for the short-form video work (docs/shorts). Splits the frames of one or several shots across GitHub's
+# free machines so a shot takes minutes instead of hours. Free on a public repository; uses no secrets.
 # It runs when tools/shorts-lab/render-request.json changes on the working branch. Nothing is published:
-# the finished clip is kept as a run artifact for 7 days.
+# the finished clips are kept as a run artifact for 7 days.
 name: Shorts lab render
 on:
   push:
@@ -18,28 +18,26 @@ jobs:
     timeout-minutes: 30
     outputs:
       matrix: ${{ steps.m.outputs.matrix }}
-      frames: ${{ steps.m.outputs.frames }}
-      spp: ${{ steps.m.outputs.spp }}
-      scale: ${{ steps.m.outputs.scale }}
-      q: ${{ steps.m.outputs.q }}
-      script: ${{ steps.m.outputs.script }}
-      envs: ${{ steps.m.outputs.envs }}
     steps:
       - uses: actions/checkout@v4
       - name: Split the frames into chunks
         id: m
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, math
+          import json, math, re
           r = json.load(open("tools/shorts-lab/render-request.json"))
-          n = int(r["frames"]); k = max(1, min(int(r.get("chunks", 20)), n)); per = math.ceil(n / k)
-          inc = [{"chunk": i, "first": i * per, "last": min(n, (i + 1) * per) - 1} for i in range(k) if i * per < n]
+          shots = r.get("shots") or [{"name": "clip", "script": r.get("script", "base_scene.py"), "frames": r["frames"], "env": r.get("env", {}), "chunks": r.get("chunks", 20)}]
+          inc = []
+          for s in shots:
+              name, script, n = s["name"], s["script"], int(s["frames"])
+              assert re.fullmatch(r"[a-z0-9]{1,12}", name), "bad shot name"; assert re.fullmatch(r"[a-z_0-9]+\.py", script), "bad script name"
+              per = int(s.get("per_chunk", r.get("per_chunk", 0))) or math.ceil(n / max(1, min(int(s.get("chunks", 20)), n)))
+              envs = " ".join(f"{k}={v}" for k, v in s.get("env", {}).items() if re.fullmatch(r"[A-Z0-9_]+", k) and re.fullmatch(r"[0-9.,\-e]+", str(v)))
+              for i in range(math.ceil(n / per)):
+                  inc.append({"id": f"{name}-{i:02d}", "shot": name, "script": script, "envs": envs, "frames": n, "first": i * per, "last": min(n, (i + 1) * per) - 1,
+                              "spp": int(s.get("spp", r.get("spp", 32))), "scale": float(r.get("scale", 1)), "q": float(r.get("q", 1))})
+          assert 0 < len(inc) <= 250, "too many chunks"
           print("matrix=" + json.dumps({"include": inc}))
-          print(f"frames={n}"); print(f"spp={int(r.get('spp', 32))}"); print(f"scale={float(r.get('scale', 1))}"); print(f"q={float(r.get('q', 1))}")
-          import re
-          script = r.get("script", "base_scene.py"); assert re.fullmatch(r"[a-z_0-9]+\.py", script), "bad script name"
-          envs = " ".join(f"{k}={v}" for k, v in r.get("env", {}).items() if re.fullmatch(r"[A-Z0-9_]+", k) and re.fullmatch(r"[0-9.,\-]+", str(v)))
-          print(f"script={script}"); print(f"envs={envs}")
           PY
       - name: Site data (kept between runs)
         id: cache
@@ -51,7 +49,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           python-version: "3.13"
-      - name: Fetch the terrain, models, Earth image and ephemeris
+      - name: Fetch the terrain, models, Earth images, star map and ephemeris
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           pip install -q numpy opencv-python-headless DracoPy
@@ -60,7 +58,7 @@ jobs:
   render:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
@@ -79,26 +77,26 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq libxrender1 libxi6 libxkbcommon0 libsm6 libxfixes3 libxxf86vm1 libgl1 libegl1
           pip install -q bpy==5.3.0 numpy scipy opencv-python-headless OpenEXR DracoPy skyfield
-      - name: Render frames ${{ matrix.first }} to ${{ matrix.last }}
+      - name: Render ${{ matrix.shot }} frames ${{ matrix.first }} to ${{ matrix.last }}
         env:
-          SPP: ${{ needs.plan.outputs.spp }}
-          SCALE: ${{ needs.plan.outputs.scale }}
-          Q: ${{ needs.plan.outputs.q }}
-          SCRIPT: ${{ needs.plan.outputs.script }}
-          ENVS: ${{ needs.plan.outputs.envs }}
+          SPP: ${{ matrix.spp }}
+          SCALE: ${{ matrix.scale }}
+          Q: ${{ matrix.q }}
+          SCRIPT: ${{ matrix.script }}
+          ENVS: ${{ matrix.envs }}
         run: |
           mkdir -p frames
-          env $ENVS python "tools/shorts-lab/$SCRIPT" labdata frames ${{ matrix.first }} ${{ matrix.last }} ${{ needs.plan.outputs.frames }} > render.log 2>&1 || { tail -40 render.log; exit 1; }
+          env $ENVS python "tools/shorts-lab/$SCRIPT" labdata frames ${{ matrix.first }} ${{ matrix.last }} ${{ matrix.frames }} > render.log 2>&1 || { tail -40 render.log; exit 1; }
           grep -E "^\[" render.log | tail -12
           ls frames/*.exr | wc -l
       - name: Camera response (done here so every machine shares the work)
         env:
-          ENVS: ${{ needs.plan.outputs.envs }}
-        run: env $ENVS python tools/shorts-lab/comp_real.py frames out ${{ matrix.first }} ${{ matrix.last }}
+          ENVS: ${{ matrix.envs }}
+        run: env $ENVS python tools/shorts-lab/comp_real.py frames "out/${{ matrix.shot }}" ${{ matrix.first }} ${{ matrix.last }}
       - uses: actions/upload-artifact@v4
         with:
-          name: frames-${{ matrix.chunk }}
-          path: out/*.png
+          name: frames-${{ matrix.id }}
+          path: out
           retention-days: 1
           compression-level: 0
   finish:
@@ -111,14 +109,17 @@ jobs:
           pattern: frames-*
           merge-multiple: true
           path: out
-      - name: Encode
+      - name: Encode each shot
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          ls out | wc -l
-          ffmpeg -v error -y -framerate 24 -i out/c_%04d.png -c:v libx264 -crf 21 -preset slow -pix_fmt yuv420p -movflags +faststart clip.mp4
-          ls -la clip.mp4
+          mkdir -p clips
+          for d in out/*/; do
+            s=$(basename "$d"); ls "$d" | wc -l
+            ffmpeg -v error -y -framerate 24 -i "$d/c_%04d.png" -c:v libx264 -crf 12 -preset slow -pix_fmt yuv420p -movflags +faststart "clips/$s.mp4"
+          done
+          ls -la clips
       - uses: actions/upload-artifact@v4
         with:
-          name: clip
-          path: clip.mp4
+          name: clips
+          path: clips
           retention-days: 7

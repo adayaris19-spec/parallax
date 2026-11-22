@@ -1,0 +1,27 @@
+{
+  "title": "Moon base: the 354-hour night",
+  "goal": "moon-base",
+  "note": "Every sentence comes from the goal's facts in the app (bottlenecks b3.1 and b3.3, the pending promise 'NASA astronauts would visit the Moon's south pole by 2030'). Qualifiers are kept: about, mostly, in some seasons, has said, yet.",
+  "cuts": [104, 234, 306, 389, 475, 576],
+  "shots": [
+    {"clip": "s1", "from": 0,   "job": "This shot shows a habitat through 19 hours of a real dark spell, so the viewer understands how long a lunar night is for anything that must stay on."},
+    {"clip": "s2", "from": 0,   "job": "This shot shows a person outside a lit habitat in the dark, so the viewer understands what cannot be switched off."},
+    {"clip": "s3", "from": 0,   "job": "This shot shows one real month of sunlight sweeping the south pole's ridges, so the viewer understands why the pole is where a base could find power. Filler, 3 seconds."},
+    {"clip": "s4", "from": 0,   "job": "This shot shows the same dark spell from closer, hours passing with only the windows lit, so the viewer understands that even this ridge goes dark for days."},
+    {"clip": "s5", "from": 0,   "job": "This shot shows a person on the ridge in the low Sun of the sunny season, so the viewer understands what has been promised for 2030."},
+    {"clip": "s1", "from": 105, "job": "This shot returns to the habitat later in the same dark spell, so the viewer is left with the unsolved part."}
+  ],
+  "lines": [
+    {"id": "1a", "at": 0.25,  "say": "A night on the Moon lasts about three hundred and fifty-four hours.", "text": ["A night on the Moon lasts", "about 354 hours."], "split": [6]},
+    {"id": "2a", "at": 4.55,  "say": "Small landers have survived it by mostly shutting down.", "text": ["Small landers have survived it", "by mostly shutting down."], "split": [5]},
+    {"id": "2b", "at": 7.80,  "say": "A base with people can't.", "text": ["A base with people can't."]},
+    {"id": "3a", "at": 9.50,  "say": "Some ridges at the south pole get sunlight most of the time.", "text": ["Some ridges at the south pole", "get sunlight most of the time."], "split": [6]},
+    {"id": "3b", "at": 13.20, "say": "Even the best go dark for days in some seasons.", "text": ["Even the best go dark for days", "in some seasons."], "split": [7]},
+    {"id": "4a", "at": 16.40, "say": "NASA has said its astronauts would be there by twenty thirty.", "text": ["NASA has said its astronauts", "would be there by 2030."], "split": [5]},
+    {"id": "4b", "at": 20.05, "say": "No base with people has yet run through a lunar night.", "text": ["No base with people has yet", "run through a lunar night."], "split": [6]}
+  ],
+  "voice": {"model": "kokoro v1.0", "voice": "am_michael", "speed": 1.12},
+  "score": {"style": "space", "clock": false, "key": 50, "prog": [[0, "m"], [8, "M"], [3, "M"], [5, "m"], [10, "M"], [0, "m9"]], "seed": 11},
+  "duck": 0.36, "music_lufs": -27.0, "lufs": -15.0,
+  "subs": {"font": "Inter Display Medium", "size": 58, "left": 80, "right": 170, "bottom": 420}
+}

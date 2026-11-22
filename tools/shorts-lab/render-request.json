@@ -1,1 +1,61 @@
-{"script": "pole_light.py", "frames": 120, "chunks": 20, "spp": 12, "scale": 1.0, "env": {"SUB": 3, "K80": 3, "EV": 2.15, "GRAIN": 0.014, "BACK": 64, "ALT": 50}, "note": "Moon base video, peak shot, version 2: 20 m terrain and a closer framing"}
+{
+  "note": "The shots of the Moon base video 'the 354-hour night' (tools/shorts-lab/night-video.json). s3 is the south pole filler: the whole of October 2026 in 3 seconds.",
+  "scale": 1.0,
+  "per_chunk": 7,
+  "shots": [
+    {"name": "s1",
+      "script": "night_video.py",
+      "frames": 206,
+      "spp": 36,
+      "env": {
+        "SHOT": 1,
+        "EV": 0,
+        "GRAIN": 0.03
+      }
+    },
+    {"name": "s2",
+      "script": "night_video.py",
+      "frames": 130,
+      "spp": 48,
+      "env": {
+        "SHOT": 2,
+        "EV": 0,
+        "GRAIN": 0.03
+      }
+    },
+    {"name": "s3",
+      "script": "pole_light.py",
+      "frames": 72,
+      "spp": 12,
+      "per_chunk": 9,
+      "env": {
+        "SUB": 5,
+        "K80": 3,
+        "EV": 2.15,
+        "GRAIN": 0.014,
+        "BACK": 64,
+        "ALT": 50
+      }
+    },
+    {"name": "s4",
+      "script": "night_video.py",
+      "frames": 86,
+      "spp": 36,
+      "env": {
+        "SHOT": 3,
+        "EV": 0,
+        "GRAIN": 0.03
+      }
+    },
+    {"name": "s5",
+      "script": "night_video.py",
+      "frames": 92,
+      "spp": 32,
+      "env": {
+        "SHOT": 5,
+        "EV": 0,
+        "GRAIN": 0.016
+      }
+    }
+  ]
+}

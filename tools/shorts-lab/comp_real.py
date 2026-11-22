@@ -14,7 +14,7 @@ def curve(x):                       # filmic shoulder and toe (Hable), white poi
     return h(x) / h(11.2)
 for i in range(A, B + 1):
     img = read_exr(f"{src}/f_{i:04d}.exr"); H, W = img.shape[:2]; img = np.clip(img, 0, 500.0) * 2.0 ** E("EV", 2.1)
-    cl = np.minimum(img, 6.0)                                               # light a lens can scatter (clipped so one hot pixel cannot flood the frame)
+    cl = img * np.minimum(1.0, 6.0 / np.maximum(img.max(2, keepdims=True), 1e-9))    # light a lens can scatter (limited so one hot pixel cannot flood the frame; the colour of the source is kept)
     img = img + E("GLARE", 0.8) * (0.0045 * blur(cl, 90) + 0.010 * blur(cl, 22) + 0.030 * blur(np.clip(cl - 1.0, 0, None), 5))      # veiling glare and a little halation around bright things
     img = blur(img, 0.6)                                                    # lens softness
     out = curve(img * 1.9); lum = out.mean(2, keepdims=True); out = lum + (out - lum) * 1.06
