@@ -83,10 +83,12 @@ jobs:
           python tools/shorts-lab/base_scene.py labdata frames ${{ matrix.first }} ${{ matrix.last }} ${{ needs.plan.outputs.frames }} > render.log 2>&1 || { tail -40 render.log; exit 1; }
           grep -E "^\[" render.log | tail -12
           ls frames/*.exr | wc -l
+      - name: Camera response (done here so every machine shares the work)
+        run: python tools/shorts-lab/comp_real.py frames out ${{ matrix.first }} ${{ matrix.last }}
       - uses: actions/upload-artifact@v4
         with:
           name: frames-${{ matrix.chunk }}
-          path: frames/*.exr
+          path: out/*.png
           retention-days: 1
           compression-level: 0
   finish:
@@ -94,23 +96,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
       - uses: actions/download-artifact@v4
         with:
           pattern: frames-*
           merge-multiple: true
-          path: frames
-      - name: Camera response and encode
-        env:
-          FRAMES: ${{ needs.plan.outputs.frames }}
+          path: out
+      - name: Encode
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          pip install -q numpy opencv-python-headless OpenEXR
-          ls frames | wc -l
-          python tools/shorts-lab/comp_real.py frames out 0 $((FRAMES - 1))
+          ls out | wc -l
           ffmpeg -v error -y -framerate 24 -i out/c_%04d.png -c:v libx264 -crf 21 -preset slow -pix_fmt yuv420p -movflags +faststart clip.mp4
           ls -la clip.mp4
       - uses: actions/upload-artifact@v4
