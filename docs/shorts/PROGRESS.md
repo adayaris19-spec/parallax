@@ -147,10 +147,10 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
 
 | Beat | Length | Line (all from the goal's facts) | Picture and its job |
 |---|---|---|---|
-| Hook | 4.6 s | "A Moon base would face nights about 354 hours long." | A lit habitat through 38 hours of a real dark spell (time-lapse): how long a night is for anything that must stay on |
-| Build | 5.4 s | "Small landers have survived them by mostly shutting down. A base with people can't." | A person outside the lit habitat in the dark (real time): what cannot be switched off |
+| Hook | 4.6 s | "A Moon base would face nights about 354 hours long." | A lit habitat, close, through 20 hours of a real dark spell, the stars sliding behind it (time-lapse): how long a night is for anything that must stay on |
+| Build | 5.4 s | "Small landers have survived them by mostly shutting down. A base with people cannot." | A person outside the lit habitat in the dark (real time): what cannot be switched off |
 | Filler | 3.0 s | "Some ridges at the south pole get sunlight most of the time." | October 2026 at the south pole from above (time-lapse): why the pole is where a base could find power |
-| Peak | 6.6 s | "Even the best go dark for days in some seasons. No base with people has yet run through a lunar night." | The same dark spell from closer, 30 hours with only the windows lit (time-lapse) |
+| Peak | 6.6 s | "Even the best go dark for days in some seasons. No base with people has yet run through a lunar night." | The same habitat small in the dark landscape through 38 hours of that spell (time-lapse) |
 | End | 4.5 s | "NASA has said its astronauts would be there by 2030." | A person on the same ridge in the low Sun of the sunny season, Earth on the horizon (real time) |
 
 - Sources of the lines: bottleneck b3.1 (about 354 hours; landers mostly shutting down; no crewed base has run through one), b3.3 (ridges with sunlight most of the time; dark for days in some seasons), and the pending promise "NASA astronauts would visit the Moon's south pole by 2030" (made 2020).
@@ -161,7 +161,22 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - The first hook line did not say the base is hypothetical. It now says "would".
   - "Crewed" was heard as "crude" by the speech recogniser; the script says "with people".
 - Checks before rendering: one full-size frame of each surface shot viewed; three consecutive full-size frames of two shots compared (the render changes by about 0.5/255 between frames on still ground, far below the added sensor grain).
-- Render: 578 frames in 82 chunks on GitHub's free runners, about 2.3 min per frame per machine.
+  - "Can't" was heard as "can" once the music was under it, which reverses the sentence; it is now "cannot".
+  - The first assembly opened on the wide habitat shot. The close one is the stronger first frame, so the two swapped; the wide shot was rendered again at 160 frames to carry the peak.
+- Render: 582 frames in 82 chunks on GitHub's free runners took 77 minutes (about 2.3 min per frame per machine, 20 machines at a time); the 160-frame re-render took 25 minutes. Assembly takes about 2 minutes. This is over the draft budget of 1 hour per finished video.
+- Version 2 sent to the owner (Nov 22). Measured on the finished file:
+  - 24.08 s, 1080×1920, 24 fps, 14.6 Mbit/s (44 MB). Shots 4.58, 5.42, 3.00, 6.58 and 4.50 s. The peak starts at 54% of the running time. The last word ends 1.40 s before the final frame.
+  - Sound: −15.0 LUFS, true peak −1.6 dBTP. A speech recogniser given the finished mix returns the script (one plural dropped).
+  - Subtitles sit between x 235–753 and y 1454–1497 of 1080×1920, clear of the app's top, bottom and right-hand areas. None is on screen across a cut, on the first frame or on the last.
+  - Pixels darker than 8/255: hook 11%, build 10%, filler 39% (shadowed ground), peak 5%, end 23% (sky). The end shot is over the 15% black-sky draft limit; keeping Earth in frame costs that much sky.
+- Still wrong, said plainly:
+  - It still reads as computer-made on a careful look: the habitat is clean and simple, the suit's backpack looks soft, and the people only turn and lift an arm.
+  - At the night exposure Earth is a white disc and can be mistaken for the Moon. That is what a camera would record, but the picture does not say "Earth" by itself.
+  - The video opens on a night picture. It is fully exposed from frame 1, but it is a dark picture, against the "first frame at full brightness" rule.
+  - The habitat stands where no base exists, on our choice of spot. The first line says "would" and the peak says none has done it; nothing on screen labels it.
+  - Earthlight strength, every lamp and all ground detail under about 30 m are modelled, not measured.
+  - The voice file is a free open model; pacing is even and a little flat.
+- Owner's verdict pending.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

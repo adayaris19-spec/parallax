@@ -56,7 +56,7 @@
     },
     {
       "id": "2a",
-      "at": 4.65,
+      "at": 4.6,
       "say": "Small landers have survived them by mostly shutting down.",
       "text": [
         "Small landers have survived them",
@@ -68,10 +68,10 @@
     },
     {
       "id": "2b",
-      "at": 8.02,
-      "say": "A base with people can't.",
+      "at": 7.92,
+      "say": "A base with people cannot.",
       "text": [
-        "A base with people can't."
+        "A base with people cannot."
       ]
     },
     {
