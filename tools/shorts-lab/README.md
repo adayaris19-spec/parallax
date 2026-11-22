@@ -106,3 +106,16 @@ The plan is `moonbase-v3.json`: 8 shots, 23.4 s, every shot made 3D, with a grap
 - `make_video.py` joins the shots, places the narration, writes subtitles and the score, and sets loudness.
 - Measured or published: terrain, Sun and Earth positions, Earth's clouds for the day, the orbiter's shape, the habitat's and astronaut's shapes (NASA models). Modelled: all surface finishes, the lamps, where things stand, every camera. In night shots Earth is held back to what an eye would see; at the exposure that shows stars it would be a white disc.
 
+## Moon base video, second restart: new places and scales (Nov 22, 2026)
+
+The plan is `moonbase-v4.json`. The owner's verdict on the first restart was "the same Moon, zoomed in or zoomed out", so five of the eight shots are new kinds of picture.
+
+- `moon_globe.py` renders the Moon from space. Four views (`VIEW`): 1 night sweeping across the far side with Earth over the dark edge; 2 Earth turning above the south pole through a long lens; 3 the south polar cap from above, sunlight circling it; 4 the night side lit by Earth alone, with stars and the thin sunlit edge.
+  - Measured or published: the Moon's colour (NASA SVS CGI Moon Kit, the LRO camera's mosaic) and relief (LOLA, 16 samples per degree; LOLA's 80 m polar grid inside 9° of the south pole); the Sun, Earth and Earth's turn at each frame's moment (JPL DE421); Earth's clouds on the day (NASA GIBS); the stars (NASA SVS Deep Star Maps 2020).
+  - Modelled: the camera's place and exposure; the thin blue edge of Earth's air. The Moon is shaded as its dust scatters light (Lommel-Seeliger), which is why it does not darken toward the edge like a ball.
+  - Not shown, on purpose: stars beside sunlit ground (an exposure for sunlit ground cannot record them). View 4 is a long exposure, so they appear there, at the same strength as in the surface night shots.
+- `earth_day.py` makes the day's picture of Earth for close views: the two VIIRS satellites' pictures joined (the darker of the two at each place drops the sea glint under each track; one fills the other's gaps), and the cap around a sunlit pole, which has no picture, filled with the ice next to it.
+- `night_video.py` SHOT 8 is the finale: a person on the summit of the Connecting Ridge on 7 September 2026, 00:00 UTC (01:00 UTC+1), seen through a 412 mm lens from 100 m down the south slope, 0.5 m above the ground. Earth stood 3.6° above the horizon there at that moment, so it sits behind the person's head and shoulders. The place was found by searching the real terrain for a spot where that line of sight is clear and the horizon lies under Earth.
+  - Modelled: the person (NASA's Z2 suit model), where they stand, the stones and bootprints, the camera.
+- Tried and dropped: night falling on the summit seen from the ground toward the Sun (SHOT 9). With the Sun under 1° up, ground facing the camera is almost unlit; the frame was black with a white dot at any exposure.
+

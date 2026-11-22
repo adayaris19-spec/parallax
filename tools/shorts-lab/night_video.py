@@ -23,9 +23,11 @@ SHOTS = {
     4: dict(utc=(2026, 4, 21, 22, 0), span=14.0, layout="bare", people=False, pos=(-3.0, -8.0), az=5.0, pitch=-3.0, h=1.65, lens=50, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.2, expo=1.0e5),     # from the summit as that dark spell begins: the last sunlight leaves a far ridge
     6: dict(utc=(2026, 4, 22, 9, 0), span=38.0, layout="bare", people=False, pos=(-3.0, -8.0), az=4.0, pitch=7.0, h=1.65, lens=20, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=2.4, expo=2.4e5),       # the dark spell from the bare summit, wide: 38 hours of stars sliding over the ridge, Earth holding still
     7: dict(utc=(2026, 4, 21, 22, 0), span=10.0, layout="bare", people=False, pos=(-3.0, -8.0), az=5.5, pitch=-1.2, h=1.65, lens=85, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.5, expo=1.4e5),     # long lens on the far ridge as its last sunlight goes out
+    8: dict(utc=(2026, 9, 7, 0, 0), span=0.0, layout="astro", people=True, pos=(-10.4, -144.0), az=1.2, pitch=3.3, h=0.5, lens=412, dolly=(0.6, 0.0), pan=0.0, earth="2026-09-07", dur=4.55, expo=4.3, tele=100.0, astro_base=(-9.9, -50.2)),   # long lens from 100 m down the slope: a person on the summit with Earth, 3.6 degrees up, behind them
+    9: dict(utc=(2026, 3, 27, 17, 30), span=9.0, layout="bare", people=False, pos=(-3.0, -8.0), az=62.0, pitch=4.0, h=1.65, lens=24, dolly=(0.0, 0.0), pan=-50.0, earth="2026-03-27", dur=3.5, expo=4.3, expo_end=2.4e5, ramp=(0.38, 0.66)),   # night falls on the bare summit: the Sun slides behind the far ridges (it stayed gone 83 hours), the camera turns to Earth, the exposure opens until stars show
     5: dict(utc=(2026, 9, 6, 0, 0), span=0.0, layout="astro", people=True, pos=(-202.0, -56.0), az=9.0, pitch=-9.5, h=1.55, lens=32, dolly=(0.5, 0.35), pan=-1.2, earth="2026-09-06", dur=4.55, expo=4.3),     # the ridge in the sunny season, on the west slope that faces the low Sun: a person, real time
 }
-C = SHOTS[SHOT]; NIGHT = C["expo"] > 100
+C = SHOTS[SHOT]; NIGHT = C["expo"] > 100 or "expo_end" in C; TELE = C.get("tele", 0.0)
 for k in ("az", "pitch", "h", "lens", "pan", "span"): C[k] = E(k.upper(), C[k])
 if os.environ.get("UTC"): C["utc"] = tuple(int(v) for v in os.environ["UTC"].split(","))
 EXPO = E("EXPO", C["expo"])                # the camera's exposure, applied in the renderer so that night frames keep their precision
@@ -78,7 +80,7 @@ def smooth_path(ctrl, step=0.05):
     for _ in range(5): q = np.empty((2 * len(p) - 2, 2)); q[0::2] = 0.75 * p[:-1] + 0.25 * p[1:]; q[1::2] = 0.25 * p[:-1] + 0.75 * p[1:]; p = np.vstack([p[:1], q, p[-1:]])
     s = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))]); t = np.arange(0, s[-1], step); return np.stack([np.interp(t, s, p[:, 0]), np.interp(t, s, p[:, 1])], 1)
 HAB = BASE; A1 = (HAB[0] + 3.3, HAB[1] - 25.6); A2 = (HAB[0] - 0.3, HAB[1] - 3.3)       # habitat; an astronaut near the camera; one at the hatch
-P5 = SHOTS[5]["pos"]; AS5 = (P5[0] + 1.9, P5[1] + 6.2)                           # the astronaut of shot 5, a few steps ahead of the camera
+P5 = C.get("astro_base", SHOTS[5]["pos"]); AS5 = (P5[0] + 1.9, P5[1] + 6.2)                           # the astronaut of shot 5, a few steps ahead of the camera
 hx, hy = HAB
 WALKS = {"base": [[(hx + 5.5, hy - 34.5), (hx + 4.6, hy - 30.0), (hx + 3.6, hy - 27.0), (hx + 3.3, hy - 26.0)], [(hx + 3.0, hy - 25.2), (hx + 1.6, hy - 16.0), (hx + 0.2, hy - 8.0), (hx - 0.2, hy - 4.0)], [(hx + 0.4, hy - 4.2), (hx + 2.5, hy - 13.0), (hx + 4.2, hy - 24.0)],
                   [(hx - 0.8, hy - 3.0), (hx - 3.4, hy - 3.8), (hx - 5.6, hy - 2.8)], [(hx + 0.3, hy - 3.6), (hx + 4.0, hy - 4.5), (hx + 7.5, hy - 2.8)]],
@@ -109,11 +111,14 @@ def keep(x, y, D):                                         # things stand on a p
 G.keep = keep
 
 # ---------- ground: three modelled levels boxed around the camera, real terrain beyond
-LEV = [("g0", -7.0, 7.0, -1.5, 14.5, 0.01 / Q), ("g1", -40.0, 40.0, -10.0, 70.0, 0.05 / Q), ("g2", -240.0, 240.0, -60.0, 420.0, 0.30 / Q)]; HG = {}
+LEV = [("g0", -7.0, 7.0, -1.5, 14.5, 0.01 / Q), ("g1", -40.0, 40.0, -10.0, 70.0, 0.05 / Q), ("g2", -240.0, 240.0, -60.0, 420.0, 0.30 / Q)]; HG = {}; HOLES = {"g1": ["g0"], "g2": ["g1"]}
+if TELE:                                                   # a long lens looks at ground far from the camera: fine ground where the person stands, mid detail all the way there
+    LEV = [("g0", -2.0, 2.0, -1.0, 3.0, 0.02 / Q), ("ga", -5.0, 5.0, TELE - 5.0, TELE + 9.0, 0.015 / Q), ("g1", -22.0, 22.0, -6.0, TELE + 30.0, 0.05 / Q), ("g2", -240.0, 240.0, -60.0, 420.0, 0.30 / Q)]; HOLES = {"g1": ["g0", "ga"], "g2": ["g1"]}
+BOX = {n_: (a, b, c_, d) for (n_, a, b, c_, d, r_) in LEV}
 for i, (name, u0, u1, v0, v1, res) in enumerate(LEV):
     MX, MY, H, nc = G.grid(u0, u1, v0, v1, res, ORG, TH); HG[name] = (u0, v0, res, H); P = G.to_local(MX, MY, H); mask = None
-    if i > 0:
-        pn, a0, a1, b0, b1, pr = LEV[i - 1]; gu, gv = to_grid(MX, MY); uc = (gu[:-1, :-1] + gu[1:, 1:]) / 2; vc = (gv[:-1, :-1] + gv[1:, 1:]) / 2; mask = (uc > a0 + res) & (uc < a1 - res) & (vc > b0 + res) & (vc < b1 - res)
+    for hn in HOLES.get(name, []):
+        a0, a1, b0, b1 = BOX[hn]; gu, gv = to_grid(MX, MY); uc = (gu[:-1, :-1] + gu[1:, 1:]) / 2; vc = (gv[:-1, :-1] + gv[1:, 1:]) / 2; mk = (uc > a0 + res) & (uc < a1 - res) & (vc > b0 + res) & (vc < b1 - res); mask = mk if mask is None else (mask | mk)
     add_grid(name, P, mask); del MX, MY, P
 def far(name, dem, half, k, sigma, inner):
     X, Y, P = TR.far_grid(site, dem, CX - half, CX + half, CY - half, CY + half, k, sigma) if half < 290 else TR.far_grid(site, dem, -300, 300, -300, 300, k, sigma)
@@ -124,7 +129,8 @@ def far(name, dem, half, k, sigma, inner):
 far("r5", d5, 3.0, 1, 2.0, "g2"); far("r40", d40, 32.5, 1, 0.8, 3.0); far("r480", d80, 300, 6, 0, 32.5)
 def ground(wx, wy):
     gu, gv = to_grid(wx, wy)
-    for name in ("g0", "g1", "g2"):
+    for name in ("g0", "ga", "g1", "g2"):
+        if name not in HG: continue
         u0, v0, res, H = HG[name]; fi, fj = (gu - u0) / res, (gv - v0) / res
         if 1 <= fi < H.shape[1] - 2 and 1 <= fj < H.shape[0] - 2:
             i, j = int(fi), int(fj); a, b = fi - i, fj - j; h = (H[j, i] * (1 - a) + H[j, i + 1] * a) * (1 - b) + (H[j + 1, i] * (1 - a) + H[j + 1, i + 1] * a) * b
@@ -137,13 +143,18 @@ el = bpy.data.lights.new("earthlight", "SUN"); el.color = (0.72, 0.84, 1.0); elo
 bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=1.0); sdisk = bpy.context.object; sdisk.name = "sun_disk"                 # the Sun itself, so a sunset has a Sun in it; it lights nothing (the lamp does)
 sm = bpy.data.materials.new("sun_disk"); sm.use_nodes = True; nt = sm.node_tree; nt.nodes.clear(); o_ = nt.nodes.new("ShaderNodeOutputMaterial"); e_ = nt.nodes.new("ShaderNodeEmission"); e_.inputs["Color"].default_value = (1.0, 0.96, 0.9, 1); nt.links.new(e_.outputs[0], o_.inputs[0])
 sdisk.data.materials.append(sm); sdisk.visible_diffuse = sdisk.visible_glossy = sdisk.visible_transmission = sdisk.visible_volume_scatter = sdisk.visible_shadow = False
-ED = 2.0e6; nlat, nlon = 181, 361; la = np.radians(np.linspace(-90, 90, nlat)); lo = np.radians(np.linspace(-180, 180, nlon)); LO, LA = np.meshgrid(lo, la); SPH = np.stack([np.cos(LA) * np.cos(LO), np.cos(LA) * np.sin(LO), np.sin(LA)], -1)
+ED = 2.0e6; nlat, nlon = (361, 721) if TELE else (181, 361); la = np.radians(np.linspace(-90, 90, nlat)); lo = np.radians(np.linspace(-180, 180, nlon)); LO, LA = np.meshgrid(lo, la); SPH = np.stack([np.cos(LA) * np.cos(LO), np.cos(LA) * np.sin(LO), np.sin(LA)], -1)
 eme = bpy.data.meshes.new("earth"); eme.vertices.add(nlat * nlon); idx = np.arange(nlat * nlon, dtype=np.int32).reshape(nlat, nlon); q = np.stack([idx[:-1, :-1], idx[:-1, 1:], idx[1:, 1:], idx[1:, :-1]], -1).reshape(-1); nq = (nlat - 1) * (nlon - 1)
 eme.loops.add(nq * 4); eme.loops.foreach_set("vertex_index", q); eme.polygons.add(nq); eme.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32)); eme.update(calc_edges=True); eme.shade_smooth()
 eme.uv_layers.new(name="uv").data.foreach_set("uv", np.stack([(LO / (2 * np.pi) + 0.5), (LA / np.pi + 0.5)], -1).reshape(-1, 2)[q].astype(np.float32).reshape(-1))
 em = bpy.data.materials.new("earth"); em.use_nodes = True; nt = em.node_tree; nt.nodes.clear(); o_ = nt.nodes.new("ShaderNodeOutputMaterial"); d_ = nt.nodes.new("ShaderNodeBsdfDiffuse"); tx = nt.nodes.new("ShaderNodeTexImage")
-tx.image = bpy.data.images.load(f"{DATA}/earthglobal/earth_{C['earth']}.png"); tx.extension = "EXTEND"; nt.links.new(d_.outputs["BSDF"], o_.inputs["Surface"]); eme.materials.append(em)
-nt.links.new(tx.outputs["Color"], d_.inputs["Color"]); EARTHK = E("EARTHK", 1.0); EDOT = None
+epx = f"{DATA}/earthglobal/earthx_{C['earth']}.png"; tx.image = bpy.data.images.load(epx if os.path.exists(epx) else f"{DATA}/earthglobal/earth_{C['earth']}.png"); tx.extension = "EXTEND"; tx.interpolation = "Cubic"; nt.links.new(d_.outputs["BSDF"], o_.inputs["Surface"]); eme.materials.append(em)
+nt.links.new(tx.outputs["Color"], d_.inputs["Color"]); EARTHK = E("EARTHK", 3.0e-6 if "expo_end" in C else 1.0); EDOT = None
+if TELE:                                                   # seen large through the long lens, Earth gets the thin blue edge of its air (as in the orbital scenes)
+    air = nt.nodes.new("ShaderNodeEmission"); air.inputs["Color"].default_value = (0.32, 0.52, 1.0, 1); lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.12; add = nt.nodes.new("ShaderNodeAddShader")
+    dotn = nt.nodes.new("ShaderNodeVectorMath"); dotn.operation = "DOT_PRODUCT"; gn = nt.nodes.new("ShaderNodeNewGeometry"); dotn.inputs[1].default_value = tuple(float(v) for v in S0["sun"][0]); nt.links.new(gn.outputs["Normal"], dotn.inputs[0])
+    lit = nt.nodes.new("ShaderNodeMapRange"); lit.inputs["From Min"].default_value = -0.05; lit.inputs["From Max"].default_value = 0.25; nt.links.new(dotn.outputs["Value"], lit.inputs["Value"]); mul = nt.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; nt.links.new(lw.outputs["Facing"], mul.inputs[0]); nt.links.new(lit.outputs["Result"], mul.inputs[1])
+    sc_ = nt.nodes.new("ShaderNodeMath"); sc_.operation = "MULTIPLY"; sc_.inputs[1].default_value = 0.55 * 10.0 / math.pi; nt.links.new(mul.outputs[0], sc_.inputs[0]); nt.links.new(sc_.outputs[0], air.inputs["Strength"]); nt.links.new(d_.outputs["BSDF"], add.inputs[0]); nt.links.new(air.outputs[0], add.inputs[1]); nt.links.new(add.outputs[0], o_.inputs["Surface"])
 if EARTHK < 1.0:                                           # held back: the picture of Earth gives off its own light, shaded by where the Sun is, so the sampler has nothing faint to lose
     em_ = nt.nodes.new("ShaderNodeEmission"); gn_ = nt.nodes.new("ShaderNodeNewGeometry"); EDOT = nt.nodes.new("ShaderNodeVectorMath"); EDOT.operation = "DOT_PRODUCT"; nt.links.new(gn_.outputs["Normal"], EDOT.inputs[0])
     cl_ = nt.nodes.new("ShaderNodeClamp"); nt.links.new(EDOT.outputs["Value"], cl_.inputs["Value"]); ml_ = nt.nodes.new("ShaderNodeMath"); ml_.operation = "MULTIPLY"; ml_.inputs[1].default_value = SUNE / math.pi * EARTHK; nt.links.new(cl_.outputs["Result"], ml_.inputs[0])
@@ -261,10 +272,11 @@ def build_props():
             except ValueError: continue
             o = bpy.data.objects.new(f"{tag}{k}", base[rr_.integers(len(base))]); scene.collection.objects.link(o); o.rotation_euler = tuple(rr_.uniform(0, 6.28, 3)); o.scale = (s / 2,) * 3; o.location = (c[0], c[1], c[2] - s * rr_.uniform(0.05, 0.22)); k += 1
         return k
-    nr = scatter(-40, 40, -10, 70, 0.10, 1.3, 0.0006, 2.3, "rock"); nb = scatter(-200, 200, 70, 400, 0.6, 3.0, 0.0006, 2.3, "boulder")
+    if TELE: nr = scatter(-20, 20, -5, TELE + 28, 0.10, 1.3, 0.0006, 2.3, "rock") + scatter(-8, 8, 12, TELE + 14, 0.035, 0.30, 0.0009, 2.3, "stone"); nb = scatter(-200, 200, TELE + 30, 400, 0.6, 3.0, 0.0006, 2.3, "boulder")      # the long lens shows the strip of ground up to the person; it gets the small stones the near ground has
+    else: nr = scatter(-40, 40, -10, 70, 0.10, 1.3, 0.0006, 2.3, "rock"); nb = scatter(-200, 200, 70, 400, 0.6, 3.0, 0.0006, 2.3, "boulder")
     lo = rock(300, 1); pcv = np.empty(len(lo.vertices) * 3, np.float32); lo.vertices.foreach_get("co", pcv); pcv = pcv.reshape(-1, 3); pf = np.array([list(p.vertices) for p in lo.polygons], np.int32); V, F = [], []
     for _ in range(int(E("PEBBLES", 2400))):
-        wx, wy = to_world(rr_.uniform(-6.5, 6.5), rr_.uniform(-1.0, 14.0)); s = 0.012 * (1 - rr_.random() * 0.985) ** (-1 / 2.3)
+        wx, wy = to_world(rr_.uniform(-4.5, 4.5), rr_.uniform(TELE - 4.5, TELE + 8.5)) if TELE else to_world(rr_.uniform(-6.5, 6.5), rr_.uniform(-1.0, 14.0)); s = 0.012 * (1 - rr_.random() * 0.985) ** (-1 / 2.3)
         if s > 0.10 or (s > 0.03 and not clear(wx, wy, 0)): continue
         c = ground(wx, wy); a = rr_.uniform(0, 6.28); Rz = np.array([[math.cos(a), -math.sin(a), 0], [math.sin(a), math.cos(a), 0], [0, 0, 1]]); F.append(pf + len(V) * len(pcv)); V.append((pcv * rr_.uniform(0.6, 1.0, 3)) @ Rz.T * s / 2 + np.array([c[0], c[1], c[2] + s * rr_.uniform(-0.05, 0.22)]))
     me = bpy.data.meshes.new("pebbles"); Va = np.concatenate(V).astype(np.float32); Fa = np.concatenate(F).astype(np.int32); me.vertices.add(len(Va)); me.vertices.foreach_set("co", Va.reshape(-1)); me.loops.add(Fa.size); me.loops.foreach_set("vertex_index", Fa.reshape(-1))
@@ -288,9 +300,9 @@ def wobble(T, seed, amp):
     r = np.random.default_rng(seed); f = r.uniform(0.3, 2.2, 5); ph = r.uniform(0, 6.28, 5); a = r.uniform(0.4, 1.0, 5) / f ** 0.8; return amp * float((a * np.sin(2 * math.pi * f * T + ph)).sum()) / 2.2
 Z0 = ground(ORG[0], ORG[1])[2]
 def cam_pose(tt):
-    T = tt * E("DUR", C["dur"]); k = 0.0 if C["span"] > 0 else E("SHAKE", 1.0)                       # a time-lapse camera sits on a tripod
+    T = tt * E("DUR", C["dur"]); k = 0.0 if C["span"] > 0 else E("SHAKE", 0.05 if TELE else 1.0)                       # a time-lapse camera sits on a tripod
     wx, wy = to_world(C["dolly"][0] * tt, C["dolly"][1] * tt); p = ground(wx, wy); pos = Vector((p[0] + k * wobble(T, 1, 0.008), p[1] + k * wobble(T, 2, 0.008), Z0 + C["h"] + k * wobble(T, 3, 0.012)))
-    yaw = math.radians(C["az"] + C["pan"] * tt + k * wobble(T, 4, 0.22)); pitch = math.radians(C["pitch"] + k * wobble(T, 5, 0.22)); d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
+    yaw = math.radians(C["az"] + C["pan"] * (sm_(tt) if "expo_end" in C else tt) + k * wobble(T, 4, 0.22)); pitch = math.radians(C["pitch"] + k * wobble(T, 5, 0.22)); d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
     return pos, d.to_track_quat("-Z", "Y") @ Matrix.Rotation(math.radians(k * wobble(T, 6, 0.25)), 4, "Z").to_quaternion()
 
 # ---------- render
@@ -305,6 +317,8 @@ if BLUR: scene.render.use_motion_blur = True; scene.render.motion_blur_shutter =
 log("scene built")
 for i in range(a_, b_ + 1):
     tt = i / max(nf - 1, 1); s = set_sky(tt)
+    if "expo_end" in C:                                    # day into night in one take: the exposure opens as the light goes, as a camera left on automatic would; Earth is held back in step (see EARTHK)
+        x = sm_((tt - C["ramp"][0]) / (C["ramp"][1] - C["ramp"][0])); cy.film_exposure = math.exp(math.log(EXPO) * (1 - x) + math.log(E("EXPO_END", C["expo_end"])) * x); ml_.inputs[1].default_value = SUNE / math.pi * math.exp(math.log(EARTHK) * x)
     if BLUR:
         cam.animation_data_clear(); prev = None
         for j in (i - 1, i + 1, i):

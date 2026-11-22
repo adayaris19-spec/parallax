@@ -1,11 +1,8 @@
 {
- "label_offset": 10,
- "dim": 0.3,
- "dim_in": 0.1,
  "labels": [
   {
-   "key": "Connecting Ridge",
-   "text": "Connecting Ridge",
+   "key": "South Pole",
+   "text": "South Pole",
    "in": 0.12,
    "up": 95,
    "align": "center"
@@ -19,7 +16,7 @@
   "y": 1136,
   "w": 900,
   "h": 160,
-  "title": "Sunlight on this ridge through 2026",
+  "title": "Sunlight on one south pole ridge through 2026",
   "caption": "Connecting Ridge summit. Computed from NASA LOLA terrain and the JPL ephemeris.",
   "key": [
    "Sun above the horizon",

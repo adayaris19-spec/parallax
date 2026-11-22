@@ -109,6 +109,14 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - Every shot shows the goal's own subject (for the Moon base: the base, the people there, the pole, its night and its sunlight). A related mission is not the goal.
     - Real footage is optional. It goes in only where it cannot be told apart from the made shots around it in subject, light and grade. No windows, frames or labels that mark it as "real".
   - Time: a whole video's new 3D is rendered in one run of at most 30 minutes. A shot that cannot fit is simplified or replaced.
+- **Places and scales (owner, Nov 22, on the first full restart video):** "This is honestly not that bad." "It's still not visually rich." "It's low-key the same clip a lot of times." "Right now it's the same moon, just either zoomed in or zoomed out." "It can still look more realistic. Especially when it's spinning around: very different objects moving on their own. It's not continuous." "Make those changes more drastic." "Make sure what you're putting is physically correct, and makes sense… not AI fluff." "The text and the voice is really good."
+  - A video uses at least 4 different kinds of place or scale. For the Moon base: the whole Moon from space, Earth, the pole from above, the ridge at ground level, hardware, people.
+  - No kind carries more than 3 shots, and never 3 in a row.
+  - At least 2 shots carry a strong colour that is not grey or black (Earth's blue, lamp light, gold foil, a chart).
+  - A clip the owner has already seen in two versions is not used a third time.
+  - Time-lapse moves in small steps: between two frames nothing lit moves more than about 16 px at 1080×1920. The sunlight sweep that turned the Sun 3–6° per frame is the failure this rule names.
+  - Whole-Moon and Earth views are built on photographed maps (NASA's Moon mosaic, the day's satellite picture of Earth), never on a made-up texture.
+  - Physically correct stays the test of every picture. The place, the date, the Sun and Earth are real. An exposure that could not record something does not show it (no stars beside sunlit ground).
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

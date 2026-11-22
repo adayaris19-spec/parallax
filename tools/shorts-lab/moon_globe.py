@@ -11,6 +11,7 @@
 #   env: VIEW 1 night sweeping across the globe, Earth above the dark edge
 #             2 Earth turning above the south pole's edge, long lens
 #             3 the south polar cap from above, sunlight circling it
+#             4 the night side two days after new Moon, lit by Earth alone, with the thin sunlit edge; a long exposure, so stars show
 #        UTC "y,m,d,h,min" the middle of the shot; SPAN hours that pass during it; D0, D1 camera distance from the Moon's centre (1000 km);
 #        FOV vertical field of view in degrees; GAP, AIM, TILT framing angles; EXPO; Q mesh detail; SPP; SCALE
 import os, sys, math, json, time, numpy as np, bpy
@@ -24,7 +25,8 @@ a_, b_, nf = (int(ARGS[0]), int(ARGS[1]), int(ARGS[2])) if ARGS else (0, 0, 1)
 VIEW = int(E("VIEW", 1)); Q = E("Q", 1.0); RM = 1.7374                        # scene unit: 1000 km
 DEF = {1: dict(utc="2026,10,14,0,0", span=30.0, d0=5.2, d1=4.8, fov=40.0, expo=2.6),
        2: dict(utc="2026,10,16,0,0", span=6.0, d0=12.0, d1=12.0, fov=6.0, expo=2.2),
-       3: dict(utc="2026,10,16,0,0", span=72.0, d0=4.3, d1=4.0, fov=30.0, expo=3.2)}[VIEW]
+       3: dict(utc="2026,10,16,0,0", span=72.0, d0=4.3, d1=4.0, fov=30.0, expo=3.2),
+       4: dict(utc="2026,10,12,6,0", span=3.0, d0=11.0, d1=9.2, fov=40.0, expo=5.5e3)}[VIEW]
 UTC = tuple(int(v) for v in os.environ.get("UTC", DEF["utc"]).split(",")); SPAN = E("SPAN", DEF["span"]); DAY = "%04d-%02d-%02d" % UTC[:3]
 bpy.ops.wm.read_factory_settings(use_empty=True); scene = bpy.context.scene
 
@@ -97,12 +99,20 @@ SUNE = 10.0; sl = bpy.data.lights.new("sun", "SUN"); sl.energy = SUNE; sun = bpy
 elat, elon = 361, 721; ela = np.radians(np.linspace(-90, 90, elat)); elo = np.radians(np.linspace(-180, 180, elon)); ELO, ELA = np.meshgrid(elo, ela)
 eob = grid_mesh("earth", np.stack([np.cos(ELA) * np.cos(ELO), np.cos(ELA) * np.sin(ELO), np.sin(ELA)], -1)[:, ::-1] * 6.371, np.stack([ELO / (2 * np.pi) + 0.5, ELA / np.pi + 0.5], -1)[:, ::-1]); eob.visible_shadow = False
 em = bpy.data.materials.new("earth"); em.use_nodes = True; nt = em.node_tree; nt.nodes.clear(); N, L = nt.nodes.new, nt.links.new; o_ = N("ShaderNodeOutputMaterial"); d_ = N("ShaderNodeBsdfDiffuse"); etx = N("ShaderNodeTexImage")
-EDAY = os.environ.get("EARTHDAY", DAY); epic = f"{DATA}/earthglobal/earthx_{EDAY}.png"; etx.image = bpy.data.images.load(epic if os.path.exists(epic) else f"{DATA}/earthglobal/earth_{EDAY}.png"); etx.extension = "EXTEND"; etx.interpolation = "Cubic"; L(etx.outputs["Color"], d_.inputs["Color"])
+EDAY = os.environ.get("EARTHDAY", DAY); epic = f"{DATA}/earthglobal/earthx_{EDAY}.png"; epic = epic if os.path.exists(epic) else f"{DATA}/earthglobal/earth_{EDAY}.png"
+if not os.path.exists(epic): epic = sorted(os.path.join(f"{DATA}/earthglobal", f) for f in os.listdir(f"{DATA}/earthglobal") if f.endswith(".png"))[0]      # shots where Earth is out of view
+etx.image = bpy.data.images.load(epic); etx.extension = "EXTEND"; etx.interpolation = "Cubic"; L(etx.outputs["Color"], d_.inputs["Color"])
 air = N("ShaderNodeEmission"); air.inputs["Color"].default_value = (0.32, 0.52, 1.0, 1); lw = N("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.12; add = N("ShaderNodeAddShader")       # the thin blue edge of the atmosphere
 egeo = N("ShaderNodeNewGeometry"); ESUN = N("ShaderNodeCombineXYZ"); ed_ = N("ShaderNodeVectorMath"); ed_.operation = "DOT_PRODUCT"; L(egeo.outputs["Normal"], ed_.inputs[0]); L(ESUN.outputs[0], ed_.inputs[1])
 lit = N("ShaderNodeMapRange"); lit.inputs["From Min"].default_value = -0.05; lit.inputs["From Max"].default_value = 0.25; L(ed_.outputs["Value"], lit.inputs["Value"]); mul = N("ShaderNodeMath"); mul.operation = "MULTIPLY"; L(lw.outputs["Facing"], mul.inputs[0]); L(lit.outputs["Result"], mul.inputs[1])
 sc_ = N("ShaderNodeMath"); sc_.operation = "MULTIPLY"; sc_.inputs[1].default_value = 0.55 * SUNE / math.pi; L(mul.outputs[0], sc_.inputs[0]); L(sc_.outputs[0], air.inputs["Strength"]); L(d_.outputs["BSDF"], add.inputs[0]); L(air.outputs[0], add.inputs[1]); L(add.outputs[0], o_.inputs["Surface"])
-eob.data.materials.append(em); w = bpy.data.worlds.new("space"); scene.world = w; w.use_nodes = True; w.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
+eob.data.materials.append(em); w = bpy.data.worlds.new("space"); scene.world = w; w.use_nodes = True; wn = w.node_tree; bg = wn.nodes["Background"]; bg.inputs["Strength"].default_value = 0.0
+el = bpy.data.lights.new("earthlight", "SUN"); el.color = (0.72, 0.84, 1.0); el.energy = 0.0; elo = bpy.data.objects.new("earthlight", el); scene.collection.objects.link(elo); elo.rotation_mode = "QUATERNION"; DOTS = []
+if VIEW == 4:                                              # a long exposure: Earth's light on the night side, and the stars (NASA SVS Deep Star Maps 2020) at the strength the surface scenes use
+    star = wn.nodes.new("ShaderNodeTexEnvironment"); star.image = bpy.data.images.load(f"{DATA}/starmap_2020_8k.exr"); geo_ = wn.nodes.new("ShaderNodeNewGeometry"); cmb = wn.nodes.new("ShaderNodeCombineXYZ")
+    for k_ in range(3):
+        dn = wn.nodes.new("ShaderNodeVectorMath"); dn.operation = "DOT_PRODUCT"; wn.links.new(geo_.outputs["Incoming"], dn.inputs[0]); wn.links.new(dn.outputs["Value"], cmb.inputs[k_]); DOTS.append(dn)
+    wn.links.new(cmb.outputs[0], star.inputs["Vector"]); wn.links.new(star.outputs["Color"], bg.inputs["Color"]); bg.inputs["Strength"].default_value = E("STARS", 2.4e-6)
 
 # ---------- the camera
 cd = bpy.data.cameras.new("cam"); cd.sensor_fit = "VERTICAL"; cd.sensor_height = 36; FOV = E("FOV", DEF["fov"]); cd.lens = 18.0 / math.tan(math.radians(FOV) / 2); cd.clip_start = 0.01; cd.clip_end = 1.0e5
@@ -117,6 +127,11 @@ def set_frame(tt):
     SUNV.inputs[0].default_value, SUNV.inputs[1].default_value, SUNV.inputs[2].default_value = float(s[0]), float(s[1]), float(s[2])
     Mx = np.eye(4); Mx[:3, :3] = S["erot"]; Mx[:3, 3] = S["earth"]; eob.matrix_world = Matrix(Mx.tolist()); es = unit(S["sun"] - S["earth"])
     ESUN.inputs[0].default_value, ESUN.inputs[1].default_value, ESUN.inputs[2].default_value = float(es[0]), float(es[1]), float(es[2])
+    if VIEW == 4:
+        el.energy = SUNE * 1.0e-4 * (1 - float(s @ e)) / 2; el.angle = 2 * math.asin(6.371 / np.linalg.norm(S["earth"])); elo.rotation_quaternion = Vector(e).to_track_quat("Z", "Y")      # a full Earth lights the Moon about a ten-thousandth as strongly as the Sun
+        SUNV.inputs[0].default_value, SUNV.inputs[1].default_value, SUNV.inputs[2].default_value = float(e[0]), float(e[1]), float(e[2])                                   # the dust's scattering is worked out for the light that matters here, Earth's
+        M = np.diag([-1.0, -1.0, 1.0]) @ np.array(fr.rotation_at(S["t"])).T        # a direction in the Moon's axes -> the star map's own axes
+        for k_ in range(3): DOTS[k_].inputs[1].default_value = tuple(-M[k_])
     D = DEF["d0"] if "D0" not in os.environ else E("D0", 0); D1 = DEF["d1"] if "D1" not in os.environ else E("D1", 0); D = D + (D1 - D) * tt
     if VIEW == 1:        # above the sunlit ground just short of where evening falls, looking over the dark edge to Earth; the camera holds its place over the ground as the night comes toward it
         e0 = ed0; w_ = unit(sd0 - e0 * (sd0 @ e0)); beta = math.degrees(math.asin(RM / D)) + E("GAP", 1.2); c = -e0 * math.cos(math.radians(beta)) - w_ * math.sin(math.radians(beta)); c = rot_toward(c, np.cross(e0, w_), E("SIDE", 0.0) + E("DRIFT", 2.0) * (tt - 0.5))
@@ -124,6 +139,8 @@ def set_frame(tt):
     elif VIEW == 2:      # far beyond the Moon on the side away from Earth, raised toward the south, so that Earth stands just over the south pole's edge
         e0 = ed0; u = unit(np.array([0, 0, -1.0]) - e0 * (-e0[2])); u = rot_toward(u, np.cross(e0, u), E("ROLL", 0.0)); b = RM + D * math.tan(math.radians(E("GAP", 1.25))); pos = -e0 * D + u * b + np.cross(e0, u) * E("DRIFT", 0.25) * (tt - 0.5)
         te = unit(S["earth"] - pos); f = rot_toward(te, -u, E("AIM", 0.9)); look(pos, f, u)
+    elif VIEW == 4:      # on the Earth side, far enough back to hold the whole disc; the thin sunlit edge is turned to the bottom of the frame
+        c = ed0; pos = c * D; sp = unit(sd0 - c * (sd0 @ c)); f = rot_toward(-c, -sp, E("AIM", 2.5)); look(pos, f, -sp)
     else:                # above the south pole, held still over the ground while the sunlight circles the cap
         sh = unit(np.array([sd0[0], sd0[1], 0.0])); c = rot_toward(np.array([0, 0, -1.0]), sh, E("TILT", 3.0)); pos = c * D; f = rot_toward(-c, sh, E("AIM", 0.0)); look(pos, f, sh)   # the sunlit side at the top of the frame at mid-shot
     return S

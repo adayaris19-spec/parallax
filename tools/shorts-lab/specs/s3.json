@@ -1,1 +1,16 @@
-{"counters": [{"from": -20, "to": -173, "t0": 0.5, "t1": 2.4, "in": 0.4, "x": 70, "y": 640, "size": 150, "unit": "\u00b0C", "label": "NIGHT ON THE SURFACE, ABOUT 100 K"}]}
+{
+ "counters": [
+  {
+   "from": -20,
+   "to": -173,
+   "t0": 0.5,
+   "t1": 2.4,
+   "in": 0.4,
+   "x": 70,
+   "y": 56,
+   "size": 130,
+   "unit": "\u00b0C",
+   "label": "NIGHT ON THE SURFACE, ABOUT 100 K"
+  }
+ ]
+}
