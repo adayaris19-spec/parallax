@@ -141,9 +141,9 @@ def build_props():
     hdu = load("hdu1", 0.0254); weather(hdu, 0.29, 2.3, 0.7); hdu.matrix_world = upright(HAB[0], HAB[1], E("HABYAW", 10.0), -0.29 - 0.05)
     # astronauts in NASA's Z-2 prototype suit (one pose only)
     a1 = load("z2"); weather(a1, 0.0, 1.05, 0.55, 0.92); a1.matrix_world = upright(A1[0], A1[1], 180 - 16, -0.035)
-    me = a1.data
+    me = a1.data; bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0002); bm.to_mesh(me); bm.free()       # the model comes split into small patches; join them so it shades smoothly once it moves
     if "custom_normal" in me.attributes: me.attributes.remove(me.attributes["custom_normal"])
-    me.shade_smooth(); n = len(me.vertices); ACO0 = np.empty(n * 3, np.float32); me.vertices.foreach_get("co", ACO0); ACO0 = ACO0.reshape(-1, 3).copy(); ARM_R = arm_rig(me, -1); arm_l = arm_rig(me, 1); AST1 = a1
+    me.set_sharp_from_angle(angle=math.radians(60)); me.shade_smooth(); me.update(); n = len(me.vertices); ACO0 = np.empty(n * 3, np.float32); me.vertices.foreach_get("co", ACO0); ACO0 = ACO0.reshape(-1, 3).copy(); ARM_R = arm_rig(me, -1); arm_l = arm_rig(me, 1); AST1 = a1
     log("suit arm vertices", len(ARM_R[0]), len(arm_l[0]), "x range of right arm", ACO0[ARM_R[0], 0].min().round(2), ACO0[ARM_R[0], 0].max().round(2))
     a2 = a1.copy(); a2.data = me.copy(); scene.collection.objects.link(a2); a2.matrix_world = upright(A2[0], A2[1], 180 + 35, -0.035)
     c2 = ACO0.copy(); pose_arm(c2, ACO0, arm_l, math.radians(-36)); pose_arm(c2, ACO0, ARM_R, math.radians(-10)); a2.data.vertices.foreach_set("co", c2.reshape(-1)); a2.data.update()       # the second astronaut reaches for the hatch
