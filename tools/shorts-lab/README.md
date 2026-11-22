@@ -34,7 +34,15 @@ Run: `python base_scene.py DATA OUT 0 119 120`, then `python comp_real.py OUT OU
 - Work lights, the rover's flashing beacon and the amount of dust its wheels throw. NASA's models carry none of these.
 - The camera response: exposure, lens glare, the film-like curve and sensor noise.
 
+**Added Nov 22 (all modelled)**
+- Dust on the hardware and paint toned down from pure white; a small camera wobble as if carried; motion blur with the shutter open for half of each frame.
+- The near astronaut lifts one arm and turns a few degrees; the second holds a different arm pose. The suit has no skeleton, so this is one arm turning about the shoulder.
+
+**Rendering fast**
+- `prep_site_data.py OUT` fetches only the slices of NASA's grids the shot needs (266 MB). `.github/workflows/shorts-lab-render.yml` then splits the frames across 20 free GitHub runners; change `render-request.json` on the working branch to start it. A 120-frame shot takes about 15 minutes.
+- `.github/workflows/shorts-lab-ai.yml` and `ai_pass.py` send frames of a finished render through public demos of open models (test only; needs the repository secret `HF_TOKEN`).
+
 **Known limits**
-- The suit model has one pose, so the astronauts stand still. The excavator is parked.
-- No motion blur.
+- The suit model has one pose and no skeleton, so the astronauts cannot walk. The excavator is parked.
+- Wheels and dust are not motion-blurred, only the camera and the rovers' bodies.
 - The soil roughness was set by eye and still has to be checked against published measurements.

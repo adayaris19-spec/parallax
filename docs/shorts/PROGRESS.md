@@ -104,6 +104,8 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - `tools/shorts-lab/prep_site_data.py` downloads only the rows of NASA's grids that the shot needs (266 MB prepared, 21 s on a runner, kept in the workflow cache) instead of 2.4 GB.
 - Result: the same Moon base shot, same settings, finished in **16 min 44 s** against about 2 hours on one machine. All frames were rendered after about 12 minutes; the rest was one machine applying the camera response and encoding. That step now runs on each runner, so the next run should be shorter.
 - The clip matches the single-machine render: mean difference 3.1 of 255 per pixel, the size of render and grain noise.
+- Second full run, with motion blur added and the camera response moved onto each runner: 15 min 23 s.
+- Scene changes for that run (all modelled, listed in the lab README): lunar dust and toned-down paint on the hardware, a small hand-carried camera wobble, half-frame shutter blur for the camera and rovers, the near astronaut lifts an arm and turns toward the rover, the second astronaut reaches for the hatch. The first render of it showed a blocky suit (the suit model is split into small patches that shade flat once its stored normals are removed); fixed by joining the patches, and rendered again before anything was sent.
 - Free because the repository is public. A 4-shot video would need four such runs, one after another or queued together.
 
 **AI realism test 1 (Nov 22): one render frame through open Wan 2.2 image-to-video**
@@ -115,6 +117,7 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - Realism: no gain. It keeps the computer-made look of the frame it was given, at a quarter of our resolution.
 - Not tested yet: the step that first makes the frame look photographed (the Qwen-Image-Edit demo returned an error), and the first-and-last-frame mode that pins both ends of the clip to our render.
 - Reading: image-to-video from a rendered frame is not enough on its own. Owner's verdict pending.
+- Test 2 (first and last frame pinned to our render, and the photographed-look step again): both demos refused within seconds, and the workflow again saw no `HF_TOKEN`. No more tests on the no-account allowance; the rest waits for the owner's token to be visible to the workflow.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
