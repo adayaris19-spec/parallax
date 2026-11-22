@@ -1,8 +1,10 @@
 {
-  "note": "Moon base video, restart: the pass over the south pole again, with Earth's cloud map back on the globe (a comment had swallowed the line that links it, so Earth rendered as a plain white disc), and with a real forward glide toward Shackleton crater instead of a near-still camera.",
+  "note": "Moon base video, second restart: three shots at the scale of the whole Moon (moon_globe.py), built on NASA's CGI Moon Kit. g1 night sweeping across the far side with Earth over the dark edge, g2 Earth turning above the south pole through a long lens, g3 the south polar cap from above with sunlight circling it.",
   "scale": 1.0,
-  "per_chunk": 5,
+  "per_chunk": 6,
   "shots": [
-    {"name": "s5", "script": "lro_pass.py", "frames": 84, "spp": 24, "per_chunk": 5, "env": {"NOCRAFT": 1, "X0": -8, "Y0": -136, "ALT": 40, "DY": 36, "DALT": -8, "AZ0": 4, "AZ1": 4, "PITCH0": -17.9, "PITCH1": -17.9, "LENS": 60, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
+    {"name": "g1", "script": "moon_globe.py", "frames": 56, "spp": 32, "env": {"VIEW": 1, "UTC": "2026,10,14,10,0", "SPAN": 40, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "g2", "script": "moon_globe.py", "frames": 60, "spp": 32, "env": {"VIEW": 2, "D0": 12.6, "D1": 11.6, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "g3", "script": "moon_globe.py", "frames": 72, "spp": 32, "env": {"VIEW": 3, "AIM": -4, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
   ]
 }

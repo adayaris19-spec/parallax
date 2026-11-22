@@ -44,12 +44,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: labdata
-          key: shorts-lab-data-v1-${{ hashFiles('tools/shorts-lab/prep_site_data.py', 'tools/shorts-lab/undraco.py', 'tools/shorts-lab/gibs_fetch.py') }}
+          key: shorts-lab-data-v1-${{ hashFiles('tools/shorts-lab/prep_site_data.py', 'tools/shorts-lab/undraco.py', 'tools/shorts-lab/gibs_fetch.py', 'tools/shorts-lab/earth_day.py') }}
       - uses: actions/setup-python@v5
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           python-version: "3.13"
-      - name: Fetch the terrain, models, Earth images, star map and ephemeris
+      - name: Fetch the terrain, models, Earth images, Moon maps, star map and ephemeris
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           pip install -q numpy opencv-python-headless DracoPy
@@ -70,7 +70,7 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: labdata
-          key: shorts-lab-data-v1-${{ hashFiles('tools/shorts-lab/prep_site_data.py', 'tools/shorts-lab/undraco.py', 'tools/shorts-lab/gibs_fetch.py') }}
+          key: shorts-lab-data-v1-${{ hashFiles('tools/shorts-lab/prep_site_data.py', 'tools/shorts-lab/undraco.py', 'tools/shorts-lab/gibs_fetch.py', 'tools/shorts-lab/earth_day.py') }}
           fail-on-cache-miss: true
       - name: Blender as a Python package
         run: |
