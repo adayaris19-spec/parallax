@@ -1,0 +1,10 @@
+{
+  "title": "Example of the new bar: one shot with its line and the explainer layer",
+  "note": "Not a finished video. One 3.5 s shot for the line about the sunlit ridges, with voice, subtitle and a short bed of music.",
+  "cuts": [84],
+  "shots": [{"clip": "lro_x", "from": 0, "job": "This shot shows the orbiter whose laser altimeter mapped the pole's sunlight, over the pole itself, so the viewer understands where the fact about the sunlit ridges comes from."}],
+  "lines": [{"id": "3a", "at": 0.08, "say": "Some ridges at the south pole get sunlight most of the time.", "text": ["Some ridges at the south pole", "get sunlight most of the time."], "split": [6]}],
+  "score": {"style": "space", "clock": false, "key": 50, "prog": [[3, "M"]], "seed": 11},
+  "duck": 0.36, "music_lufs": -27.0, "lufs": -15.0, "crf": 15, "maxrate": "20M",
+  "subs": {"font": "Inter Display Medium", "size": 58, "left": 80, "right": 170, "bottom": 420}
+}

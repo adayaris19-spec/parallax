@@ -180,6 +180,17 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Settled by this: the voice (Kokoro `am_michael`, 1.12) and the script method pass. The computer-made scenes as main pictures do not.
   - Causes on our side, named: sensor grain was added on purpose and then squeezed to 14 Mbit/s, which reads as pixelated; Earth at the night exposure is a white disc; the habitat is the subject of three shots out of five; two of those are tripod time-lapses in which only the sky slides.
 
+**After the verdict: the owner's answers, and a hero shot at the new bar (Nov 22)**
+
+- Asked four questions. Answers: 3D stays "the main star", pushed to the standard of film effects ("really push the limits"), and mixed with explainer elements; articles, numbers, maps and charts are all allowed "depending on the situation"; 7 to 9 shots per video. Written into `RULES.md` sections 2 and 3.
+- Changed on our side at once: no added grain; frames rendered at 1.5 times delivery size and scaled down; no white-disc Earth; no tripod time-lapses as main shots; no subject twice.
+- What limits detail: NASA's free models. Most ship as plain flat-coloured shapes (the habitat, the Apollo lander, the orbiter). The Gateway model is the only one with full surface textures. So the finishes have to be made here.
+- Hero shot (`tools/shorts-lab/lro_pass.py`, `lro_model.py`): NASA's Lunar Reconnaissance Orbiter over the south pole, 3.5 s, for the line "Some ridges at the south pole get sunlight most of the time."
+  - Why this subject: the app's own source for that fact is "Illumination conditions of the lunar polar regions using LOLA topography" (Mazarico et al., Icarus), and LOLA is the laser altimeter on this spacecraft. It is a real thing that is really there, so nothing in the shot is imagined hardware.
+  - Measured or published: terrain on LOLA's 40 m and 80 m grids; Sun and Earth for 16 October 2026 00:00 UTC (01:00 UTC+1) from the JPL ephemeris, chosen so the Sun lights the pole from the side and Earth sits 7° above the Moon's edge as seen from 50 km up; Earth's clouds from NASA GIBS for that day; the spacecraft's shape from NASA's detailed model, put together the way NASA's second, assembled model shows it; 50 km height and 1.66 km/s, its mapping orbit.
+  - Modelled: where on its orbit the spacecraft is at that moment; its blanket foil, solar cells and paint; the camera beside it, which no spacecraft carries.
+  - Explainer layer (`explain.py`, `lro-explain.json`): place labels that stay on their place as the camera moves, and a card naming the spacecraft and the paper.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
