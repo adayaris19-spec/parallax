@@ -9,7 +9,8 @@ def log(*a): print(f"[{time.time()-t0:6.1f}s]", *a, flush=True)
 CX, CY, UTC = -11.82, -12.54, (2026, 9, 6, 0, 0)          # map km on the Connecting Ridge; a real date and time
 Q = E("Q", 1.0); STAGE = int(E("STAGE", 9))
 bpy.ops.wm.read_factory_settings(use_empty=True); scene = bpy.context.scene
-d5 = LS.Dem(f"{DATA}/ldem_875s_5m.img", 30336, 0.005); d40 = LS.Dem(f"{DATA}/ldem_80s_40m.img", 15200, 0.04); d80 = LS.Dem(f"{DATA}/ldem_80s_80m.img", 7600, 0.08)
+def dem(window, full, n, step): p = f"{DATA}/{window}"; return LS.Dem(p if os.path.exists(p) else f"{DATA}/{full}", n, step)      # prep_site_data.py stores small windows of the big grids
+d5 = dem("dem5.npz", "ldem_875s_5m.img", 30336, 0.005); d40 = dem("dem40.npz", "ldem_80s_40m.img", 15200, 0.04); d80 = dem("dem80.npz", "ldem_80s_80m.img", 7600, 0.08)
 h0 = float(TR.ndimage.gaussian_filter(d5.cut(CX - 0.1, CX + 0.1, CY - 0.1, CY + 0.1)[0], 3.0)[20, 20])
 site = LS.Site(CX, CY, h0); sky = site.sky(f"{DATA}/spice", UTC); G = TR.Ground(site, d5)
 log("site lat %.4f lon %.3f  sun alt %.2f  earth alt %.2f" % (site.lat, site.lon, sky["sun"]["alt"], sky["earth"]["alt"]))

@@ -3,11 +3,16 @@
 import math, numpy as np
 R = 1737.4
 class Dem:
-    def __init__(s, path, n, step_km): s.a = np.memmap(path, dtype="<i2", mode="r", shape=(n, n)); s.n = n; s.s = step_km; s.c = (n - 1) / 2
+    def __init__(s, path, n, step_km):
+        s.n = n; s.s = step_km; s.c = (n - 1) / 2
+        if path.endswith(".npz"): z = np.load(path); s.a = z["a"]; s.r_off, s.c_off = int(z["r_off"]), int(z["c_off"])        # a window cut from the full grid by prep_site_data.py
+        else: s.a = np.memmap(path, dtype="<i2", mode="r", shape=(n, n)); s.r_off = s.c_off = 0
     def cut(s, x0, x1, y0, y1):
         """heights in metres, row 0 = lowest y; plus the x and y of the cell centres (km)"""
         c0, c1 = max(int(round(x0 / s.s + s.c)), 0), min(int(round(x1 / s.s + s.c)), s.n); r0, r1 = max(int(round(y0 / s.s + s.c)), 0), min(int(round(y1 / s.s + s.c)), s.n)
-        h = np.asarray(s.a[s.n - r1:s.n - r0, c0:c1])[::-1].astype(np.float32) * 0.5
+        a0, a1, b0, b1 = s.n - r1 - s.r_off, s.n - r0 - s.r_off, c0 - s.c_off, c1 - s.c_off
+        assert a0 >= 0 and b0 >= 0 and a1 <= s.a.shape[0] and b1 <= s.a.shape[1], "asked for terrain outside the stored window"
+        h = np.asarray(s.a[a0:a1, b0:b1])[::-1].astype(np.float32) * 0.5
         return h, (np.arange(c0, c1) - s.c) * s.s, (np.arange(r0, r1) - s.c) * s.s
 def to_global(x, y, h_m):
     """map km + height m -> 3D km; origin at the pole on the reference sphere, Z out of the south pole"""
