@@ -93,7 +93,7 @@ def wobble(T, seed, amp):
     """slow, small drift of a camera carried by a person (modelled): a few sine waves between 0.3 and 2.2 Hz"""
     r = np.random.default_rng(seed); f = r.uniform(0.3, 2.2, 5); ph = r.uniform(0, 6.28, 5); a = r.uniform(0.4, 1.0, 5) / f ** 0.8; return amp * float((a * np.sin(2 * math.pi * f * T + ph)).sum()) / 2.2
 MODE = "ride" if E("RIDE", 0) else ""                      # RIDE=1: the camera travels with the near rover (a tracking vehicle or a drone beside it)
-if E("FSTOP", 0) > 0: cd.dof.use_dof = True; cd.dof.aperture_fstop = E("FSTOP", 2.0)       # a real lens at a wide aperture: what it is focused on is sharp, the rest soft
+if E("FSTOP", 0) > 0: cd.dof.use_dof = True; cd.dof.aperture_fstop = E("FSTOP", 2.0); cd.dof.focus_distance = E("FOCUS", 3.0)       # a real lens at a wide aperture: what it is focused on is sharp, the rest soft
 def cam_pose(t):
     if MODE == "ride":
         T = t * E("DUR", 5.0); k = E("SHAKE", 1.0); p, f = at(ROAD, ROVER_S0 + E("ROVER_V", 1.4) * T); n_ = np.array([-f[1], f[0]])     # heading, and the rover's left
@@ -135,7 +135,7 @@ def key(ob, frame):
 for i in range(a_, b_ + 1):
     t = i / max(nf - 1, 1)
     if BLUR:
-        movers = [cam] + [globals()[k] for k in ("SEV", "SEV2") if k in globals()]
+        movers = [cam] + [globals()[k] for k in ("SEV", "SEV2", "LND") if k in globals()]
         for o in movers: o.animation_data_clear()
         prev = {}
         for j in (i - 1, i + 1, i):                           # the frame itself last, so the scene is left in its state

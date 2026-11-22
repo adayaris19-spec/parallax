@@ -162,9 +162,17 @@ def build_props():
     a2 = a1.copy(); a2.data = me.copy(); scene.collection.objects.link(a2); a2.matrix_world = upright(A2[0], A2[1], 180 + 35, -0.035)
     c2 = ACO0.copy(); pose_arm(c2, ACO0, arm_l, math.radians(-36)); pose_arm(c2, ACO0, ARM_R, math.radians(-10)); a2.data.vertices.foreach_set("co", c2.reshape(-1)); a2.data.update()       # the second astronaut reaches for the hatch
     # RASSOR digging robot, standing on its two drums
-    ras = load("rassor"); me = ras.data; me.transform(Matrix.Rotation(math.radians(E("RASTILT", 13.0)), 4, "X")); zmin = min(v.co.z for v in me.vertices)
+    global RAS_OB, RCO0, RDRUMS, RSOIL, RSP, RZ0
+    ras = load("rassor"); me = ras.data; nr_ = len(me.vertices); rc = np.empty(nr_ * 3, np.float32); me.vertices.foreach_get("co", rc); rc = rc.reshape(-1, 3)
+    tilt = math.radians(E("RASTILT", 13.0)); ct, st = math.cos(tilt), math.sin(tilt); RDRUMS = []
+    for (yc, zc, sgn) in ((0.505, -0.485, 1.0), (-0.715, -0.22, -1.0)):          # the two bucket drums, one on each arm: everything within 20 cm of each axle turns with it (they turn opposite ways, which is what lets so light a robot dig)
+        idx = np.where(np.hypot(rc[:, 1] - yc, rc[:, 2] - zc) < 0.2)[0]; RDRUMS.append((idx, yc * ct - zc * st, yc * st + zc * ct, sgn))
+    me.transform(Matrix.Rotation(tilt, 4, "X")); me.vertices.foreach_get("co", rc.reshape(-1)); RCO0 = rc.copy(); zmin = float(rc[:, 2].min()); RZ0 = zmin; RAS_OB = ras; log("digging robot: drum vertices", [len(d[0]) for d in RDRUMS])
     m = bpy.data.materials.new("rassor_metal"); m.use_nodes = True; b = m.node_tree.nodes["Principled BSDF"]; b.inputs["Base Color"].default_value = (0.42, 0.43, 0.45, 1); b.inputs["Metallic"].default_value = 0.85; b.inputs["Roughness"].default_value = 0.48
     me.materials.clear(); me.materials.append(m); ras.matrix_world = upright(RAS[0], RAS[1], 205, -zmin - 0.03)
+    if E("DIG", 0) > 0:                                        # the soil its scoops lift and shed (modelled): each grain leaves a drum at the rim's speed and then only gravity acts
+        n_ = int(E("DIGSOIL", 160000)); r = np.random.default_rng(31); RSP = dict(te=r.uniform(-2.0, E("DUR", 5.0), n_), dr=r.integers(0, 2, n_), th=np.radians(15 + 135 * r.random(n_) ** 1.3), x=r.uniform(-0.31, 0.31, n_), k=r.uniform(0.6, 1.05, n_), vx=r.normal(0, 0.06, n_), rad=(0.0016 * (1 - r.random(n_) * 0.9) ** -0.5).astype(np.float32))
+        sm_ = bpy.data.meshes.new("digsoil"); sm_.vertices.add(n_); sm_.attributes.new("rad", "FLOAT", "POINT").data.foreach_set("value", np.minimum(RSP["rad"], 0.006)); RSOIL = bpy.data.objects.new("digsoil", sm_); scene.collection.objects.link(RSOIL); RSOIL.parent = ras
     # rocks
     rmat = bpy.data.materials.new("rock"); rmat.use_nodes = True; nt = rmat.node_tree; nt.nodes.clear(); N = nt.nodes.new; L = nt.links.new
     out = N("ShaderNodeOutputMaterial"); d = N("ShaderNodeBsdfDiffuse"); d.inputs["Roughness"].default_value = 1.0; oi = N("ShaderNodeObjectInfo"); mr = N("ShaderNodeMapRange"); mr.inputs["To Min"].default_value = 0.13; mr.inputs["To Max"].default_value = 0.30; L(oi.outputs["Random"], mr.inputs["Value"])
@@ -211,6 +219,8 @@ def build_props():
     if E("DUST", 70000) > 0:
         build_dust(0, 5)
         if CONVOY: build_dust(1, 6)
+    if LANDER: build_lander()
+    if "RSOIL" in globals(): RSOIL.modifiers.new("gn", "NODES").node_group = bpy.data.node_groups["dustpts"]
     # work lights (modelled: NASA's models carry no lamps). A base in permanent low sun needs them; they only show inside shadows.
     def spot(name, power, cone, parent, loc, aim):
         l = bpy.data.lights.new(name, "SPOT"); l.energy = power * E("LAMPS", 1.0); l.spot_size = math.radians(cone); l.spot_blend = 0.5; l.shadow_soft_size = 0.06; l.color = (0.92, 0.96, 1.0)
@@ -221,6 +231,72 @@ def build_props():
     bm_ = bpy.data.materials.new("beacon"); bm_.use_nodes = True; nt = bm_.node_tree; nt.nodes.clear(); o = nt.nodes.new("ShaderNodeOutputMaterial"); e = nt.nodes.new("ShaderNodeEmission"); e.inputs["Color"].default_value = (1.0, 0.45, 0.08, 1); nt.links.new(e.outputs[0], o.inputs[0]); BEACON = e
     bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=0.06, location=(0, 0, 0)); b = bpy.context.object; b.data.materials.append(bm_); b.parent = SEV; b.location = (0.0, -0.2, 1.36)
 
+LANDER = E("LANDER", 0.0) > 0; LND_AT = (E("LND_U", 30.0), E("LND_V", 330.0))       # LANDER=1: a tall crewed lander comes down at this spot (metres east and toward Earth of the scene's origin)
+def gz_far(u, v):
+    """the ground anywhere: the detailed levels near the base, the measured 5 m terrain beyond them"""
+    try: return ground_z(u, v)
+    except ValueError: return G.to_local(np.array([[u]]), np.array([[v]]), G.dem(np.array([[u]]), np.array([[v]])))[0, 0]
+def build_lander():
+    """A tall crewed lander descending on engines set high on its body, as NASA's published pictures of the Artemis lander show (a white tower about 50 m tall, 9 m across,
+    on short legs, with a band of solar cells under the nose and a lift down its side). Modelled by us from those pictures: the shape is approximate and it is not the maker's own model."""
+    global LND, LSPRAY, LSP, LGROUND
+    def mat(name, color, rough, metal=0.0, emit=0.0):
+        m = bpy.data.materials.new(name); m.use_nodes = True; b = m.node_tree.nodes["Principled BSDF"]; b.inputs["Base Color"].default_value = (*color, 1); b.inputs["Roughness"].default_value = rough; b.inputs["Metallic"].default_value = metal
+        if emit: b.inputs["Emission Color"].default_value = (*color, 1); b.inputs["Emission Strength"].default_value = emit
+        return m
+    white = mat("lander_white", (0.80, 0.80, 0.78), 0.42); nt = white.node_tree; N, L = nt.nodes.new, nt.links.new; b = nt.nodes["Principled BSDF"]; tc = N("ShaderNodeTexCoord")
+    br = N("ShaderNodeTexBrick"); br.offset = 0.5; br.inputs["Scale"].default_value = 1.0; br.inputs["Brick Width"].default_value = 3.4; br.inputs["Row Height"].default_value = 1.83; br.inputs["Mortar Size"].default_value = 0.012; br.inputs["Mortar Smooth"].default_value = 0.6
+    mp = N("ShaderNodeMapping"); mp.inputs["Rotation"].default_value = (math.radians(90), 0, 0); cyl = N("ShaderNodeVectorMath"); cyl.operation = "MULTIPLY"; sepc = N("ShaderNodeSeparateXYZ"); L(tc.outputs["Object"], sepc.inputs[0])
+    at2 = N("ShaderNodeMath"); at2.operation = "ARCTAN2"; L(sepc.outputs["Y"], at2.inputs[0]); L(sepc.outputs["X"], at2.inputs[1]); sc4 = N("ShaderNodeMath"); sc4.operation = "MULTIPLY"; sc4.inputs[1].default_value = 4.5; L(at2.outputs[0], sc4.inputs[0])
+    cmbv = N("ShaderNodeCombineXYZ"); L(sc4.outputs[0], cmbv.inputs[0]); L(sepc.outputs["Z"], cmbv.inputs[1]); L(cmbv.outputs[0], br.inputs["Vector"])                 # welded rings and panels, unrolled round the hull
+    bp = N("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.35; bp.inputs["Distance"].default_value = 0.02; L(br.outputs["Fac"], bp.inputs["Height"]); L(bp.outputs["Normal"], b.inputs["Normal"])
+    nz = N("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 0.35; nz.inputs["Detail"].default_value = 6; L(tc.outputs["Object"], nz.inputs["Vector"]); tint = N("ShaderNodeMapRange"); tint.inputs["To Min"].default_value = 0.86; tint.inputs["To Max"].default_value = 1.04; L(nz.outputs["Fac"], tint.inputs["Value"])
+    band = N("ShaderNodeMath"); band.operation = "COMPARE"; band.inputs[1].default_value = 37.6; band.inputs[2].default_value = 1.5; L(sepc.outputs["Z"], band.inputs[0])                    # the band of solar cells under the nose
+    win = N("ShaderNodeMath"); win.operation = "COMPARE"; win.inputs[1].default_value = 42.2; win.inputs[2].default_value = 0.55; L(sepc.outputs["Z"], win.inputs[0]); wa = N("ShaderNodeMath"); wa.operation = "COMPARE"; wa.inputs[1].default_value = 0.0; wa.inputs[2].default_value = 0.42; L(at2.outputs[0], wa.inputs[0])
+    wm = N("ShaderNodeMath"); wm.operation = "MULTIPLY"; L(win.outputs[0], wm.inputs[0]); L(wa.outputs[0], wm.inputs[1]); dk = N("ShaderNodeMath"); dk.operation = "MAXIMUM"; L(band.outputs[0], dk.inputs[0]); L(wm.outputs[0], dk.inputs[1])
+    c1 = N("ShaderNodeMixRGB"); c1.blend_type = "MULTIPLY"; c1.inputs["Fac"].default_value = 1.0; c1.inputs["Color1"].default_value = (0.80, 0.80, 0.78, 1); L(tint.outputs["Result"], c1.inputs["Color2"])
+    c2 = N("ShaderNodeMixRGB"); c2.inputs["Color2"].default_value = (0.012, 0.016, 0.035, 1); L(dk.outputs[0], c2.inputs["Fac"]); L(c1.outputs["Color"], c2.inputs["Color1"]); L(c2.outputs["Color"], b.inputs["Base Color"])
+    ro = N("ShaderNodeMapRange"); ro.inputs["To Min"].default_value = 0.42; ro.inputs["To Max"].default_value = 0.12; L(dk.outputs[0], ro.inputs["Value"]); L(ro.outputs["Result"], b.inputs["Roughness"])
+    dark = mat("lander_dark", (0.03, 0.03, 0.035), 0.5, 0.8); steel = mat("lander_steel", (0.55, 0.56, 0.58), 0.35, 1.0)
+    LND = bpy.data.objects.new("lander", None); scene.collection.objects.link(LND)
+    def add(me_or_ob, material):
+        ob = me_or_ob; ob.data.materials.append(material); ob.parent = LND; return ob
+    # hull: a straight tank section and a pointed nose, turned round the axis
+    zs = np.concatenate([np.linspace(2.0, 38.0, 40), 38.0 + 12.0 * np.sin(np.linspace(0, np.pi / 2, 26))[1:]]); rs = np.concatenate([np.full(40, 4.5), 4.5 * np.cos(np.linspace(0, np.pi / 2, 26))[1:] ** 0.62]); rs[-1] = 0.02
+    seg = 128; ang = np.linspace(0, 2 * np.pi, seg, endpoint=False); V = np.stack([rs[:, None] * np.cos(ang)[None, :], rs[:, None] * np.sin(ang)[None, :], np.broadcast_to(zs[:, None], (len(zs), seg))], -1)
+    me = bpy.data.meshes.new("hull"); me.vertices.add(V.shape[0] * seg); me.vertices.foreach_set("co", V.astype(np.float32).reshape(-1)); idx = np.arange(V.shape[0] * seg, dtype=np.int32).reshape(V.shape[0], seg)
+    q = np.stack([idx[:-1], np.roll(idx[:-1], -1, 1), np.roll(idx[1:], -1, 1), idx[1:]], -1).reshape(-1); nq = len(q) // 4; me.loops.add(nq * 4); me.loops.foreach_set("vertex_index", q); me.polygons.add(nq); me.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32)); me.update(calc_edges=True); me.shade_smooth()
+    hull = bpy.data.objects.new("hull", me); scene.collection.objects.link(hull); add(hull, white)
+    def prim(kind, material, loc, rot=(0, 0, 0), **kw):
+        getattr(bpy.ops.mesh, kind)(location=loc, rotation=rot, **kw); ob = bpy.context.object; bpy.ops.object.shade_smooth(); return add(ob, material)
+    prim("primitive_cylinder_add", dark, (0, 0, 1.6), radius=4.3, depth=1.0, vertices=64)                                              # the skirt over the main engines
+    for k in range(6):
+        a = k * math.pi / 3 + 0.3; prim("primitive_cone_add", dark, (2.3 * math.cos(a), 2.3 * math.sin(a), 0.4), radius1=1.15, radius2=0.5, depth=2.2, vertices=32)   # main engine bells (shut down for the last of the descent)
+    for k in range(6):                                                                                                               # six short legs
+        a = k * math.pi / 3; ca, sa = math.cos(a), math.sin(a); top = np.array([4.3 * ca, 4.3 * sa, 6.0]); foot = np.array([7.4 * ca, 7.4 * sa, -1.6]); mid = (top + foot) / 2; d = foot - top; ln = np.linalg.norm(d)
+        rotq = Vector((0, 0, 1)).rotation_difference(Vector(d / ln)).to_euler(); prim("primitive_cylinder_add", white, tuple(mid), tuple(rotq), radius=0.34, depth=ln, vertices=24); prim("primitive_cylinder_add", steel, (foot[0], foot[1], -1.75), radius=1.0, depth=0.3, vertices=32)
+    for k in range(8):                                                                                                               # the landing engines, set high so their blast spreads before it reaches the ground
+        a = k * math.pi / 4 + 0.39; ca, sa = math.cos(a), math.sin(a); prim("primitive_cube_add", dark, (4.62 * ca, 4.62 * sa, 26.0), (0, 0, a), size=1.0).scale = (0.5, 1.1, 1.4)
+    prim("primitive_cube_add", steel, (4.75, 0, 16.5), size=1.0).scale = (0.35, 1.3, 27.0); prim("primitive_cube_add", steel, (5.6, 0, 30.4), size=1.0).scale = (2.2, 2.6, 0.25)       # the lift's rail down the side and its landing by the hatch
+    prim("primitive_cube_add", dark, (4.45, 0, 32.2), size=1.0).scale = (0.2, 1.7, 2.6)                                                                                             # the hatch
+    # the exhaust of the landing engines: thin and nearly clear in a vacuum; drawn as faint cones
+    pm = bpy.data.materials.new("plume"); pm.use_nodes = True; nt = pm.node_tree; nt.nodes.clear(); N, L = nt.nodes.new, nt.links.new; o_ = N("ShaderNodeOutputMaterial"); em = N("ShaderNodeEmission"); em.inputs["Color"].default_value = (0.75, 0.85, 1.0, 1); tr = N("ShaderNodeBsdfTransparent"); mx = N("ShaderNodeMixShader")
+    tcp = N("ShaderNodeTexCoord"); sp = N("ShaderNodeSeparateXYZ"); L(tcp.outputs["Generated"], sp.inputs[0]); lw = N("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.35; mlt = N("ShaderNodeMath"); mlt.operation = "MULTIPLY"; L(sp.outputs["Z"], mlt.inputs[0]); L(lw.outputs["Facing"], mlt.inputs[1])
+    inv = N("ShaderNodeMath"); inv.operation = "SUBTRACT"; inv.inputs[0].default_value = 1.0; L(lw.outputs["Facing"], inv.inputs[1]); m3 = N("ShaderNodeMath"); m3.operation = "MULTIPLY"; L(sp.outputs["Z"], m3.inputs[0]); L(inv.outputs[0], m3.inputs[1]); m4 = N("ShaderNodeMath"); m4.operation = "MULTIPLY"; m4.inputs[1].default_value = E("PLUME", 0.55); L(m3.outputs[0], m4.inputs[0])
+    em.inputs["Strength"].default_value = 14.0; L(m4.outputs[0], mx.inputs["Fac"]); L(tr.outputs[0], mx.inputs[1]); L(em.outputs[0], mx.inputs[2]); L(mx.outputs[0], o_.inputs["Surface"])
+    for k in range(8):
+        a = k * math.pi / 4 + 0.39; ca, sa = math.cos(a), math.sin(a); d = Vector((0.42 * ca, 0.42 * sa, -1.0)).normalized(); ln = 11.0; c = Vector((4.9 * ca, 4.9 * sa, 25.2)) + d * ln / 2
+        pl = prim("primitive_cone_add", pm, tuple(c), tuple(Vector((0, 0, 1)).rotation_difference(-d).to_euler()), radius1=1.9, radius2=0.25, depth=ln, vertices=24); pl.visible_shadow = False; pl.visible_diffuse = False
+    # the ground under it, as one plane (for the soil the blast drives off)
+    g = [gz_far(LND_AT[0] + a, LND_AT[1] + b_) for a in (-60, 0, 60) for b_ in (-60, 0, 60)]; LGROUND = np.linalg.lstsq(np.array([[q_[0], q_[1], 1] for q_ in g]), np.array([q_[2] for q_ in g]), rcond=None)[0]
+    n = int(E("SPRAY", 260000)); r = np.random.default_rng(21); LSP = dict(te=r.uniform(-4.0, E("DUR", 5.0), n), az=r.uniform(0, 2 * np.pi, n), v0=np.exp(r.normal(3.5, 0.45, n)), el=np.radians(0.6 + 5.5 * r.random(n) ** 2.2), r0=r.uniform(5.0, 20.0, n), rad=(0.02 * (1 - r.random(n) * 0.9) ** -0.4).astype(np.float32))
+    me = bpy.data.meshes.new("spray"); me.vertices.add(n); me.attributes.new("rad", "FLOAT", "POINT").data.foreach_set("value", np.minimum(LSP["rad"], 0.07)); LSPRAY = bpy.data.objects.new("spray", me); scene.collection.objects.link(LSPRAY)
+    LSPRAY.modifiers.new("gn", "NODES").node_group = bpy.data.node_groups["dustpts"]; log("lander built; soil grains", n)
+def lander_at(T):
+    """the last metres of the descent, steady at about 2 m/s; soil leaves the ground under the blast fast and low and, with no air, flies straight until it falls"""
+    c = gz_far(*LND_AT); alt = max(E("LND_ALT", 26.0) - E("LND_VZ", 2.2) * T, 0.0); LND.matrix_world = Matrix.Translation(Vector((c[0], c[1], c[2] + 1.9 + alt))) @ Matrix.Rotation(math.radians(E("LND_YAW", 200.0)), 4, "Z")
+    tau = T - LSP["te"]; rr_ = LSP["r0"] + LSP["v0"] * np.cos(LSP["el"]) * tau; z = LSP["v0"] * np.sin(LSP["el"]) * tau - 0.81 * tau * tau; x = c[0] + rr_ * np.cos(LSP["az"]); y = c[1] + rr_ * np.sin(LSP["az"])
+    P = np.stack([x, y, LGROUND[0] * x + LGROUND[1] * y + LGROUND[2] + z + 0.05], 1).astype(np.float32); P[(tau < 0) | (z < 0)] = (0, 0, -5000); LSPRAY.data.vertices.foreach_set("co", P.reshape(-1)); LSPRAY.data.update()
 DUSTS = []
 def build_dust(which, seed):
     """soil thrown by a rover's wheels: each grain leaves the rim at the rim's own speed and then only gravity acts (no air), so it flies a parabola"""
@@ -255,6 +331,15 @@ def animate(t, i):
         pd, fd = at(ROAD, s0_ + v * T); pts = [ground_z(pd[0] + a * fd[0] - b * fd[1], pd[1] + a * fd[1] + b * fd[0]) for a in (-3.2, 0, 3.2) for b in (-1.7, 1.7)]; cz = np.linalg.lstsq(np.array([[q[0], q[1], 1] for q in pts]), np.array([q[2] for q in pts]), rcond=None)[0]
         P, na = dust_positions(T, v, cz, dp_, s0_); dob.data.vertices.foreach_set("co", P.reshape(-1)); dob.data.update()
         if i % 30 == 0: log("dust grains in flight", na)
+    if LANDER: lander_at(T)
+    if "RSOIL" in globals():
+        w_ = 2 * math.pi * E("DIGRPS", 0.5); rc = RCO0.copy()
+        for (idx, yc, zc, sgn) in RDRUMS:
+            ph = sgn * w_ * T; c_, s_ = math.cos(ph), math.sin(ph); y, z = RCO0[idx, 1] - yc, RCO0[idx, 2] - zc; rc[idx, 1] = yc + y * c_ - z * s_; rc[idx, 2] = zc + y * s_ + z * c_
+        RAS_OB.data.vertices.foreach_set("co", rc.reshape(-1)); RAS_OB.data.update()
+        yc = np.array([d[1] for d in RDRUMS])[RSP["dr"]]; zc = np.array([d[2] for d in RDRUMS])[RSP["dr"]]; sg = np.array([d[3] for d in RDRUMS])[RSP["dr"]]; th = RSP["th"]; tau = T - RSP["te"]; vr = w_ * 0.2 * RSP["k"]
+        y0 = yc + sg * 0.2 * np.sin(th); z0 = zc - 0.2 * np.cos(th); yy = y0 + sg * vr * np.cos(th) * tau; zz = z0 + vr * np.sin(th) * tau - 0.81 * tau * tau
+        P = np.stack([RSP["x"] + RSP["vx"] * tau, yy, zz], 1).astype(np.float32); P[(tau < 0) | (zz < RZ0 + 0.03)] = (0, 0, -5000); RSOIL.data.vertices.foreach_set("co", P.reshape(-1)); RSOIL.data.update()
     p, f = at(ROAD, ROVER_S0 - CONVOY + v * T) if CONVOY else at(FAR, 50.0 + 1.6 * T)
     try: SEV2.matrix_world = plane_rot(p[0], p[1], f, 1.7, 1.7) @ Matrix.Translation(Vector((0, -0.87, 2.24 - 0.02)))
     except ValueError: SEV2.hide_render = True

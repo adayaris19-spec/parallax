@@ -1,0 +1,71 @@
+{
+ "title": "Moon base: the new opening (a space film with action), first two shots",
+ "goal": "moon-base",
+ "note": "The first sentence of the same script, over two new action shots (base_scene.py with RIDE=1): NASA's crew rover at its published top speed on the Connecting Ridge, then two rovers in convoy. No counters, labels or cards.",
+ "cuts": [
+  53,
+  110
+ ],
+ "shots": [
+  {
+   "clip": "a1",
+   "from": 2,
+   "job": "This shot shows the crew's rover at speed on the ridge, dust flying, so the viewer meets the people this is about before a word is said."
+  },
+  {
+   "clip": "a2",
+   "from": 2,
+   "job": "This shot shows two rovers travelling together across the ridge, so the viewer sees a working base, the thing the night threatens."
+  }
+ ],
+ "lines": [
+  {
+   "id": "1a",
+   "at": 0.2,
+   "say": "A Moon base would face nights about three hundred and fifty-four hours long.",
+   "text": [
+    "A Moon base would face nights",
+    "about 354 hours long."
+   ],
+   "split": [
+    6
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "duck": 0.36,
+ "music_lufs": -26.0,
+ "lufs": -15.0,
+ "crf": 16,
+ "maxrate": "16M",
+ "grade": "eq=contrast=1.05:saturation=1.14,colorbalance=rs=-0.02:bs=0.05:rm=0.0:bm=0.01:rh=0.03:gh=0.01:bh=-0.03",
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4
+ }
+}
