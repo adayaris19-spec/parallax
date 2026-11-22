@@ -88,6 +88,12 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - Realistic means true to where the goal really stands. What has not been built is not shown as built. A future thing appears only under a line that says it is planned, and only as the published plan describes it.
   - The Nov 22 Moon base test fails all of this: prototypes from different programmes, placed together at a site, serving no line. It stays in the lab as a test of movement and speed only.
   - This withdraws the Nov 22 draft measure "at least 6 separately identifiable things in frame". Richness has to come from the real subject's own detail, not from added objects.
+- **Checks learned from the first complete video (Nov 22, drafts to confirm):**
+  - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
+  - One exposure also holds at night. A camera exposed for ground lit by Earth records Earth itself as a white disc, so that is how it is shown. Earth appears blue only in a daylight exposure.
+  - A picture of something that does not exist needs its line to say so in the same shot ("would", "plans to"). A later line is too late.
+  - Narration is transcribed back by a speech recogniser before it is used; every word must come back as written. ("Crewed" came back as "crude", so the script says "with people".)
+  - A subtitle phrase stays on screen at least 1.2 s, and never two at once.
 - **The realism bar (owner, Nov 22, on the Moon base clip):** "I want people to be like, oh, is this AI or is this real? Right now, if I looked at that, I'd be like, that's AI. That's really obvious."
   - A made shot passes only if a viewer seeing it cold has to ask whether it is real footage. "Obviously computer-made at first glance" is a fail, however accurate the shot is.
   - Draft test for the scorecard: the shot is shown beside real footage of the same kind of scene, and the owner (later, people outside the project) says which is which. To be set in topic 11.
@@ -105,8 +111,9 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
 Draft confirmed Nov 21.
 
 - **Length:** 20.0–25.0 s (settled).
-- **Shots:** exactly 4, one per beat (hook, build, peak, end). Each shot runs 4.5–7.0 s. 3 joins.
+- **Shots:** exactly 4 main shots, one per beat (hook, build, peak, end). Each main shot runs 4.5–7.0 s.
+  - **Filler (owner, Nov 22, on the south pole time-lapse):** "This can be like a filler one that's like 3 seconds max, but definitely not the main one." A video may carry at most one filler shot of at most 3.0 s between main shots. A filler still serves a line. With a filler there are 4 joins, otherwise 3.
 - **First frame:** the most striking picture of the video, at full brightness from frame 1. The hook line starts inside the first 1.0 s.
 - **Peak:** shot 3. It starts between 50% and 70% of the running time (about 11–16 s).
 - **End:** shot 4. One forward-looking line; the last word ends 0.5–1.5 s before the final frame; no end card (see section 1).
-- **Avoid:** any shot shorter than 4.5 s; more than 4 shots; opening on a fade, a title or a dark frame.
+- **Avoid:** any main shot shorter than 4.5 s; more than 4 main shots; more than one filler; opening on a fade, a title or a dark frame.

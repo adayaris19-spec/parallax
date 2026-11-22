@@ -1,13 +1,13 @@
 {
   "title": "Moon base: the 354-hour night",
   "goal": "moon-base",
-  "note": "Every sentence comes from the goal's facts in the app (bottlenecks b3.1 and b3.3, the pending promise 'NASA astronauts would visit the Moon's south pole by 2030'). Qualifiers are kept: about, mostly, in some seasons, has said, yet.",
+  "note": "Every sentence comes from the goal's facts in the app (bottlenecks b3.1 and b3.3, the pending promise 'NASA astronauts would visit the Moon's south pole by 2030'). Qualifiers are kept: would, about, mostly, most of the time, in some seasons, has said, yet. The first line says 'would' because the habitat in the picture does not exist.",
   "cuts": [
-    108,
-    238,
-    310,
-    468,
-    576
+    110,
+    240,
+    312,
+    470,
+    578
   ],
   "shots": [
     {
@@ -44,11 +44,11 @@
   "lines": [
     {
       "id": "1a",
-      "at": 0.25,
-      "say": "A night on the Moon lasts about three hundred and fifty-four hours.",
+      "at": 0.2,
+      "say": "A Moon base would face nights about three hundred and fifty-four hours long.",
       "text": [
-        "A night on the Moon lasts",
-        "about 354 hours."
+        "A Moon base would face nights",
+        "about 354 hours long."
       ],
       "split": [
         6
@@ -56,10 +56,10 @@
     },
     {
       "id": "2a",
-      "at": 4.75,
-      "say": "Small landers have survived it by mostly shutting down.",
+      "at": 4.8,
+      "say": "Small landers have survived them by mostly shutting down.",
       "text": [
-        "Small landers have survived it",
+        "Small landers have survived them",
         "by mostly shutting down."
       ],
       "split": [
@@ -68,7 +68,7 @@
     },
     {
       "id": "2b",
-      "at": 8.0,
+      "at": 8.3,
       "say": "A base with people can't.",
       "text": [
         "A base with people can't."
@@ -76,7 +76,7 @@
     },
     {
       "id": "3a",
-      "at": 9.7,
+      "at": 9.8,
       "say": "Some ridges at the south pole get sunlight most of the time.",
       "text": [
         "Some ridges at the south pole",
@@ -88,7 +88,7 @@
     },
     {
       "id": "3b",
-      "at": 13.35,
+      "at": 13.45,
       "say": "Even the best go dark for days in some seasons.",
       "text": [
         "Even the best go dark for days",
@@ -100,7 +100,7 @@
     },
     {
       "id": "4b",
-      "at": 16.45,
+      "at": 16.5,
       "say": "No base with people has yet run through a lunar night.",
       "text": [
         "No base with people has yet",
@@ -112,7 +112,7 @@
     },
     {
       "id": "4a",
-      "at": 19.85,
+      "at": 19.9,
       "say": "NASA has said its astronauts would be there by twenty thirty.",
       "text": [
         "NASA has said its astronauts",

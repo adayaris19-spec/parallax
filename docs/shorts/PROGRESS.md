@@ -139,6 +139,30 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - Weak: soft at full size on the 40 m grid; much of the frame is dark for parts of the clip; nothing yet shows the viewer which points stay lit.
 - Version 2 is rendering: the 20 m LOLA grid and a closer framing. Owner's verdict pending.
 
+**Owner's verdict on the south pole time-lapse, and the next ask (Nov 22):** "This could be like a filler… 3 seconds max, but definitely not the main one… I think this is really plain." Then: "let's try one actual complete video with the AI voiceover, all the clips, the text… Put a lot of effort into it. It should be around 20-25 seconds." Rule added in `RULES.md` section 3 (one filler of at most 3.0 s).
+
+**First complete video: Moon base, "the 354-hour night" (Nov 22)**
+
+Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/shorts-lab/README.md`.
+
+| Beat | Length | Line (all from the goal's facts) | Picture and its job |
+|---|---|---|---|
+| Hook | 4.6 s | "A Moon base would face nights about 354 hours long." | A lit habitat through 38 hours of a real dark spell (time-lapse): how long a night is for anything that must stay on |
+| Build | 5.4 s | "Small landers have survived them by mostly shutting down. A base with people can't." | A person outside the lit habitat in the dark (real time): what cannot be switched off |
+| Filler | 3.0 s | "Some ridges at the south pole get sunlight most of the time." | October 2026 at the south pole from above (time-lapse): why the pole is where a base could find power |
+| Peak | 6.6 s | "Even the best go dark for days in some seasons. No base with people has yet run through a lunar night." | The same dark spell from closer, 30 hours with only the windows lit (time-lapse) |
+| End | 4.5 s | "NASA has said its astronauts would be there by 2030." | A person on the same ridge in the low Sun of the sunny season, Earth on the horizon (real time) |
+
+- Sources of the lines: bottleneck b3.1 (about 354 hours; landers mostly shutting down; no crewed base has run through one), b3.3 (ridges with sunlight most of the time; dark for days in some seasons), and the pending promise "NASA astronauts would visit the Moon's south pole by 2030" (made 2020).
+- What went wrong on the way, and what it taught:
+  - The first plan put the two daylight shots in the same April week as the night shots. Test frames came out almost black: that week the Sun stays 1.2–1.7° below level at the ridge, so it lights things that stand up but not the ground. The sunlit shot moved to 6 September 2026 and to the ridge's west slope, the only nearby ground facing that Sun (checked on the terrain before rendering).
+  - A "last sunlight leaves a far ridge" shot was tested and dropped: true, but a small white streak that vanishes. A "nightfall on the habitat" shot was tested and dropped: the habitat's spot gets no Sun at all that week.
+  - The first cut had six shots and ended on the unsolved line. It broke the structure rules (four main shots, each at least 4.5 s, a forward-looking end), so it was re-cut before rendering.
+  - The first hook line did not say the base is hypothetical. It now says "would".
+  - "Crewed" was heard as "crude" by the speech recogniser; the script says "with people".
+- Checks before rendering: one full-size frame of each surface shot viewed; three consecutive full-size frames of two shots compared (the render changes by about 0.5/255 between frames on still ground, far below the added sensor grain).
+- Render: 578 frames in 82 chunks on GitHub's free runners, about 2.3 min per frame per machine.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**

@@ -27,6 +27,7 @@ for ln in plan["lines"]:
     w = words[ln["id"]]; starts = [0.0] + [w[i][1] for i in ln.get("split", [])]; end = w[-1][2] + 0.30      # a phrase stays until the next begins
     for j, text in enumerate(ln["text"]): subs.append((ln["at"] + starts[j], ln["at"] + (starts[j + 1] if j + 1 < len(starts) else end), text))
 voice = voice[:int(total * SR)]
+subs = [(a, min(b, subs[i + 1][0] - 0.04) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
 
 # ---------- score: no beat; it gives way to the voice
 cfg = dict(plan["score"]); mix, _ = score3.render([c / FPS for c in cuts[:-1]], total, cfg, cfg.pop("seed", 7)); music = mix[:, :len(voice)]

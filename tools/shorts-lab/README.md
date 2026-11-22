@@ -46,3 +46,27 @@ Run: `python base_scene.py DATA OUT 0 119 120`, then `python comp_real.py OUT OU
 - The suit model has one pose and no skeleton, so the astronauts cannot walk. The excavator is parked.
 - Wheels and dust are not motion-blurred, only the camera and the rovers' bodies.
 - The soil roughness was set by eye and still has to be checked against published measurements.
+
+## Moon base video "the 354-hour night" (Nov 22, 2026)
+
+The first complete video: five shots, narration, subtitles and score. Nothing is published; the result goes to the owner.
+
+- Plan: `night-video.json` (lines, each shot's job, cuts, voice and score settings).
+- Shots: `night_video.py` (surface shots 1, 2, 3 and 5) and `pole_light.py` (the filler). All five are requested together in `render-request.json`; the workflow renders them in chunks of 7 frames and returns one clip per shot.
+- Assembly: `make_video.py PLAN CLIPS VOICE OUT.mp4`. Voice files are made with Kokoro (`am_michael`, speed 1.12), one per sentence, and aligned with a local speech recogniser for the subtitle timings.
+
+**Measured or published**
+- Terrain: NASA LOLA elevation. Every surface shot is on the Connecting Ridge near the south pole: the habitat 75 m west of the summit, the sunlit shot on the west slope 210 m from it.
+- Dates: 22–23 April 2026 for the night shots, a week when that terrain hid the Sun from the summit for about 40 hours (our own calculation from LOLA and the ephemeris); 6 September 2026 for the sunlit shot; October 2026 for the filler.
+- Sun, Earth and stars: positions, Earth's turn and phase from JPL DE421 and the lunar orientation kernels; Earth's clouds from NASA GIBS for the same days; stars from NASA's Deep Star Maps 2020.
+- Hardware: NASA's Habitat Demonstration Unit and Z-2 suit prototypes (NASA-3D-Resources).
+
+**Modelled by us**
+- That a habitat stands there at all. No base exists; the first line says "would", and the peak line says none has run through a night.
+- All ground detail under about 30 m, rocks, bootprints, every lamp and its brightness, how the people move, the camera and its exposure.
+- Earthlight is a single lamp scaled from the Sun by Earth's phase; it is not measured.
+
+**Known limits**
+- At the night exposure Earth is a white disc, as a camera would record it, and can be mistaken for the Moon.
+- People turn and lift one arm; they do not walk.
+- The habitat model is clean and simple at close range.
