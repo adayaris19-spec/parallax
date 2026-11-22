@@ -65,7 +65,7 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     3. the science happening: the shot shows the process itself;
     4. many small details: small things moving all over a calm shot.
   - Draft measures, to confirm on the next sample:
-    - at least 6 separately identifiable things in frame (the Nov 22 Moon clip had 3);
+    - ~~at least 6 separately identifiable things in frame~~ (withdrawn Nov 22: see "Every picture has a job");
     - at least 2 of them move on their own, not only because the camera moves;
     - depth is visible: something sits close to the camera, and near things cross the frame at least 4 times faster than the farthest thing (in the Moon clip everything moved the same way at about 1 px per frame);
     - the camera may be slow. Speed is not the fix.
@@ -80,6 +80,14 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - First choice: real hardware and official prototypes or designs (for example NASA's published 3D models), in real places with real light.
   - Our own designs are allowed where no published model exists, when every part follows a published plan: its size, its place, the number of people. The source is recorded per element.
   - The narration says it is the plan, not a photo. No on-screen label (settled).
+- **Every picture has a job (owner, Nov 22, on the Moon base clips):** "Every visual needs to have a purpose… delivering the message, showing the progress, demonstrating, catching the engagement, something. It cannot just be there because it's pretty." And: "Right now you just put a bunch of things on the Moon. Is that realistic? Is that what the goal is? That's the biggest thing right now."
+  - Order of work: message, then script, then shot sheet, then pictures. No picture is made before the line it serves exists.
+  - Each shot serves exactly one script line and shows the thing that line says. Its job is written first, in one sentence: "This shot shows … so the viewer understands …".
+  - Swap test: if the shot could sit under a different line, or in another goal's video, without anyone noticing, it fails.
+  - Nothing is in frame to fill it. Every object is listed on the shot sheet with its source and the reason it is there.
+  - Realistic means true to where the goal really stands. What has not been built is not shown as built. A future thing appears only under a line that says it is planned, and only as the published plan describes it.
+  - The Nov 22 Moon base test fails all of this: prototypes from different programmes, placed together at a site, serving no line. It stays in the lab as a test of movement and speed only.
+  - This withdraws the Nov 22 draft measure "at least 6 separately identifiable things in frame". Richness has to come from the real subject's own detail, not from added objects.
 - **The realism bar (owner, Nov 22, on the Moon base clip):** "I want people to be like, oh, is this AI or is this real? Right now, if I looked at that, I'd be like, that's AI. That's really obvious."
   - A made shot passes only if a viewer seeing it cold has to ask whether it is real footage. "Obviously computer-made at first glance" is a fail, however accurate the shot is.
   - Draft test for the scorecard: the shot is shown beside real footage of the same kind of scene, and the owner (later, people outside the project) says which is which. To be set in topic 11.

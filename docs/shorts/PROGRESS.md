@@ -119,6 +119,10 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - Reading: image-to-video from a rendered frame is not enough on its own. Owner's verdict pending.
 - Test 2 (first and last frame pinned to our render, and the photographed-look step again): both demos refused within seconds, and the workflow again saw no `HF_TOKEN`. No more tests on the no-account allowance; the rest waits for the owner's token to be visible to the workflow.
 
+**Owner's verdict on the Moon base clips and the AI clip (Nov 22):** "At least the moments are there", but every visual needs a purpose inside the goal's video, and it has to be realistic: "you just put a bunch of things on the Moon. Is that realistic? Is that what the goal is? That's the biggest thing right now." Detail still to improve. Rules added in `RULES.md` section 2 ("Every picture has a job"). The improved Moon base render finished but was not sent: it is the same purposeless shot.
+
+**Next: one real video for the Moon base goal, message first.** The goal's own facts (read from the app's database Nov 22) say its biggest obstacle is the lunar night: about 354 hours of darkness, batteries losing over 35% of capacity below −20°C, small landers surviving only by shutting down, a reactor ground-tested in 2018 but none flown, and a few south polar ridges with near-constant sunlight that still go dark for days in some seasons. Shots are being designed from those lines.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
