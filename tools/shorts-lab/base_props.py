@@ -80,8 +80,47 @@ def plane_rot(u, v, f, half_l, half_w):
 def upright(u, v, yaw_deg, dz=0.0):
     c = ground_z(u, v); return Matrix.Translation(Vector((c[0], c[1], c[2] + dz))) @ Matrix.Rotation(math.radians(yaw_deg), 4, "Z")
 
+def weather(ob, z0, z1, amount=0.8, tone=0.86):
+    """lunar dust clings to everything: thickest near the ground, a thin film higher up; and no paint is perfectly white (modelled)"""
+    for m in ob.data.materials:
+        if not m or not m.use_nodes: continue
+        nt = m.node_tree; b = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        if b is None: continue
+        N, L = nt.nodes.new, nt.links.new; tc = N("ShaderNodeTexCoord"); sep = N("ShaderNodeSeparateXYZ"); L(tc.outputs["Object"], sep.inputs[0])
+        mr = N("ShaderNodeMapRange"); mr.inputs["From Min"].default_value = z0; mr.inputs["From Max"].default_value = z1; mr.inputs["To Min"].default_value = 1.0; mr.inputs["To Max"].default_value = 0.0; L(sep.outputs["Z"], mr.inputs["Value"])
+        def noise(scale, lo, hi):
+            n = N("ShaderNodeTexNoise"); n.inputs["Scale"].default_value = scale; n.inputs["Detail"].default_value = 8; L(tc.outputs["Object"], n.inputs["Vector"])
+            r = N("ShaderNodeMapRange"); r.inputs["From Min"].default_value = 0.3; r.inputs["From Max"].default_value = 0.7; r.inputs["To Min"].default_value = lo; r.inputs["To Max"].default_value = hi; L(n.outputs["Fac"], r.inputs["Value"]); return r.outputs["Result"]
+        def math_(op, a, c):
+            n = N("ShaderNodeMath"); n.operation = op; n.use_clamp = True
+            for i, v in enumerate((a, c)):
+                if isinstance(v, (int, float)): n.inputs[i].default_value = v
+                else: L(v, n.inputs[i])
+            return n.outputs[0]
+        fac = math_("ADD", math_("MULTIPLY", math_("MULTIPLY", mr.outputs["Result"], noise(5.0, 0.35, 1.25)), amount), math_("MULTIPLY", noise(28.0, 0.0, 1.0), 0.16))
+        mix = N("ShaderNodeMixRGB"); mix.blend_type = "MIX"; mix.inputs["Color2"].default_value = (0.165, 0.155, 0.14, 1); L(fac, mix.inputs["Fac"])
+        tn = N("ShaderNodeMixRGB"); tn.blend_type = "MULTIPLY"; tn.inputs["Fac"].default_value = 1.0; tn.inputs["Color2"].default_value = (tone, tone, tone * 0.985, 1)
+        bc = b.inputs["Base Color"]
+        if bc.links: L(bc.links[0].from_socket, tn.inputs["Color1"])
+        else: tn.inputs["Color1"].default_value = bc.default_value[:]
+        L(tn.outputs["Color"], mix.inputs["Color1"]); L(mix.outputs["Color"], bc)
+        ro = b.inputs["Roughness"]; src = ro.links[0].from_socket if ro.links else None; base_r = src if src is not None else float(ro.default_value)
+        L(math_("MAXIMUM", base_r, math_("ADD", math_("MULTIPLY", fac, 0.5), 0.42)), ro)
+def arm_rig(me, side):
+    """the vertices of one arm of the suit, found by walking the mesh from the hand up to the shoulder, with a soft blend at the shoulder"""
+    from scipy.sparse import coo_matrix; from scipy.sparse.csgraph import connected_components
+    n = len(me.vertices); co = np.empty(n * 3, np.float32); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3); S = np.array([side * 0.29, -0.02, 1.43], np.float32); a = np.array([0, -0.77, -0.63], np.float32); d = (co - S) @ a
+    from scipy.spatial import cKDTree
+    perp = np.linalg.norm((co - S) - d[:, None] * a, axis=1); ok = (d > -0.02) & (co[:, 0] * side > 0.05) & (perp < 0.17)       # inside a tube around the arm, below the shoulder
+    cand = np.where(ok)[0]; weld = cand[cKDTree(co[cand]).query_pairs(0.0006, output_type="ndarray")]                           # the mesh is split at texture seams: join the doubled vertices
+    ed = np.empty(len(me.edges) * 2, np.int32); me.edges.foreach_get("vertices", ed); ed = ed.reshape(-1, 2); ed = np.vstack([ed[ok[ed[:, 0]] & ok[ed[:, 1]]], weld.reshape(-1, 2)])
+    nc, lab = connected_components(coo_matrix((np.ones(len(ed)), (ed[:, 0], ed[:, 1])), shape=(n, n)), directed=False); seed = cand[np.argmin(co[cand, 1])]; idx = np.where((lab == lab[seed]) & ok)[0]
+    t = np.clip((d[idx] + 0.02) / 0.12, 0, 1); return idx, (t * t * (3 - 2 * t)).astype(np.float32), S
+def pose_arm(co, co0, rig, phi):
+    idx, w, S = rig; y, z = co0[idx, 1] - S[1], co0[idx, 2] - S[2]; c, s_ = math.cos(phi), math.sin(phi)
+    co[idx, 1] = co0[idx, 1] + w * (S[1] + y * c - z * s_ - co0[idx, 1]); co[idx, 2] = co0[idx, 2] + w * (S[2] + y * s_ + z * c - co0[idx, 2])
 def build_props():
-    global SEV, SEV2, WHEELS, CO0, ROVER_S0
+    global SEV, SEV2, WHEELS, CO0, ROVER_S0, AST1, ACO0, ARM_R
     # crew rover (near) and a second one far off; NASA planned for them to travel in pairs
     SEV = load("sev"); me = SEV.data
     if "custom_normal" in me.attributes: me.attributes.remove(me.attributes["custom_normal"])
@@ -95,13 +134,19 @@ def build_props():
             rad = np.hypot(CO0[:, 1] - yc, CO0[:, 2] + 1.86); inside = (rad < 0.405) & (CO0[:, 0] * sx > 1.36) & (CO0[:, 0] * sx < 2.05)
             bad = np.bincount(lab[~inside], minlength=nc) > 0; idx = np.where(inside & ~bad[lab])[0]; WHEELS.append((idx, yc)); 
     log("rover wheel vertices", [len(w[0]) for w in WHEELS])
+    weather(SEV, -2.24, -0.55)
     SEV2 = SEV.copy(); SEV2.data = SEV.data.copy(); scene.collection.objects.link(SEV2); SEV2.name = "sev_far"
     ROVER_S0 = E("ROVER_S0", 70.6)
     # habitat
-    hdu = load("hdu1", 0.0254); hdu.matrix_world = upright(HAB[0], HAB[1], E("HABYAW", 10.0), -0.29 - 0.05)
+    hdu = load("hdu1", 0.0254); weather(hdu, 0.29, 2.3, 0.7); hdu.matrix_world = upright(HAB[0], HAB[1], E("HABYAW", 10.0), -0.29 - 0.05)
     # astronauts in NASA's Z-2 prototype suit (one pose only)
-    a1 = load("z2"); a1.matrix_world = upright(A1[0], A1[1], 180 - 16, -0.035)
-    a2 = a1.copy(); scene.collection.objects.link(a2); a2.matrix_world = upright(A2[0], A2[1], 180 + 35, -0.035)
+    a1 = load("z2"); weather(a1, 0.0, 1.05, 0.55, 0.92); a1.matrix_world = upright(A1[0], A1[1], 180 - 16, -0.035)
+    me = a1.data
+    if "custom_normal" in me.attributes: me.attributes.remove(me.attributes["custom_normal"])
+    me.shade_smooth(); n = len(me.vertices); ACO0 = np.empty(n * 3, np.float32); me.vertices.foreach_get("co", ACO0); ACO0 = ACO0.reshape(-1, 3).copy(); ARM_R = arm_rig(me, -1); arm_l = arm_rig(me, 1); AST1 = a1
+    log("suit arm vertices", len(ARM_R[0]), len(arm_l[0]), "x range of right arm", ACO0[ARM_R[0], 0].min().round(2), ACO0[ARM_R[0], 0].max().round(2))
+    a2 = a1.copy(); a2.data = me.copy(); scene.collection.objects.link(a2); a2.matrix_world = upright(A2[0], A2[1], 180 + 35, -0.035)
+    c2 = ACO0.copy(); pose_arm(c2, ACO0, arm_l, math.radians(-36)); pose_arm(c2, ACO0, ARM_R, math.radians(-10)); a2.data.vertices.foreach_set("co", c2.reshape(-1)); a2.data.update()       # the second astronaut reaches for the hatch
     # RASSOR digging robot, standing on its two drums
     ras = load("rassor"); me = ras.data; me.transform(Matrix.Rotation(math.radians(E("RASTILT", 13.0)), 4, "X")); zmin = min(v.co.z for v in me.vertices)
     m = bpy.data.materials.new("rassor_metal"); m.use_nodes = True; b = m.node_tree.nodes["Principled BSDF"]; b.inputs["Base Color"].default_value = (0.42, 0.43, 0.45, 1); b.inputs["Metallic"].default_value = 0.85; b.inputs["Roughness"].default_value = 0.48
@@ -184,6 +229,9 @@ def animate(t, i):
     for idx, yc in WHEELS:
         y, z = CO0[idx, 1] - yc, CO0[idx, 2] + 1.86; co[idx, 1] = yc + y * math.cos(phi) - z * math.sin(phi); co[idx, 2] = -1.86 + y * math.sin(phi) + z * math.cos(phi)
     SEV.data.vertices.foreach_set("co", co.reshape(-1)); SEV.data.update()
+    sm = lambda x: max(0.0, min(1.0, x)) ** 2 * (3 - 2 * max(0.0, min(1.0, x)))
+    ca = ACO0.copy(); pose_arm(ca, ACO0, ARM_R, math.radians(-26 * sm((T - 0.9) / 1.3) + 7 * sm((T - 3.3) / 1.4))); AST1.data.vertices.foreach_set("co", ca.reshape(-1)); AST1.data.update()      # the near astronaut lifts an arm toward the rover
+    AST1.matrix_world = upright(A1[0], A1[1], 180 - 16 - 7 * sm(T / 4.5), -0.035)
     BEACON.inputs["Strength"].default_value = 260.0 if (T % 1.0) < 0.14 else 0.0                # one flash a second
     if "DUST" in globals():
         pts = [ground_z(p[0] + a * f[0] - b * f[1], p[1] + a * f[1] + b * f[0]) for a in (-3.2, 0, 3.2) for b in (-1.7, 1.7)]; cz = np.linalg.lstsq(np.array([[q[0], q[1], 1] for q in pts]), np.array([q[2] for q in pts]), rcond=None)[0]

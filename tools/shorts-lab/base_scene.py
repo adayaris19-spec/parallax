@@ -87,10 +87,16 @@ w = bpy.data.worlds.new("space"); scene.world = w; w.use_nodes = True; w.node_tr
 # ---------- camera
 cd = bpy.data.cameras.new("cam"); cd.sensor_fit = "VERTICAL"; cd.sensor_height = 36; cd.lens = E("LENS", 28); cd.clip_start = 0.05; cd.clip_end = 1.0e7
 cam = bpy.data.objects.new("cam", cd); scene.collection.objects.link(cam); scene.camera = cam
+def wobble(T, seed, amp):
+    """slow, small drift of a camera carried by a person (modelled): a few sine waves between 0.3 and 2.2 Hz"""
+    r = np.random.default_rng(seed); f = r.uniform(0.3, 2.2, 5); ph = r.uniform(0, 6.28, 5); a = r.uniform(0.4, 1.0, 5) / f ** 0.8; return amp * float((a * np.sin(2 * math.pi * f * T + ph)).sum()) / 2.2
+def cam_pose(t):
+    T = t * E("DUR", 5.0); k = E("SHAKE", 1.0); u, v = E("CAMU", 0.0) + E("DOLLYX", 1.2) * t, E("CAMV", 0.0) + E("DOLLYY", 0.5) * t; p = ground_z(u, v)
+    pos = Vector((p[0] + k * wobble(T, 1, 0.008), p[1] + k * wobble(T, 2, 0.008), ground_z(E("CAMU", 0.0), E("CAMV", 0.0))[2] + E("CAMH", 1.65) + k * wobble(T, 3, 0.012)))
+    yaw = math.radians(E("YAW", -5.0) + E("PAN", -1.5) * t + k * wobble(T, 4, 0.22)); pitch = math.radians(E("PITCH", -19.0) + k * wobble(T, 5, 0.22)); d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
+    q = d.to_track_quat("-Z", "Y"); roll = math.radians(k * wobble(T, 6, 0.25)); return pos, q @ Matrix.Rotation(roll, 4, "Z").to_quaternion()
 def set_cam(t):
-    u, v = E("CAMU", 0.0) + E("DOLLYX", 1.2) * t, E("CAMV", 0.0) + E("DOLLYY", 0.5) * t; p = ground_z(u, v); pos = Vector((p[0], p[1], ground_z(E("CAMU", 0.0), E("CAMV", 0.0))[2] + E("CAMH", 1.65)))
-    yaw = math.radians(E("YAW", -5.0) + E("PAN", -1.5) * t); pitch = math.radians(E("PITCH", -19.0)); d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
-    cam.location = pos; cam.rotation_mode = "QUATERNION"; cam.rotation_quaternion = d.to_track_quat("-Z", "Y")
+    cam.rotation_mode = "QUATERNION"; cam.location, cam.rotation_quaternion = cam_pose(t)
 if STAGE >= 3: build_props()
 
 # ---------- render
@@ -111,7 +117,27 @@ if E("TOP", 0):
     scene.render.resolution_x = scene.render.resolution_y = int(E("TOPPX", 900))
 a_, b_, nf = (int(ARGS[0]), int(ARGS[1]), int(ARGS[2])) if ARGS else (0, 0, 1)
 log("scene built")
+BLUR = E("BLUR", 1) > 0 and not E("TOP", 0)
+if BLUR:                                                     # a real shutter stays open for half of each frame, so moving things smear slightly
+    scene.render.use_motion_blur = True; scene.render.motion_blur_shutter = 0.5; bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
+def key(ob, frame):
+    ob.rotation_mode = "QUATERNION"; ob.keyframe_insert("location", frame=frame); ob.keyframe_insert("rotation_quaternion", frame=frame)
 for i in range(a_, b_ + 1):
-    t = i / max(nf - 1, 1); set_cam(t)
-    if "animate" in globals(): animate(t, i)
+    t = i / max(nf - 1, 1)
+    if BLUR:
+        movers = [cam] + [globals()[k] for k in ("SEV", "SEV2") if k in globals()]
+        for o in movers: o.animation_data_clear()
+        prev = {}
+        for j in (i - 1, i + 1, i):                           # the frame itself last, so the scene is left in its state
+            tj = j / max(nf - 1, 1); set_cam(tj)
+            if "animate" in globals(): animate(tj, j)
+            for o in movers:
+                o.rotation_mode = "QUATERNION"                 # the camera was posed through location and rotation; the rovers through their matrix
+                q, loc = (o.rotation_quaternion.copy(), o.location.copy()) if o is cam else (o.matrix_world.to_quaternion(), o.matrix_world.to_translation())
+                if o in prev and prev[o].dot(q) < 0: q.negate()
+                prev[o] = q.copy(); o.location = loc; o.rotation_quaternion = q; key(o, j)
+        scene.frame_set(i)
+    else:
+        set_cam(t)
+        if "animate" in globals(): animate(t, i)
     scene.render.filepath = f"{OUT}/f_{i:04d}.{EXT}"; bpy.ops.render.render(write_still=True); log("frame", i)
