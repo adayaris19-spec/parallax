@@ -192,6 +192,8 @@
   "size": 58,
   "left": 80,
   "right": 170,
-  "bottom": 420
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4
  }
 }

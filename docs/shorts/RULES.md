@@ -113,7 +113,7 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - A video uses at least 4 different kinds of place or scale. For the Moon base: the whole Moon from space, Earth, the pole from above, the ridge at ground level, hardware, people.
   - No kind carries more than 3 shots, and never 3 in a row.
   - At least 2 shots carry a strong colour that is not grey or black (Earth's blue, lamp light, gold foil, a chart).
-  - A clip the owner has already seen in two versions is not used a third time.
+  - A clip the owner has seen before is used again only where it shows something no new shot does, and each reuse is listed with the video (our reading of "the same clip a lot of times"; to confirm).
   - Time-lapse moves in small steps: between two frames nothing lit moves more than about 16 px at 1080×1920. The sunlight sweep that turned the Sun 3–6° per frame is the failure this rule names.
   - Whole-Moon and Earth views are built on photographed maps (NASA's Moon mosaic, the day's satellite picture of Earth), never on a made-up texture.
   - Physically correct stays the test of every picture. The place, the date, the Sun and Earth are real. An exposure that could not record something does not show it (no stars beside sunlit ground).
