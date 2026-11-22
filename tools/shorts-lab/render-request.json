@@ -1,17 +1,8 @@
 {
-  "note": "Moon base night video: the wide habitat time-lapse again at 160 frames, so it can carry the peak (the close one becomes the hook).",
-  "scale": 1.0,
-  "per_chunk": 7,
+  "note": "Hero shot for the new quality bar: NASA's Lunar Reconnaissance Orbiter over the south pole, 3.5 s, rendered at 1.5 times delivery size and scaled down. No grain.",
+  "scale": 1.5,
+  "per_chunk": 5,
   "shots": [
-    {"name": "s1",
-      "script": "night_video.py",
-      "frames": 160,
-      "spp": 36,
-      "env": {
-        "SHOT": 1,
-        "EV": 0,
-        "GRAIN": 0.03
-      }
-    }
+    {"name": "lro", "script": "lro_pass.py", "frames": 84, "spp": 80, "env": {"EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004, "OUTW": 1080}}
   ]
 }
