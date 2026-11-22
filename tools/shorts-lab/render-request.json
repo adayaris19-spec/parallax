@@ -1,1 +1,1 @@
-{"frames": 4, "chunks": 2, "spp": 8, "scale": 0.25, "q": 0.5, "note": "smoke test of the parallel render"}
+{"frames": 120, "chunks": 20, "spp": 32, "scale": 1.0, "q": 1.0, "note": "the Moon base shot, same settings as the 2-hour single-machine render"}
