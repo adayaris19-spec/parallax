@@ -31,6 +31,7 @@ for w in WALKS:
         p, f = at(w, k * 0.52 + prng.uniform(-0.04, 0.04)); side = 1 if k % 2 else -1; nrm = np.array([-f[1], f[0]])
         PRINTS.append((p[0] + side * 0.13 * nrm[0], p[1] + side * 0.13 * nrm[1], math.atan2(f[1], f[0]) + side * 0.12 + prng.normal(0, 0.10)))
 GAUGE, RUT = 1.70, 0.72
+ROVER_S0 = E("ROVER_S0", 70.6); CONVOY = E("CONVOY", 0.0)       # where on the road the near rover starts; CONVOY: metres by which the second rover follows it (0: it drives far off, as before)
 def marks(H, u0, v0, res):
     ny, nx = H.shape; Z = np.zeros((ny, nx), np.float32)
     if res > 0.12: return H
@@ -80,7 +81,7 @@ def plane_rot(u, v, f, half_l, half_w):
 def upright(u, v, yaw_deg, dz=0.0):
     c = ground_z(u, v); return Matrix.Translation(Vector((c[0], c[1], c[2] + dz))) @ Matrix.Rotation(math.radians(yaw_deg), 4, "Z")
 
-def weather(ob, z0, z1, amount=0.8, tone=0.86):
+def weather(ob, z0, z1, amount=0.8, tone=0.86, glass=False):
     """lunar dust clings to everything: thickest near the ground, a thin film higher up; and no paint is perfectly white (modelled)"""
     for m in ob.data.materials:
         if not m or not m.use_nodes: continue
@@ -103,9 +104,23 @@ def weather(ob, z0, z1, amount=0.8, tone=0.86):
         bc = b.inputs["Base Color"]
         if bc.links: L(bc.links[0].from_socket, tn.inputs["Color1"])
         else: tn.inputs["Color1"].default_value = bc.default_value[:]
+        gm = None
+        if glass and bc.links:                                   # the model paints its windows black: there the surface is glass (dark, polished, a thin film of dust only), so it mirrors the ground and the Sun
+            bw = N("ShaderNodeRGBToBW"); L(bc.links[0].from_socket, bw.inputs[0]); g_ = N("ShaderNodeMapRange"); g_.inputs["From Min"].default_value = 0.012; g_.inputs["From Max"].default_value = 0.05; g_.inputs["To Min"].default_value = 1.0; g_.inputs["To Max"].default_value = 0.0; L(bw.outputs[0], g_.inputs["Value"]); gm = g_.outputs["Result"]
+            fac = math_("MULTIPLY", fac, math_("SUBTRACT", 1.0, math_("MULTIPLY", gm, 0.85))); L(fac, mix.inputs["Fac"])
         L(tn.outputs["Color"], mix.inputs["Color1"]); L(mix.outputs["Color"], bc)
         ro = b.inputs["Roughness"]; src = ro.links[0].from_socket if ro.links else None; base_r = src if src is not None else float(ro.default_value)
-        L(math_("MAXIMUM", base_r, math_("ADD", math_("MULTIPLY", fac, 0.5), 0.42)), ro)
+        rr_ = math_("MAXIMUM", base_r, math_("ADD", math_("MULTIPLY", fac, 0.5), 0.42))
+        if gm is not None:
+            rr_ = math_("ADD", math_("MULTIPLY", rr_, math_("SUBTRACT", 1.0, gm)), math_("MULTIPLY", gm, 0.035))
+            for nm in ("Coat Weight", "Clearcoat"):
+                if nm in b.inputs: L(gm, b.inputs[nm]); break
+            sc_ = N("ShaderNodeSeparateColor"); L(bc.links[0].from_socket if False else tn.inputs["Color1"].links[0].from_socket, sc_.inputs[0])       # the model paints its lamp lenses pale yellow: there the lamps are lit (modelled: the rover drives with its lights on)
+            lm = math_("MULTIPLY", math_("MULTIPLY", math_("SUBTRACT", sc_.outputs[0], 0.78), 6.0), math_("MULTIPLY", math_("SUBTRACT", sc_.outputs[0], math_("ADD", sc_.outputs[2], 0.14)), 8.0))
+            if "Emission Strength" in b.inputs: b.inputs["Emission Color"].default_value = (1.0, 0.93, 0.80, 1); L(math_("MULTIPLY", lm, E("LAMPGLOW", 40.0)), b.inputs["Emission Strength"])
+            sp = b.inputs.get("Specular IOR Level")
+            if sp is not None: L(math_("MAXIMUM", sp.links[0].from_socket if sp.links else float(sp.default_value), gm), sp)
+        L(rr_, ro)
 def arm_rig(me, side):
     """the vertices of one arm of the suit, found by walking the mesh from the hand up to the shoulder, with a soft blend at the shoulder"""
     from scipy.sparse import coo_matrix; from scipy.sparse.csgraph import connected_components
@@ -134,9 +149,8 @@ def build_props():
             rad = np.hypot(CO0[:, 1] - yc, CO0[:, 2] + 1.86); inside = (rad < 0.405) & (CO0[:, 0] * sx > 1.36) & (CO0[:, 0] * sx < 2.05)
             bad = np.bincount(lab[~inside], minlength=nc) > 0; idx = np.where(inside & ~bad[lab])[0]; WHEELS.append((idx, yc)); 
     log("rover wheel vertices", [len(w[0]) for w in WHEELS])
-    weather(SEV, -2.24, -0.55)
+    weather(SEV, -2.24, -0.55, glass=True)
     SEV2 = SEV.copy(); SEV2.data = SEV.data.copy(); scene.collection.objects.link(SEV2); SEV2.name = "sev_far"
-    ROVER_S0 = E("ROVER_S0", 70.6)
     # habitat
     hdu = load("hdu1", 0.0254); weather(hdu, 0.29, 2.3, 0.7); hdu.matrix_world = upright(HAB[0], HAB[1], E("HABYAW", 10.0), -0.29 - 0.05)
     # astronauts in NASA's Z-2 prototype suit (one pose only)
@@ -194,7 +208,9 @@ def build_props():
         me = bpy.data.meshes.new("pebbles"); Va = np.concatenate(V).astype(np.float32); Fa = np.concatenate(F).astype(np.int32); me.vertices.add(len(Va)); me.vertices.foreach_set("co", Va.reshape(-1)); me.loops.add(Fa.size); me.loops.foreach_set("vertex_index", Fa.reshape(-1))
         me.polygons.add(len(Fa)); me.polygons.foreach_set("loop_start", np.arange(0, Fa.size, 3, dtype=np.int32)); me.update(calc_edges=True); me.shade_smooth(); me.materials.append(rmat); scene.collection.objects.link(bpy.data.objects.new("pebbles", me))
     log("rocks", nr, "boulders", nr2, "pebbles", npeb)
-    if E("DUST", 70000) > 0: build_dust()
+    if E("DUST", 70000) > 0:
+        build_dust(0, 5)
+        if CONVOY: build_dust(1, 6)
     # work lights (modelled: NASA's models carry no lamps). A base in permanent low sun needs them; they only show inside shadows.
     def spot(name, power, cone, parent, loc, aim):
         l = bpy.data.lights.new(name, "SPOT"); l.energy = power * E("LAMPS", 1.0); l.spot_size = math.radians(cone); l.spot_blend = 0.5; l.shadow_soft_size = 0.06; l.color = (0.92, 0.96, 1.0)
@@ -205,19 +221,20 @@ def build_props():
     bm_ = bpy.data.materials.new("beacon"); bm_.use_nodes = True; nt = bm_.node_tree; nt.nodes.clear(); o = nt.nodes.new("ShaderNodeOutputMaterial"); e = nt.nodes.new("ShaderNodeEmission"); e.inputs["Color"].default_value = (1.0, 0.45, 0.08, 1); nt.links.new(e.outputs[0], o.inputs[0]); BEACON = e
     bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=0.06, location=(0, 0, 0)); b = bpy.context.object; b.data.materials.append(bm_); b.parent = SEV; b.location = (0.0, -0.2, 1.36)
 
-def build_dust():
-    """soil thrown by the near rover's wheels: each grain leaves the rim at the rim's own speed and then only gravity acts (no air), so it flies a parabola"""
+DUSTS = []
+def build_dust(which, seed):
+    """soil thrown by a rover's wheels: each grain leaves the rim at the rim's own speed and then only gravity acts (no air), so it flies a parabola"""
     global DUST, DP
-    n = int(E("DUST", 70000)); r = np.random.default_rng(5); DP = dict(te=r.uniform(-2.5, E("DUR", 5.0), n), pod=r.integers(0, 6, n), th=np.radians(12 + 100 * r.random(n) ** 1.6), k=r.uniform(0.55, 1.0, n),
-                                                                  lat=r.uniform(-0.34, 0.34, n), vlat=r.normal(0, 0.13, n), rad=(0.0035 * (1 - r.random(n) * 0.9) ** -0.5).astype(np.float32))
+    n = int(E("DUST", 70000)); r = np.random.default_rng(seed); DP = dict(te=r.uniform(-2.5, E("DUR", 5.0), n), pod=r.integers(0, 6, n), th=np.radians(E("DUST_TH0", 12.0) + E("DUST_TH1", 100.0) * r.random(n) ** 1.6), k=r.uniform(0.55, 1.0, n),
+                                                                  lat=r.uniform(-0.34, 0.34, n), vlat=r.normal(0, 0.13, n), rad=(E("DUSTR", 0.0035) * (1 - r.random(n) * 0.9) ** -0.5).astype(np.float32))
     me = bpy.data.meshes.new("dust"); me.vertices.add(n); me.attributes.new("rad", "FLOAT", "POINT").data.foreach_set("value", np.minimum(DP["rad"], 0.012))
-    m = bpy.data.materials.new("dustmat"); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear(); o = nt.nodes.new("ShaderNodeOutputMaterial"); d = nt.nodes.new("ShaderNodeBsdfDiffuse"); d.inputs["Color"].default_value = (0.19, 0.18, 0.165, 1); nt.links.new(d.outputs[0], o.inputs[0])
+    m = bpy.data.materials.new("dustmat"); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear(); o = nt.nodes.new("ShaderNodeOutputMaterial"); d = nt.nodes.new("ShaderNodeBsdfDiffuse"); dc_ = E("DUST_ALB", 0.19); d.inputs["Color"].default_value = (dc_, dc_ * 0.95, dc_ * 0.87, 1); nt.links.new(d.outputs[0], o.inputs[0])
     ng = bpy.data.node_groups.new("dustpts", "GeometryNodeTree"); ng.interface.new_socket(name="Geometry", in_out="INPUT", socket_type="NodeSocketGeometry"); ng.interface.new_socket(name="Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
     gi = ng.nodes.new("NodeGroupInput"); go = ng.nodes.new("NodeGroupOutput"); m2p = ng.nodes.new("GeometryNodeMeshToPoints"); na = ng.nodes.new("GeometryNodeInputNamedAttribute"); na.data_type = "FLOAT"; na.inputs["Name"].default_value = "rad"
     sm = ng.nodes.new("GeometryNodeSetMaterial"); sm.inputs["Material"].default_value = m; ng.links.new(gi.outputs[0], m2p.inputs["Mesh"]); ng.links.new(na.outputs["Attribute"], m2p.inputs["Radius"]); ng.links.new(m2p.outputs["Points"], sm.inputs["Geometry"]); ng.links.new(sm.outputs["Geometry"], go.inputs[0])
-    DUST = bpy.data.objects.new("dust", me); scene.collection.objects.link(DUST); DUST.modifiers.new("gn", "NODES").node_group = ng
-def dust_positions(T, v, plane):
-    g, Rw = 1.62, 0.38; te = DP["te"]; tau = T - te; s = ROVER_S0 + v * te; i = np.clip(s / 0.05, 0, len(ROAD) - 2); k = i.astype(int); a = (i - k)[:, None]; pc = ROAD[k] * (1 - a) + ROAD[k + 1] * a
+    DUST = bpy.data.objects.new(f"dust{which}", me); scene.collection.objects.link(DUST); DUST.modifiers.new("gn", "NODES").node_group = ng; DUSTS.append((DUST, DP, ROVER_S0 - which * CONVOY))
+def dust_positions(T, v, plane, DP, s0):
+    g, Rw = 1.62, 0.38; te = DP["te"]; tau = T - te; s = s0 + v * te; i = np.clip(s / 0.05, 0, len(ROAD) - 2); k = i.astype(int); a = (i - k)[:, None]; pc = ROAD[k] * (1 - a) + ROAD[k + 1] * a
     f = ROAD[np.minimum(k + 6, len(ROAD) - 1)] - ROAD[np.maximum(k - 6, 0)]; f /= np.linalg.norm(f, axis=1, keepdims=True); nrm = np.stack([-f[:, 1], f[:, 0]], 1)
     axle = np.array([-1.70, 0.0, 1.70])[DP["pod"] // 2]; side = np.where(DP["pod"] % 2 == 0, -1.0, 1.0) * GAUGE + DP["lat"]          # where each wheel pair touches the ground
     th, kk = DP["th"], DP["k"]; x0 = pc + f * (axle - Rw * np.sin(th))[:, None] + nrm * side[:, None]; z0 = Rw * (1 - np.cos(th))
@@ -229,14 +246,15 @@ def animate(t, i):
     for idx, yc in WHEELS:
         y, z = CO0[idx, 1] - yc, CO0[idx, 2] + 1.86; co[idx, 1] = yc + y * math.cos(phi) - z * math.sin(phi); co[idx, 2] = -1.86 + y * math.sin(phi) + z * math.cos(phi)
     SEV.data.vertices.foreach_set("co", co.reshape(-1)); SEV.data.update()
+    if CONVOY: SEV2.data.vertices.foreach_set("co", co.reshape(-1)); SEV2.data.update()
     sm = lambda x: max(0.0, min(1.0, x)) ** 2 * (3 - 2 * max(0.0, min(1.0, x)))
     ca = ACO0.copy(); pose_arm(ca, ACO0, ARM_R, math.radians(-26 * sm((T - 0.9) / 1.3) + 7 * sm((T - 3.3) / 1.4))); AST1.data.vertices.foreach_set("co", ca.reshape(-1)); AST1.data.update()      # the near astronaut lifts an arm toward the rover
     AST1.matrix_world = upright(A1[0], A1[1], 180 - 16 - 7 * sm(T / 4.5), -0.035)
     BEACON.inputs["Strength"].default_value = 260.0 if (T % 1.0) < 0.14 else 0.0                # one flash a second
-    if "DUST" in globals():
-        pts = [ground_z(p[0] + a * f[0] - b * f[1], p[1] + a * f[1] + b * f[0]) for a in (-3.2, 0, 3.2) for b in (-1.7, 1.7)]; cz = np.linalg.lstsq(np.array([[q[0], q[1], 1] for q in pts]), np.array([q[2] for q in pts]), rcond=None)[0]
-        P, na = dust_positions(T, v, cz); DUST.data.vertices.foreach_set("co", P.reshape(-1)); DUST.data.update()
+    for (dob, dp_, s0_) in DUSTS:
+        pd, fd = at(ROAD, s0_ + v * T); pts = [ground_z(pd[0] + a * fd[0] - b * fd[1], pd[1] + a * fd[1] + b * fd[0]) for a in (-3.2, 0, 3.2) for b in (-1.7, 1.7)]; cz = np.linalg.lstsq(np.array([[q[0], q[1], 1] for q in pts]), np.array([q[2] for q in pts]), rcond=None)[0]
+        P, na = dust_positions(T, v, cz, dp_, s0_); dob.data.vertices.foreach_set("co", P.reshape(-1)); dob.data.update()
         if i % 30 == 0: log("dust grains in flight", na)
-    p, f = at(FAR, 50.0 + 1.6 * T)
+    p, f = at(ROAD, ROVER_S0 - CONVOY + v * T) if CONVOY else at(FAR, 50.0 + 1.6 * T)
     try: SEV2.matrix_world = plane_rot(p[0], p[1], f, 1.7, 1.7) @ Matrix.Translation(Vector((0, -0.87, 2.24 - 0.02)))
     except ValueError: SEV2.hide_render = True

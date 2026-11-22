@@ -1,9 +1,9 @@
 {
-  "note": "Moon base video, second restart, last two new shots. g4: the Moon's night side two days after new Moon, lit by Earth alone, with stars and the thin sunlit edge (moon_globe.py VIEW 4). t8: a person on the summit of the Connecting Ridge with Earth, 3.6 degrees up, behind them, through a long lens from 100 m down the slope (night_video.py SHOT 8).",
+  "note": "Moon base video, new direction (owner: a space film with action). The new opening: a1 NASA's crew rover at its top speed of 10 km/h on the Connecting Ridge, seen from a camera travelling just ahead of it; a2 two rovers in convoy seen from above and ahead. 6 September 2026, 00:00 UTC; the Sun 0.9 degrees up. base_scene.py with RIDE=1.",
   "scale": 1.0,
   "per_chunk": 6,
   "shots": [
-    {"name": "g4", "script": "moon_globe.py", "frames": 86, "spp": 32, "env": {"VIEW": 4, "AIM": -3.5, "EXPO": "4.5e3", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "t8", "script": "night_video.py", "frames": 90, "spp": 28, "per_chunk": 5, "env": {"SHOT": 8, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
+    {"name": "a1", "script": "base_scene.py", "frames": 56, "spp": 36, "env": {"RIDE": 1, "ROVER_S0": 45, "ROVER_V": 2.8, "DUR": 2.3, "CONVOY": 13, "DUST": 350000, "DUSTR": 0.003, "DUST_TH0": 8, "DUST_TH1": 55, "DUST_ALB": 0.3, "RIDE_F": 7.2, "RIDE_DF": -1.2, "RIDE_S": 4.6, "RIDE_H": 0.55, "LOOK_F": -0.3, "LOOK_H": 1.25, "LENS": 35, "FSTOP": 1.8, "FOCUSK": 0.93, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "a2", "script": "base_scene.py", "frames": 60, "spp": 32, "env": {"RIDE": 1, "ROVER_S0": 52, "ROVER_V": 2.8, "DUR": 2.5, "CONVOY": 13, "DUST": 350000, "DUSTR": 0.003, "DUST_TH0": 8, "DUST_TH1": 55, "DUST_ALB": 0.3, "RIDE_F": 15, "RIDE_DF": -2.5, "RIDE_S": 6.5, "RIDE_H": 5.5, "RIDE_DH": -1.2, "LOOK_F": -5.5, "LOOK_H": 0.0, "SHAKE": 0.4, "LENS": 30, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
   ]
 }

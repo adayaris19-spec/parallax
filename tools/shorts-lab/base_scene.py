@@ -1,5 +1,7 @@
 # Moon base test shot: NASA prototype hardware standing on the Connecting Ridge near the lunar south pole, as a real camera would record it.
 # usage: python base_scene.py DATA OUT [first last count]      env: Q (ground detail 0.25..1), SPP, SCALE, EXPO, STAGE
+#   action shots: RIDE=1 (the camera travels with the near rover; RIDE_F ahead, RIDE_S to its left, RIDE_H up, LOOK_F, LOOK_H where it looks),
+#   ROVER_V (m/s; 2.8 is the rover's published top speed, 10 km/h), ROVER_S0 (start along the road), CONVOY (metres by which the second rover follows), FSTOP (lens aperture), DUST*
 import os, sys, math, time, numpy as np, bpy
 from mathutils import Vector, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -12,7 +14,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True); scene = bpy.context.scene
 def dem(window, full, n, step): p = f"{DATA}/{window}"; return LS.Dem(p if os.path.exists(p) else f"{DATA}/{full}", n, step)      # prep_site_data.py stores small windows of the big grids
 d5 = dem("dem5.npz", "ldem_875s_5m.img", 30336, 0.005); d40 = dem("dem40.npz", "ldem_80s_40m.img", 15200, 0.04); d80 = dem("dem80.npz", "ldem_80s_80m.img", 7600, 0.08)
 h0 = float(TR.ndimage.gaussian_filter(d5.cut(CX - 0.1, CX + 0.1, CY - 0.1, CY + 0.1)[0], 3.0)[20, 20])
-site = LS.Site(CX, CY, h0); sky = site.sky(f"{DATA}/spice", UTC); G = TR.Ground(site, d5)
+site = LS.Site(CX, CY, h0); sky = site.sky(f"{DATA}/spice", UTC); G = TR.Ground(site, d5, half_km=4.6)      # 4.6 km: inside the terrain window that prep_site_data.py keeps
 log("site lat %.4f lon %.3f  sun alt %.2f  earth alt %.2f" % (site.lat, site.lon, sky["sun"]["alt"], sky["earth"]["alt"]))
 
 # ---------- materials
@@ -90,7 +92,15 @@ cam = bpy.data.objects.new("cam", cd); scene.collection.objects.link(cam); scene
 def wobble(T, seed, amp):
     """slow, small drift of a camera carried by a person (modelled): a few sine waves between 0.3 and 2.2 Hz"""
     r = np.random.default_rng(seed); f = r.uniform(0.3, 2.2, 5); ph = r.uniform(0, 6.28, 5); a = r.uniform(0.4, 1.0, 5) / f ** 0.8; return amp * float((a * np.sin(2 * math.pi * f * T + ph)).sum()) / 2.2
+MODE = "ride" if E("RIDE", 0) else ""                      # RIDE=1: the camera travels with the near rover (a tracking vehicle or a drone beside it)
+if E("FSTOP", 0) > 0: cd.dof.use_dof = True; cd.dof.aperture_fstop = E("FSTOP", 2.0)       # a real lens at a wide aperture: what it is focused on is sharp, the rest soft
 def cam_pose(t):
+    if MODE == "ride":
+        T = t * E("DUR", 5.0); k = E("SHAKE", 1.0); p, f = at(ROAD, ROVER_S0 + E("ROVER_V", 1.4) * T); n_ = np.array([-f[1], f[0]])     # heading, and the rover's left
+        a, b, h = E("RIDE_F", 3.0) + E("RIDE_DF", 0.0) * t, E("RIDE_S", -3.5) + E("RIDE_DS", 0.0) * t, E("RIDE_H", 0.5) + E("RIDE_DH", 0.0) * t
+        c = ground_z(p[0] + a * f[0] + b * n_[0], p[1] + a * f[1] + b * n_[1]); pos = Vector((c[0] + k * wobble(T, 1, 0.012), c[1] + k * wobble(T, 2, 0.012), c[2] + h + k * wobble(T, 3, 0.015)))
+        la, lb = E("LOOK_F", 0.0) + E("LOOK_DF", 0.0) * t, E("LOOK_S", 0.0); g = ground_z(p[0] + la * f[0] + lb * n_[0], p[1] + la * f[1] + lb * n_[1]); d = Vector((g[0], g[1], g[2] + E("LOOK_H", 1.2))) - pos; cd.dof.focus_distance = d.length * E("FOCUSK", 1.0); d = d.normalized()
+        return pos, d.to_track_quat("-Z", "Y") @ Matrix.Rotation(math.radians(k * wobble(T, 6, 0.3)), 4, "Z").to_quaternion()
     T = t * E("DUR", 5.0); k = E("SHAKE", 1.0); u, v = E("CAMU", 0.0) + E("DOLLYX", 1.2) * t, E("CAMV", 0.0) + E("DOLLYY", 0.5) * t; p = ground_z(u, v)
     pos = Vector((p[0] + k * wobble(T, 1, 0.008), p[1] + k * wobble(T, 2, 0.008), ground_z(E("CAMU", 0.0), E("CAMV", 0.0))[2] + E("CAMH", 1.65) + k * wobble(T, 3, 0.012)))
     yaw = math.radians(E("YAW", -5.0) + E("PAN", -1.5) * t + k * wobble(T, 4, 0.22)); pitch = math.radians(E("PITCH", -19.0) + k * wobble(T, 5, 0.22)); d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
@@ -140,4 +150,7 @@ for i in range(a_, b_ + 1):
     else:
         set_cam(t)
         if "animate" in globals(): animate(t, i)
+    if i % 10 == 0:
+        from bpy_extras.object_utils import world_to_camera_view
+        bpy.context.view_layer.update(); ve = world_to_camera_view(scene, cam, Vector(sky["earth"]["dir"]) * 2.0e6); log("Earth on screen at x %.2f y %.2f (0..1 from the left and from the top)" % (ve.x, 1 - ve.y), "in front" if ve.z > 0 else "behind the camera")
     scene.render.filepath = f"{OUT}/f_{i:04d}.{EXT}"; bpy.ops.render.render(write_still=True); log("frame", i)
