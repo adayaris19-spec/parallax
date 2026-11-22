@@ -192,6 +192,10 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Explainer layer (`explain.py`, `lro-explain.json`): place labels that stay on their place as the camera moves, and a card naming the spacecraft and the paper.
   - First render: 84 frames at 1.5 times delivery size in 74 minutes on 17 machines (the close frames took up to 14 minutes each). Not sent: at full size the solar wing showed a lattice of triangles. Cause found by rendering the wing alone: NASA's model draws the cells as about 6,000 small triangles with gaps. Fixed by replacing them with one panel face carrying a rectangular cell pattern, and rendered again.
   - Also fixed before the second render: the crater's name pointed at the spacecraft once the crater's centre went behind it (the marker now sits on the visible part of the floor).
+  - Second render: 84 frames in 28 chunks, 60 minutes (the longest chunk 42 minutes). Sent to the owner as a 3.5 s example with its line, subtitle and explainer layer.
+  - Measured on the example: 1080×1920, 24 fps, 3.50 s, 9.3 Mbit/s. Sound −14.9 LUFS, true peak −1.9 dBTP. Between consecutive frames the wing changes by 1.7/255 and the foil by 0.8/255 (no shimmer). Earth is 113 px across.
+  - Still wrong, said plainly: 38–53% of the frame is darker than 8/255 (black sky plus the pole's real shadows), over the 15% draft limit; nothing on the spacecraft moves; one 3.5 s shot cost an hour of rendering on 20 machines, against a draft budget of 15 minutes per shot; the cell pattern and all finishes are ours, not photographed.
+- Owner's verdict on the hero shot pending.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
