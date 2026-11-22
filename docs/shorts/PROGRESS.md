@@ -77,7 +77,14 @@ Scripts and the measured-versus-modelled record are in `tools/shorts-lab/` (see 
 - Real: the place (Connecting Ridge, LOLA elevation), the Sun and Earth for 2026-09-06 00:00 UTC from JPL's ephemeris, the hardware designs (NASA prototypes), no stars, real speeds.
 - Checks on the last frame: 0 empty cells of 60; black sky covers 15.3% of the frame (draft limit 15%); 11.5% of pixels under 8/255, nearly all of it sky.
 - Cost: about 60 s per frame at 32 samples, so about 2 hours for a 5 s shot.
-- Still sent to the owner Nov 22; the 5 s clip is rendering. Verdict pending.
+- Still and 5 s clip sent to the owner Nov 22. Verdict pending.
+- Checks on the finished clip (120 frames, 1080×1920, 24 fps):
+  - 4 things move on their own: the near rover with its wheels, the dust it throws, its beacon, the far rover.
+  - Depth: the nearest ground crosses the frame at about 6.8 px per frame, ground about 40 m away at 2.4, and Earth at about 0.4 (the pan only). That is 17 times faster near than far; the draft rule asks for 4.
+  - No flicker: brightness changes by at most 0.17 of 255 between frames, and fine ground detail matches 0.91–0.98 from one frame to the next after motion compensation. The join between the two render runs (frames 59 and 60) does not show.
+  - 0 empty cells of 60 in every frame checked.
+  - Black sky covers 19.8% of the first frame and 16.3% of the last, over the 15% draft limit.
+  - Render: 58–62 s per frame, about 2 hours in two runs. Two copies at once run out of memory.
 - Limits: the astronauts cannot walk (the suit model has one pose); the excavator is parked; no motion blur; everything smaller than about 30 m on the ground is modelled.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
