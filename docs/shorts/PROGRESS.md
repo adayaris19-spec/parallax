@@ -69,6 +69,17 @@ No black frames longer than 0.2 s were detected in any of the files.
 - Owner's answers, Nov 22: all four kinds of "going on" are wanted, depending on the clip; future things may be published designs or our own designs built from published plans; pictures show only what a real camera could record.
 - Next test: one shot with many separate things at work, built from NASA's published hardware models, with a real-camera exposure.
 
+**Moon base test (Nov 22): "things at work", shot as a real camera would record it**
+
+Scripts and the measured-versus-modelled record are in `tools/shorts-lab/` (see its README).
+
+- In frame: an astronaut, a habitat with a second astronaut at its hatch, a crew rover driving in with turning wheels and thrown dust, an excavator robot, a second rover far off, wheel tracks, bootprints, rocks, and Earth. 10 separate things; the earlier Moon clip had 3.
+- Real: the place (Connecting Ridge, LOLA elevation), the Sun and Earth for 2026-09-06 00:00 UTC from JPL's ephemeris, the hardware designs (NASA prototypes), no stars, real speeds.
+- Checks on the last frame: 0 empty cells of 60; black sky covers 15.3% of the frame (draft limit 15%); 11.5% of pixels under 8/255, nearly all of it sky.
+- Cost: about 60 s per frame at 32 samples, so about 2 hours for a 5 s shot.
+- Still sent to the owner Nov 22; the 5 s clip is rendering. Verdict pending.
+- Limits: the astronauts cannot walk (the suit model has one pose); the excavator is parked; no motion blur; everything smaller than about 30 m on the ground is modelled.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
