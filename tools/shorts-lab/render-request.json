@@ -1,10 +1,9 @@
 {
-  "note": "Moon base video, second restart: three shots at the scale of the whole Moon (moon_globe.py), built on NASA's CGI Moon Kit. g1 night sweeping across the far side with Earth over the dark edge, g2 Earth turning above the south pole through a long lens, g3 the south polar cap from above with sunlight circling it.",
+  "note": "Moon base video, second restart, last two new shots. g4: the Moon's night side two days after new Moon, lit by Earth alone, with stars and the thin sunlit edge (moon_globe.py VIEW 4). t8: a person on the summit of the Connecting Ridge with Earth, 3.6 degrees up, behind them, through a long lens from 100 m down the slope (night_video.py SHOT 8).",
   "scale": 1.0,
   "per_chunk": 6,
   "shots": [
-    {"name": "g1", "script": "moon_globe.py", "frames": 56, "spp": 32, "env": {"VIEW": 1, "UTC": "2026,10,14,10,0", "SPAN": 40, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "g2", "script": "moon_globe.py", "frames": 60, "spp": 32, "env": {"VIEW": 2, "D0": 12.6, "D1": 11.6, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "g3", "script": "moon_globe.py", "frames": 72, "spp": 32, "env": {"VIEW": 3, "AIM": -4, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
+    {"name": "g4", "script": "moon_globe.py", "frames": 86, "spp": 32, "env": {"VIEW": 4, "AIM": -3.5, "EXPO": "4.5e3", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "t8", "script": "night_video.py", "frames": 90, "spp": 28, "per_chunk": 5, "env": {"SHOT": 8, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
   ]
 }
