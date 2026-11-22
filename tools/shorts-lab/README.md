@@ -29,8 +29,8 @@ Run: `python base_scene.py DATA OUT 0 119 120`, then `python comp_real.py OUT OU
 - Gravity for the thrown dust: 1.62 m/s². With no air, each grain flies a parabola.
 
 **Modelled by us**
-- Everything on the ground smaller than about 30 m: craters (as many per square metre as the Moon's well-known size rule gives), soil roughness, rocks, wheel tracks and bootprints.
-- Where the hardware stands, that a second rover is in the distance, and that the habitat rests on the ground. The rover's speed, 1.4 m/s, is below the vehicle's stated top speed of about 10 km/h.
+- Everything on the ground smaller than about 30 m: craters (their number per square metre falls with the square of their diameter; the constant was set by eye and still has to be checked against published counts), soil roughness, rocks, wheel tracks and bootprints.
+- Where the hardware stands, that a second rover is in the distance, and that the habitat rests on the ground. The rover's speed is 1.4 m/s (5 km/h); NASA's stated top speed for the vehicle still has to be looked up and cited.
 - Work lights, the rover's flashing beacon and the amount of dust its wheels throw. NASA's models carry none of these.
 - The camera response: exposure, lens glare, the film-like curve and sensor noise.
 
