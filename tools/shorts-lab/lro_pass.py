@@ -19,6 +19,7 @@ def log(*a): print(f"[{time.time()-t0:6.1f}s]", *a, flush=True)
 a_, b_, nf = (int(ARGS[0]), int(ARGS[1]), int(ARGS[2])) if ARGS else (0, 0, 1)
 CX, CY = -11.52, -12.44; UTC = tuple(int(v) for v in os.environ.get("UTC", "2026,10,16,0,0").split(",")); DAY = "%04d-%02d-%02d" % UTC[:3]
 ALT, SPEED, DUR = E("ALT", 50.0), 1.656, E("DUR", 3.5)                       # km above the datum; km/s for a circular orbit at that height; seconds
+NOCRAFT = E("NOCRAFT", 0) > 0; SPAN = E("SPAN", 0.0)                      # NOCRAFT=1: no spacecraft, a camera above the terrain; SPAN: hours that pass during the shot (a time-lapse)
 X0, Y0 = E("X0", -8.0), E("Y0", -152.0)                                      # map km where the spacecraft is at mid-shot: beyond the pole, heading for the Earth side
 bpy.ops.wm.read_factory_settings(use_empty=True); scene = bpy.context.scene
 def dem(window, full, n, step): p = f"{DATA}/{window}"; return LS.Dem(p if os.path.exists(p) else f"{DATA}/{full}", n, step)
@@ -37,6 +38,8 @@ AM = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]]); T = ts.utc(*UTC[:3], UT
 for name in ("sun", "earth"):
     v = np.array(obs.at(T).observe(eph[name]).apparent().frame_xyz(fr).km); d = np.linalg.norm(v); SKY[name] = (site.B @ (AM @ (v / d)), d)
 EROT = site.B @ AM @ np.array(fr.rotation_at(T)) @ np.array(itrs.rotation_at(T)).T
+def sun_at(tt):
+    t = ts.utc(*UTC[:3], UTC[3] + UTC[4] / 60.0 + SPAN * (tt - 0.5)); v = np.array(obs.at(t).observe(eph["sun"]).apparent().frame_xyz(fr).km); d = np.linalg.norm(v); return site.B @ (AM @ (v / d)), d
 sd, sdist = SKY["sun"]; ed, edist = SKY["earth"]; log(DAY, "sun alt %.2f az %.1f" % (math.degrees(math.asin(sd[2])), math.degrees(math.atan2(sd[0], sd[1])) % 360), "earth alt %.2f az %.1f" % (math.degrees(math.asin(ed[2])), math.degrees(math.atan2(ed[0], ed[1])) % 360))
 
 # ---------- the Moon: measured terrain where the camera looks, a plain sphere beyond the grids
@@ -51,7 +54,7 @@ def add_grid(name, X, Y, P, holes=()):
     for (x0, x1, y0, y1) in holes: keep &= ~((xc > x0) & (xc < x1) & (yc > y0) & (yc < y1))
     q = q[keep.reshape(-1)]; nq = len(q); me.loops.add(nq * 4); me.loops.foreach_set("vertex_index", q.reshape(-1)); me.polygons.add(nq); me.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32))
     me.update(calc_edges=True); me.shade_smooth(); me.materials.append(m); scene.collection.objects.link(bpy.data.objects.new(name, me)); log(name, P.shape[:2], "faces", nq)
-Q = E("Q", 1.0); NEAR = (-46.0, 36.0, -113.0, 22.0); MID = (-112.0, 112.0, 22.0, 300.0)           # map km: the 40 m grid under and ahead of the spacecraft; the 80 m grid on to the horizon
+Q = E("Q", 1.0); NEAR = (-46.0, 36.0, -113.0, 22.0); MID = tuple(float(v) for v in os.environ.get("MIDBOX", "-112,112,22,300").split(","))           # map km: the 40 m grid under and ahead of the spacecraft; the 80 m grid on to the horizon
 X, Y, P = TR.far_grid(site, d40, *NEAR, int(round(1 / Q))); add_grid("near40", X, Y, P)
 X, Y, P = TR.far_grid(site, d80, *MID, int(round(2 / Q))); add_grid("mid160", X, Y, P)
 X, Y, P = TR.far_grid(site, d80, -300, 300, -300, 300, int(round(6 / Q))); add_grid("far480", X, Y, P, [(NEAR[0] + 0.6, NEAR[1] - 0.6, NEAR[2] + 0.6, NEAR[3] + 0.6), (MID[0] + 0.6, MID[1] - 0.6, MID[2] - 0.6, MID[3] - 0.6)]); del X, Y, P
@@ -68,16 +71,22 @@ eme = bpy.data.meshes.new("earth"); eme.vertices.add(nlat * nlon); idx = np.aran
 eme.vertices.foreach_set("co", (SPH @ EROT.T * (6371.0 / edist * ED) + np.array(ed) * ED).astype(np.float32).reshape(-1)); eme.loops.add(nq * 4); eme.loops.foreach_set("vertex_index", q); eme.polygons.add(nq); eme.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32)); eme.update(calc_edges=True); eme.shade_smooth()
 eme.uv_layers.new(name="uv").data.foreach_set("uv", np.stack([(LO / (2 * np.pi) + 0.5), (LA / np.pi + 0.5)], -1).reshape(-1, 2)[q].astype(np.float32).reshape(-1))
 em = bpy.data.materials.new("earth"); em.use_nodes = True; nt = em.node_tree; nt.nodes.clear(); o_ = nt.nodes.new("ShaderNodeOutputMaterial"); d_ = nt.nodes.new("ShaderNodeBsdfDiffuse"); tx = nt.nodes.new("ShaderNodeTexImage")
-tx.image = bpy.data.images.load(f"{DATA}/earthglobal/earth_{DAY}.png"); tx.extension = "EXTEND"; tx.interpolation = "Cubic"; nt.links.new(tx.outputs["Color"], d_.inputs["Color"])
+tx.image = bpy.data.images.load(f"{DATA}/earthglobal/earth_{os.environ.get('EARTHDAY', DAY)}.png")       # EARTHDAY: the cloud picture to use when the shot's own day has none fetched (shots where Earth is out of view); tx.extension = "EXTEND"; tx.interpolation = "Cubic"; nt.links.new(tx.outputs["Color"], d_.inputs["Color"])
 air = nt.nodes.new("ShaderNodeEmission"); air.inputs["Color"].default_value = (0.32, 0.52, 1.0, 1); lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.12; add = nt.nodes.new("ShaderNodeAddShader")       # the thin blue edge of the atmosphere
 dotn = nt.nodes.new("ShaderNodeVectorMath"); dotn.operation = "DOT_PRODUCT"; gn = nt.nodes.new("ShaderNodeNewGeometry"); dotn.inputs[1].default_value = tuple(sd); nt.links.new(gn.outputs["Normal"], dotn.inputs[0])
 lit = nt.nodes.new("ShaderNodeMapRange"); lit.inputs["From Min"].default_value = -0.05; lit.inputs["From Max"].default_value = 0.25; nt.links.new(dotn.outputs["Value"], lit.inputs["Value"]); mul = nt.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; nt.links.new(lw.outputs["Facing"], mul.inputs[0]); nt.links.new(lit.outputs["Result"], mul.inputs[1])
 sc_ = nt.nodes.new("ShaderNodeMath"); sc_.operation = "MULTIPLY"; sc_.inputs[1].default_value = 0.55 * SUNE / math.pi; nt.links.new(mul.outputs[0], sc_.inputs[0]); nt.links.new(sc_.outputs[0], air.inputs["Strength"]); nt.links.new(d_.outputs["BSDF"], add.inputs[0]); nt.links.new(air.outputs[0], add.inputs[1]); nt.links.new(add.outputs[0], o_.inputs["Surface"])
 eme.materials.append(em); eob = bpy.data.objects.new("earth", eme); scene.collection.objects.link(eob); eob.visible_shadow = False
 w = bpy.data.worlds.new("space"); scene.world = w; w.use_nodes = True; w.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=1.0); sdisk = bpy.context.object; sdisk.name = "sun_disk"       # the Sun itself, for shots that look toward it; it lights nothing (the lamp does)
+sm_ = bpy.data.materials.new("sun_disk"); sm_.use_nodes = True; nt = sm_.node_tree; nt.nodes.clear(); so_ = nt.nodes.new("ShaderNodeOutputMaterial"); se_ = nt.nodes.new("ShaderNodeEmission"); se_.inputs["Color"].default_value = (1.0, 0.95, 0.88, 1); nt.links.new(se_.outputs[0], so_.inputs[0])
+sdisk.data.materials.append(sm_); sdisk.visible_diffuse = sdisk.visible_glossy = sdisk.visible_transmission = sdisk.visible_volume_scatter = sdisk.visible_shadow = False
+def set_sun(tt):
+    d, dist = sun_at(tt) if SPAN else (sd, sdist); ang = math.asin(695700.0 / dist); sun.rotation_quaternion = Vector(d).to_track_quat("Z", "Y"); sdisk.location = Vector(d) * 2.0e7; sdisk.scale = (2.0e7 * math.tan(ang),) * 3; se_.inputs["Strength"].default_value = SUNE / (math.pi * ang * ang)
 
 # ---------- the spacecraft
-root, parts = LM.load(f"{DATA}/models_plain/lro_a.glb"); root.rotation_mode = "QUATERNION"
+if not NOCRAFT: root, parts = LM.load(f"{DATA}/models_plain/lro_a.glb"); root.rotation_mode = "QUATERNION"
+else: root = bpy.data.objects.new("anchor", None); scene.collection.objects.link(root); parts = None
 def craft(tt):
     """place and attitude at time fraction tt: instruments (+X) to the Moon's centre, long axis (Z) along the track"""
     y = Y0 + SPEED * DUR * (tt - 0.5); p = loc(X0, y, ALT * 1000.0); fwd = loc(X0, y + 0.5, ALT * 1000.0) - loc(X0, y - 0.5, ALT * 1000.0); up = p - MOON_C; up /= np.linalg.norm(up); fwd -= up * (fwd @ up); fwd /= np.linalg.norm(fwd)
@@ -92,7 +101,15 @@ cd = bpy.data.cameras.new("cam"); cd.sensor_fit = "VERTICAL"; cd.sensor_height =
 ease = lambda x: x * x * (3 - 2 * x)
 def aim(az, pitch, up, fwd):
     right = np.cross(fwd, up); a, p_ = math.radians(az), math.radians(pitch); return (fwd * math.cos(a) + right * math.sin(a)) * math.cos(p_) + up * math.sin(p_)
+def set_cam_free(tt):
+    """no spacecraft: the camera rides above the terrain, moving a little as hours pass"""
+    p = loc(X0 + E("DX", 0.0) * (tt - 0.5), Y0 + E("DY", 0.0) * (tt - 0.5), (ALT + E("DALT", 0.0) * (tt - 0.5)) * 1000.0); HERE_P[:] = p; moon.location = tuple(-p); up = p - MOON_C; up /= np.linalg.norm(up)
+    north = loc(X0, Y0 + 0.5, ALT * 1000.0) - loc(X0, Y0 - 0.5, ALT * 1000.0); north -= up * (north @ up); north /= np.linalg.norm(north)
+    look = aim(E("AZ0", 180.0) + (E("AZ1", 180.0) - E("AZ0", 180.0)) * tt, E("PITCH0", -6.0) + (E("PITCH1", -6.0) - E("PITCH0", -6.0)) * tt, up, north); cam.location = (0.0, 0.0, 0.0)
+    q = Vector(look).to_track_quat("-Z", "Y"); zc = q @ Vector((0, 1, 0)); roll = math.atan2(float(np.cross(np.array(zc), up) @ look), float(np.array(zc) @ up)); cam.rotation_quaternion = q @ Matrix.Rotation(-roll, 4, "Z").to_quaternion()
 def set_cam(tt):
+    set_sun(tt)
+    if NOCRAFT: return set_cam_free(tt)
     p, R, up, fwd = place(tt); k = ease(tt); D = E("D0", 13.0) + (E("D1", 23.0) - E("D0", 13.0)) * k
     to_craft = aim(E("CAZ0", 13.0) + (E("CAZ1", 8.0) - E("CAZ0", 13.0)) * k, E("CPITCH0", -24.0) + (E("CPITCH1", -21.0) - E("CPITCH0", -24.0)) * k, up, fwd)     # where the spacecraft sits as seen from the camera
     look = aim(E("AZ0", 7.0) + (E("AZ1", 8.2) - E("AZ0", 7.0)) * k, E("PITCH0", -17.6) + (E("PITCH1", -16.6) - E("PITCH0", -17.6)) * k, up, fwd)
@@ -104,6 +121,7 @@ def label_points():
     for name, (x, y) in LABELS.items():
         h = float(d5.cut(x - 0.03, x + 0.03, y - 0.03, y + 0.03)[0].max()) if abs(x - CX) < 5 and abs(y - CY) < 5 else float(d40.cut(x - 0.2, x + 0.2, y - 0.2, y + 0.2)[0].mean())
         v = world_to_camera_view(scene, cam, Vector(tuple(loc(x, y, h) - HERE_P))); o[name] = [round(v.x, 5), round(1 - v.y, 5), round(v.z, 1)]
+    sv = world_to_camera_view(scene, cam, sdisk.location); o["_sun"] = [round(sv.x, 5), round(1 - sv.y, 5), round(sv.z, 1)]
     v = world_to_camera_view(scene, cam, root.location); o["_craft"] = [round(v.x, 5), round(1 - v.y, 5), round(v.z, 2)]; ve = world_to_camera_view(scene, cam, Vector(tuple(np.array(ed) * ED))); o["_earth"] = [round(ve.x, 5), round(1 - ve.y, 5)]; return o
 
 # ---------- render

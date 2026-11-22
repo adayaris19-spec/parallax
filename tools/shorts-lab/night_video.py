@@ -7,7 +7,7 @@
 # Modelled by us: everything on the ground smaller than about 30 m, rocks, bootprints, where the habitat and people stand,
 # every lamp, the camera and its exposure. The habitat is shown only under a line about what a base would need.
 #
-# usage: python night_video.py DATA OUT first last count      env: SHOT (1 to 5), SPP, SCALE, Q, and overrides AZ, PITCH, H, LENS, PAN, SPAN, UTC, EXPO
+# usage: python night_video.py DATA OUT first last count      env: SHOT (1 to 7), EARTHK, SPP, SCALE, Q, and overrides AZ, PITCH, H, LENS, PAN, SPAN, UTC, EXPO
 import os, sys, math, time, numpy as np, bpy, bmesh, cv2
 from mathutils import Vector, Matrix
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -19,8 +19,10 @@ TOP, BASE = (0.0, 0.0), (-74.0, 14.0)                    # world metres from the
 SHOTS = {
     1: dict(utc=(2026, 4, 22, 9, 0), span=38.0, layout="base", people=False, pos=(-71.6, -39.9), az=1.5, pitch=-4.5, h=1.5, lens=40, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=4.5, expo=2.4e5),   # the dark spell at a habitat, 38 hours in one take: the stars slide past, Earth stays where it is
     2: dict(utc=(2026, 4, 22, 21, 0), span=0.0, layout="base", people=True, pos=(-70.0, -18.0), az=356.0, pitch=-11.0, h=1.6, lens=28, dolly=(0.25, 1.1), pan=-1.0, earth="2026-04-22", dur=5.4, expo=1.0e5),  # the same night at the habitat, real time
-    3: dict(utc=(2026, 4, 22, 12, 0), span=30.0, layout="base", people=False, pos=(-71.6, -39.9), az=0.2, pitch=0.2, h=1.5, lens=70, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=6.6, expo=2.4e5),      # the same dark spell from closer: 30 hours, lit windows, the stars sliding behind
+    3: dict(utc=(2026, 4, 22, 12, 0), span=12.0, layout="base", people=False, pos=(-71.6, -39.9), az=0.2, pitch=0.2, h=1.5, lens=70, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=6.6, expo=2.4e5),      # the same dark spell from closer: 30 hours, lit windows, the stars sliding behind
     4: dict(utc=(2026, 4, 21, 22, 0), span=14.0, layout="bare", people=False, pos=(-3.0, -8.0), az=5.0, pitch=-3.0, h=1.65, lens=50, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.2, expo=1.0e5),     # from the summit as that dark spell begins: the last sunlight leaves a far ridge
+    6: dict(utc=(2026, 4, 22, 9, 0), span=38.0, layout="bare", people=False, pos=(-3.0, -8.0), az=4.0, pitch=7.0, h=1.65, lens=20, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=2.4, expo=2.4e5),       # the dark spell from the bare summit, wide: 38 hours of stars sliding over the ridge, Earth holding still
+    7: dict(utc=(2026, 4, 21, 22, 0), span=10.0, layout="bare", people=False, pos=(-3.0, -8.0), az=5.5, pitch=-1.2, h=1.65, lens=85, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.5, expo=1.4e5),     # long lens on the far ridge as its last sunlight goes out
     5: dict(utc=(2026, 9, 6, 0, 0), span=0.0, layout="astro", people=True, pos=(-202.0, -56.0), az=9.0, pitch=-9.5, h=1.55, lens=32, dolly=(0.5, 0.35), pan=-1.2, earth="2026-09-06", dur=4.55, expo=4.3),     # the ridge in the sunny season, on the west slope that faces the low Sun: a person, real time
 }
 C = SHOTS[SHOT]; NIGHT = C["expo"] > 100
@@ -140,8 +142,15 @@ eme = bpy.data.meshes.new("earth"); eme.vertices.add(nlat * nlon); idx = np.aran
 eme.loops.add(nq * 4); eme.loops.foreach_set("vertex_index", q); eme.polygons.add(nq); eme.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32)); eme.update(calc_edges=True); eme.shade_smooth()
 eme.uv_layers.new(name="uv").data.foreach_set("uv", np.stack([(LO / (2 * np.pi) + 0.5), (LA / np.pi + 0.5)], -1).reshape(-1, 2)[q].astype(np.float32).reshape(-1))
 em = bpy.data.materials.new("earth"); em.use_nodes = True; nt = em.node_tree; nt.nodes.clear(); o_ = nt.nodes.new("ShaderNodeOutputMaterial"); d_ = nt.nodes.new("ShaderNodeBsdfDiffuse"); tx = nt.nodes.new("ShaderNodeTexImage")
-tx.image = bpy.data.images.load(f"{DATA}/earthglobal/earth_{C['earth']}.png"); tx.extension = "EXTEND"; nt.links.new(tx.outputs["Color"], d_.inputs["Color"]); nt.links.new(d_.outputs["BSDF"], o_.inputs["Surface"]); eme.materials.append(em)
+tx.image = bpy.data.images.load(f"{DATA}/earthglobal/earth_{C['earth']}.png"); tx.extension = "EXTEND"; nt.links.new(d_.outputs["BSDF"], o_.inputs["Surface"]); eme.materials.append(em)
+nt.links.new(tx.outputs["Color"], d_.inputs["Color"]); EARTHK = E("EARTHK", 1.0); EDOT = None
+if EARTHK < 1.0:                                           # held back: the picture of Earth gives off its own light, shaded by where the Sun is, so the sampler has nothing faint to lose
+    em_ = nt.nodes.new("ShaderNodeEmission"); gn_ = nt.nodes.new("ShaderNodeNewGeometry"); EDOT = nt.nodes.new("ShaderNodeVectorMath"); EDOT.operation = "DOT_PRODUCT"; nt.links.new(gn_.outputs["Normal"], EDOT.inputs[0])
+    cl_ = nt.nodes.new("ShaderNodeClamp"); nt.links.new(EDOT.outputs["Value"], cl_.inputs["Value"]); ml_ = nt.nodes.new("ShaderNodeMath"); ml_.operation = "MULTIPLY"; ml_.inputs[1].default_value = SUNE / math.pi * EARTHK; nt.links.new(cl_.outputs["Result"], ml_.inputs[0])
+    nt.links.new(tx.outputs["Color"], em_.inputs["Color"]); nt.links.new(ml_.outputs[0], em_.inputs["Strength"]); nt.links.new(em_.outputs[0], o_.inputs["Surface"])
+# EARTHK below 1 holds Earth back in night shots. One exposure for earthlit ground would record Earth as a white disc; the owner asked for an Earth that reads as Earth, so it is shown as an eye or a second exposure would see it.
 eob = bpy.data.objects.new("earth", eme); scene.collection.objects.link(eob); eob.visible_shadow = False
+if EARTHK < 1.0: eob.visible_diffuse = eob.visible_glossy = False
 w = bpy.data.worlds.new("space"); scene.world = w; w.use_nodes = True; wn = w.node_tree; bg = wn.nodes["Background"]; star = wn.nodes.new("ShaderNodeTexEnvironment"); star.image = bpy.data.images.load(f"{DATA}/starmap_2020_8k.exr")
 geo_ = wn.nodes.new("ShaderNodeNewGeometry"); cmb = wn.nodes.new("ShaderNodeCombineXYZ"); DOTS = []
 for k in range(3):
@@ -152,6 +161,7 @@ def set_sky(tt):
     sdisk.location = Vector(sd) * 1.0e6; sdisk.scale = (1.0e6 * math.tan(ang),) * 3; e_.inputs["Strength"].default_value = SUNE / (math.pi * ang * ang)
     sep = math.acos(float(np.clip(np.dot(sd, ed), -1, 1))); el.energy = SUNE * 1.0e-4 * (1 - math.cos(sep)) / 2 * E("EARTHLIGHT", 1.0); el.angle = 2 * math.asin(6371.0 / edist); elo.rotation_quaternion = Vector(ed).to_track_quat("Z", "Y")
     eme.vertices.foreach_set("co", (SPH @ s["earth_rot"].T * (6371.0 / edist * ED) + np.array(ed) * ED).astype(np.float32).reshape(-1)); eme.update()
+    if EDOT is not None: EDOT.inputs[1].default_value = tuple(float(v) for v in sd)
     M = np.diag([-1.0, -1.0, 1.0]) @ s["icrf"].T              # local direction -> the star map's own axes
     for k in range(3): DOTS[k].inputs[1].default_value = tuple(-M[k])     # "Incoming" points back toward the camera
     return s
@@ -285,6 +295,8 @@ def cam_pose(tt):
 
 # ---------- render
 scene.render.engine = "CYCLES"; cy = scene.cycles; cy.device = "CPU"; cy.film_exposure = EXPO; cy.samples = int(E("SPP", 48 if NIGHT else 32)); cy.use_adaptive_sampling = True; cy.adaptive_threshold = 0.015; cy.use_denoising = True
+for name_ in ("light_sampling_threshold", "light_threshold"):                 # very faint light (the held-back Earth) must not be cut off by the sampler
+    if hasattr(cy, name_): setattr(cy, name_, 0.0)
 cy.max_bounces = 6; cy.diffuse_bounces = 3; cy.glossy_bounces = 3; cy.transmission_bounces = 4; cy.caustics_reflective = False; cy.caustics_refractive = False; scene.render.use_persistent_data = True
 sc = E("SCALE", 1.0); scene.render.resolution_x, scene.render.resolution_y = int(1080 * sc), int(1920 * sc); scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = "OPEN_EXR"; scene.render.image_settings.color_depth = "16"; scene.render.image_settings.exr_codec = "ZIP"

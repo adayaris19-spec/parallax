@@ -103,7 +103,8 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - What was the same every time: a slow, grey Moon under black sky with one computer-made object. The references (the "Moon by 2020" Reel, NASA's artist illustrations, NASA's Instagram) are vivid, dramatic and about events.
   - Mix (owner's answer): "mostly 3D, but we could mix up with real things, and also the articles… filler elements that will also reduce repetitiveness and reduce the waiting time."
     - More than half of the shots are made 3D. Real footage carries real events. Cards, numbers and charts sit on top. Short fillers may reuse a made shot we already have.
-  - Look for the made shots (our reading; the owner did not answer the question): cinematic. Dramatic light, flare, warm and cool colour, a readable Earth. Places, hardware, dates and facts stay true. This outranks "one plain exposure" wherever the two collide; each collision is listed with the video.
+  - What is wrong with the pictures (owner picked all four): dull and colourless; nothing happens; looks computer-made; wrong things shown ("show people, missions, the real stakes").
+  - Look for the made shots (owner's answer): cinematic. Dramatic light, flare, warm and cool colour, a readable Earth. Places, hardware, dates and facts stay true. This outranks "one plain exposure" wherever the two collide; each collision is listed with the video.
   - Time: a whole video's new 3D is rendered in one run of at most 30 minutes. A shot that cannot fit is simplified or replaced.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**

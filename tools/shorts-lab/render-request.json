@@ -1,19 +1,12 @@
 {
-  "note": "Hero shot, second pass: the solar wing is one continuous panel with a cell pattern (the model's triangle lattice is gone); the spacecraft stays at the scene's origin.",
-  "scale": 1.5,
-  "per_chunk": 3,
+  "note": "Moon base video, restart: five new made shots, clean (no grain), at delivery size. s1 the habitat at night, s3 a far ridge losing its last sunlight, s4 a person at the habitat, s5 a pass over the south pole's ridges with Earth, s7 the empty ridge under the Milky Way.",
+  "scale": 1.0,
+  "per_chunk": 9,
   "shots": [
-    {"name": "lro",
-      "script": "lro_pass.py",
-      "frames": 84,
-      "spp": 80,
-      "env": {
-        "EV": 0,
-        "GRAIN": 0,
-        "SOFT": 0.3,
-        "BLACK": 0.004,
-        "OUTW": 1080
-      }
-    }
+    {"name": "s1", "script": "night_video.py", "frames": 54, "spp": 32, "env": {"SHOT": 3, "EARTHK": "3e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "s3", "script": "night_video.py", "frames": 84, "spp": 32, "env": {"SHOT": 7, "EARTHK": "4.5e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "s4", "script": "night_video.py", "frames": 58, "spp": 36, "env": {"SHOT": 2, "DUR": 2.4, "EARTHK": "4.5e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "s7", "script": "night_video.py", "frames": 80, "spp": 32, "env": {"SHOT": 6, "EARTHK": "3e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
+    {"name": "s5", "script": "lro_pass.py", "frames": 84, "spp": 24, "env": {"NOCRAFT": 1, "X0": -8, "Y0": -136, "ALT": 40, "DY": 5.8, "AZ0": 4, "AZ1": 4, "PITCH0": -17.9, "PITCH1": -17.9, "LENS": 60, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
   ]
 }
