@@ -32,7 +32,7 @@ for k, u in (("sev", "Space%20Exploration%20Vehicle/Space%20Exploration%20Vehicl
     if not os.path.exists(f"{OUT}/models_plain/{k}.glb"): curl(N3D + u, f"{OUT}/tmp/{k}.glb"); subprocess.run([sys.executable, f"{HERE}/undraco.py", f"{OUT}/tmp/{k}.glb", f"{OUT}/models_plain/{k}.glb"], check=True); os.remove(f"{OUT}/tmp/{k}.glb")
 for day in ("2026-09-06", "2026-04-22", "2026-04-24", "2026-10-16"):           # Earth's real clouds on the days the shots show
     if not os.path.exists(f"{OUT}/earthglobal/earth_{day}.png"): subprocess.run([sys.executable, f"{HERE}/gibs_fetch.py", day, "3", "-180", "180", "-90", "90", f"{OUT}/tmp", f"{OUT}/earthglobal/earth_{day}.png"], check=True)
-for day in ("2026-10-14", "2026-10-16", "2026-09-07", "2026-03-27"):                         # the same for close views of Earth: both satellites joined (earth_day.py)
+for day in ("2026-10-14", "2026-10-16", "2026-09-07"):                         # the same for close views of Earth: both satellites joined (earth_day.py)
     if not os.path.exists(f"{OUT}/earthglobal/earthx_{day}.png"): subprocess.run([sys.executable, f"{HERE}/earth_day.py", day, f"{OUT}/tmp", f"{OUT}/earthglobal/earthx_{day}.png"], check=True)
 os.makedirs(f"{OUT}/moonkit", exist_ok=True)                                   # NASA SVS CGI Moon Kit: the whole Moon's colour (LRO camera mosaic) and relief (LOLA, 16 samples per degree)
 for f in ("lroc_color_poles_16k.tif", "lroc_color_poles_8k.tif", "ldem_16.tif"):
