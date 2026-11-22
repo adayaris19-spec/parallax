@@ -1,12 +1,8 @@
 {
-  "note": "Moon base video, restart: five new made shots, clean (no grain), at delivery size. s1 the habitat at night, s3 a far ridge losing its last sunlight, s4 a person at the habitat, s5 a pass over the south pole's ridges with Earth, s7 the empty ridge under the Milky Way.",
+  "note": "Moon base video, restart: the pass over the south pole again, with Earth's cloud map back on the globe (a comment had swallowed the line that links it, so Earth rendered as a plain white disc).",
   "scale": 1.0,
-  "per_chunk": 9,
+  "per_chunk": 5,
   "shots": [
-    {"name": "s1", "script": "night_video.py", "frames": 54, "spp": 32, "env": {"SHOT": 3, "EARTHK": "3e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "s3", "script": "night_video.py", "frames": 84, "spp": 32, "env": {"SHOT": 7, "EARTHK": "4.5e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "s4", "script": "night_video.py", "frames": 58, "spp": 36, "env": {"SHOT": 2, "DUR": 2.4, "EARTHK": "4.5e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "s7", "script": "night_video.py", "frames": 80, "spp": 32, "env": {"SHOT": 6, "EARTHK": "3e-6", "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}},
-    {"name": "s5", "script": "lro_pass.py", "frames": 84, "spp": 24, "env": {"NOCRAFT": 1, "X0": -8, "Y0": -136, "ALT": 40, "DY": 5.8, "AZ0": 4, "AZ1": 4, "PITCH0": -17.9, "PITCH1": -17.9, "LENS": 60, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
+    {"name": "s5", "script": "lro_pass.py", "frames": 84, "spp": 24, "per_chunk": 5, "env": {"NOCRAFT": 1, "X0": -8, "Y0": -136, "ALT": 40, "DY": 5.8, "AZ0": 4, "AZ1": 4, "PITCH0": -17.9, "PITCH1": -17.9, "LENS": 60, "EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004}}
   ]
 }
