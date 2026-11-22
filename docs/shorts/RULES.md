@@ -99,6 +99,12 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - Each element comes from one of the goal's own sources. A page is shown only when its source is free to show (space agencies, open-access papers); any other source gets a headline card.
   - An element sits over a moving picture, never over a still or a flat background.
   - Made 3D carries at least 60% of the running time (draft).
+- **Restart (owner, Nov 22, on the orbiter shot):** "This 3-second clip took you 4 hours." "You're not really applying the feedback I'm giving you. Every single time I say change it, it's actually the same." "Go back to the inspirations… restart from the beginning." "You're an AI. You can be an artist."
+  - What was the same every time: a slow, grey Moon under black sky with one computer-made object. The references (the "Moon by 2020" Reel, NASA's artist illustrations, NASA's Instagram) are vivid, dramatic and about events.
+  - Mix (owner's answer): "mostly 3D, but we could mix up with real things, and also the articles… filler elements that will also reduce repetitiveness and reduce the waiting time."
+    - More than half of the shots are made 3D. Real footage carries real events. Cards, numbers and charts sit on top. Short fillers may reuse a made shot we already have.
+  - Look for the made shots (our reading; the owner did not answer the question): cinematic. Dramatic light, flare, warm and cool colour, a readable Earth. Places, hardware, dates and facts stay true. This outranks "one plain exposure" wherever the two collide; each collision is listed with the video.
+  - Time: a whole video's new 3D is rendered in one run of at most 30 minutes. A shot that cannot fit is simplified or replaced.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
