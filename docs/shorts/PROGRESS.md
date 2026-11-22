@@ -123,6 +123,22 @@ Figures below come from third-party write-ups and vendor pages found by search o
 
 **Next: one real video for the Moon base goal, message first.** The goal's own facts (read from the app's database Nov 22) say its biggest obstacle is the lunar night: about 354 hours of darkness, batteries losing over 35% of capacity below −20°C, small landers surviving only by shutting down, a reactor ground-tested in 2018 but none flown, and a few south polar ridges with near-constant sunlight that still go dark for days in some seasons. Shots are being designed from those lines.
 
+**Moon base video "The 354-hour night": plan and first shot with a job (Nov 22)**
+
+| Beat | Line, from the goal's own facts | The picture's job |
+|---|---|---|
+| Hook | "A night on the Moon lasts 354 hours." | Show how big and slow that night is: the real Moon and its day–night line |
+| Build | "Batteries lose over a third of their capacity in the cold. Small landers get through by shutting down. A base with people can't." | Show the cold doing it: the dark surface with the two numbers the line says |
+| Peak | "On a few ridges at the south pole, the Sun almost never sets. Even there, it goes dark for days in some seasons." | Be the evidence: a real month of sunlight at the south pole |
+| End | "China and Russia aim to deliver a reactor for their lunar station in 2033 to 2035." | Point forward: a reactor, shown only as planned |
+
+- The lines are a draft put to the owner; not yet approved.
+- Peak shot, version 1 (`tools/shorts-lab/pole_light.py`): Shackleton crater and the ridges beside it from a fixed point about 60 km up, 1 to 30 October 2026 in 5 s. Terrain is LOLA elevation; the Sun's direction and size for each frame come from the JPL ephemeris; three Sun positions are averaged per frame as the time-lapse's own blur. Rendered on GitHub's runners in 15 min 24 s. Sent to the owner.
+- Measured from the clip: the best-lit point, on Shackleton's rim, is in sunlight in 81% of the frames; 0.24% of the picture is lit for at least 60% of the month; 28% is never lit; the darkest stretch is around 23–24 October, with 5% of the picture lit. These are our own counts from one month at 5.9-hour steps, not sourced figures, so they are not for narration.
+- Not real, and to be said plainly: the viewpoint (nothing hovers above the pole) and the speed (a month in 5 s).
+- Weak: soft at full size on the 40 m grid; much of the frame is dark for parts of the clip; nothing yet shows the viewer which points stay lit.
+- Version 2 is rendering: the 20 m LOLA grid and a closer framing. Owner's verdict pending.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
