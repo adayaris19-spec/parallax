@@ -106,6 +106,16 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - The clip matches the single-machine render: mean difference 3.1 of 255 per pixel, the size of render and grain noise.
 - Free because the repository is public. A 4-shot video would need four such runs, one after another or queued together.
 
+**AI realism test 1 (Nov 22): one render frame through open Wan 2.2 image-to-video**
+
+- Run by `.github/workflows/shorts-lab-ai.yml` on a public Hugging Face demo. The workflow reported that no `HF_TOKEN` secret was visible to it, so it ran on the no-account quota of the GitHub machine.
+- Output: 480×832, 81 frames at 16 fps (5 s), made in 56 s. Sent to the owner.
+- Gained: natural motion. The astronaut turns, lifts an arm and walks out of frame; the rover drives in; the camera drifts.
+- Failed the accuracy guard: by the last frame the rover is a different vehicle (its solar panels became a plain blue shell and it has four wheels, not six), a dust cloud hangs beside it (impossible without air), a few stars appear, and the ground has turned into soft blobs.
+- Realism: no gain. It keeps the computer-made look of the frame it was given, at a quarter of our resolution.
+- Not tested yet: the step that first makes the frame look photographed (the Qwen-Image-Edit demo returned an error), and the first-and-last-frame mode that pins both ends of the clip to our render.
+- Reading: image-to-video from a rendered frame is not enough on its own. Owner's verdict pending.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
