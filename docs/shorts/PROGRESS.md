@@ -176,7 +176,9 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - The habitat stands where no base exists, on our choice of spot. The first line says "would" and the peak says none has done it; nothing on screen labels it.
   - Earthlight strength, every lamp and all ground detail under about 30 m are modelled, not measured.
   - The voice file is a free open model; pacing is even and a little flat.
-- Owner's verdict pending.
+- **Owner's verdict on version 2 (Nov 22):** "Your voice is good. The text is good." The visuals fail: "it looks like I did this for a school project"; "the detail is bad and the quality has kind of dropped"; "I want it to look really clear… right now it's low-key pixelated"; "the Earth is really bad in the background"; "it's not even moving. It's just going up or down"; "the visuals are boring me because they're just really repeated, and it would be fun if it was repeated if it was really good quality". A new idea from the owner: "you could mix in some articles in there and some other things to differentiate". Not a rejection of the idea: "I definitely see the idea, but it's low-key boring."
+  - Settled by this: the voice (Kokoro `am_michael`, 1.12) and the script method pass. The computer-made scenes as main pictures do not.
+  - Causes on our side, named: sensor grain was added on purpose and then squeezed to 14 Mbit/s, which reads as pixelated; Earth at the night exposure is a white disc; the habitat is the subject of three shots out of five; two of those are tripod time-lapses in which only the sky slides.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
