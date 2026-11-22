@@ -98,6 +98,14 @@ Figures below come from third-party write-ups and vendor pages found by search o
 - First test: our frame through Wan 2.2 image-to-video on a public Hugging Face demo. Refused: the no-account quota for this machine's shared address was already used up. Needs the owner's free account token, added by the owner as the GitHub secret `HF_TOKEN`.
 - Plan put to the owner: keep the accurate 3D scene as the skeleton, add a Wan realism pass that follows it, reject any result that drifts from the render; and split frame rendering across GitHub's free runners to cut a shot from 2 hours to about 15 minutes.
 
+**Speed test (Nov 22): one shot split across GitHub's free machines**
+
+- Workflow `.github/workflows/shorts-lab-render.yml`: the 120 frames are split into 20 chunks, one free runner each. It starts when `tools/shorts-lab/render-request.json` changes on the working branch, uses no secrets and publishes nothing.
+- `tools/shorts-lab/prep_site_data.py` downloads only the rows of NASA's grids that the shot needs (266 MB prepared, 21 s on a runner, kept in the workflow cache) instead of 2.4 GB.
+- Result: the same Moon base shot, same settings, finished in **16 min 44 s** against about 2 hours on one machine. All frames were rendered after about 12 minutes; the rest was one machine applying the camera response and encoding. That step now runs on each runner, so the next run should be shorter.
+- The clip matches the single-machine render: mean difference 3.1 of 255 per pixel, the size of render and grain noise.
+- Free because the repository is public. A 4-shot video would need four such runs, one after another or queued together.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
