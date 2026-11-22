@@ -28,6 +28,11 @@ for ln in plan["lines"]:
     for j, text in enumerate(ln["text"]): subs.append((ln["at"] + starts[j], ln["at"] + (starts[j + 1] if j + 1 < len(starts) else end), text))
 voice = voice[:int(total * SR)]
 subs = [(a, min(b, subs[i + 1][0] - 0.04) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
+def at_cut(a, b):                                                         # a phrase whose words are over does not hang on into the next shot
+    for c in cuts[:-1]:
+        if a < c / FPS - 0.5 and c / FPS - 0.02 < b < c / FPS + 0.45: return c / FPS - 0.02
+    return b
+subs = [(a, at_cut(a, b), t) for a, b, t in subs]
 
 # ---------- score: no beat; it gives way to the voice
 cfg = dict(plan["score"]); mix, _ = score3.render([c / FPS for c in cuts[:-1]], total, cfg, cfg.pop("seed", 7)); music = mix[:, :len(voice)]
@@ -59,7 +64,7 @@ Style: s,{S.get('font', 'Inter Display Medium')},{S.get('size', 58)},&H00FFFFFF,
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """ + "".join(f"Dialogue: 0,{ts(a)},{ts(min(b, total - 0.05))},s,,0,0,0,,{t}\n" for a, b, t in subs)
 open(f"{W}/subs.ass", "w").write(ass)
-run("ffmpeg", "-v", "error", "-y", "-i", f"{W}/picture.mp4", "-i", f"{W}/audio.wav", "-vf", f"ass={W}/subs.ass", "-c:v", "libx264", "-crf", str(plan.get("crf", 17)), "-preset", "slow", "-pix_fmt", "yuv420p", "-r", str(FPS),
+run("ffmpeg", "-v", "error", "-y", "-i", f"{W}/picture.mp4", "-i", f"{W}/audio.wav", "-vf", f"ass={W}/subs.ass", "-c:v", "libx264", "-crf", str(plan.get("crf", 17)), "-maxrate", plan.get("maxrate", "14M"), "-bufsize", "28M", "-tune", "grain", "-preset", "slow", "-pix_fmt", "yuv420p", "-r", str(FPS),
     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-shortest", OUT)
 print("wrote", OUT, "length %.2f s" % total, "loudness %.1f LUFS" % meter.integrated_loudness(out.T), "true peak %.1f dB" % (20 * np.log10(np.max(np.abs(resample_poly(out, 4, 1, axis=1))) + 1e-9)))
 for a, b, t in subs: print("  %5.2f-%5.2f  %s" % (a, b, t))

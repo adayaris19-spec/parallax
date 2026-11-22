@@ -1,60 +1,16 @@
 {
-  "note": "The shots of the Moon base video 'the 354-hour night' (tools/shorts-lab/night-video.json): hook s1, build s2, filler s3 (the whole of October 2026 at the south pole in 3 seconds), peak s4, end s5.",
+  "note": "Moon base night video: the wide habitat time-lapse again at 160 frames, so it can carry the peak (the close one becomes the hook).",
   "scale": 1.0,
   "per_chunk": 7,
   "shots": [
     {"name": "s1",
       "script": "night_video.py",
-      "frames": 110,
+      "frames": 160,
       "spp": 36,
       "env": {
         "SHOT": 1,
         "EV": 0,
         "GRAIN": 0.03
-      }
-    },
-    {"name": "s2",
-      "script": "night_video.py",
-      "frames": 130,
-      "spp": 48,
-      "env": {
-        "SHOT": 2,
-        "EV": 0,
-        "GRAIN": 0.03
-      }
-    },
-    {"name": "s3",
-      "script": "pole_light.py",
-      "frames": 72,
-      "spp": 12,
-      "per_chunk": 9,
-      "env": {
-        "SUB": 5,
-        "K80": 3,
-        "EV": 2.15,
-        "GRAIN": 0.014,
-        "BACK": 64,
-        "ALT": 50
-      }
-    },
-    {"name": "s4",
-      "script": "night_video.py",
-      "frames": 160,
-      "spp": 36,
-      "env": {
-        "SHOT": 3,
-        "EV": 0,
-        "GRAIN": 0.03
-      }
-    },
-    {"name": "s5",
-      "script": "night_video.py",
-      "frames": 110,
-      "spp": 32,
-      "env": {
-        "SHOT": 5,
-        "EV": 0,
-        "GRAIN": 0.016
       }
     }
   ]
