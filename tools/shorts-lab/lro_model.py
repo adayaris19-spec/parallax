@@ -34,15 +34,13 @@ def paint(name, color, rough=0.55):
     m, nt, N, L, b, tc = _nodes(name); b.inputs["Base Color"].default_value = (*color, 1); b.inputs["Roughness"].default_value = rough
     n = N("ShaderNodeTexNoise"); n.inputs["Scale"].default_value = 180.0; n.inputs["Detail"].default_value = 6; L(tc.outputs["Object"], n.inputs["Vector"]); bp = N("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.08; bp.inputs["Distance"].default_value = 0.001; L(n.outputs["Fac"], bp.inputs["Height"]); L(bp.outputs["Normal"], b.inputs["Normal"]); return m
 def cells(name, color):
-    """solar cells: dark blue glass over a grid of cells with thin metal lines between them"""
-    m, nt, N, L, b, tc = _nodes(name); b.inputs["Roughness"].default_value = 0.12; b.inputs["Metallic"].default_value = 0.35
+    """solar cells: dark blue glass over a grid of cells with thin pale lines between them. The pattern is ours; the model's own is a lattice of triangles."""
+    m, nt, N, L, b, tc = _nodes(name); b.inputs["Roughness"].default_value = 0.16; b.inputs["Metallic"].default_value = 0.0
     for k in ("Coat Weight", "Clearcoat"):
         if k in b.inputs: b.inputs[k].default_value = 1.0; break
-    br = N("ShaderNodeTexBrick"); br.offset = 0.0; br.inputs["Scale"].default_value = 1.0; br.inputs["Brick Width"].default_value = 0.080; br.inputs["Row Height"].default_value = 0.040; br.inputs["Mortar Size"].default_value = 0.0007
-    br.inputs["Mortar Smooth"].default_value = 0.0; br.inputs["Color1"].default_value = (*color, 1); br.inputs["Color2"].default_value = (color[0] * 0.85, color[1] * 0.9, color[2] * 1.06, 1); br.inputs["Mortar"].default_value = (0.16, 0.16, 0.18, 1)
-    L(tc.outputs["Object"], br.inputs["Vector"]); L(br.outputs["Color"], b.inputs["Base Color"])
-    fl = N("ShaderNodeTexBrick"); fl.offset = 0.0; fl.inputs["Scale"].default_value = 1.0; fl.inputs["Brick Width"].default_value = 0.080; fl.inputs["Row Height"].default_value = 0.0020; fl.inputs["Mortar Size"].default_value = 0.00025   # the fine collector lines on each cell
-    L(tc.outputs["Object"], fl.inputs["Vector"]); bp = N("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.25; bp.inputs["Distance"].default_value = 0.002; L(fl.outputs["Fac"], bp.inputs["Height"]); L(bp.outputs["Normal"], b.inputs["Normal"]); return m
+    br = N("ShaderNodeTexBrick"); br.offset = 0.0; br.inputs["Scale"].default_value = 1.0; br.inputs["Brick Width"].default_value = 0.080; br.inputs["Row Height"].default_value = 0.040; br.inputs["Mortar Size"].default_value = 0.0006
+    br.inputs["Mortar Smooth"].default_value = 0.0; br.inputs["Color1"].default_value = (*color, 1); br.inputs["Color2"].default_value = (color[0] * 0.8, color[1] * 0.88, color[2] * 1.08, 1); br.inputs["Mortar"].default_value = (0.060, 0.062, 0.070, 1)
+    L(tc.outputs["Object"], br.inputs["Vector"]); L(br.outputs["Color"], b.inputs["Base Color"]); return m
 
 def finish_for(name):
     n = name.lower()
@@ -62,7 +60,7 @@ def load(path):
     """returns (root, parts). Body axes as in the model: +X is the instrument side (toward the Moon in flight), +Z the long axis of the body.
     The model ships with its solar array, antenna boom, gimbal and dish as loose layers; they are put where NASA's assembled model (B) has them."""
     sc = bpy.context.scene; before = set(sc.objects); bpy.ops.import_scene.gltf(filepath=path); new = [o for o in sc.objects if o not in before]; meshes = sorted([o for o in new if o.type == "MESH"], key=lambda o: o.name)
-    lib = {"cells": cells("lro_cells", (0.006, 0.010, 0.040)), "paint": paint("lro_dark", (0.05, 0.05, 0.06)), "paint_black": paint("lro_black", (0.012, 0.012, 0.013), 0.7), "foil_gold": foil("lro_gold", (1.0, 0.72, 0.30)),
+    lib = {"cells": cells("lro_cells", (0.0045, 0.0065, 0.020)), "paint": paint("lro_dark", (0.05, 0.05, 0.06)), "paint_black": paint("lro_black", (0.012, 0.012, 0.013), 0.7), "foil_gold": foil("lro_gold", (1.0, 0.72, 0.30)),
            "foil_bronze": foil("lro_bronze", (0.90, 0.66, 0.38), 0.32, 0.8), "foil_silver": foil("lro_silver", (0.93, 0.93, 0.94), 0.24, 0.9), "paint_white": paint("lro_white", (0.86, 0.86, 0.84)), "metal_grey": metal("lro_grey", (0.55, 0.55, 0.57), 0.38)}
     root = bpy.data.objects.new("lro", None); sc.collection.objects.link(root); parts = dict(zip(("bus", "boom", "gimbal", "dish", "array"), meshes))
     for o in meshes:
@@ -71,9 +69,14 @@ def load(path):
         M = o.matrix_world.copy(); o.parent = None; o.data.transform(Matrix.Scale(SCALE, 4) @ M); o.matrix_world = Matrix.Identity(4); o.parent = root; o.rotation_mode = "QUATERNION"
     for o in new:
         if o.type != "MESH": bpy.data.objects.remove(o)
-    am = parts["array"].data                                                # the array is three flat panels: shade it flat so the glass reflects evenly
+    am = parts["array"].data                                                # the model draws the cells as thousands of small triangles with gaps between them, which reads as a lattice
     if "custom_normal" in am.attributes: am.attributes.remove(am.attributes["custom_normal"])
-    am.shade_flat(); am.update()
+    import bmesh                                                            # so the triangles go, and the panel face just under them carries the cell pattern instead
+    bm = bmesh.new(); bm.from_mesh(am); ci = [i for i, m in enumerate(am.materials) if m and m.name == "lro_cells"]; di = [i for i, m in enumerate(am.materials) if m and m.name == "lro_dark"]
+    faces = list(bm.faces); bmesh.ops.delete(bm, geom=[f for f in faces if f.material_index in ci], context="FACES")
+    for f in bm.faces:
+        if f.material_index in di and f.normal.z > 0.9: f.material_index = ci[0]
+    bm.to_mesh(am); bm.free(); am.shade_flat(); am.update()
     side = Matrix.Rotation(math.radians(90), 4, "X").to_quaternion()      # the boom layer is modelled standing up; on the spacecraft it points out of the -Y side
     parts["boom"].location = BOOM_AT; parts["boom"].rotation_quaternion = side
     parts["gimbal"].location = (BOOM_AT[0], BOOM_AT[1] - 1.96, BOOM_AT[2]); parts["gimbal"].rotation_quaternion = side

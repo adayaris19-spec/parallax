@@ -27,8 +27,9 @@ for i in range(n):
         a = ease((t - lb["in"]) / 0.35)
         if a <= 0: continue
         x, y = P[lb["key"]][0] * W * S, P[lb["key"]][1] * H * S; r = 9 * S; up = lb.get("up", 120) * S * a; f = font("InterDisplay-Medium", lb.get("size", 30)); A = int(255 * a)
-        d.ellipse((x - r, y - r, x + r, y + r), outline=(255, 255, 255, A), width=int(2.2 * S)); d.ellipse((x - 2 * S, y - 2 * S, x + 2 * S, y + 2 * S), fill=(255, 255, 255, A)); d.line((x, y - r, x, y - r - up), fill=(255, 255, 255, int(200 * a)), width=int(1.6 * S))
-        tw = d.textlength(lb["text"], font=f); tx = x - tw / 2 if lb.get("align", "center") == "center" else (x + 10 * S if lb["align"] == "left" else x - tw - 10 * S); d.text((tx, y - r - up - f.size * 1.25), lb["text"], font=f, fill=(255, 255, 255, A))
+        sg = 1 if up >= 0 else -1                                             # a negative "up" hangs the name below the place
+        d.ellipse((x - r, y - r, x + r, y + r), outline=(255, 255, 255, A), width=int(2.2 * S)); d.ellipse((x - 2 * S, y - 2 * S, x + 2 * S, y + 2 * S), fill=(255, 255, 255, A)); d.line((x, y - sg * r, x, y - sg * r - up), fill=(255, 255, 255, int(200 * a)), width=int(1.6 * S))
+        tw = d.textlength(lb["text"], font=f); tx = x - tw / 2 if lb.get("align", "center") == "center" else (x + 10 * S if lb["align"] == "left" else x - tw - 10 * S); d.text((tx, y - sg * r - up - (f.size * 1.25 if sg > 0 else -f.size * 0.15)), lb["text"], font=f, fill=(255, 255, 255, A))
     tg = spec.get("tag")
     if tg:                                                                    # the spacecraft's name, riding above it
         a = ease((t - tg["in"]) / 0.35)

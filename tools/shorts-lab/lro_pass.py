@@ -57,6 +57,9 @@ X, Y, P = TR.far_grid(site, d80, *MID, int(round(2 / Q))); add_grid("mid160", X,
 X, Y, P = TR.far_grid(site, d80, -300, 300, -300, 300, int(round(6 / Q))); add_grid("far480", X, Y, P, [(NEAR[0] + 0.6, NEAR[1] - 0.6, NEAR[2] + 0.6, NEAR[3] + 0.6), (MID[0] + 0.6, MID[1] - 0.6, MID[2] - 0.6, MID[3] - 0.6)]); del X, Y, P
 bpy.ops.mesh.primitive_uv_sphere_add(segments=720, ring_count=360, radius=(LS.R - 9.0) * 1000.0, location=tuple(MOON_C)); sph = bpy.context.object; sph.name = "moon_beyond"; sph.data.materials.append(m)
 for p_ in sph.data.polygons: p_.use_smooth = True
+moon = bpy.data.objects.new("moon", None); scene.collection.objects.link(moon)          # the spacecraft stays at the scene's origin and the Moon moves under it: the model has parts 0.4 mm apart,
+for o in list(scene.objects):                                                            # which only render cleanly where coordinates are small
+    if o.type == "MESH": o.parent = moon
 
 # ---------- Sun, Earth
 SUNE = 10.0; sl = bpy.data.lights.new("sun", "SUN"); sl.energy = SUNE; sl.angle = 2 * math.asin(695700.0 / sdist); sun = bpy.data.objects.new("sun", sl); scene.collection.objects.link(sun); sun.rotation_mode = "QUATERNION"; sun.rotation_quaternion = Vector(sd).to_track_quat("Z", "Y")
@@ -80,8 +83,9 @@ def craft(tt):
     y = Y0 + SPEED * DUR * (tt - 0.5); p = loc(X0, y, ALT * 1000.0); fwd = loc(X0, y + 0.5, ALT * 1000.0) - loc(X0, y - 0.5, ALT * 1000.0); up = p - MOON_C; up /= np.linalg.norm(up); fwd -= up * (fwd @ up); fwd /= np.linalg.norm(fwd)
     back = -fwd if E("FLIP", 1) else fwd                                       # the spacecraft flies either way round (it turns end for end twice a year); here its equipment deck trails
     R = np.stack([-up, np.cross(back, -up), back], 1); return p, R, up, fwd
+HERE_P = np.zeros(3)
 def place(tt):
-    p, R, up, fwd = craft(tt); root.location = tuple(p); root.rotation_quaternion = Matrix(R.tolist()).to_quaternion(); LM.point(parts, R.T @ sd, R.T @ ed); return p, R, up, fwd
+    p, R, up, fwd = craft(tt); HERE_P[:] = p; moon.location = tuple(-p); root.location = (0.0, 0.0, 0.0); root.rotation_quaternion = Matrix(R.tolist()).to_quaternion(); LM.point(parts, R.T @ sd, R.T @ ed); return np.zeros(3), R, up, fwd
 
 # ---------- the camera: beside and above the spacecraft, pulling back so the pole and Earth open up behind it
 cd = bpy.data.cameras.new("cam"); cd.sensor_fit = "VERTICAL"; cd.sensor_height = 36; cd.lens = E("LENS", 60.0); cd.clip_start = 0.2; cd.clip_end = 1.0e9; cam = bpy.data.objects.new("cam", cd); scene.collection.objects.link(cam); scene.camera = cam; cam.rotation_mode = "QUATERNION"
@@ -94,12 +98,12 @@ def set_cam(tt):
     look = aim(E("AZ0", 7.0) + (E("AZ1", 8.2) - E("AZ0", 7.0)) * k, E("PITCH0", -17.6) + (E("PITCH1", -16.6) - E("PITCH0", -17.6)) * k, up, fwd)
     pos = p + np.array([0.0, 0.0, 0.0]) - to_craft * D; cam.location = tuple(pos); q = Vector(look).to_track_quat("-Z", "Y"); zc = q @ Vector((0, 1, 0)); roll = math.atan2(float(np.cross(np.array(zc), up) @ look), float(np.array(zc) @ up))
     cam.rotation_quaternion = q @ Matrix.Rotation(-roll, 4, "Z").to_quaternion()            # the horizon stays level with the Moon under the spacecraft, not with the far-off site
-LABELS = {"Shackleton crater": (7.69, -6.40), "Connecting Ridge": (CX, CY), "South Pole": (0.0, 0.0)}
+LABELS = {"Shackleton crater": (7.69, -6.40), "Shackleton floor west": (2.2, -6.9), "Connecting Ridge": (CX, CY), "South Pole": (0.0, 0.0)}
 def label_points():
     o = {}
     for name, (x, y) in LABELS.items():
         h = float(d5.cut(x - 0.03, x + 0.03, y - 0.03, y + 0.03)[0].max()) if abs(x - CX) < 5 and abs(y - CY) < 5 else float(d40.cut(x - 0.2, x + 0.2, y - 0.2, y + 0.2)[0].mean())
-        v = world_to_camera_view(scene, cam, Vector(tuple(loc(x, y, h)))); o[name] = [round(v.x, 5), round(1 - v.y, 5), round(v.z, 1)]
+        v = world_to_camera_view(scene, cam, Vector(tuple(loc(x, y, h) - HERE_P))); o[name] = [round(v.x, 5), round(1 - v.y, 5), round(v.z, 1)]
     v = world_to_camera_view(scene, cam, root.location); o["_craft"] = [round(v.x, 5), round(1 - v.y, 5), round(v.z, 2)]; ve = world_to_camera_view(scene, cam, Vector(tuple(np.array(ed) * ED))); o["_earth"] = [round(ve.x, 5), round(1 - ve.y, 5)]; return o
 
 # ---------- render

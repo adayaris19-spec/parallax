@@ -1,8 +1,19 @@
 {
-  "note": "Hero shot for the new quality bar: NASA's Lunar Reconnaissance Orbiter over the south pole, 3.5 s, rendered at 1.5 times delivery size and scaled down. No grain.",
+  "note": "Hero shot, second pass: the solar wing is one continuous panel with a cell pattern (the model's triangle lattice is gone); the spacecraft stays at the scene's origin.",
   "scale": 1.5,
-  "per_chunk": 5,
+  "per_chunk": 3,
   "shots": [
-    {"name": "lro", "script": "lro_pass.py", "frames": 84, "spp": 80, "env": {"EV": 0, "GRAIN": 0, "SOFT": 0.3, "BLACK": 0.004, "OUTW": 1080}}
+    {"name": "lro",
+      "script": "lro_pass.py",
+      "frames": 84,
+      "spp": 80,
+      "env": {
+        "EV": 0,
+        "GRAIN": 0,
+        "SOFT": 0.3,
+        "BLACK": 0.004,
+        "OUTW": 1080
+      }
+    }
   ]
 }
