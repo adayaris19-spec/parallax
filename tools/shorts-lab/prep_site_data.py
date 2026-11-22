@@ -15,7 +15,7 @@ def window(name, n, step, half, out):
     R0, R1 = n - r1, n - r0; tmp = out + ".part"; curl(PDS + name, tmp, f"{R0 * n * 2}-{R1 * n * 2 - 1}")
     a = np.fromfile(tmp, "<i2").reshape(R1 - R0, n)[:, c0:c1].copy(); os.remove(tmp); np.savez_compressed(out, a=a, r_off=R0, c_off=c0); print(name, a.shape, flush=True)
 for d in ("", "spice", "models_plain", "earthglobal", "tmp"): os.makedirs(f"{OUT}/{d}", exist_ok=True)
-window("ldem_875s_5m.img", 30336, 0.005, 5.2, f"{OUT}/dem5.npz"); window("ldem_80s_40m.img", 15200, 0.04, 33.0, f"{OUT}/dem40.npz")
+window("ldem_875s_5m.img", 30336, 0.005, 5.2, f"{OUT}/dem5.npz"); window("ldem_80s_40m.img", 15200, 0.04, 33.0, f"{OUT}/dem40.npz"); window("ldem_80s_20m.img", 30400, 0.02, 33.0, f"{OUT}/dem20.npz")
 if not os.path.exists(f"{OUT}/dem80.npz"):
     curl(PDS + "ldem_80s_80m.img", f"{OUT}/tmp/d80.img"); a = np.fromfile(f"{OUT}/tmp/d80.img", "<i2").reshape(7600, 7600); np.savez_compressed(f"{OUT}/dem80.npz", a=a, r_off=0, c_off=0); os.remove(f"{OUT}/tmp/d80.img")
 for k, u in (("de421.bsp", "spk/planets/a_old_versions/de421.bsp"), ("moon_pa_de421_1900-2050.bpc", "pck/moon_pa_de421_1900-2050.bpc"), ("moon_080317.tf", "fk/satellites/moon_080317.tf"), ("pck00008.tpc", "pck/a_old_versions/pck00008.tpc")): curl(NAIF + u, f"{OUT}/spice/{k}")

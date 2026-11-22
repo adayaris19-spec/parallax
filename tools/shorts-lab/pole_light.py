@@ -39,7 +39,8 @@ def add_grid(name, P, hole=None, XY=None):
     nq = len(q); me.loops.add(nq * 4); me.loops.foreach_set("vertex_index", q.reshape(-1)); me.polygons.add(nq); me.polygons.foreach_set("loop_start", np.arange(0, nq * 4, 4, dtype=np.int32))
     me.update(calc_edges=True); me.shade_smooth(); me.materials.append(m); scene.collection.objects.link(bpy.data.objects.new(name, me)); log(name, P.shape[:2], "faces", nq)
 W40 = 32.5
-X, Y, P = TR.far_grid(site, d40, CX - W40, CX + W40, CY - W40, CY + W40, 1, 0.7); add_grid("r40", P)
+if os.path.exists(f"{DATA}/dem20.npz"): X, Y, P = TR.far_grid(site, LS.Dem(f"{DATA}/dem20.npz", 30400, 0.02), CX - W40, CX + W40, CY - W40, CY + W40, 1, 1.0); add_grid("r20", P)       # the 20 m grid where the camera looks
+else: X, Y, P = TR.far_grid(site, d40, CX - W40, CX + W40, CY - W40, CY + W40, 1, 0.7); add_grid("r40", P)
 K = int(E("K80", 3)); X, Y, P = TR.far_grid(site, d80, -300, 300, -300, 300, K); add_grid("r80", P, (CX - W40 + 0.3, CX + W40 - 0.3, CY - W40 + 0.3, CY + W40 - 0.3), (X, Y)); del X, Y, P
 
 sl = bpy.data.lights.new("sun", "SUN"); sl.energy = E("SUN", 10.0); sun = bpy.data.objects.new("sun", sl); scene.collection.objects.link(sun); sun.rotation_mode = "QUATERNION"
