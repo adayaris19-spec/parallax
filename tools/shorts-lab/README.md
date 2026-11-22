@@ -70,3 +70,28 @@ The first complete video: five shots, narration, subtitles and score. Nothing is
 - At the night exposure Earth is a white disc, as a camera would record it, and can be mistaken for the Moon.
 - People turn and lift one arm; they do not walk.
 - The habitat model is clean and simple at close range.
+
+## Orbiter over the south pole (Nov 22, 2026)
+
+A 3.5 s shot made to set a higher bar after the first complete video was judged "like a school project". Not published.
+
+- Shot: `lro_pass.py` (scene) and `lro_model.py` (the spacecraft). Explainer layer: `explain.py` with `lro-explain.json`. Example with its line: `lro-example.json` through `make_video.py`.
+- Frames are rendered at 1.5 times delivery size and scaled down in `comp_real.py` (`OUTW=1080`), with no grain (`GRAIN=0`) and little softness (`SOFT=0.3`).
+
+**Measured or published**
+- Terrain: NASA LOLA elevation, 40 m grid under and ahead of the spacecraft, 80 m grid to the horizon.
+- Sun and Earth: JPL DE421 for 16 October 2026 00:00 UTC, chosen so the Sun lights the pole from the side and Earth is above the Moon's edge as seen from 50 km up. Earth's clouds: NASA GIBS, the same day.
+- Spacecraft: NASA's "Lunar Reconnaissance Orbiter (A)" model for the shapes. Its solar array, antenna boom and dish ship as loose parts; they are placed where NASA's assembled model (B) has them. It flies as the real one does: instruments to the Moon, array to the Sun, dish to Earth, 50 km up at 1.66 km/s.
+- Place names: Shackleton crater (89.67°S, 129.78°E) and the pole, drawn where the terrain puts them in each frame.
+- Source card: the paper the app lists for this fact, "Illumination conditions of the lunar polar regions using LOLA topography" (Mazarico et al., Icarus; the app's record gives 2010).
+
+**Modelled by us**
+- Where on its orbit the spacecraft is at that moment (no tracking data used).
+- Every surface finish: blanket foil, paint, bare metal. The model ships with flat colours only.
+- The solar cells. The model draws them as thousands of small triangles with gaps, which reads as a lattice close up; they are replaced by one panel face with a rectangular cell pattern of ours.
+- The camera. No spacecraft flies beside the orbiter.
+
+**Known limits**
+- The close frames take up to 14 minutes each on one machine, so 84 frames took 74 minutes on 17 machines.
+- Nothing on the spacecraft moves in the shot; in 3.5 s nothing on the real one would.
+- Black sky fills about a third of the frame; Earth above the Moon's edge needs that much sky.
