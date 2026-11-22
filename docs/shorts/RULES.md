@@ -88,6 +88,18 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - Realistic means true to where the goal really stands. What has not been built is not shown as built. A future thing appears only under a line that says it is planned, and only as the published plan describes it.
   - The Nov 22 Moon base test fails all of this: prototypes from different programmes, placed together at a site, serving no line. It stays in the lab as a test of movement and speed only.
   - This withdraws the Nov 22 draft measure "at least 6 separately identifiable things in frame". Richness has to come from the real subject's own detail, not from added objects.
+- **Made 3D stays the star, and the bar is film visual effects (owner, Nov 22, on the first complete video):** "It looks like I did this for a school project." "I still want this to be the main star of the thing… Interstellar… and so many other films or projects. Aim that high bar standard. Really push the limits." (The owner means computer-made film effects.)
+  - Clear: "I want it to look really clear. Right now it's low-key pixelated." No grain or softness is added. Frames are rendered larger than delivery size and scaled down. Any visible blockiness at 100% is a fail.
+  - Detail: hardware seen close comes from its maker's own high-detail model. A model that looks simple at the size it has in frame is not used at that size.
+  - Earth: "The Earth is really bad in the background." When Earth is in frame it is exposed so that oceans and clouds show, and it is at least 150 px across (draft). Otherwise it is left out. Never a white disc.
+  - Movement: "It's not even moving. It's just going up or down." In every made shot the camera travels, and at least one thing in the scene moves on its own. A tripod time-lapse in which only the sky slides is a fail as a main shot.
+  - Variety: "The visuals are boring me because they're just really repeated." No subject appears in more than one shot of a video.
+- **Explainer mix (owner, Nov 22):** "You could mix in some articles in there and some other things to differentiate." Asked which kinds: "depending on the situation all could work"; asked about the look: "I still want 3D with more detail, but you can mix it with explainer mix."
+  - Allowed elements: a headline card (outlet, headline, date); the real page with the key sentence highlighted; a big number or quote with its source named; maps and charts drawn from the data.
+  - Each element comes from one of the goal's own sources. A page is shown only when its source is free to show (space agencies, open-access papers); any other source gets a headline card.
+  - An element sits over a moving picture, never over a still or a flat background.
+  - Made 3D carries at least 60% of the running time (draft).
+- **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
   - One exposure also holds at night. A camera exposed for ground lit by Earth records Earth itself as a white disc, so that is how it is shown. Earth appears blue only in a daylight exposure.
@@ -111,9 +123,10 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
 Draft confirmed Nov 21.
 
 - **Length:** 20.0–25.0 s (settled).
-- **Shots:** exactly 4 main shots, one per beat (hook, build, peak, end). Each main shot runs 4.5–7.0 s.
-  - **Filler (owner, Nov 22, on the south pole time-lapse):** "This can be like a filler one that's like 3 seconds max, but definitely not the main one." A video may carry at most one filler shot of at most 3.0 s between main shots. A filler still serves a line. With a filler there are 4 joins, otherwise 3.
+- **Shots (owner, Nov 22): 7 to 9 shots, about 2.0–3.5 s each.** This replaces the Nov 21 rule of exactly 4 shots of 4.5–7.0 s, which made the first complete video feel repeated. The four beats (hook, build, peak, end) stay; a beat may run over two or three shots.
+  - No subject appears in more than one shot.
+  - The filler rule of Nov 22 (one shot of at most 3.0 s) is absorbed: every shot is now this short.
 - **First frame:** the most striking picture of the video, at full brightness from frame 1. The hook line starts inside the first 1.0 s.
-- **Peak:** shot 3. It starts between 50% and 70% of the running time (about 11–16 s).
-- **End:** shot 4. One forward-looking line; the last word ends 0.5–1.5 s before the final frame; no end card (see section 1).
-- **Avoid:** any main shot shorter than 4.5 s; more than 4 main shots; more than one filler; opening on a fade, a title or a dark frame.
+- **Peak:** it starts between 50% and 70% of the running time (about 11–16 s).
+- **End:** the last shot. One forward-looking line; the last word ends 0.5–1.5 s before the final frame; no end card (see section 1).
+- **Avoid:** fewer than 7 or more than 9 shots; any shot under 2.0 s; a subject shown twice; opening on a fade, a title or a dark frame.
