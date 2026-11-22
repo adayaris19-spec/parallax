@@ -119,3 +119,13 @@ The plan is `moonbase-v4.json`. The owner's verdict on the first restart was "th
   - Modelled: the person (NASA's Z2 suit model), where they stand, the stones and bootprints, the camera.
 - Tried and dropped: night falling on the summit seen from the ground toward the Sun (SHOT 9). With the Sun under 1° up, ground facing the camera is almost unlit; the frame was black with a white dot at any exposure.
 
+## Action shots: a space film (Nov 22-23, 2026)
+
+The owner's direction after the second restart: made 3D of the real place, showing events. These shots come from the rover scene (`base_scene.py` with `base_props.py`), on the ridge's west slope on 6 September 2026.
+
+- `RIDE=1` makes the camera travel with the near rover (`RIDE_F` metres ahead, `RIDE_S` to its left, `RIDE_H` up; `LOOK_F`, `LOOK_H` where it looks). `ROVER_V` is the speed; 2.8 m/s is the rover's published top speed. `CONVOY` puts the second rover that many metres behind the first, with its own dust. `FSTOP` gives the lens an aperture.
+- Dust: `DUST` grains per rover, `DUSTR` their size, `DUST_TH0`/`DUST_TH1` how far round the wheel they can leave it, `DUST_ALB` how bright they are. Each grain leaves the rim at the rim's speed and then only gravity acts.
+- `LANDER=1` adds a tall crew lander descending at `LND_U`, `LND_V` (modelled from NASA's published pictures of the Artemis lander; approximate). `SPRAY` is the number of soil grains its blast drives off.
+- `DIG=1` turns the digging robot's drums and sheds soil (not good enough to use yet).
+- The plan for the two-shot opening is `moonbase-v5-opening.json`.
+
