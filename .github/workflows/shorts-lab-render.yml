@@ -22,6 +22,8 @@ jobs:
       spp: ${{ steps.m.outputs.spp }}
       scale: ${{ steps.m.outputs.scale }}
       q: ${{ steps.m.outputs.q }}
+      script: ${{ steps.m.outputs.script }}
+      envs: ${{ steps.m.outputs.envs }}
     steps:
       - uses: actions/checkout@v4
       - name: Split the frames into chunks
@@ -34,6 +36,10 @@ jobs:
           inc = [{"chunk": i, "first": i * per, "last": min(n, (i + 1) * per) - 1} for i in range(k) if i * per < n]
           print("matrix=" + json.dumps({"include": inc}))
           print(f"frames={n}"); print(f"spp={int(r.get('spp', 32))}"); print(f"scale={float(r.get('scale', 1))}"); print(f"q={float(r.get('q', 1))}")
+          import re
+          script = r.get("script", "base_scene.py"); assert re.fullmatch(r"[a-z_0-9]+\.py", script), "bad script name"
+          envs = " ".join(f"{k}={v}" for k, v in r.get("env", {}).items() if re.fullmatch(r"[A-Z0-9_]+", k) and re.fullmatch(r"[0-9.,\-]+", str(v)))
+          print(f"script={script}"); print(f"envs={envs}")
           PY
       - name: Site data (kept between runs)
         id: cache
@@ -78,13 +84,17 @@ jobs:
           SPP: ${{ needs.plan.outputs.spp }}
           SCALE: ${{ needs.plan.outputs.scale }}
           Q: ${{ needs.plan.outputs.q }}
+          SCRIPT: ${{ needs.plan.outputs.script }}
+          ENVS: ${{ needs.plan.outputs.envs }}
         run: |
           mkdir -p frames
-          python tools/shorts-lab/base_scene.py labdata frames ${{ matrix.first }} ${{ matrix.last }} ${{ needs.plan.outputs.frames }} > render.log 2>&1 || { tail -40 render.log; exit 1; }
+          env $ENVS python "tools/shorts-lab/$SCRIPT" labdata frames ${{ matrix.first }} ${{ matrix.last }} ${{ needs.plan.outputs.frames }} > render.log 2>&1 || { tail -40 render.log; exit 1; }
           grep -E "^\[" render.log | tail -12
           ls frames/*.exr | wc -l
       - name: Camera response (done here so every machine shares the work)
-        run: python tools/shorts-lab/comp_real.py frames out ${{ matrix.first }} ${{ matrix.last }}
+        env:
+          ENVS: ${{ needs.plan.outputs.envs }}
+        run: env $ENVS python tools/shorts-lab/comp_real.py frames out ${{ matrix.first }} ${{ matrix.last }}
       - uses: actions/upload-artifact@v4
         with:
           name: frames-${{ matrix.chunk }}

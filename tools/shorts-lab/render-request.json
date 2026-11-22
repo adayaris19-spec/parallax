@@ -1,1 +1,1 @@
-{"frames": 120, "chunks": 20, "spp": 32, "scale": 1.0, "q": 1.0, "note": "the improved Moon base shot, with the suit shading fixed"}
+{"script": "pole_light.py", "frames": 120, "chunks": 20, "spp": 12, "scale": 1.0, "env": {"SUB": 3, "K80": 3, "EV": 2.15, "GRAIN": 0.014}, "note": "Moon base video, peak shot: one real month of sunlight at the south pole (October 2026) in 5 seconds"}
