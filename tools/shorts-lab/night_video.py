@@ -17,11 +17,11 @@ def log(*a): print(f"[{time.time()-t0:6.1f}s]", *a, flush=True)
 CX, CY = -11.52, -12.44; Q = E("Q", 1.0); SHOT = int(E("SHOT", 2)); a_, b_, nf = (int(ARGS[0]), int(ARGS[1]), int(ARGS[2])) if ARGS else (0, 0, 1)
 TOP, BASE = (0.0, 0.0), (-74.0, 14.0)                    # world metres from the summit: the summit itself; ground just west of it, in the hill's own shadow that week
 SHOTS = {
-    1: dict(utc=(2026, 4, 22, 9, 0), span=38.0, layout="base", people=False, pos=(-71.6, -39.9), az=1.5, pitch=-4.5, h=1.5, lens=40, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=8.5, expo=1.6e5),   # the dark spell at a habitat, 38 hours in one take: the stars slide past, Earth stays where it is
+    1: dict(utc=(2026, 4, 22, 9, 0), span=38.0, layout="base", people=False, pos=(-71.6, -39.9), az=1.5, pitch=-4.5, h=1.5, lens=40, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=4.5, expo=2.4e5),   # the dark spell at a habitat, 38 hours in one take: the stars slide past, Earth stays where it is
     2: dict(utc=(2026, 4, 22, 21, 0), span=0.0, layout="base", people=True, pos=(-70.0, -18.0), az=356.0, pitch=-11.0, h=1.6, lens=28, dolly=(0.25, 1.1), pan=-1.0, earth="2026-04-22", dur=5.4, expo=1.0e5),  # the same night at the habitat, real time
-    3: dict(utc=(2026, 4, 22, 12, 0), span=20.0, layout="base", people=False, pos=(-71.6, -39.9), az=359.5, pitch=0.2, h=1.5, lens=70, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.6, expo=1.6e5),    # the same dark spell from closer: 20 hours, lit windows, the stars sliding behind
+    3: dict(utc=(2026, 4, 22, 12, 0), span=30.0, layout="base", people=False, pos=(-71.6, -39.9), az=0.2, pitch=0.2, h=1.5, lens=70, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=6.6, expo=2.4e5),      # the same dark spell from closer: 30 hours, lit windows, the stars sliding behind
     4: dict(utc=(2026, 4, 21, 22, 0), span=14.0, layout="bare", people=False, pos=(-3.0, -8.0), az=5.0, pitch=-3.0, h=1.65, lens=50, dolly=(0.0, 0.0), pan=0.0, earth="2026-04-22", dur=3.2, expo=1.0e5),     # from the summit as that dark spell begins: the last sunlight leaves a far ridge
-    5: dict(utc=(2026, 9, 6, 0, 0), span=0.0, layout="astro", people=True, pos=(-202.0, -56.0), az=9.0, pitch=-9.5, h=1.55, lens=32, dolly=(0.5, 0.35), pan=-1.2, earth="2026-09-06", dur=3.85, expo=4.3),     # the ridge in the sunny season, on the west slope that faces the low Sun: a person, real time
+    5: dict(utc=(2026, 9, 6, 0, 0), span=0.0, layout="astro", people=True, pos=(-202.0, -56.0), az=9.0, pitch=-9.5, h=1.55, lens=32, dolly=(0.5, 0.35), pan=-1.2, earth="2026-09-06", dur=4.55, expo=4.3),     # the ridge in the sunny season, on the west slope that faces the low Sun: a person, real time
 }
 C = SHOTS[SHOT]; NIGHT = C["expo"] > 100
 for k in ("az", "pitch", "h", "lens", "pan", "span"): C[k] = E(k.upper(), C[k])

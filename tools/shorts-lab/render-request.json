@@ -1,11 +1,11 @@
 {
-  "note": "The shots of the Moon base video 'the 354-hour night' (tools/shorts-lab/night-video.json). s3 is the south pole filler: the whole of October 2026 in 3 seconds.",
+  "note": "The shots of the Moon base video 'the 354-hour night' (tools/shorts-lab/night-video.json): hook s1, build s2, filler s3 (the whole of October 2026 at the south pole in 3 seconds), peak s4, end s5.",
   "scale": 1.0,
   "per_chunk": 7,
   "shots": [
     {"name": "s1",
       "script": "night_video.py",
-      "frames": 206,
+      "frames": 110,
       "spp": 36,
       "env": {
         "SHOT": 1,
@@ -39,7 +39,7 @@
     },
     {"name": "s4",
       "script": "night_video.py",
-      "frames": 86,
+      "frames": 160,
       "spp": 36,
       "env": {
         "SHOT": 3,
@@ -49,7 +49,7 @@
     },
     {"name": "s5",
       "script": "night_video.py",
-      "frames": 92,
+      "frames": 110,
       "spp": 32,
       "env": {
         "SHOT": 5,
