@@ -206,6 +206,24 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
 - The video now being made (plan: `tools/shorts-lab/moonbase-v3.json`): 8 shots, all made 3D of the goal's own subject, with a graphics layer (`explain.py`, specs in `tools/shorts-lab/specs/`): a counter to 354 hours, the night temperature, named places with the source paper, and a strip of one year of sunlight at the ridge summit.
   - New in the pictures: no grain; Earth readable in night shots (held back, shown as an eye would see it); the Milky Way; a pass over the pole without the orbiter; the habitat in two shots only, at different scales.
   - The sunlight strip is our own calculation from NASA LOLA terrain and the JPL ephemeris (`summit-sunlight-2026.json`): some Sun in 88.5% of the hours of 2026 at the summit, longest spell without any 152 hours. It is shown as a picture with its method named; the figures are not narrated.
+- **Restart video sent to the owner (Nov 22, 21:05 UTC+1): 23.4 s, 8 shots, all made 3D, with sound.** Waiting for the verdict.
+
+  | Shot | Seconds | Picture | Graphics |
+  |---|---|---|---|
+  | 1 | 2.2 | The lit habitat at night, Earth above | Counter running to 354 hours |
+  | 2 | 2.4 | A month of sunlight sweeping the south pole | The counter reaches 354 |
+  | 3 | 3.5 | A far ridge losing its last sunlight | −173 °C, "about 100 K" |
+  | 4 | 2.0 | A person outside the lit habitat | none |
+  | 5 | 3.5 | The Lunar Reconnaissance Orbiter over the pole, Earth beyond | Place names, the source paper |
+  | 6 | 2.8 | A glide toward Shackleton crater, Earth above | The ridge named, one year of its sunlight as a strip |
+  | 7 | 3.3 | The empty ridge under the Milky Way | none |
+  | 8 | 3.7 | An astronaut on the ridge in sunlight, Earth beyond | none |
+
+  - Rendering: five new shots in one run of 34 minutes, then the glide again in 8 minutes (84 frames on 17 machines). Three shots are earlier renders used again: the sweep, the orbiter and the astronaut (the astronaut with its grain removed).
+  - Fault found before sending: Earth was a plain white disc in the pass over the pole. Cause: in `lro_pass.py` a comment on the same line had swallowed the code that puts the cloud picture on the globe. Fixed and rendered again. The same check showed the camera moved only 5.8 km, which read as a still; it now travels 36 km and drops 8 km.
+  - Changed in the edit: the sweep now ends bright (it ended at 9/255 mean brightness); the chart no longer sits on a second copy of the sweep but on the glide, with the ridge it describes marked; the two darkest night shots are lifted in the grade.
+  - Measured on the file: 1080×1920, 24 fps, 23.42 s, 12.7 Mbit/s, 37 MB. Sound −15.0 LUFS, true peak −1.7 dBTP. The narration transcribed from the final mix matches the subtitles word for word (100%).
+  - Still wrong, said plainly: 40% of the picture over the whole video is darker than 8/255 (limit for a draft is 15%); shot 3's ridge and ground are soft and read as computer-made; the habitat and both astronauts are NASA's plain models and look like models; the pole is seen from above in three shots (2, 5, 6), though each with a different subject in front; nothing was newly designed for colour beyond the orbiter's gold and blue, Earth, the lamp light and the gold chart.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

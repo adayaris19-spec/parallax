@@ -1,7 +1,8 @@
 # The explainer layer over a rendered shot: place labels that stay on their place as the camera moves, a tag on the
 # spacecraft, and a card naming the source of the fact. Text is drawn at twice the frame size and scaled down so edges stay clean.
 # usage: python explain.py CLIP.mp4 LABELS_DIR SPEC.json OUT.mp4      (LABELS_DIR may be "-" when the spec has no place labels)
-#   LABELS_DIR holds labels_NNNN.json per frame (written by the shot script: where each named point is on screen)
+#   LABELS_DIR holds labels_NNNN.json per frame (written by the shot script: where each named point is on screen);
+#   "label_offset" in the spec is the shot frame the clip starts on, when the clip was trimmed
 import os, sys, json, subprocess
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 clip, labdir, spec, out = sys.argv[1], sys.argv[2], json.load(open(sys.argv[3])), sys.argv[4]; W, H, FPS, S = 1080, 1920, 24, 2
@@ -22,7 +23,7 @@ def wrap(d, text, f, maxw):
         else: lines.append(cur); cur = w
     return lines + [cur]
 for i in range(n):
-    t = i / FPS; P = json.load(open(f"{labdir}/labels_{i:04d}.json")) if labdir != "-" else {}; lay = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    t = i / FPS; P = json.load(open(f"{labdir}/labels_{i + spec.get('label_offset', 0):04d}.json")) if labdir != "-" else {}; lay = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for lb in spec.get("labels", []):                                         # a ring on the place, a thin line up, the name
         a = ease((t - lb["in"]) / 0.35)
         if a <= 0: continue

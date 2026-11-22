@@ -95,3 +95,14 @@ A 3.5 s shot made to set a higher bar after the first complete video was judged 
 - The close frames take up to 14 minutes each on one machine, so 84 frames took 74 minutes on 17 machines.
 - Nothing on the spacecraft moves in the shot; in 3.5 s nothing on the real one would.
 - Black sky fills about a third of the frame; Earth above the Moon's edge needs that much sky.
+
+## Moon base video, restart (Nov 22, 2026)
+
+The plan is `moonbase-v3.json`: 8 shots, 23.4 s, every shot made 3D, with a graphics layer over five of them.
+
+- Shots come from `night_video.py` (SHOT 3, 7, 2, 6, 5), `pole_light.py` (the sunlight sweep) and `lro_pass.py` (the orbiter; with `NOCRAFT=1` a free camera gliding toward Shackleton crater).
+- Graphics are drawn by `explain.py` from the specs in `specs/`: a running counter (`s1`, `s2`), a temperature (`s3`), place names with the source paper (`s5`), and the year strip (`s6`). `label_offset` in a spec is the shot frame a trimmed clip starts on, so names stay on their places.
+- The year strip is `summit-sunlight-2026.json`: for each hour of 2026, the share of the Sun's disc above the horizon at the Connecting Ridge summit, computed from NASA LOLA terrain and the JPL ephemeris. It is our calculation, shown with its method named.
+- `make_video.py` joins the shots, places the narration, writes subtitles and the score, and sets loudness.
+- Measured or published: terrain, Sun and Earth positions, Earth's clouds for the day, the orbiter's shape, the habitat's and astronaut's shapes (NASA models). Modelled: all surface finishes, the lamps, where things stand, every camera. In night shots Earth is held back to what an eye would see; at the exposure that shows stars it would be a white disc.
+
