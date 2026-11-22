@@ -195,7 +195,17 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Second render: 84 frames in 28 chunks, 60 minutes (the longest chunk 42 minutes). Sent to the owner as a 3.5 s example with its line, subtitle and explainer layer.
   - Measured on the example: 1080×1920, 24 fps, 3.50 s, 9.3 Mbit/s. Sound −14.9 LUFS, true peak −1.9 dBTP. Between consecutive frames the wing changes by 1.7/255 and the foil by 0.8/255 (no shimmer). Earth is 113 px across.
   - Still wrong, said plainly: 38–53% of the frame is darker than 8/255 (black sky plus the pole's real shadows), over the 15% draft limit; nothing on the spacecraft moves; one 3.5 s shot cost an hour of rendering on 20 machines, against a draft budget of 15 minutes per shot; the cell pattern and all finishes are ours, not photographed.
-- Owner's verdict on the hero shot pending.
+- **Owner's verdict on the hero shot (Nov 22):** rejected. "This 3-second clip took you 4 hours." "You're not really applying the feedback… every single time I say change it, it's actually the same." "Go back to the inspirations… restart from the beginning." Rules in `RULES.md` section 2 ("Restart").
+
+**Restart (Nov 22, evening)**
+
+- Re-read `MASTER_PROMPT.md`, `SUMMARY.md`, the verdicts and the reference pictures. What had been the same in every version: a slow, grey Moon under black sky with one computer-made object. What had been skipped: Phase 3, the north star.
+- Asked three questions. Answers: all four faults apply (dull and colourless; nothing happens; looks computer-made; wrong things shown); the look is cinematic; the mix is mostly made 3D with real footage, source cards and fillers allowed.
+- First plan after that used NASA's real Artemis II footage (launch, crew, the Moon from Orion). The owner stopped it: the crew "doesn't relate" to the goal, real footage should be little, and there must be no visible break between real and made. All real footage was dropped.
+- Tested and dropped two new opening shots that look toward the Sun over the pole: both render almost black, because ground lit by a Sun 1.6° up shows its unlit side to a camera facing the Sun.
+- The video now being made (plan: `tools/shorts-lab/moonbase-v3.json`): 8 shots, all made 3D of the goal's own subject, with a graphics layer (`explain.py`, specs in `tools/shorts-lab/specs/`): a counter to 354 hours, the night temperature, named places with the source paper, and a strip of one year of sunlight at the ridge summit.
+  - New in the pictures: no grain; Earth readable in night shots (held back, shown as an eye would see it); the Milky Way; a pass over the pole without the orbiter; the habitat in two shots only, at different scales.
+  - The sunlight strip is our own calculation from NASA LOLA terrain and the JPL ephemeris (`summit-sunlight-2026.json`): some Sun in 88.5% of the hours of 2026 at the summit, longest spell without any 152 hours. It is shown as a picture with its method named; the figures are not narrated.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

@@ -1,0 +1,197 @@
+{
+ "title": "Moon base: the 354-hour night (restart, all made 3D)",
+ "goal": "moon-base",
+ "note": "Every sentence comes from the goal's facts in the app (bottlenecks b3.1, b3.3, b2.5 for the temperature shown, and the pending promise 'NASA astronauts would visit the Moon's south pole by 2030'). Every shot is made 3D of the goal's own subject; nothing real is inserted.",
+ "cuts": [
+  53,
+  110,
+  194,
+  242,
+  326,
+  394,
+  474,
+  562
+ ],
+ "shots": [
+  {
+   "clip": "s1x",
+   "from": 0,
+   "job": "This shot shows a lit habitat at night with the hours counting up, so the viewer understands how long one night is for a base."
+  },
+  {
+   "clip": "s2x",
+   "from": 0,
+   "job": "This shot shows a month of sunlight sweeping the south pole as the count reaches 354, so the viewer sees the number against the place."
+  },
+  {
+   "clip": "s3x",
+   "from": 0,
+   "job": "This shot shows the last sunlight leaving a far ridge as the temperature falls, so the viewer understands why machines shut down."
+  },
+  {
+   "clip": "s4",
+   "from": 0,
+   "job": "This shot shows a person outside the lit habitat in the dark, so the viewer understands what cannot be switched off."
+  },
+  {
+   "clip": "s5x",
+   "from": 0,
+   "job": "This shot shows the south pole's ridges in low sunlight, named, with the source of the claim, so the viewer knows where and on what evidence."
+  },
+  {
+   "clip": "s6x",
+   "from": 0,
+   "job": "This shot shows a year of sunlight at one ridge as a strip, so the viewer sees the dark spells the line speaks of."
+  },
+  {
+   "clip": "s7",
+   "from": 0,
+   "job": "This shot shows the ridge empty under the night sky, so the viewer sees that nobody has done it yet."
+  },
+  {
+   "clip": "s8",
+   "from": 0,
+   "job": "This shot shows an astronaut on that ridge in sunlight with Earth beyond, so the viewer sees what has been promised."
+  }
+ ],
+ "lines": [
+  {
+   "id": "1a",
+   "at": 0.2,
+   "say": "A Moon base would face nights about three hundred and fifty-four hours long.",
+   "text": [
+    "A Moon base would face nights",
+    "about 354 hours long."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "2a",
+   "at": 4.75,
+   "say": "Small landers have survived them by mostly shutting down.",
+   "text": [
+    "Small landers have survived them",
+    "by mostly shutting down."
+   ],
+   "split": [
+    5
+   ]
+  },
+  {
+   "id": "2b",
+   "at": 8.25,
+   "say": "A base with people cannot.",
+   "text": [
+    "A base with people cannot."
+   ]
+  },
+  {
+   "id": "3a",
+   "at": 10.2,
+   "say": "Some ridges at the south pole get sunlight most of the time.",
+   "text": [
+    "Some ridges at the south pole",
+    "get sunlight most of the time."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "3b",
+   "at": 13.75,
+   "say": "Even the best go dark for days in some seasons.",
+   "text": [
+    "Even the best go dark for days",
+    "in some seasons."
+   ],
+   "split": [
+    7
+   ]
+  },
+  {
+   "id": "4b",
+   "at": 16.55,
+   "say": "No base with people has yet run through a lunar night.",
+   "text": [
+    "No base with people has yet",
+    "run through a lunar night."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "4a",
+   "at": 19.95,
+   "say": "NASA has said its astronauts would be there by twenty thirty.",
+   "text": [
+    "NASA has said its astronauts",
+    "would be there by 2030."
+   ],
+   "split": [
+    5
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    3,
+    "M"
+   ],
+   [
+    5,
+    "m"
+   ],
+   [
+    10,
+    "M"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    0,
+    "m9"
+   ],
+   [
+    3,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "duck": 0.36,
+ "music_lufs": -26.0,
+ "lufs": -15.0,
+ "crf": 16,
+ "maxrate": "16M",
+ "grade": "eq=contrast=1.05:saturation=1.14,colorbalance=rs=-0.02:bs=0.05:rm=0.0:bm=0.01:rh=0.03:gh=0.01:bh=-0.03",
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420
+ }
+}

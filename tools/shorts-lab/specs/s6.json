@@ -1,0 +1,1 @@
+{"dim": 0.38, "dim_in": 0.0, "chart": {"data": "../summit-sunlight-2026.json", "in": 0.15, "wipe": 1.5, "x": 80, "y": 780, "w": 900, "h": 210, "title": "Sunlight on one south pole ridge through 2026", "caption": "Connecting Ridge summit. Computed from NASA LOLA terrain and the JPL ephemeris.", "key": ["Sun above the horizon", "no Sun"]}}

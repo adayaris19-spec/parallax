@@ -105,6 +105,9 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - More than half of the shots are made 3D. Real footage carries real events. Cards, numbers and charts sit on top. Short fillers may reuse a made shot we already have.
   - What is wrong with the pictures (owner picked all four): dull and colourless; nothing happens; looks computer-made; wrong things shown ("show people, missions, the real stakes").
   - Look for the made shots (owner's answer): cinematic. Dramatic light, flare, warm and cool colour, a readable Earth. Places, hardware, dates and facts stay true. This outranks "one plain exposure" wherever the two collide; each collision is listed with the video.
+  - Relevance and real footage (owner, Nov 22, on seeing the Artemis II crew footage being gathered): "Make sure whatever you're putting down actually relates to the goal… the Artemis 2 crew, which I don't see how that relates. I don't want to use that much actual real footage. I do still want more AI made. You can use some real footage, but I don't want a discrete difference between the real footage and the other footage."
+    - Every shot shows the goal's own subject (for the Moon base: the base, the people there, the pole, its night and its sunlight). A related mission is not the goal.
+    - Real footage is optional. It goes in only where it cannot be told apart from the made shots around it in subject, light and grade. No windows, frames or labels that mark it as "real".
   - Time: a whole video's new 3D is rendered in one run of at most 30 minutes. A shot that cannot fit is simplified or replaced.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
