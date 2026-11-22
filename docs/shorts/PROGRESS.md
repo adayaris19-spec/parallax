@@ -77,7 +77,7 @@ Scripts and the measured-versus-modelled record are in `tools/shorts-lab/` (see 
 - Real: the place (Connecting Ridge, LOLA elevation), the Sun and Earth for 2026-09-06 00:00 UTC from JPL's ephemeris, the hardware designs (NASA prototypes), no stars, real speeds.
 - Checks on the last frame: 0 empty cells of 60; black sky covers 15.3% of the frame (draft limit 15%); 11.5% of pixels under 8/255, nearly all of it sky.
 - Cost: about 60 s per frame at 32 samples, so about 2 hours for a 5 s shot.
-- Still and 5 s clip sent to the owner Nov 22. Verdict pending.
+- Still and 5 s clip sent to the owner Nov 22. **Owner's verdict:** "that's, I guess, fine", and "this style is also good", but it is obviously computer-made ("that's AI, that's really obvious"); it must look real enough that people ask "is this AI or is this real?". Too little moves besides the camera. Far too slow: about 3 hours of waiting for one 5 s shot. Asked for free tools that work like Higgsfield, not credit-based ones.
 - Checks on the finished clip (120 frames, 1080×1920, 24 fps):
   - 4 things move on their own: the near rover with its wheels, the dust it throws, its beacon, the far rover.
   - Depth: the nearest ground crosses the frame at about 6.8 px per frame, ground about 40 m away at 2.4, and Earth at about 0.4 (the pan only). That is 17 times faster near than far; the draft rule asks for 4.
@@ -86,6 +86,17 @@ Scripts and the measured-versus-modelled record are in `tools/shorts-lab/` (see 
   - Black sky covers 19.8% of the first frame and 16.3% of the last, over the 15% draft limit.
   - Render: 58–62 s per frame, about 2 hours in two runs. Two copies at once run out of memory.
 - Limits: the astronauts cannot walk (the suit model has one pose); the excavator is parked; no motion blur; everything smaller than about 30 m on the ground is modelled.
+
+**Free realism and speed options (searched Nov 22)**
+
+Figures below come from third-party write-ups and vendor pages found by search on Nov 22; each must be checked at its official source before it is relied on.
+
+- Higgsfield is a paid front end that resells other companies' models (for example Kling and Seedance) on credits. Its free plan is reported to include no monthly credits and no commercial use.
+- Free tiers of hosted generators (Kling, Luma, Pika, Sora, Veo): reported to carry watermarks, daily caps and no commercial rights, and none can be automated. Ruled out.
+- Open models that can be run for free: Wan 2.2 (Alibaba) is reported as Apache 2.0, with image-to-video; its VACE variant takes a control video and reference image, which is how our own render could steer the result. HunyuanVideo 1.5's licence is reported to exclude the EU and UK. LTX's licence is reported inconsistently.
+- Free graphics cards: Kaggle notebooks (reported at about 30 GPU-hours a week on a 16 GB card; terms for this use not yet checked); Hugging Face ZeroGPU (documented at 5 GPU-minutes a day for a free account, 2 without an account).
+- First test: our frame through Wan 2.2 image-to-video on a public Hugging Face demo. Refused: the no-account quota for this machine's shared address was already used up. Needs the owner's free account token, added by the owner as the GitHub secret `HF_TOKEN`.
+- Plan put to the owner: keep the accurate 3D scene as the skeleton, add a Wan realism pass that follows it, reject any result that drifts from the render; and split frame rendering across GitHub's free runners to cut a shot from 2 hours to about 15 minutes.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

@@ -80,6 +80,13 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - First choice: real hardware and official prototypes or designs (for example NASA's published 3D models), in real places with real light.
   - Our own designs are allowed where no published model exists, when every part follows a published plan: its size, its place, the number of people. The source is recorded per element.
   - The narration says it is the plan, not a photo. No on-screen label (settled).
+- **The realism bar (owner, Nov 22, on the Moon base clip):** "I want people to be like, oh, is this AI or is this real? Right now, if I looked at that, I'd be like, that's AI. That's really obvious."
+  - A made shot passes only if a viewer seeing it cold has to ask whether it is real footage. "Obviously computer-made at first glance" is a fail, however accurate the shot is.
+  - Draft test for the scorecard: the shot is shown beside real footage of the same kind of scene, and the owner (later, people outside the project) says which is which. To be set in topic 11.
+  - Named causes to remove, from the Nov 22 clip: clean, low-detail hardware with no wear or dust; people who do not move; a perfectly smooth camera; no motion blur.
+- **Production time (owner, Nov 22):** "Only to make these 5 seconds, I'm having to wait like 3 hours." The method must be efficient.
+  - Draft budget, to confirm: one 5 s shot in at most 15 minutes of waiting; one finished 20–25 s video in at most 1 hour, unattended.
+- **Tools (owner, Nov 22):** free only. Tools "like Higgsfield" may be used as a mechanism, but nothing that runs on bought credits. The current style "is also good"; add detail and be more efficient.
 - **Story selection (confirmed Nov 21): goal story first, news when it's big.**
   - Each goal gets 3–5 evergreen videos: the stake, the promise, the key number, the goal achieved.
   - A news post gets a video only when it is a real step for the goal (a result, a launch, a decision, a missed or met deadline). Routine updates stay posts.
