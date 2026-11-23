@@ -6,7 +6,7 @@
 import os, sys, json, time, shutil, subprocess
 from gradio_client import Client, handle_file
 req = json.load(open(sys.argv[1])); clip, out = sys.argv[2], sys.argv[3]; os.makedirs(out, exist_ok=True); tok = os.environ.get("HF_TOKEN") or None
-report = {"token_present": bool(tok), "steps": []}; files = {}
+report = {"token_present": bool(tok), "secret_named_HF_TOKEN": os.environ.get("HAS_HF_TOKEN"), "secret_under_another_name": os.environ.get("HAS_OTHER_NAME"), "saved_as_variable_not_secret": os.environ.get("HAS_AS_VARIABLE"), "steps": []}; files = {}
 if tok:                                                  # is the token accepted, and is the account a paying one? (nothing that names the account is kept or printed)
     try:
         import urllib.request

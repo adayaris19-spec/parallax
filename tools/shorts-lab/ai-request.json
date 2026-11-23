@@ -1,5 +1,5 @@
 {
- "note": "Check only (Nov 23): is the owner's Hugging Face token visible to this workflow and accepted? No pictures, no steps.",
+ "note": "Check only (Nov 23): is the owner's Hugging Face token visible to this workflow, under HF_TOKEN or another usual name? No pictures, no steps.",
  "render_run": 0,
  "images": [],
  "steps": []
