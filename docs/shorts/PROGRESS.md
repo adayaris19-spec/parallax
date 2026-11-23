@@ -334,6 +334,38 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Token: checked again at 19:24 UTC+1. The workflow still sees no `HF_TOKEN`.
 - **Owner's verdict on the one-place reel (Nov 23, about 20:15 UTC+1):** "so much better", "you're starting to understand much better". Wants: more dramatic sound, better continuity, more different shots, sentences that are easy to follow and catch attention. Our own night and lamps on NASA's shot are accepted if they belong there and are physically correct. Four questions asked; answers: wording 1 ("On most of the Moon, night lasts about fourteen days…"); film-style sound; the cut from the night base to the kneeling astronaut broke continuity; what repeats is the wide view, shots from the last reel, too few different shots, and astronauts. Rules in `RULES.md` section 2 ("More variety, sharper words, bigger sound").
   - Done since: the new narration is recorded (8 sentences, each read back word for word); `sfx.py` has booms, a riser, a dawn chord and floodlight breakers; `night_fall.py` can bring the light back from the side the dark came from.
+- **"Fourteen days of night" reel sent (Nov 23, about 21:10 UTC+1): 24.75 s, 9 shots, 9 different pictures.** Plan `tools/shorts-lab/moonbase-v9.json`. Waiting for the verdict.
+
+  | Shot | Seconds | Picture | Source |
+  |---|---|---|---|
+  | 1 | 3.2 | The Sun low over a ridge; the ridge's shadow comes down the plain | NASA concept animation, right edge; shadow and lamps added |
+  | 2 | 3.6 | The shadow crosses the base; 16 lamps come on; dark | NASA concept animation, centre; shadow, night and lamps added |
+  | 3 | 1.5 | Two astronauts at a rover, helmet lamps | NASA, Rovers video, graded |
+  | 4 | 1.6 | A power mast over a lit unit, camera sinking | NASA, November update, graded |
+  | 5 | 1.8 | A crane lowers cargo onto a rover by lamp light | NASA, Landers video, graded |
+  | 6 | 1.75 | Tall solar masts; their panels blaze | NASA, November update |
+  | 7 | 3.5 | The dark base under a crescent Earth; light catches the ridge, then crosses the plain | NASA concept animation, left; night, light and lamps added |
+  | 8 | 3.0 | The shadow returns over the other side of the base; lamps on again | NASA concept animation, right; shadow and lamps added |
+  | 9 | 4.7 | An astronaut close, helmet lamps on, checks a wrist display | NASA, November update, graded |
+
+  - What changed for variety: nine pictures instead of five; no framing twice; only shot 2's framing has been seen before; astronauts in two shots. A second and third search of NASA's library (eight videos in all) found no other camera angle on this base, so three more framings were cut from the same 4K take, and five new NASA night shots were added.
+  - What changed for continuity: the four base shots share one shadow model (`specs/base_vp_track.json`), so the dark reaches the Sun-side framing first, then the base, and the light comes back from the side the dark came from, high ground first. NASA's night shots are graded toward our night's colour. Mean brightness across each cut stays within a factor of 2, except crane to masts (2.5, dark to darker).
+  - What changed in the words: the owner's chosen wording; 8 sentences, none over 12 words; the hook ends at 2.85 s.
+  - What changed in the sound (`sfx.py`): an opening boom and a sinking tone; a swell climbing from 2.9 s that stops dead at 6.1 s; 0.73 s where the whole mix is 20 dB down; a boom on "A base with people cannot."; floodlight breakers as lamps come on; a chord swelling from 13.1 s to its peak at 16.85 s, in the pause before "But even the best go dark"; booms on the main cuts.
+  - Measured on the final file: 594 frames at 24 a second, none repeated; −15.0 LUFS, true peak −1.6 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; last word ends 0.77 s before the final frame; the peak line starts at 13.4 s (54%).
+  - Requirement check, misses:
+    - Wide views of the plain carry 13.4 of 24.75 s (54%; the draft rule says a third). They are four different framings of one NASA take; no other angle on this base exists in NASA's library.
+    - Shots 3 to 6 run 1.5–1.8 s; the rule says no shot under 2.0 s.
+    - Shot 2's framing was in the last two reels.
+    - Shots 3 to 6 and 9 come from three other NASA animations. Their ground is grey and tracked, not our bright plain, and nothing proves they are the same base. The masts resemble the base's small panel posts.
+    - I read the blaze in shot 6 as panels catching the Sun; NASA's video does not say what it shows.
+    - The shadow crosses in seconds what takes hours, beside rovers at normal speed; in shot 2 it moves twice as fast as in the last reel. Its shape and path are modelled, not computed from terrain. In shot 1 the Sun stays high while the plain below goes dark, which holds only because the camera stands above the plain.
+    - 18% of the picture is darker than 8/255 (draft limit 15%): black night skies.
+    - NASA's footage in shots 3, 4, 5 and 9 is graded darker and bluer by us.
+    - Colour fringes from NASA's lens effects show along some edges; a round mission patch is visible on the shoulder in shot 9 (no NASA insignia, no face).
+    - The sound is synthesised and was checked by measurement, not by ear.
+    - The credit ("NASA") has to go in the post's caption.
+  - Time and cost: about 55 minutes from the answers to the file. The four base shots render in about 4 minutes; the reel assembles in about 2. No AI clip. AI credit spent: $0.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

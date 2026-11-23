@@ -154,3 +154,13 @@ The owner's format after the option B reel: one base, one event (the Sun leaves,
 - `sfx.py` makes the sound effects from arithmetic: radio tones, helmet breathing, a suit hum, relay sounds, thumps. No recordings. The plan lists them under `sound`.
 - `make_video.py` now also reads `sound`, `music_env` (the score's level over time), `score_cuts` (where the chords change) and `subs.halo` (a soft dark glow behind the subtitles).
 - The source shot is `https://www.nasa.gov/wp-content/uploads/2026/05/moon-base-v-1-1-5-22-26.mp4`; the close shots are from `Moon_Base_Update-Oct-Lunar_Rovers` on images.nasa.gov (18.6 s and 26.25 s in).
+
+## Moon base reel, "fourteen days of night" (Nov 23, 2026, night)
+
+After the owner's verdict on the one-place reel: more different pictures, better continuity, the new wording, film-style sound.
+
+- Plan: `moonbase-v9.json`. Nine shots. Four are different 1080×1920 windows of the same NASA take (`specs/night_v9_1_sun.json`, `_2_base`, `_7_dawn`, `_8_return`).
+- One shadow for all framings: `specs/base_vp_track.json` holds, for every source frame, the point the shadow edge turns about, in the source's own pixels. A spec names it with `vp_track`; write it again with `WRITE_TRACK=file python night_fall.py SOURCE SPEC OUT`.
+- New in a spec: `bands` (a shadow with a front edge `lead` and a back edge `trail`, so light returns from the side the dark came from), `start`, `sky_max` (for sky lifted by lens glare), `protect` (circles never touched: the Earth), `ground_top` (a line above which nothing is shadowed).
+- `sfx.py` gained `boom`, `riser`, `swell` and `floods`.
+- The other NASA shots are cut with ffmpeg from the 4K originals on images.nasa.gov (the November update is 59.94 frames a second with every picture doubled: `select='not(mod(n\,2))'` first) and graded with `curves` toward the night's colour; the values are in the progress log's commit.

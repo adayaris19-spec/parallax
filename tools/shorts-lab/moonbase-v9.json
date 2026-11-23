@@ -1,0 +1,360 @@
+{
+ "title": "Moon base: fourteen days of night",
+ "goal": "moon-base",
+ "note": "Nov 23, night. One base, one night, nine different pictures. Shots 1, 2, 6 and 8 are four different 1080x1920 windows (1:1) of NASA's 4K concept animation 'Living and Working on the Moon' (May 2026); the travelling shadow, the night and every lamp are added by night_fall.py from one shadow model shared by all four (specs/base_vp_track.json), so the dark reaches each framing in the right order and the light comes back from the side it left. Shot 3 is from NASA's 'Moon Base: Rovers and Lunar Terrain Vehicles' (Oct 2026), shot 5 from 'Moon Base: Lunar Landers' (Aug 2026), shots 4, 7 and 9 from the animated parts of NASA's November 2026 Moon Base update; each a 9:16 window of the 4K frame scaled down, shots 3, 4, 5 and 9 graded slightly darker and bluer to sit beside our night. Nothing is enlarged; every source frame is shown once at 24 a second. Credit NASA. Sound effects are synthesised (sfx.py).",
+ "cuts": [
+  77,
+  164,
+  201,
+  240,
+  283,
+  325,
+  409,
+  482,
+  594
+ ],
+ "shots": [
+  {
+   "clip": "v9_1_sun",
+   "from": 0,
+   "job": "This shot shows the Sun low over a ridge while that ridge's shadow comes down the plain toward the camera, so the viewer sees the night begin. (NASA concept animation, right edge of the frame; shadow and lamps added)"
+  },
+  {
+   "clip": "v9_2_base",
+   "from": 0,
+   "job": "This shot shows the shadow crossing the base and its lamps coming on one by one, so the viewer sees a base left in the dark. (NASA concept animation, centre; shadow, night and lamps added)"
+  },
+  {
+   "clip": "two_g",
+   "from": 20,
+   "job": "This shot shows two astronauts at a rover in the dark, lit by their helmet lamps, so the viewer sees the people who cannot be switched off. (NASA, Rovers video, 0:14)"
+  },
+  {
+   "clip": "mast_g",
+   "from": 60,
+   "job": "This shot shows a power mast standing over a lit unit in the dark, so the viewer sees what has to keep running. (NASA, November update)"
+  },
+  {
+   "clip": "crane_g",
+   "from": 0,
+   "job": "This shot shows a crane lowering cargo onto a rover by lamp light, so the viewer sees work that would have to go on through the night. (NASA, Landers video, 1:02)"
+  },
+  {
+   "clip": "masts",
+   "from": 42,
+   "job": "This shot shows tall solar masts in the dark whose panels catch the first sunlight, so the viewer sees the night end where the base reaches highest. (NASA, November update)"
+  },
+  {
+   "clip": "v9_7_dawn",
+   "from": 0,
+   "job": "This shot shows the dark base under a crescent Earth as sunlight catches the high ridge first and then crosses the plain, so the viewer sees why the polar ridges matter. (NASA concept animation, left; night, light and lamps added)"
+  },
+  {
+   "clip": "v9_8_return",
+   "from": 0,
+   "job": "This shot shows the shadow coming back over the other side of the base and the lamps coming on again, so the viewer sees that the light does not last. (NASA concept animation, right; shadow and lamps added)"
+  },
+  {
+   "clip": "astro_g",
+   "from": 50,
+   "job": "This shot shows an astronaut close, helmet lamps on, checking a wrist display in the dark, so the viewer sees the person the promise is about. (NASA, November update)"
+  }
+ ],
+ "lines": [
+  {
+   "id": "h1",
+   "at": 0.05,
+   "say": "On most of the Moon, night lasts about fourteen days.",
+   "text": [
+    "On most of the Moon,",
+    "night lasts about 14 days."
+   ],
+   "split": [
+    5
+   ]
+  },
+  {
+   "id": "b1",
+   "at": 3.25,
+   "say": "Small landers have survived it by mostly shutting down.",
+   "text": [
+    "Small landers have survived it",
+    "by mostly shutting down."
+   ],
+   "split": [
+    5
+   ]
+  },
+  {
+   "id": "b2",
+   "at": 6.9,
+   "say": "A base with people cannot.",
+   "text": [
+    "A base with people cannot."
+   ]
+  },
+  {
+   "id": "b3",
+   "at": 8.4,
+   "say": "Life support cannot pause.",
+   "text": [
+    "Life support cannot pause."
+   ]
+  },
+  {
+   "id": "b4",
+   "at": 10.0,
+   "say": "No base with people has yet run through a lunar night.",
+   "text": [
+    "No base with people has yet",
+    "run through a lunar night."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "p1",
+   "at": 13.4,
+   "say": "Some ridges at the south pole get sunlight most of the time.",
+   "text": [
+    "Some ridges at the south pole",
+    "get sunlight most of the time."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "p2",
+   "at": 17.05,
+   "say": "But even the best go dark for days in some seasons.",
+   "text": [
+    "But even the best go dark for days",
+    "in some seasons."
+   ],
+   "split": [
+    8
+   ]
+  },
+  {
+   "id": "e1",
+   "at": 20.1,
+   "say": "NASA has said its astronauts would visit the south pole by twenty thirty.",
+   "text": [
+    "NASA has said its astronauts",
+    "would visit the south pole by 2030."
+   ],
+   "split": [
+    5
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    0,
+    "m9"
+   ],
+   [
+    5,
+    "m"
+   ],
+   [
+    3,
+    "M"
+   ],
+   [
+    10,
+    "M"
+   ],
+   [
+    3,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "score_cuts": [
+  3.2,
+  6.83,
+  10.0,
+  13.54,
+  17.04,
+  20.08
+ ],
+ "music_env": [
+  [
+   0,
+   1.0
+  ],
+  [
+   2.9,
+   1.0
+  ],
+  [
+   6.0,
+   0.7
+  ],
+  [
+   6.1,
+   0.0
+  ],
+  [
+   6.83,
+   0.0
+  ],
+  [
+   7.1,
+   0.45
+  ],
+  [
+   13.2,
+   0.45
+  ],
+  [
+   16.8,
+   1.8
+  ],
+  [
+   17.3,
+   0.9
+  ],
+  [
+   19.9,
+   0.9
+  ],
+  [
+   20.3,
+   1.3
+  ],
+  [
+   24.8,
+   1.3
+  ]
+ ],
+ "sound": [
+  {
+   "type": "boom",
+   "at": 0.03,
+   "gain": 0.5,
+   "tail": 2.0
+  },
+  {
+   "type": "drop",
+   "from": 0.3,
+   "to": 3.3,
+   "gain": 0.9
+  },
+  {
+   "type": "floods",
+   "file": "v9_1_sun_lamps.json",
+   "pick": 0,
+   "offset": 0.0,
+   "gain": 0.8
+  },
+  {
+   "type": "floods",
+   "file": "v9_2_base_lamps.json",
+   "pick": 0,
+   "offset": 3.2083
+  },
+  {
+   "type": "riser",
+   "from": 2.9,
+   "to": 6.1,
+   "notes": [
+    38,
+    45,
+    50,
+    53
+   ],
+   "gain": 1.3
+  },
+  {
+   "type": "boom",
+   "at": 6.83,
+   "gain": 1.0
+  },
+  {
+   "type": "boom",
+   "at": 10.0,
+   "gain": 0.6
+  },
+  {
+   "type": "swell",
+   "from": 13.1,
+   "peak": 16.85,
+   "to": 18.6,
+   "release": 0.45,
+   "gain": 1.5,
+   "notes": [
+    41,
+    48,
+    53,
+    57,
+    60,
+    65
+   ]
+  },
+  {
+   "type": "boom",
+   "at": 17.04,
+   "gain": 0.7
+  },
+  {
+   "type": "floods",
+   "file": "v9_8_return_lamps.json",
+   "pick": 0,
+   "offset": 17.0417,
+   "gain": 0.8
+  },
+  {
+   "type": "boom",
+   "at": 20.08,
+   "gain": 0.55
+  },
+  {
+   "type": "beep",
+   "at": 24.1,
+   "hz": 2475,
+   "tail": 0.35
+  }
+ ],
+ "sound_gain": 1.0,
+ "sound_duck": 0.6,
+ "duck": 0.36,
+ "music_lufs": -25.0,
+ "lufs": -15.0,
+ "crf": 16,
+ "maxrate": "16M",
+ "grade": "",
+ "sub_gap": 0.02,
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4,
+  "halo": 11,
+  "halo_alpha": "70"
+ }
+}
