@@ -1,51 +1,6 @@
 {
- "note": "Method test (Nov 23): NASA's own Moon base renderings as the first frame, an open video model adds the motion. Pictures: nasa.gov, 'Concept for Sustained Lunar Surface Operations at the Moon Base' and 'Lunar Surface Logistics Operations' (May 2026, credit NASA).",
+ "note": "Check only (Nov 23): is the owner's Hugging Face token visible to this workflow and accepted? No pictures, no steps.",
  "render_run": 0,
- "images": [
-  {
-   "name": "base",
-   "url": "https://www.nasa.gov/wp-content/uploads/2026/05/stmd-exteriorlunarbase-hdlandscapeversion-2026-0521.png",
-   "x0": 1270,
-   "w": 832,
-   "h": 1472
-  },
-  {
-   "name": "night",
-   "url": "https://www.nasa.gov/wp-content/uploads/2026/05/cpc-logistics-actionshot-1.png",
-   "x0": 2180,
-   "w": 832,
-   "h": 1472
-  }
- ],
- "steps": [
-  {
-   "name": "base_wan",
-   "kind": "i2v",
-   "space": "zerogpu-aoti/wan2-2-fp8da-aoti-faster",
-   "input": "base",
-   "prompt": "On the Moon, one continuous shot, the camera pushes in very slowly. The kneeling astronaut in the white spacesuit slowly stands up. The second astronaut lifts the long-handled scoop and takes one slow, bouncing step in low gravity. The open rover behind them rolls slowly to the left with its lights on and keeps exactly the same shape. Earth stays still above the horizon. Hard low sunlight, sharp black shadows, black sky with stars. No air: no haze, no wind, no smoke; any dust kicked up falls straight back in a low arc. Nothing new appears. Photorealistic, natural motion.",
-   "steps": 6,
-   "seconds": 5,
-   "seed": 7
-  },
-  {
-   "name": "night_wan",
-   "kind": "i2v",
-   "space": "zerogpu-aoti/wan2-2-fp8da-aoti-faster",
-   "input": "night",
-   "prompt": "On the Moon at night, one continuous shot, the camera tracks slowly alongside. The open rover with one astronaut seated drives slowly forward to the right on its four wire-mesh wheels, the wheels turning, its work lights lighting the grey ground ahead. It keeps exactly the same shape. Behind it the ground stays dark under a black sky. No air: no haze, no smoke, no clouds of dust; a little soil thrown by the wheels falls straight back. Nothing new appears. Photorealistic, natural motion.",
-   "steps": 6,
-   "seconds": 5,
-   "seed": 7
-  },
-  {
-   "name": "base_ltx",
-   "kind": "ltx",
-   "space": "Lightricks/LTX-2.5",
-   "input": "base",
-   "prompt": "On the Moon, one continuous shot, the camera pushes in very slowly. The kneeling astronaut in the white spacesuit slowly stands up. The second astronaut lifts the long-handled scoop and takes one slow, bouncing step in low gravity. The open rover behind them rolls slowly to the left with its lights on and keeps exactly the same shape. Earth stays still above the horizon. Hard low sunlight, sharp black shadows, black sky with stars. No air: no haze, no wind, no smoke; any dust kicked up falls straight back in a low arc. Nothing new appears. Photorealistic, natural motion.",
-   "seconds": 2,
-   "seed": 7
-  }
- ]
+ "images": [],
+ "steps": []
 }

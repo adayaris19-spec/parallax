@@ -7,6 +7,12 @@ import os, sys, json, time, shutil, subprocess
 from gradio_client import Client, handle_file
 req = json.load(open(sys.argv[1])); clip, out = sys.argv[2], sys.argv[3]; os.makedirs(out, exist_ok=True); tok = os.environ.get("HF_TOKEN") or None
 report = {"token_present": bool(tok), "steps": []}; files = {}
+if tok:                                                  # is the token accepted, and is the account a paying one? (nothing that names the account is kept or printed)
+    try:
+        import urllib.request
+        w = json.load(urllib.request.urlopen(urllib.request.Request("https://huggingface.co/api/whoami-v2", headers={"Authorization": f"Bearer {tok}"}), timeout=30)); report["token_valid"] = True; report["account_pro"] = bool(w.get("isPro"))
+    except Exception as e: report["token_valid"] = False; report["token_error"] = type(e).__name__
+print(json.dumps({k: v for k, v in report.items() if k != "steps"}), flush=True)
 def client(space):
     try: return Client(space, token=tok, verbose=False)
     except TypeError: return Client(space, hf_token=tok, verbose=False)
