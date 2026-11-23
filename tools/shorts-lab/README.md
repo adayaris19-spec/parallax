@@ -187,3 +187,19 @@ The owner rejected the whips and the flare: no cut and no transition effect of a
 - Run it once with `PREPARE=1` (decodes the strip to `FRAME_CACHE_DIR`, 3.3 GB, and follows the lamps), then three times side by side with `PART=0,198`, `PART=198,396`, `PART=396,594`, and join the three files with ffmpeg's concat. The whole take renders in about 6 minutes.
 - New in a spec: `discs` (the Earth's disc: it hides the stars behind it, and its crescent is cleaned of the source's rainbow rim), `spikes` on a lamp, and movers `walker` and `rover` (lights that travel over the ground, tied to a followed lamp by `anchor`). A `lander` is now drawn as a craft (body, legs, foil band, a strobe) whose flame lights the ground as it comes down.
 - `seam.py` and `pan_window.py` are kept but not used by this reel.
+
+## Moon base reel: one take with the sky and an astronaut (Nov 24, 2026)
+
+The owner passed the one take but found it the same view throughout, asked for the facts of the place to be checked, and for nothing to read as digital.
+
+- Plan: `moonbase-v12.json`, one shot. Spec: `specs/night_v12_one.json`. Render as before (`PREPARE=1`, then three `PART` runs, then concat); the last third takes about 7 minutes.
+- New in a spec for `night_fall.py`:
+  - `sky_ext` and `path.y`: rows of sky made above the source, so the camera can tilt up off the picture. `path.sway` adds a few pixels of slow drift.
+  - `stars.sky_map`: the faint stars and the Milky Way from NASA's Deep Star Maps 2020. Cut the part in view out of the map first: `python sky_cut.py SPEC.json starmap_2020_32k.exr starmap_crop.npy` (the map is 1.5 GB, from svs.gsfc.nasa.gov/4851; neither it nor the cut is kept here). Put the cut in `STAR_CATALOGUE_DIR`.
+  - `earth`: the planet is followed frame by frame and redrawn with the crescent its angle from the Sun gives (`elong_deg`), in the source's own colours.
+  - `edge_relief_deg` and `edge_fingers`: the shadow's edge follows the ground's relief and is drawn out along the Sun's rays (`sun_ground` is the point on the horizon under the Sun). `edge_soft_range` limits how soft the edge gets.
+  - `overlay`: a foreground shot with a black sky, stood in front of the view at one place in the wide picture (`at_x`, `at_y`, `scale`), cut from its own sky and ground, darkened as a figure with the Sun behind it (`shade`, `rim`, `sun_dir`), with the view behind going out of focus (`defocus`). Its file is looked for in `OVERLAY_DIR`.
+  - `finish`: grain, lens fall-off and a trace of softness over the whole frame. `defringe` tones down coloured lens fringes on hard edges.
+  - A mover of type `station`; lamps with `gain` 0 and a small `size` serve as status lights.
+- The astronaut clip: frames 100–175 of the November update shot (every second picture of the 59.94 fps original, since each is doubled), slowed with ffmpeg: `minterpolate=fps=48:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,setpts=N/24/TB`.
+- `sky_crop.py` is the older tool for the view from orbit; `sky_cut.py` is the one for a `night_fall.py` spec.

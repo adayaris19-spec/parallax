@@ -184,6 +184,21 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - **Shadows are checked one by one.** Each shadow has a cause in the picture and falls away from the Sun. The unlit part of the Earth is a shadow too: it hides the stars behind it. (Our reading of "be careful of the shadows"; the reel before this one showed stars through the Earth's dark side.)
   - Added craft are drawn as craft, not as lights: a lander has a body, legs, a lit side and an engine that lights the ground as it comes down.
   - The bar for detail is a space film: small things at work across the frame (people's helmet lamps, a rover far off, beacons, spacecraft overhead), none of them placed where it could not be.
+- **More to see in the one take, the place checked, nothing that reads as digital (owner, Nov 23, about 23:00 UTC+1, on the one-take reel):** "The transitions are good now. It's very continuous." "It's boring because it's just the same thing. I'm just watching the camera look left and right." "For example, when the camera looks back, there could be something else there, or just more exciting things." "Make sure you get the logistics right. Is the Earth's angle right? Is the Moon actually that mountainous?" "Some parts still look very digital, AI made. Make everything look polished, like it's out of a sci-fi space movie. I want an extreme amount of detail, very fine details. Some that a human wouldn't even notice."
+  - **Passed:** one unbroken take, no cut, no transition effect.
+  - **The view changes.** Draft measures:
+    - at least three different kinds of view in a video (for the Moon base: the plain with the base, the sky, a person close);
+    - the camera comes back to a view only if something new is standing or happening there (a change of light alone counts once);
+    - no stretch longer than 7 s in which the only change is the camera moving left or right.
+  - **The place is checked before it is shown.** Each video gets a short list of what is right, what was corrected and what is assumed: where the Sun and the Earth sit, the Earth's phase from its angle to the Sun (lit part = (1 − cos angle) / 2), how rough the ground is, how fast things move.
+    - A source picture that contradicts its own geometry is corrected, and the correction is written down. First case: NASA's frame shows the Earth about 8% lit with the Sun 21.5° from it; that angle allows about 3.5%.
+  - **Nothing reads as digital.** Causes named and removed in this round:
+    - a shadow edge like a soft brush stroke (it now follows the ground's relief and is drawn out along the Sun's rays);
+    - a sky of separate dots (now NASA's star map: the faint stars and the Milky Way they make up);
+    - a perfectly clean, perfectly still picture (now one grain, one lens fall-off and a trace of camera sway over everything, source and additions alike);
+    - coloured lens fringes on hard edges.
+    - Draft measure: no added element has a smoother edge or a cleaner tone than the footage around it.
+  - **Detail finer than a first look finds.** Used so far: status lights on the modules, the Earth's own colours along its crescent and the air at its limb, the Milky Way's dust lanes, a station crossing the sky, the reflections in a visor.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

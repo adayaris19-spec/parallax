@@ -418,6 +418,40 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; star positions from the HYG database (CC BY-SA 4.0).
   - Time and cost: about 75 minutes from the owner's message to the file. The whole take renders in about 6 minutes. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the one-take reel (Nov 23, about 23:00 UTC+1):** "The transitions are good now. It's very continuous." But "boring because it's just the same thing… I'm just watching the camera look left and right"; "when the camera looks back, there could be something else there". "Make sure you get the logistics right. Is the Earth's angle right? Is the Moon actually that mountainous?" "Some parts still look very digital, AI made"; wants it polished "like it's out of a sci-fi space movie", with "very fine details, some that a human wouldn't even notice". Rules in `RULES.md` section 2 ("More to see in the one take, the place checked, nothing that reads as digital").
+- **One take with the sky and an astronaut sent (Nov 24, about 00:10 UTC+1): 24.75 s, one shot, no cut, no transition effect.** Plan `tools/shorts-lab/moonbase-v12.json`, spec `tools/shorts-lab/specs/night_v12_one.json`. Waiting for the verdict.
+  - The take, three kinds of view:
+    - 0–8.6 s, the plain: the Sun low over the ridge, a lander coming in; the camera follows the shadow left across the masts and the rover to the modules; the lander sets down beyond the ridge, lamps and status lights come on.
+    - 8.6–14.6 s, the sky: the camera tilts up off the base into the Milky Way, with the Earth's dark disc in front of it and a station crossing; it comes back down as first light catches the high ridge.
+    - 14.6–24.75 s, a person: the camera travels back right across the sunlit base as the shadow returns; from 18.8 s an astronaut comes into the foreground from the right, helmet lamps on, the Sun behind him; the view behind goes out of focus; a second lander arrives.
+  - The place, checked (the owner's "logistics"):
+    - Right: the Earth low over the horizon and staying put. NASA: from the pole "the Earth bobs up and down, never veering far from 0° longitude" ([SVS 4944](https://svs.gsfc.nasa.gov/4944/)); the Moon's equator is tilted 6.68° to its orbit ([SVS 5199](https://svs.gsfc.nasa.gov/5199/)), which is the size of that bob. In NASA's frame the Earth's centre is about 4° above eye level (our measurement).
+    - Corrected: the Earth's phase. NASA's frame shows a crescent 15.5 px thick on a disc 189 px across (8% lit). The Sun is about 21.5° from the Earth in the same frame (2,190 px), which allows (1 − cos 21.5°) / 2 = 3.5% (6.6 px). The Earth is redrawn with that crescent, lit limb toward the Sun, in NASA's own colours, with a thin line of air at the limb. It is followed frame by frame (measured: it moves up to 25 px differently from the horizon as the camera rises).
+    - Right: rough ground with big rounded ridges and long shadows. NASA calls the pole's ground "rugged lunar terrain" where "the perpetually low Sun angle produces extremely long shadows" ([SVS 4944](https://svs.gsfc.nasa.gov/4944/)); its slope map shows "crater walls and mountainsides" ([SVS 4226](https://svs.gsfc.nasa.gov/4226/)). NASA's animation names no site, so the shape of this particular ridge cannot be checked.
+    - Right: darkness arriving while the Sun is still in the sky. NASA: "Sometimes, the Sun is directly in front of the viewer, and at those times, we're seeing the shadows cast by distant elevations" ([SVS 5228](https://svs.gsfc.nasa.gov/5228/)).
+    - Not right, and not ours to fix: the Sun's height. It is about 4° above eye level in NASA's frame; at the pole itself it is "never more than 1.5 degrees above or below" the horizon ([SVS 4944](https://svs.gsfc.nasa.gov/4944/)). The picture fits a site some degrees from the pole.
+    - Assumed: the date of the sky (Sun at ecliptic longitude 292°, mid-January), the picture's scale (105 px per degree; the Earth's size gives 92 to 105 depending on the Moon's distance), the speed of everything we added.
+  - What no longer reads as digital:
+    - The shadow's edge follows the ground (ground turned to the Sun keeps the light longer) and is drawn out along the Sun's rays into long pointed shadows, as a far skyline casts them. Nothing narrower than the Sun's own half degree is drawn.
+    - The sky is NASA's Deep Star Maps 2020 at 32k (91 px per degree against the take's 105), made from 1.7 billion stars of the Hipparcos, Tycho and Gaia catalogues ([SVS 4851](https://svs.gsfc.nasa.gov/4851/)), plus 322 bright stars from the HYG catalogue. Check: 56 of the 57 catalogue stars to magnitude 5 in view fall within 2 px of the same star in NASA's map.
+    - One grain, one lens fall-off toward the corners and a trace of softness over everything; 2 px of camera sway; the coloured lens fringes on hard edges toned down.
+    - The astronaut is NASA's (November update), slowed to 0.4× by motion interpolation, cut from his own shot (his sky, its glow and his ground removed), darkened and cooled as a figure with the Sun behind him, with a thin rim of sunlight on the edges turned to the Sun. His helmet lamps stay lit.
+  - Small things added: 16 status lights on the modules (green, amber, red, blue, 1 px), a station crossing the sky during the tilt, the Earth's colours along its crescent.
+  - Sound: as before, plus a quiet high chord under the tilt into the sky (peak 11.7 s) and helmet breathing from 21.3 s.
+  - Measured on the final file: 594 frames at 24 a second, 51 MB; no repeated frame and no sudden jump (one frame changes 2.4 times its neighbours' amount: the last subtitle leaving at 24.3 s); −15.0 LUFS, true peak −1.6 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; 4.1% of the picture darker than 8/255.
+  - Requirement check, misses:
+    - The sky section has a mean brightness under 30/255 for 5.2 s (8.75–14.0 s). It is full of stars, but it is dark.
+    - A camera exposed for the base's lamps would not record the Milky Way this clearly. The stars are in the right places; their brightness is a film's choice.
+    - The astronaut comes from a different NASA animation. His suit's folds still carry that shot's light from the front left under our darkening, and his visor reflects that shot's base, not this one. He covers the right half of the frame for the last 4 s, and the last subtitle crosses his chest.
+    - Astronauts were named as a repeat in an earlier verdict; this is the only one in the reel.
+    - The landers, the dust, the station, the walkers, the far rover, the beacons, the status lights and the orbiting spacecraft are ours. The landers' exhaust fans are drawn bright enough to see; no source says how visible they would be.
+    - The shadow and the landers move at time-lapse speed while the Sun does not drift and the rover drives at normal speed.
+    - The Sun sits in the top 230 px, under the app's header, at the start and the end.
+    - The source still runs backwards in two of its passes.
+    - The sound is synthesised and was checked by measurement, not by ear.
+    - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
+  - Time and cost: about 70 minutes from the owner's message to the file. The take renders in about 10 minutes as three runs side by side (the last third, with the astronaut, takes 7 minutes alone). NASA's 1.5 GB star map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
