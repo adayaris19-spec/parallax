@@ -136,6 +136,15 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - No moving shot is built from a still by a camera push alone.
   - Any goal: the method may not depend on a space agency. Each goal gets its own list of free, rights-clear sources before its first video; for goals with little agency video, real photographs serve as first frames. No identifiable person without their permission.
   - Before a video is sent, it is checked against this file line by line, and every miss is listed with the video.
+- **A story in one place (owner, Nov 23, on the option B reel):** "It's getting better. Some of the 3D elements are actually pretty nice, but some of them are way weaker. It's like transitions of astronaut, back to back. It's not actually interesting. It needs to be visually engaging for the audience, because I wouldn't watch this. It's not entertaining."
+  - Liked: the glove with the rock (shot 2), the astronaut kneeling at work (4), the base in sunlight (6), the AI-moved walk to the rover (8). Each time the owner added: "Still needs continuity though."
+  - Not picked: the astronauts at the base with Earth (1), the small lander (3), the astronaut on the ladder (5), the dark plain with lamps (7).
+  - Format (owner's choice): **one night, one place.** One base, one event with a beginning and an end: the Sun leaves, the dark comes, the lamps go on, the Sun returns.
+  - What makes the owner keep watching (owner's choice): a story with a payoff, and real sound (radio, breathing in the helmet, machinery, silence when night falls, hits on the cuts). Not chosen: a faster pace, fewer words.
+  - Continuity: every shot is the same place in the same state of light as the shot before it, or one step further along the event. No cut to a subject that is not part of that place.
+  - The wide view of the place carries the story and comes back; close shots are cut-ins inside it.
+  - This replaces "7 to 9 shots, about 2.0–3.5 s each" for a one-place story: a take may run as long as its event needs.
+  - Sound is part of the picture: each event on screen that would be heard (a lamp switching, a radio call, breath) has its sound; when the light goes, the score drops away.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
