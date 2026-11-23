@@ -396,6 +396,27 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - The sound is synthesised and was checked by measurement, not by ear. One whoosh had to be moved 0.1 s later and softened so that "seasons" is heard.
     - Credits for the caption: NASA; star positions from the HYG database (CC BY-SA 4.0).
   - Time and cost: about an hour from the owner's message to the file. A wide take renders in about 4 minutes as two runs side by side. No AI clip. AI credit spent: $0.
+- **Owner's verdict on the reel with whips and a flare (Nov 23, about 22:25 UTC+1):** "exactly what I didn't want… I just want it to be one continuous clip"; no cliché transitions. The lander is acceptable but should be more detailed. "The Earth… be careful of the shadows." Detail "getting much better"; make it look "out of a space movie". Rules in `RULES.md` section 2 ("One continuous clip").
+- **Reel as one unbroken take sent (Nov 23, about 22:43 UTC+1): 24.75 s, one shot, no cut, no transition effect.** Plan `tools/shorts-lab/moonbase-v11.json`, spec `tools/shorts-lab/specs/night_v11_one.json`. Waiting for the verdict.
+  - The take: the camera starts on the Sun low over the ridge as a lander comes in; it follows the lander and the shadow front left across the masts and the rover to the modules (0–6.6 s), where the lander sets down beyond the ridge and the lamps and stars come on; it drifts on to the far modules under the crescent Earth through the night (6.6–13.6 s); first light catches the high ridge and crosses the plain; the camera travels back right across the sunlit base as the shadow returns (13.6–24.9 s) and ends on the Sun over the dark plain, lamps on, a second lander arriving.
+  - How it is one take: NASA's 165 clean frames are run there and back (three and a half passes), on a 3510×1920 strip of the 4K picture; the 1080×1920 frame moves across the strip at 1:1 in three eased moves with shutter blur. Fastest move 12 px a frame.
+  - The Earth: stars no longer show through its dark side (its whole disc, 95 px in radius, hides them); the rainbow rim NASA's lens effect gives the crescent is toned down to blue-white.
+  - The lander: drawn as a craft 26 px across (cabin, descent stage with a foil band, legs, engine bell, an aerial, lit from the Sun's side, leaning with its thrust), a flashing strobe, a flickering flame with a sunlit exhaust fan, and a pool of light on the ground under it in its last seconds. A second one arrives at the end.
+  - More small things: helmet lamps of three people walking near the modules and a rover's light far off on the plain (each tied to a followed point on the ground), cross-shaped streaks on the floodlights, 1,432 catalogue stars on the strip, beacons, five spacecraft crossing in orbit. Blue and red fringes that NASA's lens effect puts on dark posts are removed at night.
+  - Sound: no whooshes. Opening boom, sinking tone, the swell that stops dead at 6.1 s, a silent beat (−43 dBFS against −17 for speech), boom on "A base with people cannot.", lamp breakers, the dawn chord peaking at 16.85 s.
+  - Measured on the final file: 594 frames at 24 a second; no repeated frame and no sudden jump, including where the three render runs meet and where the source turns back; −15.0 LUFS, true peak −1.6 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; 5% of the picture darker than 8/255.
+  - Requirement check, misses:
+    - It is one place for 24.75 s. The astronauts at the rover, the power masts and the close astronaut are gone, because they could only be joined on by a cut.
+    - People appear only as three helmet lamps a few pixels across.
+    - The landers, the dust, the walkers, the far rover, the beacons and the orbiting spacecraft are ours; each could be there, none is in NASA's shot.
+    - The source runs backwards in two of its passes: NASA's rover reverses, and the camera's slow rise turns into a sink. Neither showed as a jump in the measurements.
+    - The night holds a mean brightness under 30/255 for 4.3 s.
+    - The Sun sits in the top 230 px, under the app's header, at the start and the end.
+    - The shadow and the landers move at time-lapse speed; the shadow's shape and path are modelled; the stars' date is assumed.
+    - "Be careful of the shadows" is read as the Earth's dark side; the owner may have meant something else.
+    - The sound is synthesised and was checked by measurement, not by ear.
+    - Credits for the caption: NASA; star positions from the HYG database (CC BY-SA 4.0).
+  - Time and cost: about 75 minutes from the owner's message to the file. The whole take renders in about 6 minutes. No AI clip. AI credit spent: $0.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

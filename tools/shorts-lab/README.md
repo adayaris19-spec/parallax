@@ -177,3 +177,13 @@ After the owner's verdict on the nine-shot reel: a fuller opening, joins that do
 - `seam.py PLAN.json CLIPS_DIR OUT_DIR` trims the shots and reworks the frames at each join (`joins` in the plan: `whip`, `flare` or `cut`), then writes a plan for `make_video.py`.
 - `sfx.py` gained `whoosh`.
 - Order of work: `night_fall.py` (twice per take with `PART`), concat, `pan_window.py`, `seam.py`, `make_video.py`, then the checks.
+
+## Moon base reel as one unbroken take (Nov 23, 2026, late)
+
+The owner rejected the whips and the flare: no cut and no transition effect of any kind.
+
+- Plan: `moonbase-v11.json`, one shot. Spec: `specs/night_v11_one.json`.
+- `night_fall.py` now also moves the camera itself (`path`): it works on a 3510×1920 strip of NASA's take, computes only the part in view, and writes the 1080×1920 frame directly. `"order": "pingpong"` runs the 165 source frames there and back, so the take lasts 594 frames.
+- Run it once with `PREPARE=1` (decodes the strip to `FRAME_CACHE_DIR`, 3.3 GB, and follows the lamps), then three times side by side with `PART=0,198`, `PART=198,396`, `PART=396,594`, and join the three files with ffmpeg's concat. The whole take renders in about 6 minutes.
+- New in a spec: `discs` (the Earth's disc: it hides the stars behind it, and its crescent is cleaned of the source's rainbow rim), `spikes` on a lamp, and movers `walker` and `rover` (lights that travel over the ground, tied to a followed lamp by `anchor`). A `lander` is now drawn as a craft (body, legs, foil band, a strobe) whose flame lights the ground as it comes down.
+- `seam.py` and `pan_window.py` are kept but not used by this reel.
