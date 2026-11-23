@@ -16,11 +16,17 @@ print(json.dumps({k: v for k, v in report.items() if k != "steps"}), flush=True)
 def client(space):
     try: return Client(space, token=tok, verbose=False)
     except TypeError: return Client(space, hf_token=tok, verbose=False)
-for im in req.get("images", []):                         # a 9:16 column of the picture, starting x0 pixels from its left edge
-    raw = f"{out}/{im['name']}_src"; subprocess.run(["curl", "-sS", "-L", "-m", "120", "-A", "Mozilla/5.0", "-o", raw, im["url"]], check=True); p = f"{out}/{im['name']}.jpg"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-vf", f"crop=ih*9/16:ih:{int(im.get('x0', 0))}:0,scale={int(im.get('w', 832))}:{int(im.get('h', 1472))}:flags=lanczos", "-frames:v", "1", "-q:v", "2", p], check=True); os.remove(raw); files[im["name"]] = p
+for im in req.get("images", []):                         # a window of the picture: left edge x0, top edge y0, cw x ch pixels (default: a full-height 9:16 column), then scaled to w x h
+    from PIL import Image
+    Image.MAX_IMAGE_PIXELS = None
+    raw = f"{out}/{im['name']}_src"; subprocess.run(["curl", "-sS", "-L", "-m", "180", "-A", "Mozilla/5.0", "-o", raw, im["url"]], check=True); p = f"{out}/{im['name']}.png"
+    pic = Image.open(raw).convert("RGB"); W_, H_ = pic.size; ch = int(im.get("ch", H_)); cw = int(im.get("cw", round(ch * 9 / 16))); x0, y0 = int(im.get("x0", 0)), int(im.get("y0", 0))
+    pic = pic.crop((x0, y0, x0 + cw, y0 + ch)); tw, th = int(im.get("w", cw)), int(im.get("h", ch))
+    if (tw, th) != (cw, ch): pic = pic.resize((tw, th), Image.LANCZOS)
+    pic.save(p); os.remove(raw); files[im["name"]] = p
 for n in req.get("frames", []):
-    p = f"{out}/frame{n}.jpg"; subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", clip, "-vf", f"select=eq(n\\,{int(n)}),scale=720:1280:flags=lanczos", "-frames:v", "1", "-q:v", "2", p], check=True); files[f"frame{n}"] = p
+    import imageio_ffmpeg
+    p = f"{out}/frame{n}.jpg"; subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i", clip, "-vf", f"select=eq(n\\,{int(n)}),scale=720:1280:flags=lanczos", "-frames:v", "1", "-q:v", "2", p], check=True); files[f"frame{n}"] = p
 for st in req["steps"]:
     t0 = time.time(); rec = {"name": st["name"], "kind": st["kind"], "space": st["space"], "input": st["input"]}
     try:
@@ -35,6 +41,12 @@ for st in req["steps"]:
                           height=int(st.get("height", 832)), width=int(st.get("width", 480)), duration_seconds=float(st.get("seconds", 5)), guidance_scale=1.0, steps=int(st.get("steps", 6)),
                           seed=int(st.get("seed", 7)), randomize_seed=False, remove_bg=False, api_name="/generate_video")
             v = r[0]; v = v.get("video", v) if isinstance(v, dict) else v; dst = f"{out}/{st['name']}.mp4"; shutil.copy(v, dst)
+        elif st["kind"] == "ltx23":                     # the LTX-2.3 demo: a first frame and a prompt; 24 frames a second; the size is ours to choose
+            r = c.predict(input_image=handle_file(src), prompt=st["prompt"], duration=float(st.get("seconds", 3)), enhance_prompt=False, seed=int(st.get("seed", 7)), randomize_seed=False,
+                          height=int(st.get("height", 1920)), width=int(st.get("width", 1088)), api_name="/generate_video")
+            v = r[0]; v = v.get("video", v) if isinstance(v, dict) else v
+            if not v: raise RuntimeError("the demo returned no video")
+            dst = f"{out}/{st['name']}.mp4"; shutil.copy(v, dst)
         elif st["kind"] == "ltx":                       # LTX-2.5's own demo: a first frame and a prompt
             r = c.predict(prompt=st["prompt"], image_path=handle_file(src), height=int(st.get("height", 1472)), width=int(st.get("width", 832)), duration_s=float(st.get("seconds", 2)), seed=int(st.get("seed", 7)),
                           decoder="conv", auto_len=False, randomize_seed=False, do_enhance=False, api_name="/run")

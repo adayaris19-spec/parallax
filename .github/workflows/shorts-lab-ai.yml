@@ -11,7 +11,7 @@ permissions:
   actions: read
 concurrency:
   group: shorts-lab-ai
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   ai:
     runs-on: ubuntu-latest
@@ -39,8 +39,7 @@ jobs:
           HAS_AS_VARIABLE: ${{ vars.HF_TOKEN != '' }}
         run: |
           echo "secret named HF_TOKEN: $HAS_HF_TOKEN; under another usual name: $HAS_OTHER_NAME; saved as a variable instead of a secret: $HAS_AS_VARIABLE"
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          pip install -q gradio_client
+          pip install -q gradio_client pillow imageio-ffmpeg
           python tools/shorts-lab/ai_pass.py tools/shorts-lab/ai-request.json "$([ -f in/clip.mp4 ] && echo in/clip.mp4 || echo -)" out
           ls -la out
       - uses: actions/upload-artifact@v4

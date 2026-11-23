@@ -1,6 +1,38 @@
 {
- "note": "Check only (Nov 23): is the owner's Hugging Face token visible to this workflow, under HF_TOKEN or another usual name? No pictures, no steps.",
+ "note": "Nov 23: the closing shot of the Moon base reel. First frame: a 1088x1920 window of NASA's 4K rendering 'Moon Base Phase 1' (nasa.gov, May 2026, credit NASA), not enlarged. Motion: LTX-2.3 (open model) on its public demo, 24 frames a second. Two tries with different seeds, as far as the day's free allowance goes.",
  "render_run": 0,
- "images": [],
- "steps": []
+ "images": [
+  {
+   "name": "end",
+   "url": "https://www.nasa.gov/wp-content/uploads/2026/05/moon-base-phase-01-v08-2.jpg",
+   "x0": 296,
+   "y0": 240,
+   "cw": 1088,
+   "ch": 1920
+  }
+ ],
+ "steps": [
+  {
+   "name": "end_a",
+   "kind": "ltx23",
+   "space": "Lightricks/LTX-2-3",
+   "input": "end",
+   "prompt": "Documentary footage filmed on the Moon, one continuous shot. Two astronauts in white spacesuits stand beside a parked white rover. The astronaut on the left walks slowly toward the rover with a slow, bouncing low-gravity step. The second astronaut turns their helmet to look up at the Earth. The rover stays parked and keeps exactly the same shape. The Earth stays fixed in the black sky. The camera pushes in very slowly and steadily. Hard low sunlight, crisp black shadows. There is no air: no haze, no wind, no smoke, no floating dust; a little soil kicked by a boot falls straight back to the ground. Nothing new appears and nothing disappears. Photorealistic, sharp, natural motion.",
+   "seconds": 3.9,
+   "seed": 7,
+   "height": 1920,
+   "width": 1088
+  },
+  {
+   "name": "end_b",
+   "kind": "ltx23",
+   "space": "Lightricks/LTX-2-3",
+   "input": "end",
+   "prompt": "Documentary footage filmed on the Moon, one continuous shot. Two astronauts in white spacesuits stand beside a parked white rover. The astronaut on the left walks slowly toward the rover with a slow, bouncing low-gravity step. The second astronaut turns their helmet to look up at the Earth. The rover stays parked and keeps exactly the same shape. The Earth stays fixed in the black sky. The camera pushes in very slowly and steadily. Hard low sunlight, crisp black shadows. There is no air: no haze, no wind, no smoke, no floating dust; a little soil kicked by a boot falls straight back to the ground. Nothing new appears and nothing disappears. Photorealistic, sharp, natural motion.",
+   "seconds": 3.9,
+   "seed": 21,
+   "height": 1920,
+   "width": 1088
+  }
+ ]
 }
