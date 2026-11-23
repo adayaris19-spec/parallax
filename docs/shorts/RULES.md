@@ -124,6 +124,10 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - No thin counters, place labels or source cards over the picture. Subtitles stay. The source of a fact goes in the post's caption.
   - Frames are full: black sky takes at most about a third of the frame in daylight shots.
   - Hardware is NASA's own models where they exist, moving the way the real thing moves (the crew rover at no more than its published 10 km/h; dust thrown in arcs with no air to hold it).
+- **Method scrapped (owner, Nov 23, on the action opening):** "You need to scrap this method… this is still not the level of detail that we are aiming for. The physics of this is still wrong. There's literally trail marks before the trail even goes there. It's not even a full reel."
+  - Cause and effect in order: nothing shows the result of an action before the action (no tracks ahead of a wheel, no dust before an engine fires, no shadow before its object).
+  - What is sent for a verdict is a full video of 20 to 25 s, unless the owner asked for a sample.
+  - A production method is kept only if it reaches the detail of the owner's references and makes a full video in the time budget; hand-built 3D rendered on processors did neither.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
