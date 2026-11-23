@@ -145,3 +145,12 @@ After the owner scrapped hand-built 3D. The method and the open choice are in `d
 - Before a shot is used, its frames are compared one to the next: a frame that hardly differs from the one before while its neighbours move four times as much is a repeat and is dropped.
 - NASA's videos carry a small "Animation" tag at the bottom left and sometimes a drawn route line; the window is placed to leave them out.
 
+## Moon base reel, one night in one place (Nov 23, 2026)
+
+The owner's format after the option B reel: one base, one event (the Sun leaves, the lamps come on, the Sun returns), with real sound.
+
+- Plan: `moonbase-v8.json`. Five shots; the wide view of the base opens the reel and comes back.
+- `night_fall.py SOURCE.mp4 SPEC.json OUT.mp4 [frames to write as stills]` lays a travelling shadow, the night and lamps over a sunlit moving shot. `specs/night_take1.json` is the fall, `specs/night_take2.json` the return (the same camera move backwards). In a spec: `window` is the 1080×1920 cut of the source; `vp` the point on the horizon the shadow edge turns about; `edge_deg` the edge's angle over time; `deep` how dark the night gets; `lamps` are points picked on real objects in frame `ref_frame`. It also writes `OUT_lamps.json`, the time each lamp switches, for the sound.
+- `sfx.py` makes the sound effects from arithmetic: radio tones, helmet breathing, a suit hum, relay sounds, thumps. No recordings. The plan lists them under `sound`.
+- `make_video.py` now also reads `sound`, `music_env` (the score's level over time), `score_cuts` (where the chords change) and `subs.halo` (a soft dark glow behind the subtitles).
+- The source shot is `https://www.nasa.gov/wp-content/uploads/2026/05/moon-base-v-1-1-5-22-26.mp4`; the close shots are from `Moon_Base_Update-Oct-Lunar_Rovers` on images.nasa.gov (18.6 s and 26.25 s in).

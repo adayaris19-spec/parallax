@@ -32,14 +32,12 @@ nl = len(L); far = T[:, 2 * nl:]; vp = np.array(spec["vp"], np.float32)[None] + 
 spread = lambda a: np.linalg.norm(a - a.mean(0), axis=1).mean(); scale = np.array([spread(T[i, :2 * nl]) for i in range(n)]) / spread(T[r, :2 * nl])
 print("lamp places moved up to %.0f px; scale %.2f to %.2f; vanishing point from" % (np.abs(T - T[r][None]).max(), scale.min(), scale.max()), vp[0].round(0), "to", vp[-1].round(0), flush=True)
 
-# ---------- the timeline: values at times, joined smoothly
+# ---------- the timeline: values at times
 def key(track, t):
-    k = spec[track]; ts = [a for a, _ in k]; vs = [b for _, b in k]
-    if t <= ts[0]: return vs[0]
-    if t >= ts[-1]: return vs[-1]
-    j = max(i for i in range(len(ts)) if ts[i] <= t); u = (t - ts[j]) / (ts[j + 1] - ts[j]); u = u * u * (3 - 2 * u); return vs[j] + (vs[j + 1] - vs[j]) * u
+    """straight lines between the keys, with the corners rounded over 0.7 s, so nothing starts or stops with a jerk"""
+    k = np.array(spec[track], float); return float(np.interp(t + np.linspace(-0.35, 0.35, 15), k[:, 0], k[:, 1]).mean())
 K = np.array(spec.get("shadow_rgb", [0.217, 0.228, 0.296]), np.float32)[::-1]; SOFT = spec.get("edge_soft_deg", 30.0); yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-rs = np.random.default_rng(spec.get("seed", 4)); WAVES = [(rs.uniform(1.4, 4.2), rs.uniform(0, 6.28), a) for a in (3.2, 2.2, 1.4, 0.9)]      # the edge is the shadow of a ridge line, not of a ruler: it wanders by a few degrees along its length
+rs = np.random.default_rng(spec.get("seed", 4)); WAVES = [(rs.uniform(1.4, 4.2), rs.uniform(0, 6.28), a) for a in (2.2, 1.5, 1.0, 0.6)]      # the edge is the shadow of a ridge line, not of a ruler: it wanders by a few degrees along its length
 def wander(rad): lr = np.log(np.maximum(rad, 8.0)); return sum(a * np.sin(f * lr * 2.2 + ph) for f, ph, a in WAVES)
 def cover(ang, rad, A):
     m = np.clip((A - ang - wander(rad)) / SOFT + 0.5, 0, 1); return m * m * (3 - 2 * m)
@@ -47,15 +45,29 @@ def lamp_on(k_, i, t):
     """a lamp switches itself on a moment after the shadow reaches it, and off when the sunlight is back"""
     gx, gy = T[i, 2 * k_ + 1]; d = 0.16 + 0.09 * ((k_ * 7) % 5); a = math.degrees(math.atan2(gy - vp[i, 1], gx - vp[i, 0])); rad = math.hypot(gx - vp[i, 0], gy - vp[i, 1])
     return float(np.clip((cover(np.float32(a), np.float32(rad), key("edge_deg", t - d)) - 0.72) / 0.08, 0, 1))
+EL7 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)); EL5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)); SMALL = spec.get("old_shadow_max_px", 70000)
 def frame(j):
     """j: output frame number"""
     i = j if order == "forward" else n - 1 - j; t = j / FPS; o = F[i].astype(np.float32); lum = gray[i].astype(np.float32)
     dark = (lum < 30).astype(np.uint8); _, lab = cv2.connectedComponents(dark, connectivity=4); top = np.unique(lab[0][dark[0] > 0]); sky = np.isin(lab, top) & (dark > 0)       # the sky: the dark that reaches the top edge
-    _, glab, st, _ = cv2.connectedComponentsWithStats((~sky).astype(np.uint8), connectivity=4); big = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA])); ground = cv2.GaussianBlur((glab == big).astype(np.float32), (0, 0), 2.0)   # the ground: the largest piece that is not sky (this leaves the Earth out)
+    ng, glab, st, _ = cv2.connectedComponentsWithStats((~sky).astype(np.uint8), connectivity=4); big = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA]))
+    ground = cv2.GaussianBlur(np.isin(glab, [c for c in range(1, ng) if c == big or st[c, cv2.CC_STAT_TOP] > 0]).astype(np.float32), (0, 0), 2.0)   # the ground: everything that is not sky, except what touches the top edge (the Earth)
     A = key("edge_deg", t); deep = key("deep", t); ang = np.degrees(np.arctan2(yy - vp[i, 1], xx - vp[i, 0]))                         # 0 = to the right along the horizon, 90 = straight down
     m = cover(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), A); m[ang < 0] = 0.0
     crest = float(np.clip((A - 150.0) / 40.0, 0, 1)); m = np.maximum(m, crest * (ang < 6)) * ground                                 # the high far ground keeps the light longest
-    wb = np.clip((cv2.GaussianBlur(lum, (0, 0), 1.2) - 48.0) / 20.0, 0, 1)[..., None]; target = o * (K[None, None] * deep * wb + (1 - wb) * deep ** 0.5); res = o + (target - o) * m[..., None]
+    # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
+    # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
+    # The few pixels where dark and sunlit meet are a mix, and the source has thin coloured rims there, so they are filled in from both sides.
+    mx = o.max(2); sat = np.clip(((mx - o.min(2)) / np.maximum(mx, 1.0) - 0.22) / 0.2, 0, 1)[..., None]; on = o + (lum[..., None] - o) * sat      # strong colour on grey ground is an artefact
+    lb = cv2.GaussianBlur(lum, (0, 0), 1.0); wb = np.clip((lb - 48.0) / 20.0, 0, 1); dm = (lb < 58.0).astype(np.uint8)
+    nc, dl, dst, _ = cv2.connectedComponentsWithStats(dm, connectivity=4); small = np.isin(dl, [c for c in range(1, nc) if dst[c, cv2.CC_STAT_AREA] < SMALL]).astype(np.float32) * ground
+    soft = cv2.GaussianBlur(on, (0, 0), 1.4); lit = on * K[None, None]; ws = wb * ground; nl = lit.mean(2)
+    gl = cv2.GaussianBlur(nl * ws, (0, 0), 22.0) / np.maximum(cv2.GaussianBlur(ws, (0, 0), 22.0), 1e-3); dk = cv2.GaussianBlur(soft.mean(2) * small, (0, 0), 22.0) / np.maximum(cv2.GaussianBlur(small, (0, 0), 22.0), 1e-3)
+    lift = 1 + (np.clip(gl / np.maximum(dk, 1.0), 1.0, 2.4) - 1) * cv2.GaussianBlur(small, (0, 0), 1.0)
+    night = (lit * wb[..., None] + soft * (lift * (1 - wb))[..., None]) * deep
+    band = (cv2.dilate(dm, EL7) > 0) & (cv2.erode(dm, EL5) == 0); w = (~band).astype(np.float32)
+    fill = cv2.GaussianBlur(night * w[..., None], (0, 0), 2.5) / np.maximum(cv2.GaussianBlur(w, (0, 0), 2.5), 1e-3)[..., None]
+    bs = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.7)[..., None]; night = night + (fill - night) * bs; res = o + (night - o) * m[..., None]
     pool = np.zeros((H, W, 3), np.float32); core = np.zeros((H, W, 3), np.float32); s = float(scale[i])
     for k_, l in enumerate(L):
         v = lamp_on(k_, i, t); ON[k_].append(v)
@@ -68,7 +80,7 @@ def frame(j):
         if x_b > x_a and y_b > y_a:
             d2 = (xx[y_a:y_b, x_a:x_b] - ax) ** 2 + (yy[y_a:y_b, x_a:x_b] - ay) ** 2; pool[y_a:y_b, x_a:x_b] += (0.38 * v * l.get("gain", 1.0) * np.exp(-d2 / (rr * rr)))[..., None] * col
             c = np.exp(-d2 / (2 * (l.get("size", 3.0) * s) ** 2)) + 0.30 * np.exp(-d2 / (2 * (l.get("size", 3.0) * s * 4.5) ** 2)); core[y_a:y_b, x_a:x_b] += (255.0 * v * c)[..., None] * (0.55 + 0.45 * col)
-    amount = np.clip(pool.max(2, keepdims=True), 0, 0.85); tint = pool / np.maximum(pool.max(2, keepdims=True), 1e-6); res = res + np.maximum(o * tint * amount - res, 0) * (m * ground)[..., None]      # lamp light is added to the dim ground, and shows it as the source shot has it
+    amount = 0.72 * (1 - np.exp(-1.5 * pool.max(2, keepdims=True))); tint = pool / np.maximum(pool.max(2, keepdims=True), 1e-6); res = res + np.maximum(o * tint * amount - res, 0) * (m * ground)[..., None]      # lamp light is added to the dim ground, and shows it as the source shot has it
     res = res + core * (0.25 + 0.75 * m[..., None])                                                         # a lamp in full sunlight hardly shows
     return np.clip(res, 0, 255).astype(np.uint8)
 total = spec.get("frames", n); ON = [[] for _ in L]

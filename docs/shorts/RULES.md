@@ -145,6 +145,13 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - The wide view of the place carries the story and comes back; close shots are cut-ins inside it.
   - This replaces "7 to 9 shots, about 2.0–3.5 s each" for a one-place story: a take may run as long as its event needs.
   - Sound is part of the picture: each event on screen that would be heard (a lamp switching, a radio call, breath) has its sound; when the light goes, the score drops away.
+  - Draft measures from the first one-place reel (Nov 23, to confirm on the verdict):
+    - the wide view holds at least half of the running time (61% in that reel);
+    - on the wide view, the night never sits unchanged for more than about 2 s;
+    - a lamp comes on only after the dark has reached it;
+    - sound effects are made for the reel, never recordings with voices; only sounds a helmet would carry (radio, breath, the suit, knocks felt through the structure); they are loudest in the gaps between sentences, and the narration must still be heard back word for word;
+    - subtitles carry a soft dark glow so they read on sunlit ground.
+  - Open, for the owner: adding our own night, shadow and lamps to agency footage is a third ingredient beside footage and AI motion. It also runs a shadow in seconds that takes hours, beside a rover at normal speed, against "an honest time-lapse".
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

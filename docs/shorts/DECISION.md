@@ -71,4 +71,4 @@ Recommendation: C or D. A alone is honest and sharp but half its shots are still
 - With a free account's 5 minutes a day, that is about two to three clips a day, not one. To be confirmed once the token works.
 - For the Moon base, NASA's own moving footage covered seven of eight shots. AI motion was needed for one.
 - Other goals: NOAA Fisheries and USGS publish public-domain coral video; for malaria the search found public-domain stills but no free video. Each goal needs its source list before its first video (rule in `RULES.md`).
-
+- One-place reel (Nov 23, evening): no agency footage shows night falling on a base, and without the token no AI clip could be made for it. The night, the travelling shadow and the lamps were laid over NASA's sunlit shot by our own compositing (`tools/shorts-lab/night_fall.py`). This adds an ingredient to option B; it stays only if the owner agrees.

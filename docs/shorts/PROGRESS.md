@@ -302,6 +302,36 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Time: about 100 minutes from the owner's message to the file, most of it finding and checking shots. No rendering. AI: one clip, 94 s, on a free no-account allowance. AI credit spent: $0.
   - Other goals (looked at, not built): NOAA Fisheries publishes coral b-roll packages as public domain with credit, and USGS has public-domain coral video; for malaria the search found public-domain stills (CDC's image library, NIAID) but no free video. Goals like that will lean on AI-moved photographs, which is where the method is weakest. Resolutions and rights per item are not yet checked.
 - **Owner's verdict on the option B reel (Nov 23):** "getting better", some 3D "pretty nice", some "way weaker"; "transitions of astronaut, back to back… not entertaining". Asked four questions. Answers: liked shots 2, 4, 6 and 8, "still needs continuity"; format "one night, one place"; a story with a payoff and real sound. Rules in `RULES.md` section 2 ("A story in one place").
+- **"One night, one place" reel sent (Nov 23, about 20:05 UTC+1): 23.1 s, 5 shots.** Plan `tools/shorts-lab/moonbase-v8.json`. Waiting for the verdict.
+
+  | Shot | Seconds | Picture | Source |
+  |---|---|---|---|
+  | 1 | 7.75 | The base in sunlight; a ridge's shadow crosses it; 16 lamps come on one by one; night | NASA concept animation; shadow, night and lamps added by us |
+  | 2 | 2.08 | An astronaut kneeling at work in dim light | NASA, Rovers video, untouched |
+  | 3 | 3.46 | A glove holding a rock, helmet lamps behind | NASA, Rovers video, untouched |
+  | 4 | 6.25 | The same base at night; the sunlight comes back; the shadow starts to return | NASA concept animation, same camera move backwards; shadow, night and lamps added by us |
+  | 5 | 3.58 | Two astronauts walking to their rover in sunlight | AI-moved from NASA's rendering (the clip of the last reel) |
+
+  - What changed: one place and one event instead of eight unrelated shots. The wide view of the base carries 14.0 of 23.1 s and comes back; the two close shots sit inside the night. All four shots the owner liked are in; the four not picked are out.
+  - How the night is made (`night_fall.py`): on NASA's sunlit moving shot, a shadow edge travels over the ground at a steady 28 degrees a second about its vanishing point, starting from the shadow the shot already has. Shadowed ground takes the colour NASA's own shadows have in that shot. Each lamp sits on a real object, followed through the shot, and comes on 0.16–0.52 s after the shadow reaches it (first at 1.67 s, last at 4.92 s). Old sun shadows fade once the Sun is gone.
+  - Sound (`sfx.py`, all synthesised, no recordings, no voices): a relay sound for every lamp, three radio tones in the gaps between sentences (7.56, 12.95, 22.5 s), breathing in the helmet under the close shots and the last shot, a suit hum, a low thump on each cut. The score falls to a tenth between 6.2 and 13.5 s and comes back with the sunlight.
+  - Measured on the final file: 555 frames at 24 a second, none repeated; −15.0 LUFS, true peak −1.7 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; 8% of the picture darker than 8/255; the wide view is never under brightness 40/255 for more than 3.0 s.
+  - Requirement check, passes: length; first frame a full bright picture with the shadow already moving and speech from 0.04 s; peak (the sunlight lines, with the dawn) starts at 13.2 s, 57%; last word ends 0.72 s before the final frame; no end card, ask or logo; every shot moves and shows something happening; nothing enlarged; 24 real frames a second; lamps never come on before the dark reaches them; lamp light, the gold visor and Earth carry colour; no counters or labels; NASA's "Animation" tag outside every window.
+  - Requirement check, misses:
+    - The night, the moving shadow and the lamps are ours, laid over NASA's shot. That is a third ingredient beside agency footage and AI motion; the owner has not agreed to it yet.
+    - The shadow crosses the base in about 6 s. In reality that takes hours, while the rover in the same shot drives at normal speed. Not an honest time-lapse.
+    - The shadow's shape and path are modelled, not computed from terrain; the place is NASA's concept, not a surveyed site. The light returns from the side it left.
+    - The sound is synthesised, and it was checked by measurement only, not by ear.
+    - "Small landers have survived them by mostly shutting down" plays over the base's lamps coming on; no lander is shown.
+    - The two close shots come from another NASA sequence; they match the night in light, but nothing proves they are the same base. The last cut goes from the shadow returning to full sunlight.
+    - The hook sentence ends at 4.2 s (rule 4.0 s), as before.
+    - Earth is a thin crescent cut by the top edge in shots 1 and 4 and a large half-lit disc in shot 5.
+    - The last shot is darker and plainer than the base shot (mean brightness 28/255 against 120).
+    - Faint streaks in NASA's sky show at night; a faint outline of the old shadows remains.
+    - Motion in the NASA shots runs at 80% of NASA's speed. A US flag patch shows on the suit in shot 2. The credit ("NASA") has to go in the post's caption.
+    - Older rules this format sets aside: 7 to 9 shots of 2.0–3.5 s; four kinds of place or scale; no subject twice.
+  - Time and cost: both takes render in about 4 minutes on this machine; the whole reel assembles in about 2. No new AI clip. AI credit spent: $0.
+  - Token: checked again at 19:24 UTC+1. The workflow still sees no `HF_TOKEN`.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

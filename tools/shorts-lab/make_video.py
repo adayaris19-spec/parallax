@@ -6,7 +6,7 @@ import os, sys, json, subprocess, numpy as np, soundfile as sf
 from scipy.signal import resample_poly, butter, sosfilt
 from scipy.ndimage import maximum_filter1d, uniform_filter1d
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "..", "watch-render"))
-import score3, pyloudnorm
+import score3, pyloudnorm, sfx
 plan = json.load(open(sys.argv[1])); CL, VO, OUT = sys.argv[2], sys.argv[3], sys.argv[4]; W = os.path.splitext(OUT)[0] + "_work"; os.makedirs(W, exist_ok=True)
 FPS, SR = 24, 48000; run = lambda *a: subprocess.run(a, check=True)
 cuts = plan["cuts"]; N = cuts[-1]; total = N / FPS                      # cuts: the frame each shot ends on
@@ -27,7 +27,7 @@ for ln in plan["lines"]:
     w = words[ln["id"]]; starts = [0.0] + [w[i][1] for i in ln.get("split", [])]; end = w[-1][2] + 0.30      # a phrase stays until the next begins
     for j, text in enumerate(ln["text"]): subs.append((ln["at"] + starts[j], ln["at"] + (starts[j + 1] if j + 1 < len(starts) else end), text))
 voice = voice[:int(total * SR)]
-subs = [(a, min(b, subs[i + 1][0] - 0.04) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
+subs = [(a, min(b, subs[i + 1][0] - plan.get("sub_gap", 0.04)) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
 def at_cut(a, b):                                                         # a phrase whose words are over does not hang on into the next shot
     for c in cuts[:-1]:
         if a < c / FPS - 0.5 and c / FPS - 0.02 < b < c / FPS + 0.45: return c / FPS - 0.02
@@ -35,13 +35,18 @@ def at_cut(a, b):                                                         # a ph
 subs = [(a, at_cut(a, b), t) for a, b, t in subs]
 
 # ---------- score: no beat; it gives way to the voice
-cfg = dict(plan["score"]); mix, _ = score3.render([c / FPS for c in cuts[:-1]], total, cfg, cfg.pop("seed", 7)); music = mix[:, :len(voice)]
+cfg = dict(plan["score"]); mix, _ = score3.render(plan.get("score_cuts") or [c / FPS for c in cuts[:-1]], total, cfg, cfg.pop("seed", 7)); music = mix[:, :len(voice)]      # score_cuts: where the chords change, if not on the picture cuts
 if music.shape[1] < len(voice): music = np.pad(music, ((0, 0), (0, len(voice) - music.shape[1])))
 env = np.abs(voice); env = sosfilt(butter(1, 6.0, "low", fs=SR, output="sos"), np.maximum(env, sosfilt(butter(1, 6.0, "low", fs=SR, output="sos"), env)[::1]))
 k = int(0.25 * SR); lead = np.concatenate([env[k:], np.zeros(k)]); env = np.maximum(env, lead)                    # the music starts to give way a little before each sentence
 duck = 1.0 - (1.0 - plan.get("duck", 0.36)) * np.clip(env / 0.03, 0, 1); duck = sosfilt(butter(1, 3.0, "low", fs=SR, output="sos"), duck)
 meter = pyloudnorm.Meter(SR); v = voice * 10 ** ((-16.0 - meter.integrated_loudness(voice)) / 20); m = music * 10 ** ((plan.get("music_lufs", -27.0) - meter.integrated_loudness(music.T)) / 20) * duck
+tt = np.arange(len(voice)) / SR
+if plan.get("music_env"): me = np.array(plan["music_env"], float); m = m * np.interp(tt, me[:, 0], me[:, 1])              # the score can fall away and come back (night, dawn)
 out = np.stack([v, v]) + m; CEIL = 10 ** (-2.0 / 20)
+if plan.get("sound"):                                                    # sound effects: what a helmet would carry (see sfx.py); they give way to the voice a little
+    fx = sfx.render(plan["sound"], total, CL)[:, :len(voice)]; out = out + fx * plan.get("sound_gain", 1.0) * (1.0 - (1.0 - plan.get("sound_duck", 0.6)) * (1.0 - (duck - plan.get("duck", 0.36)) / (1.0 - plan.get("duck", 0.36))))
+    sf.write(f"{W}/sfx.wav", fx.T, SR, subtype="PCM_24"); sf.write(f"{W}/music.wav", m.T, SR, subtype="PCM_24")
 def limit(x):                                                             # a look-ahead limiter: short peaks are turned down, nothing is clipped
     w = int(0.004 * SR); pk = maximum_filter1d(np.max(np.abs(x), axis=0), 2 * w + 1); return x * uniform_filter1d(np.minimum(1.0, CEIL / np.maximum(pk, 1e-9)), w)
 for _ in range(4): out = limit(out * 10 ** ((plan.get("lufs", -15.0) - meter.integrated_loudness(out.T)) / 20))
@@ -62,7 +67,7 @@ Style: s,{S.get('font', 'Inter Display Medium')},{S.get('size', 58)},&H00FFFFFF,
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-""" + "".join(f"Dialogue: 0,{ts(a)},{ts(min(b, total - 0.05))},s,,0,0,0,,{t}\n" for a, b, t in subs)
+""" + "".join((f"Dialogue: 0,{ts(a)},{ts(min(b, total - 0.05))},s,,0,0,0,,{{\\bord{S['halo']}\\blur{S['halo'] * 0.8:.1f}\\1a&HFF&\\3c&H000000&\\3a&H{S.get('halo_alpha', '78')}&\\4a&HFF&}}{t}\n" if S.get("halo") else "") + f"Dialogue: 1,{ts(a)},{ts(min(b, total - 0.05))},s,,0,0,0,,{t}\n" for a, b, t in subs)      # halo: a soft dark glow behind the words, for bright ground
 open(f"{W}/subs.ass", "w").write(ass)
 run("ffmpeg", "-v", "error", "-y", "-i", f"{W}/picture.mp4", "-i", f"{W}/audio.wav", "-vf", (plan["grade"] + "," if plan.get("grade") else "") + f"ass={W}/subs.ass", "-c:v", "libx264", "-crf", str(plan.get("crf", 17)), "-maxrate", plan.get("maxrate", "14M"), "-bufsize", "28M", "-tune", "grain", "-preset", "slow", "-pix_fmt", "yuv420p", "-r", str(FPS),
     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-shortest", OUT)
