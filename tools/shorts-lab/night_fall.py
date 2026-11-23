@@ -41,10 +41,23 @@ rs = np.random.default_rng(spec.get("seed", 4)); WAVES = [(rs.uniform(1.4, 4.2),
 def wander(rad): lr = np.log(np.maximum(rad, 8.0)); return sum(a * np.sin(f * lr * 2.2 + ph) for f, ph, a in WAVES)
 def cover(ang, rad, A):
     m = np.clip((A - ang - wander(rad)) / SOFT + 0.5, 0, 1); return m * m * (3 - 2 * m)
+BANDS = spec.get("bands", [{"lead": "edge_deg"}])      # a shadow has a front edge ("lead") and may have a back edge ("trail") that follows it across the ground the same way: the light comes back from the side the dark came from
+def shade(ang, rad, t):
+    m = 0.0
+    for b in BANDS:
+        c = cover(ang, rad, key(b["lead"], t))
+        if b.get("trail"): c = c * (1 - cover(ang, rad + 137.0, key(b["trail"], t)))
+        m = np.maximum(m, c)
+    return m
+def crest_dark(t):
+    """the high far ground keeps the light longest and gets it back first"""
+    c = 0.0
+    for b in BANDS: c = max(c, float(np.clip((key(b["lead"], t) - 150.0) / 40.0, 0, 1)) * (1 - float(np.clip((key(b["trail"], t) + 10.0) / 30.0, 0, 1)) if b.get("trail") else 1.0))
+    return c
 def lamp_on(k_, i, t):
     """a lamp switches itself on a moment after the shadow reaches it, and off when the sunlight is back"""
     gx, gy = T[i, 2 * k_ + 1]; d = 0.16 + 0.09 * ((k_ * 7) % 5); a = math.degrees(math.atan2(gy - vp[i, 1], gx - vp[i, 0])); rad = math.hypot(gx - vp[i, 0], gy - vp[i, 1])
-    return float(np.clip((cover(np.float32(a), np.float32(rad), key("edge_deg", t - d)) - 0.72) / 0.08, 0, 1))
+    return float(np.clip((float(shade(np.float32(a), np.float32(rad), t - d)) - 0.72) / 0.08, 0, 1))
 EL7 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)); EL5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)); SMALL = spec.get("old_shadow_max_px", 70000)
 def frame(j):
     """j: output frame number"""
@@ -52,9 +65,9 @@ def frame(j):
     dark = (lum < 30).astype(np.uint8); _, lab = cv2.connectedComponents(dark, connectivity=4); top = np.unique(lab[0][dark[0] > 0]); sky = np.isin(lab, top) & (dark > 0)       # the sky: the dark that reaches the top edge
     ng, glab, st, _ = cv2.connectedComponentsWithStats((~sky).astype(np.uint8), connectivity=4); big = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA]))
     ground = cv2.GaussianBlur(np.isin(glab, [c for c in range(1, ng) if c == big or st[c, cv2.CC_STAT_TOP] > 0]).astype(np.float32), (0, 0), 2.0)   # the ground: everything that is not sky, except what touches the top edge (the Earth)
-    A = key("edge_deg", t); deep = key("deep", t); ang = np.degrees(np.arctan2(yy - vp[i, 1], xx - vp[i, 0]))                         # 0 = to the right along the horizon, 90 = straight down
-    m = cover(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), A); m[ang < 0] = 0.0
-    crest = float(np.clip((A - 150.0) / 40.0, 0, 1)); m = np.maximum(m, crest * (ang < 6)) * ground                                 # the high far ground keeps the light longest
+    deep = key("deep", t); ang = np.degrees(np.arctan2(yy - vp[i, 1], xx - vp[i, 0]))                         # 0 = to the right along the horizon, 90 = straight down
+    m = shade(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), t); m[ang < 0] = 0.0
+    m = np.maximum(m, crest_dark(t) * (ang < 6)) * ground
     # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
     # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
     # The few pixels where dark and sunlit meet are a mix, and the source has thin coloured rims there, so they are filled in from both sides.

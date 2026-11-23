@@ -152,6 +152,27 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - sound effects are made for the reel, never recordings with voices; only sounds a helmet would carry (radio, breath, the suit, knocks felt through the structure); they are loudest in the gaps between sentences, and the narration must still be heard back word for word;
     - subtitles carry a soft dark glow so they read on sunlit ground.
   - Open, for the owner: adding our own night, shadow and lamps to agency footage is a third ingredient beside footage and AI motion. It also runs a shadow in seconds that takes hours, beside a rover at normal speed, against "an honest time-lapse".
+- **More variety, sharper words, bigger sound (owner, Nov 23, evening, on the one-place reel):** "It is actually so much better." "The sounds can be more dramatic." "Continuity still has to improve." "The shots are good, they're just repeated. It just needs more diversity within." "Go over the hook sentences and the other sentences, make sure they make sense, it is easy to follow and gets attention." "I think you're starting to understand much better."
+  - **Our own night, shadow and lamps on agency footage are accepted,** on the owner's terms: "as long as it looks like it belongs to the space and it is not some fiction thing… as long as it could be real in real life and it is physically correct."
+    - Each added thing sits on something that is in the shot and would really be there: a lamp on a hatch or a post, a shadow from the Sun's real side. No added objects.
+    - It obeys physics: light direction, cause before effect, and sunlight comes back from the side the dark came from.
+    - At full size it cannot be told from the footage around it.
+  - **Repetition** (asked what repeats, the owner picked all four: the wide base view, shots from the last reel, too few different shots, astronauts again):
+    - no framing appears twice in a video;
+    - the widest view of the place carries at most a third of the running time (draft; it was 61%);
+    - no shot the owner has seen in an earlier reel is used again (this tightens the Nov 22 rule);
+    - at least 7 different pictures in a video, all of the same place and the same event;
+    - suited astronauts in at most 2 shots (draft).
+  - **Continuity:** asked which cut broke it, the owner picked the cut from the dim blue night to the bright white suit in grey light.
+    - Across a cut, the light matches: same colour of light, and mean brightness within a factor of 2 (draft), unless the event itself changes the light in that moment.
+  - **Sentences** (the owner chose the "plain and short" wording):
+    - the hook is at most 10 words, carries a number anyone can picture ("about fourteen days", not "354 hours"), and is finished by 3.0 s;
+    - no sentence over 12 words;
+    - the reason is said, not left to guess ("Life support cannot pause.");
+    - a word like "it" or "there" has its noun in the sentence before, and the last sentence names the place.
+    - The chosen script: "On most of the Moon, night lasts about fourteen days. / Small landers have survived it by mostly shutting down. / A base with people cannot. / Life support cannot pause. / No base with people has yet run through a lunar night. / Some ridges at the south pole get sunlight most of the time. / But even the best go dark for days in some seasons. / NASA has said its astronauts would visit the south pole by 2030."
+  - **Sound** (the owner chose "film-style power"): deep booms on the main cuts, a swell that climbs into the moment the light dies, a beat of near silence, then a big swell when the Sun comes back. Not chosen: louder suit sounds, bigger music, real radio voices.
+    - This outranks "only sounds a helmet would carry" (draft of the same day).
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.
