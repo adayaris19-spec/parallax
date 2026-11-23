@@ -164,3 +164,16 @@ After the owner's verdict on the one-place reel: more different pictures, better
 - New in a spec: `bands` (a shadow with a front edge `lead` and a back edge `trail`, so light returns from the side the dark came from), `start`, `sky_max` (for sky lifted by lens glare), `protect` (circles never touched: the Earth), `ground_top` (a line above which nothing is shadowed).
 - `sfx.py` gained `boom`, `riser`, `swell` and `floods`.
 - The other NASA shots are cut with ffmpeg from the 4K originals on images.nasa.gov (the November update is 59.94 frames a second with every picture doubled: `select='not(mod(n\,2))'` first) and graded with `curves` toward the night's colour; the values are in the progress log's commit.
+
+## Moon base reel with continuous takes and hidden joins (Nov 23-24, 2026)
+
+After the owner's verdict on the nine-shot reel: a fuller opening, joins that do not read as cuts, far more small detail.
+
+- Plan: `moonbase-v10.json`. Six shots; the two long ones are camera moves across one wide picture of the whole base.
+- `night_fall.py` can now make a picture wider than the frame (`size`), with lamps picked in different frames (`ref` per lamp), an edge whose softness follows its distance (`edge_soft_k`), a sky threshold that varies across the picture (`sky_max` as a list), real stars (`stars`, `star_level`), blinking beacons (`blink` on a lamp) and lights that travel (`movers`: `orbiter`, `lander`, `dust`). `PART=a,b` renders output frames a to b-1, so a long take can be made by two runs side by side and joined with ffmpeg's concat.
+  - A wide take needs about 5 GB of memory per run; two runs at once is the limit here.
+  - Stars come from the HYG catalogue (`hyg/v3/hyg_v38.csv.gz` in github.com/astronexus/HYG-Database, CC BY-SA 4.0). The file is not kept here; point `STAR_CATALOGUE_DIR` at the folder that holds it.
+- `pan_window.py WIDE.mp4 PATH.json OUT.mp4` moves a 1080×1920 frame across the wide picture at 1:1, easing in and out, with the blur a film shutter would give. The two paths used: `{"x": [[-0.4, 1340], [6.4, 0], [8, 0]]}` for take 1 and `{"x": [[0, 0], [1.9, 0], [6.2, 1630], [8, 1630]]}` for take 2.
+- `seam.py PLAN.json CLIPS_DIR OUT_DIR` trims the shots and reworks the frames at each join (`joins` in the plan: `whip`, `flare` or `cut`), then writes a plan for `make_video.py`.
+- `sfx.py` gained `whoosh`.
+- Order of work: `night_fall.py` (twice per take with `PART`), concat, `pan_window.py`, `seam.py`, `make_video.py`, then the checks.

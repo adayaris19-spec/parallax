@@ -14,6 +14,7 @@
 #   {"type": "riser",  "from": 3.2, "to": 6.05}                  a swell that climbs and stops dead (into silence or a boom)
 #   {"type": "swell",  "from": 13.0, "peak": 15.4, "to": 19.0, "notes": [38, 45, 50, 57, 62, 66]}   a wide chord opening up (the Sun coming back)
 #   {"type": "floods", "file": "t1_lamps.json", "pick": 0, "offset": 0.0}   each lamp as a big floodlight breaker, with the echo of a large space
+#   {"type": "whoosh", "at": 6.83, "dir": "left", "length": 0.5}  the rush of a camera whipping from one shot to the next
 import json, os, numpy as np
 from scipy.signal import butter, sosfilt, fftconvolve
 SR = 48000
@@ -115,11 +116,17 @@ def render(events, total, clips_dir=".", seed=3):
         elif k == "floods":                                            # big lamps coming on: a heavy breaker, the buzz of the lamp, the echo of a wide place
             times = ev.get("times")
             if times is None: sw = json.load(open(os.path.join(clips_dir, ev["file"])))["switch_times"]; pick = ev.get("pick", 0); times = [s[pick] for s in sw if len(s) > pick]
+            times = [tt for tt in times if tt + ev.get("offset", 0.0) <= ev.get("until", 1e9)]      # "until": none after this time in the video (to keep a spoken word clear)
             for i, tt in enumerate(sorted(times)):
                 n = int(0.5 * SR); t = np.arange(n) / SR; f0 = 70 + 9 * ((i * 3) % 5)
                 x = 1.0 * hp(rng.standard_normal(n), 1800) * np.exp(-t * 320) + 1.0 * np.sin(2 * np.pi * f0 * t) * np.exp(-t * 16) + 0.6 * bp(rng.standard_normal(n), 150, 600) * np.exp(-t * 30)
                 x += 0.18 * np.sign(np.sin(2 * np.pi * 100 * t)) * np.exp(-t * 6) * np.minimum(t / 0.02, 1)
                 y = hall(lp(x, 6000) * fade(n, 0.0005, 0.05), rng, 1.4, 0.32, 3000); pan = 0.25 + 0.5 * ((i * 5) % 7) / 6; y = y / np.abs(y).max(); y[0] *= np.cos(pan * np.pi / 2) * 1.414; y[1] *= np.sin(pan * np.pi / 2) * 1.414
                 add2(tt + ev.get("offset", 0.0), y, g * db(-17))
+        elif k == "whoosh":                                            # a camera whipping round: air rushing past, rising then falling, centred on the join
+            d = ev.get("length", 0.5); n = int(d * SR); u = np.linspace(-1, 1, n); e = np.exp(-(u / 0.42) ** 2) * fade(n, 0.03, 0.05); nz = rng.standard_normal(n)
+            x = bp(nz, 250, 900) * 0.8 + bp(nz, 900, 2600) * np.exp(-(u / 0.3) ** 2) * 0.9 + bp(nz, 2600, 6500) * np.exp(-(u / 0.18) ** 2) * 0.5
+            y = hall(x * e, rng, 0.7, 0.2, 5000)[:, :n + int(0.3 * SR)]; pan = np.linspace(0.25, 0.75, y.shape[1]) if ev.get("dir", "left") == "left" else np.linspace(0.75, 0.25, y.shape[1])
+            y = y / np.abs(y).max(); y[0] *= np.cos(pan * np.pi / 2) * 1.414; y[1] *= np.sin(pan * np.pi / 2) * 1.414; add2(ev["at"] - d / 2, y, g * db(-13))
         else: raise SystemExit(f"unknown sound {k}")
     return out

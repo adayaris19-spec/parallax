@@ -366,6 +366,36 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - The sound is synthesised and was checked by measurement, not by ear.
     - The credit ("NASA") has to go in the post's caption.
   - Time and cost: about 55 minutes from the answers to the file. The four base shots render in about 4 minutes; the reel assembles in about 2. No AI clip. AI credit spent: $0.
+- **Owner's verdict on the nine-shot reel (Nov 23, about 21:20 UTC+1):** the opening is "empty" and has to be "the most exciting, most eye-catching thing ever", with "more things in the sky and the space"; the transitions are "literally slide transitions" and should be "like a movie scene"; the shots themselves are fine but need "an extreme amount of detail". Rules in `RULES.md` section 2 ("A fuller opening, joins like a film, far more detail").
+- **Reel with continuous takes and hidden joins sent (Nov 23, about 22:15 UTC+1): 24.75 s, 6 shots, no plain cut.** Plan `tools/shorts-lab/moonbase-v10.json`. Waiting for the verdict.
+
+  | Shot | Seconds | Picture | Source |
+  |---|---|---|---|
+  | 1 | 6.8 | One camera move: from the Sun over the ridge, following a lander's engine light and the shadow front across the masts and the rover to the modules; lamps come on, stars come out around the crescent Earth | NASA concept animation; shadow, night, lamps, beacons, stars and spacecraft lights added |
+  | 2 | 1.5 | Two astronauts at a rover, helmet lamps | NASA, Rovers video, graded |
+  | 3 | 1.6 | A power mast over a lit unit | NASA, November update, graded |
+  | 4 | 3.5 | Tall solar masts in the dark; their panels blaze | NASA, November update, lifted |
+  | 5 | 6.5 | One camera move: light catches the ridge under the Earth and crosses the plain; the camera turns across the sunlit base to where the shadow is coming back and the lamps come on again | NASA concept animation; night, light, lamps, beacons and stars added |
+  | 6 | 4.7 | An astronaut close, helmet lamps on, checks a wrist display | NASA, November update, graded |
+
+  - Joins: shots 1 and 5 replace three cuts with camera moves across one wide picture of the base (2420 and 2710 px wide, 1:1). 1→2, 2→3, 3→4 and 5→6 are camera whips (4–6 frames each side); 4→5 is the masts' blaze swelling to fill the frame, with the next shot coming out of it.
+  - Opening frame: the Sun and its flares, a lander's engine light with its sunlit exhaust, a spacecraft in orbit, the ridge and its lit crest, the shadow front, a boulder, five masts, a rover with its cables and tracks. The lander's path sits below the app's 230 px header.
+  - Detail added (all ours, each something that could be there): 1,085 catalogue stars across the wide picture, shown only once the ground is dark and never in the Sun's glare; red beacons blinking on masts and posts; three spacecraft crossing in orbit; the lander's light, exhaust fan and a low glow of dust where it sets down beyond the ridge; lamps that stutter for three frames as they strike.
+  - Sky: real stars (HYG catalogue), placed for a view along the ecliptic from the south pole with the Sun at ecliptic longitude 292° (mid-January) and 105 px per degree (from the Earth's size in NASA's frame). NASA's shot gives no date; the date and the pointing are our assumption.
+  - Measured on the final file: 594 frames at 24 a second; no repeated frame except two white frames inside the flare; −15.0 LUFS, true peak −1.7 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; fastest camera move 15 px a frame in shot 1 and 30 in shot 5, each blurred as a half-open shutter would.
+  - Requirement check, misses:
+    - The lander is an event we invented. Only its engine light and exhaust are drawn, no body, and it crosses the sky in 5 s. The dust glow, the beacons and the orbiting spacecraft are ours too.
+    - Stars come up while the Sun is still above the ridge elsewhere in the scene. That holds for a camera turned away from it and exposed for dark ground; it is our reading.
+    - The Sun itself sits in the top 230 px, under the app's header.
+    - Between whips, shots 2 and 3 are clear for about 1.2 s each.
+    - Shot 4 is dark for its first 2.7 s (mean brightness 19/255) before the panels blaze. 23% of the whole picture is darker than 8/255 (draft limit 15%).
+    - Wide views of the plain carry 13.4 of 24.75 s (54%), now as two moving takes.
+    - The shadow and the lander move at time-lapse speed beside rovers at normal speed. The shadow's shape and path are modelled.
+    - Shots 2, 3, 4 and 6 come from other NASA animations with grey, tracked ground; nothing proves they are the same base.
+    - NASA's footage in shots 2, 3, 4 and 6 is graded by us. Colour fringes from NASA's lens effects show along some edges.
+    - The sound is synthesised and was checked by measurement, not by ear. One whoosh had to be moved 0.1 s later and softened so that "seasons" is heard.
+    - Credits for the caption: NASA; star positions from the HYG database (CC BY-SA 4.0).
+  - Time and cost: about an hour from the owner's message to the file. A wide take renders in about 4 minutes as two runs side by side. No AI clip. AI credit spent: $0.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
