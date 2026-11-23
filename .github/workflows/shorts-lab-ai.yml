@@ -1,4 +1,4 @@
-# Test only (docs/shorts): sends frames of our own test render through free public demos of open AI models,
+# Test only (docs/shorts): sends frames of our own test render, or public pictures named in the request, through free public demos of open AI models,
 # using the owner's free Hugging Face token (repository secret HF_TOKEN). Nothing is published; results are
 # kept as a run artifact for 7 days. Runs when tools/shorts-lab/ai-request.json changes on the working branch.
 name: Shorts lab AI pass
@@ -20,8 +20,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Which render to take frames from
         id: r
-        run: echo "run=$(python3 -c "import json; print(int(json.load(open('tools/shorts-lab/ai-request.json'))['render_run']))")" >> "$GITHUB_OUTPUT"
+        run: echo "run=$(python3 -c "import json; print(int(json.load(open('tools/shorts-lab/ai-request.json')).get('render_run', 0)))")" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
+        if: steps.r.outputs.run != '0'
         with:
           name: clip
           path: in
@@ -36,7 +37,7 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           pip install -q gradio_client
-          python tools/shorts-lab/ai_pass.py tools/shorts-lab/ai-request.json in/clip.mp4 out
+          python tools/shorts-lab/ai_pass.py tools/shorts-lab/ai-request.json "$([ -f in/clip.mp4 ] && echo in/clip.mp4 || echo -)" out
           ls -la out
       - uses: actions/upload-artifact@v4
         with:
