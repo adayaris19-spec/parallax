@@ -261,6 +261,15 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Faults owned: the road's ruts were drawn along its whole length, ahead of the rover that was supposed to be making them; only 4.6 s was delivered where a full video was asked for; a round took hours of scene-building for minutes of picture.
   - Why the method cannot reach the bar, in numbers: the free machines have 4 processor cores and no graphics card, so one 1080×1920 frame of a detailed scene takes 1.5 to 4 minutes and a 23 s video is 562 frames; every object beyond NASA's plain models has to be built by hand in code; every new shot is a new hand-built scene, so each round of feedback costs hours.
   - Phase 4 of the master prompt (the production method) is reopened. Research started Nov 23 into open video models, hosted generators, free graphics-card time, free assets and real footage; the outcome goes in `docs/shorts/DECISION.md`.
+- **New method found and shown (Nov 23, about 15:40 UTC+1).** Record: `docs/shorts/DECISION.md`.
+  - Search: four threads (open video models, hosted generators, free graphics-card time, methods and assets), then NASA's own libraries.
+  - Finding 1: NASA published a Moon Base set in 2026 (4K concept animation, five 4K renderings, trailer, monthly videos), free to use with credit. This is the detail the owner asked for, on exactly this goal.
+  - Finding 2: an open AI video model started from one of those renderings keeps its look and adds natural motion. Test on a free GitHub machine with no account: two 5 s clips in 80 s and 99 s at 480×832, 16 fps. Errors seen: a tool changes shape; wheel marks appear on untouched ground. The workflow still sees no `HF_TOKEN`.
+  - Sent to the owner: a full 23.4 s reel cut from NASA's footage and renderings with the same script, voice and score (`tools/shorts-lab/moonbase-v6-nasa.json`; stills move by a slow camera push, `still_move.py`), and one AI-moved sample.
+  - Time: about 40 minutes from finding the footage to the finished reel; no rendering.
+  - Measured on the reel: 1080×1920, 24 fps, 23.42 s, 10.8 Mbit/s, 32 MB. Sound −15.0 LUFS, true peak −1.7 dBTP. Narration heard back word for word. Darker than 8/255: 18% of the picture (the last video: 44%).
+  - Still wrong, said plainly: four of the eight shots are stills with a camera push; shot 5 comes from a 1920×1080 picture and is enlarged 1.8 times, so it is soft; two shots use the same NASA animation; the pictures are NASA's concept of a base, not this site on a real date; NASA's logo is visible on a suit.
+  - Waiting for the owner's choice between the four options in `DECISION.md`.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 

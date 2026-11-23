@@ -1,0 +1,199 @@
+{
+ "title": "Moon base: the 354-hour night (method test: NASA's own footage and renderings)",
+ "goal": "moon-base",
+ "note": "Method test, Nov 23. Same script and voice. Every picture is NASA's own, from nasa.gov and images.nasa.gov (credit NASA): the 4K concept animation 'Living and Working on the Moon' (May 2026), NASA's animation shots in 'NASA Moon Base: The First Six Months' (Sep 2026), and four Moon Base renderings (May 2026). Shots made by NASA's partners (tagged with a company name in NASA's videos) are left out. Stills move by a slow camera push only (still_move.py).",
+ "cuts": [
+  53,
+  110,
+  194,
+  242,
+  326,
+  394,
+  474,
+  562
+ ],
+ "shots": [
+  {
+   "clip": "s1",
+   "from": 0,
+   "job": "NASA rendering: astronauts at work at the Moon Base, a rover behind them, Earth over the horizon (still, slow push-in)."
+  },
+  {
+   "clip": "s2",
+   "from": 0,
+   "job": "NASA concept animation: the camera glides over a base near the lunar south pole (moving)."
+  },
+  {
+   "clip": "s3",
+   "from": 0,
+   "job": "NASA animation: a small lander on the surface, then a small rover working in the dark with its lamps on (moving). The goal's fact names landers and rovers."
+  },
+  {
+   "clip": "s4",
+   "from": 0,
+   "job": "NASA rendering: an astronaut beside a pressurised rover (still, slow push-in)."
+  },
+  {
+   "clip": "s5",
+   "from": 0,
+   "job": "NASA rendering: tall solar masts catching the low Sun above a base in shadow (still, slow push-in)."
+  },
+  {
+   "clip": "s6",
+   "from": 0,
+   "job": "NASA concept animation: the base beyond a ridge in black shadow (moving)."
+  },
+  {
+   "clip": "s7",
+   "from": 0,
+   "job": "NASA animation: astronauts at the base, then the view pulls back to the whole Moon with one point of light (moving)."
+  },
+  {
+   "clip": "s8",
+   "from": 0,
+   "job": "NASA rendering: astronauts and a rover on the plain, a lander on the rise, Earth above (still, slow push-in)."
+  }
+ ],
+ "lines": [
+  {
+   "id": "1a",
+   "at": 0.2,
+   "say": "A Moon base would face nights about three hundred and fifty-four hours long.",
+   "text": [
+    "A Moon base would face nights",
+    "about 354 hours long."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "2a",
+   "at": 4.75,
+   "say": "Small landers have survived them by mostly shutting down.",
+   "text": [
+    "Small landers have survived them",
+    "by mostly shutting down."
+   ],
+   "split": [
+    5
+   ]
+  },
+  {
+   "id": "2b",
+   "at": 8.25,
+   "say": "A base with people cannot.",
+   "text": [
+    "A base with people cannot."
+   ]
+  },
+  {
+   "id": "3a",
+   "at": 10.2,
+   "say": "Some ridges at the south pole get sunlight most of the time.",
+   "text": [
+    "Some ridges at the south pole",
+    "get sunlight most of the time."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "3b",
+   "at": 13.75,
+   "say": "Even the best go dark for days in some seasons.",
+   "text": [
+    "Even the best go dark for days",
+    "in some seasons."
+   ],
+   "split": [
+    7
+   ]
+  },
+  {
+   "id": "4b",
+   "at": 16.55,
+   "say": "No base with people has yet run through a lunar night.",
+   "text": [
+    "No base with people has yet",
+    "run through a lunar night."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "4a",
+   "at": 19.95,
+   "say": "NASA has said its astronauts would be there by twenty thirty.",
+   "text": [
+    "NASA has said its astronauts",
+    "would be there by 2030."
+   ],
+   "split": [
+    5
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    3,
+    "M"
+   ],
+   [
+    5,
+    "m"
+   ],
+   [
+    10,
+    "M"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    0,
+    "m9"
+   ],
+   [
+    3,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "duck": 0.36,
+ "music_lufs": -26.0,
+ "lufs": -15.0,
+ "crf": 16,
+ "maxrate": "16M",
+ "grade": "",
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4
+ }
+}

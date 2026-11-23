@@ -129,3 +129,12 @@ The owner's direction after the second restart: made 3D of the real place, showi
 - `DIG=1` turns the digging robot's drums and sheds soil (not good enough to use yet).
 - The plan for the two-shot opening is `moonbase-v5-opening.json`.
 
+## Source first: NASA's own footage and renderings (Nov 23, 2026)
+
+After the owner scrapped hand-built 3D. The method and the open choice are in `docs/shorts/DECISION.md`.
+
+- `moonbase-v6-nasa.json` is the plan of the proof reel. Its pictures are fetched from nasa.gov and images.nasa.gov, not stored here.
+- `still_move.py` makes a slow camera move over a large still, resampled from the full picture for every frame.
+- `ai_pass.py` with `ai-request.json` (workflow `shorts-lab-ai.yml`) sends a public picture as the first frame to an open video model's free demo. It needs the repository secret `HF_TOKEN` for more than a guest's allowance.
+- 30 fps footage is played at 24 fps (every frame shown once, 20% slower) so nothing judders.
+
