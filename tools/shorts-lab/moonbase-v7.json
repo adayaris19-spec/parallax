@@ -1,0 +1,199 @@
+{
+ "title": "Moon base: the 354-hour night (option B: NASA's own moving footage, one AI-moved shot)",
+ "goal": "moon-base",
+ "note": "Nov 23. Same sentences and voice; the line 'No base with people has yet run through a lunar night' now comes before the sunlight lines, so the peak starts at 57% of the running time (rule: 50-70%). Shots 1-7 are NASA's own 4K animation (tagged 'Animation' by NASA, no partner's name), from nasa.gov and images.nasa.gov, credit NASA: the monthly videos 'NASA Moon Base: Lunar Landers' (Aug 2026) and 'NASA Moon Base: Rovers and Lunar Terrain Vehicles' (Oct 2026), and the concept animation 'Living and Working on the Moon' (May 2026). Each is a 9:16 window of the 3840x2160 frame, never enlarged; 30 frames a second are played one by one at 24, so nothing judders (motion runs at 80% speed). Shot 8 is AI-moved: first frame a 1088x1920 window of NASA's 4K rendering 'Moon Base Phase 1' (May 2026), motion by the open model LTX-2.3 at 24 frames a second.",
+ "cuts": [
+  54,
+  106,
+  182,
+  235,
+  313,
+  399,
+  469,
+  555
+ ],
+ "shots": [
+  {
+   "clip": "s1",
+   "from": 0,
+   "job": "This shot shows two astronauts at work at a base, a rover behind them and Earth on the horizon, so the viewer sees at once whose night this is. (Landers video, 9:50)"
+  },
+  {
+   "clip": "s2",
+   "from": 0,
+   "job": "This shot shows an astronaut's glove holding a rock in the dark, lit only by helmet lamps, so the viewer feels what a night there means. (Rovers video, 0:26)"
+  },
+  {
+   "clip": "s3",
+   "from": 0,
+   "job": "This shot shows a small lander sitting dark and still on the surface, so the viewer sees what 'shutting down' looks like. (Landers video, 9:30)"
+  },
+  {
+   "clip": "s4",
+   "from": 0,
+   "job": "This shot shows an astronaut kneeling at work beside a rover, so the viewer sees the people a base cannot switch off. (Rovers video, 0:18)"
+  },
+  {
+   "clip": "s5",
+   "from": 0,
+   "job": "This shot shows an astronaut climbing down a lander's ladder, so the viewer sees an arrival that has not happened yet. (Rovers video, 0:22)"
+  },
+  {
+   "clip": "s6",
+   "from": 0,
+   "job": "This shot shows a base on a sunlit plain below a ridge near the south pole, long shadows from a low Sun, so the viewer sees the sunlight the line speaks of. (Concept animation, 0:05)"
+  },
+  {
+   "clip": "s7",
+   "from": 0,
+   "job": "This shot shows the same kind of ground in darkness, with only the base's lamps lit, so the viewer sees it go dark. (Rovers video, 0:06)"
+  },
+  {
+   "clip": "s8",
+   "from": 0,
+   "job": "This shot shows two astronauts walking to their rover with Earth above the ridge, so the viewer sees what has been promised. (AI-moved from NASA's rendering)"
+  }
+ ],
+ "lines": [
+  {
+   "id": "1a",
+   "at": 0.04,
+   "say": "A Moon base would face nights about three hundred and fifty-four hours long.",
+   "text": [
+    "A Moon base would face nights",
+    "about 354 hours long."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "2a",
+   "at": 4.45,
+   "say": "Small landers have survived them by mostly shutting down.",
+   "text": [
+    "Small landers have survived them",
+    "by mostly shutting down."
+   ],
+   "split": [
+    5
+   ]
+  },
+  {
+   "id": "2b",
+   "at": 8.0,
+   "say": "A base with people cannot.",
+   "text": [
+    "A base with people cannot."
+   ]
+  },
+  {
+   "id": "4b",
+   "at": 9.95,
+   "say": "No base with people has yet run through a lunar night.",
+   "text": [
+    "No base with people has yet",
+    "run through a lunar night."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "3a",
+   "at": 13.2,
+   "say": "Some ridges at the south pole get sunlight most of the time.",
+   "text": [
+    "Some ridges at the south pole",
+    "get sunlight most of the time."
+   ],
+   "split": [
+    6
+   ]
+  },
+  {
+   "id": "3b",
+   "at": 16.8,
+   "say": "Even the best go dark for days in some seasons.",
+   "text": [
+    "Even the best go dark for days",
+    "in some seasons."
+   ],
+   "split": [
+    7
+   ]
+  },
+  {
+   "id": "4a",
+   "at": 19.62,
+   "say": "NASA has said its astronauts would be there by twenty thirty.",
+   "text": [
+    "NASA has said its astronauts",
+    "would be there by 2030."
+   ],
+   "split": [
+    5
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    3,
+    "M"
+   ],
+   [
+    5,
+    "m"
+   ],
+   [
+    10,
+    "M"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    0,
+    "m9"
+   ],
+   [
+    3,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "duck": 0.36,
+ "music_lufs": -26.0,
+ "lufs": -15.0,
+ "crf": 16,
+ "maxrate": "16M",
+ "grade": "",
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4
+ }
+}

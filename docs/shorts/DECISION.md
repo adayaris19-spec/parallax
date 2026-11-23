@@ -1,6 +1,6 @@
 # Production method: decision record
 
-Status: **open, waiting for the owner's choice** (Nov 23, 2026). Nothing here is live.
+Status: **the owner chose option B on Nov 23, 2026** (agency footage first, AI motion on the free allowance). Not yet approved as final: the first reel made this way is with the owner. Nothing here is live.
 
 ## Why the old method was dropped
 
@@ -63,3 +63,12 @@ Recommendation: C or D. A alone is honest and sharp but half its shots are still
 - NASA's logo is visible on suits in some renderings; confirm that showing NASA's own pictures with credit is acceptable for Parallax, which sells Plus.
 - Decide where the credit line goes (caption or a small line on screen).
 - Goals without agency imagery (for example curing HIV) need their own source list.
+
+## After the choice (Nov 23)
+
+- The token is still missing. The AI workflow looked for a repository secret under `HF_TOKEN` and six other usual names, and for a repository variable: none is present. Until it is, AI clips run on the no-account allowance: about one clip a day.
+- The better demo for our purpose is LTX-2.3 (`Lightricks/LTX-2-3`): 24 frames a second, any size (1088×1920 works), about 94 s a clip. Wan 2.2's demo is capped at 832 px and 16 frames a second.
+- With a free account's 5 minutes a day, that is about two to three clips a day, not one. To be confirmed once the token works.
+- For the Moon base, NASA's own moving footage covered seven of eight shots. AI motion was needed for one.
+- Other goals: NOAA Fisheries and USGS publish public-domain coral video; for malaria the search found public-domain stills but no free video. Each goal needs its source list before its first video (rule in `RULES.md`).
+

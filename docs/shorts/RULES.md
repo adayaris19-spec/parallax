@@ -128,6 +128,14 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - Cause and effect in order: nothing shows the result of an action before the action (no tracks ahead of a wheel, no dust before an engine fires, no shadow before its object).
   - What is sent for a verdict is a full video of 20 to 25 s, unless the owner asked for a sample.
   - A production method is kept only if it reaches the detail of the owner's references and makes a full video in the time budget; hand-built 3D rendered on processors did neither.
+- **Option B chosen (owner, Nov 23, on the method proof):** "Let's do B, but the movements are not smooth and it doesn't look that realistic, so that needs to be improved. Also, how would option B look for another goal that's not related to space? Keep that in mind. Create this reel now for the Moon base. Go over the requirements. Don't miss anything."
+  - Method: agency footage and renderings first; an open AI video model adds motion where only a still exists (`DECISION.md`).
+  - Smooth: every shot runs at 24 real frames a second, with no frame shown twice and none skipped. Footage shot at 30 frames a second is played frame by frame (it runs at 80% speed). An AI clip is made at 24 frames a second by the model itself; the 16-frames-a-second sample of Nov 23 is the failure this rule names.
+  - Sharp: an AI clip is made at delivery size (1088×1920) from a source picture at least that large. Nothing is enlarged, agency footage included: a 9:16 window of a 3840×2160 frame, never of a 1920×1080 one.
+  - Realistic: an AI clip goes in only if it holds up beside the agency footage around it, and only after a frame-by-frame look for shape changes, things appearing from nowhere and effects before their cause.
+  - No moving shot is built from a still by a camera push alone.
+  - Any goal: the method may not depend on a space agency. Each goal gets its own list of free, rights-clear sources before its first video; for goals with little agency video, real photographs serve as first frames. No identifiable person without their permission.
+  - Before a video is sent, it is checked against this file line by line, and every miss is listed with the video.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

@@ -138,3 +138,10 @@ After the owner scrapped hand-built 3D. The method and the open choice are in `d
 - `ai_pass.py` with `ai-request.json` (workflow `shorts-lab-ai.yml`) sends a public picture as the first frame to an open video model's free demo. It needs the repository secret `HF_TOKEN` for more than a guest's allowance.
 - 30 fps footage is played at 24 fps (every frame shown once, 20% slower) so nothing judders.
 
+## Moon base reel, option B (Nov 23, 2026)
+
+- Plan: `moonbase-v7.json`. Seven shots are 9:16 windows of NASA's 3840×2160 animation; the eighth is AI-moved (`ai-request.json`, kind `ltx23`).
+- A window is cut with ffmpeg: `crop=1215:2160:X:0,scale=1080:1920` (full height, scaled down) or `crop=1080:1920:X:Y` (1:1), then `setpts=N/24/TB` so each source frame is shown once at 24 frames a second.
+- Before a shot is used, its frames are compared one to the next: a frame that hardly differs from the one before while its neighbours move four times as much is a repeat and is dropped.
+- NASA's videos carry a small "Animation" tag at the bottom left and sometimes a drawn route line; the window is placed to leave them out.
+

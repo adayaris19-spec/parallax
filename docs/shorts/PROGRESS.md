@@ -270,6 +270,37 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
   - Measured on the reel: 1080×1920, 24 fps, 23.42 s, 10.8 Mbit/s, 32 MB. Sound −15.0 LUFS, true peak −1.7 dBTP. Narration heard back word for word. Darker than 8/255: 18% of the picture (the last video: 44%).
   - Still wrong, said plainly: four of the eight shots are stills with a camera push; shot 5 comes from a 1920×1080 picture and is enlarged 1.8 times, so it is soft; two shots use the same NASA animation; the pictures are NASA's concept of a base, not this site on a real date; NASA's logo is visible on a suit.
   - Waiting for the owner's choice between the four options in `DECISION.md`.
+- **Owner chose option B (Nov 23).** Also asked for smoother, more realistic motion, for the method to work for goals outside space, and for a full requirement check. Rules in `RULES.md` section 2 ("Option B chosen").
+- **Token:** the workflow still sees no Hugging Face token. Checked Nov 23 under `HF_TOKEN` and six other usual names, and as a repository variable: none present. The AI step ran on the no-account allowance of one GitHub machine: one clip made, the second refused.
+- **Moon base reel sent (Nov 23, about 17:35 UTC+1): 23.1 s, 8 shots, every shot moving.** Plan `tools/shorts-lab/moonbase-v7.json`. Waiting for the verdict.
+
+  | Shot | Seconds | Picture | Source |
+  |---|---|---|---|
+  | 1 | 2.25 | Two astronauts at work at a base, a rover behind, Earth on the horizon | NASA, Landers video |
+  | 2 | 2.17 | A glove holding a rock in the dark, helmet lamps behind | NASA, Rovers video |
+  | 3 | 3.17 | A small lander sitting dark on the surface | NASA, Landers video |
+  | 4 | 2.21 | An astronaut kneeling at work beside a rover | NASA, Rovers video |
+  | 5 | 3.25 | An astronaut climbing down a lander's ladder | NASA, Rovers video |
+  | 6 | 3.58 | A base on a sunlit plain under a ridge, long shadows | NASA concept animation |
+  | 7 | 2.92 | The same kind of ground in darkness, only the base's lamps lit | NASA, Rovers video |
+  | 8 | 3.58 | Two astronauts walking to their rover, Earth above the ridge | AI-moved from NASA's "Moon Base Phase 1" rendering |
+
+  - What changed for smoothness: the first AI sample ran at 16 frames a second and 480 px wide. This reel's AI clip was made at 24 frames a second and 1088×1920 by LTX-2.3, in 94 s. NASA's 30-frames-a-second footage is played frame by frame. The lander shot had three repeated frames in NASA's file; they were removed. Measured on the final file: no repeated or stalled frame in 555.
+  - What changed for realism: shots 1–7 are NASA's own 4K animation instead of stills pushed by a camera; each is a 9:16 window of the 3840×2160 frame, scaled down or 1:1, never enlarged.
+  - Script: same seven sentences and voice. "No base with people has yet run through a lunar night" moved ahead of the two sunlight lines, so the peak line starts at 13.2 s, 57% of the running time (rule: 50–70%; it was 44%).
+  - Requirement check, passes: length 23.1 s (20–25); 8 shots (7–9), none under 2.0 s; first frame a full bright picture, speech from 0.04 s; last word ends 0.73 s before the final frame; no end card, no ask, no logo of ours; every shot moves and shows the goal's own subject; four kinds of place or scale, none more than three times, never three in a row; three shots carry strong colour; no counters, labels or cards; subtitles one phrase at a time, each at least 1.2 s on screen; narration heard back word for word; −15.0 LUFS, true peak −1.6 dBTP; 11% of the picture darker than 8/255 (limit 15%); NASA's "Animation" tag and route graphic are outside every window; no whole-Moon or whole-Earth view.
+  - Requirement check, misses:
+    - The hook sentence ends at 4.2 s; the rule says 4.0 s. Fixing it means speeding up the approved voice.
+    - Shots 6, 7 and 8 run 3.6, 2.9 and 3.6 s; the rule says about 2.0–3.5 s.
+    - Astronauts appear in five shots and Earth in two (first and last), against "no subject twice".
+    - Shot 1 shows stars beside sunlit ground, which one exposure could not record; it is NASA's picture.
+    - Shot 3 has no action but the camera; the line is about a lander shut down.
+    - Shot 8 looks plainer than the NASA shots (the rendering it starts from is plainer), its walk looks like Earth gravity, and its camera moves in faster than asked.
+    - Motion in shots 1–7 runs at 80% of NASA's speed.
+    - A US flag patch is visible on a suit in shot 4, and a small mission patch in shot 1. No NASA logo is in frame.
+    - Sources are not credited inside the video; the credit ("NASA") has to go in the post's caption.
+  - Time: about 100 minutes from the owner's message to the file, most of it finding and checking shots. No rendering. AI: one clip, 94 s, on a free no-account allowance. AI credit spent: $0.
+  - Other goals (looked at, not built): NOAA Fisheries publishes coral b-roll packages as public domain with credit, and USGS has public-domain coral video; for malaria the search found public-domain stills (CDC's image library, NIAID) but no free video. Goals like that will lean on AI-moved photographs, which is where the method is weakest. Resolutions and rights per item are not yet checked.
 
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
