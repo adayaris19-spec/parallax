@@ -147,6 +147,10 @@ if spec.get("stars") and spec["stars"].get("sky_map"):                     # the
     ra_ = np.mod(np.arctan2(yq, xe), 2 * math.pi); dec_ = np.arcsin(np.clip(zq, -1, 1)); mcol = (np.mod(0.5 - ra_ / (2 * math.pi), 1.0) * mt["full_w"] - 0.5 - mt["col0"]).astype(np.float32); mrow = ((0.5 - dec_ / math.pi) * mt["full_h"] - 0.5 - mt["row0"]).astype(np.float32)
     g_ = cv2.remap(mw, mcol, mrow, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT); g_ = g_.mean(2, keepdims=True) + (g_ - g_.mean(2, keepdims=True)) * sm_.get("colour", 1.0); MILKY = np.clip(255.0 * np.clip(sm_.get("gain", 2.5) * g_, 0, 1) ** sm_.get("power", 0.7), 0, 255).astype(np.uint8); del mw, ly, lx_, beta_, lam_, xe, ye, ze, yq, zq, ra_, dec_, mcol, mrow, g_
     print("sky map laid in, mean level %.1f" % MILKY.mean(), flush=True)
+ZOD = None
+if spec.get("stars") and spec["stars"].get("zodiacal"):                    # the zodiacal light: sunlight scattered by the dust between the planets, a lens-shaped glow along the ecliptic that brightens steeply toward the Sun
+    zo = spec["stars"]["zodiacal"]; ly, lx_ = np.mgrid[0:H + EXT + 200, 0:W + 200].astype(np.float32); bz = (ly - 100 - EXT - sy) / ppd; ez = np.maximum(np.hypot((lx_ - 100 - sx) / ppd, bz), zo.get("inner_deg", 9.0))      # (photographed from lunar orbit by Clementine's star trackers, arXiv astro-ph/0204111). Its shape is modelled here, its strength is our choice
+    ZOD = (zo.get("level", 30.0) * (ez / 20.0) ** -zo.get("slope", 2.3) * np.exp(-0.5 * (bz / (zo.get("width_deg", 3.5) + zo.get("flare", 0.16) * ez)) ** 2)).astype(np.float32); ZOD = np.minimum(ZOD, zo.get("max", 70.0)); del ly, lx_, bz, ez
 # ---------- a planet redrawn with the phase its angle from the Sun gives it (the source's crescent is thicker than that angle allows)
 EARTH = None; ETR = None
 if spec.get("earth"):
@@ -195,6 +199,21 @@ def lander_sprite(tilt_deg, side):
     poly([(11.0, 7.0), (12.6, 7.0), (12.6, 8.4), (11.0, 8.4)], (40, 34, 30)); line((14.6, 5.6), (16.6, 2.6), mid, 0.35)      # a window, an aerial
     M = cv2.getRotationMatrix2D((13 * q, 16.5 * q), tilt_deg, 1.0); im = cv2.warpAffine(im, M, (n_, n_), flags=cv2.INTER_LINEAR); al = cv2.warpAffine(al, M, (n_, n_), flags=cv2.INTER_LINEAR)
     return cv2.resize(im, (26, 26), interpolation=cv2.INTER_AREA), cv2.resize(al, (26, 26), interpolation=cv2.INTER_AREA)
+def person_sprite(step, face, side):
+    """someone in a pressure suit seen from far off: helmet and visor, a backpack, arms, legs in mid-stride; lit from one side. Returns colour and cover, 16 x 24 px (the figure is 20 px tall)."""
+    q = 8; wq, hq = 16 * q, 24 * q; im = np.zeros((hq, wq, 3), np.float32); al = np.zeros((hq, wq), np.float32); P = lambda pts: np.round(np.array(pts, np.float32) * q).astype(np.int32)
+    def poly(pts, col): cv2.fillPoly(im, [P(pts)], col, lineType=cv2.LINE_AA); cv2.fillPoly(al, [P(pts)], 1.0, lineType=cv2.LINE_AA)
+    def line(a_, b_, col, th): cv2.line(im, tuple(P([a_])[0]), tuple(P([b_])[0]), col, max(int(th * q), 1), cv2.LINE_AA); cv2.line(al, tuple(P([a_])[0]), tuple(P([b_])[0]), 1.0, max(int(th * q), 1), cv2.LINE_AA)
+    suit, pack, boot = (232, 232, 230), (205, 206, 208), (150, 150, 152)
+    for sg in (-1, 1): line((8 + sg * 1.0, 13.8), (8 + sg * 1.0 + sg * step * 1.9, 21.2), suit, 1.7); line((8 + sg * 1.0 + sg * step * 1.9 - 0.3, 21.6), (8 + sg * 1.0 + sg * step * 1.9 + 0.9 * face, 21.6), boot, 1.0)      # legs and boots, in step
+    poly([(8 - face * 5.0, 5.6), (8 - face * 2.2, 5.6), (8 - face * 2.2, 14.2), (8 - face * 5.0, 14.2)], pack)        # the backpack, behind
+    poly([(5.5, 6.6), (10.5, 6.6), (10.7, 14.4), (5.3, 14.4)], suit)                                                  # body
+    for sg in (-1, 1): line((8 + sg * 2.7, 7.6), (8 + sg * 3.3 - sg * step * 0.9, 12.8), suit, 1.5)                   # arms
+    cv2.circle(im, tuple(P([(8, 3.9)])[0]), int(2.8 * q), suit, -1, cv2.LINE_AA); cv2.circle(al, tuple(P([(8, 3.9)])[0]), int(2.8 * q), 1.0, -1, cv2.LINE_AA)      # helmet
+    cv2.ellipse(im, tuple(P([(8 + face * 1.0, 4.1)])[0]), (int(1.7 * q), int(1.6 * q)), 0, 0, 360, (38, 74, 112), -1, cv2.LINE_AA)                                 # gold visor, turned the way they walk
+    ramp = np.clip(0.5 + side * (np.arange(wq, dtype=np.float32) / q - 8.0) / 5.0, 0, 1)[None, :, None]; im = im * (0.55 + 0.45 * ramp) * np.where(ramp > 0.5, 1.0, np.array([1.06, 1.0, 0.94], np.float32))      # the side away from the Sun is dimmer and a little blue
+    return cv2.resize(im, (16, 24), interpolation=cv2.INTER_AREA), cv2.resize(al, (16, 24), interpolation=cv2.INTER_AREA)
+SUNG = spec.get("sun_ground") or (FING or {}).get("sun_ground")           # the point on the horizon under the Sun: shadows on the ground point away from it
 ONSET = {}
 def src_index(j):
     q = j + START
@@ -261,10 +280,31 @@ def frame(j):
             ix, iy = int(round(100 - dx)), int(round(100 - dy)) + EXT + y0r; sw_ = key("star_level", t) * skyw * np.clip(1.0 - lb / spec["stars"].get("glare_lum", 46.0), 0, 1) ** 1.5
             for (px, py, pr) in spec.get("discs", []): ox_, oy_ = off(px, py, i); sw_ = sw_ * np.clip((np.hypot(xx - px - ox_, yy - py - oy_) - pr) / 2.0, 0, 1)      # the whole disc of the Earth hides the stars behind it, the unlit part too
             res = res + STARS[iy:iy + Hh, ix + c0:ix + c1] * sw_[..., None]
-            if MILKY is not None: res = res + MILKY[iy:iy + Hh, ix + c0:ix + c1].astype(np.float32) * sw_[..., None]
+            ex_ = key("sky_exposure", t) if spec.get("sky_exposure") else 1.0     # the faint sky comes up as the camera leaves the lamps and its exposure opens, and goes down again when it returns to them
+            if MILKY is not None: res = res + MILKY[iy:iy + Hh, ix + c0:ix + c1].astype(np.float32) * (sw_ * ex_)[..., None]
+            if ZOD is not None: res = res + (ZOD[iy:iy + Hh, ix + c0:ix + c1] * sw_ * ex_)[..., None] * np.array([0.84, 0.93, 1.0], np.float32)
         for mv in MOVERS:
             pth = np.array(mv["path"], float)
             if not (pth[0, 0] <= t <= pth[-1, 0]): continue
+            if mv["type"] == "person":                                      # someone on foot. In sunlight: a figure in a white suit with the long shadow the low Sun gives. In the dark: the suit at the night's level and a helmet lamp
+                bx0, by0 = T[i, 2 * mv["anchor"] + 1]; fx = bx0 + float(np.interp(t, pth[:, 0], pth[:, 1])) - c0; fy = by0 + float(np.interp(t, pth[:, 0], pth[:, 2])) - y0r; hh = mv.get("height", 16.0) * float(scale[i]); zs = hh / 20.3
+                vx_ = float(np.interp(t + 0.15, pth[:, 0], pth[:, 1]) - np.interp(t - 0.15, pth[:, 0], pth[:, 1])); vy_ = float(np.interp(t + 0.15, pth[:, 0], pth[:, 2]) - np.interp(t - 0.15, pth[:, 0], pth[:, 2])); moving = math.hypot(vx_, vy_) > 0.25
+                step = math.sin(t * mv.get("pace", 5.2) + mv["anchor"]) if moving else 0.15; face = (1.0 if vx_ >= 0 else -1.0) if moving else mv.get("face", 1.0)
+                xa, xb, ya, yb = int(max(fx - 5.5 * hh, 0)), int(min(fx + 5.5 * hh, cw)), int(max(fy - 2.2 * hh, 0)), int(min(fy + 2.6 * hh, Hh))
+                if xb <= xa or yb <= ya or not (0 <= fx < cw and 0 <= fy < Hh): continue
+                X, Y = xx[ya:yb, xa:xb] - c0 - fx, yy[ya:yb, xa:xb] - y0r - fy; sun = (1.0 - float(m[int(fy), int(fx)])) * float(wb[max(int(fy) - 2, 0):int(fy) + 3, max(int(fx) - 3, 0):int(fx) + 4].mean()); gfa = min(1.0, (t - pth[0, 0]) / 0.4, (pth[-1, 0] - t) / 0.4) if mv.get("fade", True) else 1.0
+                if SUNG and sun > 0.02:                                     # the shadow: a body's width at the feet, drawn out along the Sun's ray and softer toward its far end. Its length is the body's height over the tangent of the Sun's height,
+                    ux, uy = fx + c0 - (SUNG[0] + dx), fy + y0r - (SUNG[1] + dy); nu = math.hypot(ux, uy); ux, uy = ux / nu, uy / nu; pd_ = spec["stars"]["px_per_deg"] if spec.get("stars") else 105.0      # seen as foreshortened as the ground is there: least when the Sun is off to the side, most when the shadow points at the camera
+                    daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = hh / math.tan(math.radians(spec.get("sun_elev_deg", 4.5))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
+                    a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - m[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
+                    res[ya:yb, xa:xb] += (night[ya:yb, xa:xb] - res[ya:yb, xa:xb]) * a_sh[..., None]
+                spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
+                pc = cv2.warpAffine(spr, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA); pa = (cv2.warpAffine(sal, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA) * gfa)[..., None]
+                res[ya:yb, xa:xb] = res[ya:yb, xa:xb] * (1 - pa) + pc * (sun + (1 - sun) * K[None, None] * deep * 1.15) * pa
+                if sun < 0.6:                                               # the helmet lamp, and the ground it lights a few steps ahead
+                    gl_ = (1 - sun / 0.6) * gfa; hx, hy = face * 2.2 * zs, -16.2 * zs; dot_ = 235.0 * np.exp(-((X - hx) ** 2 + (Y - hy) ** 2) / (2 * (0.5 + 0.045 * hh) ** 2)); pl_ = 0.36 * np.exp(-(((X - face * 0.9 * hh) / (0.9 * hh)) ** 2 + (Y / (0.26 * hh)) ** 2))
+                    res[ya:yb, xa:xb] += (gl_ * dot_)[..., None] * np.array([0.92, 0.97, 1.0], np.float32) + np.maximum(o[ya:yb, xa:xb] * 0.8 - res[ya:yb, xa:xb], 0) * (gl_ * pl_ * ground[ya:yb, xa:xb])[..., None]
+                continue
             if mv["type"] in ("walker", "rover"):                           # a light carried over the ground: it keeps its place by a lamp that is followed through the shot ("anchor"), bobs with each step, and throws a small pool ahead of itself
                 bx0, by0 = T[i, 2 * mv["anchor"] + 1]; wx = bx0 + float(np.interp(t, pth[:, 0], pth[:, 1])) - c0; wy = by0 + float(np.interp(t, pth[:, 0], pth[:, 2])) + (0.7 * math.sin(t * 11.0 + mv["anchor"]) if mv["type"] == "walker" else 0.0) - y0r
                 ahead = 1.0 if pth[-1, 1] >= pth[0, 1] else -1.0; big_ = mv["type"] == "rover"; xa, xb, ya, yb = int(max(wx - 60, 0)), int(min(wx + 60, cw)), int(max(wy - 30, 0)), int(min(wy + 30, Hh))
@@ -310,9 +350,11 @@ def frame(j):
             res[ya:yb, xa:xb] += (g_ * v_ * on_sky)[..., None] * colr      # the light is only drawn on sky
     pool = np.zeros((Hh, cw, 3), np.float32); core = np.zeros((Hh, cw, 3), np.float32); s = float(scale[i]); lx = xx - c0; ly_ = yy - y0r
     for k_, l in enumerate(L):
-        v = lamp_on(k_, i, t); ON[k_].append(v)
+        if l.get("glint"):                                                  # foil or glass that flashes for a moment as the edge of the sunlight crosses it
+            ggx, ggy = T[i, 2 * k_ + 1]; mm_ = float(shade(np.float32(math.degrees(math.atan2(ggy - vp[i, 1], ggx - vp[i, 0]))), np.float32(math.hypot(ggx - vp[i, 0], ggy - vp[i, 1])), t)); v = l["glint"] * math.exp(-((mm_ - 0.35) / 0.2) ** 2) * (mm_ < 0.97) * (mm_ > 0.01); ON[k_].append(0.0)
+        else: v = lamp_on(k_, i, t); ON[k_].append(v)
         if v <= 0: continue
-        if not l.get("blink"):
+        if not l.get("blink") and not l.get("glint"):
             ONSET.setdefault(k_, j - 100 if j == PART[0] else j)        # a lamp already lit where this run starts struck long ago
             if j - ONSET[k_] in (1, 2, 4): v *= 0.3                          # a lamp striking: it stutters for a few frames before it holds
             v *= 1.0 + 0.035 * math.sin(t * (37.0 + 3.1 * k_) + k_)        # and never burns perfectly steadily
@@ -364,7 +406,9 @@ def stand_in_front(fr, t, xw):
     sub = cv2.warpAffine(sub, M, (OW, 1920), flags=cv2.INTER_AREA if z_ < 1 else cv2.INTER_LINEAR, borderValue=0); alpha = cv2.warpAffine(alpha, M, (OW, 1920), flags=cv2.INTER_AREA if z_ < 1 else cv2.INTER_LINEAR, borderValue=0)[..., None]
     foc = float(np.interp(t, [p_[0] for p_ in ov["defocus"]], [p_[1] for p_ in ov["defocus"]]))
     if foc > 0.3: fr = cv2.GaussianBlur(fr, (0, 0), foc)
-    return fr * (1 - alpha) + sub * alpha
+    out_ = fr * (1 - alpha) + sub * alpha
+    if ov.get("veil", 0) > 0: out_ = out_ + (0.7 * blur_big(fr, 70.0) + 0.3 * blur_big(fr, 320.0)) * alpha * ov["veil"]      # glare happens in the lens, so the bright view behind lifts the dark figure in front of it a little, most where the view is brightest
+    return out_
 def finish(fr, rng_):
     """one lens and one film for everything in the frame: a trace of softness, fall-off toward the corners, and grain"""
     global VIG
@@ -386,4 +430,4 @@ else:
         ff.stdin.write(frame(j).tobytes())
         if j % 20 == 0: print("frame", j, flush=True)
     ff.stdin.close(); ff.wait(); print("wrote", out, PART[1] - PART[0], "frames")
-    sw = [[round((j + PART[0]) / FPS, 2) for j in range(1, len(v)) if (v[j] > 0.5) != (v[j - 1] > 0.5)] for k_, v in enumerate(ON) if not L[k_].get("blink")]; json.dump({"switch_times": sw}, open(os.path.splitext(out)[0] + "_lamps.json", "w")); print("lamp switch times", sw)
+    sw = [[round((j + PART[0]) / FPS, 2) for j in range(1, len(v)) if (v[j] > 0.5) != (v[j - 1] > 0.5)] for k_, v in enumerate(ON) if not L[k_].get("blink") and not L[k_].get("silent") and not L[k_].get("glint")]; json.dump({"switch_times": sw}, open(os.path.splitext(out)[0] + "_lamps.json", "w")); print("lamp switch times", sw)

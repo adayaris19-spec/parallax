@@ -452,6 +452,35 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
   - Time and cost: about 70 minutes from the owner's message to the file. The take renders in about 10 minutes as three runs side by side (the last third, with the astronaut, takes 7 minutes alone). NASA's 1.5 GB star map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the take with the sky and the astronaut (Nov 24, about 00:10 UTC+1):** "This is honestly really nice. I'm really happy with it." The script is "not really fluent": tweak it. The graphics "surprised me… so much better than I expected", and "we can still push for more: more details, more accuracy". Rules in `RULES.md` section 2 ("A script that flows; keep pushing detail and accuracy").
+- **Second version sent (Nov 24, about 00:55 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v13.json`, spec `tools/shorts-lab/specs/night_v13_one.json`. Waiting for the verdict.
+  - Script, rewritten to flow. Same facts; the sentences are linked, nothing is said twice in a row, and the voice is made in four passages so it carries from one sentence into the next:
+    - "On most of the Moon, night lasts about fourteen days. Small landers have survived it by mostly shutting down."
+    - "A crew can't do that. Life support has to keep running, and no base has yet run through a lunar night."
+    - "Some ridges at the south pole get sunlight most of the time, but even the best go dark for days in some seasons."
+    - "And NASA has said its astronauts would visit the south pole by 2030."
+    - Changed wording to note: "A base with people cannot. Life support cannot pause." became "A crew can't do that. Life support has to keep running"; "No base with people has yet" became "no base has yet" (the goal's fact says no crewed base; no base of any kind has, so the shorter line is still true).
+    - The hook ends at 2.9 s. The beat of near silence is now 6.55–7.2 s (−51 dBFS against −17.5 for the sentence before it); the boom lands on "A crew can't do that."
+  - More accurate than the last version:
+    - The faint sky follows the camera's exposure: the star map shows at 35% while lamps are in frame and comes up fully only as the camera tilts off them.
+    - Zodiacal light added: the glow of sunlit dust along the ecliptic, brightening toward the Sun. It was photographed from lunar orbit by Clementine's star trackers ([arXiv astro-ph/0204111](https://arxiv.org/abs/astro-ph/0204111)). Its shape here is a simple model and its strength is our choice; how bright it should be beside the Milky Way was not confirmed from a source.
+    - Shadows of everything we add now come from the Sun's place in NASA's frame. Direction: away from the point the ground's shadows converge on under the Sun (checked against the shadows of NASA's rover and light posts). Length: height / tan(Sun's height), foreshortened as the ground is at that spot. The Sun's height is read as about 4.5° (3.5–5.5°) from the length of a rover's shadow in NASA's frame.
+    - Spacecraft in low orbit were crossing at about 0.8° a second. At 100 km up the speed is 1.63 km/s; seen low over the horizon from about 470 km that is 0.2° a second (our arithmetic). They now move at that rate. The "station" of the last version is one of these: a station on the orbit NASA planned for Gateway would hang almost still, about 70,000 km over the pole ([NASA](https://www.nasa.gov/missions/artemis/lunar-near-rectilinear-halo-orbit-gateway/), pre-2026 planning).
+    - A little of the view's glare now lies over the astronaut, as it would in one lens.
+  - More detail:
+    - Four people on foot, 17–19 px tall. Two stand at the rover in the opening frame with their shadows, and switch on helmet lamps when the dark reaches them. Two walk out from the modules as night falls (1.6 m/s), work through the night by lamp, and walk back in sunlight at dawn (0.9 m/s) with long shadows. A person who steps into a shadow NASA's shot already has goes dark.
+    - 16 points on foil and glass that flash as the edge of the sunlight crosses them. Checked in the render: they do not stand out against sunlit ground, so they do not count as a visible detail.
+  - Sound: same design, retimed to the new sentences; the end beep is gone (the narration now runs to 24.5 s).
+  - Measured on the final file: 600 frames at 24 a second, 52 MB; no repeated frame and no sudden jump (one frame changes 2.3 times its neighbours' amount: the last subtitle leaving at 24.8 s); −15.0 LUFS, true peak −1.7 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; 2.8% of the picture darker than 8/255; mean brightness under 30/255 for 1.7 s (was 5.2 s).
+  - Requirement check, misses:
+    - Speech fills 23.1 of 25.0 s. The script flows better but is not shorter.
+    - The Sun's height has now been read three ways from NASA's frame: about 4° above the level the shadow edge turns about, 4.5° from a shadow's length, 6.6° above the far edge of the plain if the plain is level. All are above the 1.5° the pole itself allows.
+    - Close to the Sun the real zodiacal light may outshine the Milky Way; here the Milky Way stays the brighter of the two. Unconfirmed either way.
+    - The people are drawn by us (a helmet, visor, pack, arms, legs in step). They are small and pass a look at full size; they have not been compared with footage of real astronauts at that distance.
+    - Still as before: the astronaut is from another NASA animation and keeps that shot's light in his suit's folds and that shot's base in his visor; the landers' exhaust is drawn visible without a source; the shadow and landers move at time-lapse speed beside a rover at normal speed; the Sun sits under the app's header; the source runs backwards in two passes; the sound was checked by measurement, not by ear.
+    - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
+  - Time and cost: about 45 minutes from the owner's message to the file, two full renders of about 13 minutes each. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**

@@ -199,6 +199,19 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - coloured lens fringes on hard edges.
     - Draft measure: no added element has a smoother edge or a cleaner tone than the footage around it.
   - **Detail finer than a first look finds.** Used so far: status lights on the modules, the Earth's own colours along its crescent and the air at its limb, the Milky Way's dust lanes, a station crossing the sky, the reflections in a visor.
+- **A script that flows; keep pushing detail and accuracy (owner, Nov 24, about 00:10 UTC+1, on the take with the sky and the astronaut):** "This is honestly really nice. I'm really happy with it." "The way it's written, it's not really fluent. Let's tweak that a little bit." "The graphics, you surprised me. It's so much better than I expected. But we can still push for more. More details, more accuracy."
+  - **Passed:** the take with three views (the plain, the sky, a person), the Milky Way over the Earth, the astronaut at the end.
+  - **The script flows.** This outranks "no sentence over 12 words" above:
+    - sentences are linked by what they mean ("that", "and", "but"), not stacked as separate statements;
+    - no word or phrase comes twice in neighbouring sentences (the old script said "cannot" twice and "base with people" twice within 6 s);
+    - contractions where speech has them ("can't");
+    - the voice is made in passages of two or three sentences, so it carries from one into the next; a clause is at most 12 words;
+    - still holds: the hook is finished by 3.0 s and carries a number anyone can picture, the reason is said, facts come only from the goal's facts with their qualifiers, and the last sentence names the place.
+    - The script now: "On most of the Moon, night lasts about fourteen days. Small landers have survived it by mostly shutting down. / A crew can't do that. Life support has to keep running, and no base has yet run through a lunar night. / Some ridges at the south pole get sunlight most of the time, but even the best go dark for days in some seasons. / And NASA has said its astronauts would visit the south pole by 2030."
+  - **Every round is more exact than the last.** Each round lists what was made more accurate and what is still not. An added thing obeys the scene's own measurements:
+    - a shadow's direction and length come from where the Sun is in the frame (length = height / tan of the Sun's height, foreshortened as the ground is there);
+    - something in orbit moves at the speed its orbit gives it at that distance;
+    - the faint sky is only as bright as the exposure in that moment allows (dim beside lamps, full when the camera has left them).
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

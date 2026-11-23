@@ -24,7 +24,7 @@ run("ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", f"{W}/lis
 words = json.load(open(f"{VO}/words.json")); voice = np.zeros(int(total * SR) + SR); subs = []
 for ln in plan["lines"]:
     x, sr = sf.read(f"{VO}/{ln['id']}.wav", dtype="float32"); x = resample_poly(x, SR, sr); i0 = int(ln["at"] * SR); voice[i0:i0 + len(x)] += x[:len(voice) - i0]
-    w = words[ln["id"]]; starts = [0.0] + [w[i][1] for i in ln.get("split", [])]; end = w[-1][2] + 0.30      # a phrase stays until the next begins
+    w = words[ln["id"]]; starts = [0.0] + [w[i][1] for i in ln.get("split", [])]; end = w[-1][2] + plan.get("sub_tail", 0.30)      # a phrase stays until the next begins; the last of a line stays a moment after its last word
     for j, text in enumerate(ln["text"]): subs.append((ln["at"] + starts[j], ln["at"] + (starts[j + 1] if j + 1 < len(starts) else end), text))
 voice = voice[:int(total * SR)]
 subs = [(a, min(b, subs[i + 1][0] - plan.get("sub_gap", 0.04)) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
@@ -50,7 +50,7 @@ if plan.get("sound"):                                                    # sound
 def limit(x):                                                             # a look-ahead limiter: short peaks are turned down, nothing is clipped
     w = int(0.004 * SR); pk = maximum_filter1d(np.max(np.abs(x), axis=0), 2 * w + 1); return x * uniform_filter1d(np.minimum(1.0, CEIL / np.maximum(pk, 1e-9)), w)
 for _ in range(4): out = limit(out * 10 ** ((plan.get("lufs", -15.0) - meter.integrated_loudness(out.T)) / 20))
-fo = int(0.5 * SR); out[:, -fo:] *= np.linspace(1, 0, fo) ** 1.5; sf.write(f"{W}/audio.wav", out.T, SR, subtype="PCM_24")
+fo = int(plan.get("fade_out", 0.5) * SR); out[:, -fo:] *= np.linspace(1, 0, fo) ** 1.5; sf.write(f"{W}/audio.wav", out.T, SR, subtype="PCM_24")
 
 # ---------- subtitles: one phrase at a time, sentence case, no highlight, inside the app's safe areas
 def ts(t): h = int(t // 3600); m_ = int(t % 3600 // 60); return f"{h}:{m_:02d}:{t % 60:05.2f}"

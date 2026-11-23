@@ -203,3 +203,18 @@ The owner passed the one take but found it the same view throughout, asked for t
   - A mover of type `station`; lamps with `gain` 0 and a small `size` serve as status lights.
 - The astronaut clip: frames 100–175 of the November update shot (every second picture of the 59.94 fps original, since each is doubled), slowed with ffmpeg: `minterpolate=fps=48:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,setpts=N/24/TB`.
 - `sky_crop.py` is the older tool for the view from orbit; `sky_cut.py` is the one for a `night_fall.py` spec.
+
+## Moon base reel: flowing script, people on the plain (Nov 24, 2026, second version)
+
+The owner was happy with the take, found the script "not really fluent", and asked for more detail and more accuracy.
+
+- Plan: `moonbase-v13.json`, 25.0 s. Spec: `specs/night_v13_one.json` (600 frames; render with `PART=0,215`, `215,430`, `430,600`).
+- The narration is four passages instead of eight sentences: `tts.py` makes each passage in one piece, `align.py` times its words, and a line in the plan carries several subtitle phrases (`text` and the word numbers they start at in `split`).
+- New in a spec for `night_fall.py`:
+  - `sky_exposure`: how far the faint sky (star map, zodiacal light) is opened over time. Low while lamps are in frame, 1 when the camera has tilted off them.
+  - `stars.zodiacal`: a lens-shaped glow along the ecliptic that brightens toward the Sun (`level` at 20° from the Sun, `slope`, `width_deg`, `flare`).
+  - A mover of type `person`: a figure on foot tied to a followed lamp (`anchor`), `height` in pixels. In sunlight it has a shadow that points away from the Sun's horizon point and whose length is height / tan(`sun_elev_deg`), foreshortened as the ground is there; it takes no sunlight inside a shadow the source already has. In the dark it carries a helmet lamp.
+  - A lamp with `glint`: a short flash as the edge of the sunlight crosses it. A lamp with `silent` makes no switch sound.
+  - `overlay.veil`: how much of the view's glare lies over the foreground figure.
+- Low spacecraft now cross at about 20 px a second: 1.63 km/s at 100 km up, seen from about 470 km, is 0.2° a second.
+
