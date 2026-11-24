@@ -108,20 +108,30 @@ if FING:                                                                    # th
         if FING.get("peaked"): w_ = 1.0 - 2.0 * np.abs(w_) ** FING["peaked"]      # a skyline is made of peaks, pointed at the top and rounded between: each peak's shadow is a long pointed finger. (Smooth waves gave the edge round lobes, like a cloud's shadow.)
         FT += (amp * w_).astype(np.float32)
     FT = np.convolve(FT, np.ones(133, np.float32) / 133, "same"); FT = FT - np.median(FT); FT = FT / np.abs(FT).max()      # the Sun is half a degree wide: anything on the skyline narrower than that is smeared out in its shadow
+def leadv(name, t):
+    """where a shadow's edge stands at time t. "@sun": worked out from the Sun's height above the crest ("sun_height"), as a ridge's shadow must be: a bit of ground
+    falls into the shadow when the Sun, seen from it, drops to the crest. Its distance from the ridge's foot over its distance from the camera, u, is then
+    crest / (Sun's height above the crest), the crest's height above the horizon being "front.crest_px" (both in pixels as seen from the camera). So the Sun stands
+    on the crest exactly when the shadow reaches the camera, and the edge crosses the far plain slowly and the near plain fast."""
+    if name != "@sun": return key(name, t)
+    h_ = key("sun_height", t)
+    if h_ <= 0.5: return 1e4
+    return FRONT.get("scale", 200.0) * (FRONT["crest_px"] / h_ / UREF) ** FRONT.get("power", 1.0)
 def shade(ang, rad, t, rel=0.0, along=None):
     """rel: how much each bit of ground faces the Sun, in degrees of the edge's travel. Ground turned to the Sun keeps the light longer and gets it back sooner; hollows the other way round. That is what makes a real shadow edge ragged."""
     m = 0.0
     for b in BANDS:
-        c = cover(ang + rel, rad, key(b["lead"], t), along)
+        c = cover(ang + rel, rad, leadv(b["lead"], t), along)
         if b.get("trail"): c = c * (1 - cover(ang - rel * spec.get("trail_fingers", 1.0), rad + 137.0, key(b["trail"], t), along))
         m = np.maximum(m, c)
     return m
 def crest_dark(t):
     """the high far ground keeps the light longest and gets it back first"""
     c = 0.0
-    for b in BANDS: c = max(c, float(np.clip((key(b["lead"], t) - 150.0) / 40.0, 0, 1)) * (1 - float(np.clip((key(b["trail"], t) + 10.0) / 30.0, 0, 1)) if b.get("trail") else 1.0))
+    for b in BANDS: c = max(c, float(np.clip((leadv(b["lead"], t) - 150.0) / 40.0, 0, 1)) * (1 - float(np.clip((key(b["trail"], t) + 10.0) / 30.0, 0, 1)) if b.get("trail") else 1.0))
     return c
 FRONT = spec.get("front"); GT_ = np.array(spec["ground_top"], np.float32) if spec.get("ground_top") else None
+UREF = (H - float(np.mean(GT_[:, 1]))) / (float(np.mean(GT_[:, 1])) - vp[r, 1]) if (FRONT and GT_ is not None) else 1.0
 def shadow_coord(x, y, i):
     """where a bit of ground stands in the shadow's travel: (ang, rad, along, ridge) for shade().
     Without "front": the angle round the vanishing point (0 = to the right along the horizon, 90 = straight down), as in every earlier version.
@@ -135,8 +145,8 @@ def shadow_coord(x, y, i):
     dx_, dy_ = vp[i, 0] - vp[r, 0], vp[i, 1] - vp[r, 1]; yh = vp[i, 1]; xv = FRONT["sun_x"] + dx_
     yg = np.interp(x - dx_, GT_[:, 0], GT_[:, 1]) + dy_; ridge = y < yg; yp = np.maximum(y, yg + 0.5)
     xq = x + (yp - yg) / np.maximum(yp - yh, 1.0) * (xv - x); ygq = np.interp(xq - dx_, GT_[:, 0], GT_[:, 1]) + dy_      # where the line toward the Sun meets the foot
-    u = (yp - ygq) / np.maximum(ygq - yh, 1.0); uref = (H - float(np.mean(GT_[:, 1]))) / (float(np.mean(GT_[:, 1])) - vp[r, 1])
-    ang_ = FRONT.get("scale", 200.0) * np.sign(u) * (np.abs(u) / uref) ** FRONT.get("power", 1.0)
+    u = (yp - ygq) / np.maximum(ygq - yh, 1.0)
+    ang_ = FRONT.get("scale", 200.0) * np.sign(u) * (np.abs(u) / UREF) ** FRONT.get("power", 1.0)
     rad_ = SOFTK / np.maximum(FRONT.get("soft", 0.1) * np.abs(ang_), 1e-3) if SOFTK else np.full_like(ang_, 1.0)
     return ang_, rad_, 200.0 + np.abs(x - xv), ridge
 def lamp_on(k_, i, t):
