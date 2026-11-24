@@ -2839,8 +2839,8 @@
   "face_day": "earth_night_day.npy"
  },
  "edge_soft_range": [
-  4.0,
-  16.0
+  3.5,
+  12
  ],
  "edge_relief_deg": 12.0,
  "defringe": 0.8,
@@ -2856,8 +2856,23 @@
    3090,
    880
   ],
-  "deg": 15.0,
-  "seed": 11
+  "deg": 16,
+  "seed": 11,
+  "peaked": 1.0,
+  "octaves": [
+   [
+    9.0,
+    1.0
+   ],
+   [
+    3.8,
+    0.7
+   ],
+   [
+    1.7,
+    0.12
+   ]
+  ]
  },
  "overlay": {
   "cut": "astro_cut4k.npy",
@@ -2874,9 +2889,9 @@
    984
   ],
   "shade": [
-   0.26,
    0.27,
-   0.31
+   0.27,
+   0.28
   ],
   "defocus": [
    [
@@ -2956,14 +2971,14 @@
    ],
    "spill": 0.0,
    "spill_px": 70,
-   "spill_width": 150.0,
+   "spill_width": 170.0,
    "in_sun": 34.0,
    "outline": {
     "dark": 60.0,
     "rim": 12
    },
    "lower": 22.0,
-   "shadow": 0.55,
+   "shadow": 0.4,
    "shadow_dx": -20.0,
    "in_sun_rim": 26
   },
@@ -3048,7 +3063,7 @@
   155
  ],
  "turn_ease": 20,
- "night_detail": 0.5,
+ "night_detail": 0.65,
  "clarity": {
   "bands": [
    [
@@ -3070,7 +3085,8 @@
  "hollows": {
   "max_px": 1500,
   "lift": 3.5,
-  "object_lift": 4.5
+  "object_lift": 3.4,
+  "object_soft": 5.0
  },
  "chroma_soft": 2.0,
  "crest_edge": {
@@ -3246,10 +3262,10 @@
  ],
  "skyline_near_x": 1170,
  "sky_clean": {
-  "inner": 110.0,
-  "outer": 340.0,
+  "core": 75.0,
   "amount": 1.0,
   "neutral": 1.0,
+  "dark_neutral": 1.0,
   "floor": [
    8.0,
    6.0,
@@ -3258,7 +3274,11 @@
   "flank": {
    "level": 19.0,
    "dark_under": 70.0
-  },
-  "dark_neutral": 1.0
- }
+  }
+ },
+ "shadow_rgb": [
+  0.225,
+  0.224,
+  0.22
+ ]
 }
