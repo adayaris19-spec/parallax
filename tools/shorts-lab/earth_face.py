@@ -3,14 +3,16 @@
 # Positions: JPL's DE440 ephemeris through skyfield. The picture of the Earth: one day of true-colour satellite imagery from
 # NASA GIBS (whole Earth, 0.25 degrees a pixel); its clouds are that day's, not the clouds of the moment asked for.
 #
-# usage: python earth_face.py "2039-01-08 14:00" EPHEMERIS_DIR GIBS.jpg OUT.npy [RADIUS_PX]
+# usage: python earth_face.py "2039-01-08 14:00" EPHEMERIS_DIR GIBS.jpg OUT.npy [RADIUS_PX] [LIGHTS.jpg]
 #   GIBS.jpg: https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=VIIRS_SNPP_CorrectedReflectance_TrueColor&CRS=EPSG:4326&BBOX=-90,-180,90,180&WIDTH=1440&HEIGHT=720&FORMAT=image/jpeg&TIME=2024-01-08
 #   OUT.npy: height x width x 4, float32: how much light each place sends back (0..1, red green blue; already times the cosine of
 #   the angle to the Moon, since the light comes from where the viewer stands) and cover. night_fall.py reads it as stars.sky_map.earth_night.
+#   Also written: OUT_day.npy (the face's colours as the satellite shows them, for the sunlit crescent: earth.face_day) and, with
+#   LIGHTS.jpg (GIBS layer VIIRS_Black_Marble, 2880x1440), OUT_lights.npy: city lights where it is night there (earth_night.lights).
 import sys, math, json, numpy as np, cv2
 from skyfield.api import Loader, wgs84
 from skyfield.framelib import ecliptic_frame
-when, ephdir, img, out = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]; R = float(sys.argv[5]) if len(sys.argv) > 5 else 95.9
+when, ephdir, img, out = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]; R = float(sys.argv[5]) if len(sys.argv) > 5 else 95.9; lights = sys.argv[6] if len(sys.argv) > 6 else None
 load = Loader(ephdir); eph = load("de440s.bsp"); ts = load.timescale(builtin=True); d_, h_ = when.split(); y, mo, da = [int(v) for v in d_.split("-")]; hh, mi = [int(v) for v in h_.split(":")]; t = ts.utc(y, mo, da, hh, mi)
 earth, moon, sun = eph["earth"], eph["moon"], eph["sun"]; wrap = lambda a: (a + 180) % 360 - 180
 def from_moon(body): lat, lon, dist = moon.at(t).observe(body).frame_latlon(ecliptic_frame); return lon.degrees, lat.degrees, dist.au
@@ -29,3 +31,10 @@ samp = cv2.remap(tex, ((lon + 180) / 360 * tw - 0.5).astype(np.float32), ((90 - 
 refl = np.clip(samp, 0, 1) ** 2.2 * z[..., None] + (0.10 * np.exp(-((1 - rho) / 0.035) ** 2) * (rho <= 1))[..., None] * np.array([1.0, 0.8, 0.6])      # the surface, and a thin blue edge where the air is seen edge-on (BGR; its strength is our choice)
 refl = cv2.GaussianBlur(refl, (0, 0), 0.9 * q); cover = np.clip((1 - rho) * R * q / 2.0 + 0.5, 0, 1); res = np.dstack([refl[..., ::-1], cover]).astype(np.float32)      # red green blue, and cover
 res = cv2.resize(res, (n // q, n // q), interpolation=cv2.INTER_AREA); np.save(out, res); print("wrote", out, res.shape, "mean of what the disc sends back %.3f" % float(res[..., :3][res[..., 3] > 0.9].mean()))
+day = cv2.GaussianBlur(np.clip(samp, 0, 1), (0, 0), 0.6 * q); np.save(out[:-4] + "_day.npy", cv2.resize(day[..., ::-1], (n // q, n // q), interpolation=cv2.INTER_AREA).astype(np.float32))
+if lights:
+    lt = cv2.imread(lights).astype(np.float32); lh, lw = lt.shape[:2]; lt = np.clip((lt[..., 1] - 45.0) / 200.0, 0, 1)      # the map is dark blue with the lights on it: what is brighter than the land is light
+    sv = earth.at(t).observe(sun).position.km; sv = sv / np.linalg.norm(sv); dark = np.clip((-(P @ sv) - 0.02) / 0.10, 0, 1)      # only where the Sun is down
+    ls_ = cv2.remap(lt, ((lon + 180) / 360 * lw - 0.5).astype(np.float32), ((90 - lat) / 180 * lh - 0.5).astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP) * dark * (rho < 0.985)
+    lo = cv2.resize(ls_.astype(np.float32), (n // q, n // q), interpolation=cv2.INTER_AREA); np.save(out[:-4] + "_lights.npy", lo); print("city lights: brightest %.2f, lit part of the disc %.1f%%" % (float(lo.max()), 100 * float((lo > 0.05).mean())))
+

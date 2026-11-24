@@ -258,3 +258,19 @@ The owner: fix what was listed as wrong, and add detail.
   - `overlay.lamp_pool`: where the figure's own helmet lamps fall (`at`, `radius`, `level`); the rest of it takes `shade`.
 - `flash_scan.py` now moves each frame's neighbours onto it place by place (optical flow), so depth motion and travelling things are no longer counted and all frames can be scanned. With a second argument it writes strips of the strongest finds.
 - A lander now fires short attitude jets (a quarter of a second, about every 1.8 s).
+
+## Moon base reel: a real place, a fuller base (Nov 24, 2026, fifth version)
+
+The owner: fix what is wrong, and far more detail.
+
+- Plan: `moonbase-v16.json`. Spec: `specs/night_v16_one.json`. Render as before.
+- `moon_site.py KERNEL_DIR "2039-01-08 14:00" 4.5 4.1 21.5` prints how high the Sun and the Earth stand at the Moon's south pole and at a few named places at that moment, and searches the south polar region for the place where they stand as given. For this take: about 85°S, 17–21°W.
+- `earth_face.py` takes a sixth argument, the night-lights map (GIBS layer `VIIRS_Black_Marble`, 2880×1440), and also writes `OUT_day.npy` (the face's colours) and `OUT_lights.npy` (city lights where it is night there).
+- New in a spec for `night_fall.py`:
+  - `earth.face_day`: the sunlit crescent takes the colours of the face turned to the Moon, reddened along the day-night line.
+  - `stars.sky_map.earth_night.lights`, `lights_s10`: city lights on the night side.
+  - a planet in `stars.planets` is held just under white, so its colour shows (`ci` 1.8 for Mars).
+  - `night_detail`: how much of the source's fine relief is added back on dark ground (0.5).
+  - `finish.sharpen` and `finish.halation`.
+- New in the spec itself: 10 work lights on module legs, joints and ends (marked `silent`, so the sound does not count them), 8 more `person` movers, a second `rover` light, 2 more `orbiter`s, `stars.mag_limit` 8.6.
+

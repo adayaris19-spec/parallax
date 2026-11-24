@@ -133,11 +133,11 @@ if spec.get("stars"):
     # the view: from the south pole the horizon runs along the ecliptic, south is up, and ecliptic longitude grows to the right. The Sun fixes the place; the date (its longitude) is our choice, the source gives none.
     layer = np.zeros((H + EXT + 200, W + 200, 3), np.float32); cnt = 0
     cat = os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), sp["catalogue"])      # the catalogue file is not kept in the repository (13 MB): github.com/astronexus/HYG-Database, hyg/v3/hyg_v38.csv.gz, CC BY-SA 4.0
-    def put_point(px, py, mag, ci):
+    def put_point(px, py, mag, ci, planet=False):
         col = np.clip(np.array([1.0 + 0.25 * (0.6 - ci), 1.0, 1.0 - 0.22 * (0.6 - ci)], np.float32), 0.7, 1.25)      # blue stars a little blue, red ones a little warm (BGR)
         flux = sp.get("gain", 1.0) * 1.7 * 10 ** (-0.4 * 0.6 * (mag - 4.0)); sig = 0.75 + 0.35 * max(0.0, 4.0 - mag) ** 0.5; rad_ = int(3 * sig) + 2; ix, iy = int(px), int(py)      # a camera's response is compressed: faint stars still register
         g = np.exp(-(((np.arange(ix - rad_, ix + rad_ + 1) - px)[None] ** 2 + (np.arange(iy - rad_, iy + rad_ + 1) - py)[:, None] ** 2) / (2 * sig * sig)))
-        layer[iy - rad_:iy + rad_ + 1, ix - rad_:ix + rad_ + 1] += (min(flux, 6.0) * 150.0 * g)[..., None] * col
+        layer[iy - rad_:iy + rad_ + 1, ix - rad_:ix + rad_ + 1] += ((300.0 if planet else min(flux, 6.0) * 150.0) * g)[..., None] * (col / col.max() if planet else col)      # a planet is held just under white at its centre, so its colour shows
     with gzip.open(cat, "rt") as fh:
         for row in csv.DictReader(fh):
             try: mag = float(row["mag"]); ra = math.radians(float(row["ra"]) * 15.0); dec = math.radians(float(row["dec"]))
@@ -152,7 +152,7 @@ if spec.get("stars"):
             put_point(px, py, mag, ci); cnt += 1
     for pl in sp.get("planets", []):                                       # planets where the ephemeris puts them on the take's date (earth_face.py prints them): steady points on the ecliptic
         px = sx + pl["dlon"] * ppd * math.cos(math.radians(pl["lat"])) + 100; py = sy + pl["lat"] * ppd + 100 + EXT
-        if 4 <= px < W + 196 and 4 <= py < H + EXT + 196: put_point(px, py, pl["mag"], pl.get("ci", 0.8)); print("planet", pl["name"], "at", round(px - 100), round(py - 100 - EXT), flush=True)
+        if 4 <= px < W + 196 and 4 <= py < H + EXT + 196: put_point(px, py, pl["mag"], pl.get("ci", 0.8), True); print("planet", pl["name"], "at", round(px - 100), round(py - 100 - EXT), flush=True)
     STARS = np.clip(layer, 0, 255); print("stars placed", cnt, flush=True)
 MILKY = None
 if spec.get("stars") and spec["stars"].get("sky_map"):                     # the faint stars and the Milky Way they make up: NASA's Deep Star Maps 2020 (svs.gsfc.nasa.gov/4851), drawn from the Gaia, Hipparcos and Tycho catalogues. The part of the sky in view
@@ -170,6 +170,8 @@ if spec.get("stars") and spec["stars"].get("sky_map"):                     # the
     if sm_.get("earth_night"):                                              # the Earth's night side, lit by the Moon the camera stands on (earth_face.py makes the face turned to the Moon). It hides the sky behind it
         en = sm_["earth_night"]; tx = np.load(os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), en["file"])); h2 = tx.shape[0]; ex0 = int(round(en["at"][0] + 100 - h2 / 2.0)); ey0 = int(round(en["at"][1] + 100 + EXT - h2 / 2.0))
         g_[ey0:ey0 + h2, ex0:ex0 + h2] = g_[ey0:ey0 + h2, ex0:ex0 + h2] * (1 - tx[..., 3:]) + tx[..., 2::-1] * (en["s10_white"] * per_s10) * tx[..., 3:]
+        if en.get("lights"):                                                # the lights of its cities, where it is night there (NASA's Black Marble map through earth_face.py). Their strength against the moonlit clouds is our choice
+            lg = np.load(os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), en["lights"])); g_[ey0:ey0 + h2, ex0:ex0 + h2] += lg[..., None] * (en.get("lights_s10", 30000.0) * per_s10) * np.array(en.get("lights_colour", [1.0, 0.82, 0.55]), np.float32)[::-1]
     x_ = np.power(np.clip(sm_.get("gain", 2.5) * g_, 0, None), sm_.get("power", 0.7)); sh_ = float(sm_.get("shoulder", 0)); MILKY = (255.0 * ((1 - np.exp(-sh_ * x_)) / sh_ if sh_ else np.clip(x_, 0, 1))).astype(np.float16); del ly, lx_, g_, x_      # shoulder: bright parts are pressed together as film does, so the moonlit Earth does not burn out
     print("sky map laid in, mean level %.1f" % float(MILKY.astype(np.float32).mean()), flush=True)
 ZOD = None
@@ -199,6 +201,9 @@ if spec.get("earth"):
     for rr_ in np.arange(er - 9.0, er - 3.0, 1.0): C_ += cv2.remap(ref8, (ETR[r, 0] + rr_ * np.cos(np.radians(tk))).astype(np.float32)[None], (ETR[r, 1] + rr_ * np.sin(np.radians(tk))).astype(np.float32)[None], cv2.INTER_LINEAR)[0]
     ok_ = C_.max(1) > 0.35 * C_.max(); C_ = np.stack([np.interp(tk, tk[ok_], C_[ok_, c]) for c in range(3)], 1); C_ = cv2.GaussianBlur(C_[None].astype(np.float32), (0, 0), 1.5)[0]; C_ = C_ / C_.max()      # past the ends of the source's crescent: the colour at its ends
     C_ = np.clip(C_ * 1.25, 0, 1) ** 0.8; hue = np.stack([np.interp(th_, tk, C_[:, c]) for c in range(3)], -1)
+    if ea.get("face_day"):                                                  # the colours of the face it turns to the Moon at the take's moment (earth_face.py), in place of the source's colours
+        fd = np.load(os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), ea["face_day"])); hf = fd.shape[0]; hue = cv2.remap(np.ascontiguousarray(fd[..., ::-1]), (u_ * er + hf / 2.0 - 0.5).astype(np.float32), (v_e * er + hf / 2.0 - 0.5).astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+        hue = np.clip(hue * 1.15 + 0.12, 0, 1) * (1 - (1 - np.clip(lam_i / 0.4, 0, 1))[..., None] ** 2 * np.array([0.6, 0.35, 0.0], np.float32))      # near the day-night line the Sun is setting there: its light has come through a long path of air and is red
     ecol = (lam_i ** 0.45)[..., None] * hue * 255.0 + rim[..., None] * np.array([255, 228, 196], np.float32); lum_e = np.clip(lam_i ** 0.45 + rim, 0, 1)
     EARTH = (cv2.resize(np.clip(ecol, 0, 255), (n_e // q_, n_e // q_), interpolation=cv2.INTER_AREA), cv2.resize(np.clip(lum_e * 1.6, 0, 1), (n_e // q_, n_e // q_), interpolation=cv2.INTER_AREA))
 def steady(a, sig=4.0):
@@ -315,6 +320,7 @@ def frame(j):
     gl = blur_big(nlm * ws, 22.0) / np.maximum(blur_big(ws, 22.0), 1e-3); dk = blur_big(soft.mean(2) * small, 22.0) / np.maximum(blur_big(small, 22.0), 1e-3)
     lift = 1 + (np.clip(gl / np.maximum(dk, 1.0), 1.0, 2.4) - 1) * cv2.GaussianBlur(small, (0, 0), 1.0)
     night = (lit * wb[..., None] + soft * (lift * (1 - wb))[..., None]) * deep
+    if spec.get("night_detail", 0) > 0: night = night + (on - cv2.GaussianBlur(on, (0, 0), 2.2)) * K[None, None] * (deep * spec["night_detail"])      # the ground's fine relief (tracks, small craters, stones) is the source's own; in the dark it is shown a little more strongly than the dimming alone leaves it
     band = (cv2.dilate(dm, EL7) > 0) & (cv2.erode(dm, EL5) == 0); w = (~band).astype(np.float32)
     fill = cv2.GaussianBlur(night * w[..., None], (0, 0), 2.5) / np.maximum(cv2.GaussianBlur(w, (0, 0), 2.5), 1e-3)[..., None]
     bs = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.7)[..., None]; night = night + (fill - night) * bs; res = o + (night - o) * m[..., None]
@@ -499,6 +505,8 @@ def finish(fr, rng_):
     if not fp: return np.clip(fr, 0, 255).astype(np.uint8)
     if VIG is None: yv, xv = np.mgrid[0:1920, 0:OW].astype(np.float32); VIG = (1 - fp.get("vignette", 0.1) * (np.hypot((xv - OW / 2) / (OW / 2), (yv - 960) / 960) / 1.414) ** 2.6)[..., None]
     if fp.get("soften", 0) > 0: fr = cv2.GaussianBlur(fr, (0, 0), fp["soften"])
+    if fp.get("halation", 0) > 0: fr = fr + (blur_big(np.clip(fr.max(2) - 185.0, 0, None), 10.0) * fp["halation"])[..., None] * np.array([0.22, 0.42, 1.0], np.float32)      # film: a strong light spreads a faint red glow round itself inside the film
+    if fp.get("sharpen", 0) > 0: fr = fr + (fr - cv2.GaussianBlur(fr, (0, 0), 1.1)) * fp["sharpen"]      # and fine edges are drawn a little more firmly
     fr = fr * VIG; lum_ = fr.mean(2, keepdims=True); gr = rng_.normal(0, 1.0, (1920, OW, 1)).astype(np.float32)      # grain: mostly brightness, a little colour, a little stronger in the dark
     fr = fr + gr * fp.get("grain", 1.8) * (1.15 - 0.55 * lum_ / 255.0) + rng_.normal(0, 1.0, (1920, OW, 3)).astype(np.float32) * fp.get("grain", 1.8) * 0.28
     return np.clip(fr, 0, 255).astype(np.uint8)

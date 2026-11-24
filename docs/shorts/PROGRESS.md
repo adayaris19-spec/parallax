@@ -564,6 +564,52 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); NASA GIBS (VIIRS, Suomi NPP); star positions from the HYG database (CC BY-SA 4.0).
   - Cost: JPL's ephemeris (32 MB) and one GIBS picture downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the fourth version (Nov 24, about 15:20 UTC+1):** "Fix what's wrong and give immense detail increase." Rules in `RULES.md` section 2 ("Fix what is wrong, and far more detail").
+- **Fifth version sent (Nov 24, about 15:55 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v16.json`, spec `tools/shorts-lab/specs/night_v16_one.json`. Same script, voice and sound. Waiting for the verdict.
+  - Every line of the last "still wrong" list, and what happened to it:
+
+    | Listed as wrong | Now |
+    |---|---|
+    | The Sun is higher than the pole itself allows; how high Sun and Earth stood at a named place was not computed | Resolved. With JPL's lunar orientation (`moon_site.py`): at the pole itself at that moment the Sun is 0.46° up and the Earth 0.81° below the horizon, so NASA's frame is not the pole. It fits ground near 85°S, 17–21°W: Sun 4.5° up, Earth 4.2° up, 21.6° apart (NASA's frame: about 4.5°, about 4.1°, 21.5°). At the Malapert massif (86.0°S, 2.9°E) it would be Sun 4.3°, Earth 3.2° |
+    | The Earth's night-side brightness was our arithmetic | Better founded. NASA's fact sheets give the full Moon magnitude −12.74 and the Sun −26.74 ([Moon](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html), [Sun](https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html)): moonlight is 2.5 millionths of sunlight at full Moon. At this phase we take it 0.56 magnitude fainter (0.026 a degree, our figure). A white surface facing the Moon then sends back 75,000 S10 (was 70,000). Still ours: reading how much each place reflects from the satellite picture |
+    | The crescent carried NASA's colours, not that day's | Fixed. It carries the face turned to the Moon at that moment, reddened along the day-night line, where the Sun is setting |
+    | Mars burned out to white | Fixed: held just under white, orange |
+    | Mercury sits in the Sun's glare under the app's header | Stays: that is where it was |
+    | The sound was not checked by ear | Stays. Nothing here can listen. Measures unchanged: no clicks, no clipping, speech heard back word for word |
+    | The shadow moves at time-lapse speed beside a rover at normal speed | Stays: one take cannot show hours and seconds at once |
+    | The landers' exhaust brightness is our drawing | Stays |
+    | His visor shows lamps that are behind our camera | Stays |
+    | The Milky Way is fainter under the measured glow; the glow's fall-off away from the ecliptic is assumed | Stays |
+    | The small people were not compared with real footage | Stays |
+    | Clouds on the Earth are those of 8 January 2024 | Stays: 2039's cannot be known |
+
+  - Detail, counted (before → now):
+
+    | | Before | Now |
+    |---|---|---|
+    | Catalogue stars drawn as points (on top of NASA's star map) | 333, to magnitude 6.8 | 1,495, to magnitude 8.6 |
+    | The star map's own colour | 80% | full |
+    | Steady lamps on the base | 62 | 71 (9 more work lights: under module legs, at joints and module ends, each on a part NASA's daylight frames show) |
+    | Blinking beacons | 7 | 8 (an amber one on the parked rover) |
+    | People on foot | 4 | 12 (two at the solar masts in the opening, the rest around the modules; each with a shadow in sunlight and a helmet lamp in the dark) |
+    | Rover lights travelling at night | 1 | 2 |
+    | Spacecraft crossing in orbit | 6 | 8 |
+    | The Earth's night side | moonlit clouds, land and sea | plus the lights of its cities where it is night there (NASA's Black Marble map); at this size a few warm specks |
+    | The Earth's crescent | one colour ramp | that moment's clouds and coasts, red toward the day-night line |
+    | The ground in the dark | dimmed | dimmed, with the source's own fine relief (tracks, small craters, stones) shown 50% more strongly |
+    | The finish | grain, lens fall-off | plus a faint red glow round strong lights, as film gives, and a light sharpening (0.25); no softening |
+
+  - Not done, on purpose: no windows or fittings were added to NASA's modules. Their daylight frames show none, and a window that appears only at night would be an invention.
+  - The limit, stated plainly: every pixel of ground and hardware is NASA's animation shown 1:1. This round adds what can be added truthfully around it and keeps more of what it already holds. More detail in the ground and the modules themselves needs sharper footage or an AI step, and the token for that is still not visible to the workflow.
+  - Measured on the final file: 600 frames at 24 a second, 31 MB, 10.0 Mbps (SSIM against its picture 0.977); no frame changes unevenly against its neighbours; the flicker scan over all frames finds the same real motion as before (the dawn light's edge, stars streaking in the tilt) and nothing new; −15.0 LUFS, true peak −1.5 dBTP; narration heard back word for word; 2.2% of the picture darker than 8/255; mean brightness under 30/255 for 0.1 s.
+  - Requirement check, misses:
+    - "Immense" is not met for the ground and the modules, for the reason above. The gain is in the sky, the Earth, the number of lights and people, and how much of NASA's own detail survives the dark and the encode.
+    - The city lights' strength against the moonlit clouds is our choice, and they are barely visible.
+    - The eight new people stand or shift a few steps; they do not do recognisable work.
+    - The first encode of this version ran at 12 Mbps, over the 10 Mbps limit set last round; the file sent is the 10 Mbps one.
+    - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); NASA GIBS (VIIRS, Suomi NPP; Black Marble); star positions from the HYG database (CC BY-SA 4.0).
+  - Time and cost: about 35 minutes, one render. JPL's lunar frame files and one GIBS map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
