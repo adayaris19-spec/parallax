@@ -1,0 +1,313 @@
+{
+ "title": "Moon base: fourteen days of night (one take, the source cleaned and its own detail drawn out)",
+ "goal": "moon-base",
+ "note": "Nov 24, sixth version. One camera take, no cut and no transition effect, 25.0 s. Script, voice and sound as in the fifth version (moonbase-v16.json; see its note for the sources of the sky, the date, the place and the astronaut). New here (specs/night_v17_one.json): every source frame is rebuilt from itself and its three neighbours on each side where they agree (fuse_frames.py), and the ground's and the modules' own fine detail is then drawn more firmly at three sizes (clarity); the astronaut is cut straight from NASA's 4K frames at the size shown (astro_4k.py); the zodiacal light's shape away from the ecliptic comes from the dust model in the Clementine paper (zodi_shape.py; arXiv astro-ph/0204111, eqs. 6-8, Table II, with Hong's 1985 scattering law) in place of our assumption; the landers are lit as the Sun's place says (seen nearly toward the Sun: a thin lit edge, the rest in their own shadow, the engine's light from below); four yard lights on NASA's masts light the modules beside them at night; five of the people bend to their work and four more people work by the modules; at night the ground's small hollows and the shadows of objects take the night ground's colour (they were olive and grey patches). Ours as before: the travelling shadow, the night, every lamp, the landers, the people, grain and lens fall-off. Credit NASA; NASA/Goddard Space Flight Center Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); NASA GIBS/Worldview (VIIRS, Suomi NPP; Black Marble); star positions HYG database (CC BY-SA 4.0). Sound effects are synthesised (sfx.py).",
+ "cuts": [
+  600
+ ],
+ "shots": [
+  {
+   "clip": "one",
+   "from": 0,
+   "job": "This shot follows one night at the base in a single take: the Sun low over the ridge as a lander comes in and the ridge's shadow crosses the base; lamps, helmet lamps and stars in the dark under a crescent Earth; first light on the high ridge and across the plain; the shadow coming back as the camera returns to the Sun and a second lander arrives. So the viewer lives through the night the sentences describe. (NASA concept animation; everything listed in the note added)"
+  }
+ ],
+ "lines": [
+  {
+   "id": "u1",
+   "at": 0.05,
+   "say": "On most of the Moon, night lasts about fourteen days. Small landers have survived it by mostly shutting down.",
+   "text": [
+    "On most of the Moon,",
+    "night lasts about 14 days.",
+    "Small landers have survived it",
+    "by mostly shutting down."
+   ],
+   "split": [
+    5,
+    10,
+    15
+   ]
+  },
+  {
+   "id": "u2",
+   "at": 7.25,
+   "say": "A crew can't do that. Life support has to keep running, and no base has yet run through a lunar night.",
+   "text": [
+    "A crew can't do that.",
+    "Life support has to keep running,",
+    "and no base has yet",
+    "run through a lunar night."
+   ],
+   "split": [
+    5,
+    11,
+    16
+   ]
+  },
+  {
+   "id": "u3",
+   "at": 13.4,
+   "say": "Some ridges at the south pole get sunlight most of the time, but even the best go dark for days in some seasons.",
+   "text": [
+    "Some ridges at the south pole",
+    "get sunlight most of the time,",
+    "but even the best go dark for days",
+    "in some seasons."
+   ],
+   "split": [
+    6,
+    12,
+    20
+   ]
+  },
+  {
+   "id": "u4",
+   "at": 20.45,
+   "say": "And NASA has said its astronauts would visit the south pole by twenty thirty.",
+   "text": [
+    "And NASA has said its astronauts",
+    "would visit the south pole by 2030."
+   ],
+   "split": [
+    6
+   ]
+  }
+ ],
+ "voice": {
+  "model": "kokoro v1.0",
+  "voice": "am_michael",
+  "speed": 1.12
+ },
+ "score": {
+  "style": "space",
+  "clock": false,
+  "key": 50,
+  "prog": [
+   [
+    0,
+    "m"
+   ],
+   [
+    8,
+    "M"
+   ],
+   [
+    0,
+    "m9"
+   ],
+   [
+    5,
+    "m"
+   ],
+   [
+    3,
+    "M"
+   ],
+   [
+    10,
+    "M"
+   ],
+   [
+    3,
+    "M"
+   ]
+  ],
+  "seed": 11
+ },
+ "score_cuts": [
+  3.8,
+  7.2,
+  10.33,
+  13.4,
+  17.45,
+  20.45
+ ],
+ "music_env": [
+  [
+   0,
+   1.0
+  ],
+  [
+   3.2,
+   1.0
+  ],
+  [
+   6.45,
+   0.7
+  ],
+  [
+   6.55,
+   0.0
+  ],
+  [
+   7.18,
+   0.0
+  ],
+  [
+   7.45,
+   0.45
+  ],
+  [
+   13.25,
+   0.45
+  ],
+  [
+   17.05,
+   1.8
+  ],
+  [
+   17.55,
+   0.9
+  ],
+  [
+   19.25,
+   0.8
+  ],
+  [
+   19.55,
+   0.55
+  ],
+  [
+   20.15,
+   0.55
+  ],
+  [
+   20.65,
+   1.3
+  ],
+  [
+   25.0,
+   1.3
+  ]
+ ],
+ "sound": [
+  {
+   "type": "boom",
+   "at": 0.03,
+   "gain": 0.5,
+   "tail": 2.0
+  },
+  {
+   "type": "drop",
+   "from": 0.3,
+   "to": 3.3,
+   "gain": 0.9
+  },
+  {
+   "type": "floods",
+   "file": "one_lamps.json",
+   "pick": 0,
+   "offset": 0.0
+  },
+  {
+   "type": "riser",
+   "from": 3.2,
+   "to": 6.55,
+   "notes": [
+    38,
+    45,
+    50,
+    53
+   ],
+   "gain": 1.3
+  },
+  {
+   "type": "boom",
+   "at": 5.62,
+   "gain": 0.3,
+   "tail": 1.2
+  },
+  {
+   "type": "boom",
+   "at": 7.21,
+   "gain": 1.0
+  },
+  {
+   "type": "boom",
+   "at": 10.33,
+   "gain": 0.35
+  },
+  {
+   "type": "swell",
+   "from": 9.5,
+   "peak": 11.9,
+   "to": 13.7,
+   "release": 0.8,
+   "gain": 0.5,
+   "notes": [
+    50,
+    57,
+    64,
+    65,
+    69,
+    72
+   ]
+  },
+  {
+   "type": "swell",
+   "from": 13.2,
+   "peak": 17.15,
+   "to": 18.9,
+   "release": 0.45,
+   "gain": 1.5,
+   "notes": [
+    41,
+    48,
+    53,
+    57,
+    60,
+    65
+   ]
+  },
+  {
+   "type": "boom",
+   "at": 17.45,
+   "gain": 0.7
+  },
+  {
+   "type": "floods",
+   "file": "one_lamps.json",
+   "pick": 2,
+   "offset": 0.0,
+   "gain": 0.3,
+   "until": 19.45
+  },
+  {
+   "type": "boom",
+   "at": 20.43,
+   "gain": 0.4
+  },
+  {
+   "type": "breath",
+   "from": 21.6,
+   "to": 24.9,
+   "period": 3.4,
+   "gain": 0.45
+  }
+ ],
+ "sound_gain": 1.0,
+ "sound_duck": 0.6,
+ "duck": 0.36,
+ "music_lufs": -25.0,
+ "lufs": -15.0,
+ "crf": 18,
+ "maxrate": "10M",
+ "grade": "",
+ "sub_gap": 0.02,
+ "subs": {
+  "font": "Inter Display Medium",
+  "size": 58,
+  "left": 80,
+  "right": 170,
+  "bottom": 420,
+  "outline": 3.6,
+  "shadow": 2.4,
+  "halo": 11,
+  "halo_alpha": "70"
+ },
+ "sub_tail": 0.36,
+ "fade_out": 0.4,
+ "tune": "film",
+ "gop": 48
+}

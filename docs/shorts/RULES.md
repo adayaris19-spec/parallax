@@ -235,6 +235,14 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
   - **A lit thing shows its lamp.** Nothing is lit by a source that is neither in the frame nor plainly implied by something in it.
   - **"No frame shown twice" (section 2, "Smooth") means no two output frames are the same picture.** Where footage turns back, one source frame may serve neighbouring output frames if each is moved by the missing part of the camera's move. (Draft, our reading; to confirm.)
   - **Find faults before the render, not after.** Stills and a flicker scan on a short stretch come first, so a version needs one full render. (After the third version took four.)
+- **Time for depth (owner, Nov 24, about 15:50 UTC+1, after the fifth version's note said the ground and the modules were still NASA's picture as it came):** "Take your time for this one."
+  - **For this version only.** The one-hour budget is lifted for the sixth version. It stays the rule for every other video.
+  - **The source is cleaned before its detail is drawn out.** Each source frame is rebuilt from itself and its three neighbours on each side, wherever they agree (`fuse_frames.py`). Only then is its fine detail drawn more firmly ("clarity"). Clarity on single frames is not allowed: it sharpens the noise with the detail.
+  - **Clarity has limits (drafts).** Three sizes: 1 px at most 0.9, 3 px at most 0.5, 9 px at most 0.2. Each size's detail is held under 14 levels, so hard edges get no halo. The far hillside gets about a third. The film finish stays as it was (sharpen 0.25, grain 1.1).
+  - **A subject cut from a larger frame is brought to size once**, by area, from the original frames (`astro_4k.py`).
+  - **An assumption goes when a source has the model.** Where a number or a shape was ours and a paper gives it, the paper's is used and its uncertainty is written down.
+  - **Faults found by looking closer are listed too.** A fault found while checking at full size goes into the "wrong" table even if the owner has not named it.
+  - **"More detail" is given as numbers** (`detail_meter.py`): fine detail at 1, 3 and 9 px and the noise, old against new, on the files as sent.
 - **Fix what is wrong, and far more detail (owner, Nov 24, about 15:20 UTC+1, on the fourth version):** "Fix what's wrong and give immense detail increase."
   - **A detail round is counted.** Each version states how many of each added thing it carries (stars, lights, people, craft), next to the count before, so "more" can be checked.
   - **Added things sit on what the source shows in daylight.** A light goes on a fitting, a leg, a hatch or a post that is in NASA's daylight frames. Nothing is added that would have to appear from nowhere when night falls (no windows on a module that shows none).

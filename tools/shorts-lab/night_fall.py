@@ -20,6 +20,9 @@
 # stars, NASA's Milky Way map), a planet can be redrawn with the phase the Sun's place in the picture gives it ("earth"), a
 # foreground shot with a black sky can be stood in front of the view ("overlay"), and everything ends in one shared pass of
 # softness, grain and lens fall-off so nothing looks laid on top.
+# The source frames can be cleaned first (fuse_frames.py: each rebuilt from itself and its neighbours; point FRAME_CACHE_DIR at
+# the cleaned copy). Their own fine detail can then be drawn more firmly ("clarity") and the source's coloured lens rims taken
+# off the grey ground ("chroma_soft").
 #
 # usage: python night_fall.py SOURCE.mp4 SPEC.json OUT.mp4 [frame numbers to write as stills instead, e.g. 0,60,120]
 #   PART=a,b        render output frames a to b-1 only (several runs side by side, joined afterwards)
@@ -126,6 +129,12 @@ EL7 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)); EL5 = cv2.getStructu
 def blur_big(a, sig):                                                     # a wide blur done on a quarter-size copy: same result to the eye, a fraction of the time
     h_, w_ = a.shape[:2]; return cv2.resize(cv2.GaussianBlur(cv2.resize(a, (max(w_ // 4, 1), max(h_ // 4, 1)), interpolation=cv2.INTER_AREA), (0, 0), sig / 4.0), (w_, h_), interpolation=cv2.INTER_LINEAR)
 
+def clarity(a, cl):
+    """what to add to a picture to draw its own fine detail more firmly: "bands" of [size in px, strength], each band's detail held under "limit" levels.
+    Worked on brightness only and added to all three colours alike: done colour by colour it would also draw out the thin coloured rims a lens leaves on hard edges."""
+    lim_ = float(cl.get("limit", 14.0)); l_ = a @ np.array([0.114, 0.587, 0.299], np.float32); add_ = np.zeros_like(l_)
+    for sg_, am_ in cl["bands"]: add_ += am_ * lim_ * np.tanh((l_ - (cv2.GaussianBlur(l_, (0, 0), sg_) if sg_ < 5 else blur_big(l_, sg_))) / lim_)
+    return add_[..., None]
 # ---------- the stars a camera exposed for dark ground would record: real ones, from the HYG catalogue (Hipparcos, Yale, Gliese)
 STARS = None
 if spec.get("stars"):
@@ -165,8 +174,13 @@ if spec.get("stars") and spec["stars"].get("sky_map"):                     # the
     g_ = cv2.remap(mw, mcol, mrow, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT); g_ = g_.mean(2, keepdims=True) + (g_ - g_.mean(2, keepdims=True)) * sm_.get("colour", 1.0); del mw, beta_, lam_, xe, ye, ze, yq, zq, ra_, dec_, mcol, mrow
     per_s10 = sm_.get("f10", 0.0) / (ppd * ppd)                             # the map's value for one S10 unit (a 10th-magnitude star spread over a square degree). f10: the map's sum for a 10th-magnitude star, measured on catalogue stars
     if sm_.get("zodiacal"):                                                 # the zodiacal light, in the same units: on the ecliptic s10 / sin(angle from the Sun) ^ power, as Clementine's star trackers measured it from lunar orbit (arXiv astro-ph/0204111, eq. 5; 3 to 30 degrees).
-        zz = sm_["zodiacal"]; ee = np.clip(np.hypot((lx_ - 100 - sx) / ppd, (ly - 100 - EXT - sy) / ppd / zz.get("flatten", 0.6)), zz.get("min_deg", 3.0), 89.0)      # Off the ecliptic it is taken to fall as if the glow were flattened by "flatten": our assumption
-        g_ = g_ + (zz["s10"] / np.sin(np.radians(ee)) ** zz["power"] * per_s10)[..., None] * np.array(zz.get("colour", [1.0, 0.95, 0.86]), np.float32)[::-1]; del ee
+        zz = sm_["zodiacal"]; zfac = 1.0
+        if zz.get("shape"):                                                 # off the ecliptic: the same paper's dust model (zodi_shape.py works it out), as a part of the ecliptic's brightness at the same angle from the Sun
+            zt = json.load(open(os.path.join(HERE, zz["shape"]))); zr = np.array(zt["ratio"], np.float32); bd = np.abs(ly - 100 - EXT - sy) / ppd; ld = np.abs(lx_ - 100 - sx) / ppd / np.maximum(np.cos(np.radians(bd)), 0.2)
+            ee = np.clip(np.degrees(np.arccos(np.clip(np.cos(np.radians(ld)) * np.cos(np.radians(bd)), -1, 1))), zz.get("min_deg", 3.0), 89.0)
+            zfac = cv2.remap(zr, np.clip(ld / (zt["lon_deg"][1] - zt["lon_deg"][0]), 0, zr.shape[1] - 1).astype(np.float32), np.clip(bd / (zt["lat_deg"][1] - zt["lat_deg"][0]), 0, zr.shape[0] - 1).astype(np.float32), cv2.INTER_LINEAR); del bd, ld
+        else: ee = np.clip(np.hypot((lx_ - 100 - sx) / ppd, (ly - 100 - EXT - sy) / ppd / zz.get("flatten", 0.6)), zz.get("min_deg", 3.0), 89.0)      # without the model it is taken to fall as if the glow were flattened by "flatten": an assumption
+        g_ = g_ + (zz["s10"] / np.sin(np.radians(ee)) ** zz["power"] * zfac * per_s10)[..., None] * np.array(zz.get("colour", [1.0, 0.95, 0.86]), np.float32)[::-1]; del ee, zfac
     if sm_.get("earth_night"):                                              # the Earth's night side, lit by the Moon the camera stands on (earth_face.py makes the face turned to the Moon). It hides the sky behind it
         en = sm_["earth_night"]; tx = np.load(os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), en["file"])); h2 = tx.shape[0]; ex0 = int(round(en["at"][0] + 100 - h2 / 2.0)); ey0 = int(round(en["at"][1] + 100 + EXT - h2 / 2.0))
         g_[ey0:ey0 + h2, ex0:ex0 + h2] = g_[ey0:ey0 + h2, ex0:ex0 + h2] * (1 - tx[..., 3:]) + tx[..., 2::-1] * (en["s10_white"] * per_s10) * tx[..., 3:]
@@ -217,12 +231,15 @@ def off(px, py, i):
 # ---------- a foreground shot (black sky behind its subject) stood in front of the view
 OV = None; VIG = None
 MOVERS = spec.get("movers", [])
-def lander_sprite(tilt_deg, side, px=26):
-    """a small crewed lander as it would look from kilometres away: cabin, body with a foil band, legs, engine bell, an aerial; lit from one side. Returns colour and cover, 26 px square."""
+def lander_sprite(tilt_deg, side, px=26, lit_part=0.5, flame=0.0):
+    """a small crewed lander as it would look from kilometres away: cabin, body with a foil band, legs, engine bell, an aerial; lit from one side. Returns colour and cover, 26 px square.
+    lit_part: how much of its width the Sun lights. Seen at right angles to the Sun that is half; seen nearly toward the Sun (the Sun a few degrees off behind it) only a thin edge is lit and the rest is in its own shadow.
+    flame: with the engine burning, its light falls on the bell, the legs and the underside."""
     q = 8; n_ = 26 * q; im = np.zeros((n_, n_, 3), np.float32); al = np.zeros((n_, n_), np.float32); P = lambda pts: np.round(np.array(pts, np.float32) * q).astype(np.int32)
     def poly(pts, col, a=1.0): cv2.fillPoly(im, [P(pts)], col, lineType=cv2.LINE_AA); cv2.fillPoly(al, [P(pts)], a, lineType=cv2.LINE_AA)
     def line(a_, b_, col, th): cv2.line(im, tuple(P([a_])[0]), tuple(P([b_])[0]), col, int(th * q), cv2.LINE_AA); cv2.line(al, tuple(P([a_])[0]), tuple(P([b_])[0]), 1.0, int(th * q), cv2.LINE_AA)
-    lit, mid, dim = (236, 236, 232), (150, 150, 152), (70, 72, 78)
+    lit, mid, dim = (236, 236, 232), (150, 150, 152), (70, 72, 78); back = float(np.clip((0.5 - lit_part) / 0.5, 0, 1))
+    def tone(pts, col): cv2.fillPoly(im, [P(pts)], col, lineType=cv2.LINE_AA)      # colour only: what it covers is already drawn
     for fx in (-1, 1): line((13 + fx * 3.6, 15.2), (13 + fx * 7.2, 20.6), mid, 0.5); line((13 + fx * 6.4, 20.8), (13 + fx * 8.2, 20.8), lit, 0.5)      # legs and footpads
     poly([(11.6, 15.6), (14.4, 15.6), (15.2, 18.2), (10.8, 18.2)], dim)                                       # engine bell
     poly([(8.0, 11.6), (9.6, 10.2), (16.4, 10.2), (18.0, 11.6), (18.0, 14.6), (16.6, 15.8), (9.4, 15.8), (8.0, 14.6)], mid)      # descent stage
@@ -234,21 +251,29 @@ def lander_sprite(tilt_deg, side, px=26):
     poly([(12.2, 4.7), (13.8, 4.7), (13.8, 5.6), (12.2, 5.6)], mid); line((10.6, 5.8), (8.9, 3.9), mid, 0.3); cv2.ellipse(im, tuple(P([(8.5, 3.5)])[0]), (int(1.2 * q), int(0.8 * q)), -40, 0, 360, lit, -1, cv2.LINE_AA); cv2.ellipse(al, tuple(P([(8.5, 3.5)])[0]), (int(1.2 * q), int(0.8 * q)), -40, 0, 360, 1.0, -1, cv2.LINE_AA)      # a docking port on top, a dish on a short boom
     for fx in (-1, 1): line((13 + fx * 3.9, 8.0), (13 + fx * 4.7, 8.0), dim, 0.3); line((13 + fx * 4.3, 7.5), (13 + fx * 4.3, 8.5), dim, 0.3); line((13 + fx * 2.0, 15.8), (13 + fx * 7.0, 20.5), dim, 0.25)      # thruster clusters on the cabin's sides, a second strut on each leg
     line((10.5, 10.4), (10.5, 15.6), dim, 0.2); line((15.5, 10.4), (15.5, 15.6), dim, 0.2); line((13.4, 10.2), (13 + side * 5.6, 19.4), dim, 0.22)      # panel seams, a ladder down the sunward leg
+    if back > 0:                                                            # seen toward the Sun: everything but the edge turned to it is in the craft's own shadow, lit only by the grey ground far below
+        xe = 13 + side * 5.0 - side * 10.0 * lit_part; keep = im.copy(); im *= (1 - 0.72 * back) * np.array([1.06, 1.0, 0.95], np.float32)
+        edge = np.clip(((np.arange(n_, dtype=np.float32) / q - xe) * side) / 0.5 + 0.5, 0, 1)[None, :, None]; im = im * (1 - edge) + keep * edge
+    if flame > 0:                                                           # the engine's own light from below: warm, strongest on the bell and the legs, fading up the body
+        up_ = np.clip((np.arange(n_, dtype=np.float32) / q - 9.0) / 9.0, 0, 1)[:, None, None] ** 1.5; im = im + flame * up_ * al[..., None] * np.array([120.0, 165.0, 205.0], np.float32)
     for fx in (-1, 1): cv2.circle(im, tuple(P([(13 + fx * 2.9, 16.0)])[0]), int(0.45 * q), (225, 240, 252), -1, cv2.LINE_AA)      # two landing lights under the body
     M = cv2.getRotationMatrix2D((13 * q, 16.5 * q), tilt_deg, 1.0); im = cv2.warpAffine(im, M, (n_, n_), flags=cv2.INTER_LINEAR); al = cv2.warpAffine(al, M, (n_, n_), flags=cv2.INTER_LINEAR)
     return cv2.resize(im, (px, px), interpolation=cv2.INTER_AREA), cv2.resize(al, (px, px), interpolation=cv2.INTER_AREA)
-def person_sprite(step, face, side):
-    """someone in a pressure suit seen from far off: helmet and visor, a backpack, arms, legs in mid-stride; lit from one side. Returns colour and cover, 16 x 24 px (the figure is 20 px tall)."""
+def person_sprite(step, face, side, lean=0.0):
+    """someone in a pressure suit seen from far off: helmet and visor, a backpack, arms, legs in mid-stride; lit from one side. Returns colour and cover, 16 x 24 px (the figure is 20 px tall).
+    lean: degrees the body is bent forward at the hips, arms reaching down (someone working at something on the ground)."""
     q = 8; wq, hq = 16 * q, 24 * q; im = np.zeros((hq, wq, 3), np.float32); al = np.zeros((hq, wq), np.float32); P = lambda pts: np.round(np.array(pts, np.float32) * q).astype(np.int32)
     def poly(pts, col): cv2.fillPoly(im, [P(pts)], col, lineType=cv2.LINE_AA); cv2.fillPoly(al, [P(pts)], 1.0, lineType=cv2.LINE_AA)
     def line(a_, b_, col, th): cv2.line(im, tuple(P([a_])[0]), tuple(P([b_])[0]), col, max(int(th * q), 1), cv2.LINE_AA); cv2.line(al, tuple(P([a_])[0]), tuple(P([b_])[0]), 1.0, max(int(th * q), 1), cv2.LINE_AA)
-    suit, pack, boot = (232, 232, 230), (205, 206, 208), (150, 150, 152)
+    suit, pack, boot = (232, 232, 230), (205, 206, 208), (150, 150, 152); ca_, sa_ = math.cos(math.radians(lean) * face), math.sin(math.radians(lean) * face)
+    B = lambda pt: (8 + (pt[0] - 8) * ca_ - (pt[1] - 13.8) * sa_, 13.8 + (pt[0] - 8) * sa_ + (pt[1] - 13.8) * ca_)      # the body above the hips, turned about them
     for sg in (-1, 1): line((8 + sg * 1.0, 13.8), (8 + sg * 1.0 + sg * step * 1.9, 21.2), suit, 1.7); line((8 + sg * 1.0 + sg * step * 1.9 - 0.3, 21.6), (8 + sg * 1.0 + sg * step * 1.9 + 0.9 * face, 21.6), boot, 1.0)      # legs and boots, in step
-    poly([(8 - face * 5.0, 5.6), (8 - face * 2.2, 5.6), (8 - face * 2.2, 14.2), (8 - face * 5.0, 14.2)], pack)        # the backpack, behind
-    poly([(5.5, 6.6), (10.5, 6.6), (10.7, 14.4), (5.3, 14.4)], suit)                                                  # body
-    for sg in (-1, 1): line((8 + sg * 2.7, 7.6), (8 + sg * 3.3 - sg * step * 0.9, 12.8), suit, 1.5)                   # arms
-    cv2.circle(im, tuple(P([(8, 3.9)])[0]), int(2.8 * q), suit, -1, cv2.LINE_AA); cv2.circle(al, tuple(P([(8, 3.9)])[0]), int(2.8 * q), 1.0, -1, cv2.LINE_AA)      # helmet
-    cv2.ellipse(im, tuple(P([(8 + face * 1.0, 4.1)])[0]), (int(1.7 * q), int(1.6 * q)), 0, 0, 360, (38, 74, 112), -1, cv2.LINE_AA)                                 # gold visor, turned the way they walk
+    poly([B(v_) for v_ in [(8 - face * 5.0, 5.6), (8 - face * 2.2, 5.6), (8 - face * 2.2, 14.2), (8 - face * 5.0, 14.2)]], pack)        # the backpack, behind
+    poly([B(v_) for v_ in [(5.5, 6.6), (10.5, 6.6), (10.7, 14.4), (5.3, 14.4)]], suit)                                                  # body
+    rch = min(lean / 40.0, 1.0)                                              # bent over, the arms hang toward the ground ahead
+    for sg in (-1, 1): sh_ = B((8 + sg * 2.7, 7.6)); hd_ = B((8 + sg * 3.3 - sg * step * 0.9, 12.8)); line(sh_, (hd_[0] * (1 - rch) + (sh_[0] + face * 1.2) * rch, hd_[1] * (1 - rch) + min(sh_[1] + 5.6, 20.6) * rch), suit, 1.5)      # arms
+    hc_ = B((8, 3.9)); cv2.circle(im, tuple(P([hc_])[0]), int(2.8 * q), suit, -1, cv2.LINE_AA); cv2.circle(al, tuple(P([hc_])[0]), int(2.8 * q), 1.0, -1, cv2.LINE_AA)      # helmet
+    cv2.ellipse(im, tuple(P([B((8 + face * 1.0, 4.1))])[0]), (int(1.7 * q), int(1.6 * q)), 0, 0, 360, (38, 74, 112), -1, cv2.LINE_AA)                                 # gold visor, turned the way they walk
     ramp = np.clip(0.5 + side * (np.arange(wq, dtype=np.float32) / q - 8.0) / 5.0, 0, 1)[None, :, None]; im = im * (0.55 + 0.45 * ramp) * np.where(ramp > 0.5, 1.0, np.array([1.06, 1.0, 0.94], np.float32))      # the side away from the Sun is dimmer and a little blue
     return cv2.resize(im, (16, 24), interpolation=cv2.INTER_AREA), cv2.resize(al, (16, 24), interpolation=cv2.INTER_AREA)
 SUNG = spec.get("sun_ground") or (FING or {}).get("sun_ground")           # the point on the horizon under the Sun: shadows on the ground point away from it
@@ -301,6 +326,13 @@ def frame(j):
     if spec.get("defringe", 0) > 0:                                        # the source's lens effect puts thin green, purple and orange rims on hard edges; a film lens does this far less
         mx_ = o.max(2); sat_ = (mx_ - o.min(2)) / np.maximum(mx_, 1.0); edge = cv2.dilate((np.abs(cv2.Sobel(lum, cv2.CV_32F, 1, 0, ksize=3)) + np.abs(cv2.Sobel(lum, cv2.CV_32F, 0, 1, ksize=3)) > 90).astype(np.float32), EL7)
         o = o + (lum[..., None] - o) * (np.clip((sat_ - 0.25) / 0.2, 0, 1) * edge * ground * spec["defringe"])[..., None]
+    farw = 1.0
+    if spec.get("chroma_soft", 0) > 0:                                      # the Moon's ground is grey: colour that changes from one pixel to the next on it is the source's lens effect (yellow and purple rims on every small ridge, strongest toward the corners).
+        l3_ = (o @ np.array([0.114, 0.587, 0.299], np.float32))[..., None]; c_ = o - l3_; o = l3_ + c_ + (cv2.GaussianBlur(c_, (0, 0), spec["chroma_soft"]) - c_) * ground[..., None]      # Colour is kept only as it varies over a few pixels and more; brightness is untouched
+    if spec.get("clarity"):                                                 # the ground's and the base's own fine detail drawn more firmly, at several sizes. Each size's detail is held under "limit" levels, so a hard edge (a module against its shadow, the skyline) gets no halo.
+        cw_ = ground                                                        # This is only safe on frames whose noise has been taken out first (fuse_frames.py); on single frames it draws the noise more firmly too
+        if spec["clarity"].get("far"): fa_ = spec["clarity"]["far"]; farw = fa_["amount"] + (1 - fa_["amount"]) * np.clip((yy - dy - fa_["above_y"]) / fa_.get("soft", 150.0), 0, 1); cw_ = ground * farw      # the far hillside is drawn from a stretched texture in the source (long level streaks): it gets less, so the streaks are not what is drawn out
+        o = np.clip(o + clarity(o, spec["clarity"]) * cw_[..., None], 0, 255)
     deep = key("deep", t); ang = np.degrees(np.arctan2(yy - vp[i, 1], xx - vp[i, 0]))                         # 0 = to the right along the horizon, 90 = straight down
     rel = 0.0
     if RELIEF:                                                              # the ground's own relief, read from its shading in the source: brighter than its surroundings = turned to the Sun
@@ -319,8 +351,12 @@ def frame(j):
     soft = cv2.GaussianBlur(on, (0, 0), 1.4); lit = on * K[None, None]; ws = wb * ground; nlm = lit.mean(2)
     gl = blur_big(nlm * ws, 22.0) / np.maximum(blur_big(ws, 22.0), 1e-3); dk = blur_big(soft.mean(2) * small, 22.0) / np.maximum(blur_big(small, 22.0), 1e-3)
     lift = 1 + (np.clip(gl / np.maximum(dk, 1.0), 1.0, 2.4) - 1) * cv2.GaussianBlur(small, (0, 0), 1.0)
+    if spec.get("hollows"):                                                 # two kinds of old shadow. The ground's own small hollows ("max_px" and under): with the Sun gone they are ground like the ground round them, so they are raised further ("lift") and take
+        hw = spec["hollows"]; ar_ = dst[:, cv2.CC_STAT_AREA]; tiny = np.clip((2.0 * hw["max_px"] - ar_) / hw["max_px"], 0, 1).astype(np.float32)[dl] * (dl > 0) * small; tb = cv2.GaussianBlur(tiny, (0, 0), 1.0); ob = cv2.GaussianBlur(small - tiny, (0, 0), 1.0)      # the night ground's own colour (left as they were, they stood out as olive blotches with black cores on the blue ground). A patch between "max_px" and twice that is treated as part one, part the other, so a patch whose size wavers from frame to frame does not jump.
+        rt_ = gl / np.maximum(dk, 1.0); lift = 1 + (np.clip(rt_, 1.0, hw.get("lift", 3.5)) - 1) * tb + (np.clip(rt_, 1.0, hw.get("object_lift", 2.4)) - 1) * ob      # The shadows of things that stand on the ground ("object_lift"): lamps on masts now light the yard from the Sun's side, so those shadows are still cast, and are raised less.
+        hv_ = np.clip(blur_big(ws, 22.0) / 0.1, 0, 1); cg_ = blur_big(lit * ws[..., None], 22.0) / np.maximum(blur_big(nlm * ws, 22.0), 1e-3)[..., None]; soft = soft + (soft.mean(2, keepdims=True) * cg_ - soft) * (np.clip(tb + ob, 0, 1) * hv_)[..., None]      # both kinds take the night ground's colour: the source's small shadows are greyer than its large ones, and showed as grey patches on blue ground
     night = (lit * wb[..., None] + soft * (lift * (1 - wb))[..., None]) * deep
-    if spec.get("night_detail", 0) > 0: night = night + (on - cv2.GaussianBlur(on, (0, 0), 2.2)) * K[None, None] * (deep * spec["night_detail"])      # the ground's fine relief (tracks, small craters, stones) is the source's own; in the dark it is shown a little more strongly than the dimming alone leaves it
+    if spec.get("night_detail", 0) > 0: night = night + (on - cv2.GaussianBlur(on, (0, 0), 2.2)) * K[None, None] * ((deep * spec["night_detail"] * farw)[..., None] if isinstance(farw, np.ndarray) else deep * spec["night_detail"])      # the ground's fine relief (tracks, small craters, stones) is the source's own; in the dark it is shown a little more strongly than the dimming alone leaves it
     band = (cv2.dilate(dm, EL7) > 0) & (cv2.erode(dm, EL5) == 0); w = (~band).astype(np.float32)
     fill = cv2.GaussianBlur(night * w[..., None], (0, 0), 2.5) / np.maximum(cv2.GaussianBlur(w, (0, 0), 2.5), 1e-3)[..., None]
     bs = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.7)[..., None]; night = night + (fill - night) * bs; res = o + (night - o) * m[..., None]
@@ -349,11 +385,14 @@ def frame(j):
                     daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = hh / math.tan(math.radians(spec.get("sun_elev_deg", 4.5))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
                     a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - m[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
                     res[ya:yb, xa:xb] += (night[ya:yb, xa:xb] - res[ya:yb, xa:xb]) * a_sh[..., None]
-                spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
+                lean_ = 0.0
+                if mv.get("work") and not moving:                           # "work": [seconds per round, offset, degrees]: they bend to something on the ground, stay down a while, and straighten, each over about a second
+                    wp_ = ((t + mv["work"][1]) % mv["work"][0]) / mv["work"][0]; sm_w = lambda a_, b_, x_: float(np.clip((x_ - a_) / (b_ - a_), 0, 1)) ** 2 * (3 - 2 * float(np.clip((x_ - a_) / (b_ - a_), 0, 1))); lean_ = (mv["work"][2] if len(mv["work"]) > 2 else 40.0) * sm_w(0.18, 0.34, wp_) * (1 - sm_w(0.66, 0.82, wp_))
+                spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0, lean_); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
                 pc = cv2.warpAffine(spr, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA); pa = (cv2.warpAffine(sal, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA) * gfa)[..., None]
                 res[ya:yb, xa:xb] = res[ya:yb, xa:xb] * (1 - pa) + pc * (sun + (1 - sun) * K[None, None] * deep * 1.15) * pa
                 if sun < 0.6:                                               # the helmet lamp, and the ground it lights a few steps ahead
-                    gl_ = (1 - sun / 0.6) * gfa; hx, hy = face * 2.2 * zs, -16.2 * zs; dot_ = 235.0 * np.exp(-((X - hx) ** 2 + (Y - hy) ** 2) / (2 * (0.5 + 0.045 * hh) ** 2)); pl_ = 0.36 * np.exp(-(((X - face * 0.9 * hh) / (0.9 * hh)) ** 2 + (Y / (0.26 * hh)) ** 2))
+                    gl_ = (1 - sun / 0.6) * gfa; ln_ = math.radians(lean_); hx, hy = face * (2.2 * math.cos(ln_) + 8.1 * math.sin(ln_)) * zs, (-8.1 + 2.2 * math.sin(ln_) - 8.1 * math.cos(ln_)) * zs; dot_ = 235.0 * np.exp(-((X - hx) ** 2 + (Y - hy) ** 2) / (2 * (0.5 + 0.045 * hh) ** 2)); pl_ = (0.36 + 0.3 * math.sin(ln_)) * np.exp(-(((X - face * (0.9 - 0.45 * math.sin(ln_)) * hh) / ((0.9 - 0.4 * math.sin(ln_)) * hh)) ** 2 + (Y / (0.26 * hh)) ** 2))      # bent over, the lamp points down: a smaller, brighter pool just ahead of the feet
                     res[ya:yb, xa:xb] += (gl_ * dot_)[..., None] * np.array([0.92, 0.97, 1.0], np.float32) + np.maximum(o[ya:yb, xa:xb] * 0.8 - res[ya:yb, xa:xb], 0) * (gl_ * pl_ * ground[ya:yb, xa:xb])[..., None]
                 continue
             if mv["type"] in ("walker", "rover"):                           # a light carried over the ground: it keeps its place by a lamp that is followed through the shot ("anchor"), bobs with each step, and throws a small pool ahead of itself
@@ -385,7 +424,7 @@ def frame(j):
                 if jp_ < 0.14:
                     je_ = math.sin(math.pi * jp_ / 0.14) ** 2; js_ = 1.0 if int(t * 0.55 + mv["path"][0][0] * 0.37) % 2 else -1.0; jx_, jy_ = X + ax_ * 21.0, Y + ay_ * 21.0; ja_ = (-jx_ * ay_ + jy_ * ax_) * js_; jc_ = jx_ * ax_ + jy_ * ay_
                     v_ = v_ + 85.0 * je_ * np.exp(-(jc_ / (1.2 + 0.32 * np.maximum(ja_, 0))) ** 2) * np.exp(-np.maximum(ja_, 0) / 13.0) * (ja_ > 2.5)
-                sz_ = mv.get("size", 1.0); spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0), int(round(26 * sz_))); ox_, oy_ = px - ax_ * 1.0 - 13.0 * sz_, py - ay_ * 1.0 - 17.5 * sz_      # the engine bell sits on the light
+                sz_ = mv.get("size", 1.0); spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0), int(round(26 * sz_)), mv.get("lit_part", 0.5), mv.get("flame_light", 0.0) * flick); ox_, oy_ = px - ax_ * 1.0 - 13.0 * sz_, py - ay_ * 1.0 - 17.5 * sz_      # the engine bell sits on the light
                 Ms = np.float32([[1, 0, ox_ - c0 - xa], [0, 1, oy_ - y0r - ya]]); big_s = cv2.warpAffine(spr, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR); big_a = cv2.warpAffine(sal, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR) * on_sky * g_
                 if mv.get("clip_y") is not None: big_a = big_a * np.clip((mv["clip_y"] + dy - yy[ya:yb, xa:xb]) / 3.0, 0, 1)
                 res[ya:yb, xa:xb] = res[ya:yb, xa:xb] * (1 - big_a[..., None]) + big_s * big_a[..., None]
@@ -446,6 +485,7 @@ def stand_behind(fr, t, xw, yw, i):
     nC = len(OVC); x_ = (t - ov["from_t"]) * FPS; r_ = ov.get("turn_soft", 6.0); k = int(np.clip(round((nC - 1) - (math.sqrt((x_ - (nC - 1)) ** 2 + r_ * r_) - r_)), 0, nC - 1))      # its frames run to the end, turn softly and run back
     a8 = np.ascontiguousarray(OVC[k]); sub = a8[..., :3].astype(np.float32); alpha = a8[..., 3].astype(np.float32) / 255.0
     hot = np.clip((cv2.GaussianBlur(sub.min(2), (0, 0), 1.2) - ov.get("lamp_min", 246.0)) / 6.0, 0, 1); hot = np.maximum(hot, 1.5 * cv2.GaussianBlur(hot, (0, 0), 6.0)).clip(0, 1)[..., None]      # its own lamps stay as bright as they are
+    if ov.get("clarity"): sub = np.clip(sub + clarity(sub, ov["clarity"]), 0, 255)      # the suit's own weave, seams and fittings a little more firmly (a cut made from 4K frames brought down to size has no noise to speak of)
     lit_ = np.array(ov.get("shade", [1.0, 1.0, 1.0]), np.float32)[::-1][None, None]
     if ov.get("lamp_pool"):                                                 # its helmet lamps point where it looks: at its hands and chest. That part is lit; the rest of it is in the mountain's shadow like the ground behind it
         lp = ov["lamp_pool"]; hy_, hx_ = np.mgrid[0:sub.shape[0], 0:sub.shape[1]].astype(np.float32); pool_ = np.exp(-(((hx_ - lp["at"][0]) / lp["radius"][0]) ** 2 + ((hy_ - lp["at"][1]) / lp["radius"][1]) ** 2))[..., None]
@@ -457,9 +497,9 @@ def stand_behind(fr, t, xw, yw, i):
         cr = np.c_[np.array(ov["rock"]["crest"], float), np.ones(len(ov["rock"]["crest"]))] @ Mr.T - [xw, yw]; poly = np.vstack([cr, [[cr[-1, 0] + 4000, cr[-1, 1]], [cr[-1, 0] + 4000, 6000], [cr[0, 0] - 4000, 6000], [cr[0, 0] - 4000, cr[0, 1]]]])
         mask = np.zeros((1920, OW), np.float32); cv2.fillPoly(mask, [np.round(poly * 8).astype(np.int32)], 1.0, lineType=cv2.LINE_AA, shift=3)
     z_ = ov.get("scale", 1.0); ax_, ay_ = ov["anchor"]; M = np.float32([[z_, 0, at[0] + dxy[0] - xw - z_ * ax_], [0, z_, at[1] + dxy[1] - yw - z_ * ay_]])
-    alpha = cv2.warpAffine(alpha, M, (OW, 1920), flags=cv2.INTER_AREA, borderValue=0)
+    alpha = cv2.warpAffine(alpha, M, (OW, 1920), flags=cv2.INTER_LINEAR, borderValue=0)      # a cut made at the size it is shown (astro_4k.py, "scale": 1.0) is only placed, to a fraction of a pixel, not scaled again
     if alpha.max() < 0.01: return fr
-    sub = cv2.warpAffine(sub, M, (OW, 1920), flags=cv2.INTER_AREA, borderValue=0); foc = float(np.interp(t, [p_[0] for p_ in ov["defocus"]], [p_[1] for p_ in ov["defocus"]])) if ov.get("defocus") else 0.0
+    sub = cv2.warpAffine(sub, M, (OW, 1920), flags=cv2.INTER_CUBIC if abs(z_ - 1.0) < 1e-6 else cv2.INTER_LINEAR, borderValue=0); foc = float(np.interp(t, [p_[0] for p_ in ov["defocus"]], [p_[1] for p_ in ov["defocus"]])) if ov.get("defocus") else 0.0
     if foc > 0.3: fr = cv2.GaussianBlur(fr, (0, 0), foc)
     if mask is not None:
         sub = sub * (1 - ov["rock"].get("contact", 0.3) * cv2.GaussianBlur(mask, (0, 0), 10.0))[..., None]      # where it meets the rock it is a little darker: the rock stands between it and some of its light

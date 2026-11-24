@@ -274,3 +274,29 @@ The owner: fix what is wrong, and far more detail.
   - `finish.sharpen` and `finish.halation`.
 - New in the spec itself: 10 work lights on module legs, joints and ends (marked `silent`, so the sound does not count them), 8 more `person` movers, a second `rover` light, 2 more `orbiter`s, `stars.mag_limit` 8.6.
 
+
+## Moon base reel: the source cleaned, its own detail drawn out (Nov 24, 2026, sixth version)
+
+The owner: take your time for this one.
+
+- Plan: `moonbase-v17.json`. Spec: `specs/night_v17_one.json`.
+- `fuse_frames.py IN.raw 3510 1920 OUT.raw 3` rebuilds every decoded source frame from itself and its three neighbours on each side, wherever they agree. Run it on the cache `night_fall.py` made, write to a second folder under the same file name, and point `FRAME_CACHE_DIR` at that folder. `CHECK=85` does one frame and prints what it gained. `PART=a,b` lets several runs share the work. For this take: 89–97% of each frame agreed with its neighbours, and the noise on the ground fell from 1.43 to 0.92 levels.
+- `astro_4k.py DIR/ NASA_4K.mp4 0.4 OUT.npy` makes the astronaut's cut straight from the 4K frames at the size it is shown. It repeats the hold-still move of `astro_stab.py` and uses the outline of `astro_cut.py`, and prints a check on each. The spec then has `overlay.scale` 1.0.
+- `zodi_shape.py specs/zodi_shape.json` works out how the zodiacal light falls off away from the ecliptic, from the dust model in the Clementine paper (its eqs. 6–8 and Table II, with Hong's 1985 scattering law), and prints how much the choice of scattering law matters.
+- `detail_meter.py OLD.mp4 NEW.mp4 1.0,8.0,16.5 700:1900` prints the fine detail two videos carry at three sizes, and the noise.
+- New in a spec for `night_fall.py`:
+  - `clarity`: `bands` ([size in px, strength] each), `limit` (levels), `far` (less on the far hillside). Brightness only. Use it only with fused frames.
+  - `chroma_soft`: colour on the ground is kept only as it varies over this many pixels and more; it removes the source's yellow and purple lens rims.
+  - `stars.sky_map.zodiacal.shape`: the table from `zodi_shape.py`, in place of `flatten`.
+  - `hollows`: `max_px`, `lift`, `object_lift`. At night the ground's small hollows are raised to the ground round them; the shadows of objects are raised less; both take the night ground's colour.
+  - on a `lander`: `lit_part` (how much of its width the Sun lights) and `flame_light` (the engine's light on its underside).
+  - on a `person`: `work`: [seconds per round, offset, degrees]. They bend to the ground, stay down, and straighten.
+  - `overlay.clarity`: the same step for the cut-out figure.
+  - a lamp marked `yard` is an ordinary lamp with a wide `reach`; the mark is only a label.
+- Render:
+
+  ```
+  export STAR_CATALOGUE_DIR=<catalogues> FRAME_CACHE_DIR=<fused cache> OVERLAY_DIR=<folder with astro_cut4k.npy>
+  PREPARE=1 python night_fall.py nasa_moonbase.mp4 specs/night_v17_one.json out.mp4
+  PART=0,215 python night_fall.py nasa_moonbase.mp4 specs/night_v17_one.json one_a.mp4     (and 215,430 and 430,600 beside it)
+  ```
