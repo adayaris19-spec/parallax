@@ -292,7 +292,7 @@
  "music_lufs": -25.0,
  "lufs": -15.0,
  "crf": 18,
- "maxrate": "10M",
+ "maxrate": "9300k",
  "grade": "",
  "sub_gap": 0.02,
  "subs": {

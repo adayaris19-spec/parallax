@@ -317,4 +317,14 @@ The owner: take up to six hours, fix what is wrong, maximise the detail, miss no
   - the small figures' proportions are measured on NASA photograph AS11-40-5903.
 - `zodi_shape.py` now uses the numbers of Hong's own Table I (0.698, −0.203, −0.813; weights 0.665, 0.330, 0.005).
 - `astro_4k.py ... 0.48 ...`: the astronaut is shown a fifth larger than before, still brought down from 4K in one step.
+  - `skyline`: the top of the ground across the wide picture, traced by hand on the reference frame ([x, y] points); `skyline_near_x`: left of this the ground is a near sunlit hill that finds its own edge. Nothing below the line is ever treated as sky.
+  - `sky_clean`: the source's lens glare is read from its own sky (per frame, by distance from the Sun; cached beside the frame cache) and taken off sky and ground. `core`: the glow kept round the Sun is half at this many pixels; `disc`: the Sun's own radius in pixels; `floor`: the black of the sky; `neutral`, `dark_neutral`: what is left of the glow, and dark ground, are made grey; `flank`: the unlit slope between skyline and plain is made even at `level`.
+  - `shadow_rgb`: the night's level against sunlit ground. Now 0.236, 0.235, 0.246: grey, at the upper end of what the source's own broad shadows measure with the glare off (0.21 to 0.24) (it was 0.217, 0.228, 0.296; the blue was the glare).
+  - `edge_fingers.peaked`, `.octaves`: the skyline that casts the travelling shadow is made of peaks, so its edge has pointed fingers; `edge_wander`, `edge_relief_soft`: the edge's slow wander and its response to the ground's relief are turned down and smoothed.
+  - `hollows.object_lift`, `.object_soft`: how far the Sun's shadows of objects are lifted out of the night, and how softly. Lamp light falls on ground without them, except under a lamp marked `yard`.
+  - `foreground_soft`: the dark rock and slope that reach the bottom of the picture, with their lit rims, are thrown a little out of focus.
+  - `overlay.sun_rim` (the edges turned to the Sun catch it), `.visor` (held dark; lamps only on the helmet's rim round it), `.lamp_max_px`, `.edge_in`, `.rock.in_sun` (the rock by the camera keeps its sunlight when the plain is in shadow), `.rock.outline`, `.rock.shadow`.
+  - points of light in orbit follow `star_level`: none while the exposure is for sunlit ground.
+- `make_video.py`: a plan may carry `x264` (extra encoder settings; `aq-mode=3` gives dark areas more of the bits).
+- Two independent reviews were run on stills taken once a second (and, the second time, on strips of four consecutive frames): a fresh reviewer told only to find faults. Their lists and what was done about each are in `docs/shorts/PROGRESS.md`.
 - Order of work on the source: decode (by `night_fall.py`) → `fuse_frames.py` → `colour_shift.py` → `PREPARE=1` → render.
