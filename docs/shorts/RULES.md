@@ -259,6 +259,12 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - **Exhaust in vacuum is nearly invisible.** At most a faint trace near the nozzle.
     - **Drawn shadows match the source's own.** A drawn figure's shadow is as long, for its height, as the shadows the source's objects cast in the same frame.
     - **A fix acts only where its fault is.** A limiter meant for module rims that also caps the ground's relief is a fix that costs detail unseen; its reach is measured before it is kept.
+  - **What the fifth independent review found, as rules (drafts):**
+    - **One Sun drives the light.** The Sun's height and the reach of a ridge's shadow are one thing seen twice; they come from one track, so the Sun stands on the crest exactly when the shadow reaches the camera.
+    - **A ridge's face is shadowed before its foot.** When its shadow lies on the plain, the face between foot and crest is dark too; only the crest line itself may keep the light.
+    - **Night is darker than a daytime shadow.** In daylight a shadow is filled by light off the sunlit ground round it; when the whole plain is in shadow that fill is gone. The night's ground is 0.65 of NASA's shadow level.
+    - **A lens star only from a light in the picture.**
+    - **No two drawn figures in lockstep a body's height apart:** it reads as one sprite drawn twice.
     - **Sharpening is sized by measurement, and a remark is tested before it is obeyed.** The finest band (1 px) at most 1.1, which the blur measured on the source (0.72 px) justifies; wider bands at most 0.5 (3 px) and 0.2 (9 px). A reviewer called the ground "etched" at those values; cutting them to 0.15 was tried, a second reviewer made the same remark after the cut, and measured detail fell by a tenth to a quarter. They were put back.
     - **A fix may not cost detail unseen.** After any change made for realism, fine detail is measured against the last version the owner saw, on the same ground, before the video is sent.
     - **A picture pasted on a star field is as sharp as the stars.** The Earth's face is softened by at most 0.45 px, and gaps in the satellite picture are filled, not shown as black.
