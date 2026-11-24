@@ -309,5 +309,6 @@
  "sub_tail": 0.36,
  "fade_out": 0.4,
  "tune": "film",
- "gop": 48
+ "gop": 48,
+ "x264": "aq-mode=3"
 }

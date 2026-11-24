@@ -2057,11 +2057,11 @@
    0
   ],
   [
-   3.4,
+   5.0,
    0
   ],
   [
-   6.0,
+   7.0,
    1
   ],
   [
@@ -2839,10 +2839,10 @@
   "face_day": "earth_night_day.npy"
  },
  "edge_soft_range": [
-  3.5,
+  5.0,
   12
  ],
- "edge_relief_deg": 12.0,
+ "edge_relief_deg": 5.0,
  "defringe": 0.8,
  "finish": {
   "soften": 0.0,
@@ -2889,9 +2889,9 @@
    984
   ],
   "shade": [
-   0.27,
-   0.27,
-   0.28
+   0.22,
+   0.22,
+   0.23
   ],
   "defocus": [
    [
@@ -2991,7 +2991,7 @@
     230,
     200
    ],
-   "level": 0.66,
+   "level": 0.62,
    "colour": [
     0.95,
     0.97,
@@ -3004,14 +3004,14 @@
     0.13,
     -0.99
    ],
-   "width": 3.0,
-   "level": 0.85,
-   "wrap_px": 26.0,
-   "wrap": 0.15,
+   "width": 4.0,
+   "level": 1.35,
+   "wrap_px": 30.0,
+   "wrap": 0.32,
    "colour": [
-    250.0,
-    246.0,
-    238.0
+    252.0,
+    248.0,
+    240.0
    ]
   },
   "visor": {
@@ -3023,7 +3023,18 @@
     124,
     142
    ],
-   "level": 0.55
+   "level": 0.3,
+   "lamps_to": 1.75
+  },
+  "edge_in": 1,
+  "clarity": {
+   "bands": [
+    [
+     1.0,
+     0.35
+    ]
+   ],
+   "limit": 14.0
   }
  },
  "sky_exposure": [
@@ -3085,8 +3096,8 @@
  "hollows": {
   "max_px": 1500,
   "lift": 3.5,
-  "object_lift": 3.4,
-  "object_soft": 5.0
+  "object_lift": 6.0,
+  "object_soft": 4.0
  },
  "chroma_soft": 2.0,
  "crest_edge": {
@@ -3267,18 +3278,26 @@
   "neutral": 1.0,
   "dark_neutral": 1.0,
   "floor": [
-   8.0,
-   6.0,
-   6.0
+   7.0,
+   7.0,
+   7.0
   ],
   "flank": {
    "level": 19.0,
    "dark_under": 70.0
-  }
+  },
+  "disc": 28.0
  },
  "shadow_rgb": [
   0.225,
   0.224,
   0.22
- ]
+ ],
+ "edge_wander": 0.3,
+ "foreground_soft": {
+  "sigma": 2.4,
+  "rim": 30,
+  "dark": 60.0
+ },
+ "edge_relief_soft": 7.0
 }
