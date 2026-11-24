@@ -96,8 +96,8 @@ SOFTR = spec.get("edge_soft_range", [5.0, 32.0]); RELIEF = spec.get("edge_relief
 def softness(rad): return np.clip(SOFTK / np.maximum(rad, 1.0), SOFTR[0], SOFTR[1]) if SOFTK else SOFT      # an edge of one width on the ground looks wider, in degrees, the nearer it is to the vanishing point
 rs = np.random.default_rng(spec.get("seed", 4)); WAVES = [(rs.uniform(1.4, 4.2), rs.uniform(0, 6.28), a) for a in (2.2, 1.5, 1.0, 0.6)]      # the edge is the shadow of a ridge line, not of a ruler: it wanders by a few degrees along its length
 def wander(rad): lr = np.log(np.maximum(rad, 8.0)); return sum(a * np.sin(f * lr * 2.2 + ph) for f, ph, a in WAVES)
-def cover(ang, rad, A):
-    m = np.clip((A - ang - spec.get("edge_wander", 1.0) * wander(rad) * np.minimum(softness(rad) / 30.0 * 2.0, 1.0)) / softness(rad) + 0.5, 0, 1); return m * m * (3 - 2 * m)
+def cover(ang, rad, A, along=None):
+    m = np.clip((A - ang - spec.get("edge_wander", 1.0) * wander(rad if along is None else along) * np.minimum(softness(rad) / 30.0 * 2.0, 1.0)) / softness(rad) + 0.5, 0, 1); return m * m * (3 - 2 * m)
 BANDS = spec.get("bands", [{"lead": "edge_deg"}])      # a shadow has a front edge ("lead") and may have a back edge ("trail") that follows it across the ground the same way: the light comes back from the side the dark came from
 FING = spec.get("edge_fingers"); FX = np.arange(-20.0, 200.0, 0.004); FT = np.zeros(len(FX), np.float32)
 if FING:                                                                    # the skyline that casts the shadow, as a height along the horizon: broad masses, saddles, single peaks. Low sunlight comes through the saddles in long streaks
@@ -108,12 +108,12 @@ if FING:                                                                    # th
         if FING.get("peaked"): w_ = 1.0 - 2.0 * np.abs(w_) ** FING["peaked"]      # a skyline is made of peaks, pointed at the top and rounded between: each peak's shadow is a long pointed finger. (Smooth waves gave the edge round lobes, like a cloud's shadow.)
         FT += (amp * w_).astype(np.float32)
     FT = np.convolve(FT, np.ones(133, np.float32) / 133, "same"); FT = FT - np.median(FT); FT = FT / np.abs(FT).max()      # the Sun is half a degree wide: anything on the skyline narrower than that is smeared out in its shadow
-def shade(ang, rad, t, rel=0.0):
+def shade(ang, rad, t, rel=0.0, along=None):
     """rel: how much each bit of ground faces the Sun, in degrees of the edge's travel. Ground turned to the Sun keeps the light longer and gets it back sooner; hollows the other way round. That is what makes a real shadow edge ragged."""
     m = 0.0
     for b in BANDS:
-        c = cover(ang + rel, rad, key(b["lead"], t))
-        if b.get("trail"): c = c * (1 - cover(ang - rel * spec.get("trail_fingers", 1.0), rad + 137.0, key(b["trail"], t)))
+        c = cover(ang + rel, rad, key(b["lead"], t), along)
+        if b.get("trail"): c = c * (1 - cover(ang - rel * spec.get("trail_fingers", 1.0), rad + 137.0, key(b["trail"], t), along))
         m = np.maximum(m, c)
     return m
 def crest_dark(t):
@@ -121,11 +121,29 @@ def crest_dark(t):
     c = 0.0
     for b in BANDS: c = max(c, float(np.clip((key(b["lead"], t) - 150.0) / 40.0, 0, 1)) * (1 - float(np.clip((key(b["trail"], t) + 10.0) / 30.0, 0, 1)) if b.get("trail") else 1.0))
     return c
+FRONT = spec.get("front"); GT_ = np.array(spec["ground_top"], np.float32) if spec.get("ground_top") else None
+def shadow_coord(x, y, i):
+    """where a bit of ground stands in the shadow's travel: (ang, rad, along, ridge) for shade().
+    Without "front": the angle round the vanishing point (0 = to the right along the horizon, 90 = straight down), as in every earlier version.
+    With "front": the ridge's shadow lies on the plain from the ridge's foot toward the camera, as a shadow cast by a ridge must: the ground at the foot is the
+    first to lose the Sun and the last to get it back. Each bit of ground is placed by how far it is from the ridge's foot along the Sun's direction (the line
+    to the point on the horizon under the Sun, "sun_x"): on flat ground seen from a height, distance goes as 1 / (rows below the horizon), so it is
+    (its row - the foot's row where that line meets the foot) / (the foot's row - the horizon's row). "scale" is the value at the bottom of the picture.
+    The softness of the edge grows with that distance ("soft", a part of it): the Sun is 0.53 degrees wide, so its shadow's edge widens the farther it falls."""
+    if not FRONT:
+        ang_ = np.degrees(np.arctan2(y - vp[i, 1], x - vp[i, 0])); return ang_, np.hypot(x - vp[i, 0], y - vp[i, 1]), None, None
+    dx_, dy_ = vp[i, 0] - vp[r, 0], vp[i, 1] - vp[r, 1]; yh = vp[i, 1]; xv = FRONT["sun_x"] + dx_
+    yg = np.interp(x - dx_, GT_[:, 0], GT_[:, 1]) + dy_; ridge = y < yg; yp = np.maximum(y, yg + 0.5)
+    xq = x + (yp - yg) / np.maximum(yp - yh, 1.0) * (xv - x); ygq = np.interp(xq - dx_, GT_[:, 0], GT_[:, 1]) + dy_      # where the line toward the Sun meets the foot
+    u = (yp - ygq) / np.maximum(ygq - yh, 1.0); uref = (H - float(np.mean(GT_[:, 1]))) / (float(np.mean(GT_[:, 1])) - vp[r, 1])
+    ang_ = FRONT.get("scale", 200.0) * np.sign(u) * (np.abs(u) / uref) ** FRONT.get("power", 1.0)
+    rad_ = SOFTK / np.maximum(FRONT.get("soft", 0.1) * np.abs(ang_), 1e-3) if SOFTK else np.full_like(ang_, 1.0)
+    return ang_, rad_, 200.0 + np.abs(x - xv), ridge
 def lamp_on(k_, i, t):
     """a lamp switches itself on a moment after the shadow reaches it, and off when the sunlight is back; a beacon ("blink": [period, part of it lit, offset]) flashes all the time"""
     if L[k_].get("blink"): per, duty, ph = L[k_]["blink"]; return 1.0 if ((t + ph) % per) < duty * per else 0.0
-    gx, gy = T[i, 2 * k_ + 1]; d = 0.16 + 0.09 * ((k_ * 7) % 5); a = math.degrees(math.atan2(gy - vp[i, 1], gx - vp[i, 0])); rad = math.hypot(gx - vp[i, 0], gy - vp[i, 1])
-    return float(np.clip((float(shade(np.float32(a), np.float32(rad), t - d)) - 0.72) / 0.08, 0, 1))
+    gx, gy = T[i, 2 * k_ + 1]; d = 0.16 + 0.09 * ((k_ * 7) % 5); a, rad, al_, _ = shadow_coord(np.float32(gx), np.float32(gy), i)
+    return float(np.clip((float(shade(np.float32(a), np.float32(rad), t - d, 0.0, al_)) - 0.72) / 0.08, 0, 1))
 START = spec.get("start", 0)            # the first output frame is this many source frames into the decoded range (the range must hold ref_frame)
 SKYMAX = spec.get("sky_max", 30.0)      # the sky is whatever is darker than this and reaches the top edge; raise it where lens glare lifts the sky (a number, or [[x, value], ...] across the picture)
 if isinstance(SKYMAX, list): sm = np.array(SKYMAX, np.float32); SKYMAX = np.interp(np.arange(W), sm[:, 0], sm[:, 1]).astype(np.float32)[None]
@@ -367,7 +385,10 @@ def frame(j):
         gk_ = np.clip(8.0 * np.maximum(kv_, 1.0 / (1.0 + (rdr_ / sc_.get("core", 75.0)) ** 2)), 0, 1)[..., None]; o = o + (o.mean(2, keepdims=True) - o) * gk_ * sc_.get("neutral", 0.7)      # what is left of the glow is made white: it was blue
         if sc_.get("disc"):                                                 # the Sun itself: a white disc of its true size (0.53 degrees) with the bright bloom a lens gives it, drawn on sky only
             dsc = 255.0 * np.clip((float(sc_["disc"]) - rdr_) / 3.0 + 1.0, 0, 1); o = np.maximum(o, np.minimum(o + dsc[..., None], 255.0) * sw_s[..., None])
-            LENSB[0] = vis_ * (150.0 * np.exp(-(rdr_ / (1.9 * float(sc_["disc"]))) ** 2) + 26.0 * np.exp(-(rdr_ / (5.5 * float(sc_["disc"]))) ** 2)) if vis_ > 0.002 else None      # its bloom is the lens's: laid over the finished picture, sky and ground alike (so it spills over the crest), in proportion to the part of the disc in view
+            LENSB[0] = vis_ * (150.0 * np.exp(-(rdr_ / (1.9 * float(sc_["disc"]))) ** 2) + 26.0 * np.exp(-(rdr_ / (5.5 * float(sc_["disc"]))) ** 2)) if vis_ > 0.002 else None
+            if LENSB[0] is not None and spec.get("sun_spikes"):             # the same lens that gives every lamp a four-pointed star gives the Sun one too, far longer: [length in px, level]
+                sl_, sv_ = spec["sun_spikes"]; ex_ = np.abs(xx - spec["stars"]["sun_xy"][0] - sox); ey_ = np.abs(yy - spec["stars"]["sun_xy"][1] - soy - drop_)
+                LENSB[0] = LENSB[0] + vis_ * sv_ * (np.exp(-ex_ / sl_) * np.exp(-(ey_ / 1.3) ** 2) + np.exp(-ey_ / (0.6 * sl_)) * np.exp(-(ex_ / 1.3) ** 2))      # its bloom is the lens's: laid over the finished picture, sky and ground alike (so it spills over the crest), in proportion to the part of the disc in view
         if sc_.get("flank") and spec.get("ground_top"):                     # the unlit flank of the far ridge, between the skyline and the plain: in the source it is the sky's glare plus about a dozen levels of its own light, with no texture. What is left on it after
             gt_ = np.array(spec["ground_top"], np.float32); fk = np.clip((yy - sline - 2.0) / 4.0, 0, 1) * np.clip((np.interp(xx[0] - dx, gt_[:, 0], gt_[:, 1])[None] + dy + 30.0 - yy) / 30.0, 0, 1) * np.clip((xx[0] - dx - spec.get("skyline_near_x", 1170) + 300.0) / 300.0, 0, 1)[None]; FLANK[0] = fk      # the glare comes off is uneven (the glare is not quite round) and tinted.
             l_ = o @ np.array([0.114, 0.587, 0.299], np.float32); fk = fk * np.clip((sc_["flank"].get("dark_under", 70.0) - cv2.GaussianBlur(l_, (0, 0), 2.0)) / 20.0, 0, 1) * wv_      # Its dark parts are made even and grey at the level of its own light; its sunlit parts are left as they are
@@ -395,7 +416,7 @@ def frame(j):
         cw_ = ground                                                        # This is only safe on frames whose noise has been taken out first (fuse_frames.py); on single frames it draws the noise more firmly too
         if spec["clarity"].get("far"): fa_ = spec["clarity"]["far"]; farw = fa_["amount"] + (1 - fa_["amount"]) * np.clip((yy - dy - fa_["above_y"]) / fa_.get("soft", 150.0), 0, 1); cw_ = ground * farw      # the far hillside is drawn from a stretched texture in the source (long level streaks): it gets less, so the streaks are not what is drawn out
         o = np.clip(o + clarity(o, spec["clarity"]) * cw_[..., None], 0, 255)
-    deep = key("deep", t); ang = np.degrees(np.arctan2(yy - vp[i, 1], xx - vp[i, 0]))                         # 0 = to the right along the horizon, 90 = straight down
+    deep = key("deep", t); ang, rad_s, along_s, ridge_s = shadow_coord(xx, yy, i)                         # 0 = to the right along the horizon, 90 = straight down
     rel = 0.0
     if RELIEF:                                                              # the ground's own relief, read from its shading in the source: brighter than its surroundings = turned to the Sun
         l1 = cv2.GaussianBlur(lum, (0, 0), 1.6); l2 = blur_big(lum, 16.0); l3 = blur_big(lum, 60.0); rel = RELIEF * np.clip(0.6 * (l1 - l2) / np.maximum(l2, 24.0) + 0.9 * (l2 - l3) / np.maximum(l3, 24.0), -1.0, 1.0)
@@ -403,7 +424,8 @@ def frame(j):
     if FING:                                                                # each bit of ground looks back along its ray to one place on that skyline
         sgx, sgy = FING["sun_ground"][0] + dx, FING["sun_ground"][1] + dy; phi = np.degrees(np.arctan2(yy - sgy, sgx - xx))
         rel = rel + FING["deg"] * np.interp(phi, FX, FT).astype(np.float32) * np.clip((np.hypot(xx - sgx, yy - sgy) - FING.get("near", 500.0)) / FING.get("grow", 1100.0), 0, 1)      # far ground under the Sun is seen too edge-on for the streaks to show
-    m = shade(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), t, rel)
+    m = shade(ang, rad_s, t, rel, along_s)
+    if ridge_s is not None: m = np.where(ridge_s, 0.0, m).astype(np.float32)      # the ridge itself (above its foot) follows "crest_dark" below
     if ROCK and spec["overlay"]["rock"].get("in_sun"):                       # the rock by the camera stands above the plain: when the plain is in the ridge's shadow it is still in the sunlight the camera itself is in (the camera sees the Sun). Its lit top keeps its light
         rk_ = rock_mask(i, c0, y0r, float(spec["overlay"]["rock"]["in_sun"]), 0.0, m.shape)
         if rk_.max() > 0 and y1r == H:                                      # the rock itself, not the plain beside it: the dark that reaches the bottom of the picture inside the traced outline, and the lit rim just above that dark
@@ -412,12 +434,15 @@ def frame(j):
             m = m * (1 - cv2.GaussianBlur(np.maximum(dk_ * rk_, rock_mask(i, c0, y0r, -10.0, 0.0, m.shape)), (0, 0), 3.0))      # (everything under the traced line is rock, its sunlit facets too; above the line only what touches its dark)
     if spec.get("crest_edge"):                                              # where the high ground's light ends: not a level line drawn with a ruler but an edge that follows the ground, lower where a slope faces the Sun, and a few pixels soft
         ce = spec["crest_edge"]; up_ = np.clip((vp[i, 1] + ce.get("ragged", 1.2) * rel - yy) / ce.get("soft", 10.0) + 0.5, 0, 1)
-        m = np.maximum(m * (1 - up_), crest_dark(t) * np.maximum(up_, ((ang >= 0) & (ang < 6)).astype(np.float32))) * ground
+        m = np.maximum(m * (1 - up_), crest_dark(t) * np.maximum(up_, (((ang >= 0) & (ang < 6)) if ridge_s is None else ridge_s).astype(np.float32))) * ground
     else: m[ang < 0] = 0.0; m = np.maximum(m, crest_dark(t) * (ang < 6)) * ground
     # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
     # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
     # The few pixels where dark and sunlit meet are a mix, and the source has thin coloured rims there, so they are filled in from both sides.
     lb = cv2.GaussianBlur(lum, (0, 0), 1.0); wb = np.clip((lb - 48.0) / 20.0, 0, 1); dm = (lb < 58.0).astype(np.uint8)
+    if spec.get("old_shadow_rel"):                                          # a shadow is dark for where it lies: on the far plain NASA's shadows are lighter (70 of 255 against ground at 170) and were taken for lit ground, which the night then dimmed to black.
+        bgl_ = cv2.GaussianBlur(cv2.dilate(cv2.GaussianBlur(lum, (0, 0), 3.0), np.ones((31, 31), np.uint8)), (0, 0), 15.0); rr_ = lb / np.maximum(bgl_, 1.0); r0_ = float(spec["old_shadow_rel"])      # So darkness is also judged against the lit ground close by
+        wb = np.minimum(wb, np.clip((rr_ - r0_ + 0.06) / 0.12, 0, 1) * (bgl_ > 90.0) + (bgl_ <= 90.0)); dm = np.maximum(dm, ((rr_ < r0_) & (bgl_ > 90.0)).astype(np.uint8))
     nc, dl, dst, _ = cv2.connectedComponentsWithStats(dm, connectivity=4); small = np.isin(dl, [c for c in range(1, nc) if dst[c, cv2.CC_STAT_AREA] < SMALL]).astype(np.float32) * ground
     mx = o.max(2); sat = (np.clip(((mx - o.min(2)) / np.maximum(mx, 1.0) - 0.22) / 0.2, 0, 1) * np.maximum(wb, cv2.dilate(small, EL7)))[..., None]; on = o + (lum[..., None] - o) * sat      # strong colour on grey ground, and on small dark things such as posts (the source's lens fringes them blue and red), is an artefact; large dark things keep the colour the lens glare gives them
     soft = cv2.bilateralFilter(on, int(spec["lift_bilateral"][0]), float(spec["lift_bilateral"][1]), float(spec["lift_bilateral"][2])) if spec.get("lift_bilateral") else cv2.GaussianBlur(on, (0, 0), float(spec.get("lift_soft", 1.4))); on_n = on      # what an old shadow is raised from: smoothed, because raising it raises its noise too ("lift_bilateral" [size, levels, px] smooths only what differs by less than "levels", so the edges of things in it stay sharp)
@@ -433,6 +458,18 @@ def frame(j):
         rt_ = gl / np.maximum(dk, 1.0); lift = 1 + (np.clip(rt_, 1.0, hw.get("lift", 3.5)) - 1) * tb + (np.clip(rt_, 1.0, hw.get("object_lift", 2.4)) - 1) * (cv2.GaussianBlur(ob, (0, 0), hw["object_soft"]) if hw.get("object_soft") else ob)      # The shadows of things that stand on the ground ("object_lift"): lamps on masts now light the yard from the Sun's side, so those shadows are still cast, and are raised less.
         hv_ = np.clip(blur_big(ws, 22.0) / 0.1, 0, 1); cg_ = blur_big(lit * ws[..., None], 22.0) / np.maximum(blur_big(nlm * ws, 22.0), 1e-3)[..., None]; soft = soft + (soft.mean(2, keepdims=True) * cg_ - soft) * (np.clip(tb + ob, 0, 1) * hv_)[..., None]      # both kinds take the night ground's colour: the source's small shadows are greyer than its large ones, and showed as grey patches on blue ground
     night = (lit * wb[..., None] + soft * (lift * (1 - wb))[..., None]) * deep
+    FILL = None
+    if spec.get("shadow_fill"):                                             # the Sun's old shadows on the ground. NASA's are already about as dark as the night's ground (0.24 of lit ground), so at night they did not stand out by their level: they stood out
+        sf = spec["shadow_fill"]; ok_ = [c for c in range(1, nc) if dst[c, cv2.CC_STAT_AREA] < SMALL and dst[c, cv2.CC_STAT_WIDTH] >= sf.get("flat", 1.6) * dst[c, cv2.CC_STAT_HEIGHT] and dst[c, cv2.CC_STAT_TOP] + dst[c, cv2.CC_STAT_HEIGHT] < Hh - 2]      # as smooth patches with no texture and a dark rim, in the shape of the Sun's shadows. A shadow on the ground is a dark patch wider than tall (a post is taller than wide) that does not reach the bottom (the dark rock does)
+        sh_ = cv2.GaussianBlur(cv2.dilate(np.isin(dl, ok_).astype(np.uint8), EL5).astype(np.float32), (0, 0), 1.2) * ground
+        if sh_.max() > 0:
+            gm_ = np.hypot(cv2.Sobel(lb, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(lb, cv2.CV_32F, 0, 1, ksize=3)); sh_ = sh_ * np.clip(1.0 - (cv2.GaussianBlur(gm_ * (1 - small), (0, 0), 2.0) - 60.0) / 80.0, 0, 1)      # (the hard edge of a thing standing in its own shadow is kept)
+            hp_ = lum - cv2.GaussianBlur(lum, (0, 0), float(sf.get("texture_px", 3.0))); okl_ = wb * (1 - np.clip(cv2.dilate(small, EL7), 0, 1)) * ground; fh_ = np.zeros_like(lum); got_ = np.zeros_like(lum)
+            for off_ in sf.get("offsets", [260, -260, 520, -520, 780, -780]):      # the ground's own fine texture, taken from sunlit ground on the same rows (so it has the same perspective), a little way to the side
+                tk_ = (1 - got_) * np.roll(okl_, off_, axis=1); fh_ += np.roll(hp_, off_, axis=1) * tk_; got_ += tk_
+            fh_ = fh_ * np.clip(got_, 0, 1); kk_ = float(K.mean()); FILL = (sh_, fh_, gl, kk_)
+            nl_ = night.mean(2); night = night + ((gl * deep + fh_ * kk_ * (1.0 + spec.get("night_detail", 0.0)) * deep - nl_) * sh_)[..., None]      # at the level of the night's ground round it
+    if os.environ.get("DUMP_NIGHT"): np.savez_compressed(os.environ["DUMP_NIGHT"], small=small, lift=lift, wb=wb, night=night, lit=lit, soft=soft, m=m, c0=c0, y0r=y0r)
     if FLANK[0] is not None and spec["sky_clean"]["flank"].get("night", 1.0) < 1.0: night = night * (1 - (1 - spec["sky_clean"]["flank"]["night"]) * FLANK[0])[..., None]      # the far slope at night: its sunlit crest and patches go down to the level of the slope itself, not of the plain (they were left as pale dashes)
     if spec.get("night_detail", 0) > 0:                                     # the ground's fine relief (tracks, small craters, stones) is the source's own; in the dark it is shown a little more strongly than the dimming alone leaves it.
         nl_ = on @ np.array([0.114, 0.587, 0.299], np.float32); nh_ = nl_ - cv2.GaussianBlur(nl_, (0, 0), 2.2); nlim = float(spec.get("night_detail_limit", 12.0)); nh_ = nlim * np.tanh(nh_ / nlim)      # Brightness only, and held under a limit: without it every hard edge (a module against the ground) got a pale outline at night
@@ -478,7 +515,7 @@ def frame(j):
                 pf_ = (8.1 * (1 - 0.57 * kneel_) + 12.7 * math.cos(math.radians(lean_))) / 20.8      # how tall the figure stands in this pose, against upright: its shadow is that much shorter
                 if SUNG and sun > 0.02:                                     # the shadow: a body's width at the feet, drawn out along the Sun's ray and softer toward its far end. Its length is the body's height over the tangent of the Sun's height,
                     ux, uy = fx + c0 - (SUNG[0] + dx), fy + y0r - (SUNG[1] + dy); nu = math.hypot(ux, uy); ux, uy = ux / nu, uy / nu; pd_ = spec["stars"]["px_per_deg"] if spec.get("stars") else 105.0      # seen as foreshortened as the ground is there: least when the Sun is off to the side, most when the shadow points at the camera
-                    daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = hh * pf_ / math.tan(math.radians(spec.get("sun_elev_deg", 4.5))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
+                    daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = spec.get("drawn_shadow_scale", 1.0) * hh * pf_ / math.tan(math.radians(spec.get("sun_elev_deg", 4.5))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
                     a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - m[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
                     res[ya:yb, xa:xb] += (night[ya:yb, xa:xb] - res[ya:yb, xa:xb]) * a_sh[..., None]
                 spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0, lean_, kneel_); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
@@ -543,7 +580,7 @@ def frame(j):
     pool = np.zeros((Hh, cw, 3), np.float32); pooly = np.zeros((Hh, cw, 3), np.float32); core = np.zeros((Hh, cw, 3), np.float32); s = float(scale[i]); lx = xx - c0; ly_ = yy - y0r
     for k_, l in enumerate(L):
         if l.get("glint"):                                                  # foil or glass that flashes for a moment as the edge of the sunlight crosses it
-            ggx, ggy = T[i, 2 * k_ + 1]; mm_ = float(shade(np.float32(math.degrees(math.atan2(ggy - vp[i, 1], ggx - vp[i, 0]))), np.float32(math.hypot(ggx - vp[i, 0], ggy - vp[i, 1])), t)); v = l["glint"] * math.exp(-((mm_ - 0.35) / 0.2) ** 2) * (mm_ < 0.97) * (mm_ > 0.01); ON[k_].append(0.0)
+            ggx, ggy = T[i, 2 * k_ + 1]; ga_, gr_, gl_, _ = shadow_coord(np.float32(ggx), np.float32(ggy), i); mm_ = float(shade(np.float32(ga_), np.float32(gr_), t, 0.0, gl_)); v = l["glint"] * math.exp(-((mm_ - 0.35) / 0.2) ** 2) * (mm_ < 0.97) * (mm_ > 0.01); ON[k_].append(0.0)
         else: v = lamp_on(k_, i, t); ON[k_].append(v)
         if v <= 0: continue
         if not l.get("blink") and not l.get("glint"):
@@ -561,6 +598,7 @@ def frame(j):
             if l.get("spikes"): ex_, ey_ = np.abs(lx[y_a:y_b, x_a:x_b] - ax), np.abs(ly_[y_a:y_b, x_a:x_b] - ay); c = c + 0.42 * (np.exp(-ex_ / l["spikes"]) * np.exp(-(ey_ / 0.8) ** 2) + np.exp(-ey_ / (0.6 * l["spikes"])) * np.exp(-(ex_ / 0.8) ** 2))
             core[y_a:y_b, x_a:x_b] += (255.0 * v * c)[..., None] * (0.55 + 0.45 * col)
     gfree = on_n * wb[..., None] + np.minimum(soft * lift[..., None] / K[None, None], 255.0) * (1 - wb[..., None])      # the ground as the source has it, with the Sun's shadows of objects lifted out: a lamp beside a module lights the ground where the Sun's shadow of that module lay
+    if FILL is not None: gfree = gfree + ((FILL[2] / FILL[3] + FILL[1] * (1.0 + spec.get("night_detail", 0.0)) - gfree.mean(2)) * FILL[0])[..., None]      # under a lamp too, an old shadow is ground like the ground round it
     amount = 0.72 * (1 - np.exp(-1.5 * pool.max(2, keepdims=True))); tint = pool / np.maximum(pool.max(2, keepdims=True), 1e-6); res = res + np.maximum(gfree * tint * amount - res, 0) * (m * ground)[..., None]      # lamp light is added to the dim ground, and shows it as the source shot has it
     if pooly.max() > 0:                                                    # a lamp marked "keep_shadows" stands on the Sun's side of everything it lights, low and far off: the shadows it casts fall where the Sun's fell, so under it the source's picture is shown with them
         amount = 0.72 * (1 - np.exp(-1.5 * pooly.max(2, keepdims=True))); tint = pooly / np.maximum(pooly.max(2, keepdims=True), 1e-6); res = res + np.maximum(o * tint * amount - res, 0) * (m * ground)[..., None]
