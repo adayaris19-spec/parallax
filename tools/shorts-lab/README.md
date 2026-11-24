@@ -328,3 +328,12 @@ The owner: take up to six hours, fix what is wrong, maximise the detail, miss no
 - `make_video.py`: a plan may carry `x264` (extra encoder settings; `aq-mode=3` gives dark areas more of the bits).
 - Two independent reviews were run on stills taken once a second (and, the second time, on strips of four consecutive frames): a fresh reviewer told only to find faults. Their lists and what was done about each are in `docs/shorts/PROGRESS.md`.
 - Order of work on the source: decode (by `night_fall.py`) → `fuse_frames.py` → `colour_shift.py` → `PREPARE=1` → render.
+
+Added after the third independent review (seventh version, render 6):
+- `sun_drop`: key track, pixels the Sun stands below the source's place through the take. Set, the whole sky above the skyline is redrawn from the measured glow centred on the Sun's new place (NASA's own Sun is painted out), and the disc with its bloom is drawn there on sky only, so the ridge hides whatever of it is below the crest.
+- `highlight` {`from`, `slope`}: sunlit ground above `from` rises at `slope` of its rate (brightness only).
+- `sky_clean.flank.night`: the far slope's level at night as a part of the plain's; the flank's treatment fades in over 300 px from `skyline_near_x`.
+- Lamps: `tall` (pool height as a part of its reach, default 0.34); `keep_shadows` (the pool shows the source's shadows; none uses it now). `yard` alone no longer keeps them.
+- `earth.bloom`: glow round the bright parts of the Earth's face in the star exposure, times `star_level`.
+- `trail_fingers`: how much of the fingers the edge by which light comes back carries (1 = as the leading edge).
+- `foreground_soft.rows_from` / `rows_over` / `rows_amount`: the last rows of the picture out of focus as well.
