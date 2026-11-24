@@ -610,6 +610,73 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); NASA GIBS (VIIRS, Suomi NPP; Black Marble); star positions from the HYG database (CC BY-SA 4.0).
   - Time and cost: about 35 minutes, one render. JPL's lunar frame files and one GIBS map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the fifth version (Nov 24, about 15:50 UTC+1):** "Take your time for this one." Rules in `RULES.md` section 2 ("Time for depth").
+- **Sixth version sent (Nov 24, about 17:30 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v17.json`, spec `tools/shorts-lab/specs/night_v17_one.json`. Same script, voice and sound. Waiting for the verdict.
+  - Looked for first: a better original. NASA's image library has no higher-quality copy of this animation; the file in use is already 4K at 80 Mbps. So the detail had to come out of the frames we have.
+  - What was done to the source:
+    - Each of the 165 source frames is rebuilt from itself and its three neighbours on each side, wherever they agree (`fuse_frames.py`). 89–97% of each frame agreed. Noise on the ground fell from 1.43 to 0.92 levels (36% less). Nothing is invented: every value is an average of NASA's own values for that place.
+    - On those cleaner frames the ground's and the modules' fine detail is drawn more firmly at three sizes, on brightness only ("clarity"). On single frames this would have sharpened the noise.
+    - The astronaut is cut straight from NASA's 4K frames at the size shown (`astro_4k.py`): one resampling instead of four.
+  - Every line of the last "still wrong" list, and what happened to it:
+
+    | Listed as wrong | Now |
+    |---|---|
+    | "Immense" not met for the ground and the modules | Better, measured below. Still NASA's animation at 1:1: this brings out what its frames hold together, and adds no new information |
+    | The glow's fall-off away from the ecliptic was our assumption | Replaced by the dust model in the Clementine paper ([arXiv astro-ph/0204111](https://arxiv.org/abs/astro-ph/0204111), eqs. 6–8, Table II; `zodi_shape.py`). Straight above the Sun the glow is 0.37–0.49 of the ecliptic's brightness at the same angle; we had 0.14. In the part of the sky this take looks at, old and new differ by a few percent, so the picture hardly changes. Uncertainty from the choice of scattering law: at most 30%, 15% on average. The formula is still used out to about 35° where it was measured to 30° |
+    | The Moon's dimming with phase (0.026 magnitude a degree) was our figure | It is the figure of Krisciunas and Schaefer's moonlight model (1991), as quoted in [arXiv 1301.0326](https://arxiv.org/pdf/1301.0326): 0.026 a degree plus a term that adds 0.001 here. The number does not change. We read it in a later paper's quotation, not in the 1991 paper itself |
+    | The landers' exhaust brightness is our drawing | Stays. The craft itself is now lit as the Sun's place says: seen 5–11° from the Sun, a thin lit edge, the rest in its own shadow, the engine's light on its underside |
+    | The new people only stand or shift | Nine of the sixteen now bend to something on the ground, stay down and straighten, each on a round of 5.6 to 9.4 s. In daylight a white suit on bright ground is hard to see at this size; at night the helmet lamp's pool shows it |
+    | The small people were not compared with real footage | Stays |
+    | The city lights are barely visible; their strength is our choice | Stays |
+    | His visor shows lamps that are behind our camera | Stays |
+    | The shadow moves at time-lapse speed beside a rover at normal speed | Stays: one take cannot show hours and seconds at once |
+    | The sound was not checked by ear | Stays. Nothing here can listen |
+    | Clouds on the Earth are those of 8 January 2024 | Stays: 2039's cannot be known |
+    | Mercury sits under the app's header | Stays: that is where it was |
+
+  - Faults found by looking closer, which the owner had not named:
+
+    | Found | Now |
+    |---|---|
+    | In the dark the far hill went blotchy: olive patches with black cores | Fixed. The ground's small hollows are raised to the ground round them and take its colour |
+    | At night the modules' old shadows showed as grey patches on blue ground | Fixed. They take the night ground's colour and stay as shadows; the new yard lights hang on the Sun's side, so the shadows point away from them too |
+    | Thin yellow and purple rims on every small ridge (NASA's lens effect), strongest toward the corners | Removed on the ground: colour there is kept only as it varies over 2.5 px and more. Strongly blue dark pixels in one test crop: 636 before, 194 now |
+    | At first light the lit hilltop ended in a ruler-straight line | Fixed. The edge follows the ground and is about 10 px soft |
+    | Faint coloured streaks across the dark mountain (NASA's lens flare) | Stays |
+    | The far hill is drawn with long level streaks in the source | Stays. It gets a third of the clarity, so the streaks are not what is drawn out |
+    | One 0.06 s stretch of full silence at 7.12 s | It is the pause set before the hit (the music is at zero from 6.55 to 7.18 s). It was in the fifth version too and was not reported there |
+
+  - Fine detail, measured on the two files as sent (`detail_meter.py`, rows 700–1900, fifth version → this one):
+
+    | | under 1 px | 1–3 px | 3–9 px |
+    |---|---|---|---|
+    | Daylight, four moments | +25% to +36% (mean +29%) | +16% | +8% |
+    | Night, seven moments, whole frame | +4% to +18% (mean +10%) | +5% | +5% |
+    | The modules at night (6.5 s) | +58% | +38% | |
+    | The astronaut (23.5 s) | +35% | +18% | |
+    | The sky hold (12.0 s) | +3% | +2% | +3% |
+
+  - Counted (before → now):
+
+    | | Before | Now |
+    |---|---|---|
+    | Source frames behind each picture | 1 | 7 where they agree |
+    | Steady lamps on the base | 71 | 76: five yard lights on NASA's masts and module ends, each throwing a wide, dim light over the modules beside it |
+    | People on foot | 12 | 16 |
+    | People doing recognisable work | 0 | 9 |
+    | Catalogue stars, beacons, rover lights, spacecraft | 1,495 / 8 / 2 / 8 | the same |
+
+  - Measured on the final file: 600 frames at 24 a second, 31 MB, 9.9 Mbps (SSIM against its picture 0.979); no frame changes unevenly against its neighbours; the flicker scan finds the same real motion as in the fifth version (the dawn light's edge, lamps passing the frame's edge, the Earth during the tilt) and nothing new; pixels that jump for one frame by more than 6 levels are 3% fewer than in the fifth version, and those that jump by more than 12 levels are 18% more, in the seconds where the camera tilts past the Earth and where the last sunlit patch leaves the frame (the same motion, with more contrast in it); −15.0 LUFS, true peak −1.7 dBTP; no clicks, no clipping; narration heard back word for word; 2.3% of the picture darker than 8/255; mean brightness never under 30/255.
+  - Requirement check, misses:
+    - "Immense" is still not met as a number. Daylight gains about a third in the finest detail, the night about a tenth over the whole frame. The night's gain is mostly in what the yard lights now show.
+    - During the fastest second of each pan the picture is blurred along the move by up to 9 px (the film shutter). That hides part of the gain there.
+    - Yard lights show NASA's daylight picture of the modules, so the shadows inside their light have the Sun's length and direction.
+    - A few blue spots remain in hollows on the sunlit hill.
+    - Hong's scattering law was taken from two later papers that quote its numbers ([COBE/DIRBE study](https://www.cambridge.org/core/services/aop-cambridge-core/content/view/7FB7F6EEE948AC72C52033683B6806A2/S0252921100501766a.pdf/cobedirbe-studies-of-scattering-by-interplanetary-dust.pdf), [Clarke 1996](https://cambridge.org/core/services/aop-cambridge-core/content/view/559752291F17701581288AF6F6683DBF/S0252921100501808a.pdf/zodiacal-light-scattered-fraunhofer-line-profiles.pdf)), not from [Hong's paper](https://www.cambridge.org/core/journals/international-astronomical-union-colloquium/article/method-for-deriving-the-mean-volume-scattering-phase-function-for-zodiacal-dust/70C483336B5073361E31947125160CEE) itself; its third weight (0.005) is what the first two leave.
+    - The Hugging Face token was not checked again this round. No AI step was used.
+    - Credits for the caption are unchanged.
+  - Time and cost: about 1 hour 40 minutes (the one-hour budget was lifted for this version). Three full renders and one stopped early; the first two were replaced after checks found the colour rims and the straight hilltop line. Nothing downloaded. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**

@@ -340,8 +340,11 @@ def frame(j):
     if FING:                                                                # each bit of ground looks back along its ray to one place on that skyline
         sgx, sgy = FING["sun_ground"][0] + dx, FING["sun_ground"][1] + dy; phi = np.degrees(np.arctan2(yy - sgy, sgx - xx))
         rel = rel + FING["deg"] * np.interp(phi, FX, FT).astype(np.float32) * np.clip((np.hypot(xx - sgx, yy - sgy) - FING.get("near", 500.0)) / FING.get("grow", 1100.0), 0, 1)      # far ground under the Sun is seen too edge-on for the streaks to show
-    m = shade(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), t, rel); m[ang < 0] = 0.0
-    m = np.maximum(m, crest_dark(t) * (ang < 6)) * ground
+    m = shade(ang, np.hypot(xx - vp[i, 0], yy - vp[i, 1]), t, rel)
+    if spec.get("crest_edge"):                                              # where the high ground's light ends: not a level line drawn with a ruler but an edge that follows the ground, lower where a slope faces the Sun, and a few pixels soft
+        ce = spec["crest_edge"]; up_ = np.clip((vp[i, 1] + ce.get("ragged", 1.2) * rel - yy) / ce.get("soft", 10.0) + 0.5, 0, 1)
+        m = np.maximum(m * (1 - up_), crest_dark(t) * np.maximum(up_, ((ang >= 0) & (ang < 6)).astype(np.float32))) * ground
+    else: m[ang < 0] = 0.0; m = np.maximum(m, crest_dark(t) * (ang < 6)) * ground
     # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
     # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
     # The few pixels where dark and sunlit meet are a mix, and the source has thin coloured rims there, so they are filled in from both sides.

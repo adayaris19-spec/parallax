@@ -292,6 +292,7 @@ The owner: take your time for this one.
   - on a `lander`: `lit_part` (how much of its width the Sun lights) and `flame_light` (the engine's light on its underside).
   - on a `person`: `work`: [seconds per round, offset, degrees]. They bend to the ground, stay down, and straighten.
   - `overlay.clarity`: the same step for the cut-out figure.
+  - `crest_edge`: `ragged`, `soft`. Where the high ground's light ends is an edge that follows the ground and is a few pixels soft, not a level line.
   - a lamp marked `yard` is an ordinary lamp with a wide `reach`; the mark is only a label.
 - Render:
 

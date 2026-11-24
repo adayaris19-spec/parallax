@@ -1877,6 +1877,28 @@
    ],
    "silent": true,
    "yard": true
+  },
+  {
+   "at": [
+    1688,
+    1124
+   ],
+   "ground": [
+    1272,
+    1246
+   ],
+   "ref": 165,
+   "reach": 190,
+   "gain": 1.1,
+   "glow": 8,
+   "size": 0.5,
+   "color": [
+    0.92,
+    0.96,
+    1.0
+   ],
+   "silent": true,
+   "yard": true
   }
  ],
  "bands": [
@@ -3071,5 +3093,9 @@
   "lift": 3.5,
   "object_lift": 1.5
  },
- "chroma_soft": 2.5
+ "chroma_soft": 2.5,
+ "crest_edge": {
+  "ragged": 1.2,
+  "soft": 10.0
+ }
 }
