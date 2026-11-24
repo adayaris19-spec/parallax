@@ -252,6 +252,13 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - **The Sun is the brightest thing in view.** Sunlit ground near white is brought down (above 190 of 255 the rise is cut to 0.72), and the Sun's disc carries a lens bloom.
     - **Stars go before the light comes back.** They fade out before the first sunlit crest is in view, not with it.
     - **A treatment that stops at a place fades out over at least 300 px.** No straight edge in the picture may come from where a setting ends.
+  - **What the fourth independent review found, as rules (drafts):**
+    - **A ridge's shadow starts at its own foot.** The ground right under a ridge is the first to lose the Sun and the last to get it back; the shadow grows from the foot toward the camera, with longer lobes where peaks stand, along the Sun's direction. A shadow that sweeps sideways and leaves the foot lit is wrong.
+    - **At night an old shadow leaves no trace.** Not its darkness and not its smoothness either: where the Sun's shadow lay, the ground has the same texture and level as round it.
+    - **One lens for every light.** If the lamps get a lens star, the Sun gets one, longer; its bloom is laid over everything in front of it, including the ridge.
+    - **Exhaust in vacuum is nearly invisible.** At most a faint trace near the nozzle.
+    - **Drawn shadows match the source's own.** A drawn figure's shadow is as long, for its height, as the shadows the source's objects cast in the same frame.
+    - **A fix acts only where its fault is.** A limiter meant for module rims that also caps the ground's relief is a fix that costs detail unseen; its reach is measured before it is kept.
     - **Sharpening is sized by measurement, and a remark is tested before it is obeyed.** The finest band (1 px) at most 1.1, which the blur measured on the source (0.72 px) justifies; wider bands at most 0.5 (3 px) and 0.2 (9 px). A reviewer called the ground "etched" at those values; cutting them to 0.15 was tried, a second reviewer made the same remark after the cut, and measured detail fell by a tenth to a quarter. They were put back.
     - **A fix may not cost detail unseen.** After any change made for realism, fine detail is measured against the last version the owner saw, on the same ground, before the video is sent.
     - **A picture pasted on a star field is as sharp as the stars.** The Earth's face is softened by at most 0.45 px, and gaps in the satellite picture are filled, not shown as black.
