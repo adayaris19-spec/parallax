@@ -212,6 +212,21 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - a shadow's direction and length come from where the Sun is in the frame (length = height / tan of the Sun's height, foreshortened as the ground is there);
     - something in orbit moves at the speed its orbit gives it at that distance;
     - the faint sky is only as bright as the exposure in that moment allows (dim beside lamps, full when the camera has left them).
+- **No flicker, a clear picture, a person who stands in the scene (owner, Nov 24, about 09:40 UTC+1, on the second version):** "Some things are glitching and it doesn't look as smooth and clear. Also the astronaut is awkward and looks floaty, which doesn't make sense. Also go another round increasing the detail."
+  - **Nothing flickers.** Draft measures:
+    - nothing changes brightness for one or two frames and changes back. A real thing that blinks (a beacon, a strobe) stays on at least 3 frames;
+    - nothing we add varies faster than 6 times a second: 24 frames a second cannot show it, so it turns into flicker;
+    - a lamp comes on once, smoothly. This withdraws "lamps that stutter as they strike" from the detail list above.
+    - everything in a frame is placed to a fraction of a pixel. A layer placed to whole pixels moves in steps against the rest;
+    - footage that is run there and back slows to a stop where it turns; it never reverses in one frame;
+    - source footage is scanned for frames that stand out from their neighbours before it is used, and those are repaired (NASA's file breaks thin bright lines every 16th or 32nd frame).
+    - Check: `tools/shorts-lab/flash_scan.py` on the picture, with the camera's move taken out; every flash it lists is looked at.
+  - **Clear.** Draft measures: grain at most 1.1 levels (it was 1.9) and softening at most 0.25 px (it was 0.5); the final file is at most 10 Mbps so a phone plays it without stalling, and is checked against the picture it was encoded from.
+  - **A person shown close stands in the scene.**
+    - They are held still against their own shot's camera move, so they move only as the scene around them moves.
+    - They are not cut off by the edge of the frame while ground is visible beside them at the same height. Either their feet are on the ground with a shadow, or something in the scene stands in front of their lower body.
+    - They play at their own shot's speed from real frames only. No made-up in-between frames.
+    - They keep their own shot's light, brought to the scene's level and colour.
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

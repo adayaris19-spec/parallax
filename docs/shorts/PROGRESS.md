@@ -481,6 +481,46 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
   - Time and cost: about 45 minutes from the owner's message to the file, two full renders of about 13 minutes each. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the second version (Nov 24, about 09:40 UTC+1):** "Some things are glitching and it doesn't look as smooth and clear. Also the astronaut is awkward and looks floaty, which doesn't make sense. Also go another round increasing the detail." Rules in `RULES.md` section 2 ("No flicker, a clear picture, a person who stands in the scene").
+- **Third version sent (Nov 24, about 11:35 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v14.json`, spec `tools/shorts-lab/specs/night_v14_one.json`. Same script, voice and sound. Waiting for the verdict.
+  - What was glitching, found by measurement (`tools/shorts-lab/flash_scan.py` and a look at NASA's file), and what was done:
+
+    | Cause | Before | Now |
+    |---|---|---|
+    | NASA's own file breaks the thin lit ridge lines for single frames (strongly every 32nd frame, less at two more) | broken line for one frame about every 1.3 s | the far ground of those 7 frames is taken from the frame before, moved onto its place |
+    | The sky was placed to whole pixels while the ground moved by fractions | whole sky stepped up to 1.21 px in one frame during the hold on the stars | placed to a fraction of a pixel: largest step 0.29 px |
+    | Lamps stuttered for three frames as they struck, then shimmered up to 39 times a second | flicker | come up once, drift slowly |
+    | The lander's flame varied up to 23 times a second; its speed jumped at each point of its path (3.9 px a frame in one frame) | flicker, jerks | slow breathing; path rounded (0.8) |
+    | The source reversed in one frame where it turns back | a bounce | slows, stops and starts back over 20 frames |
+    | The astronaut was slowed with made-up in-between frames, and his outline changed from frame to frame | smeared edges, twitching outline | real frames only at 80% speed; outline steadied over five frames |
+    | The flashes on foil added last time | did not read as anything | removed |
+    | Final file at 16.5 Mbps, heavy grain (1.9), softening 0.5 px | may stall on a phone; soft | 9.9 Mbps, grain 1.1, softening 0.25 px; closer to its picture (SSIM 0.978, was 0.963) |
+
+  - Measured, same test on both versions (far ground and sky, camera's move taken out): pixels that are off for exactly one frame fell from 380 to 67 a frame on average; the worst frame from 40,768 to 794. No frame changes unevenly against its neighbours (there was one).
+  - The astronaut, rebuilt:
+    - Re-cut from NASA's 4K original, wider, so his whole upper body is in the cut (before: half of him, cut off by the frame's right edge with ground beside him, which is what read as floating).
+    - Held still: NASA's camera pulls back and drifts through his shot (he shrank to 90% and slid 98 px). That move is taken out, so he now moves only as he himself moves (`astro_stab.py`).
+    - Cut out of his sky and his ground (`astro_cut.py`), and stood at one place in the wide picture behind the foreground rock, which hides him from the chest down. The rock is followed through NASA's take (`rock_track.py`); he shifts with it as NASA's camera rises.
+    - His light: NASA's own, brought down to 66–76% and cooled to the night's colour; his helmet lamps kept. A little of it falls on the top of the rock in front of him.
+  - Detail added in this round:
+    - Stars from NASA's 64k map (twice as fine as the map used before), brought down to the take's scale by area.
+    - The astronaut's own detail, now at 80% of 4K instead of 62% of a half-size cut: suit fabric, arm patches, the wrist display, the visor's reflection.
+    - The landers: a docking port, a dish on a boom, thruster clusters, second leg struts, panel seams, a ladder, two landing lights; drawn 10–25% larger.
+  - Unchanged checks on the final file: 600 frames at 24 a second, 31 MB; −15.0 LUFS, true peak −1.5 dBTP; narration heard back word for word; every subtitle phrase on screen at least 1.20 s; 2.7% of the picture darker than 8/255.
+  - Requirement check, misses:
+    - The detail round is small next to the fixes. Most of this round went into finding the glitches.
+    - It took about 1 h 55 min, against the one-hour budget: four full renders of about 13 minutes, because three of the causes were found one after another, each after a render.
+    - The astronaut is lit from the front while the Sun is behind him. A work lamp near the camera would explain it; none is shown. The light on the rock's top is ours.
+    - He is not there in the opening frame, where the same rock is in view. He would have walked up in between; that is not shown.
+    - His visor still reflects the other shot's base. His shaded-side edge was set by hand a few pixels inside his arm.
+    - The hold on the sky is dark again: mean brightness under 30/255 for 5.3 s (1.7 s in the version before). The zodiacal light was halved because its strength has no source.
+    - Around each turn-back one source frame serves up to about six output frames, each moved by a fraction of a pixel. The output frames differ, but this bends "no frame shown twice".
+    - NASA's near ground moves up to 2.3 px a frame against the far ground (real depth). The flicker scan counts that as flicker; it was checked on its own (6,908 pixels fall to 1 when the near ground is lined up by itself) and left.
+    - The scan's lists were looked at for the stretches where the camera is nearly still, not for all 600 frames. The sound was not touched and was checked by measurement, not by ear.
+    - Still as before: the landers' exhaust is drawn visible without a source; the shadow and landers move at time-lapse speed beside a rover at normal speed; the Sun sits under the app's header and is higher than the pole itself allows; the date of the sky is assumed.
+    - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
+  - Cost: NASA's 4 GB star map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**

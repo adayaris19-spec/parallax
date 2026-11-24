@@ -218,3 +218,25 @@ The owner was happy with the take, found the script "not really fluent", and ask
   - `overlay.veil`: how much of the view's glare lies over the foreground figure.
 - Low spacecraft now cross at about 20 px a second: 1.63 km/s at 100 km up, seen from about 470 km, is 0.2° a second.
 
+## Moon base reel: no flicker, the astronaut behind the rock (Nov 24, 2026, third version)
+
+The owner saw things glitching, a picture less smooth and clear, and an astronaut who looked awkward and floaty.
+
+- Plan: `moonbase-v14.json`. Spec: `specs/night_v14_one.json`. Render as the version before.
+- Finding flicker: `flash_scan.py PICTURE.mp4` lists everything that is brighter or darker for one or two frames, with the camera's move taken out. Run it on the picture without subtitles (`<output>_work/picture.mp4`). It also lists near ground that moves against the far ground (depth, not flicker): line that part up on its own before believing it.
+- What it and a look at NASA's file turned up, and the fix in `night_fall.py`:
+  - In NASA's file the thin lit ridge lines break up for single frames: strongly every 32nd frame (decoded frames 27, 59, 91, 123, 155), less at 107 and 139. `repair_frames` in the spec takes the far ground of each (down to `repair_rows`, default 900 to 1050) from the frame before it, moved onto its place. The near ground is left alone: it moves up to 2.3 px a frame against the far ground, and a copied frame would make it jerk.
+  - The sky layers (stars, star map, zodiacal light) were placed to whole pixels while the ground moved by fractions, so the whole sky stepped 1 px at a time. They are now placed to a fraction of a pixel, and the frame the camera sees is cut with cubic instead of linear interpolation.
+  - Where the source turns back it reversed in one frame. `turn_ease` (frames) makes it slow, stop and start back: the nearest source frame is used, moved by the part of the camera's move that is missing.
+  - Lamps stuttered for three frames as they struck and shimmered up to 39 times a second; the lander's flame flickered up to 23 times a second. Lamps now come up once and drift slowly; nothing we add varies faster than 2 times a second.
+  - The lander's path was straight between its keys, so its speed jumped at each key (up to 3.9 px a frame in one frame). It is now rounded over a second (at most 0.8).
+  - The glints of the version before are gone.
+- The astronaut is no longer a strip of video laid over the view:
+  - `astro_stab.py DIR/` takes NASA's camera move out of his shot, so he holds still (real frames only, no made-up ones).
+  - `astro_cut.py DIR/` removes his sky and his ground and steadies the outline over five frames. It writes `astro_cut.npy`; put it in `OVERLAY_DIR`.
+  - `rock_track.py FRAMES.raw W H REF X0,Y0,X1,Y1 OUT.json` follows the foreground rock through the source (`specs/rock_track.json`).
+  - In the spec, `overlay` now has `cut` (the file), `anchor` (the point of the cut-out that is placed), `at` (where it stands in the wide picture), `scale`, `shade`, `show_from` and `from_t` (when he is first drawn and when his own frames start to run; they run to the end, turn softly and run back), and `rock`: `track`, `crest` (the rock's top edge in the reference frame), `tie` (how much of the rock's shift he follows), `contact` and `spill` (his light on the rock's top).
+- Stars: `sky_cut.py` now also takes the 64k map (4 GB) and brings it down to the take's scale by area.
+- `start` 194 puts the moments where the source turns back at 5.6 s, 12.4 s (camera on the sky) and 19.25 s (before the rock comes into view); with `turn_ease` 20 each is a soft stop.
+- Final file: the plan's `crf`, `maxrate`, `tune` and `gop` go to the encoder. This reel: 18, 10M, film, a keyframe every 2 s.
+

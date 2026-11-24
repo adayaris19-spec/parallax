@@ -16,5 +16,8 @@ if col.max() - col.min() > FW / 2: raise SystemExit("the view crosses the map's 
 c0, c1, r0, r1 = max(int(col.min()) - 8, 0), min(int(col.max()) + 8, FW), max(int(row.min()) - 8, 0), min(int(row.max()) + 8, FH)
 pt = Imath.PixelType(Imath.PixelType.HALF); out = np.zeros((r1 - r0, c1 - c0, 3), np.float16)
 for k, ch in enumerate("RGB"): out[..., k] = np.frombuffer(f.channel(ch, pt, r0, r1 - 1), np.float16).reshape(r1 - r0, FW)[:, c0:c1]      # only the rows needed are read
-np.save(sys.argv[3], out); json.dump({"full_w": FW, "full_h": FH, "col0": c0, "row0": r0}, open(sys.argv[3] + ".json", "w"))
+meta = {"full_w": FW, "full_h": FH, "col0": c0, "row0": r0}
+if FW / 360.0 > 1.25 * ppd:                                              # a finer map than the take needs is brought down by area here, once, so each star keeps its light and the file stays small
+    import cv2; z = ppd / (FW / 360.0); out = cv2.resize(out.astype(np.float32), None, fx=z, fy=z, interpolation=cv2.INTER_AREA).astype(np.float16); meta = {k: v * z for k, v in meta.items()}
+np.save(sys.argv[3], out); json.dump(meta, open(sys.argv[3] + ".json", "w"))
 print("right ascension %.1f to %.1f, declination %.1f to %.1f degrees; wrote" % (np.degrees(ra.min()), np.degrees(ra.max()), np.degrees(dec.min()), np.degrees(dec.max())), sys.argv[3], out.shape)

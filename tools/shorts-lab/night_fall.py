@@ -59,6 +59,17 @@ else: vp = np.array(spec["vp"], np.float32)[None] + np.median(far - far[r][None]
 if os.environ.get("WRITE_TRACK"): json.dump({"source": os.path.basename(src), "vp": {str(f0 + i): [round(float(vp[i, 0] + x0), 2), round(float(vp[i, 1] + y0), 2)] for i in range(n)}}, open(os.environ["WRITE_TRACK"], "w")); print("wrote track", os.environ["WRITE_TRACK"]); sys.exit()
 spread = lambda a: np.linalg.norm(a - a.mean(0), axis=1).mean(); scale = np.array([spread(T[i, :2 * nl]) for i in range(n)]) / spread(T[r, :2 * nl])
 print("lamp places moved up to %.0f px; scale %.2f to %.2f; vanishing point from" % (np.abs(T - T[r][None]).max(), scale.min(), scale.max()), vp[0].round(0), "to", vp[-1].round(0), flush=True)
+REPAIR = {}                                                               # "repair_frames": decoded frames whose far ground is taken from the frame before, moved onto its place. In NASA's file thin lit ridge lines break up for single frames, every 16th or 32nd
+RROWS = spec.get("repair_rows", [900, 1050])                              # only down to these rows (all, none): the near ground moves differently from the far ground between frames, so it is left as it is
+for i_ in spec.get("repair_frames", []):
+    A_, _ = cv2.estimateAffinePartial2D(T[i_ - 1].reshape(-1, 1, 2), T[i_].reshape(-1, 1, 2), method=cv2.RANSAC, ransacReprojThreshold=1.0); REPAIR[i_] = A_
+def src(i, ya, yb, xa, xb):
+    """a piece of source frame i"""
+    own = np.ascontiguousarray(F[i][ya:yb, xa:xb])
+    if i not in REPAIR or ya >= RROWS[1]: return own
+    pa, pb, qa, qb = max(ya - 6, 0), min(yb + 6, H), max(xa - 6, 0), min(xb + 6, W); A_ = REPAIR[i].copy(); A_[:, 2] += A_[:, :2] @ [qa, pa] - [xa, ya]
+    far_ = cv2.warpAffine(np.ascontiguousarray(F[i - 1][pa:pb, qa:qb]), A_, (xb - xa, yb - ya), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    w_ = np.clip((RROWS[1] - np.arange(ya, yb, dtype=np.float32)) / (RROWS[1] - RROWS[0]), 0, 1)[:, None, None]; return np.clip(far_ * w_ + own * (1 - w_), 0, 255).astype(np.uint8)
 if os.environ.get("PREPARE"): print("prepared"); sys.exit()
 
 # ---------- the timeline: values at times
@@ -142,6 +153,7 @@ MILKY = None
 if spec.get("stars") and spec["stars"].get("sky_map"):                     # the faint stars and the Milky Way they make up: NASA's Deep Star Maps 2020 (svs.gsfc.nasa.gov/4851), drawn from the Gaia, Hipparcos and Tycho catalogues. The part of the sky in view
     sm_ = spec["stars"]["sky_map"]; mp_ = os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), sm_["file"]); mw = np.load(mp_).astype(np.float32)[..., ::-1]      # is cut out of the map beforehand (sky_cut.py); the map is the whole sky, right ascension leftwards from the middle, north up
     mt = json.load(open(mp_ + ".json")) if os.path.exists(mp_ + ".json") else {"full_w": mw.shape[1], "full_h": mw.shape[0], "col0": 0, "row0": 0}
+    if mt["full_w"] / 360.0 > 1.25 * ppd: zs_ = ppd / (mt["full_w"] / 360.0); mw = cv2.resize(np.ascontiguousarray(mw), None, fx=zs_, fy=zs_, interpolation=cv2.INTER_AREA); mt = {k_: v_ * zs_ for k_, v_ in mt.items()}      # a finer map than the take needs: brought down by area
     ly, lx_ = np.mgrid[0:H + EXT + 200, 0:W + 200].astype(np.float32); beta_ = np.radians((ly - 100 - EXT - sy) / ppd); lam_ = np.radians(lam_s) + np.radians((lx_ - 100 - sx) / ppd) / np.maximum(np.cos(beta_), 0.2)
     xe, ye, ze = np.cos(beta_) * np.cos(lam_), np.cos(beta_) * np.sin(lam_), np.sin(beta_); yq = ye * math.cos(eps) - ze * math.sin(eps); zq = ye * math.sin(eps) + ze * math.cos(eps)
     ra_ = np.mod(np.arctan2(yq, xe), 2 * math.pi); dec_ = np.arcsin(np.clip(zq, -1, 1)); mcol = (np.mod(0.5 - ra_ / (2 * math.pi), 1.0) * mt["full_w"] - 0.5 - mt["col0"]).astype(np.float32); mrow = ((0.5 - dec_ / math.pi) * mt["full_h"] - 0.5 - mt["row0"]).astype(np.float32)
@@ -183,7 +195,7 @@ def off(px, py, i):
 # ---------- a foreground shot (black sky behind its subject) stood in front of the view
 OV = None; VIG = None
 MOVERS = spec.get("movers", [])
-def lander_sprite(tilt_deg, side):
+def lander_sprite(tilt_deg, side, px=26):
     """a small crewed lander as it would look from kilometres away: cabin, body with a foil band, legs, engine bell, an aerial; lit from one side. Returns colour and cover, 26 px square."""
     q = 8; n_ = 26 * q; im = np.zeros((n_, n_, 3), np.float32); al = np.zeros((n_, n_), np.float32); P = lambda pts: np.round(np.array(pts, np.float32) * q).astype(np.int32)
     def poly(pts, col, a=1.0): cv2.fillPoly(im, [P(pts)], col, lineType=cv2.LINE_AA); cv2.fillPoly(al, [P(pts)], a, lineType=cv2.LINE_AA)
@@ -197,8 +209,12 @@ def lander_sprite(tilt_deg, side):
     poly([(10.4, 5.6), (15.6, 5.6), (16.4, 7.0), (16.4, 10.2), (9.6, 10.2), (9.6, 7.0)], mid)                # cabin
     poly([(13.0, 5.6), (15.6, 5.6), (16.4, 7.0), (16.4, 10.2), (13.0, 10.2)] if side > 0 else [(13.0, 5.6), (10.4, 5.6), (9.6, 7.0), (9.6, 10.2), (13.0, 10.2)], lit)
     poly([(11.0, 7.0), (12.6, 7.0), (12.6, 8.4), (11.0, 8.4)], (40, 34, 30)); line((14.6, 5.6), (16.6, 2.6), mid, 0.35)      # a window, an aerial
+    poly([(12.2, 4.7), (13.8, 4.7), (13.8, 5.6), (12.2, 5.6)], mid); line((10.6, 5.8), (8.9, 3.9), mid, 0.3); cv2.ellipse(im, tuple(P([(8.5, 3.5)])[0]), (int(1.2 * q), int(0.8 * q)), -40, 0, 360, lit, -1, cv2.LINE_AA); cv2.ellipse(al, tuple(P([(8.5, 3.5)])[0]), (int(1.2 * q), int(0.8 * q)), -40, 0, 360, 1.0, -1, cv2.LINE_AA)      # a docking port on top, a dish on a short boom
+    for fx in (-1, 1): line((13 + fx * 3.9, 8.0), (13 + fx * 4.7, 8.0), dim, 0.3); line((13 + fx * 4.3, 7.5), (13 + fx * 4.3, 8.5), dim, 0.3); line((13 + fx * 2.0, 15.8), (13 + fx * 7.0, 20.5), dim, 0.25)      # thruster clusters on the cabin's sides, a second strut on each leg
+    line((10.5, 10.4), (10.5, 15.6), dim, 0.2); line((15.5, 10.4), (15.5, 15.6), dim, 0.2); line((13.4, 10.2), (13 + side * 5.6, 19.4), dim, 0.22)      # panel seams, a ladder down the sunward leg
+    for fx in (-1, 1): cv2.circle(im, tuple(P([(13 + fx * 2.9, 16.0)])[0]), int(0.45 * q), (225, 240, 252), -1, cv2.LINE_AA)      # two landing lights under the body
     M = cv2.getRotationMatrix2D((13 * q, 16.5 * q), tilt_deg, 1.0); im = cv2.warpAffine(im, M, (n_, n_), flags=cv2.INTER_LINEAR); al = cv2.warpAffine(al, M, (n_, n_), flags=cv2.INTER_LINEAR)
-    return cv2.resize(im, (26, 26), interpolation=cv2.INTER_AREA), cv2.resize(al, (26, 26), interpolation=cv2.INTER_AREA)
+    return cv2.resize(im, (px, px), interpolation=cv2.INTER_AREA), cv2.resize(al, (px, px), interpolation=cv2.INTER_AREA)
 def person_sprite(step, face, side):
     """someone in a pressure suit seen from far off: helmet and visor, a backpack, arms, legs in mid-stride; lit from one side. Returns colour and cover, 16 x 24 px (the figure is 20 px tall)."""
     q = 8; wq, hq = 16 * q, 24 * q; im = np.zeros((hq, wq, 3), np.float32); al = np.zeros((hq, wq), np.float32); P = lambda pts: np.round(np.array(pts, np.float32) * q).astype(np.int32)
@@ -220,16 +236,27 @@ def src_index(j):
     if order == "forward": return q
     if order == "reverse": return n - 1 - q
     p_ = 2 * (n - 1); q = q % p_; return q if q < n else p_ - q                 # pingpong: there and back, never the same frame twice in a row
+EASE = float(spec.get("turn_ease", 0))                                    # frames over which the source slows, stops and starts back where it turns round (pingpong), instead of reversing in one frame
+def src_pos(j):
+    """where in the source output frame j is, as a number that need not be whole"""
+    if not EASE or order != "pingpong": return float(src_index(j))
+    p_ = 2 * (n - 1); q = (j + START + np.linspace(-EASE / 2, EASE / 2, 41)) % p_; return float(np.where(q < n, q, p_ - q).mean())
+def sky_piece(layer, dx, dy, y0r, Hh, c0, c1):
+    """the part of a sky layer in view, placed to a fraction of a pixel (placed to whole pixels, the whole sky moved in steps)"""
+    fx, fy = 100.0 - dx, 100.0 - dy + EXT + y0r; ix, iy = int(math.floor(fx)), int(math.floor(fy))
+    a = np.ascontiguousarray(layer[iy - 3:iy + Hh + 4, ix + c0 - 3:ix + c1 + 4]).astype(np.float32)
+    return np.maximum(cv2.warpAffine(a, np.float32([[1, 0, -(3 + fx - ix)], [0, 1, -(3 + fy - iy)]]), (c1 - c0, Hh), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE), 0)
 def frame(j):
     """j: output frame number"""
-    i = src_index(j); t = j / FPS; dx, dy = float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1])
-    if PATH: xw = cam(t); yw = camy(t); c0 = int(max(0, math.floor(xw) - PAD)); c1 = int(min(W, math.floor(xw) + OW + PAD + 1))
+    u = src_pos(j); i = int(min(max(round(u), 0), n - 1)); t = j / FPS; dx, dy = float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1])
+    i0_ = int(min(max(math.floor(u), 0), n - 2)); part = (vp[i0_] * (1 - (u - i0_)) + vp[i0_ + 1] * (u - i0_)) - vp[i]      # between two source frames: the nearer one is used, moved by the part of the camera's move that is missing
+    if PATH: xw = cam(t) - float(part[0]); yw = camy(t) - float(part[1]); c0 = int(max(0, math.floor(xw) - PAD)); c1 = int(min(W, math.floor(xw) + OW + PAD + 1))
     else: xw = yw = 0.0; c0, c1 = 0, W
     y0r = max(-EXT, int(math.floor(yw)) - 2) if yw < 0 else 0; y1r = min(H, y0r + 1920 + 5) if yw < 0 else H; Hh = y1r - y0r      # the rows in view: some may lie above the source, in the made sky
     cw = c1 - c0; xx = XX[EXT + y0r:EXT + y1r, c0:c1]; yy = YY[EXT + y0r:EXT + y1r, c0:c1]; rng_ = np.random.default_rng(1000 + j)
-    o8 = np.ascontiguousarray(F[i][max(y0r, 0):y1r, c0:c1])
+    o8 = src(i, max(y0r, 0), y1r, c0, c1)
     if y0r < 0:                                                             # sky above the source: the tone of the source's own top rows, thinning upward, with the same grain
-        base = cv2.blur(F[i][0:8, c0:c1].astype(np.float32).mean(0)[None], (61, 1))[0]; fall = np.exp(yy[:-y0r, :1] / 900.0)
+        base = cv2.blur(src(i, 0, 8, c0, c1).astype(np.float32).mean(0)[None], (61, 1))[0]; fall = np.exp(yy[:-y0r, :1] / 900.0)
         ext = base[None] * fall[..., None] + rng_.normal(0, 1.6, (-y0r, cw, 1)).astype(np.float32); o8 = np.vstack([np.clip(ext, 0, 255).astype(np.uint8), o8])
     if EARTH is not None:                                                   # the source's Earth out, ours in, in the source picture itself, so everything after treats it as part of the shot
         ecx, ecy = float(ETR[i, 0]) - c0, float(ETR[i, 1]) - y0r; er = spec["earth"]["r"]; ea_, eb_, ec_, ed_ = int(max(ecx - er - 44, 0)), int(min(ecx + er + 44, cw)), int(max(ecy - er - 44, 0)), int(min(ecy + er + 44, Hh))
@@ -277,12 +304,12 @@ def frame(j):
     if STARS is not None or MOVERS:
         skyw = cv2.GaussianBlur(sky.astype(np.float32), (0, 0), 1.2)
         if STARS is not None:
-            ix, iy = int(round(100 - dx)), int(round(100 - dy)) + EXT + y0r; sw_ = key("star_level", t) * skyw * np.clip(1.0 - lb / spec["stars"].get("glare_lum", 46.0), 0, 1) ** 1.5
+            sw_ = key("star_level", t) * skyw * np.clip(1.0 - lb / spec["stars"].get("glare_lum", 46.0), 0, 1) ** 1.5
             for (px, py, pr) in spec.get("discs", []): ox_, oy_ = off(px, py, i); sw_ = sw_ * np.clip((np.hypot(xx - px - ox_, yy - py - oy_) - pr) / 2.0, 0, 1)      # the whole disc of the Earth hides the stars behind it, the unlit part too
-            res = res + STARS[iy:iy + Hh, ix + c0:ix + c1] * sw_[..., None]
+            res = res + sky_piece(STARS, dx, dy, y0r, Hh, c0, c1) * sw_[..., None]
             ex_ = key("sky_exposure", t) if spec.get("sky_exposure") else 1.0     # the faint sky comes up as the camera leaves the lamps and its exposure opens, and goes down again when it returns to them
-            if MILKY is not None: res = res + MILKY[iy:iy + Hh, ix + c0:ix + c1].astype(np.float32) * (sw_ * ex_)[..., None]
-            if ZOD is not None: res = res + (ZOD[iy:iy + Hh, ix + c0:ix + c1] * sw_ * ex_)[..., None] * np.array([0.84, 0.93, 1.0], np.float32)
+            if MILKY is not None: res = res + sky_piece(MILKY, dx, dy, y0r, Hh, c0, c1) * (sw_ * ex_)[..., None]
+            if ZOD is not None: res = res + (sky_piece(ZOD, dx, dy, y0r, Hh, c0, c1) * sw_ * ex_)[..., None] * np.array([0.84, 0.93, 1.0], np.float32)
         for mv in MOVERS:
             pth = np.array(mv["path"], float)
             if not (pth[0, 0] <= t <= pth[-1, 0]): continue
@@ -313,21 +340,24 @@ def frame(j):
                 dot_ = 230.0 * np.exp(-(X * X + (Y + (3 if big_ else 5)) ** 2) / (2 * (1.5 if big_ else 1.1) ** 2)); pl_ = (0.5 if big_ else 0.34) * np.exp(-(((X - ahead * (16 if big_ else 9)) / (20 if big_ else 11)) ** 2 + (Y / (5 if big_ else 3.5)) ** 2))
                 res[ya:yb, xa:xb] += (g_ * dot_)[..., None] * np.array([0.92, 0.97, 1.0], np.float32) + np.maximum(o[ya:yb, xa:xb] * 0.8 - res[ya:yb, xa:xb], 0) * (g_ * pl_)[..., None]
                 continue
-            px = float(np.interp(t, pth[:, 0], pth[:, 1])) + dx; py = float(np.interp(t, pth[:, 0], pth[:, 2])) + dy; R_ = {"dust": 300, "lander": 420, "station": 60}.get(mv["type"], 40)
+            if mv["type"] == "lander":                                      # a craft does not change speed in an instant: its path between the keys is rounded over about a second
+                glide_ = lambda tt, c_: float(np.interp(tt + np.linspace(-0.5, 0.5, 11), pth[:, 0], pth[:, c_]).mean()); px = glide_(t, 1) + dx; py = glide_(t, 2) + dy
+            else: px = float(np.interp(t, pth[:, 0], pth[:, 1])) + dx; py = float(np.interp(t, pth[:, 0], pth[:, 2])) + dy
+            R_ = {"dust": 300, "lander": 420, "station": 60}.get(mv["type"], 40)
             xa, xb, ya, yb = int(max(px - R_ - c0, 0)), int(min(px + R_ - c0, cw)), int(max(py - R_ - y0r, 0)), int(min(py + R_ - y0r, Hh))
             if xb <= xa or yb <= ya: continue
             X, Y = xx[ya:yb, xa:xb] - px, yy[ya:yb, xa:xb] - py; g_ = mv.get("gain", 1.0) * min(1.0, (t - pth[0, 0]) / 0.3, (pth[-1, 0] - t) / 0.3); on_sky = skyw[ya:yb, xa:xb]
             if mv["type"] == "lander":
                 # the exhaust leaves down and ahead (the engine is braking and holding the lander up at once); in vacuum it spreads into a wide, thin fan that the Sun lights
-                vx_ = float(np.interp(t + 0.1, pth[:, 0], pth[:, 1]) - np.interp(t - 0.1, pth[:, 0], pth[:, 1])); vy_ = float(np.interp(t + 0.1, pth[:, 0], pth[:, 2]) - np.interp(t - 0.1, pth[:, 0], pth[:, 2])); nv = math.hypot(vx_, vy_) + 1e-6
+                vx_ = glide_(t + 0.1, 1) - glide_(t - 0.1, 1); vy_ = glide_(t + 0.1, 2) - glide_(t - 0.1, 2); nv = math.hypot(vx_, vy_) + 1e-6
                 ax_, ay_ = 0.5 * vx_ / nv, 0.5 * vy_ / nv + 0.5; na = math.hypot(ax_, ay_); ax_, ay_ = ax_ / na, ay_ / na; s_ = X * ax_ + Y * ay_; d_ = -X * ay_ + Y * ax_; sp_ = np.maximum(s_, 0)
-                flick = 1.0 + 0.10 * math.sin(t * 61.0) + 0.06 * math.sin(t * 143.0)        # the flame is never quite steady
-                streak_ = 1.0 + 0.22 * np.sin(d_ / (1.6 + 0.05 * sp_) + t * 9.0) * np.clip(sp_ / 40.0, 0, 1)      # the fan is not smooth: it is drawn out in fine streaks that shift
+                flick = 1.0 + 0.05 * math.sin(t * 7.3) + 0.03 * math.sin(t * 12.1)          # the flame breathes slowly; nothing here changes faster than 24 frames a second can show
+                streak_ = 1.0 + 0.22 * np.sin(d_ / (1.6 + 0.05 * sp_) + t * 2.0) * np.clip(sp_ / 40.0, 0, 1)      # the fan is not smooth: it is drawn out in fine streaks that drift
                 v_ = 255.0 * np.exp(-(X * X + Y * Y) / (2 * 2.2 ** 2)) + 60.0 * flick * np.exp(-(X * X + Y * Y) / (2 * 7.0 ** 2)) + mv.get("plume", 1.0) * flick * streak_ * (80.0 * np.exp(-(d_ / (4.0 + 0.30 * sp_)) ** 2) * np.exp(-sp_ / 60.0) + 34.0 * np.exp(-(d_ / (10.0 + 0.55 * sp_)) ** 2) * np.exp(-sp_ / 170.0)) * (s_ > -3)
                 colr = np.array([1.0, 0.93, 0.86], np.float32)
                 # the craft itself, as small as it would be from here, leaning the way its engine pushes; and a strobe that flashes
-                bx, by = X + ax_ * 16.0, Y + ay_ * 16.0; strobe = 255.0 * np.exp(-(bx ** 2 + by ** 2) / (2 * 1.3 ** 2)) * (1.0 if (t % 1.1) < 0.085 else 0.0); v_ = v_ + strobe
-                spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0)); ox_, oy_ = px - ax_ * 1.0 - 13.0, py - ay_ * 1.0 - 17.5      # the engine bell sits on the light
+                bx, by = X + ax_ * 16.0, Y + ay_ * 16.0; strobe = 255.0 * np.exp(-(bx ** 2 + by ** 2) / (2 * 1.3 ** 2)) * (1.0 if (t % 1.1) < 0.13 else 0.0); v_ = v_ + strobe
+                sz_ = mv.get("size", 1.0); spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0), int(round(26 * sz_))); ox_, oy_ = px - ax_ * 1.0 - 13.0 * sz_, py - ay_ * 1.0 - 17.5 * sz_      # the engine bell sits on the light
                 Ms = np.float32([[1, 0, ox_ - c0 - xa], [0, 1, oy_ - y0r - ya]]); big_s = cv2.warpAffine(spr, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR); big_a = cv2.warpAffine(sal, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR) * on_sky * g_
                 if mv.get("clip_y") is not None: big_a = big_a * np.clip((mv["clip_y"] + dy - yy[ya:yb, xa:xb]) / 3.0, 0, 1)
                 res[ya:yb, xa:xb] = res[ya:yb, xa:xb] * (1 - big_a[..., None]) + big_s * big_a[..., None]
@@ -355,9 +385,7 @@ def frame(j):
         else: v = lamp_on(k_, i, t); ON[k_].append(v)
         if v <= 0: continue
         if not l.get("blink") and not l.get("glint"):
-            ONSET.setdefault(k_, j - 100 if j == PART[0] else j)        # a lamp already lit where this run starts struck long ago
-            if j - ONSET[k_] in (1, 2, 4): v *= 0.3                          # a lamp striking: it stutters for a few frames before it holds
-            v *= 1.0 + 0.035 * math.sin(t * (37.0 + 3.1 * k_) + k_)        # and never burns perfectly steadily
+            v *= 1.0 + 0.02 * math.sin(t * (1.3 + 0.21 * (k_ % 9)) + k_)   # a lamp comes up as the dark reaches it and then drifts a little, slowly. (It used to stutter as it struck and shimmer; on a phone that read as a fault in the picture.)
         (ax, ay), (gx, gy) = T[i, 2 * k_], T[i, 2 * k_ + 1]
         if not (c0 - 400 < ax < c1 + 400): continue
         ax, gx, ay, gy = ax - c0, gx - c0, ay - y0r, gy - y0r; R = l.get("reach", 90.0) * s; col = np.array(l.get("color", [1.0, 0.86, 0.66]), np.float32)[::-1]
@@ -373,12 +401,41 @@ def frame(j):
     amount = 0.72 * (1 - np.exp(-1.5 * pool.max(2, keepdims=True))); tint = pool / np.maximum(pool.max(2, keepdims=True), 1e-6); res = res + np.maximum(o * tint * amount - res, 0) * (m * ground)[..., None]      # lamp light is added to the dim ground, and shows it as the source shot has it
     res = res + core * (0.25 + 0.75 * m[..., None])                                                         # a lamp in full sunlight hardly shows
     if not PATH: return np.clip(res, 0, 255).astype(np.uint8)
-    fr = cv2.warpAffine(np.clip(res, 0, 255).astype(np.uint8), np.float32([[1, 0, -(xw - c0)], [0, 1, -(yw - y0r)]]), (OW, 1920), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)      # the frame the camera sees, placed to a fraction of a pixel
+    fr = cv2.warpAffine(np.clip(res, 0, 255).astype(np.uint8), np.float32([[1, 0, -(xw - c0)], [0, 1, -(yw - y0r)]]), (OW, 1920), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)      # the frame the camera sees, placed to a fraction of a pixel
     bx_ = int(round(abs(cam(t + 1.0 / FPS) - cam(t - 1.0 / FPS)) / 2 * PATH.get("shutter", 0.5))); by_ = int(round(abs(camy(t + 1.0 / FPS) - camy(t - 1.0 / FPS)) / 2 * PATH.get("shutter", 0.5)))
     if bx_ >= 2 or by_ >= 2: fr = cv2.blur(fr, (max(bx_, 1), max(by_, 1)), borderType=cv2.BORDER_REPLICATE)
     fr = fr.astype(np.float32)
-    if spec.get("overlay") and t >= spec["overlay"]["from_t"] - 1e-6: fr = stand_in_front(fr, t, xw)
+    if spec.get("overlay") and t >= spec["overlay"].get("show_from", spec["overlay"]["from_t"]) - 1e-6: fr = stand_behind(fr, t, xw, yw, i) if spec["overlay"].get("cut") else stand_in_front(fr, t, xw)
     return finish(fr, rng_)
+OVC = None; ROCK = None
+def stand_behind(fr, t, xw, yw, i):
+    """a figure cut out beforehand (astro_stab.py, astro_cut.py: held still, its sky and ground removed) stands at one place in the wide picture, behind something near that hides
+    its lower part (a rock, followed through the source by rock_track.py). It keeps its own shot's light. Because it is tied to the picture and to the rock, it moves only as they do."""
+    global OVC, ROCK
+    ov = spec["overlay"]
+    if OVC is None:
+        OVC = np.load(os.path.join(os.environ.get("OVERLAY_DIR", HERE), ov["cut"]), mmap_mode="r"); ROCK = json.load(open(os.path.join(HERE, ov["rock"]["track"])))["move"] if ov.get("rock") else {}
+    nC = len(OVC); x_ = (t - ov["from_t"]) * FPS; r_ = ov.get("turn_soft", 6.0); k = int(np.clip(round((nC - 1) - (math.sqrt((x_ - (nC - 1)) ** 2 + r_ * r_) - r_)), 0, nC - 1))      # its frames run to the end, turn softly and run back
+    a8 = np.ascontiguousarray(OVC[k]); sub = a8[..., :3].astype(np.float32); alpha = a8[..., 3].astype(np.float32) / 255.0
+    hot = np.clip((cv2.GaussianBlur(sub.min(2), (0, 0), 1.2) - ov.get("lamp_min", 246.0)) / 6.0, 0, 1); hot = np.maximum(hot, 1.5 * cv2.GaussianBlur(hot, (0, 0), 6.0)).clip(0, 1)[..., None]      # its own lamps stay as bright as they are
+    sub = sub * np.array(ov.get("shade", [1.0, 1.0, 1.0]), np.float32)[::-1] * (1 - hot) + sub * hot
+    at = np.array(ov["at"], float); dxy = np.array([float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1])]); mask = None
+    if ROCK:
+        Mr = np.array(ROCK[str(i)], float); tie = ov["rock"].get("tie", 0.8); dxy = tie * (Mr @ [at[0], at[1], 1.0] - at) + (1 - tie) * dxy      # it stands a little beyond the rock: as the camera rises or sinks it shifts nearly as much as the rock does
+        cr = np.c_[np.array(ov["rock"]["crest"], float), np.ones(len(ov["rock"]["crest"]))] @ Mr.T - [xw, yw]; poly = np.vstack([cr, [[cr[-1, 0] + 4000, cr[-1, 1]], [cr[-1, 0] + 4000, 6000], [cr[0, 0] - 4000, 6000], [cr[0, 0] - 4000, cr[0, 1]]]])
+        mask = np.zeros((1920, OW), np.float32); cv2.fillPoly(mask, [np.round(poly * 8).astype(np.int32)], 1.0, lineType=cv2.LINE_AA, shift=3)
+    z_ = ov.get("scale", 1.0); ax_, ay_ = ov["anchor"]; M = np.float32([[z_, 0, at[0] + dxy[0] - xw - z_ * ax_], [0, z_, at[1] + dxy[1] - yw - z_ * ay_]])
+    alpha = cv2.warpAffine(alpha, M, (OW, 1920), flags=cv2.INTER_AREA, borderValue=0)
+    if alpha.max() < 0.01: return fr
+    sub = cv2.warpAffine(sub, M, (OW, 1920), flags=cv2.INTER_AREA, borderValue=0); foc = float(np.interp(t, [p_[0] for p_ in ov["defocus"]], [p_[1] for p_ in ov["defocus"]])) if ov.get("defocus") else 0.0
+    if foc > 0.3: fr = cv2.GaussianBlur(fr, (0, 0), foc)
+    if mask is not None:
+        sub = sub * (1 - ov["rock"].get("contact", 0.3) * cv2.GaussianBlur(mask, (0, 0), 10.0))[..., None]      # where it meets the rock it is a little darker: the rock stands between it and some of its light
+        alpha = alpha * (1 - cv2.GaussianBlur(mask, (0, 0), max(0.9, foc)))
+        if ov["rock"].get("spill", 0) > 0:                                 # the light that falls on the figure also falls on the top of the rock in front of it
+            top_ = mask * (1 - cv2.warpAffine(mask, np.float32([[1, 0, 0], [0, 1, ov["rock"].get("spill_px", 90)]]), (OW, 1920))); cxs = at[0] + dxy[0] - xw; fall = np.exp(-((np.arange(OW, dtype=np.float32) - cxs) / ov["rock"].get("spill_width", 330.0)) ** 2)[None]
+            fr = fr * (1 + ov["rock"]["spill"] * cv2.GaussianBlur(top_ * fall, (0, 0), 14.0))[..., None]
+    return fr * (1 - alpha[..., None]) + sub * alpha[..., None]
 def stand_in_front(fr, t, xw):
     """a foreground shot whose sky is black, stood in front of the view: its sky is cut away, the view behind is thrown a little out of focus as a lens focused near would,
     and the subject is lit as the view says it must be: the Sun is behind it, so it is dark, with a thin rim of sunlight along the edges turned to the Sun. Its own lamps stay lit."""
