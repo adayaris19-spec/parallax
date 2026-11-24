@@ -133,6 +133,11 @@ if spec.get("stars"):
     # the view: from the south pole the horizon runs along the ecliptic, south is up, and ecliptic longitude grows to the right. The Sun fixes the place; the date (its longitude) is our choice, the source gives none.
     layer = np.zeros((H + EXT + 200, W + 200, 3), np.float32); cnt = 0
     cat = os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), sp["catalogue"])      # the catalogue file is not kept in the repository (13 MB): github.com/astronexus/HYG-Database, hyg/v3/hyg_v38.csv.gz, CC BY-SA 4.0
+    def put_point(px, py, mag, ci):
+        col = np.clip(np.array([1.0 + 0.25 * (0.6 - ci), 1.0, 1.0 - 0.22 * (0.6 - ci)], np.float32), 0.7, 1.25)      # blue stars a little blue, red ones a little warm (BGR)
+        flux = sp.get("gain", 1.0) * 1.7 * 10 ** (-0.4 * 0.6 * (mag - 4.0)); sig = 0.75 + 0.35 * max(0.0, 4.0 - mag) ** 0.5; rad_ = int(3 * sig) + 2; ix, iy = int(px), int(py)      # a camera's response is compressed: faint stars still register
+        g = np.exp(-(((np.arange(ix - rad_, ix + rad_ + 1) - px)[None] ** 2 + (np.arange(iy - rad_, iy + rad_ + 1) - py)[:, None] ** 2) / (2 * sig * sig)))
+        layer[iy - rad_:iy + rad_ + 1, ix - rad_:ix + rad_ + 1] += (min(flux, 6.0) * 150.0 * g)[..., None] * col
     with gzip.open(cat, "rt") as fh:
         for row in csv.DictReader(fh):
             try: mag = float(row["mag"]); ra = math.radians(float(row["ra"]) * 15.0); dec = math.radians(float(row["dec"]))
@@ -144,10 +149,10 @@ if spec.get("stars"):
             if not (4 <= px < W + 196 and 4 <= py < H + EXT + 196): continue
             try: ci = float(row["ci"])
             except ValueError: ci = 0.6
-            col = np.clip(np.array([1.0 + 0.25 * (0.6 - ci), 1.0, 1.0 - 0.22 * (0.6 - ci)], np.float32), 0.7, 1.25)      # blue stars a little blue, red ones a little warm (BGR)
-            flux = sp.get("gain", 1.0) * 1.7 * 10 ** (-0.4 * 0.6 * (mag - 4.0)); sig = 0.75 + 0.35 * max(0.0, 4.0 - mag) ** 0.5; rad_ = int(3 * sig) + 2; ix, iy = int(px), int(py)      # a camera's response is compressed: faint stars still register
-            g = np.exp(-(((np.arange(ix - rad_, ix + rad_ + 1) - px)[None] ** 2 + (np.arange(iy - rad_, iy + rad_ + 1) - py)[:, None] ** 2) / (2 * sig * sig)))
-            layer[iy - rad_:iy + rad_ + 1, ix - rad_:ix + rad_ + 1] += (min(flux, 6.0) * 150.0 * g)[..., None] * col; cnt += 1
+            put_point(px, py, mag, ci); cnt += 1
+    for pl in sp.get("planets", []):                                       # planets where the ephemeris puts them on the take's date (earth_face.py prints them): steady points on the ecliptic
+        px = sx + pl["dlon"] * ppd * math.cos(math.radians(pl["lat"])) + 100; py = sy + pl["lat"] * ppd + 100 + EXT
+        if 4 <= px < W + 196 and 4 <= py < H + EXT + 196: put_point(px, py, pl["mag"], pl.get("ci", 0.8)); print("planet", pl["name"], "at", round(px - 100), round(py - 100 - EXT), flush=True)
     STARS = np.clip(layer, 0, 255); print("stars placed", cnt, flush=True)
 MILKY = None
 if spec.get("stars") and spec["stars"].get("sky_map"):                     # the faint stars and the Milky Way they make up: NASA's Deep Star Maps 2020 (svs.gsfc.nasa.gov/4851), drawn from the Gaia, Hipparcos and Tycho catalogues. The part of the sky in view
@@ -157,8 +162,16 @@ if spec.get("stars") and spec["stars"].get("sky_map"):                     # the
     ly, lx_ = np.mgrid[0:H + EXT + 200, 0:W + 200].astype(np.float32); beta_ = np.radians((ly - 100 - EXT - sy) / ppd); lam_ = np.radians(lam_s) + np.radians((lx_ - 100 - sx) / ppd) / np.maximum(np.cos(beta_), 0.2)
     xe, ye, ze = np.cos(beta_) * np.cos(lam_), np.cos(beta_) * np.sin(lam_), np.sin(beta_); yq = ye * math.cos(eps) - ze * math.sin(eps); zq = ye * math.sin(eps) + ze * math.cos(eps)
     ra_ = np.mod(np.arctan2(yq, xe), 2 * math.pi); dec_ = np.arcsin(np.clip(zq, -1, 1)); mcol = (np.mod(0.5 - ra_ / (2 * math.pi), 1.0) * mt["full_w"] - 0.5 - mt["col0"]).astype(np.float32); mrow = ((0.5 - dec_ / math.pi) * mt["full_h"] - 0.5 - mt["row0"]).astype(np.float32)
-    g_ = cv2.remap(mw, mcol, mrow, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT); g_ = g_.mean(2, keepdims=True) + (g_ - g_.mean(2, keepdims=True)) * sm_.get("colour", 1.0); MILKY = np.clip(255.0 * np.clip(sm_.get("gain", 2.5) * g_, 0, 1) ** sm_.get("power", 0.7), 0, 255).astype(np.uint8); del mw, ly, lx_, beta_, lam_, xe, ye, ze, yq, zq, ra_, dec_, mcol, mrow, g_
-    print("sky map laid in, mean level %.1f" % MILKY.mean(), flush=True)
+    g_ = cv2.remap(mw, mcol, mrow, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT); g_ = g_.mean(2, keepdims=True) + (g_ - g_.mean(2, keepdims=True)) * sm_.get("colour", 1.0); del mw, beta_, lam_, xe, ye, ze, yq, zq, ra_, dec_, mcol, mrow
+    per_s10 = sm_.get("f10", 0.0) / (ppd * ppd)                             # the map's value for one S10 unit (a 10th-magnitude star spread over a square degree). f10: the map's sum for a 10th-magnitude star, measured on catalogue stars
+    if sm_.get("zodiacal"):                                                 # the zodiacal light, in the same units: on the ecliptic s10 / sin(angle from the Sun) ^ power, as Clementine's star trackers measured it from lunar orbit (arXiv astro-ph/0204111, eq. 5; 3 to 30 degrees).
+        zz = sm_["zodiacal"]; ee = np.clip(np.hypot((lx_ - 100 - sx) / ppd, (ly - 100 - EXT - sy) / ppd / zz.get("flatten", 0.6)), zz.get("min_deg", 3.0), 89.0)      # Off the ecliptic it is taken to fall as if the glow were flattened by "flatten": our assumption
+        g_ = g_ + (zz["s10"] / np.sin(np.radians(ee)) ** zz["power"] * per_s10)[..., None] * np.array(zz.get("colour", [1.0, 0.95, 0.86]), np.float32)[::-1]; del ee
+    if sm_.get("earth_night"):                                              # the Earth's night side, lit by the Moon the camera stands on (earth_face.py makes the face turned to the Moon). It hides the sky behind it
+        en = sm_["earth_night"]; tx = np.load(os.path.join(os.environ.get("STAR_CATALOGUE_DIR", HERE), en["file"])); h2 = tx.shape[0]; ex0 = int(round(en["at"][0] + 100 - h2 / 2.0)); ey0 = int(round(en["at"][1] + 100 + EXT - h2 / 2.0))
+        g_[ey0:ey0 + h2, ex0:ex0 + h2] = g_[ey0:ey0 + h2, ex0:ex0 + h2] * (1 - tx[..., 3:]) + tx[..., 2::-1] * (en["s10_white"] * per_s10) * tx[..., 3:]
+    x_ = np.power(np.clip(sm_.get("gain", 2.5) * g_, 0, None), sm_.get("power", 0.7)); sh_ = float(sm_.get("shoulder", 0)); MILKY = (255.0 * ((1 - np.exp(-sh_ * x_)) / sh_ if sh_ else np.clip(x_, 0, 1))).astype(np.float16); del ly, lx_, g_, x_      # shoulder: bright parts are pressed together as film does, so the moonlit Earth does not burn out
+    print("sky map laid in, mean level %.1f" % float(MILKY.astype(np.float32).mean()), flush=True)
 ZOD = None
 if spec.get("stars") and spec["stars"].get("zodiacal"):                    # the zodiacal light: sunlight scattered by the dust between the planets, a lens-shaped glow along the ecliptic that brightens steeply toward the Sun
     zo = spec["stars"]["zodiacal"]; ly, lx_ = np.mgrid[0:H + EXT + 200, 0:W + 200].astype(np.float32); bz = (ly - 100 - EXT - sy) / ppd; ez = np.maximum(np.hypot((lx_ - 100 - sx) / ppd, bz), zo.get("inner_deg", 9.0))      # (photographed from lunar orbit by Clementine's star trackers, arXiv astro-ph/0204111). Its shape is modelled here, its strength is our choice
@@ -188,9 +201,13 @@ if spec.get("earth"):
     C_ = np.clip(C_ * 1.25, 0, 1) ** 0.8; hue = np.stack([np.interp(th_, tk, C_[:, c]) for c in range(3)], -1)
     ecol = (lam_i ** 0.45)[..., None] * hue * 255.0 + rim[..., None] * np.array([255, 228, 196], np.float32); lum_e = np.clip(lam_i ** 0.45 + rim, 0, 1)
     EARTH = (cv2.resize(np.clip(ecol, 0, 255), (n_e // q_, n_e // q_), interpolation=cv2.INTER_AREA), cv2.resize(np.clip(lum_e * 1.6, 0, 1), (n_e // q_, n_e // q_), interpolation=cv2.INTER_AREA))
+def steady(a, sig=4.0):
+    """a followed point's path with the measuring noise taken out"""
+    k = int(3 * sig); b_ = np.vstack([2 * a[0] - a[k:0:-1], a, 2 * a[-1] - a[-2:-k - 2:-1]]); w_ = np.exp(-np.arange(-k, k + 1) ** 2 / (2 * sig * sig)); w_ /= w_.sum(); return np.stack([np.convolve(b_[:, c], w_, "valid") for c in range(a.shape[1])], 1).astype(np.float32)
+ETS = steady(ETR) if ETR is not None else None; EOFF = np.array(spec["earth"].get("offset", [0.0, 0.0]), np.float32) if spec.get("earth") else None      # offset: from where the source drew the planet to where it stood on the take's date
 def off(px, py, i):
-    """how far something in the sky has moved from where it was picked in the reference frame: the planet has its own track, the rest moves with the horizon"""
-    if ETR is not None and math.hypot(px - spec["earth"]["at"][0], py - spec["earth"]["at"][1]) < 25: return float(ETR[i, 0] - ETR[r, 0]), float(ETR[i, 1] - ETR[r, 1])
+    """how far something in the sky has moved from where it was picked in the reference frame. The sky is infinitely far, so all of it moves as the planet does (followed in the source); without a planet, as the far horizon does"""
+    if ETS is not None: return float(ETS[i, 0] - ETS[r, 0]), float(ETS[i, 1] - ETS[r, 1])
     return float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1])
 # ---------- a foreground shot (black sky behind its subject) stood in front of the view
 OV = None; VIG = None
@@ -259,11 +276,12 @@ def frame(j):
         base = cv2.blur(src(i, 0, 8, c0, c1).astype(np.float32).mean(0)[None], (61, 1))[0]; fall = np.exp(yy[:-y0r, :1] / 900.0)
         ext = base[None] * fall[..., None] + rng_.normal(0, 1.6, (-y0r, cw, 1)).astype(np.float32); o8 = np.vstack([np.clip(ext, 0, 255).astype(np.uint8), o8])
     if EARTH is not None:                                                   # the source's Earth out, ours in, in the source picture itself, so everything after treats it as part of the shot
-        ecx, ecy = float(ETR[i, 0]) - c0, float(ETR[i, 1]) - y0r; er = spec["earth"]["r"]; ea_, eb_, ec_, ed_ = int(max(ecx - er - 44, 0)), int(min(ecx + er + 44, cw)), int(max(ecy - er - 44, 0)), int(min(ecy + er + 44, Hh))
+        ecx, ecy = float(ETR[i, 0]) - c0, float(ETR[i, 1]) - y0r; ncx, ncy = float(ETS[i, 0] + EOFF[0]) - c0, float(ETS[i, 1] + EOFF[1]) - y0r; er = spec["earth"]["r"]      # where the source has it; where ours goes
+        ea_, eb_, ec_, ed_ = int(max(min(ecx, ncx) - er - 44, 0)), int(min(max(ecx, ncx) + er + 44, cw)), int(max(min(ecy, ncy) - er - 44, 0)), int(min(max(ecy, ncy) + er + 44, Hh))
         if eb_ > ea_ and ed_ > ec_:
             reg = o8[ec_:ed_, ea_:eb_].astype(np.float32); rr_ = np.hypot(xx[ec_:ed_, ea_:eb_] - c0 - ecx, yy[ec_:ed_, ea_:eb_] - y0r - ecy); ring = (rr_ > er + 24) & (rr_ < er + 40); skyc = reg[ring].mean(0) if ring.any() else np.array([14, 10, 8], np.float32)
             hole = np.clip((er + 19 - rr_) / 4.0, 0, 1)[..., None]; reg = reg + (skyc[None, None] + rng_.normal(0, 1.6, reg.shape[:2] + (1,)).astype(np.float32) - reg) * hole
-            ecol, eal = EARTH; hs = ecol.shape[0] / 2.0; Me = np.float32([[1, 0, ecx - ea_ - hs], [0, 1, ecy - ec_ - hs]]); pc = cv2.warpAffine(ecol, Me, (eb_ - ea_, ed_ - ec_), flags=cv2.INTER_LINEAR); pa = cv2.warpAffine(eal, Me, (eb_ - ea_, ed_ - ec_), flags=cv2.INTER_LINEAR)[..., None]
+            ecol, eal = EARTH; hs = ecol.shape[0] / 2.0; Me = np.float32([[1, 0, ncx - ea_ - hs], [0, 1, ncy - ec_ - hs]]); pc = cv2.warpAffine(ecol, Me, (eb_ - ea_, ed_ - ec_), flags=cv2.INTER_LINEAR); pa = cv2.warpAffine(eal, Me, (eb_ - ea_, ed_ - ec_), flags=cv2.INTER_LINEAR)[..., None]
             o8[ec_:ed_, ea_:eb_] = np.clip(reg * (1 - pa) + pc, 0, 255).astype(np.uint8)
     o = o8.astype(np.float32); lum = cv2.cvtColor(o8, cv2.COLOR_BGR2GRAY).astype(np.float32)
     dark = (lum < SKYMAX[:, c0:c1]).astype(np.uint8); _, lab = cv2.connectedComponents(dark, connectivity=4); top = np.unique(lab[0][dark[0] > 0]); sky = np.isin(lab, top) & (dark > 0)       # the sky: the dark that reaches the top edge
@@ -304,12 +322,12 @@ def frame(j):
     if STARS is not None or MOVERS:
         skyw = cv2.GaussianBlur(sky.astype(np.float32), (0, 0), 1.2)
         if STARS is not None:
-            sw_ = key("star_level", t) * skyw * np.clip(1.0 - lb / spec["stars"].get("glare_lum", 46.0), 0, 1) ** 1.5
-            for (px, py, pr) in spec.get("discs", []): ox_, oy_ = off(px, py, i); sw_ = sw_ * np.clip((np.hypot(xx - px - ox_, yy - py - oy_) - pr) / 2.0, 0, 1)      # the whole disc of the Earth hides the stars behind it, the unlit part too
-            res = res + sky_piece(STARS, dx, dy, y0r, Hh, c0, c1) * sw_[..., None]
+            sdx, sdy = off(0.0, 0.0, i); sw0 = key("star_level", t) * skyw * np.clip(1.0 - lb / spec["stars"].get("glare_lum", 46.0), 0, 1) ** 1.5; sw_ = sw0
+            for (px, py, pr) in spec.get("discs", []): sw_ = sw_ * np.clip((np.hypot(xx - px - sdx, yy - py - sdy) - pr) / 2.0, 0, 1)      # the whole disc of the Earth hides the stars behind it, the unlit part too
+            res = res + sky_piece(STARS, sdx, sdy, y0r, Hh, c0, c1) * sw_[..., None]
             ex_ = key("sky_exposure", t) if spec.get("sky_exposure") else 1.0     # the faint sky comes up as the camera leaves the lamps and its exposure opens, and goes down again when it returns to them
-            if MILKY is not None: res = res + sky_piece(MILKY, dx, dy, y0r, Hh, c0, c1) * (sw_ * ex_)[..., None]
-            if ZOD is not None: res = res + (sky_piece(ZOD, dx, dy, y0r, Hh, c0, c1) * sw_ * ex_)[..., None] * np.array([0.84, 0.93, 1.0], np.float32)
+            if MILKY is not None: res = res + sky_piece(MILKY, sdx, sdy, y0r, Hh, c0, c1) * ((sw0 if spec["stars"]["sky_map"].get("earth_night") else sw_) * ex_)[..., None]
+            if ZOD is not None: res = res + (sky_piece(ZOD, sdx, sdy, y0r, Hh, c0, c1) * sw_ * ex_)[..., None] * np.array([0.84, 0.93, 1.0], np.float32)
         for mv in MOVERS:
             pth = np.array(mv["path"], float)
             if not (pth[0, 0] <= t <= pth[-1, 0]): continue
@@ -357,6 +375,10 @@ def frame(j):
                 colr = np.array([1.0, 0.93, 0.86], np.float32)
                 # the craft itself, as small as it would be from here, leaning the way its engine pushes; and a strobe that flashes
                 bx, by = X + ax_ * 16.0, Y + ay_ * 16.0; strobe = 255.0 * np.exp(-(bx ** 2 + by ** 2) / (2 * 1.3 ** 2)) * (1.0 if (t % 1.1) < 0.13 else 0.0); v_ = v_ + strobe
+                jp_ = (t * 0.55 + mv["path"][0][0] * 0.37) % 1.0                    # now and then a small jet to one side keeps it upright: a short sunlit puff (a quarter of a second, rising and falling smoothly)
+                if jp_ < 0.14:
+                    je_ = math.sin(math.pi * jp_ / 0.14) ** 2; js_ = 1.0 if int(t * 0.55 + mv["path"][0][0] * 0.37) % 2 else -1.0; jx_, jy_ = X + ax_ * 21.0, Y + ay_ * 21.0; ja_ = (-jx_ * ay_ + jy_ * ax_) * js_; jc_ = jx_ * ax_ + jy_ * ay_
+                    v_ = v_ + 85.0 * je_ * np.exp(-(jc_ / (1.2 + 0.32 * np.maximum(ja_, 0))) ** 2) * np.exp(-np.maximum(ja_, 0) / 13.0) * (ja_ > 2.5)
                 sz_ = mv.get("size", 1.0); spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0), int(round(26 * sz_))); ox_, oy_ = px - ax_ * 1.0 - 13.0 * sz_, py - ay_ * 1.0 - 17.5 * sz_      # the engine bell sits on the light
                 Ms = np.float32([[1, 0, ox_ - c0 - xa], [0, 1, oy_ - y0r - ya]]); big_s = cv2.warpAffine(spr, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR); big_a = cv2.warpAffine(sal, Ms, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR) * on_sky * g_
                 if mv.get("clip_y") is not None: big_a = big_a * np.clip((mv["clip_y"] + dy - yy[ya:yb, xa:xb]) / 3.0, 0, 1)
@@ -418,7 +440,11 @@ def stand_behind(fr, t, xw, yw, i):
     nC = len(OVC); x_ = (t - ov["from_t"]) * FPS; r_ = ov.get("turn_soft", 6.0); k = int(np.clip(round((nC - 1) - (math.sqrt((x_ - (nC - 1)) ** 2 + r_ * r_) - r_)), 0, nC - 1))      # its frames run to the end, turn softly and run back
     a8 = np.ascontiguousarray(OVC[k]); sub = a8[..., :3].astype(np.float32); alpha = a8[..., 3].astype(np.float32) / 255.0
     hot = np.clip((cv2.GaussianBlur(sub.min(2), (0, 0), 1.2) - ov.get("lamp_min", 246.0)) / 6.0, 0, 1); hot = np.maximum(hot, 1.5 * cv2.GaussianBlur(hot, (0, 0), 6.0)).clip(0, 1)[..., None]      # its own lamps stay as bright as they are
-    sub = sub * np.array(ov.get("shade", [1.0, 1.0, 1.0]), np.float32)[::-1] * (1 - hot) + sub * hot
+    lit_ = np.array(ov.get("shade", [1.0, 1.0, 1.0]), np.float32)[::-1][None, None]
+    if ov.get("lamp_pool"):                                                 # its helmet lamps point where it looks: at its hands and chest. That part is lit; the rest of it is in the mountain's shadow like the ground behind it
+        lp = ov["lamp_pool"]; hy_, hx_ = np.mgrid[0:sub.shape[0], 0:sub.shape[1]].astype(np.float32); pool_ = np.exp(-(((hx_ - lp["at"][0]) / lp["radius"][0]) ** 2 + ((hy_ - lp["at"][1]) / lp["radius"][1]) ** 2))[..., None]
+        lit_ = lit_ + (np.array(lp.get("colour", [0.95, 0.97, 1.0]), np.float32)[::-1] * lp.get("level", 0.9) - lit_) * pool_
+    sub = sub * lit_ * (1 - hot) + sub * hot
     at = np.array(ov["at"], float); dxy = np.array([float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1])]); mask = None
     if ROCK:
         Mr = np.array(ROCK[str(i)], float); tie = ov["rock"].get("tie", 0.8); dxy = tie * (Mr @ [at[0], at[1], 1.0] - at) + (1 - tie) * dxy      # it stands a little beyond the rock: as the camera rises or sinks it shifts nearly as much as the rock does

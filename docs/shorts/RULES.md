@@ -227,6 +227,14 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - They are not cut off by the edge of the frame while ground is visible beside them at the same height. Either their feet are on the ground with a shadow, or something in the scene stands in front of their lower body.
     - They play at their own shot's speed from real frames only. No made-up in-between frames.
     - They keep their own shot's light, brought to the scene's level and colour.
+- **Fix what was listed, then add (owner, Nov 24, about 14:10 UTC+1, on the third version):** "Fix what's wrong and run another round of adding detail, looking good though."
+  - **Passed:** the flicker-free picture and the astronaut behind the rock.
+  - **Every "still wrong" line is carried.** Each line of a version's list is either fixed in the next version or listed again with the reason it cannot be fixed.
+  - **A take has a real moment.** The sky is computed for a date and time written with the video: the Sun, the Earth and the planets from an ephemeris. The source's picture is matched to the closest real moment; what still differs is listed.
+  - **Faint light is on one scale.** Stars, the Milky Way, the zodiacal light and a planet's night side are put in the same unit (S10) from sources or stated arithmetic, and go through one exposure curve. No faint thing gets a brightness picked by eye.
+  - **A lit thing shows its lamp.** Nothing is lit by a source that is neither in the frame nor plainly implied by something in it.
+  - **"No frame shown twice" (section 2, "Smooth") means no two output frames are the same picture.** Where footage turns back, one source frame may serve neighbouring output frames if each is moved by the missing part of the camera's move. (Draft, our reading; to confirm.)
+  - **Find faults before the render, not after.** Stills and a flicker scan on a short stretch come first, so a version needs one full render. (After the third version took four.)
 - **Passed (owner, Nov 22):** "Your voice is good. The text is good." The voice (Kokoro `am_michael`, speed 1.12) and the way the script is written from the goal's facts are settled.
 - **Checks learned from the first complete video (Nov 22, drafts to confirm):**
   - Where the Sun is comes first. Before a daylight shot is designed, the Sun's height and direction at that place and date are read from the ephemeris, and the ground in view must face it (surface-to-Sun cosine of at least 0.05 on the smoothed 5 m terrain). At the Connecting Ridge in April 2026 the Sun stays 1.2–1.7° below level, so level ground is black beside any sunlit object; the same ridge in September has sunlit ground on its west slope only.

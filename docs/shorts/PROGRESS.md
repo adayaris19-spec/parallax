@@ -521,6 +521,49 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); star positions from the HYG database (CC BY-SA 4.0).
   - Cost: NASA's 4 GB star map downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the third version (Nov 24, about 14:10 UTC+1):** "Fix what's wrong and run another round of adding detail, looking good though." Rules in `RULES.md` section 2 ("Fix what was listed, then add").
+- **Fourth version sent (Nov 24, about 14:55 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v15.json`, spec `tools/shorts-lab/specs/night_v15_one.json`. Same script, voice and sound. Waiting for the verdict.
+  - Every line of the last "still wrong" list, and what happened to it:
+
+    | Listed as wrong | Now |
+    |---|---|
+    | The astronaut was lit from the front with the Sun behind him | Fixed. He is in the mountain's shadow like the ground behind him (30–38% of his lit look) and lit only where his own helmet lamps fall: hands, chest, wrist display. The unexplained fill light is gone |
+    | He was not in the opening frame, where the same rock is in view | A cue added: one of the two people at the rover walks off toward the rock in the opening (1.3 m/s, until the camera leaves); at the end one person is left at the rover. The walk itself is not shown |
+    | The hold on the sky was dark (mean under 30/255 for 5.3 s) | Fixed: 0.1 s. The zodiacal light is now at its measured strength |
+    | The zodiacal light's strength had no source | Fixed. Clementine's star trackers measured it from lunar orbit: on the ecliptic 1.7×10⁻¹³ / sin^2.45(angle from the Sun) of the Sun's brightness, 3–30° ([arXiv astro-ph/0204111](https://arxiv.org/abs/astro-ph/0204111), eq. 5). That is 5,400 S10 units at 20° and 2,100 at 30° |
+    | The date of the sky was assumed | Fixed. The sky is that of 8 January 2039, 14:00 UTC, the real moment closest to NASA's frame (see below) |
+    | The flicker scan could not tell depth motion from flicker; its lists were read only where the camera is still | Fixed. It now moves each frame's neighbours onto it place by place; all 600 frames were scanned and the twelve strongest finds looked at: the edge of the returning sunlight, and stars streaking while the camera tilts. No flicker found |
+    | The landers' exhaust was drawn visible without a source | Partly. Exhaust that freezes and spreads in near-vacuum is seen from the ground when the Sun lights it ([twilight phenomenon](https://en.wikipedia.org/wiki/Twilight_phenomenon)); NASA describes such a plume as mostly water vapour and carbon dioxide ([APOD](https://apod.nasa.gov/apod/ap240312.html)). How bright ours should be is still our drawing |
+    | It took 1 h 55 min and four renders | About 45 minutes, one render. Faults were looked for on stills and with the scan first |
+    | The sound was checked by measurement, not by ear | Not fixable here: nothing in this environment can listen. More measured: no clicks, no clipping, no dropout except the intended beat (60 ms of dead silence at 7.12 s); speech stands 5.8 to 13.2 dB above music and effects in each passage |
+    | His visor reflects the other shot's base | Left. With his new light the reflection (ground lit by his lamps under a black sky) fits; the row of lamps on its horizon is behind our camera and never shown |
+    | The shadow and landers move at time-lapse speed beside a rover at normal speed | Cannot be fixed in one take. The Sun moves about 0.5° an hour along the horizon, so a mountain's shadow needs hours to cross the plain (our arithmetic); either it or the rover has to be at the wrong speed |
+    | The Sun is under the app's header and higher than the pole allows | NASA's footage; stays |
+    | One source frame serves several output frames at each turn-back | Stays; the rule is now written as we read it (draft, to confirm) |
+    | His shaded-side edge was set by hand | Stays |
+
+  - The real moment: for every January from 2026 to 2040 the instant was found when the Earth stands 21.5° from the Sun, seen from the Moon, on the side NASA's frame shows (JPL's DE440 ephemeris through skyfield). 8 January 2039, 14:00 UTC fits best: the Sun at ecliptic longitude 288.1° (the take assumed 292°) and the Earth 0.44° off the ecliptic (NASA drew it level with the Sun). For that moment:
+    - the Earth is drawn 0.8° from where NASA put it (NASA's is erased), 21.57° from the Sun; its radius in the sky comes out at 0.913° = 95.9 px, NASA's is 94.3 px;
+    - Mars stands 1.3° from the Earth's centre (magnitude about +1.5) and Mercury 9.8° from the Sun (about −0.7); both are drawn. Venus is 20° on the other side of the Sun, outside the picture;
+    - the face of the Earth turned to the Moon is centred on 23°N 128°E: east Asia and Australia, upside down as NASA says it looks from the south pole.
+  - Detail added:
+    - The Earth's night side is no longer black once the exposure opens for the stars. It is lit by the Moon the camera stands on, which is 97% full from there. Our arithmetic: a white surface facing the Moon sends back about 70,000 S10, fifteen times the zodiacal light beside it (4,600 S10). It is shown with one day of NASA GIBS satellite imagery (VIIRS, 8 January 2024). In daylight exposure it is the black disc with the thin crescent, as before.
+    - Mars beside the Earth, Mercury near the Sun.
+    - The zodiacal light: a glow along the horizon (the ecliptic lies along it at the pole), brightening toward the Sun.
+    - Stars, Milky Way, zodiacal light and the Earth's night side are on one brightness scale and go through one exposure curve. NASA's star map was calibrated on 2,070 catalogue stars (it is a true flux scale: slope −0.388 against −0.400); the Milky Way's bulge in view comes out at 760 S10 (median) to 2,300.
+    - The sky now moves with the Earth, not with the far ridge: both are infinitely far. It used to slide up to 25 px against the Earth over the take.
+    - The landers fire short attitude jets.
+  - Measured on the final file: 600 frames at 24 a second, 31 MB, 9.9 Mbps; no frame changes unevenly against its neighbours; the sky's largest step during the hold 0.34 px; −15.0 LUFS, true peak −1.5 dBTP; narration heard back word for word; 2.1% of the picture darker than 8/255.
+  - Requirement check, misses:
+    - The astronaut is clearly darker than in the version the owner called "looking good". His hands and chest are lit; his helmet and backpack are dim.
+    - The Milky Way is fainter than before, because the glow in front of it is now at its measured strength. Away from the ecliptic the glow's fall-off is our assumption (flattened to 0.45), and the formula is used out to about 35° where it was measured to 30°.
+    - The Earth's night-side brightness is our arithmetic (full Moon taken as magnitude −12.7, 0.6 fainter at this phase; our reading of reflectance from the satellite picture). It could be off by a factor of two. Its clouds are those of 8 January 2024, not 2039; the Arctic polar night, which the satellite does not see, is filled with the land just south of it, mirrored.
+    - The sunlit crescent still carries NASA's colours, not that day's geography. Mars saturates to white at its centre. Mercury sits in the Sun's glare, mostly under the app's header.
+    - How high the Sun and the Earth stood above the horizon at a named site on that date was not computed.
+    - The small people are still our drawing and were not compared with real footage.
+    - Credits for the caption: NASA; NASA's Scientific Visualization Studio (Deep Star Maps 2020; Gaia DR2: ESA/Gaia/DPAC); NASA GIBS (VIIRS, Suomi NPP); star positions from the HYG database (CC BY-SA 4.0).
+  - Cost: JPL's ephemeris (32 MB) and one GIBS picture downloaded, not kept in the repository. No AI clip. AI credit spent: $0.
+
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**

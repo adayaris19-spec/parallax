@@ -240,3 +240,21 @@ The owner saw things glitching, a picture less smooth and clear, and an astronau
 - `start` 194 puts the moments where the source turns back at 5.6 s, 12.4 s (camera on the sky) and 19.25 s (before the rock comes into view); with `turn_ease` 20 each is a soft stop.
 - Final file: the plan's `crf`, `maxrate`, `tune` and `gop` go to the encoder. This reel: 18, 10M, film, a keyframe every 2 s.
 
+
+## Moon base reel: the sky of a real date (Nov 24, 2026, fourth version)
+
+The owner: fix what was listed as wrong, and add detail.
+
+- Plan: `moonbase-v15.json`. Spec: `specs/night_v15_one.json`. Render as before.
+- `earth_face.py "2039-01-08 14:00" EPHEMERIS_DIR GIBS.jpg OUT.npy [RADIUS_PX]` prints where the Sun, the Earth and the planets stand as seen from the Moon at that moment (JPL DE440, `de440s.bsp` from naif.jpl.nasa.gov, 32 MB, not kept here) and writes the face of the Earth turned to the Moon, south up, from one day of NASA GIBS imagery.
+- How the date was found: every January from 2026 to 2040, the moment the Earth stands 21.5 degrees from the Sun on the side NASA's frame shows; among those, the one with the Sun near ecliptic longitude 292 degrees and the Earth nearest the ecliptic (NASA drew it level with the Sun). 8 January 2039: Earth 0.44 degrees off.
+- New in a spec for `night_fall.py`:
+  - `earth.offset`: where our Earth is drawn relative to where the source has it (the source's is erased). The sky layers, `discs` and `protect` now move with the Earth's own track, steadied, because the sky is infinitely far; they used to move with the far ridge and slid up to 25 px against the Earth.
+  - `stars.planets`: `name`, `dlon` (degrees of longitude from the Sun), `lat`, `mag`, `ci` (colour).
+  - `stars.sky_map.f10`: the map's sum for a 10th-magnitude star (0.0399 for the 64k map at 105 px a degree, measured on 2,070 catalogue stars; the map is a true flux scale, slope -0.388 against -0.400). It puts the map in S10 units.
+  - `stars.sky_map.zodiacal`: `s10` / sin(angle from the Sun) ^ `power` on the ecliptic (393 and 2.45: Clementine's fit, eq. 5 of arXiv astro-ph/0204111, valid 3 to 30 degrees), `flatten` for the fall-off away from the ecliptic (0.45, our assumption). It is added to the map before the exposure curve. `stars.zodiacal` (a level picked by eye) is no longer used.
+  - `stars.sky_map.earth_night`: `file` from `earth_face.py`, `at`, `s10_white` (what a white surface facing the Moon sends back: 70,000 S10 by our arithmetic).
+  - `stars.sky_map.shoulder`: the exposure curve presses bright parts together.
+  - `overlay.lamp_pool`: where the figure's own helmet lamps fall (`at`, `radius`, `level`); the rest of it takes `shade`.
+- `flash_scan.py` now moves each frame's neighbours onto it place by place (optical flow), so depth motion and travelling things are no longer counted and all frames can be scanned. With a second argument it writes strips of the strongest finds.
+- A lander now fires short attitude jets (a quarter of a second, about every 1.8 s).
