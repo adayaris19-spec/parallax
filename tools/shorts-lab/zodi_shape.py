@@ -5,10 +5,11 @@
 # the Sun (its eqs. 6 to 8 and Table II). This computes that model and writes, for each direction near the Sun, the brightness
 # there divided by the brightness on the ecliptic at the same angle from the Sun. night_fall.py multiplies eq. 5 by it.
 #
-# The model needs a law for how dust scatters light by angle. The paper used Hong's (1985): three Henyey-Greenstein terms with
-# asymmetries 0.70, -0.20, -0.81 and weights 0.665, 0.330 and the rest (0.005). The table is made with it. Light scattered
-# equally in all directions is run beside it to show how much the choice matters; that difference is printed and kept with
-# the table as its uncertainty.
+# The model needs a law for how dust scatters light by angle. The paper used Hong's (1985, IAU Colloquium 85, p. 217, Table I):
+# three Henyey-Greenstein terms with asymmetry factors 0.698, -0.203, -0.813 and weights 0.665, 0.330, 0.005. The table is made
+# with it. (Hong fitted it to the sky 15 degrees and more from the Sun; the Clementine paper uses it closer in, and so do we.)
+# Light scattered equally in all directions is run beside it to show how much the choice matters; that difference is printed
+# and kept with the table as its uncertainty.
 #
 # usage: python zodi_shape.py OUT.json
 import sys, json, math, numpy as np
@@ -27,7 +28,7 @@ H = {}
 for k, sg in SIG.items(): bs, hb, c = h_of_beta(sg); H[k] = hb; print("dust '%s': normalisation %.3f (paper: %s)" % (k, c, {"low": "10.27", "high": "2.190"}[k]))
 H["iso"] = np.ones_like(bs)
 def hg(g, ph): return (1 - g * g) / (1 + g * g - 2 * g * np.cos(ph)) ** 1.5
-LAWS = {"Hong 1985": lambda ph: 0.665 * hg(0.70, ph) + 0.330 * hg(-0.20, ph) + 0.005 * hg(-0.81, ph), "equal in all directions": lambda ph: np.ones_like(ph)}
+LAWS = {"Hong 1985": lambda ph: 0.665 * hg(0.698, ph) + 0.330 * hg(-0.203, ph) + 0.005 * hg(-0.813, ph), "equal in all directions": lambda ph: np.ones_like(ph)}
 def Z(theta, phi, psi):
     """eq. 8 without its constant: brightness toward ecliptic latitude theta, longitude phi from the Sun (radians)"""
     eps = math.acos(math.cos(phi) * math.cos(theta)); ph = np.linspace(eps, math.pi, 3000)[1:-1]

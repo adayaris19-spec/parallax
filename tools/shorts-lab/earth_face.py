@@ -23,15 +23,15 @@ m = earth.at(t).observe(moon).position.km; m = m / np.linalg.norm(m); d = -m; e 
 up = south - south.dot(d) * d; up /= np.linalg.norm(up); right = np.cross(d, up); q = 4; n = int(2 * (R + 3)) * q; gy, gx = np.mgrid[0:n, 0:n].astype(np.float64); u = (gx - n / 2 + 0.5) / (R * q); v = (gy - n / 2 + 0.5) / (R * q); rho = np.hypot(u, v); z = np.sqrt(np.clip(1 - rho * rho, 0, 1))
 P = u[..., None] * right - v[..., None] * up + z[..., None] * m; lat = np.degrees(np.arcsin(np.clip(P[..., 2], -1, 1))); lon = wrap(np.degrees(np.arctan2(P[..., 1], P[..., 0])) - t.gast * 15.0)
 sub = wgs84.subpoint_of(earth.at(t).observe(moon)); c = n // 2; print("under the Moon: lat %.2f lon %.2f (the middle of the disc maps to lat %.2f lon %.2f)" % (sub.latitude.degrees, sub.longitude.degrees, lat[c, c], lon[c, c]))
-tex = cv2.imread(img).astype(np.float32) / 255.0; th, tw = tex.shape[:2]; miss = cv2.dilate((tex.max(2) < 0.02).astype(np.uint8), np.ones((5, 5), np.uint8))      # where the satellite has no picture: the polar night, gaps between passes
+tex = cv2.imread(img).astype(np.float32) / 255.0; th, tw = tex.shape[:2]; miss = cv2.dilate((cv2.GaussianBlur(tex.max(2), (0, 0), 1.0) < 0.07).astype(np.uint8), np.ones((9, 9), np.uint8))      # where the satellite has no picture: the polar night, gaps between passes
 rows = np.nonzero(miss.mean(1) > 0.5)[0]; cap = int(rows[rows < th // 2].max()) + 1 if (rows < th // 2).any() else 0      # the northern polar night is filled with the land and cloud just south of it, mirrored; small gaps from their surroundings
-if cap: tex[:cap] = tex[2 * cap - 1:cap - 1:-1][:cap]; miss[:cap] = 0
-tex = cv2.inpaint((tex * 255).astype(np.uint8), miss, 4, cv2.INPAINT_TELEA).astype(np.float32) / 255.0; tex = cv2.GaussianBlur(tex, (0, 0), 1.0)
+if cap: tex[:cap] = tex[2 * cap - 1:cap - 1:-1][:cap]; miss[:cap] = miss[2 * cap - 1:cap - 1:-1][:cap]      # (gaps in the rows copied are still gaps: they used to be copied in as black spots)
+tex = cv2.inpaint((tex * 255).astype(np.uint8), miss, 4, cv2.INPAINT_TELEA).astype(np.float32) / 255.0; tex = cv2.GaussianBlur(tex, (0, 0), 0.6)      # (softened less than before: beside pin-sharp stars a soft Earth read as a low-resolution picture; cloud tops also darken less toward the edge than a matt ball would, hence z ** 0.6)
 samp = cv2.remap(tex, ((lon + 180) / 360 * tw - 0.5).astype(np.float32), ((90 - lat) / 180 * th - 0.5).astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
-refl = np.clip(samp, 0, 1) ** 2.2 * z[..., None] + (0.10 * np.exp(-((1 - rho) / 0.035) ** 2) * (rho <= 1))[..., None] * np.array([1.0, 0.8, 0.6])      # the surface, and a thin blue edge where the air is seen edge-on (BGR; its strength is our choice)
-refl = cv2.GaussianBlur(refl, (0, 0), 0.9 * q); cover = np.clip((1 - rho) * R * q / 2.0 + 0.5, 0, 1); res = np.dstack([refl[..., ::-1], cover]).astype(np.float32)      # red green blue, and cover
+refl = np.clip(samp, 0, 1) ** 2.2 * (z ** 0.6)[..., None] + (0.10 * np.exp(-((1 - rho) / 0.035) ** 2) * (rho <= 1))[..., None] * np.array([1.0, 0.8, 0.6])      # the surface, and a thin blue edge where the air is seen edge-on (BGR; its strength is our choice)
+refl = cv2.GaussianBlur(refl, (0, 0), 0.45 * q); cover = np.clip((1 - rho) * R * q / 2.0 + 0.5, 0, 1); res = np.dstack([refl[..., ::-1], cover]).astype(np.float32)      # red green blue, and cover
 res = cv2.resize(res, (n // q, n // q), interpolation=cv2.INTER_AREA); np.save(out, res); print("wrote", out, res.shape, "mean of what the disc sends back %.3f" % float(res[..., :3][res[..., 3] > 0.9].mean()))
-day = cv2.GaussianBlur(np.clip(samp, 0, 1), (0, 0), 0.6 * q); np.save(out[:-4] + "_day.npy", cv2.resize(day[..., ::-1], (n // q, n // q), interpolation=cv2.INTER_AREA).astype(np.float32))
+day = cv2.GaussianBlur(np.clip(samp, 0, 1), (0, 0), 0.45 * q); np.save(out[:-4] + "_day.npy", cv2.resize(day[..., ::-1], (n // q, n // q), interpolation=cv2.INTER_AREA).astype(np.float32))
 if lights:
     lt = cv2.imread(lights).astype(np.float32); lh, lw = lt.shape[:2]; lt = np.clip((lt[..., 1] - 45.0) / 200.0, 0, 1)      # the map is dark blue with the lights on it: what is brighter than the land is light
     sv = earth.at(t).observe(sun).position.km; sv = sv / np.linalg.norm(sv); dark = np.clip((-(P @ sv) - 0.02) / 0.10, 0, 1)      # only where the Sun is down

@@ -301,3 +301,20 @@ The owner: take your time for this one.
   PREPARE=1 python night_fall.py nasa_moonbase.mp4 specs/night_v17_one.json out.mp4
   PART=0,215 python night_fall.py nasa_moonbase.mp4 specs/night_v17_one.json one_a.mp4     (and 215,430 and 430,600 beside it)
   ```
+
+## Moon base reel: colours put back together, a steadier camera, nothing left wrong that can be fixed here (Nov 24, 2026, seventh version)
+
+The owner: take up to six hours, fix what is wrong, maximise the detail, miss nothing.
+
+- Plan: `moonbase-v18.json`. Spec: `specs/night_v18_one.json`.
+- `colour_shift.py IN.raw 3510 1920 OUT.raw` measures how far NASA's lens effect has moved red and blue against green (on the frames' own hard edges, to a fraction of a pixel), fits it as a smooth shift away from a middle point, and moves the two colours back. Run it on the cache `fuse_frames.py` wrote, into a third folder under the same file name. `MEASURE=1` only measures. For this take: red up to 2.2 px and blue up to 3.8 px off at the left edge of the strip before; 0.05 and 0.5 px after.
+- New in a spec for `night_fall.py`:
+  - `path.ramp`, `path.ramp_y`: seconds a camera move takes to get up to speed and to slow down; in between its speed is steady. The same travel then has a much lower top speed than an S-curve gives, so the shutter blurs less.
+  - `dark_clean`: `size`, `below`, `faint`. Thin faint lines in the dark (the source's lens streaks) are taken out; anything clearly brighter is left.
+  - `night_rims`: `limit`, `size`. In the night picture, thin edges that the Sun lit are held back, so modules have no pale outline with the Sun gone.
+  - `night_detail_limit`: the night's extra ground detail is brightness only and held under this many levels.
+  - on a `person`: `work` takes a fourth number, how far they go down on their knees (0 to 1); `trail`: how much darker the ground is left where they have walked. A figure's shadow follows its pose.
+  - the small figures' proportions are measured on NASA photograph AS11-40-5903.
+- `zodi_shape.py` now uses the numbers of Hong's own Table I (0.698, −0.203, −0.813; weights 0.665, 0.330, 0.005).
+- `astro_4k.py ... 0.48 ...`: the astronaut is shown a fifth larger than before, still brought down from 4K in one step.
+- Order of work on the source: decode (by `night_fall.py`) → `fuse_frames.py` → `colour_shift.py` → `PREPARE=1` → render.
