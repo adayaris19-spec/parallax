@@ -293,7 +293,7 @@
  "lufs": -15.0,
  "crf": 18,
  "maxrate": "9300k",
- "grade": "",
+ "grade": "colorbalance=bh=0.04:gs=-0.015:bs=0.008",
  "sub_gap": 0.0,
  "subs": {
   "font": "Inter Display Medium",

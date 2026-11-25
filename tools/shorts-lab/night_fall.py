@@ -359,7 +359,7 @@ def sky_piece(layer, dx, dy, y0r, Hh, c0, c1):
     fx, fy = 100.0 - dx, 100.0 - dy + EXT + y0r; ix, iy = int(math.floor(fx)), int(math.floor(fy))
     a = np.ascontiguousarray(layer[iy - 3:iy + Hh + 4, ix + c0 - 3:ix + c1 + 4]).astype(np.float32)
     return np.maximum(cv2.warpAffine(a, np.float32([[1, 0, -(3 + fx - ix)], [0, 1, -(3 + fy - iy)]]), (c1 - c0, Hh), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE), 0)
-FLANK = [None]; LENSB = [None]
+FLANK = [None]; LENSB = [None]; SUNVIS = [1.0]
 def frame(j):
     """j: output frame number"""
     FLANK[0] = None; LENSB[0] = None
@@ -398,7 +398,7 @@ def frame(j):
         # "sun_drop": how far below the source's place the Sun stands, in pixels, through the take. A ridge's shadow can only grow over the plain if the Sun sinks toward that ridge; the source's Sun never moves.
         rdr_ = np.hypot(xx - spec["stars"]["sun_xy"][0] - sox, yy - spec["stars"]["sun_xy"][1] - soy - drop_) if (drop_ or spec.get("sun_height")) else rsun; kd_ = 1.0 / (1.0 + (rdr_ / sc_.get("core", 75.0)) ** 2)      # So the sky is drawn with the Sun where the shadow says it is (the ridge hides whatever of it is below the skyline)
         vis_ = 1.0                                                          # how much of the Sun's disc is above the ridge, as a part of it. There is no air on the Moon: every glow round the Sun is made in the lens, by the part of the Sun the lens sees
-        if spec.get("sun_height") and SKYL is not None: hh_ = float(np.clip(key("sun_height", t) / float(sc_.get("disc", 28.0)), -1, 1)); vis_ = (1.0 - (np.arccos(hh_) - hh_ * np.sqrt(1.0 - hh_ * hh_)) / np.pi) ** 0.45      # (to the power 0.45: the glow is drawn in the picture's levels, which follow light to about that power)
+        if spec.get("sun_height") and SKYL is not None: hh_ = float(np.clip(key("sun_height", t) / float(sc_.get("disc", 28.0)), -1, 1)); vis_ = (1.0 - (np.arccos(hh_) - hh_ * np.sqrt(1.0 - hh_ * hh_)) / np.pi) ** 0.45; SUNVIS[0] = vis_ ** (1 / 0.45)      # (to the power 0.45: the glow is drawn in the picture's levels, which follow light to about that power)
         sky0_ = fl_ + (np.stack([np.interp(rdr_, RB, VEIL[i, :, c_]) for c_ in range(3)], -1).astype(np.float32) - fl_) * (kd_ * vis_)[..., None] if (drop_ or spec.get("sun_height")) else fl_ + (vv_ - fl_) * kv_[..., None]      # the sky near the Sun, as the glow alone would have it: smooth, without the source's coloured lens spots and streaks
         sline = np.interp(xx[0] - dx, SKYL[:, 0], SKYL[:, 1])[None] + dy; above = np.clip((sline - 5.0 - yy) / 3.0, 0, 1) * (xx[0] - dx >= spec.get("skyline_near_x", 1170) - 60)[None]      # the sky itself holds nothing but that glare, the source's coloured lens spots and its streaks: all of it above the traced line is set to black
         for (px, py, pr) in spec.get("discs", []): eox, eoy = off(px, py, i); above = above * np.clip((np.hypot(xx - px - eox, yy - py - eoy) - pr - 8.0) / 3.0, 0, 1)      # (not the Earth)
@@ -713,7 +713,8 @@ def stand_behind(fr, t, xw, yw, i):
     if foc > 0.3: fr = cv2.GaussianBlur(fr, (0, 0), foc)
     if ov.get("sun_rim"):                                                   # the Sun is behind it and in view: the edges turned to the Sun catch it. A thin bright line along them, and a wider, weaker light that wraps a little way round, as it does on anything round
         sr = ov["sun_rim"]; sdx, sdy = sr.get("dir", [0.13, -0.99]); ed = lambda d_: np.clip(alpha - cv2.warpAffine(alpha, np.float32([[1, 0, -d_ * sdx], [0, 1, -d_ * sdy]]), (OW, 1920), borderMode=cv2.BORDER_REPLICATE), 0, 1)      # (replicated at the picture's edge: where the frame cuts the figure there is no silhouette to light)
-        gate = float(np.clip((t - sr.get("from_t", -1.0)) / 0.5, 0, 1)); rim_ = (cv2.GaussianBlur(ed(sr.get("width", 3.0)), (0, 0), 0.9) * sr.get("level", 0.85) + cv2.GaussianBlur(ed(sr.get("wrap_px", 26.0)), (0, 0), 9.0) * sr.get("wrap", 0.15)) * alpha * gate
+        gate = float(np.clip((t - sr.get("from_t", -1.0)) / 0.5, 0, 1)) * (SUNVIS[0] ** 0.45 if spec.get("sun_height") else 1.0)      # (as much rim as there is Sun above the crest, on the picture's levels)
+        rim_ = (cv2.GaussianBlur(ed(sr.get("width", 3.0)), (0, 0), 0.9) * sr.get("level", 0.85) + cv2.GaussianBlur(ed(sr.get("wrap_px", 26.0)), (0, 0), 9.0) * sr.get("wrap", 0.15)) * alpha * gate
         own_ = np.clip(cv2.GaussianBlur(sub.max(2), (0, 0), 3.0) / np.maximum(cv2.GaussianBlur(alpha, (0, 0), 3.0), 0.05) / (255.0 * max(float(np.mean(ov.get("shade", [1.0]))), 0.05)), 0.15, 1.0)      # white cloth catches the Sun brightly, dark glass and black fittings hardly
         sub = sub + (rim_ * own_)[..., None] * np.array(sr.get("colour", [250.0, 246.0, 238.0]), np.float32)[::-1]
     if mask is not None:
