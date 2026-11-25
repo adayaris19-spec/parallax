@@ -425,6 +425,7 @@ def frame(j):
         gt = np.array(spec["ground_top"], np.float32); above = yy < np.interp(xx[0] - dx, gt[:, 0], gt[:, 1])[None] + dy
         if spec.get("ground_top_from"): xa_, xb_ = spec["ground_top_from"]; u_ = np.clip((xx[0] - dx - xa_) / (xb_ - xa_), 0, 1); gm = gm * (1 - (u_ * u_ * (3 - 2 * u_))[None] * above)      # the rule comes in gradually across the picture, so it leaves no edge
         else: gm[above] = 0.0
+    if SKYL is not None and spec.get("sky_clean"): gm = gm * np.clip((yy - (np.interp(xx[0] - dx, SKYL[:, 0], SKYL[:, 1])[None] + dy) + 3.0) / 3.0, 0, 1)      # nothing above the traced skyline is ground, however bright the source is there (its glare round its own Sun was taken for ground and darkened at night)
     ground = np.maximum(cv2.GaussianBlur(gm, (0, 0), 2.0), gm)
     if spec.get("defringe", 0) > 0:                                        # the source's lens effect puts thin green, purple and orange rims on hard edges; a film lens does this far less
         mx_ = o.max(2); sat_ = (mx_ - o.min(2)) / np.maximum(mx_, 1.0); edge = cv2.dilate((np.abs(cv2.Sobel(lum, cv2.CV_32F, 1, 0, ksize=3)) + np.abs(cv2.Sobel(lum, cv2.CV_32F, 0, 1, ksize=3)) > 90).astype(np.float32), EL7)
@@ -460,7 +461,7 @@ def frame(j):
     else: m[ang < 0] = 0.0; m = np.maximum(m, crest_dark(t) * (ang < 6)) * ground
     if ridge_s is not None and FRONT.get("ridge_face_first", False) and SKYL is not None:      # the ridge's own face, between its foot and its crest, is nearer the crest than its foot is: it loses the Sun first and gets it back last.
         rim_ = np.clip(1.0 - (yy - (np.interp(xx[0] - dx, SKYL[:, 0], SKYL[:, 1])[None] + dy)) / float(FRONT.get("rim_px", 8.0)), 0, 1)      # Only the crest line itself (its top "rim_px" pixels) keeps the light as long as the high ground does
-        fd_ = float(np.clip(leadv(BANDS[0]["lead"], t) / 8.0, 0, 1)); m = np.where(ridge_s, np.maximum(fd_ * (1 - rim_), crest_dark(t) * rim_), m).astype(np.float32) * ground
+        fd_ = float(np.clip((FRONT.get("h_face", 300.0) - key("sun_height", t)) / max(FRONT.get("h_face", 300.0) - FRONT.get("h_foot", 250.0), 1.0), 0, 1)) if FRONT.get("h_foot") else float(np.clip(leadv(BANDS[0]["lead"], t) / 8.0, 0, 1))      # the face goes dark as the Sun sinks from "h_face" to "h_foot" above the crest, before the ground at its foot, and gets the light back after it m = np.where(ridge_s, np.maximum(fd_ * (1 - rim_), crest_dark(t) * rim_), m).astype(np.float32) * ground
     # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
     # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
     # The few pixels where dark and sunlit meet are a mix, and the source has thin coloured rims there, so they are filled in from both sides.
