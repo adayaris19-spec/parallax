@@ -381,3 +381,9 @@ Added after the ninth independent review (render 13):
 - `edge_fingers.deg` 28 with `front.rel_grow` 30: the lobes of the shadow's edge are as long as a peak's shadow should make them.
 - `overlay.rock.shadow` 0.7: the astronaut's shadow on the sunlit rock top in front of him.
 - Plan `sub_bridge` (seconds) in `make_video.py`: a caption that follows the last within that time takes over exactly where it ends. A gap of a fraction of a frame had shown as a one-frame blink.
+
+Added after the tenth independent review (render 14):
+- The second dusk's `sun_height` keys follow the first dusk's (the same Sun heights the same time after the light is full), so the shadow crosses the plain at the same pace both times.
+- `edge_fingers.deg` 22 and `peaked` 0.7: lobes between the ninth review's "ruler-straight" and the tenth's "detached wedges".
+- The astronaut's rim light is scaled by the part of the Sun above the crest.
+- Plan `grade` `colorbalance=bh=0.04:gs=-0.015:bs=0.008` (at encode): sunlit ground warm grey rather than cream (blue 197 against green 202, was 190 against 203), shade and the black sky neutral (they were a little green).

@@ -281,6 +281,10 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - **What is behind is hidden with its glow.** A body going behind a ridge is cut flat with its bright core; only the wide glare passes over.
     - **Captions never blink.** Phrases less than 0.3 s apart meet exactly; no frame without a caption between them.
     - **Nothing drawn reads as a second copy.** A small detail beside a moving thing (a jet puff, a reflection) must not look like a faint double of it.
+  - **What the tenth independent review found, as rules (drafts):**
+    - **One time-lapse rate.** Two dusks in one take run at the same pace: the same Sun heights the same time after full light.
+    - **Light that follows the Sun fades with it.** A rim lit by the Sun weakens as the Sun goes behind the crest.
+    - **Neutral is measured.** Shade and black are checked for a colour cast on the file as sent (here a slight green), and sunlit ground for a cream cast that reads as snow.
     - **Sharpening is sized by measurement, and a remark is tested before it is obeyed.** The finest band (1 px) at most 1.1, which the blur measured on the source (0.72 px) justifies; wider bands at most 0.5 (3 px) and 0.2 (9 px). A reviewer called the ground "etched" at those values; cutting them to 0.15 was tried, a second reviewer made the same remark after the cut, and measured detail fell by a tenth to a quarter. They were put back.
     - **A fix may not cost detail unseen.** After any change made for realism, fine detail is measured against the last version the owner saw, on the same ground, before the video is sent.
     - **A picture pasted on a star field is as sharp as the stars.** The Earth's face is softened by at most 0.45 px, and gaps in the satellite picture are filled, not shown as black.
