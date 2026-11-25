@@ -356,3 +356,10 @@ Added after the fifth independent review (render 9):
 - `shadow_fill.zones` [{`poly`, `rel`}]: places traced on the reference frame where the Sun's old shadows are lighter than the "dark" test catches; there a pixel darker than `rel` of the sunlit ground close by counts as shadow. Each zone moves with the tracked lamp nearest to it. The fill shifts its borrowed texture without wrapping round (a wrap had left a seam).
 - `deep` at night 0.65: the night's ground is darker than NASA's daytime shadows, because in a daytime shadow most of the fill light comes off the sunlit plain round it, and at night there is none.
 - `sun_spikes` are drawn only while the Sun's image falls on the picture.
+
+Added after the sixth independent review (render 10):
+- `front.h_foot`: the crest stands well behind the ridge's foot. The shadow reaches the foot only once the Sun is `h_foot` px above the crest (seen from the camera), and the whole plain to the camera when it reaches the crest. With the camera at 0 and the crest at 1 along the line of sight, the edge lies at h / (crest_px + h) and the foot at h_foot / (crest_px + h_foot). Without it the crest stood right over the foot, and a Sun at NASA's height would already have shadowed a band at the foot, which NASA's picture does not show.
+- The `ground_top` rule ("nothing above this line is ground the shadow can reach") is off when `front.ridge_face_first` is on: it had kept a hill at the ridge's foot sunlit through the dusk.
+- `shadow_fill.reach_px`: how far past an old shadow's dark core the fill goes (its soft edge is wider; 6). The night's relief is not drawn along the edges of old shadows either.
+- `overlay.rock.crest_rough`: fixed small bumps (px) along the rock's traced top line, which was straight between its points.
+- The astronaut's rim light is not drawn where the picture's edge cuts him.

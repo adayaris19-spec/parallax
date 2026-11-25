@@ -265,6 +265,11 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - **Night is darker than a daytime shadow.** In daylight a shadow is filled by light off the sunlit ground round it; when the whole plain is in shadow that fill is gone. The night's ground is 0.65 of NASA's shadow level.
     - **A lens star only from a light in the picture.**
     - **No two drawn figures in lockstep a body's height apart:** it reads as one sprite drawn twice.
+  - **What the sixth independent review found, as rules (drafts):**
+    - **The light model must agree with the source's own first frame.** Where the source shows ground sunlit, the model may not put it in shadow at that moment (here: the crest had to stand behind the ridge's foot, not over it).
+    - **An old rule is checked against a new model.** When the way light works is changed, every earlier rule that assumed the old way is found and removed (a "keeps its light" rule had kept a hill lit at the ridge's foot).
+    - **A hidden thing leaves no outline.** When an old shadow is filled, its soft edge goes too, and no sharpening may draw its outline back.
+    - **Nothing lights the edge of the picture.** A rim or glow is drawn only on a silhouette, never where the frame cuts a figure.
     - **Sharpening is sized by measurement, and a remark is tested before it is obeyed.** The finest band (1 px) at most 1.1, which the blur measured on the source (0.72 px) justifies; wider bands at most 0.5 (3 px) and 0.2 (9 px). A reviewer called the ground "etched" at those values; cutting them to 0.15 was tried, a second reviewer made the same remark after the cut, and measured detail fell by a tenth to a quarter. They were put back.
     - **A fix may not cost detail unseen.** After any change made for realism, fine detail is measured against the last version the owner saw, on the same ground, before the video is sent.
     - **A picture pasted on a star field is as sharp as the stars.** The Earth's face is softened by at most 0.45 px, and gaps in the satellite picture are filled, not shown as black.
