@@ -374,3 +374,10 @@ Added after the eighth independent review (render 12):
 - `front.rel_grow`: in the front model the lobes of the shadow's edge and the ground's relief grow with the distance from the ridge's foot (full at 60 of the 200 scale): a peak lengthens the shadow by a part of its length, and at the foot by nothing. Fixed in size, they had left a dark band at the foot with a straight top.
 - The wide glow drawn round the Sun (the measured lens glare) is laid over the ground in front of the Sun as well.
 - `overlay.shade` at the night's level (0.236, 0.235, 0.246): a white suit in shade is as bright, for its whiteness, as the ground in shade.
+
+Added after the ninth independent review (render 13):
+- The Sun's bright bloom close round its disc is drawn on the sky only (with `sky_clean.bloom_spill`, 0.2, of it over the ridge), so the crest cuts it flat with the disc; the wide glare and the measured glow go over everything. Laid over the ridge in full, the bloom had looked like a whole disc in front of the crest.
+- Landers: `core` (the engine's glowing point and its glow, 0.5) and `jets` (false: the side-jet puffs 21 px off the body read as a ghost of the craft).
+- `edge_fingers.deg` 28 with `front.rel_grow` 30: the lobes of the shadow's edge are as long as a peak's shadow should make them.
+- `overlay.rock.shadow` 0.7: the astronaut's shadow on the sunlit rock top in front of him.
+- Plan `sub_bridge` (seconds) in `make_video.py`: a caption that follows the last within that time takes over exactly where it ends. A gap of a fraction of a frame had shown as a one-frame blink.
