@@ -368,3 +368,9 @@ Added after the seventh independent review (render 11):
 - Nothing above the traced skyline is ground. The source's glare round its own Sun had been taken for ground (it is bright, so not "sky"), and was darkened at night; the old way round it was a `protect` circle of 430 px round the source's Sun, which, once the Sun sinks to the crest, kept a disc of the ridge's face out of the shadow. The circle is now 90 px.
 - `front.h_face`: the ridge's face goes dark as the Sun sinks from `h_face` to `h_foot` above the crest, so before the ground at its foot, and gets the light back after it.
 - More `shadow_fill.zones` (the rover's shadow and the masts' shadows on the plain right of the base).
+
+Added after the eighth independent review (render 12):
+- The ridge's face (between its foot, `ground_top`, and the traced skyline): each point at height q on it (0 foot, 1 crest) loses the Sun when the Sun sinks below `front.h_foot` x (1 - q) ^ `front.face_power` above the crest, so the shadow climbs the face from the foot to the crest at dusk and comes back down at dawn, meeting the plain's edge at the foot. It replaces `h_face` and the face's one-block darkening.
+- `front.rel_grow`: in the front model the lobes of the shadow's edge and the ground's relief grow with the distance from the ridge's foot (full at 60 of the 200 scale): a peak lengthens the shadow by a part of its length, and at the foot by nothing. Fixed in size, they had left a dark band at the foot with a straight top.
+- The wide glow drawn round the Sun (the measured lens glare) is laid over the ground in front of the Sun as well.
+- `overlay.shade` at the night's level (0.236, 0.235, 0.246): a white suit in shade is as bright, for its whiteness, as the ground in shade.
