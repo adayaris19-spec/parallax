@@ -270,6 +270,9 @@ Draft confirmed Nov 21; three rules added Nov 22 after the first moving clip.
     - **An old rule is checked against a new model.** When the way light works is changed, every earlier rule that assumed the old way is found and removed (a "keeps its light" rule had kept a hill lit at the ridge's foot).
     - **A hidden thing leaves no outline.** When an old shadow is filled, its soft edge goes too, and no sharpening may draw its outline back.
     - **Nothing lights the edge of the picture.** A rim or glow is drawn only on a silhouette, never where the frame cuts a figure.
+  - **What the seventh independent review found, as rules (drafts):**
+    - **A rule made for one place goes with the thing it protects.** A circle round the source's Sun was right while the Sun stayed there; once the Sun moved it cut a disc out of the shadow. Above the traced skyline is sky, below it ground, everywhere.
+    - **The order of the light is checked both ways.** At dusk the ground nearest the ridge goes dark first; at dawn it gets the light last. Each is checked on frames before a render.
     - **Sharpening is sized by measurement, and a remark is tested before it is obeyed.** The finest band (1 px) at most 1.1, which the blur measured on the source (0.72 px) justifies; wider bands at most 0.5 (3 px) and 0.2 (9 px). A reviewer called the ground "etched" at those values; cutting them to 0.15 was tried, a second reviewer made the same remark after the cut, and measured detail fell by a tenth to a quarter. They were put back.
     - **A fix may not cost detail unseen.** After any change made for realism, fine detail is measured against the last version the owner saw, on the same ground, before the video is sent.
     - **A picture pasted on a star field is as sharp as the stars.** The Earth's face is softened by at most 0.45 px, and gaps in the satellite picture are filled, not shown as black.

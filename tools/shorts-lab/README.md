@@ -363,3 +363,8 @@ Added after the sixth independent review (render 10):
 - `shadow_fill.reach_px`: how far past an old shadow's dark core the fill goes (its soft edge is wider; 6). The night's relief is not drawn along the edges of old shadows either.
 - `overlay.rock.crest_rough`: fixed small bumps (px) along the rock's traced top line, which was straight between its points.
 - The astronaut's rim light is not drawn where the picture's edge cuts him.
+
+Added after the seventh independent review (render 11):
+- Nothing above the traced skyline is ground. The source's glare round its own Sun had been taken for ground (it is bright, so not "sky"), and was darkened at night; the old way round it was a `protect` circle of 430 px round the source's Sun, which, once the Sun sinks to the crest, kept a disc of the ridge's face out of the shadow. The circle is now 90 px.
+- `front.h_face`: the ridge's face goes dark as the Sun sinks from `h_face` to `h_foot` above the crest, so before the ground at its foot, and gets the light back after it.
+- More `shadow_fill.zones` (the rover's shadow and the masts' shadows on the plain right of the base).
