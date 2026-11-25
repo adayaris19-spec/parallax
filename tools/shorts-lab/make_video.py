@@ -27,7 +27,7 @@ for ln in plan["lines"]:
     w = words[ln["id"]]; starts = [0.0] + [w[i][1] for i in ln.get("split", [])]; end = w[-1][2] + plan.get("sub_tail", 0.30)      # a phrase stays until the next begins; the last of a line stays a moment after its last word
     for j, text in enumerate(ln["text"]): subs.append((ln["at"] + starts[j], ln["at"] + (starts[j + 1] if j + 1 < len(starts) else end), text))
 voice = voice[:int(total * SR)]
-subs = [(a, min(b, subs[i + 1][0] - plan.get("sub_gap", 0.04)) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once
+subs = [(a, (subs[i + 1][0] if subs[i + 1][0] - b < plan.get("sub_bridge", 0.0) else min(b, subs[i + 1][0] - plan.get("sub_gap", 0.04))) if i + 1 < len(subs) else b, t) for i, (a, b, t) in enumerate(subs)]      # never two phrases at once; with "sub_bridge" a phrase that follows within that many seconds takes over exactly where the last ends (a gap of a fraction of a frame showed as a one-frame blink)
 def at_cut(a, b):                                                         # a phrase whose words are over does not hang on into the next shot
     for c in cuts[:-1]:
         if a < c / FPS - 0.5 and c / FPS - 0.02 < b < c / FPS + 0.45: return c / FPS - 0.02

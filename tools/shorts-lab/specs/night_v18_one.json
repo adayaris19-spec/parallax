@@ -2041,7 +2041,9 @@
    "size": 1.1,
    "lit_part": 0.12,
    "flame_light": 0.0,
-   "fan": 0.55
+   "fan": 0.55,
+   "core": 0.5,
+   "jets": false
   },
   {
    "type": "orbiter",
@@ -2165,7 +2167,9 @@
    "size": 1.1,
    "lit_part": 0.12,
    "flame_light": 0.0,
-   "fan": 0.55
+   "fan": 0.55,
+   "core": 0.5,
+   "jets": false
   },
   {
    "type": "person",
@@ -2775,7 +2779,7 @@
    3090,
    880
   ],
-  "deg": 16,
+  "deg": 28,
   "seed": 11,
   "peaked": 1.0,
   "octaves": [
@@ -2897,7 +2901,7 @@
     "rim": 12
    },
    "lower": 22.0,
-   "shadow": 0.4,
+   "shadow": 0.7,
    "shadow_dx": -20.0,
    "in_sun_rim": 26,
    "crest_rough": 3.0
@@ -3335,7 +3339,8 @@
   "rim_px": 8.0,
   "h_foot": 250.0,
   "h_face": 300.0,
-  "face_power": 1.5
+  "face_power": 1.5,
+  "rel_grow": 30.0
  },
  "shadow_fill": {
   "flat": 1.6,

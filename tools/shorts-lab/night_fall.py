@@ -405,8 +405,9 @@ def frame(j):
         sw_s = np.maximum(sky.astype(np.float32), above) * (1.0 if (spec.get("sun_drop") or spec.get("sun_height")) else np.clip((rsun - 30.0) / 30.0, 0, 1)); o = o * (1 - sw_s[..., None]) + sky0_ * sw_s[..., None]
         gk_ = np.clip(8.0 * np.maximum(kv_, 1.0 / (1.0 + (rdr_ / sc_.get("core", 75.0)) ** 2)), 0, 1)[..., None]; o = o + (o.mean(2, keepdims=True) - o) * gk_ * sc_.get("neutral", 0.7)      # what is left of the glow is made white: it was blue
         if sc_.get("disc"):                                                 # the Sun itself: a white disc of its true size (0.53 degrees) with the bright bloom a lens gives it, drawn on sky only
-            dsc = 255.0 * np.clip((float(sc_["disc"]) - rdr_) / 3.0 + 1.0, 0, 1); o = np.maximum(o, np.minimum(o + dsc[..., None], 255.0) * sw_s[..., None])
-            LENSB[0] = vis_ * (150.0 * np.exp(-(rdr_ / (1.9 * float(sc_["disc"]))) ** 2) + 26.0 * np.exp(-(rdr_ / (5.5 * float(sc_["disc"]))) ** 2)) if vis_ > 0.002 else None
+            tb_ = vis_ * 150.0 * np.exp(-(rdr_ / (1.9 * float(sc_["disc"]))) ** 2)      # the bright bloom close round the disc: on the sky, so the crest cuts it flat with the disc, and only a little of it over the ridge
+            dsc = 255.0 * np.clip((float(sc_["disc"]) - rdr_) / 3.0 + 1.0, 0, 1) + tb_; o = np.maximum(o, np.minimum(o + dsc[..., None], 255.0) * sw_s[..., None])
+            LENSB[0] = vis_ * 26.0 * np.exp(-(rdr_ / (5.5 * float(sc_["disc"]))) ** 2) + tb_ * sc_.get("bloom_spill", 0.2) * (1 - sw_s) if vis_ > 0.002 else None      # the wide glare over everything
             if LENSB[0] is not None and (spec.get("sun_drop") or spec.get("sun_height")): LENSB[0] = LENSB[0] + ((sky0_ - fl_).mean(2) * (1 - sw_s))      # the wide glow drawn on the sky (the measured lens glare) goes over the ground in front of the Sun too, not only up to the crest
             if LENSB[0] is not None and spec.get("sun_spikes"):             # the same lens that gives every lamp a four-pointed star gives the Sun one too, far longer: [length in px, level]
                 sl_, sv_ = spec["sun_spikes"]; ex_ = np.abs(xx - spec["stars"]["sun_xy"][0] - sox); ey_ = np.abs(yy - spec["stars"]["sun_xy"][1] - soy - drop_)
@@ -591,12 +592,12 @@ def frame(j):
                 flick = 1.0 + 0.05 * math.sin(t * 7.3) + 0.03 * math.sin(t * 12.1)          # the flame breathes slowly; nothing here changes faster than 24 frames a second can show
                 streak_ = 1.0 + 0.22 * np.sin(d_ / (1.6 + 0.05 * sp_) + t * 2.0) * np.clip(sp_ / 40.0, 0, 1)      # the fan is not smooth: it is drawn out in fine streaks that drift
                 th_p = np.arctan2(np.abs(d_), s_); rho_p = np.hypot(s_, d_)      # with nothing round it to hold it in, exhaust opens into a wide soft fan (here to about 60 degrees either side of its axis) and thins with the square of the distance: no beams, no edges
-                v_ = 255.0 * np.exp(-(X * X + Y * Y) / (2 * 2.2 ** 2)) + 60.0 * flick * np.exp(-(X * X + Y * Y) / (2 * 7.0 ** 2)) + mv.get("plume", 1.0) * flick * (1.0 + 0.06 * (streak_ - 1.0)) * 120.0 * np.exp(-(th_p / mv.get("fan", 0.55)) ** 2) / (1.0 + (rho_p / 20.0) ** 2) * np.exp(-rho_p / 260.0)
+                v_ = mv.get("core", 1.0) * (255.0 * np.exp(-(X * X + Y * Y) / (2 * 2.2 ** 2)) + 60.0 * flick * np.exp(-(X * X + Y * Y) / (2 * 7.0 ** 2))) + mv.get("plume", 1.0) * flick * (1.0 + 0.06 * (streak_ - 1.0)) * 120.0 * np.exp(-(th_p / mv.get("fan", 0.55)) ** 2) / (1.0 + (rho_p / 20.0) ** 2) * np.exp(-rho_p / 260.0)
                 colr = np.array([1.0, 0.93, 0.86], np.float32)
                 # the craft itself, as small as it would be from here, leaning the way its engine pushes; and a strobe that flashes
                 bx, by = X + ax_ * 16.0, Y + ay_ * 16.0; strobe = 255.0 * np.exp(-(bx ** 2 + by ** 2) / (2 * 1.3 ** 2)) * (1.0 if ((t + 0.55) % 1.1) < 0.13 else 0.0); v_ = v_ + strobe
                 jp_ = (t * 0.55 + mv["path"][0][0] * 0.37) % 1.0                    # now and then a small jet to one side keeps it upright: a short sunlit puff (a quarter of a second, rising and falling smoothly)
-                if jp_ < 0.14:
+                if jp_ < 0.14 and mv.get("jets", True):
                     je_ = math.sin(math.pi * jp_ / 0.14) ** 2; js_ = 1.0 if int(t * 0.55 + mv["path"][0][0] * 0.37) % 2 else -1.0; jx_, jy_ = X + ax_ * 21.0, Y + ay_ * 21.0; ja_ = (-jx_ * ay_ + jy_ * ax_) * js_; jc_ = jx_ * ax_ + jy_ * ay_
                     v_ = v_ + 85.0 * je_ * np.exp(-(jc_ / (1.2 + 0.32 * np.maximum(ja_, 0))) ** 2) * np.exp(-np.maximum(ja_, 0) / 13.0) * (ja_ > 2.5)
                 sz_ = mv.get("size", 1.0); spr, sal = lander_sprite(-math.degrees(math.atan2(ax_, ay_)), mv.get("sun_side", 1.0), int(round(26 * sz_)), mv.get("lit_part", 0.5), mv.get("flame_light", 0.0) * flick); ox_, oy_ = px - ax_ * 1.0 - 13.0 * sz_, py - ay_ * 1.0 - 17.5 * sz_      # the engine bell sits on the light

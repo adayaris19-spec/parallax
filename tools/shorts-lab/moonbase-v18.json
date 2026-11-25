@@ -294,7 +294,7 @@
  "crf": 18,
  "maxrate": "9300k",
  "grade": "",
- "sub_gap": 0.02,
+ "sub_gap": 0.0,
  "subs": {
   "font": "Inter Display Medium",
   "size": 58,
@@ -310,5 +310,6 @@
  "fade_out": 0.4,
  "tune": "film",
  "gop": 48,
- "x264": "aq-mode=3"
+ "x264": "aq-mode=3",
+ "sub_bridge": 0.3
 }
