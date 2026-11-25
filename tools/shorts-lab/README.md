@@ -386,4 +386,4 @@ Added after the tenth independent review (render 14):
 - The second dusk's `sun_height` keys follow the first dusk's (the same Sun heights the same time after the light is full), so the shadow crosses the plain at the same pace both times.
 - `edge_fingers.deg` 22 and `peaked` 0.7: lobes between the ninth review's "ruler-straight" and the tenth's "detached wedges".
 - The astronaut's rim light is scaled by the part of the Sun above the crest.
-- Plan `grade` `colorbalance=bh=0.04:gs=-0.015:bs=0.008` (at encode): sunlit ground warm grey rather than cream (blue 197 against green 202, was 190 against 203), shade and the black sky neutral (they were a little green).
+- Plan `grade` (at encode), a curve per colour: `lutrgb=g='clip(val-1.0*exp(-pow((val-35)/25,2))-1.6*exp(-pow(val/7,2)),0,255)':b='clip(val+6*exp(-pow((val-200)/35,2)),0,255)'`. A little more blue only around the sunlit ground's level (cream, 190 against 203, to warm grey, 193 against 202) and a little less green only in deep shade and black. A first try with `colorbalance` (blue in all highlights) turned the dark shots faintly violet and pushed the Sun's near-white glow into clipping.

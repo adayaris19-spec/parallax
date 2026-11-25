@@ -677,6 +677,233 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - Credits for the caption are unchanged.
   - Time and cost: about 1 hour 40 minutes (the one-hour budget was lifted for this version). Three full renders and one stopped early; the first two were replaced after checks found the colour rims and the straight hilltop line. Nothing downloaded. No AI clip. AI credit spent: $0.
 
+- **Owner's verdict on the sixth version (Nov 24, about 17:35 UTC+1):** "Pretty good." Take up to six hours, fix what is wrong, "make sure by the time you submit a video, nothing is really wrong", "add extreme amount of detail [...] maximize that out", "don't miss anything." Rules in `RULES.md` section 2 ("Nothing really wrong at hand-over; detail to the maximum").
+- **Owner, Nov 24, about 22:55 UTC+1:** "Take more time if you need to, because I'm just gonna sleep [...] If you want to add more detail, add it. If you see something wrong, just do it overnight. I'll check it when I wake up." Worked through the night: ten independent reviews in all, renders 1 to 14, each review's faults fixed or answered (tables below).
+- **Seventh version sent (Nov 25, about 05:30 UTC+1): 25.0 s, one shot, no cut.** Plan `tools/shorts-lab/moonbase-v18.json`, spec `tools/shorts-lab/specs/night_v18_one.json`. Same script and voice. Waiting for the verdict.
+  - **The look has changed, and why.** An independent reviewer who had not seen the video called the sky "slate blue, not black [...] reads as air". Measured on NASA's frames: a blue lens glare over the whole picture (blue 83 against red 41 at 4° from the Sun, still blue 25 at 19°). It is now read from the sky of each frame and taken off. Three things follow:
+    - The sky is black by day, with a small white glow at the Sun.
+    - The night ground is grey, not blue. With the glare off, NASA's own shadows are neutral (0.16 to 0.24 of the lit ground in all three colours; the reel had used 0.217, 0.228, 0.296, and the blue in that was the glare). A shadow at dusk is grey at 0.24 of the lit ground; full night is darker (0.65 of that), because in a daytime shadow most of the light comes off the sunlit ground round it, and at night there is none.
+    - Sunlit ground is a warmer grey (blue 192 against green and red 205; the sixth version was bluish, 228 / 220 / 218): that is NASA's ground with its blue glare off. Real lunar soil is a warm grey.
+    - The far ridge shows as a dark mass with its lit crest. Before, it was the same blue as the sky.
+    - The light now follows one Sun. It sinks toward the crest while the ridge's shadow spreads from the ridge's foot toward the camera; it stands on the crest just as the shadow reaches the camera; at dawn the light comes back nearest the camera first; and the take ends with the Sun half hidden on the crest behind a backlit astronaut. Until the third review the Sun stood still and the shadow swept sideways, which no ridge can do.
+    - So the very end is darker than in the sixth version (mean brightness 24 to 32 against 60 over the last three seconds): the plain is in the ridge's shadow and the astronaut is seen against the light.
+    If the owner prefers the blue night as a look, it is one setting (`shadow_rgb`); it would be a choice, not what the footage holds.
+  - **Detail, what was done:**
+    - NASA's lens effect had moved red and blue apart toward the frame's edges: up to 2.2 px (red) and 3.8 px (blue) at the left of the strip. Measured on 83,587 hard edges, fitted and undone (`colour_shift.py`); 0.05 and 0.5 px are left. Every edge there is cleaner and the coloured rims are gone at the source (strongly blue dark pixels on the lit hill: 246 → 25).
+    - Camera moves now get up to speed, hold it and slow. Top speed 10 px a frame sideways (was 18.5), shutter 0.38 (was 0.5): the picture is blurred along a move by at most 3.9 px sideways (was up to 9) and 4.1 px in the tilt.
+    - The astronaut is cut from NASA's 4K frames at 0.48 of their size (was 0.40): a fifth larger, with the suit's weave, patch and fittings readable.
+    - The Earth's face is softened by 0.45 px (was 0.9), its edge darkens less, and two black gaps in the satellite picture are filled.
+    - Sharpening: the finest band a little firmer (1 px at 1.1, was 0.9), which the blur measured on NASA's frames (0.72 px) justifies; the wider bands as in the sixth version (3 px at 0.5, 9 px at 0.2). After the first reviewer called the ground "over-sharpened and etched" they were cut to 0.15 and none. The second reviewer made the same remark after the cut, and measured detail had fallen (daylight by about a tenth, the night and the astronaut by a quarter to a half against the sixth version), so they were put back.
+    - In the dark, the ground's own fine relief is shown at 1.0 (was 0.5), on brightness only and held under 14 levels, so it no longer outlines the modules.
+    - A limiter meant to stop module rims glowing at night had been capping all of the ground's relief at 12 levels. It now acts on strong rims only (45): at night the finest detail rose by 37% on the same frames (2.28 to 3.12 at 6 s, 2.77 to 3.83 at 8 s).
+    - The brightest sunlit ground is brought down without flattening its texture: only the broad level is lowered, so fine detail at 0 s rose by 11% against the first way of doing it.
+    - The astronaut's outline was found again on NASA's 4K pixels (`astro_matte.py`): the old one, made on a half-size copy, cut 10 px into his shoulder and took in a strip of sky beside the backpack.
+    - Tried and dropped: small stones scattered on the plain by a crater-count law. At this size they read as pepper noise. A stronger sharpening setting still (+10% detail, +5% noise): not used. Three other encoder settings: no measurable gain (SSIM within 0.0002); the encode costs no fine detail (it only smooths grain).
+  - **The first independent review: 22 faults.** Each one and what happened:
+
+    | # | Fault as reported | Now |
+    |---|---|---|
+    | 1 | The Sun in plain view, yet the plain, the rock and the astronaut in shadow | Fixed for what stands at the camera's height: the top of the rock and the astronaut's edges are sunlit. The plain stays dark: it is lower, in the ridge's shadow, as a valley is after sunset on the hill |
+    | 2 | Sky slate blue with a foggy glow: reads as air; stars beside the Sun | Fixed. Glare off; no stars and no orbit points while the Sun is in view |
+    | 3 | Astronaut: cut-out look, flat light, no rim from the Sun, etched texture, straight cut at the rock | Changed: a thin sunlit rim and a wider wrap on the edges turned to the Sun, his own sharpening removed, lamps only as small spots, the rock's own outline used where it is dark, his shadow on the rock top, the background less thrown out of focus (0.6, was 1.2) |
+    | 4 | Visor mirrors a place that is not ours; white unshaded patches | The visor is held dark (0.55), so only its lamps show. The patches were suit that NASA's shot lit to white and that was taken for lamps: fixed |
+    | 5 | Far ridge only a hairline; slope the same blue as the sky | Fixed: with the glare off the slope keeps the dozen levels of its own light and stands against a black sky |
+    | 6 | The ridge gone at night, stars where its slope was | Fixed. The skyline is traced by hand (39 points) and followed; nothing of the sky is drawn below it |
+    | 7 | Stair-stepped, blocky silhouette | Fixed. It was the edge of the old sky mask, not a ridge |
+    | 8 | Shadow front a soft lobed edge like a hand-painted mask | Changed. Soft is right (the Sun is 0.53° wide; a ridge some kilometres off casts an edge tens of metres wide). Round lobes were not: a skyline is peaks, and each casts a long pointed finger along the Sun's ray. The edge is now made that way |
+    | 9 | Sun-cast shadows unchanged at night; pools beside their lamps | Fixed: at night they are lifted out, and lamp light falls on ground without them (at first not under the four yard lights; after the third review not there either). A pool ahead of a rover's lamp is where a headlamp throws it |
+    | 10 | Dark wispy mass on the mid ridge, like smoke | It was the shadow's lobed edge crossing the far hill: see 8 |
+    | 11 | Foreground rock a smooth plastic gradient; blotchy rim; white crumbs | Partly. The gradient was the glare; the rock face is now an even dark. It has no texture in NASA's frames, so it stays a silhouette. Rim and crumbs are NASA's out-of-focus foreground |
+    | 12 | Sunlit ground over-sharpened and etched; identical bumps; foreground smeared | Tested, not kept: see the sharpening line above. The streaked texture, the repeated small rocks and the soft near ground are NASA's |
+    | 13 | Sunlit ridge patch crunchy | It gets a third of the sharpening. Its streaked texture is NASA's |
+    | 14 | Earth soft beside sharp stars, dark outline, bright night side, thin ring at 15 s, too large, too high | Crisper, edge darkens less, gaps filled. Not wrong: the bright night side (it is lit by a nearly full Moon; exposed for the Milky Way it is bright), the thin crescent by day (the Earth is 21.6° from the Sun), its size (1.83° across, which is about 190 px through this lens) and its height (4.2° at the site, computed) |
+    | 15 | Plume as searchlight shafts; a lander lands at 5 s and another descends at 20 s | The exhaust is a wide soft fan thinning with the square of the distance. The second lander now comes in along the line the first one lands on, so on a loop it is one lander |
+    | 16 | Rainbow flare discs | Gone with the glare (they were NASA's lens spots in the sky) |
+    | 17 | Sunset-like glow on the horizon with no source | Removed. It was our dust from a touchdown behind the ridge |
+    | 18 | Night sky lifted to grey; Milky Way reads as cloud; magenta band | The band is gone (NASA's lens streak). The grey is the zodiacal light at its measured strength and the brown is NASA's star map: kept |
+    | 19 | Crater a flat black ellipse | NASA's. At a Sun 4.5° up a small crater is full of shadow |
+    | 20 | Subtitles left of centre, grey glow, crossing objects | Deliberate: room for the app's buttons on the right, and the glow keeps them readable on sunlit ground |
+    | 21 | Orange painted-glow pools | Warm lamps are less orange (1.0, 0.90, 0.76; was 1.0, 0.84, 0.62) |
+    | 22 | Ruler-straight double dark lines | NASA's hardware and its shadows |
+
+  - **The second independent review** (a different reviewer, on the version with those fixes, 26 stills and 12 strips of four consecutive frames). Of the 22 it called 10 better, 12 unchanged, none worse, and added 12 new points. What was done after it:
+
+    | Point | Now |
+    |---|---|
+    | Astronaut still flat, no bright rim; thin dark line down the backpack's edge; visor highlights; white patches on the forearm | Rim level 1.35 (was 0.85) with a wider wrap, the side turned to us darker (0.22 of his own shot's light), the cut's edge taken in by a pixel, the visor at 0.3 with no highlights, lamps allowed only on the helmet's rim |
+    | The Sun's glow still a soft ball 560 px wide; its core only 226 of 255, no disc | The glow kept is half at 75 px and a twentieth at 300; the Sun is a white disc of its true size (0.53°, 56 px) |
+    | White dashes of the crest left at night; a thin dark line along the crest | The crest now goes dark with the plain (it was only half darkened), and the sky's glow reaches the ridge |
+    | Round painted lobes still in the dawn and the second shadow | The edge's slow wander cut to 0.3; its response to the ground's relief smoothed (at a dark-to-bright border it had cut the edge as with a knife) |
+    | Long Sun shadows still at night beside one group of modules; hard black shadows of the rover and masts inside the ridge's shadow | Lifted out fully (up to 6 times their level, softly) |
+    | The Earth by day a thin ring | The crescent tapers to its horns |
+    | A faint grey ghost disc near the Sun | Gone: the sky near the Sun is drawn from the glow alone |
+    | Stars and a grey sky while sunlit crest and hill are still in frame | Stars start at 5.0 s and are full at 7.0 s (were 3.4 and 6.0), when the sunlit ground has left the frame |
+    | The lit patch on the rock top a mosaic of hard white blocks; a ragged white fringe on the dark slope at the bottom | The near foreground (the dark masses that reach the bottom of the picture, with their rims) is 2.4 px out of focus, as for a lens focused on the base |
+    | Razor-edged wedges of light on the near slope; a white chip | The chip was my outline of the rock closing straight down: fixed. The wedges are the near slope's own silhouette against the darker plain behind it: they stay |
+    | Shadowed ridge and rock olive beside a blue-violet plain | One neutral shadow colour everywhere (see above) |
+    | Modules at night outlined as with a pencil | Fixed: the thin dark line the sharpening left beside each sunlit rim is held back with the rim |
+    | The lander pops on the first frame and at the loop | Its strobe no longer flashes at 0.0 s |
+    | A pink dot appears and vanishes between frames | A beacon blinking, on for 0.2 s: as meant |
+    | Square blocks round the dark Earth when brightened; a green cast in the black | The encoder gives dark areas more of the bits (`aq-mode=3`); the sky's black is neutral (7, 7, 7) |
+    | Unchanged and kept: the far slope flat (5), the rock face featureless (11), the ground's ripple and repeated rocks (12), the far patch (13), the night sky brighter than the night ground (18), the crater (19), the subtitles (20), warm pools (21), straight lines (22), dark tufts on the crest | NASA's picture, or deliberate, as in the first table. The night sky brighter than unlit ground is how a starlit night looks |
+
+  - **The sixth version's "still wrong" list:**
+
+    | Listed as wrong | Now |
+    |---|---|
+    | Motion blur up to 9 px hid part of the gain | At most 3.9 px sideways, 4.1 px in the tilt |
+    | Yard lights showed shadows of the Sun's length | Fixed: no lamp shows the Sun's shadows now; its light falls on ground without them |
+    | NASA's lens streaks on the dark mountain; the hill's level streaks; blue spots | Streaks gone from the sky, thinned on the mountain; blue spots 246 → 25; the hill's streaked texture stays (NASA's) |
+    | The bending is hard to see in daylight | Five of the nine workers now kneel; figures have the proportions measured on NASA photograph AS11-40-5903 (helmet 0.22 of the height, each leg 0.13). Still small |
+    | A 0.06 s full silence at 7.12 s | Gone: the music holds a trace through the pause |
+    | Hong's numbers and the Moon's phase law read second-hand | Read in the papers themselves. Hong 1985, Table I: 0.698, −0.203, −0.813 with weights 0.665, 0.330, 0.005. Krisciunas and Schaefer 1991, eq. 9: m = −12.73 + 0.026\|α\| + 4×10⁻⁹α⁴ |
+    | Sound not checked by ear | Still cannot be. More was measured: channels balanced to 0.02 dB, no hum or rumble, no clipping, no clicks. One faint tone at 9.6 kHz in the voice is 41 dB under the speech and absent in the pauses |
+    | Small people not compared with real footage | Proportions now from a real photograph; motion still ours |
+    | Exhaust brightness ours; visor; 2024 clouds; city lights barely visible | Stay |
+
+  - **The third independent review** (another reviewer, on render 4, same method). Its strongest point was physical. What was done:
+
+    | Point | Now |
+    |---|---|
+    | The Sun never moves: plain day at the start, plain night at the end, from the same Sun. A ridge's shadow needs the Sun at the crest | Fixed. The Sun sinks toward the ridge while its shadow crosses the plain (about 3° in 6.4 s), stays behind the ridge through the night, is back for the dawn, and at the end sinks again until it stands half hidden on the crest at 24.9 s. Its height is now set against the skyline as drawn in each frame (set in the reference frame's pixels it had ended a quarter hidden, not half) |
+    | A flat, hard-edged disc over an all-dark plain reads as a full Moon | The disc carries a lens bloom, and at the end it sits on the crest. The plain is dark because it is in the ridge's shadow, which the Sun on the crest now shows |
+    | Sunlit ground reads as snow | Its brightest levels are brought down (above 190 of 255, the rise cut to 0.72), so the Sun is the brightest thing in view. The near-white texture is NASA's |
+    | Shadows at night point toward a lamp mast; tan pools; modules inside a yard pool stay dark | No lamp keeps the Sun's shadows now; warm lamps are whiter (1.0, 0.94, 0.86; were 1.0, 0.90, 0.76). Taller yard pools were tried and dropped: they laid a white haze over the modules |
+    | The far slope ends in a straight upright edge on the left | Fixed: its treatment fades in over 300 px |
+    | Pale dashes of the far crest at night | At night the far slope's lit patches go down to 0.4 of the plain's level |
+    | Stars under a sunlit crest at dawn (14.2 s) | Stars fade out from 13.0 to 14.0 s, before the first light |
+    | The Earth fades to a black disc within a second; in a deep exposure its sunlit part should bloom | A bloom round the bright parts of its face in the star exposure. The fade stays: it follows the exposure coming down for day (13.0 to 15.0 s) |
+    | The dawn edge a soft lobed blob | Replaced by a different shadow (see the fourth review): at dawn the ridge's shadow now shrinks back toward its foot |
+    | Hard wedges at the very bottom | The last rows are out of focus like the rest of the near foreground |
+    | Astronaut still evenly grey, rim weak, pale halo, scalloped right shoulder, dark bar beside the backpack, marks on the forearm | The side turned to us is darker (0.20 of his shot's light, was 0.26), the rim wider and brighter (6 px at 1.5, was 4 px at 1.35). The scalloped shoulder, the bar and the marks are NASA's shot and its cut-out: they stay |
+    | On a loop, end and start share one framing: the astronaut vanishes and night flips to day | Stays: a take that ends in night and starts in day cannot loop without that jump |
+    | NASA's module shadows are 2 to 4 heights long; a Sun 4.5° up gives about 13 | NASA's picture: it stays |
+    | Brown mottled night sky, crater, featureless rock face | As in the first table |
+
+  - **The fourth independent review** (another reviewer, on render 6). What was done:
+
+    | Point | Now |
+    |---|---|
+    | The night is a darkened daytime picture: the modules' Sun shadows stay, lamp light hugs the cluster and stops at the old shadow's outline | NASA's shadows are already about as dark as the night's ground (0.24 of lit ground), so at night they showed as smooth patches with a dark rim. Each old shadow on the ground is now given the ground's own fine texture, taken from sunlit ground on the same rows, at the level of the ground round it, under the lamps too. One lighter shadow beside a module on the right (70 of 255 on ground at 170) is still seen: a test that judged shadows against the ground close by also took the modules' grey hulls for shadows and was dropped |
+    | The ridge's shadow looks painted: fingers fanning from a point on the plain; the ground at the ridge's foot lit while the plain beyond it is in shadow, ending on a straight line | Fixed with a new shadow. A ridge's shadow lies from its own foot toward the camera, so the foot is the first to go dark and the last to get light back, and peaks cast longer lobes along the Sun's direction. The old one was an edge turning round a point on the horizon, which left the foot lit |
+    | The Earth a full disc at night beside a crescent by day; sepia sky brighter than by day; Earth too small against the Sun | Kept, with the reason: in an exposure long enough for the Milky Way, the Earth's night side lit by the nearly full Moon is about 20 times brighter than the Milky Way and shows its clouds; the crescent is then far over white. The night sky is brighter than the day sky because the exposure is far longer. The Earth is 1.83° across and the Sun's disc 0.53° (56 px): its glow makes it look larger, as an over-exposed Sun does |
+    | The astronaut a pasted cut-out: lit from the front, no rim, a light halo, a straight cut at the rock | His outline is found again on NASA's 4K pixels (the notched shoulder and the strip of sky by the backpack are gone). His front, turned away from the Sun, is dark (0.15 of his shot's light); the lamp pool on his chest is mostly gone (his own helmet lamps cannot light it); the sunlit rim stays. The straight line at the bottom is the rock's crest: stays |
+    | The ground engraved: black outlines on streaks and craters at night | Partly. The night's fine detail is NASA's relief, and the owner asked for detail; the dark outlines beside rims are held back. Stated as a choice |
+    | The Sun's glow cut off by the ridge | Fixed: the bloom is the lens's and spills over the crest, in proportion to the part of the Sun in view |
+    | Lit texture in front of the Sun's disc | The crest's sunlit rim: with the Sun just behind a ridge, its top edge catches the light |
+    | The Sun has no lens star while the lamps do | Fixed: the same four-pointed star, longer |
+    | Exhaust glowing white like a flame in air | Fixed: down to a faint trace near the nozzle (in vacuum a plume is nearly invisible) |
+    | Small figures' shadows four times their height, the rover's twice | Fixed: drawn shadows are now as long, for their height, as the shadows of NASA's own objects in the frame |
+    | The Sun should slide almost level at 85°S | True, and stated below |
+    | The shadow crosses the plain in about 1.5 s while people and landers move in real time | Stated below (time-lapse for the light only) |
+    | The lander the same image at 1, 5 and 23 s | One lander, seen on two passes of the loop |
+    | Camera moves look machine-steady | Kept: a camera on a fixed mount or slider moves that way |
+    | Black sky slightly green (3, 5, 2) after encoding; caption ends 4 frames early | Small. The caption ends with the voice |
+
+  - **The fifth independent review** (another reviewer, on render 8). What was done:
+
+    | Point | Now |
+    |---|---|
+    | The far ridge a flat card: its face in full sun while the plain at its foot is in its shadow, with a ruler-straight line between them | Fixed. The ridge's face is nearer its crest than its foot is, so it now loses the Sun first and gets it back last; only the crest line keeps the light. (The fault came with the new shadow of the fourth round: the face had kept the old rule) |
+    | Night a darkened day plate: Sun-direction shadows of the right module group, the rover and the solar towers; ground only one stop darker than by day | The right group's and the rover's old shadows are lighter than the others (70 of 255 on ground at 170) and were missed; they are now traced on NASA's reference frame and filled with the ground's texture like the rest. The towers' two thin shadow lines are too thin to be told from the ground: they stay. The night's ground is darker (0.65 of NASA's shadow level): in a daytime shadow most of the light comes off the sunlit plain round it, and at night there is none |
+    | Astronaut: straight cut at the rock, a white fringe on edges turned away from the Sun, lit from the front | The rim now comes from the Sun's side (upper right) and is narrower (4 px). His front is dark since render 8. The line at the bottom is the rock's crest |
+    | Earth full at night, cross-dissolve to a crescent, same clouds for days, too large, too high | Kept, as in the fourth table. Its place is the one computed for the matched site and date (about 4.6° above the horizon; from 85°S the Earth stands about 5° up, give or take 6.7° with the Moon's libration). Its clouds do not move: time-lapse for the light only (below) |
+    | Sky like an astrophotograph from Earth, fading out with the stars | Kept: the Milky Way's light is there without air; the fade is the exposure coming down for the dawn |
+    | A rectangle with a straight vertical edge cutting a module at 10 to 13 s | Fixed. My own fault from the fourth round: the shadow fill borrowed texture with a shift that wrapped round the picture |
+    | Lamp halos flat; they light no module faces | Partly: the lamps light the ground and what stands in their pools; they do not cast their own shadows |
+    | The Sun's lens star drew a hairline across the sky with the Sun out of the picture | Fixed: only while the Sun is in the picture |
+    | Two identical figures stacked 18 px apart | Fixed: the second walks beside the first |
+    | The Sun 300 px above the crest at the start; shadows only 2 to 3 lengths | The Sun is where NASA's is; its shadows are NASA's (stated in the fourth table) |
+    | The Sun sinks straight down at the end | Stated below |
+    | Camera tilt stops in 8 frames | Kept: it eases in and out over 0.6 s; longer would blur it over the 4 px limit |
+    | Waxy modules with dark outlines at 16 s | The source's own detail drawn firmer; a measured choice (see the sharpening line) |
+    | The loop jumps from dusk to full day | Stated below |
+
+  - **The sixth independent review** (another reviewer, on render 9). What was done:
+
+    | Point | Now |
+    |---|---|
+    | A sunlit hill at the ridge's foot stays lit inside the ridge's shadow, ending on a straight line | Fixed. An old rule from before the new shadow ("nothing above the foot line can be reached") had kept it lit. And the geometry was corrected: NASA's first frame shows the plain lit right to the foot with its Sun 305 px above the crest, so the crest must stand well behind the foot. The shadow now reaches the foot when the Sun is 250 px above the crest, and the whole plain when it reaches the crest |
+    | At 21 s the Sun stands well clear of the crest while the plain is already dark | Fixed by the same correction: with the whole visible plain in shadow the Sun is now at most 16 px (0.15°) above the crest |
+    | Old Sun shadows still at night (a rover at 5 s, module shadows at 3 s); a bright smooth patch with an outline under a cluster at 12 s | At 3 and 5 s that ground is still in sunlight (the shadow has not reached it yet), so its shadows are right. The 12 s patch was an old shadow whose soft edge the fill did not reach: it now goes 6 px past the dark core, and the night's relief is no longer drawn along those edges |
+    | Night sky brighter than by day and brown; drops at 13 to 14 s before any light | Kept as before (exposure). The stars and the exposure now fade from 13.4 s, as the Sun's edge clears the crest for the camera at 13.6 s |
+    | Earth full, then a crescent by fading; blue at mid-grey | Kept, as in the fourth table |
+    | A bright 1 to 2 px line down the right edge of the picture beside the astronaut | Fixed: the rim light was being drawn where the frame cuts him |
+    | Astronaut ends on a straight line on the rock | The rock's traced top line was straight between its points; it now has small fixed bumps |
+    | Lamps go out together at 15 s | With the corrected geometry the light comes back over about two seconds, nearest the camera first |
+    | Exhaust still a white blob | Down to a trace (0.05) |
+    | The Sun's spike shimmers frame to frame | Its arms are wider (2 px), so a fraction-of-a-pixel move no longer flickers |
+    | Landers the same sprite twice; small figures pegs; crater and rock face NASA's; sharpening halos | As in the earlier tables |
+
+  - **The seventh independent review** (another reviewer, on render 10). What was done:
+
+    | Point | Now |
+    |---|---|
+    | A hard-edged grey disc on the ridge under the Sun (21 to 24.9 s, and at 2 s) | Fixed. A circle of 430 px round NASA's own Sun, made long ago so its glare would not be shaded, kept that part of the ridge out of the shadow once our Sun sank to the crest. Now nothing above the skyline counts as ground, and the circle is gone. (A first fix left a dark cap above the Sun: NASA's glare taken for ground. Caught on a test frame before the render) |
+    | At dawn the foothills light before the ground at their foot, with a straight seam between them (17.25 to 17.4 s, 18 s) | Fixed: the ridge's face goes dark before its foot and gets the light back after it, set by the Sun's height |
+    | Old shadows at night: the rover's long shadow and the masts' two thin shadow lines (5 s) | Fixed: traced on NASA's reference frame and filled like the others |
+    | The Sun's horizontal spike crosses the whole frame | Shorter (70 px, was 110) |
+    | Exhaust a grey smudge beside the lander | Gone: no plume drawn (in vacuum it is nearly invisible) |
+    | The ridge's shadow grey (45), not black; sky brown and bright; Earth fades between full and crescent; frozen stars | Kept, as in the earlier tables (a shadow at dusk is filled by the sunlit ground round it, which NASA's own shadows show; exposure; time-lapse for the light only) |
+    | The astronaut not lit by the Sun; visor black; cut by a straight rock edge | He is backlit: front dark, rim from the Sun's side. The visor is held dark on purpose (its reflection was of NASA's other set). The rock's top now has small bumps |
+    | The Sun drifts right at the start and left at the end | NASA's camera drifts and turns back in the footage (the take uses it forward then backward); the Sun moves with the sky it is drawn on |
+    | The camera move is a flat slide with no parallax | Stated below: the take is cut from one fixed 4K shot |
+
+  - **The eighth independent review** (another reviewer, on render 11). What was done:
+
+    | Point | Now |
+    |---|---|
+    | A straight seam between ridge and plain; the ridge's foot sunlit above a dark plain; a sunlit patch on the ridge fading as a whole in 6 frames | Fixed. The shadow now climbs the ridge's face from its foot to its crest as the Sun sinks (and comes back down at dawn), meeting the plain's edge at the foot. The seam was a dark band the lobes of the shadow's edge left at the foot: they now grow with the distance from the foot, as a peak's shadow does |
+    | Old Sun shadows of a second rover and of the masts' panels at the end (21 to 24.9 s) | Traced and filled like the others |
+    | The Sun's glow stops at the crest | Fixed: the wide glow is laid over the ground in front of it too |
+    | Bright 1 px lines along a filled shadow at 12 s | Fixed: the night's relief is no longer drawn along any filled shadow's edge |
+    | The astronaut darker (17) than the shadowed plain (46) | Fixed: his front is at the night's level, like the ground in shade (about 50), with the sunlit rim |
+    | Shadow lengths 1 to 2 heights for a Sun on the crest; Earth's phase by fading; glowing night sky; 11.3 to 12.8 s the sky drifts 5 px against the ridge | As before: NASA's shadows; exposure; the source's own slight camera drift under a sky held to the stars |
+    | Lamps light no end caps; craters flat; small figures blobs | As in the earlier tables |
+
+  - **The ninth independent review** (another reviewer, on render 12). What was done:
+
+    | Point | Now |
+    |---|---|
+    | The final Sun not hidden by the crest: a whole disc in front of the ridge that shrinks | Fixed: the crest cuts the disc and its bright bloom flat; only the wide glare goes over the ridge |
+    | The caption blinks out for one frame at 1.25, 17.46 and 19.21 s | Fixed: phrases less than 0.3 s apart now meet exactly (in every earlier version too, it was a gap of 0.02 s rounded to a frame) |
+    | The shadow's edge ruler-straight at 3 and 17 s | Its lobes are longer (the peaks' shadows) |
+    | No shadow of the astronaut on the sunlit rock top in front of him | Stronger (0.7) |
+    | A ghost of the sky lander 25 px beside it at 4 s; a glowing ball under it | Fixed: the side-jet puffs are gone, the engine's glow halved |
+    | "NASA has said its astronauts would visit the south pole by 2030" needs a source | It is the goal's pending promise in the app, the source of that line since the first Moon base video |
+    | Earth's phase by fading, frozen clouds, too large against the Sun; night sky brighter than the ground; Sun 3° up at the start; short module shadows; lamps with star spikes; figures as blobs | As in the earlier tables |
+
+  - **The tenth independent review** (another reviewer, on render 13). What was done:
+
+    | Point | Now |
+    |---|---|
+    | The second dusk runs several times faster than the first (the shadow jumps 50 to 100 px a frame at 20.5 s) | Fixed: the second dusk follows the first one's pace |
+    | Large soft wedges on the shadow's edge read as doubled shadows of the modules | Smaller and rounder (between this review and the last) |
+    | The astronaut's sunlit rim stays after the Sun sinks | Fixed: it fades with the part of the Sun above the crest |
+    | Sunlit regolith cream-tinted, reads as snow; the black sky slightly green | Fixed by a small colour balance at encode: sunlit ground warm grey, shade and black neutral |
+    | The added shadow (45) far lighter than the ridge face (5) | The ridge face is in its own shade, and NASA's own shadows on the plain are at the same level as the added one (0.24 of lit ground) |
+    | A module's top in shadow before its base as the edge passes | Stated below: the picture has no heights, so the shadow is laid on it as on flat ground |
+    | The astronaut's front does not change as the shadow crosses him | Kept: he stands at the camera's height, in the light the camera sees |
+    | Sky, Earth, Sun's height and path, lamp pools, figures, crater | As in the earlier tables |
+
+  - **Last check (an eleventh reviewer, render 14 against render 13, looking only for what got worse):** verdict render 14. All four of the tenth review's fixes worked. It found two overshoots: the second dusk now a little slower than the first (2.5 s from 90% to 10% of the plain lit, against 2.1 s; kept, the voice needs the light until 22 s), and the colour balance turning the dark shots faintly violet. The balance was then redone as a curve that touches only the sunlit ground's level (a little more blue) and the deepest shade and black (a little less green), so the dark shots stay neutral and the Sun's white core keeps its size.
+
+  - **Stated plainly, because it cannot be fixed inside one take:**
+    - Night falls in seconds while people and landers move at their own speed. Time is compressed for the light only.
+    - Which way the shadow travels is ours. At the place and moment the sky was matched to (85°S, 17–21°W, 8 January 2039), the Sun is 3 days before local noon, climbing, and moving left along the horizon at 0.5° an hour; it would not set there for 11 days. The reel's shadow comes from the right because the story needs night to fall in this view.
+    - The Sun goes down, comes back and goes down again within 25 s. That is the day's light in time-lapse, as the shadow is. Its path is ours and not right for the place: at 85°S the Sun moves almost level along the horizon (its height changes by at most about 5° for each 90° it moves sideways), so to sink 3° behind this ridge it would travel at least 35° to the side, far out of the picture. The reel shows it sinking straight down.
+    - The shadow is laid on NASA's picture as on flat ground. The picture holds no heights, so as the edge passes a module its top darkens before its base, where a real module's top would keep the light a moment longer. It lasts a fraction of a second at each module.
+    - The camera's moves are a frame moving over one fixed 4K shot of NASA's: there is no parallax between near and far, as there would be if a real camera moved. The moves are slow enough that this is hard to see.
+    - The loop: the end (dusk, Sun on the crest) cuts to the start (day, Sun high). One take that ends at dusk and starts in day cannot loop without that jump.
+    - The night ground still carries the fine shading the low Sun gives it (it is NASA's daylight picture, dimmed). In true shadow that shading would be softer.
+  - **Measured on the file sent (render 14):**
+    - File: 600 frames, 25.00 s, 30.0 MB, mean 9.6 Mbps (`aq-mode=3`, `maxrate` 9300k; highest 2 s 10.9 Mbps), frames evenly spaced. Captions meet with no gap except one deliberate pause of 0.36 s.
+    - Sound: 100% word match with the subtitles; loudness −15.0 LUFS, true peak −1.7 dBTP; no clicks, no dropouts, no clipping; the voice 4.8 to 13.1 dB above the music in each passage.
+    - Fine detail on the same ground as the sixth version (`matched.py`): under 1 px +21% on average, 1 to 3 px +7%, 3 to 9 px −1%. By daylight +14 to +74% (finest); at night −4 to −30% and in the last second −13%, where the picture is now darker for the reasons above. Against the fifth version: +55%, +25%, +7%.
+    - Mean brightness per second: 89 90 85 78 50 24 24 26 28 31 37 39 39 34 22 68 81 103 100 92 72 53 32 24 24 (the sixth version: 109 91 83 57 44 41 40 40 36 33 34 34 34 33 33 37 90 111 111 63 50 58 60 60 60).
+    - Colour on the file sent: sunlit ground 202 / 202 / 193 (red / green / blue; was 202 / 203 / 190), shade and the black sky without a green or violet cast.
+    - No flicker found by the frame-to-frame scans (`flash_scan.py`, `shimmer.py`) beyond the moving edges of the shadow; every independent reviewer found no one-frame pops in the strips.
+  - **Time and cost.** From about 17:35 UTC+1 on Nov 24 to about 05:30 UTC+1 on Nov 25, with the owner's overnight extension. Two container restarts cost one render each; renders now run in short chunks that resume. No AI credit spent ($0); no paid service used. The independent reviews ran as separate agents inside this session.
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
