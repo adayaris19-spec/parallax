@@ -947,7 +947,17 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     | The rock's face brightens 3 to 4 levels as the Sun sets; its top rim stays lit | The face rises in the sixth and seventh versions too (25 → 28, 10 → 18): the source's camera moves in, and a lighter part of the face comes into the measured box. The night's tone can now only darken it anyway. The rim stands at the camera's height and still sees half the Sun: about half the light (185 → 145 on the picture's levels) is right |
     | The Sun 4.7° up is higher than the south pole allows | The sky was matched to 85°S, where the Sun reaches about 6.5°; at the pole itself it would be under 1.6° |
     | The Sun's saturated core about 1° | As above: the source's glare, kept |
-  - **Measured on the file sent (render 19):**
+  - **Third, focused check (render 19), and what was done:**
+
+    | Fault found | Answer |
+    |---|---|
+    | Frame edges | No band, garbage or hard line in any of the 600 frames (checked pixel by pixel) |
+    | A small rover's shadow looks doubled at 2x: the old part crisp, the longer part softer and a little darker (46 against 58), its outline wider | Kept, stated: the longer part is the same shadow drawn out along the Sun's rays, softer because a far shadow edge is softer (the penumbra grows with distance). NASA's own part is sharper than a real shadow that long would be |
+    | The panel's shadow by that rover reads as broken: a stub, two thin lines, a gap, then a bar at another angle | The two thin lines are rover tracks in NASA's picture. The stub is the base's shadow, the faint line along the tracks is the pole's, and the bar is the panel's, starting where the construction puts the panel's lower edge. The tracks run 8° off the Sun's ray, so they do not line up with it |
+    | A lit patch at the right edge of the frame, by his arm, at 21 s | Fixed: where the frame cuts the astronaut, his outline goes on past the edge for his shadow (146 → 32) |
+    | A grey band on the rock's left edge at 21 s | The edge of his shadow: with the Sun behind him and to the right, it falls down and to the left across the rock top |
+
+  - **Measured on the file sent (render 20, which is render 19 with the astronaut's last four chunks redone):**
     - File: 600 frames, 25.00 s, 30.8 MB, mean 9.7 Mbps (highest 2 s 10.6 Mbps), frames evenly spaced; no dark band at any frame's edge (rows under 10 of 255 at the bottom: 0 in all 600 frames).
     - Sound unchanged; 100% word match; no clicks, no dead silences, no clipping.
     - Fine detail on the same ground as the sixth version (`matched.py`): under 1 px +19% on average, 1 to 3 px +5%, 3 to 9 px −3%. By daylight +17 to +76% (finest).
