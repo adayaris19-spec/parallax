@@ -561,8 +561,10 @@ def frame(j):
         if fct > 1.05:
             fd_ = min(max((0.53 / sun_elev(t)) * fct / max(fct - 1.0, 1e-3), 0.05), 0.6) if ls_.get("fade") == "sun" else ls_.get("fade", 0.3)      # penumbra = length x (Sun's width / its height); as a share of the added part
             ext_ = ls_window(i, fct, fd_, xx, yy); ext_ = cv2.GaussianBlur(ext_, (0, 0), 0.8) * ground * ls_.get("strength", 1.0)
-            m = np.maximum(m, np.clip(ext_, 0, 1)).astype(np.float32)
+            ext_ = np.clip(ext_, 0, 1) * (1.0 - m); mls_ = np.maximum(m, ext_).astype(np.float32)      # (where the ridge's shadow already lies, nothing to add)
+            o = o * (1.0 - ext_ * (1.0 - float(ls_.get("level", 0.2))))[..., None]      # the added length is the same shadow as the part the source drew: the same neutral dark (about 0.2 of the lit ground), not the night's colour
             if os.environ.get("DEBUG_LS"): print("long shadows t %.2f: factor %.2f, added px %d" % (t, fct, int((ext_ > 0.5).sum())), flush=True)
+    if "mls_" not in locals(): mls_ = m
     res = o + (night - o) * m[..., None]
     # ---------- the sky: stars and the Milky Way come up as the exposure opens for dark ground, and never through glare or through a planet; then the lights that travel across it
     if STARS is not None or MOVERS:
@@ -596,7 +598,7 @@ def frame(j):
                 xa, xb, ya, yb = int(max(fx - 5.5 * hh, 0)), int(min(fx + 5.5 * hh, cw)), int(max(fy - 2.2 * hh, 0)), int(min(fy + 2.6 * hh, Hh))
                 if xb <= xa or yb <= ya or not (0 <= fx < cw and 0 <= fy < Hh): continue
                 if os.environ.get("DUMP_MOVERS"): print("person", MOVERS.index(mv), "anchor", mv["anchor"], "frame x %.0f y %.0f" % (fx + c0 - xw, fy + y0r - yw), "height %.1f" % hh)
-                X, Y = xx[ya:yb, xa:xb] - c0 - fx, yy[ya:yb, xa:xb] - y0r - fy; sun = (1.0 - float(m[int(fy), int(fx)])) * float(wb[max(int(fy) - 2, 0):int(fy) + 3, max(int(fx) - 3, 0):int(fx) + 4].mean()); gfa = min(1.0, (t - pth[0, 0]) / 0.4, (pth[-1, 0] - t) / 0.4) if mv.get("fade", True) else 1.0
+                X, Y = xx[ya:yb, xa:xb] - c0 - fx, yy[ya:yb, xa:xb] - y0r - fy; sun = (1.0 - float(mls_[int(fy), int(fx)])) * float(wb[max(int(fy) - 2, 0):int(fy) + 3, max(int(fx) - 3, 0):int(fx) + 4].mean()); gfa = min(1.0, (t - pth[0, 0]) / 0.4, (pth[-1, 0] - t) / 0.4) if mv.get("fade", True) else 1.0
                 lean_ = 0.0; kneel_ = 0.0
                 if mv.get("work") and not moving:                           # "work": [seconds per round, offset, degrees]: they bend to something on the ground, stay down a while, and straighten, each over about a second
                     wp_ = ((t + mv["work"][1]) % mv["work"][0]) / mv["work"][0]; sm_w = lambda a_, b_, x_: float(np.clip((x_ - a_) / (b_ - a_), 0, 1)) ** 2 * (3 - 2 * float(np.clip((x_ - a_) / (b_ - a_), 0, 1))); dn_ = sm_w(0.18, 0.34, wp_) * (1 - sm_w(0.66, 0.82, wp_)); lean_ = (mv["work"][2] if len(mv["work"]) > 2 else 40.0) * dn_; kneel_ = (mv["work"][3] if len(mv["work"]) > 3 else 0.0) * dn_      # a fourth number: how far they go down on their knees (0 to 1)
@@ -604,7 +606,7 @@ def frame(j):
                 if SUNG and sun > 0.02:                                     # the shadow: a body's width at the feet, drawn out along the Sun's ray and softer toward its far end. Its length is the body's height over the tangent of the Sun's height,
                     ux, uy = fx + c0 - (SUNG[0] + dx), fy + y0r - (SUNG[1] + dy); nu = math.hypot(ux, uy); ux, uy = ux / nu, uy / nu; pd_ = spec["stars"]["px_per_deg"] if spec.get("stars") else 105.0      # seen as foreshortened as the ground is there: least when the Sun is off to the side, most when the shadow points at the camera
                     daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = spec.get("drawn_shadow_scale", 1.0) * hh * pf_ / math.tan(math.radians(sun_elev(t))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
-                    a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - m[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
+                    a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - mls_[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
                     res[ya:yb, xa:xb] += (night[ya:yb, xa:xb] - res[ya:yb, xa:xb]) * a_sh[..., None]
                 spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0, lean_, kneel_); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
                 pc = cv2.warpAffine(spr, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA); pa = (cv2.warpAffine(sal, Mp, (xb - xa, yb - ya), flags=cv2.INTER_AREA) * gfa)[..., None]

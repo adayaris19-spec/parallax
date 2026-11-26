@@ -3617,6 +3617,7 @@
   "max_px": 60000,
   "max_angle": 28.0,
   "strength": 1.0,
-  "directions": 2048
+  "directions": 2048,
+  "level": 0.2
  }
 }
