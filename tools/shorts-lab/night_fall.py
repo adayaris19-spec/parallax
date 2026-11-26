@@ -749,7 +749,7 @@ def ls_runs(i):
     if i in LSRUNS: return LSRUNS[i]
     ls_ = spec["long_shadows"]; cx, cy = float(SUNG[0]), float(vp[r, 1])
     lum_ = cv2.cvtColor(src(i, 0, H, 0, W), cv2.COLOR_BGR2GRAY).astype(np.float32); lb_ = cv2.GaussianBlur(lum_, (0, 0), 1.0)
-    bgl_ = cv2.GaussianBlur(cv2.dilate(cv2.GaussianBlur(lum_, (0, 0), 3.0), np.ones((31, 31), np.uint8)), (0, 0), 15.0)
+    bgl_ = cv2.GaussianBlur(cv2.dilate(cv2.GaussianBlur(lum_, (0, 0), 3.0), np.ones((int(ls_.get("lit_reach", 31)),) * 2, np.uint8)), (0, 0), float(ls_.get("lit_reach", 31)) / 2.0)      # the sunlit ground round a patch: far enough to reach past the middle of the widest shadow ("lit_reach" px), or its middle is not seen as shadow and is darkened again
     foot_ = np.interp(np.arange(W), GT_[:, 0], GT_[:, 1]); Yc = np.arange(H, dtype=np.float32)[:, None]; Xc = np.arange(W, dtype=np.float32)[None]
     obj_ = cv2.dilate(ls_objects(), np.ones((5, 5), np.uint8)) > 0; sb_ = int(ls_.get("skip_bottom", 260))
     cand_ = ((lb_ < ls_.get("rel", 0.5) * bgl_) & (bgl_ > 90.0) & (Yc > foot_[None] + 6) & ~obj_).astype(np.uint8); cand_[H - sb_:] = 0
@@ -770,9 +770,9 @@ def ls_runs(i):
         zone_ = (da_ <= hw_ + 4.0) & (rr_ > rf0 + 2.0) & (rr_ < rt0 + 14.0) & ~obj_
         cz_ = zone_ & (lb_ < ls_.get("caster_rel", 0.88) * bgl_) & ~shs0_; shs_ = shs_ | cz_; rf_[cz_] = rf0      # (a patch already found as some other thing's shadow keeps its own foot)
     dm_ = np.where(shs_, np.clip(lb_ / np.maximum(bgl_, 1.0), 0.05, 1.0), 1.0).astype(np.float32); dmc_ = dm_.copy()
-    for c_ in np.nonzero(keep_)[0]:                                         # the part drawn longer is each shadow's own typical dark, no darker: on flat ground a shadow is evenly dark; the source's deeper dark right under a module
+    for c_ in np.nonzero(keep_)[0]:                                         # the part drawn longer is each shadow's own lighter typical dark ("level_pct"), no darker: on flat ground a shadow is evenly dark; the source's deeper dark right under a module
         x_, y_, w_, h_, a_ = dstc_[c_]; sl_ = (slice(y_, y_ + h_), slice(x_, x_ + w_)); in_ = dlc_[sl_] == c_      # (where it meets the ground and its legs hide the lit ground's glow) stays where it is and is not dragged out into a stain
-        dmc_[sl_][in_] = np.maximum(dm_[sl_][in_], np.median(dm_[sl_][in_]))
+        dmc_[sl_][in_] = np.maximum(dm_[sl_][in_], np.percentile(dm_[sl_][in_], float(ls_.get("level_pct", 75))))
     czall_ = shs_ & (rf_ > 0)
     R_ = int(np.ceil(max(np.hypot(cx - x_, cy - y_) for x_ in (0, W) for y_ in (0, H)))) + 2; NA = int(ls_.get("directions", 2048))
     Dp = cv2.warpPolar(dm_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR); Dpc = cv2.warpPolar(dmc_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR)
@@ -800,6 +800,7 @@ def ls_window(i, f, tipsoft, X, Y):
         if tipsoft > 0: fl_ = max(tipsoft * (nb_[k] - rF[k]), 1.0); v_ = 1.0 - (1.0 - v_) * np.clip((nb_[k] - rr) / fl_, 0, 1).astype(np.float32)
         out[rs[k], na_[k]:nb_[k]] = np.minimum(out[rs[k], na_[k]:nb_[k]], v_)
     ratio = np.clip(out / np.maximum(Dp, 0.05), 0.05, np.where(CFp, 1.6, 1.0))      # new darkness over the old. Only a caster's old shadow is lifted where the new one no longer lies; a shadow that touches what casts it keeps all its old dark
+    wo_ = np.clip((0.8 - Dp) / 0.2, 0, 1) * ~CFp; ratio = ratio + (1.0 - ratio) * wo_      # ground already in a shadow keeps its level: a second shadow of the same Sun does not make it darker (laid over a lighter one, it left dark blots)
     Hm_ = ls_to_ref(i); w_ = Hm_[2, 0] * X + Hm_[2, 1] * Y + Hm_[2, 2]; Xr = ((Hm_[0, 0] * X + Hm_[0, 1] * Y + Hm_[0, 2]) / w_).astype(np.float32); Yr = ((Hm_[1, 0] * X + Hm_[1, 1] * Y + Hm_[1, 2]) / w_).astype(np.float32)
     rr_ = np.hypot(Xr - cx, Yr - cy).astype(np.float32); aa_ = (np.mod(np.arctan2(Yr - cy, Xr - cx), 2 * np.pi) * (NA / (2 * np.pi))).astype(np.float32)
     return (cv2.remap(ratio, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0), cv2.remap(objm, Xr, Yr, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0))

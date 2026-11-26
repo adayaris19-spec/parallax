@@ -4220,6 +4220,8 @@
     6
    ]
   ],
-  "skip_bottom": 150
+  "skip_bottom": 150,
+  "lit_reach": 81,
+  "level_pct": 50
  }
 }
