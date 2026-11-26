@@ -3348,7 +3348,8 @@
   "h_foot": 250.0,
   "h_face": 300.0,
   "face_power": 1.5,
-  "rel_grow": 30.0
+  "rel_grow": 30.0,
+  "disc_penumbra": true
  },
  "shadow_fill": {
   "flat": 1.6,
@@ -3607,5 +3608,15 @@
   70.0,
   90.0
  ],
- "drawn_shadow_scale": 0.5
+ "drawn_shadow_scale": 1.0,
+ "long_shadows": {
+  "source_ratio": 3.0,
+  "max_factor": 14.0,
+  "fade": "sun",
+  "min_px": 6,
+  "max_px": 60000,
+  "max_angle": 28.0,
+  "strength": 1.0,
+  "directions": 2048
+ }
 }

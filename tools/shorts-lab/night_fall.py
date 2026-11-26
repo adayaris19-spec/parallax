@@ -121,7 +121,21 @@ def leadv(name, t):
         hf_ = FRONT["h_foot"]; u_ = hf_ * (ec_ + h_) / (h_ * (ec_ + hf_)) - 1.0      # With the camera at 0 and the crest at 1 along the line of sight, the edge lies at h / (crest + h), and the foot at h_foot / (crest + h_foot)
     else: u_ = ec_ / h_
     return FRONT.get("scale", 200.0) * np.sign(u_) * (abs(u_) / UREF) ** FRONT.get("power", 1.0)
+def disc_hidden(hh):
+    """the part of the Sun's disc hidden by a straight crest, its centre hh radii above it (hh <= -1: all hidden; hh >= 1: none)"""
+    hh = np.clip(hh, -1.0, 1.0); return (np.arccos(hh) - hh * np.sqrt(1.0 - hh * hh)) / np.pi
+def in_light(mh):
+    """the share of the way from lit to shadowed picture levels that a hidden share mh of the Sun's light takes the ground: mixed as light (levels go as light to the power 1/2.2), not as levels. Half the Sun
+    leaves the ground at about three quarters of its lit level, not half way to the shadow: the light holds until the last sliver and then goes"""
+    k_ = float(np.mean(K)); kg_ = k_ ** 2.2; lv_ = (1.0 - (1.0 - kg_) * mh) ** (1.0 / 2.2); return ((1.0 - lv_) / (1.0 - k_)).astype(np.float32)
+def front_threshold(u):
+    """the Sun's height above the crest (px, as the camera sees it) at which the Sun's centre touches the crest as seen from ground u (the edge's place, see shadow_coord)"""
+    ec_, hf_ = FRONT["crest_px"], FRONT["h_foot"]; k_ = (ec_ + hf_) / hf_; d_ = (u + 1.0) * k_ - 1.0
+    return np.where(d_ > 1e-4, ec_ / np.maximum(d_, 1e-4), 1e5)
 def shade(ang, rad, t, rel=0.0, along=None):
+    if FRONT and FRONT.get("disc_penumbra") and FRONT.get("h_foot") and spec.get("sun_height") and BANDS[0]["lead"] == "@sun":      # the ridge's shadow, exactly: how much of the Sun's disc the crest hides as seen from each bit of ground. Its edge is sharp near the ridge while the Sun is high and widens into a long gradient as the Sun nears the crest (when the Sun is within its own width of the crest, the whole plain is in the penumbra)
+        a_ = ang + rel; u_ = np.sign(a_) * UREF * (np.abs(a_) / FRONT.get("scale", 200.0)) ** (1.0 / FRONT.get("power", 1.0))
+        return in_light(disc_hidden((key("sun_height", t) - front_threshold(u_)) / float(spec["sky_clean"].get("disc", 28.0))))
     """rel: how much each bit of ground faces the Sun, in degrees of the edge's travel. Ground turned to the Sun keeps the light longer and gets it back sooner; hollows the other way round. That is what makes a real shadow edge ragged."""
     m = 0.0
     for b in BANDS:
@@ -163,6 +177,27 @@ SKYMAX = spec.get("sky_max", 30.0)      # the sky is whatever is darker than thi
 if isinstance(SKYMAX, list): sm = np.array(SKYMAX, np.float32); SKYMAX = np.interp(np.arange(W), sm[:, 0], sm[:, 1]).astype(np.float32)[None]
 else: SKYMAX = np.full((1, W), SKYMAX, np.float32)
 EL7 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)); EL5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)); SMALL = spec.get("old_shadow_max_px", 70000)
+def sun_elev(t):
+    """the Sun's height above the horizon in degrees at time t: its height above the crest ("sun_height", px) plus the crest's above the horizon ("front.crest_px"), over the lens's px per degree"""
+    if spec.get("sun_height") and FRONT: return max((key("sun_height", t) + FRONT["crest_px"]) / spec["stars"].get("px_per_deg", 105.0), 0.05)
+    return spec.get("sun_elev_deg", 4.5)
+def stretch_shadows(sh, cx, cy, f, fade):
+    """sh: the source's shadows on the ground (0/1, window pixels). Each is drawn out along the Sun's ray, away from (cx, cy), the point on the horizon under the Sun, to f times its length on the ground.
+    On flat ground seen from a height, depth along such a ray goes as 1 / (distance from that point), so a shadow from base radius rb to tip rt on the picture becomes one from rb to
+    1 / (1/rb - f (1/rb - 1/rt)). The added part fades over its last "fade" share: the Sun is a disc, so a long shadow's tip is soft. Returns the added part only."""
+    h_, w_ = sh.shape; R_ = int(np.ceil(max(np.hypot(cx - xx_, cy - yy_) for xx_ in (0, w_) for yy_ in (0, h_)))) + 2; NA = 3600
+    P = cv2.warpPolar(sh.astype(np.float32), (R_, NA), (float(cx), float(cy)), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
+    st_ = P & ~np.pad(P, ((0, 0), (1, 0)))[:, :-1]; en_ = P & ~np.pad(P, ((0, 0), (0, 1)))[:, 1:]
+    rs, cs = np.nonzero(st_); re_, ce = np.nonzero(en_); out = np.zeros(P.shape, np.float32)
+    if len(rs) == 0 or len(rs) != len(re_): return np.zeros_like(sh, np.float32)
+    rb = np.maximum(cs, 1).astype(np.float64); rt = np.maximum(ce + 1, rb + 1).astype(np.float64); den = 1.0 / rb - f * (1.0 / rb - 1.0 / rt)
+    ne = np.where(den > 1.0 / (R_ * 4.0), 1.0 / np.maximum(den, 1e-9), R_ * 4.0); ne = np.minimum(ne, R_ - 1)
+    for k in range(len(rs)):
+        a_, b_ = int(ce[k]) + 1, int(ne[k])
+        if b_ <= a_: continue
+        L_ = b_ - a_; fl_ = max(fade * L_, 1.0); out[rs[k], a_:b_] = np.clip((b_ - np.arange(a_, b_)) / fl_, 0, 1)
+    back = cv2.warpPolar(out, (w_, h_), (float(cx), float(cy)), R_, cv2.WARP_POLAR_LINEAR + cv2.WARP_INVERSE_MAP + cv2.INTER_LINEAR)
+    return back
 def shift_x(a, d):
     """a moved d px to the right; what comes in from outside is 0"""
     o_ = np.zeros_like(a)
@@ -466,7 +501,8 @@ def frame(j):
         sk_ = np.interp(xx[0] - dx, SKYL[:, 0], SKYL[:, 1])[None] + dy; ft_ = np.interp(xx[0] - dx, GT_[:, 0], GT_[:, 1])[None] + dy      # and each loses the Sun when the crest behind it hides it: the shadow climbs the face from its foot (at the same moment as the plain's foot, "h_foot")
         qf_ = np.clip((ft_ - yy) / np.maximum(ft_ - sk_, 8.0), 0, 1); wv_f = 1.0 + 0.12 * np.sin((xx - dx) / 97.0 + 0.7) + 0.07 * np.sin((xx - dx) / 41.0 + 2.1) + 0.05 * np.sin((xx - dx) / 17.0 + 4.0)      # to the crest, which keeps the light until the Sun reaches it; at dawn it comes down the same way. (The edge wanders a little along the face: it is the outline of the crest behind)
         hth_ = FRONT["h_foot"] * (1.0 - qf_) ** FRONT.get("face_power", 1.5) * (1.0 + (wv_f - 1.0) * np.minimum(qf_ * 3.0, 1.0)); sh_h = key("sun_height", t); sfh_ = 4.0 + 0.08 * hth_      # (no wander at the very foot, where it meets the plain's edge exactly) sh_h = key("sun_height", t); sfh_ = 4.0 + 0.08 * hth_
-        mf_ = np.clip((hth_ - sh_h) / sfh_ + 0.5, 0, 1); mf_ = mf_ * mf_ * (3 - 2 * mf_)
+        if FRONT.get("disc_penumbra"): mf_ = in_light(disc_hidden((sh_h - hth_) / float(spec["sky_clean"].get("disc", 28.0))))      # how much of the Sun's disc the crest behind it hides
+        else: mf_ = np.clip((hth_ - sh_h) / sfh_ + 0.5, 0, 1); mf_ = mf_ * mf_ * (3 - 2 * mf_)
         m = np.where(ridge_s, mf_, m).astype(np.float32) * ground
     # ground that is sunlit takes the shadow colour. What is already dark stays: the black foreground as it is; an old shadow of an
     # object is raised to the level of the ground around it, because with the Sun gone there is nothing left to cast it.
@@ -519,7 +555,15 @@ def frame(j):
         night = night + nh_[..., None] * K[None, None] * ((deep * spec["night_detail"] * farw)[..., None] if isinstance(farw, np.ndarray) else deep * spec["night_detail"])
     band = (cv2.dilate(dm, EL7) > 0) & (cv2.erode(dm, EL5) == 0); w = (~band).astype(np.float32)
     fill = cv2.GaussianBlur(night * w[..., None], (0, 0), 2.5) / np.maximum(cv2.GaussianBlur(w, (0, 0), 2.5), 1e-3)[..., None]
-    bs = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.7)[..., None]; night = night + (fill - night) * bs; res = o + (night - o) * m[..., None]
+    bs = cv2.GaussianBlur(band.astype(np.float32), (0, 0), 0.7)[..., None]; night = night + (fill - night) * bs
+    if spec.get("long_shadows") and SUNG:                                   # the source's shadows are 2 to 4 times as long as what casts them, which a Sun 15 to 25 degrees up gives; its Sun is 4.6 degrees up, where a shadow is 12 times as long, and longer as it sinks.
+        ls_ = spec["long_shadows"]; fct = min((1.0 / ls_.get("source_ratio", 3.0)) / math.tan(math.radians(sun_elev(t))), ls_.get("max_factor", 14.0))      # So each is drawn out along the Sun's ray to the length the Sun shown gives
+        if fct > 1.05:
+            fd_ = min(max((0.53 / sun_elev(t)) * fct / max(fct - 1.0, 1e-3), 0.05), 0.6) if ls_.get("fade") == "sun" else ls_.get("fade", 0.3)      # penumbra = length x (Sun's width / its height); as a share of the added part
+            ext_ = ls_window(i, fct, fd_, xx, yy); ext_ = cv2.GaussianBlur(ext_, (0, 0), 0.8) * ground * ls_.get("strength", 1.0)
+            m = np.maximum(m, np.clip(ext_, 0, 1)).astype(np.float32)
+            if os.environ.get("DEBUG_LS"): print("long shadows t %.2f: factor %.2f, added px %d" % (t, fct, int((ext_ > 0.5).sum())), flush=True)
+    res = o + (night - o) * m[..., None]
     # ---------- the sky: stars and the Milky Way come up as the exposure opens for dark ground, and never through glare or through a planet; then the lights that travel across it
     if STARS is not None or MOVERS:
         skyw = np.maximum(cv2.GaussianBlur(sky.astype(np.float32), (0, 0), 1.2), sky.astype(np.float32))
@@ -559,7 +603,7 @@ def frame(j):
                 pf_ = (8.1 * (1 - 0.57 * kneel_) + 12.7 * math.cos(math.radians(lean_))) / 20.8      # how tall the figure stands in this pose, against upright: its shadow is that much shorter
                 if SUNG and sun > 0.02:                                     # the shadow: a body's width at the feet, drawn out along the Sun's ray and softer toward its far end. Its length is the body's height over the tangent of the Sun's height,
                     ux, uy = fx + c0 - (SUNG[0] + dx), fy + y0r - (SUNG[1] + dy); nu = math.hypot(ux, uy); ux, uy = ux / nu, uy / nu; pd_ = spec["stars"]["px_per_deg"] if spec.get("stars") else 105.0      # seen as foreshortened as the ground is there: least when the Sun is off to the side, most when the shadow points at the camera
-                    daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = spec.get("drawn_shadow_scale", 1.0) * hh * pf_ / math.tan(math.radians(spec.get("sun_elev_deg", 4.5))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
+                    daz, dep = math.radians(abs(ux * nu) / pd_), math.radians(max(uy * nu, 0.0) / pd_); Ls = spec.get("drawn_shadow_scale", 1.0) * hh * pf_ / math.tan(math.radians(sun_elev(t))) * math.hypot(math.sin(daz), math.cos(daz) * math.sin(dep)); Pp = X * ux + Y * uy; Qq = -X * uy + Y * ux
                     a_sh = np.clip(Pp / 1.5 + 0.6, 0, 1) * np.clip((Ls - Pp) / (0.4 * Ls), 0, 1) * np.exp(-(Qq / (0.13 * hh + 0.012 * np.maximum(Pp, 0))) ** 2) * 0.9 * sun * gfa * (1 - m[ya:yb, xa:xb]) * ground[ya:yb, xa:xb] * wb[ya:yb, xa:xb]
                     res[ya:yb, xa:xb] += (night[ya:yb, xa:xb] - res[ya:yb, xa:xb]) * a_sh[..., None]
                 spr, sal = person_sprite(step, face, 1.0 if not SUNG or SUNG[0] + dx > fx + c0 else -1.0, lean_, kneel_); Mp = np.float32([[zs, 0, fx - xa - 8.0 * zs], [0, zs, fy - ya - 21.9 * zs]])
@@ -674,6 +718,48 @@ def rock_mask(i, xw, yw, raise_px, soft, size):
     cr = np.c_[c_, np.ones(len(c_))] @ np.array(ROCK[str(i)], float).T - [xw, yw + raise_px]
     poly = np.vstack([cr, [[cr[-1, 0] + 4000, cr[-1, 1]], [cr[-1, 0] + 4000, 9000], [cr[0, 0], 9000]]]); mk = np.zeros(size, np.float32); cv2.fillPoly(mk, [np.round(poly * 8).astype(np.int32)], 1.0, lineType=cv2.LINE_AA, shift=3)
     return cv2.GaussianBlur(mk, (0, 0), soft) if soft > 0 else mk
+LSRUNS = {}; LSH = {}
+def ls_to_ref(i):
+    """the ground-plane motion from source frame i to the reference frame: a homography fitted to the tracked points (lamps on the ground), so shadows found once on the reference frame move with the ground"""
+    if i not in LSH:
+        Hm_, _ = cv2.findHomography(T[i].astype(np.float32), T[r].astype(np.float32), cv2.RANSAC, 3.0) if i != r else (np.eye(3), None); LSH[i] = Hm_ if Hm_ is not None else np.eye(3)
+    return LSH[i]
+def ls_runs(i):
+    """the source's shadows of things on the plain in source frame i, found once on the whole wide picture, as runs along the Sun's rays: a polar picture round the point on the horizon under the Sun
+    (rows: direction, columns: distance from that point). A shadow is a patch darker than "rel" of the sunlit ground close by (NASA's are 0.25 to 0.45 of it), on the plain below the ridge's foot,
+    not the dark foreground, and drawn out along the Sun's ray (a crater's dark inside lies across it; a module's shaded side lies along the module)."""
+    i = r                                                                   # (found on the reference frame only, and carried to the others by ls_to_ref: found anew on each, borderline patches came and went, and whole long shadows with them)
+    if i in LSRUNS: return LSRUNS[i]
+    ls_ = spec["long_shadows"]; dx_, dy_ = float(vp[i, 0] - vp[r, 0]), float(vp[i, 1] - vp[r, 1]); cx, cy = float(SUNG[0] + dx_), float(vp[i, 1])
+    lum_ = cv2.cvtColor(src(i, 0, H, 0, W), cv2.COLOR_BGR2GRAY).astype(np.float32); lb_ = cv2.GaussianBlur(lum_, (0, 0), 1.0)
+    bgl_ = cv2.GaussianBlur(cv2.dilate(cv2.GaussianBlur(lum_, (0, 0), 3.0), np.ones((31, 31), np.uint8)), (0, 0), 15.0)
+    foot_ = np.interp(np.arange(W) - dx_, GT_[:, 0], GT_[:, 1]) + dy_; Yc = np.arange(H, dtype=np.float32)[:, None]
+    cand_ = ((lb_ < ls_.get("rel", 0.5) * bgl_) & (bgl_ > 90.0) & (Yc > foot_[None] + 6)).astype(np.uint8); cand_[H - int(ls_.get("skip_bottom", 260)):] = 0
+    if ROCK: cand_[rock_mask(i, 0.0, 0.0, 40.0, 0.0, (H, W)) > 0.5] = 0
+    nc_, dlc_, dstc_, _ = cv2.connectedComponentsWithStats(cand_, connectivity=8); keep_ = np.zeros(nc_, bool)
+    for c_ in range(1, nc_):
+        x_, y_, w_, h_, a_ = dstc_[c_]
+        if a_ < ls_.get("min_px", 6) or a_ > ls_.get("max_px", 60000) or y_ + h_ >= H - int(ls_.get("skip_bottom", 260)) - 1: continue
+        if a_ < 40: keep_[c_] = True; continue
+        ys_, xs_ = np.nonzero(dlc_[y_:y_ + h_, x_:x_ + w_] == c_); pts_ = np.c_[xs_ + x_, ys_ + y_].astype(np.float64); mu_ = pts_.mean(0); _, sv_, vt_ = np.linalg.svd(pts_ - mu_, full_matrices=False)
+        ray_ = np.array([mu_[0] - cx, mu_[1] - cy]); ray_ /= np.linalg.norm(ray_) + 1e-9
+        keep_[c_] = abs(float(vt_[0] @ ray_)) > math.cos(math.radians(ls_.get("max_angle", 28.0))) or sv_[0] < 1.6 * sv_[1]
+    shs_ = keep_[dlc_].astype(np.float32); R_ = int(np.ceil(max(np.hypot(cx - x_, cy - y_) for x_ in (0, W) for y_ in (0, H)))) + 2; NA = int(ls_.get("directions", 4096))
+    P = cv2.warpPolar(shs_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
+    st_ = P & ~np.pad(P, ((0, 0), (1, 0)))[:, :-1]; en_ = P & ~np.pad(P, ((0, 0), (0, 1)))[:, 1:]; rs, cs = np.nonzero(st_); _, ce = np.nonzero(en_)
+    LSRUNS[i] = (cx, cy, R_, NA, rs.astype(np.int32), cs.astype(np.int32), ce.astype(np.int32)); return LSRUNS[i]
+def ls_window(i, f, fade, X, Y):
+    """what drawing the source's shadows f times as long adds, at the window's pixels (canvas coordinates X, Y). On flat ground seen from a height, depth along a ray from the point on the horizon
+    under the Sun goes as 1 / (distance from it), so a shadow from base radius rb to tip rt on the picture becomes one from rb to 1 / (1/rb - f (1/rb - 1/rt)). The added part fades over its last
+    "fade" share: the Sun is a disc, so a long shadow's tip is soft."""
+    cx, cy, R_, NA, rs, cs, ce = ls_runs(i); out = np.zeros((NA, R_), np.float32)
+    rb = np.maximum(cs, 1).astype(np.float64); rt = np.maximum(ce + 1, rb + 1).astype(np.float64); den = 1.0 / rb - f * (1.0 / rb - 1.0 / rt)
+    ne = np.minimum(np.where(den > 1e-6, 1.0 / np.maximum(den, 1e-9), R_), R_ - 1).astype(np.int64)
+    for k in np.nonzero(ne > ce + 1)[0]:
+        a_, b_ = int(ce[k]) + 1, int(ne[k]); out[rs[k], a_:b_] = np.clip((b_ - np.arange(a_, b_, dtype=np.float32)) / max(fade * (b_ - a_), 1.0), 0, 1)
+    Hm_ = ls_to_ref(i); w_ = Hm_[2, 0] * X + Hm_[2, 1] * Y + Hm_[2, 2]; Xr = (Hm_[0, 0] * X + Hm_[0, 1] * Y + Hm_[0, 2]) / w_; Yr = (Hm_[1, 0] * X + Hm_[1, 1] * Y + Hm_[1, 2]) / w_      # this frame's pixels in the reference frame
+    rr_ = np.hypot(Xr - cx, Yr - cy).astype(np.float32); aa_ = (np.mod(np.arctan2(Yr - cy, Xr - cx), 2 * np.pi) * (NA / (2 * np.pi))).astype(np.float32)
+    return cv2.remap(out, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
 def stand_behind(fr, t, xw, yw, i):
     """a figure cut out beforehand (astro_stab.py, astro_cut.py: held still, its sky and ground removed) stands at one place in the wide picture, behind something near that hides
     its lower part (a rock, followed through the source by rock_track.py). It keeps its own shot's light. Because it is tied to the picture and to the rock, it moves only as they do."""
