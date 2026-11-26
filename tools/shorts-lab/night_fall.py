@@ -493,8 +493,8 @@ def frame(j):
         if rk_.max() > 0 and y1r == H:                                      # the rock itself, not the plain beside it: the dark that reaches the bottom of the picture inside the traced outline, and the lit rim just above that dark
             nk, kl, ks, _ = cv2.connectedComponentsWithStats(((cv2.GaussianBlur(lum, (0, 0), 1.5) < 60.0) & (rk_ > 0.5)).astype(np.uint8), connectivity=4); ids_ = np.unique(kl[-1])
             dk_ = cv2.dilate(np.isin(kl, [c for c in ids_ if c != 0 and ks[c, cv2.CC_STAT_AREA] > 4000]).astype(np.uint8), np.ones((2 * int(spec["overlay"]["rock"].get("in_sun_rim", 26)) + 1, 7), np.uint8)).astype(np.float32)
-            gr_ = cv2.GaussianBlur(np.maximum(dk_ * rk_, rock_mask(i, c0, y0r, -10.0, 0.0, m.shape)), (0, 0), 3.0)      # (everything under the traced line is rock, its sunlit facets too; above the line only what touches its dark)
-            m = m * (1 - gr_) + (gr_ * float(in_light(np.float32(1.0 - SUNVIS[0]))) if spec["overlay"]["rock"].get("by_disc") else 0.0)      # "by_disc": it has as much of the Sun as shows above the ridge: half the disc hidden, half the light (mixed as light)
+            rockw_ = cv2.GaussianBlur(np.maximum(dk_ * rk_, rock_mask(i, c0, y0r, -10.0, 0.0, m.shape)), (0, 0), 3.0)      # (everything under the traced line is rock, its sunlit facets too; above the line only what touches its dark)
+            m = m * (1 - rockw_) + (rockw_ * float(in_light(np.float32(1.0 - SUNVIS[0]))) if spec["overlay"]["rock"].get("by_disc") else 0.0)      # "by_disc": it has as much of the Sun as shows above the ridge: half the disc hidden, half the light (mixed as light)
     if spec.get("crest_edge"):                                              # where the high ground's light ends: not a level line drawn with a ruler but an edge that follows the ground, lower where a slope faces the Sun, and a few pixels soft
         ce = spec["crest_edge"]; up_ = np.clip((vp[i, 1] + ce.get("ragged", 1.2) * rel - yy) / ce.get("soft", 10.0) + 0.5, 0, 1)
         m = np.maximum(m * (1 - up_), crest_dark(t) * np.maximum(up_, (((ang >= 0) & (ang < 6)) if ridge_s is None else ridge_s).astype(np.float32))) * ground
@@ -564,12 +564,17 @@ def frame(j):
         if fct > 1.01 or ls_.get("casters"):
             ts_ = max(0.53 / sun_elev(t) - 0.53 / ls_["source_elev_deg"], 0.0)      # its tip softer by the share the lower Sun's penumbra adds (0.53 degrees over the Sun's height, of the length)
             rat_, ob_ = ls_window(i, fct, ts_, xx, yy); wls_ = ground * (1.0 - np.clip(ob_, 0, 1)) * ls_.get("strength", 1.0) * (1.0 - m)      # not on the things standing on the plain, and where the ridge's shadow already lies, nothing to add
-            rat_ = cv2.GaussianBlur(rat_, (0, 0), 0.7); sa_ = (np.clip((1.0 - rat_) / 0.6, 0, 1) * wls_)[..., None]      # ground newly in shadow has no direct light: the fine shading that light drew on it mostly goes, as in the source's own shadows (and with it the bright rim the source drew along its old edge)
-            ob_ = cv2.GaussianBlur(o, (0, 0), 2.0); o = o + ((ob_ + float(ls_.get("shade_detail", 0.35)) * (o - ob_)) - o) * sa_; o = o * (1.0 + (rat_ - 1.0) * wls_)[..., None]      # the added length is the source's own shadow, so the same neutral dark as the part it drew, not the night's colour
+            rat_ = cv2.GaussianBlur(rat_, (0, 0), 0.7); sa_ = (np.clip((1.0 - rat_) / 0.6, 0, 1) * wls_)[..., None]      # ground newly in shadow has no direct light: the fine shading that light drew on it mostly goes, as in the source's own shadows
+            ob_ = cv2.GaussianBlur(o, (0, 0), 2.0); det_ = float(ls_.get("shade_detail", 0.35)) * (o - ob_); o = o + ((ob_ + det_) - o) * sa_; o = o * (1.0 + (rat_ - 1.0) * wls_)[..., None]
+            ow_ = cv2.GaussianBlur(OUTW[0], (0, 0), 0.7); lit_l = cv2.GaussianBlur(cv2.dilate(cv2.GaussianBlur(o, (0, 0), 3.0), np.ones((31, 31), np.uint8)), (0, 0), 15.0)      # and wherever the longer shadow lies, nothing is brighter than its level times the lit ground close by
+            cap_ = ow_[..., None] * (lit_l + det_); s2_ = (np.clip((1.0 - ow_) / 0.6, 0, 1) * wls_)[..., None]      # (the old edge's bright rim, from the source and from sharpening, stayed as a lit seam across it)
+            o = o + (np.minimum(o, cap_) - o) * s2_      # the added length is the source's own shadow, so the same neutral dark as the part it drew, not the night's colour
             ext_ = np.clip((1.0 - rat_) / 0.7, 0, 1) * wls_; mls_ = np.maximum(m, ext_).astype(np.float32)
+            if os.environ.get("DUMP_LS"): np.savez_compressed(os.environ["DUMP_LS"], rat=rat_, wls=wls_, ob=ob_)
             if os.environ.get("DEBUG_LS"): print("long shadows t %.2f: Sun %.2f deg, factor %.2f, tip %.2f, darker px %d, lighter px %d" % (t, sun_elev(t), fct, ts_, int(((rat_ < 0.8) & (wls_ > 0.5)).sum()), int(((rat_ > 1.1) & (wls_ > 0.5)).sum())), flush=True)
     if "mls_" not in locals(): mls_ = m
     gw_ = ground * (yy > vp[i, 1] + 250.0); PLAINLIT[0] = float(1.0 - (m * gw_).sum() / max(float(gw_.sum()), 1.0))      # how much of the plain this side of the ridge is in sunlight: what lights a figure's side turned to us
+    if "rockw_" in locals() and spec["overlay"]["rock"].get("by_disc"): night = night + (np.minimum(night, o) - night) * rockw_[..., None]      # the rock's face turned from the Sun only loses light as the Sun goes: the night's tone never lifts it
     res = o + (night - o) * m[..., None]
     # ---------- the sky: stars and the Milky Way come up as the exposure opens for dark ground, and never through glare or through a planet; then the lights that travel across it
     if STARS is not None or MOVERS:
@@ -730,7 +735,7 @@ def rock_mask(i, xw, yw, raise_px, soft, size):
     cr = np.c_[c_, np.ones(len(c_))] @ np.array(ROCK[str(i)], float).T - [xw, yw + raise_px]
     poly = np.vstack([cr, [[cr[-1, 0] + 4000, cr[-1, 1]], [cr[-1, 0] + 4000, 9000], [cr[0, 0], 9000]]]); mk = np.zeros(size, np.float32); cv2.fillPoly(mk, [np.round(poly * 8).astype(np.int32)], 1.0, lineType=cv2.LINE_AA, shift=3)
     return cv2.GaussianBlur(mk, (0, 0), soft) if soft > 0 else mk
-LSRUNS = {}; LSH = {}
+LSRUNS = {}; LSH = {}; OUTW = [None]
 def ls_to_ref(i):
     """the ground-plane motion from source frame i to the reference frame: a homography fitted to the tracked points (lamps on the ground), so shadows found once on the reference frame move with the ground"""
     if i not in LSH:
@@ -782,11 +787,13 @@ def ls_runs(i):
         dmc_[sl_][in_] = np.maximum(dm_[sl_][in_], np.percentile(dm_[sl_][in_], float(ls_.get("level_pct", 75))))
     czall_ = shs_ & (rf_ > 0); dm_[czall_] = np.clip(lb_[czall_] / np.maximum(med_[czall_], 1.0), 0.05, 1.0); dmc_[czall_] = dm_[czall_]
     R_ = int(np.ceil(max(np.hypot(cx - x_, cy - y_) for x_ in (0, W) for y_ in (0, H)))) + 2; NA = int(ls_.get("directions", 2048))
-    Dp = cv2.warpPolar(dm_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR); Dpc = cv2.warpPolar(dmc_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR)
-    CFp = cv2.warpPolar(czall_.astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
-    CIDp = cv2.warpPolar(np.where(shs0_, dlc_, 0).astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_NEAREST)      # which source shadow each place belongs to
-    P = cv2.warpPolar(shs_.astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
-    RFp = cv2.warpPolar(rf_, (R_, NA), (cx, cy), R_, cv2.WARP_POLAR_LINEAR + cv2.INTER_NEAREST)
+    Dp = cv2.warpPolar(dm_, (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR); Dpc = cv2.warpPolar(dmc_, (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR)
+    CFp = cv2.warpPolar(czall_.astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
+    CIDp = cv2.warpPolar(np.where(shs0_, dlc_, 0).astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_NEAREST)      # which source shadow each place belongs to
+    P0_ = cv2.warpPolar(shs_.astype(np.float32), (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_LINEAR) > 0.5
+    gk_ = int(ls_.get("close_px", 7)); P = cv2.morphologyEx(P0_.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((1, gk_), np.uint8)) > 0      # a lit gap of a few pixels across a shadow (a track's bright edge) is closed: drawn longer, it became a lit seam through the shadow
+    gap_ = P & ~P0_; Dpc = np.where(gap_, cv2.erode(Dpc, np.ones((1, gk_), np.uint8)), Dpc)      # (its old place there keeps its own level, so it is darkened with the rest)
+    RFp = cv2.warpPolar(rf_, (R_, NA), (cx, cy), R_, cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR + cv2.INTER_NEAREST)
     st_ = P & ~np.pad(P, ((0, 0), (1, 0)))[:, :-1]; en_ = P & ~np.pad(P, ((0, 0), (0, 1)))[:, 1:]; rs, cs = np.nonzero(st_); _, ce = np.nonzero(en_)
     rfk = RFp[rs, cs]; rfk = np.where((rfk > 0) & (rfk < cs), rfk, cs).astype(np.float64)      # the foot: the caster's, or the shadow's own start where it touches what casts it
     Dp = np.where(P, Dp, 1.0).astype(np.float32); Dpc = np.where(P, Dpc, 1.0).astype(np.float32)
@@ -802,7 +809,8 @@ def ls_window(i, f, tipsoft, X, Y):
     rF = rfk; rb_ = cs.astype(np.float64); rt_ = ce.astype(np.float64) + 1.0
     def fwd(rr): den_ = 1.0 / rF - f * (1.0 / rF - 1.0 / rr); return np.where(den_ > 1.0 / (4.0 * R_), 1.0 / np.maximum(den_, 1e-9), 4.0 * R_)
     na_ = np.minimum(fwd(rb_), R_ - 1).astype(np.int64); nb_ = np.minimum(fwd(rt_), R_ - 1).astype(np.int64)
-    for k in np.nonzero(nb_ > na_)[0]:
+    redraw_ = ~((rF < rb_) & bool(spec["long_shadows"].get("replace_casters")))      # "replace_casters": a caster's old shadow (NASA's pale stripes for an opaque panel, 20% short and turned 5 to 10 degrees from the Sun's ray) is lifted, not redrawn: its line pieces draw it anew
+    for k in np.nonzero((nb_ > na_) & redraw_)[0]:
         rr = np.arange(na_[k], nb_[k], dtype=np.float64) + 0.5; g_ = 1.0 / (1.0 / rF[k] - (1.0 / rF[k] - 1.0 / rr) / f)      # where on the old shadow each new point comes from
         v_ = np.interp(g_, np.arange(R_, dtype=np.float64), Dpc[rs[k]]).astype(np.float32); v_ = np.where((g_ >= rb_[k] - 0.5) & (g_ <= rt_[k] + 0.5), v_, 1.0)
         if tipsoft > 0: fl_ = max(tipsoft * (nb_[k] - rF[k]), 1.0); v_ = 1.0 - (1.0 - v_) * np.clip((nb_[k] - rr) / fl_, 0, 1).astype(np.float32)
@@ -823,7 +831,10 @@ def ls_window(i, f, tipsoft, X, Y):
 
     Hm_ = ls_to_ref(i); w_ = Hm_[2, 0] * X + Hm_[2, 1] * Y + Hm_[2, 2]; Xr = ((Hm_[0, 0] * X + Hm_[0, 1] * Y + Hm_[0, 2]) / w_).astype(np.float32); Yr = ((Hm_[1, 0] * X + Hm_[1, 1] * Y + Hm_[1, 2]) / w_).astype(np.float32)
     rr_ = np.hypot(Xr - cx, Yr - cy).astype(np.float32); aa_ = (np.mod(np.arctan2(Yr - cy, Xr - cx), 2 * np.pi) * (NA / (2 * np.pi))).astype(np.float32)
-    return (cv2.remap(ratio, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0), cv2.remap(objm, Xr, Yr, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0))
+    if os.environ.get("DUMP_LS"): np.savez_compressed(os.environ["DUMP_LS"] + ".polar.npz", Dp=cv2.remap(Dp, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0), out=cv2.remap(out, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0), Xr=Xr, Yr=Yr, rr=rr_)
+    inside_ = ((Xr >= 0) & (Xr <= W - 1) & (Yr >= 0) & (Yr <= H - 1)).astype(np.float32)      # where this frame shows ground the reference frame does not (past its edge), nothing was found and nothing is changed (the maps read 0 there: a black band)
+    ib_ = cv2.GaussianBlur(inside_, (0, 0), 1.0); OUTW[0] = 1.0 + (cv2.remap(out, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0) - 1.0) * ib_      # (the new shadow's own level, for the frame)
+    return (1.0 + (cv2.remap(ratio, rr_, aa_, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=1.0) - 1.0) * ib_, cv2.remap(objm, Xr, Yr, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0))
 def stand_behind(fr, t, xw, yw, i):
     """a figure cut out beforehand (astro_stab.py, astro_cut.py: held still, its sky and ground removed) stands at one place in the wide picture, behind something near that hides
     its lower part (a rock, followed through the source by rock_track.py). It keeps its own shot's light. Because it is tied to the picture and to the rock, it moves only as they do."""
