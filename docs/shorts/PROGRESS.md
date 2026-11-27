@@ -958,7 +958,7 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     | A grey band on the rock's left edge at 21 s | The edge of his shadow: with the Sun behind him and to the right, it falls down and to the left across the rock top |
 
   - **Measured on the file sent (render 20, which is render 19 with the astronaut's last four chunks redone):**
-    - File: 600 frames, 25.00 s, 30.8 MB, mean 9.7 Mbps (highest 2 s 10.6 Mbps), frames evenly spaced; no dark band at any frame's edge (rows under 10 of 255 at the bottom: 0 in all 600 frames).
+    - File: 600 frames, 25.00 s, 30.3 MB, mean 9.7 Mbps (highest 2 s 10.8 Mbps), frames evenly spaced; no dark band at any frame's edge (rows under 10 of 255 at the bottom: 0 in all 600 frames). The rock top in front of the astronaut stays in his shadow from 21 s to the end (28 to 30 of 255).
     - Sound unchanged; 100% word match; no clicks, no dead silences, no clipping.
     - Fine detail on the same ground as the sixth version (`matched.py`): under 1 px +19% on average, 1 to 3 px +5%, 3 to 9 px −3%. By daylight +17 to +76% (finest).
     - Mean brightness per second: 88 88 84 74 53 37 32 33 36 37 41 43 43 37 34 63 79 99 99 89 72 51 34 27 23.
@@ -966,7 +966,7 @@ Plan file: `tools/shorts-lab/night-video.json`. Method and sources: `tools/short
     - The source's own dark band at the ridge's foot has no texture to recover (it is lens glare over black), so it stays near-black, at night too, as in the night the owner chose. The ridge's shadow we add on the plain is the night's blue.
     - The Sun's path, the night's length and the Sun coming back at the same place are ours, the day's light in time-lapse (as stated for the seventh version).
     - Shadows are laid on NASA's picture as on flat ground; things standing on the plain are outlined by hand and kept out of them.
-  - **Time and cost.** From about 20:00 UTC+1 on Nov 26 to about 01:00 UTC+1 on Nov 27. Five full renders (15 to 19). No AI credit spent (/bin/bash); no paid service used. The independent reviews ran as separate agents inside this session.
+  - **Time and cost.** From about 20:00 UTC+1 on Nov 26 to about 01:10 UTC+1 on Nov 27. Five full renders (15 to 19) and one partial (20). Sent as `moon-base-shadows.mp4` with `moon-base-shadows-before-and-now.png` (the seventh version against this one at actual pixels). No AI credit spent (/bin/bash); no paid service used. The independent reviews ran as separate agents inside this session.
 **Blocked: the open AI image model test.** The plan was an Apache-licensed image model run on the CPU through `stable-diffusion.cpp`. This session's safety check refused the build three times; it was not worked around. **Owner's decision (Nov 21): skip the AI image test for now.** Revisit only if the real-data method cannot cover a goal (for example things that do not exist yet, such as a finished Moon base with people).
 
 **Other findings**
